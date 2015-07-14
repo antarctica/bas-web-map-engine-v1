@@ -34,9 +34,7 @@ magic.classes.OverviewMap = function(options) {
             this.target.popover("hide");
         }, this));
     }, this));
-    $(document).on("baselayerchanged", $.proxy(function(evt) {        
-        this.initControl();
-    }, this));
+    $(document).on("baselayerchanged", $.proxy(this.initControl, this));
 };
 
 magic.classes.OverviewMap.prototype.initControl = function() {

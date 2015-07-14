@@ -27,6 +27,7 @@
     "ol.Feature#*",
     "ol.Overlay",
     "ol.Overlay#setPosition",
+    "ol.Overlay#setOffset",
     "ol.geom.Point",
     "ol.geom.Point#*",
     "ol.geom.LineString",

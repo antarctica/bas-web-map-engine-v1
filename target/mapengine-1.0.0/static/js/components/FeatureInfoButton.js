@@ -41,6 +41,10 @@ magic.classes.FeatureInfoButton.prototype.isActive = function () {
  * Activate the control
  */
 magic.classes.FeatureInfoButton.prototype.activate = function () {
+    
+    /* Trigger mapinteractionactivated event */
+    $(document).trigger("mapinteractionactivated", [this]);  
+    
     this.active = true;
     var spn = this.btn.children("span");
     spn.removeClass("fa fa-info-circle").addClass("fa fa-ban");

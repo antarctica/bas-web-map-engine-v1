@@ -120,9 +120,9 @@ magic.classes.Measurement = function(options) {
         /* Add go button handlers */
         $("button[id$='-go']").click($.proxy(function(evt) {
             if (this.measuring) {
-                this.stopMeasuring(evt);
+                this.deactivate(evt);
             } else {
-                this.startMeasuring(evt);
+                this.activate(evt);
             }
         }, this));
 
@@ -130,17 +130,17 @@ magic.classes.Measurement = function(options) {
         $("a[href='#" + this.id + "-distance']").on("shown.bs.tab", $.proxy(function() {
             $("#" + this.id + "-distance-units").focus();
             this.actionType = "distance";
-            this.stopMeasuring();
+            this.deactivate();
         }, this));
         $("a[href='#" + this.id + "-area']").on("shown.bs.tab", $.proxy(function() {
             $("#" + this.id + "-area-units").focus();
             this.actionType = "area";
-            this.stopMeasuring();
+            this.deactivate();
         }, this));
 
         /* Click handler for dropdown action units selection */
         $("select[id$='-units']").change($.proxy(function(evt) {
-            this.stopMeasuring();
+            this.deactivate();
         }, this));
 
         /* Close button */
@@ -152,7 +152,7 @@ magic.classes.Measurement = function(options) {
         $("#" + this.id + "-distance-units").focus();
     }, this))
     .on("hidden.bs.popover", $.proxy(function() {
-        this.stopMeasuring();
+        this.deactivate();
     }, this));
 };
 
@@ -167,7 +167,10 @@ magic.classes.Measurement.prototype.getTemplate = function() {
 /**
  * Handle the "go" button click to start a measurement sketch according to current action
  */
-magic.classes.Measurement.prototype.startMeasuring = function() {
+magic.classes.Measurement.prototype.activate = function() {
+    
+    /* Trigger mapinteractionactivated event */
+    $(document).trigger("mapinteractionactivated", [this]);  
 
     /* Record measuring operation in progress */
     this.measuring = true;
@@ -207,18 +210,12 @@ magic.classes.Measurement.prototype.startMeasuring = function() {
     /* Add mouse move handler to give a running total in the output */
     magic.runtime.map.un("pointermove", this.pointerMoveHandler, this);
     magic.runtime.map.on("pointermove", this.pointerMoveHandler, this);
-
-    /* Turn off the feature click detection on the map for the duration of the sketch */
-    //magic.runtime.map.un("singleclick", magic.runtime.appcontainer.featureAtPixelHandler, magic.runtime.appcontainer);
 };
 
 /**
  * Handle stopping the measurement operation
  */
-magic.classes.Measurement.prototype.stopMeasuring = function() {
-
-    /* Turn on the feature click detection on the map after sketch complete */
-    //magic.runtime.map.on("singleclick", magic.runtime.appcontainer.featureAtPixelHandler, magic.runtime.appcontainer);
+magic.classes.Measurement.prototype.deactivate = function() {
 
     /* Record no measuring in progress */
     this.measuring = false;

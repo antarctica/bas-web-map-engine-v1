@@ -66,9 +66,7 @@ magic.classes.Geosearch = function(options) {
             }
         ]          
     });
-    
-    magic.runtime.map.on("singleclick", this.featureAtPixelHandler, this);
-    
+            
     this.template = 
         '<div class="popover geosearch-popover" role="popover">' + 
             '<div class="arrow"></div>' +
@@ -152,78 +150,8 @@ magic.classes.Geosearch = function(options) {
         html: true,            
         content: this.content
     })
-    .on("shown.bs.popover", $.proxy(function() {
-        
-        this.layer.setVisible(true);
-                       
-        /* Set handlers for selecting between coordinate and place-name search */
-        $("a[href='#" + this.id + "-placename']").on("shown.bs.tab", $.proxy(function() {
-            $("#" + this.id + "-ta").focus();
-        }, this));
-        $("a[href='#" + this.id + "-position']").on("shown.bs.tab", $.proxy(function() {
-            $("#" + this.id + "-lon").focus();  
-            /* Assign all blur handlers for validation */
-            this.validation.init($("#" + this.id + "-position"));
-        }, this));       
-                
-        $("#" + this.id + "-ta").typeahead({minLength: 4, highlight: true}, this.getSources())
-            .on("typeahead:autocompleted", $.proxy(this.selectHandler, this))
-            .on("typeahead:selected", $.proxy(this.selectHandler, this))            
-            .on("typeahead:render", $.proxy(function() {
-                $("p.suggestion").off("mouseover").on("mouseover", $.proxy(function(evt) {                   
-                    var name = evt.target.innerText;
-                    if (this.searchSuggestions[name]) {
-                        var feat = this.searchSuggestions[name].feature;                        
-                        if (!feat) {
-                            /* Create the feature */
-                            var trCoord = ol.proj.transform([this.searchSuggestions[name].lon, this.searchSuggestions[name].lat], "EPSG:4326", magic.runtime.projection);
-                            feat = new ol.Feature({
-                                geometry: new ol.geom.Point(trCoord),
-                                suggestion: true
-                            });
-                            this.searchSuggestions[name].feature = feat;
-                            this.layer.getSource().addFeature(feat);  
-                        }                        
-                        feat.setStyle(this.suggestionStyle);                                              
-                    }                   
-                }, this));
-                $("p.suggestion").off("mouseout").on("mouseout", $.proxy(function(evt) {                   
-                    var name = evt.target.innerText;
-                    if (this.searchSuggestions[name] && this.searchSuggestions[name].feature) {
-                        this.searchSuggestions[name].feature.setStyle(this.invisibleStyle);
-                    }                   
-                }, this));
-            }, this));                     
-   
-        $("#" + this.id + "-placename-go").click($.proxy(this.placenameSearchHandler, this));
-        $("#" + this.id + "-position-go").click($.proxy(this.positionSearchHandler, this));
-        
-        /* Initial focus */
-        $("#" + this.id + "-ta").focus();
-        
-        /* Attribution link */
-        $("a.gaz-attribution").click($.proxy(function(evt) {
-            var attribArea = $("#" + this.id + "-attribution-text");
-            attribArea.toggleClass("hidden");
-            if (!attribArea.hasClass("hidden")) {
-                attribArea.html(this.getAttributions());
-                $(evt.currentTarget).children("span").removeClass("fa-caret-down").addClass("fa-caret-up");
-                $(evt.currentTarget).attr("data-original-title", "Hide gazetteer sources").tooltip("fixTitle");
-            } else {
-                $(evt.currentTarget).children("span").removeClass("fa-caret-up").addClass("fa-caret-down");
-                $(evt.currentTarget).attr("data-original-title", "Show gazetteer sources").tooltip("fixTitle");
-            }
-        }, this));
-        
-        /* Close button */
-        $(".geosearch-popover").find("button.close").click($.proxy(function() { 
-            this.target.popover("hide");
-        }, this));
-        
-    }, this))
-    .on("hidden.bs.popover", $.proxy(function() {
-        this.layer.setVisible(false);
-    }, this));
+    .on("shown.bs.popover", $.proxy(this.activate, this))
+    .on("hidden.bs.popover", $.proxy(this.deactivate, this));
 };
             
 magic.classes.Geosearch.prototype.getTarget = function() {
@@ -232,6 +160,82 @@ magic.classes.Geosearch.prototype.getTarget = function() {
 
 magic.classes.Geosearch.prototype.getTemplate = function() {
     return(this.template);
+};
+
+magic.classes.Geosearch.prototype.activate = function() {
+    
+    /* Trigger mapinteractionactivated event */
+    $(document).trigger("mapinteractionactivated", [this]);        
+                   
+    this.layer.setVisible(true);
+
+    /* Set handlers for selecting between coordinate and place-name search */
+    $("a[href='#" + this.id + "-placename']").on("shown.bs.tab", $.proxy(function() {
+        $("#" + this.id + "-ta").focus();
+    }, this));
+    $("a[href='#" + this.id + "-position']").on("shown.bs.tab", $.proxy(function() {
+        $("#" + this.id + "-lon").focus();  
+        /* Assign all blur handlers for validation */
+        this.validation.init($("#" + this.id + "-position"));
+    }, this));       
+
+    $("#" + this.id + "-ta").typeahead({minLength: 4, highlight: true}, this.getSources())
+        .on("typeahead:autocompleted", $.proxy(this.selectHandler, this))
+        .on("typeahead:selected", $.proxy(this.selectHandler, this))            
+        .on("typeahead:render", $.proxy(function() {
+            $("p.suggestion").off("mouseover").on("mouseover", $.proxy(function(evt) {                   
+                var name = evt.target.innerText;
+                if (this.searchSuggestions[name]) {
+                    var feat = this.searchSuggestions[name].feature;                        
+                    if (!feat) {
+                        /* Create the feature */
+                        var trCoord = ol.proj.transform([this.searchSuggestions[name].lon, this.searchSuggestions[name].lat], "EPSG:4326", magic.runtime.projection);
+                        feat = new ol.Feature({
+                            geometry: new ol.geom.Point(trCoord),
+                            suggestion: true
+                        });
+                        this.searchSuggestions[name].feature = feat;
+                        this.layer.getSource().addFeature(feat);  
+                    }                        
+                    feat.setStyle(this.suggestionStyle);                                              
+                }                   
+            }, this));
+            $("p.suggestion").off("mouseout").on("mouseout", $.proxy(function(evt) {                   
+                var name = evt.target.innerText;
+                if (this.searchSuggestions[name] && this.searchSuggestions[name].feature) {
+                    this.searchSuggestions[name].feature.setStyle(this.invisibleStyle);
+                }                   
+            }, this));
+        }, this));                     
+
+    $("#" + this.id + "-placename-go").click($.proxy(this.placenameSearchHandler, this));
+    $("#" + this.id + "-position-go").click($.proxy(this.positionSearchHandler, this));
+
+    /* Initial focus */
+    $("#" + this.id + "-ta").focus();
+
+    /* Attribution link */
+    $("a.gaz-attribution").click($.proxy(function(evt) {
+        var attribArea = $("#" + this.id + "-attribution-text");
+        attribArea.toggleClass("hidden");
+        if (!attribArea.hasClass("hidden")) {
+            attribArea.html(this.getAttributions());
+            $(evt.currentTarget).children("span").removeClass("fa-caret-down").addClass("fa-caret-up");
+            $(evt.currentTarget).attr("data-original-title", "Hide gazetteer sources").tooltip("fixTitle");
+        } else {
+            $(evt.currentTarget).children("span").removeClass("fa-caret-up").addClass("fa-caret-down");
+            $(evt.currentTarget).attr("data-original-title", "Show gazetteer sources").tooltip("fixTitle");
+        }
+    }, this));
+
+    /* Close button */
+    $(".geosearch-popover").find("button.close").click($.proxy(function() { 
+        this.target.popover("hide");
+    }, this));     
+};
+
+magic.classes.Geosearch.prototype.deactivate = function() {
+    this.layer.setVisible(false);
 };
 
 /**

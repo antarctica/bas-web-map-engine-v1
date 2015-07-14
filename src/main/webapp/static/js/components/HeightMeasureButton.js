@@ -49,6 +49,10 @@ magic.classes.HeightMeasureButton.prototype.isActive = function() {
  * Activate the control
  */
 magic.classes.HeightMeasureButton.prototype.activate = function() {
+    
+    /* Trigger mapinteractionactivated event */
+    $(document).trigger("mapinteractionactivated", [this]);  
+    
     this.active = true;
     var spn = this.btn.children("span");
     spn.removeClass("fa fa-arrows-v").addClass("glyphicon glyphicon-stop");

@@ -43,7 +43,10 @@ magic.classes.AppContainer = function(payload) {
         interactions: ol.interaction.defaults(),
         target: "map",
         view: magic.runtime.view
-    });        
+    }); 
+    
+    /* List of interactive map tools, to ensure only one can listen to map clicks/pointer moves at any one time */
+    magic.runtime.map_interaction_tools = [];
     
     /* Control button ribbon */
     magic.runtime.controls = new magic.classes.ControlButtonRibbon(payload.view.controls);
@@ -54,13 +57,13 @@ magic.classes.AppContainer = function(payload) {
     
     /* Create an attribution modal for legend/metadata */
     magic.runtime.attribution = new magic.classes.AttributionModal({target: "attribution-modal", wms: payload.sources.wms});
-    
+            
     if ($.inArray("geosearch", payload.view.controls) && payload.sources.gazetteers) {
         /* Activate geosearch */
-        magic.runtime.geosearch = new magic.classes.Geosearch({
+        magic.runtime.map_interaction_tools.push(new magic.classes.Geosearch({
             gazetteers: payload.sources.gazetteers.split(","),
             target: "geosearch-tool"
-        });
+        }));
     } else {
         /* Hide the geosearch button */
         $("#geosearch-tool").closest("li").hide();
@@ -68,9 +71,9 @@ magic.classes.AppContainer = function(payload) {
     
     if ($.inArray("measurement", payload.view.controls)) {
         /* Activate measuring tool */
-        magic.runtime.measurement = new magic.classes.Measurement({
+        magic.runtime.map_interaction_tools.push(new magic.classes.Measurement({
             target: "measure-tool"
-        });
+        }));
     } else {
         /* Hide the measure tool button */
         $("#measure-tool").closest("li").hide();
@@ -86,6 +89,8 @@ magic.classes.AppContainer = function(payload) {
         /* Hide the overview map button */
         $("#overview-map-tool").closest("li").hide();
     }
+    
+    //TODO list of incompatible controls
     
     /* Hide the login/profile preferences 
      * TO DO - implement login if required */
@@ -107,7 +112,28 @@ magic.classes.AppContainer = function(payload) {
     /* Application titles */
     $("#apptitle").text(payload.sources.title);
     $(document).attr("title", payload.sources.title);
-    
+        
+    /* Listen for controls being activated */
+    $(document).on("mapinteractionactivated", function(evt, arg) {
+        console.log("called");
+        if (evt) {
+            console.dir(arg);
+            $.each(magic.runtime.map_interaction_tools, function(mti, mt) {
+                if (arg != mt) {
+                    if ($.isFunction(mt.deactivate)) {
+                        console.log("Deactivate");
+                        console.dir(mt);
+                        mt.deactivate();
+                    }
+                    if ($.isFunction(mt.getTarget)) {
+                        console.log("Target");
+                        console.dir(mt.getTarget());
+                        mt.getTarget().popover("hide");
+                    }
+                }
+            });
+        }
+    });
 };
 
 /**
