@@ -1,6 +1,6 @@
-C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\controller\ApplicationConfigController.java
-C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\Application.java
-C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\controller\ProxyController.java
-C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\config\ThymeleafConfig.java
-C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\controller\HomeController.java
-C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\controller\PingController.java
+/Users/davidh/Documents/apps/mapengine/src/main/java/uk/ac/antarctica/mapengine/Application.java
+/Users/davidh/Documents/apps/mapengine/src/main/java/uk/ac/antarctica/mapengine/controller/HomeController.java
+/Users/davidh/Documents/apps/mapengine/src/main/java/uk/ac/antarctica/mapengine/config/ThymeleafConfig.java
+/Users/davidh/Documents/apps/mapengine/src/main/java/uk/ac/antarctica/mapengine/controller/ProxyController.java
+/Users/davidh/Documents/apps/mapengine/src/main/java/uk/ac/antarctica/mapengine/controller/ApplicationConfigController.java
+/Users/davidh/Documents/apps/mapengine/src/main/java/uk/ac/antarctica/mapengine/controller/PingController.java
