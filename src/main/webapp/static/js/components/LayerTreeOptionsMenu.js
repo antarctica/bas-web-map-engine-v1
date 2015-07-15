@@ -38,8 +38,8 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
     /* Zoom to layer extent */   
     $("#ztl-" + this.node.nodeId).off("click").on("click", $.proxy(function(evt) {
         var extent = this.extentFromMetadata();
-        if (extent) {           
-            magic.runtime.map.getView().fitExtent(extent, magic.runtime.map.getSize());
+        if (extent) {    
+            magic.runtime.map.getView().fit(extent, magic.runtime.map.getSize());
         }
         /* NOTE: do we need turn the layer on if it isn't already - will need to trigger the change event for the chk/rb? */
     }, this));
@@ -107,7 +107,7 @@ magic.classes.LayerTreeOptionsMenu.prototype.extentFromMetadata = function() {
         if (md.bboxsrs) {
             extent = md.bboxsrs;
         } else if (md.bboxwgs84) {
-             extent = magic.modules.Geoutils.extentFromWgs84Extent(md.bboxwgs84);
+             extent = magic.modules.GeoUtils.extentFromWgs84Extent(md.bboxwgs84);
         }       
     }    
     return(extent);

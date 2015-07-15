@@ -287,7 +287,7 @@ magic.classes.Measurement.prototype.geodesicLength = function() {
         var c0wgs84 = ol.proj.transform(coords[0], magic.runtime.projection, "EPSG:4326");
         for (var i = 1; i < coords.length - 1; i++) {
             var c1wgs84 = ol.proj.transform(coords[i], magic.runtime.projection, "EPSG:4326");
-            geodesicLength += magic.modules.geoutils.wgs84.vincentyDistance(c0wgs84, c1wgs84);
+            geodesicLength += magic.modules.GeoUtils.wgs84.vincentyDistance(c0wgs84, c1wgs84);
             c0wgs84 = c1wgs84;
         }
     }
@@ -311,8 +311,8 @@ magic.classes.Measurement.prototype.geodesicArea = function() {
             var p1 = ol.proj.transform(ringCoords[i], magic.runtime.projection, "EPSG:4326");
             var p2 = ol.proj.transform(ringCoords[i + 1], magic.runtime.projection, "EPSG:4326")
             /* From OpenLayers 2.13.1 Geometry/LinearRing.js */
-            geodesicArea += magic.modules.common.toRadians(p2[0] - p1[0]) *
-                (2 + Math.sin(magic.modules.common.toRadians(p1[1])) + Math.sin(magic.modules.common.toRadians(p2[1])));
+            geodesicArea += magic.modules.Common.toRadians(p2[0] - p1[0]) *
+                (2 + Math.sin(magic.modules.Common.toRadians(p1[1])) + Math.sin(magic.modules.Common.toRadians(p2[1])));
         }
         geodesicArea = geodesicArea * 6378137.0 * 6378137.0 / 2.0;
     }

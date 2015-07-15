@@ -137,15 +137,15 @@ public class ApplicationConfigController {
                     for (CRSEnvelope ce : child.getLayerBoundingBoxes()) {
                         if (ce.getSRSName().equals("EPSG:4326")) {
                             /* WGS84 bounding box */
-                            layerProps.add("bboxwgs84", envelopeToJsonArray(ce));
+                            layerProps.add("bboxwgs84", envelopeToJsonArray(ce, false));
                         } else if (ce.getSRSName().equals(projection)) {
                             /* Application projection box */
-                            layerProps.add("bboxsrs", envelopeToJsonArray(ce));
+                            layerProps.add("bboxsrs", envelopeToJsonArray(ce, true));
                         }
                     }
                 }
                 if (!layerProps.has("bboxwgs84")) {
-                    layerProps.add("bboxwgs84", envelopeToJsonArray(child.getLatLonBoundingBox()));
+                    layerProps.add("bboxwgs84", envelopeToJsonArray(child.getLatLonBoundingBox(), false));
                 }
                 if (child.getMetadataURL() != null && !child.getMetadataURL().isEmpty()) {
                     layerProps.add("metadataurl", mapper.toJsonTree(child.getMetadataURL()));
@@ -329,15 +329,24 @@ public class ApplicationConfigController {
     /**
      * Convert envelope co-ordinates to a JsonArray, rounding decimals
      * @param CRSEnvelope ce
+     * @param boolean xy
      * @return JsonArray
      */
-    private JsonArray envelopeToJsonArray(CRSEnvelope ce) {
+    private JsonArray envelopeToJsonArray(CRSEnvelope ce, boolean xy) {
         JsonArray jarr = new JsonArray();
         if (ce != null) {
-            jarr.add(new JsonPrimitive(Double.parseDouble(df.format(ce.getMinX()))));
-            jarr.add(new JsonPrimitive(Double.parseDouble(df.format(ce.getMinY()))));
-            jarr.add(new JsonPrimitive(Double.parseDouble(df.format(ce.getMaxX()))));
-            jarr.add(new JsonPrimitive(Double.parseDouble(df.format(ce.getMaxY()))));
+            if (xy) {
+                jarr.add(new JsonPrimitive(Double.parseDouble(df.format(ce.getMinX()))));
+                jarr.add(new JsonPrimitive(Double.parseDouble(df.format(ce.getMinY()))));
+                jarr.add(new JsonPrimitive(Double.parseDouble(df.format(ce.getMaxX()))));
+                jarr.add(new JsonPrimitive(Double.parseDouble(df.format(ce.getMaxY()))));
+            } else {
+                /* Stupid WMS 1.3 decision to make EPSG:4326 output lat,lon rather than lon,lat */
+                jarr.add(new JsonPrimitive(Double.parseDouble(df.format(ce.getMinY()))));
+                jarr.add(new JsonPrimitive(Double.parseDouble(df.format(ce.getMinX()))));
+                jarr.add(new JsonPrimitive(Double.parseDouble(df.format(ce.getMaxY()))));
+                jarr.add(new JsonPrimitive(Double.parseDouble(df.format(ce.getMaxX()))));
+            }
         }
         return(jarr);
     }

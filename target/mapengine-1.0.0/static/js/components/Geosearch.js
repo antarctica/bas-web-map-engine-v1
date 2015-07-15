@@ -163,10 +163,12 @@ magic.classes.Geosearch.prototype.getTemplate = function() {
 };
 
 magic.classes.Geosearch.prototype.activate = function() {
-    
+            
     /* Trigger mapinteractionactivated event */
     $(document).trigger("mapinteractionactivated", [this]);        
-                   
+        
+    magic.runtime.map.on("singleclick", this.featureAtPixelHandler, this);
+    
     this.layer.setVisible(true);
 
     /* Set handlers for selecting between coordinate and place-name search */
@@ -235,6 +237,7 @@ magic.classes.Geosearch.prototype.activate = function() {
 };
 
 magic.classes.Geosearch.prototype.deactivate = function() {
+    magic.runtime.map.un("singleclick", this.featureAtPixelHandler, this);
     this.layer.setVisible(false);
 };
 

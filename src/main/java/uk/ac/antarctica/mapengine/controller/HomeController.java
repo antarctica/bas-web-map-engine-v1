@@ -32,6 +32,22 @@ public class HomeController {
     }
     
     /**
+     * Render application-specific home page (debug version)    
+     * @param HttpServletRequest request,
+     * @param String app
+     * @param ModelMap model
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/debug/{app}", method = RequestMethod.GET)
+    public String appHomeDebug(HttpServletRequest request, @PathVariable("app") String app, ModelMap model) throws ServletException, IOException {
+        request.getSession().setAttribute("app", app);
+        model.addAttribute("app", app);        
+        return("map_debug");
+    }
+    
+    /**
      * Render map creator home page     
      * @param HttpServletRequest request,
      * @param ModelMap model
