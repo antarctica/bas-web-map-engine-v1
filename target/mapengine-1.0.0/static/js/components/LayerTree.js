@@ -45,6 +45,7 @@ magic.classes.LayerTree = function(target, treedata, sourceData) {
             }, this));
             /* The get layer info buttons */
             $("li.node-layer-tree span.fa-info-circle").on("click", function(evt) {
+                evt.stopPropagation();
                 var layerName = $(evt.target).parent().prop("innerText");
                 if (layerName) {
                     var layer = magic.runtime.appcontainer.getLayerByName(layerName);

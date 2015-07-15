@@ -227,6 +227,24 @@ public class ApplicationConfigController {
             version = "1.0";
         }
         sourceData.addProperty("version", version);
+        /* Application logo */
+        String logo = env.getProperty(appname + ".logo");
+        if (logo == null || logo.isEmpty()) {
+            logo = "1x1.png";
+        }
+        sourceData.addProperty("logo", logo);
+        /* Application favicon */
+        String favicon = env.getProperty(appname + ".favicon");
+        if (favicon == null || favicon.isEmpty()) {
+            logo = "bas.ico";
+        }
+        sourceData.addProperty("favicon", favicon);
+        /* Application url (external site to link to via the logo) */
+        String url = env.getProperty(appname + ".url");
+        if (url == null || url.isEmpty()) {
+            url = "Javascript:void(0)";
+        }
+        sourceData.addProperty("url", url);
         /* Application endpoint */
         String endpoint = env.getProperty(appname + ".endpoint");
         if (endpoint == null || endpoint.isEmpty()) {

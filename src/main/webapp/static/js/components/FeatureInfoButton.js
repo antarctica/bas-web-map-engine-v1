@@ -72,7 +72,7 @@ magic.classes.FeatureInfoButton.prototype.deactivate = function () {
  * Send a GetFeatureInfo request to all point layers
  * @param {jQuery.Event} evt
  */
-magic.classes.FeatureInfoButton.prototype.queryFeatures = function (evt) {
+magic.classes.FeatureInfoButton.prototype.queryFeatures = function (evt) {    
     var gfiLayer = null, gfiParams = [];
     magic.runtime.map.getLayers().forEach(function(layer) {
         /* ImageWMS layers will always be point layers */

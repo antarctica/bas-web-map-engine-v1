@@ -110,6 +110,11 @@ ul.alert-dropdown {
     width: 200px;
 }
 
+img.applogo {
+    float: left; 
+    margin-left: 5px
+}
+
 /* Side Navigation */
 
 @media(min-width:768px) {

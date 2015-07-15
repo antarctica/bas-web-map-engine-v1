@@ -66,16 +66,16 @@ magic.classes.ControlButtonRibbon.prototype.init = function() {
                 
             case "height-measure":
                 /* Measure the height at a point (toggle button) */
-                var hmBtn = new magic.classes.HeightMeasureButton("height-measure", this).getButton();
-                this.appendControlButton(hmBtn);
-                magic.runtime.map_interaction_tools.push(hmBtn);
+                var hm = new magic.classes.HeightMeasureButton("height-measure", this);
+                this.appendControlButton(hm.getButton());
+                magic.runtime.map_interaction_tools.push(hm);
                 break;
                 
             case "feature-info":
                 /* Measure the height at a point (toggle button) */
-                var fiBtn = new magic.classes.FeatureInfoButton("feature-info", this).getButton();
-                this.appendControlButton(fiBtn); 
-                magic.runtime.map_interaction_tools.push(fiBtn);
+                var fi = new magic.classes.FeatureInfoButton("feature-info", this);
+                this.appendControlButton(fi.getButton()); 
+                magic.runtime.map_interaction_tools.push(fi);
                 break;
                 
             default:

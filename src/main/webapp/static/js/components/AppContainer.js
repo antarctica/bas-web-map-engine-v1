@@ -89,9 +89,7 @@ magic.classes.AppContainer = function(payload) {
         /* Hide the overview map button */
         $("#overview-map-tool").closest("li").hide();
     }
-    
-    //TODO list of incompatible controls
-    
+        
     /* Hide the login/profile preferences 
      * TO DO - implement login if required */
     $("#user-prefs").hide();
@@ -109,25 +107,23 @@ magic.classes.AppContainer = function(payload) {
         }
     }, this);
     
-    /* Application titles */
+    /* Display application metadata */
     $("#apptitle").text(payload.sources.title);
     $(document).attr("title", payload.sources.title);
+    $("#applogo").attr("src", "../static/images/" + payload.sources.logo);
+    $("#appurl").attr("href", payload.sources.url);
+    $("link[rel='icon']").attr("href", "/" + payload.sources.favicon);
+    $("link[rel='shortcut icon']").attr("href", "/" + payload.sources.favicon);
         
     /* Listen for controls being activated */
     $(document).on("mapinteractionactivated", function(evt, arg) {
-        console.log("called");
         if (evt) {
-            console.dir(arg);
             $.each(magic.runtime.map_interaction_tools, function(mti, mt) {
                 if (arg != mt) {
                     if ($.isFunction(mt.deactivate)) {
-                        console.log("Deactivate");
-                        console.dir(mt);
                         mt.deactivate();
                     }
                     if ($.isFunction(mt.getTarget)) {
-                        console.log("Target");
-                        console.dir(mt.getTarget());
                         mt.getTarget().popover("hide");
                     }
                 }
