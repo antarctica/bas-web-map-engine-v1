@@ -121,9 +121,9 @@ img.applogo {
     .side-nav {
         position: fixed;
         top: 51px;
-        left: 300px;
-        width: 300px;
-        margin-left: -300px;
+        left: 310px;
+        width: 310px;
+        margin-left: -310px;
         border: none;
         border-radius: 0;
         overflow-y: auto;

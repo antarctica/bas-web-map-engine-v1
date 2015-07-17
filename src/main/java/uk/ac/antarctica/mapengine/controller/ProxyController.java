@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.util.EntityUtils;
+import org.json.XML;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -44,6 +45,7 @@ public class ProxyController {
         if (isAllowed(url)) {
             /* Allowed to call this API from here */
             boolean isGfi = url.toLowerCase().contains("getfeatureinfo");
+            boolean isDft = url.toLowerCase().contains("describefeaturetype");
             HttpResponse response = Request.Get(url)
                 .connectTimeout(60000)
                 .socketTimeout(60000)
@@ -52,12 +54,12 @@ public class ProxyController {
             int code = response.getStatusLine().getStatusCode();
             String content = EntityUtils.toString(response.getEntity(), "UTF-8");
             if (code == 200) {                
-                ret = packageResults(HttpStatus.OK, content, "", isGfi);
+                ret = packageResults(HttpStatus.OK, content, "", isGfi, isDft);
             } else {
-                ret = packageResults(HttpStatus.BAD_REQUEST, null, "Unexpected return from " + url, isGfi);
+                ret = packageResults(HttpStatus.BAD_REQUEST, null, "Unexpected return from " + url, isGfi, isDft);
             }            
         } else {
-            ret = packageResults(HttpStatus.BAD_REQUEST, null, "Proxy of " + url + " not allowed", false);
+            ret = packageResults(HttpStatus.BAD_REQUEST, null, "Proxy of " + url + " not allowed", false, false);
         }       
 		return(ret);
 	}
@@ -67,22 +69,44 @@ public class ProxyController {
      * @param HttpStatus status
      * @param String data
      * @param String message
-     * @param boolean gfi
+     * @param boolean gfi if this was a GetFeatureInfor request
+     * @param boolean dft if this was a DescribeFeatureType request
      * @return ResponseEntity<String>
      */
-    private ResponseEntity<String> packageResults(HttpStatus status, String data, String message, boolean gfi) {
+    private ResponseEntity<String> packageResults(HttpStatus status, String data, String message, boolean gfi, boolean dft) {
         ResponseEntity<String> ret;
         Gson mapper = new Gson();
         JsonObject jo = new JsonObject();
-        if (status.equals(HttpStatus.OK) && data != null) {            
-            jo = mapper.fromJson(data, JsonObject.class);
-            if (gfi) {
-                /* GetFeatureInfo request => FeatureCollection return */
-                ret = new ResponseEntity<>(jo.toString(), status);
+        if (status.equals(HttpStatus.OK) && data != null) { 
+            if (dft) {
+                /* DescribeFeatureType request comes back in XML, so bit of translation required */
+                org.json.JSONObject ojJo = XML.toJSONObject(data);
+                try {
+                    /* What a palaver getting the actual data out of the tortuous XML! */
+                    org.json.JSONArray ojJa = ojJo
+                        .getJSONObject("xsd:schema")
+                        .getJSONObject("xsd:complexType")
+                        .getJSONObject("xsd:complexContent")
+                        .getJSONObject("xsd:extension")
+                        .getJSONObject("xsd:sequence")
+                        .getJSONArray("xsd:element");
+                    ret = new ResponseEntity<>(ojJa.toString(), status);
+                } catch(Exception ex) {
+                    jo.addProperty("status", HttpStatus.BAD_REQUEST.value());
+                    jo.addProperty("detail", "Describe failed");
+                    ret = new ResponseEntity<>(mapper.toJson(jo), status);
+                }                
             } else {
-                /* API return */
-                JsonElement je = jo.get("data");
-                ret = new ResponseEntity<>(je.toString(), status);
+                /* Can assume anything else was JSON */
+                jo = mapper.fromJson(data, JsonObject.class);
+                if (gfi) {
+                    /* GetFeatureInfo request => FeatureCollection return */
+                    ret = new ResponseEntity<>(jo.toString(), status);
+                } else {
+                    /* API return */
+                    JsonElement je = jo.get("data");
+                    ret = new ResponseEntity<>(je.toString(), status);
+                }
             }
         } else {
             jo.addProperty("status", status.value());

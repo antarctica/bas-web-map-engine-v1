@@ -187,7 +187,12 @@ magic.classes.LayerTree.prototype.initNodes = function(nodes) {
                         name: name,
                         visible: checkState,
                         opacity: 1.0,
-                        metadata: $.extend({}, nd.props, {checkstate: checkState}),
+                        metadata: $.extend({}, nd.props, {
+                            checkstate: checkState,
+                            attrs: null,
+                            filterable: true,
+                            current_filter: null
+                        }),
                         source: new ol.source.ImageWMS(({
                             /* TODO: revisit for WebGL - may need crossOrigin = true here */
                             url: this.sourcedata.wms,
@@ -217,7 +222,12 @@ magic.classes.LayerTree.prototype.initNodes = function(nodes) {
                         name: name,
                         visible: checkState,
                         opacity: nd.props.radio ? 1.0 : 0.8,
-                        metadata: $.extend({}, nd.props, {checkstate: checkState}),
+                        metadata: $.extend({}, nd.props, {
+                            checkstate: checkState,
+                            attrs: null,
+                            filterable: true,
+                            current_filter: null
+                        }),
                         source: wmsSource
                     });        
                 }            
