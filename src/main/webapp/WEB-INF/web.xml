@@ -5,4 +5,8 @@
          version="3.0">
     <display-name>BAS MAGIC Web Mapping Engine</display-name>
     <description>Web mapping front end to ADD, SGGIS, Operations GIS, Arctic Map</description>
+    
+    <listener>
+		<listener-class>uk.ac.antarctica.mapengine.config.CustomServletContextListener</listener-class>
+	</listener>
 </web-app>

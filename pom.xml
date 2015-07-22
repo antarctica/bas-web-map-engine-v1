@@ -114,6 +114,10 @@
             <!--<version>1.2.3.RELEASE</version>-->
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
        
     </dependencies>
 
@@ -127,7 +131,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>-->
-            <plugin>
+<!--            <plugin>
                 <groupId>org.apache.tomcat.maven</groupId>
                 <artifactId>tomcat7-maven-plugin</artifactId>
                 <version>2.2</version>
@@ -136,7 +140,7 @@
                     <server>Tomcat</server>
                     <path>/locations-api-1.0.0</path>
                 </configuration>
-            </plugin>
+            </plugin>-->
         </plugins>
     </build>
 

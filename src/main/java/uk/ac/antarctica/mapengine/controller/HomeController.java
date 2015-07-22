@@ -25,9 +25,10 @@ public class HomeController {
      * @throws IOException
      */
     @RequestMapping(value = "/home/{app}", method = RequestMethod.GET)
-    public String appHome(HttpServletRequest request, @PathVariable("app") String app, ModelMap model) throws ServletException, IOException {
+    public String appHome(HttpServletRequest request, @PathVariable("app") String app, ModelMap model) throws ServletException, IOException {       
         request.getSession().setAttribute("app", app);
-        model.addAttribute("app", app);        
+        model.addAttribute("app", app); 
+        model.addAttribute("debug", false); 
         return("map");
     }
     
@@ -41,10 +42,11 @@ public class HomeController {
      * @throws IOException
      */
     @RequestMapping(value = "/debug/{app}", method = RequestMethod.GET)
-    public String appHomeDebug(HttpServletRequest request, @PathVariable("app") String app, ModelMap model) throws ServletException, IOException {
+    public String appHomeDebug(HttpServletRequest request, @PathVariable("app") String app, ModelMap model) throws ServletException, IOException {      
         request.getSession().setAttribute("app", app);
-        model.addAttribute("app", app);        
-        return("map_debug");
+        model.addAttribute("app", app);
+        model.addAttribute("debug", true);
+        return("map");
     }
     
     /**

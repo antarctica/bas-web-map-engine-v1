@@ -11,26 +11,41 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
         '</li>' + 
         '<li>' + 
             '<a href="Javascript:void(0)" id="ftr-' + this.node.nodeId + '">Filter by attribute</a>' +
-            '<div class="hidden" id="wrapper-ftr-' + this.node.nodeId + '">' + 
-                '<form style="width: 230px">' + 
+            '<div class="hidden" id="wrapper-ftr-' + this.node.nodeId + '">' +                
+                '<form style="width: 230px">' +
+                    '<input id="ftr-comparison-type-' + this.node.nodeId + '" type="hidden" value="string">' + 
                     '<div class="form-group form-group-sm col-sm-12">' +
                         '<select id="ftr-attr-' + this.node.nodeId + '" class="form-control">' +
                             /* Options are added from a describe feature call */
                         '</select>' +                            
                     '</div>' +
                     '<div class="form-group form-group-sm col-sm-12">' +
-                        '<select id="ftr-op-' + this.node.nodeId + '" class="form-control">' +
-                            '<option id="ftr-op-eq-' + this.node.nodeId + '" value="=" selected>equal to</option>' +
-                            '<option id="ftr-op-like-' + this.node.nodeId + '" value="ilike">like</option>' +
-                            '<option id="ftr-op-gt-' + this.node.nodeId + '" value=">">greater than</option>' +
-                            '<option id="ftr-op-lt-' + this.node.nodeId + '" value="<">less than</option>' +
-                            '<option id="ftr-op-gte-' + this.node.nodeId + '" value=">=">greater than or equal to</option>' +
-                            '<option id="ftr-op-lte-' + this.node.nodeId + '" value="<=">less than or equal to</option>' +
+                        '<select id="ftr-op-str-' + this.node.nodeId + '" class="form-control">' +
+                            '<option id="ftr-op-str-like-' + this.node.nodeId + '" value="ilike">like (case-insensitive)</option>' + 
+                            '<option id="ftr-op-str-eq-' + this.node.nodeId + '" value="=" selected>equal to (case sensitive)</option>' +                                                       
+                        '</select>' +                            
+                    '</div>' +
+                    '<div class="form-group form-group-sm col-sm-12" class="hidden">' +
+                        '<select id="ftr-op-num-' + this.node.nodeId + '" class="form-control">' +
+                            '<option id="ftr-op-num-eq-' + this.node.nodeId + '" value="=" selected>equal to</option>' +
+                            '<option id="ftr-op-num-gt-' + this.node.nodeId + '" value=">">greater than</option>' +
+                            '<option id="ftr-op-num-lt-' + this.node.nodeId + '" value="<">less than</option>' +
+                            '<option id="ftr-op-num-gte-' + this.node.nodeId + '" value=">=">greater than or equal to</option>' +
+                            '<option id="ftr-op-num-lte-' + this.node.nodeId + '" value="<=">less than or equal to</option>' +
+                            '<option id="ftr-op-num-btw-' + this.node.nodeId + '" value="between">between</option>' +
                         '</select>' +                            
                     '</div>' +
                     '<div class="form-group form-group-sm col-sm-12">' +
-                        '<input id="ftr-val-' + this.node.nodeId + '" class="form-control" type="text" placeholder="Attribute value" ' + 
+                        '<input id="ftr-val-str-' + this.node.nodeId + '" class="form-control" type="text" required="true" placeholder="Attribute value" ' + 
                             'data-toggle="tooltip" data-placement="right" title="Enter the attribute value to filter on" />' + 
+                    '</div>' + 
+                    '<div class="form-group form-group-sm col-sm-12" class="hidden">' +
+                        '<input id="ftr-val-num1-' + this.node.nodeId + '" class="form-control" type="number" required="true" placeholder="Numeric attribute value" ' + 
+                            'data-toggle="tooltip" data-placement="right" title="Enter numeric attribute value to filter on" />' + 
+                    '</div>' + 
+                    '<div class="form-group form-group-sm col-sm-12" class="hidden">' +
+                        '<input id="ftr-val-num2-' + this.node.nodeId + '" class="form-control" type="number" required="false" placeholder="Numeric attribute value" ' + 
+                            'data-toggle="tooltip" data-placement="right" title="Enter upper numeric attribute value to filter on" />' + 
                     '</div>' + 
                     '<div class="form-group form-group-sm col-sm-12">' +
                         '<button id="ftr-btn-go-' + this.node.nodeId + '" class="btn btn-default btn-sm" type="button" ' + 
@@ -42,7 +57,7 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
                             '<span class="fa fa-minus-circle"></span>' + 
                         '</button>' +
                     '</div>' + 
-                '</form>' +                
+                '</form>' +                   
             '</div>' + 
         '</li>' + 
         '<li>' + 
@@ -52,23 +67,24 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
                 '<div class="noUi-extended layer-webgl-property-slider" id="opc-slider-' + this.node.nodeId + '"></div>' + 
                 '<div class="icon-pattern slider-purpose" data-toggle="tooltip" data-placement="top" title="Layer transparent"></div>' + 
             '</div>' + 
-        '</li>' + 
-        '<li>' + 
-            '<a href="Javascript:void(0)" id="brt-' + this.node.nodeId + '">Change layer brightness</a>' + 
-            '<div class="hidden" id="wrapper-brt-' + this.node.nodeId + '">' + 
-                '<div class="icon-brightness slider-purpose" data-toggle="tooltip" data-placement="top" title="Layer brightness none"></div>' + 
-                '<div class="noUi-extended layer-webgl-property-slider" id="brt-slider-' + this.node.nodeId + '"></div>' + 
-                '<div class="icon-brightnessfull slider-purpose" data-toggle="tooltip" data-placement="top" title="Layer brightness full"></div>' +
-            '</div>' + 
-        '</li>' + 
-        '<li>' + 
-            '<a href="Javascript:void(0)" id="ctr-' + this.node.nodeId + '">Change layer contrast</a>' + 
-            '<div class="hidden" id="wrapper-ctr-' + this.node.nodeId + '">' + 
-                '<div class="fa fa-circle-o slider-purpose" data-toggle="tooltip" data-placement="top" title="Layer contrast none"></div>' + 
-                '<div class="noUi-extended layer-webgl-property-slider" id="ctr-slider-' + this.node.nodeId + '"></div>' + 
-                '<div class="fa fa-circle slider-purpose" data-toggle="tooltip" data-placement="top" title="Layer contrast full"></div>' + 
-            '</div>' + 
-        '</li>'  
+        '</li>'
+/* Awaiting a more effective WebGL implementation in OL3 - David 22/07/15 */        
+//        '<li>' + 
+//            '<a href="Javascript:void(0)" id="brt-' + this.node.nodeId + '">Change layer brightness</a>' + 
+//            '<div class="hidden" id="wrapper-brt-' + this.node.nodeId + '">' + 
+//                '<div class="icon-brightness slider-purpose" data-toggle="tooltip" data-placement="top" title="Layer brightness none"></div>' + 
+//                '<div class="noUi-extended layer-webgl-property-slider" id="brt-slider-' + this.node.nodeId + '"></div>' + 
+//                '<div class="icon-brightnessfull slider-purpose" data-toggle="tooltip" data-placement="top" title="Layer brightness full"></div>' +
+//            '</div>' + 
+//        '</li>' + 
+//        '<li>' + 
+//            '<a href="Javascript:void(0)" id="ctr-' + this.node.nodeId + '">Change layer contrast</a>' + 
+//            '<div class="hidden" id="wrapper-ctr-' + this.node.nodeId + '">' + 
+//                '<div class="fa fa-circle-o slider-purpose" data-toggle="tooltip" data-placement="top" title="Layer contrast none"></div>' + 
+//                '<div class="noUi-extended layer-webgl-property-slider" id="ctr-slider-' + this.node.nodeId + '"></div>' + 
+//                '<div class="fa fa-circle slider-purpose" data-toggle="tooltip" data-placement="top" title="Layer contrast full"></div>' + 
+//            '</div>' + 
+//        '</li>'  
     );
     /* Handlers */
     /* Zoom to layer extent */   
@@ -93,29 +109,26 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
                 /* Allow clicking on the inputs without the dropdown going away */
                 wrapper.children("form").click(function(evt2) {evt2.stopPropagation()});
                 this.loadAttributeOptions();
-                $("#ftr-btn-go-" + this.node.nodeId).off("click").on("click", $.proxy(function(evt) {
-                    this.node.layer.getSource().updateParams($.extend({}, 
-                        this.node.layer.getSource().getParams(), 
-                        {"cql_filter": this.constructFilter()}
-                    ));
+                $("#ftr-attr-" + this.node.nodeId).off("change").on("change", $.proxy(function(evt) {
+                    this.setFilterOptions($(evt.target).val());                                
                 }, this));
-                $("#ftr-btn-reset-" + this.node.nodeId).off("click").on("click", $.proxy(function(evt) {
-                    this.node.layer.getSource().updateParams($.extend({}, 
-                        this.node.layer.getSource().getParams(),
-                        {"cql_filter": null}
-                    ));    
+                $("#ftr-op-num-" + this.node.nodeId).off("change").on("change", $.proxy(function(evt) {
+                    this.setFilterOptions(null, $(evt.target).val());                    
                 }, this));
+                $("#ftr-btn-go-" + this.node.nodeId).off("click").on("click", $.proxy(this.applyFilter, this));
+                $("#ftr-btn-reset-" + this.node.nodeId).off("click").on("click", $.proxy(this.resetFilter, this));
             } else {
                 wrapper.removeClass("show").addClass("hidden");
             }           
         }, this));
     }
     /* Transparency control */
-    this.addWebglSliderHandler("opc", 0.0, 1.0, 0.1);    
+    this.addWebglSliderHandler("opc", 0.0, 1.0, 0.1);
+    /* Awaiting a more effective WebGL implementation in OL3 - David 22/07/15 */
     /* Brightness control */
-    this.addWebglSliderHandler("brt", -1.0, 1.0, 0.2);
+    //this.addWebglSliderHandler("brt", -1.0, 1.0, 0.2);
     /* Contrast control */
-    this.addWebglSliderHandler("ctr", 0.0, 10.0, 1.0);
+    //this.addWebglSliderHandler("ctr", 0.0, 10.0, 1.0);
 };
 
 /**
@@ -175,7 +188,7 @@ magic.classes.LayerTreeOptionsMenu.prototype.loadAttributeOptions = function() {
         if (md) {
             if (md.attrs) {
                 /* Have got the attributes before */
-                this.setFilterOptions(md.attrs, md.current_filter);
+                this.setFilterOptions();
             } else {
                 /* Get the attributes from DescribeFeatureType request */
                 var wmsUrl = null;
@@ -191,7 +204,7 @@ magic.classes.LayerTreeOptionsMenu.prototype.loadAttributeOptions = function() {
                         if ($.isArray(data)) {
                             /* List of attributes successfully retrieved */
                             md.attrs = data;
-                            this.setFilterOptions(md.attrs, md.current_filter);                            
+                            this.setFilterOptions();                            
                         } else {
                             /* Failed - this layer can't be filtered */
                             md.attrs = null;
@@ -209,50 +222,82 @@ magic.classes.LayerTreeOptionsMenu.prototype.loadAttributeOptions = function() {
 
 /**
  * Create the actual <option> elements under an attribute <select> from the layer attributes
- * @param {Array} attrs
- * @param {Object} exFilter
+ * @param {string} selAttr
+ * @param {string} selOp
  */
-magic.classes.LayerTreeOptionsMenu.prototype.setFilterOptions = function(attrs, exFilter) {
-    var select = $("#ftr-attr-" + this.node.nodeId);
-    var fattr = exFilter != null ? exFilter.attr :  null;
-    var fop = exFilter != null ? exFilter.op :  null;
-    var fval = exFilter != null ? exFilter.val :  null;
-    var selectedType = null;
-    /* Append the options to the attribute selector */
-    $.each(attrs, function(idx, props) {
-        if (props.type.indexOf("gml:") == -1) {
-            var optstr = "<option";
-            if (props.name == fattr) {
-                optstr += " selected";
-                selectedType = props.type;
+magic.classes.LayerTreeOptionsMenu.prototype.setFilterOptions = function(selAttr, selOp) {
+    var md = this.node.layer.get("metadata");
+    if (md && md.attrs) {
+        var attrs = md.attrs,
+            exFilter = md.current_filter,
+            select = $("#ftr-attr-" + this.node.nodeId),
+            fattr = selAttr || (exFilter != null ? exFilter.attr :  null),
+            fop = selOp || (exFilter != null ? exFilter.op :  null),
+            fval1 = exFilter != null ? exFilter.val1 :  null,
+            fval2 = exFilter != null ? exFilter.val2 :  null,
+            selectedType = null, firstType = null;
+        /* Append the options to the attribute selector */
+        $.each(attrs, function(idx, props) {
+            if (props.type.indexOf("gml:") == -1) {
+                var optstr = "<option";
+                if (props.name == fattr) {
+                    optstr += " selected";
+                    selectedType = props.type;
+                }
+                if (firstType == null) {
+                    firstType = props.type;
+                }
+                optstr += ">";            
+                select.append($(optstr, {value: props.name}).text(props.name));
             }
-            optstr += ">";            
-            select.append($(optstr, {value: props.name}).text(props.name));
+        });    
+        if (selectedType == null) {
+            selectedType = firstType;
         }
-    });
-    if (fattr != null && selectedType != null) {
-        /* Hide the non-relevant option types */
-        if (selectedType == "xsd:string") {
-            /* Equal and like are ok, rest not */
-            $("#ftr-op-like-" + this.node.nodeId).removeClass("hidden").addClass("show");
-            $("#ftr-op-gt-" + this.node.nodeId).removeClass("show").addClass("hidden");
-            $("#ftr-op-lt-" + this.node.nodeId).removeClass("show").addClass("hidden");
-            $("#ftr-op-gte-" + this.node.nodeId).removeClass("show").addClass("hidden");
-            $("#ftr-op-lte-" + this.node.nodeId).removeClass("show").addClass("hidden");
-        } else {
-            /* All ok except like */
-            $("#ftr-op-like-" + this.node.nodeId).removeClass("show").addClass("hidden");
-            $("#ftr-op-gt-" + this.node.nodeId).removeClass("hidden").addClass("show");
-            $("#ftr-op-lt-" + this.node.nodeId).removeClass("hidden").addClass("show");
-            $("#ftr-op-gte-" + this.node.nodeId).removeClass("hidden").addClass("show");
-            $("#ftr-op-lte-" + this.node.nodeId).removeClass("hidden").addClass("show");
-        }
-        if (fop != null) {
-            $("#ftr-op-" + this.node.nodeId).val(fop);
-        }
-    }
-    if (fval != null) {
-        $("#ftr-val-" + this.node.nodeId).val(fval);
+        if (selectedType != null) {
+            /* Hide the non-relevant option types */
+            if (selectedType == "xsd:string") {
+                /* Show string operation and value fields */
+                $("#ftr-comparison-type-" + this.node.nodeId).val("string");
+                $("#ftr-op-str-" + this.node.nodeId).parent().removeClass("hidden").addClass("show");
+                $("#ftr-val-str-" + this.node.nodeId).parent().removeClass("hidden").addClass("show");
+                $("#ftr-op-num-" + this.node.nodeId).parent().removeClass("show").addClass("hidden");
+                $("#ftr-val-num1-" + this.node.nodeId).parent().removeClass("show").addClass("hidden");
+                $("#ftr-val-num2-" + this.node.nodeId).parent().removeClass("show").addClass("hidden");
+                if (fop != null) {
+                    $("#ftr-op-str-" + this.node.nodeId).val(fop);
+                } else {
+                    $("#ftr-op-str-" + this.node.nodeId)[0].selectedIndex = 0;
+                }
+                if (fval1 != null) {
+                    $("#ftr-val-str-" + this.node.nodeId).val(fval1);
+                }
+            } else {
+                /* Number operation and value fields */
+                $("#ftr-comparison-type-" + this.node.nodeId).val("number");
+                $("#ftr-op-str-" + this.node.nodeId).parent().removeClass("show").addClass("hidden");
+                $("#ftr-val-str-" + this.node.nodeId).parent().removeClass("show").addClass("hidden");
+                $("#ftr-op-num-" + this.node.nodeId).parent().removeClass("hidden").addClass("show");
+                $("#ftr-val-num1-" + this.node.nodeId).parent().removeClass("hidden").addClass("show");            
+                if (fop != null) {
+                    $("#ftr-op-num-" + this.node.nodeId).val(fop);
+                } else {
+                    $("#ftr-op-num-" + this.node.nodeId)[0].selectedIndex = 0;
+                }
+                if (fval1 != null) {
+                    $("#ftr-val-num1-" + this.node.nodeId).val(fval1);
+                }
+                if (fop == "between") {
+                    $("#ftr-val-num2-" + this.node.nodeId).parent().removeClass("hidden").addClass("show");
+                    if (fval2 != null) {
+                        $("#ftr-val-num2-" + this.node.nodeId).val(fval2);
+                    }
+                } else {
+                    $("#ftr-val-num2-" + this.node.nodeId).parent().removeClass("show").addClass("hidden");
+                    $("#ftr-val-num2-" + this.node.nodeId).val(null);
+                }
+            }
+        } 
     }
 };
 
@@ -274,28 +319,65 @@ magic.classes.LayerTreeOptionsMenu.prototype.extentFromMetadata = function() {
 };
 
 /**
- * Construct an ECQL filter from the inputs
- * @returns {jQuery|String}
+ * Construct an ECQL filter from the inputs and apply to layer
  */
-magic.classes.LayerTreeOptionsMenu.prototype.constructFilter = function() {
-    var ecql = "";
-    var fattr = $("#ftr-attr-" + this.node.nodeId).val();
-    var fop = $("#ftr-op-" + this.node.nodeId).val();
-    var fval = $("#ftr-val-" + this.node.nodeId).val();
+magic.classes.LayerTreeOptionsMenu.prototype.applyFilter = function() {
+    var ecql = null;
     var md = this.node.layer.get("metadata");
-    if (md) {
-        md.current_filter = {
-            attr: fattr, 
-            op: fop, 
-            val: fval
-        };
-        if (fop == "ilike" || (fop == "=" && !$.isNumeric(fval))) {
-            /* String comparison */
-            ecql = fattr + " " + fop + " '" + fval + (fop == "ilike" ? "%'" : "'");
+    if (md) {           
+        /* Construct a new ECQL filter based on form inputs */
+        var fattr = $("#ftr-attr-" + this.node.nodeId).val();
+        var comparisonType = $("#ftr-comparison-type-" + this.node.nodeId).val();
+        var fop = null, fval1 = null, fval2 = null;
+        if (comparisonType == "string") {
+            fop = $("#ftr-op-str-" + this.node.nodeId).val();
+            fval1 = $("#ftr-val-str-" + this.node.nodeId).val();
         } else {
-            /* Number */
-            ecql = fattr + " " + fop + " " + fval;
-        }        
+            fop = $("#ftr-op-num-" + this.node.nodeId).val();
+            fval1 = $("#ftr-val-num1-" + this.node.nodeId).val();
+            if (fop == "between") {
+                fval2 = $("#ftr-val-num2-" + this.node.nodeId).val();
+            }
+        }    
+        md.current_filter = {
+            attr: fattr,
+            comparison: comparisonType,
+            op: fop, 
+            val1: fval1,
+            val2: fval2
+        };
+        if (comparisonType == "string") {
+            ecql = fattr + " " + fop + " '" + fval1 + (fop == "ilike" ? "%'" : "'");
+        } else {           
+            ecql = fattr + " " + fop + " " + fval1 + (fop == "between" ? " and " + fval2 : "");            
+        }
+        this.node.layer.getSource().updateParams($.extend({}, 
+            this.node.layer.getSource().getParams(), 
+            {"cql_filter": ecql}
+        ));
+        $("#ftr-btn-reset-" + this.node.nodeId).removeClass("disabled");
     }
-    return(ecql);
 };
+
+/**
+ * Reset a layer filter
+ */
+magic.classes.LayerTreeOptionsMenu.prototype.resetFilter = function() {   
+    var md = this.node.layer.get("metadata");
+    if (md) {   
+        /* Reset current filter on layer */
+        md.current_filter = {
+            attr: null,
+            comparison: null,
+            op: null, 
+            val1: null,
+            val2: null
+        };
+        this.node.layer.getSource().updateParams($.extend({}, 
+            this.node.layer.getSource().getParams(),
+            {"cql_filter": null}
+        ));
+        $("#ftr-btn-reset-" + this.node.nodeId).addClass("disabled");
+    }
+};
+
