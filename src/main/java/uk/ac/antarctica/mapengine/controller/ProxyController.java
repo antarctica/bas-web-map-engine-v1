@@ -5,8 +5,10 @@
 package uk.ac.antarctica.mapengine.controller;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -30,10 +32,12 @@ public class ProxyController {
         "https://maps.bas.ac.uk"
     };
     
+    private static final String RAMADDA_URL = "http://ramadda.nerc-bas.ac.uk/repository/entry/show";
+    
    /**
 	 * Proxy for BAS API calls
 	 * @param HttpServletRequest request
-	 * @param String api
+	 * @param String url
 	 * @return String
 	 * @throws ServletException
 	 * @throws IOException 
@@ -61,6 +65,30 @@ public class ProxyController {
         } else {
             ret = packageResults(HttpStatus.BAD_REQUEST, null, "Proxy of " + url + " not allowed", false, false);
         }       
+		return(ret);
+	}
+    
+    /**
+	 * Proxy for BAS Ramadda calls
+	 * @param HttpServletRequest request
+	 * @param String id
+	 * @return String
+	 * @throws ServletException
+	 * @throws IOException 
+	 */
+	@RequestMapping(value="/downloads", method=RequestMethod.GET, produces="application/json; charset=utf-8")	
+    @ResponseBody
+	public ResponseEntity<String> ramadda(HttpServletRequest request, @RequestParam(value="id", required=true) String id) throws ServletException, IOException {
+        ResponseEntity<String> ret;
+         try {
+            JsonArray jaOut = new JsonArray();
+            buildDownloadTree(jaOut, id);
+            ret = new ResponseEntity<>(jaOut.toString(), HttpStatus.OK);
+        } catch(IllegalStateException ise) {
+            ret = packageResults(HttpStatus.BAD_REQUEST, null, "Failed to retrieve download information (error was " + ise.getMessage(), false, false);
+        } catch (IOException ioe) {
+            ret = packageResults(HttpStatus.BAD_REQUEST, null, "Failed to retrieve download information (error was " + ioe.getMessage(), false, false);
+        }
 		return(ret);
 	}
     
@@ -128,6 +156,63 @@ public class ProxyController {
             }
         }
         return(false);
+    }
+
+    /**
+     * Take a JSON feed in Ramadda's format and simplify the datastructure for easy assimilation into Bootstrap tree structure
+     * Note: will be done much more elegantly via a properly styled Ramadda instance
+     * @param JsonArray jaOut tree structure
+     * @param String ramaddaId
+     */
+    private void buildDownloadTree(JsonArray jaOut, String ramaddaId) throws IOException {
+        JsonArray jarr = getRamaddaContent(ramaddaId);  
+        for (int i = 0; i < jarr.size(); i++) {
+            JsonObject jao = jarr.get(i).getAsJsonObject();
+            JsonObject jaoOut = new JsonObject();                
+            jaoOut.addProperty("text", jao.getAsJsonPrimitive("name").getAsString());
+            boolean isGroup = jao.getAsJsonPrimitive("isGroup").getAsBoolean();
+            if (isGroup) {
+                JsonArray nodes = new JsonArray();
+                jaoOut.add("nodes", nodes);
+                jaoOut.addProperty("icon", "fa fa-folder");
+                buildDownloadTree(nodes, jao.getAsJsonPrimitive("id").getAsString());
+            } else {
+                String filename = jao.getAsJsonPrimitive("filename").getAsString();
+                String icon = "fa fa-file-o";
+                int lastDot = filename.lastIndexOf(".");
+                if (lastDot != -1) {
+                    String ext = filename.substring(lastDot + 1);                    
+                    if (ext.equals("zip")) {
+                        icon = "fa fa-file-archive-o";
+                    } else if (icon.equals("kml")) {
+                        icon = "fa fa-globe";
+                    }
+                }                    
+                jaoOut.addProperty("icon", icon);
+                jaoOut.addProperty("published", jao.getAsJsonPrimitive("createDate").getAsString());
+                jaoOut.addProperty("filename", filename);
+                jaoOut.addProperty("filesize", jao.getAsJsonPrimitive("filesize").getAsInt());
+            }
+            jaoOut.addProperty("ramadda_id", jao.getAsJsonPrimitive("id").getAsString());
+            jaOut.add(jaoOut);
+        }        
+    }
+    
+    private JsonArray getRamaddaContent(String id) throws IOException {
+        JsonArray jarr = new JsonArray();
+        HttpResponse response = Request.Get(RAMADDA_URL + "?entryid=" + id + "&output=json")
+            .connectTimeout(60000)
+            .socketTimeout(60000)
+            .execute()
+            .returnResponse();
+        int code = response.getStatusLine().getStatusCode();        
+        if (code == 200) {      
+            String content = EntityUtils.toString(response.getEntity(), "UTF-8");
+            jarr = new JsonParser().parse(content).getAsJsonArray();           
+        } else {
+            throw new IllegalStateException("Failed to parse content for id " + id);
+        }
+        return(jarr);
     }
     
 }

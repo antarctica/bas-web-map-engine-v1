@@ -324,38 +324,58 @@ magic.classes.LayerTreeOptionsMenu.prototype.extentFromMetadata = function() {
 magic.classes.LayerTreeOptionsMenu.prototype.applyFilter = function() {
     var ecql = null;
     var md = this.node.layer.get("metadata");
-    if (md) {           
+    if (md) {        
         /* Construct a new ECQL filter based on form inputs */
         var fattr = $("#ftr-attr-" + this.node.nodeId).val();
         var comparisonType = $("#ftr-comparison-type-" + this.node.nodeId).val();
-        var fop = null, fval1 = null, fval2 = null;
+        var fop = null, fval1 = null, fval2 = null, rules = [];
         if (comparisonType == "string") {
             fop = $("#ftr-op-str-" + this.node.nodeId).val();
             fval1 = $("#ftr-val-str-" + this.node.nodeId).val();
+            rules.push({
+                field: "ftr-val-str-" + this.node.nodeId,
+                type: "required",
+                allowBlank: false
+            });
         } else {
             fop = $("#ftr-op-num-" + this.node.nodeId).val();
             fval1 = $("#ftr-val-num1-" + this.node.nodeId).val();
+            rules.push({
+                field: "ftr-val-num1-" + this.node.nodeId,
+                type: "required",
+                allowBlank: false
+            });
             if (fop == "between") {
                 fval2 = $("#ftr-val-num2-" + this.node.nodeId).val();
+                rules.push({
+                    field: "ftr-val-num2-" + this.node.nodeId,
+                    type: "required",
+                    allowBlank: false
+                });
             }
-        }    
-        md.current_filter = {
-            attr: fattr,
-            comparison: comparisonType,
-            op: fop, 
-            val1: fval1,
-            val2: fval2
-        };
-        if (comparisonType == "string") {
-            ecql = fattr + " " + fop + " '" + fval1 + (fop == "ilike" ? "%'" : "'");
-        } else {           
-            ecql = fattr + " " + fop + " " + fval1 + (fop == "between" ? " and " + fval2 : "");            
+        } 
+        /* Validation rules for the lon/lat search */
+        var validation = new magic.classes.Validation({rules: rules});
+        if (validation.validateAll()) {
+            /* Inputs ok */
+            md.current_filter = {
+                attr: fattr,
+                comparison: comparisonType,
+                op: fop, 
+                val1: fval1,
+                val2: fval2
+            };
+            if (comparisonType == "string") {
+                ecql = fattr + " " + fop + " '" + fval1 + (fop == "ilike" ? "%'" : "'");
+            } else {           
+                ecql = fattr + " " + fop + " " + fval1 + (fop == "between" ? " and " + fval2 : "");            
+            }
+            this.node.layer.getSource().updateParams($.extend({}, 
+                this.node.layer.getSource().getParams(), 
+                {"cql_filter": ecql}
+            ));
+            $("#ftr-btn-reset-" + this.node.nodeId).removeClass("disabled");
         }
-        this.node.layer.getSource().updateParams($.extend({}, 
-            this.node.layer.getSource().getParams(), 
-            {"cql_filter": ecql}
-        ));
-        $("#ftr-btn-reset-" + this.node.nodeId).removeClass("disabled");
     }
 };
 

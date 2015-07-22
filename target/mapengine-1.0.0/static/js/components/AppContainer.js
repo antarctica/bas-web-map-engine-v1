@@ -89,6 +89,17 @@ magic.classes.AppContainer = function(payload) {
         /* Hide the overview map button */
         $("#overview-map-tool").closest("li").hide();
     }
+    
+    if ($.inArray("download", payload.view.controls)) {
+        /* Activate download */
+        magic.runtime.download = new magic.classes.Download({
+            target: "download-tool",
+            download_id: payload.sources.download_id
+        });
+    } else {
+        /* Hide the download button */
+        $("#download-tool").closest("li").hide();
+    }
         
     /* Hide the login/profile preferences 
      * TO DO - implement login if required */

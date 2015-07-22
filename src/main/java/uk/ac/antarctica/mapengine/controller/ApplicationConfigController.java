@@ -239,6 +239,12 @@ public class ApplicationConfigController {
             logo = "bas.ico";
         }
         sourceData.addProperty("favicon", favicon);
+        /* Application Ramadda download id for top level directory */
+        String downloadId = env.getProperty(appname + ".download_id");
+        if (downloadId == null || downloadId.isEmpty()) {
+            downloadId = "";
+        }
+        sourceData.addProperty("download_id", downloadId);
         /* Application url (external site to link to via the logo) */
         String url = env.getProperty(appname + ".url");
         if (url == null || url.isEmpty()) {
