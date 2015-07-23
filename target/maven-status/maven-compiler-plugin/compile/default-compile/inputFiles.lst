@@ -1,6 +1,7 @@
 C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\controller\ApplicationConfigController.java
 C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\config\ApplicationSecurity.java
 C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\Application.java
+C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\util\ActivityLogger.java
 C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\config\CustomServletContextListener.java
 C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\controller\ProxyController.java
 C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\config\ThymeleafConfig.java

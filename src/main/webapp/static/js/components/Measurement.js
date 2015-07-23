@@ -287,7 +287,7 @@ magic.classes.Measurement.prototype.geodesicLength = function() {
         var c0wgs84 = ol.proj.transform(coords[0], magic.runtime.projection, "EPSG:4326");
         for (var i = 1; i < coords.length - 1; i++) {
             var c1wgs84 = ol.proj.transform(coords[i], magic.runtime.projection, "EPSG:4326");
-            geodesicLength += magic.modules.GeoUtils.wgs84.vincentyDistance(c0wgs84, c1wgs84);
+            geodesicLength += magic.modules.GeoUtils.WGS84.vincentyDistance(c0wgs84, c1wgs84);
             c0wgs84 = c1wgs84;
         }
     }

@@ -560,3 +560,33 @@ div.slider-purpose {
 .noUi-horizontal.noUi-extended .noUi-origin  {
     right: -32px;
 }
+
+/* Set popover max width */
+.popover-auto-width {
+    max-width: none;
+}
+
+/* Downloader styles */
+li.node-downloader-content span.indent {
+    margin-left: -25px !important;
+}
+
+a.download-file-tool {
+    float: right;
+    color: #202020;
+}
+
+a.download-file-tool:hover {
+    text-decoration: none; 
+}
+
+div.tooltip-inner {
+    max-width: 350px;
+}
+
+span.filter-badge {
+    float: left !important;
+    background-color: #ff0000;
+    color: #ffffff;
+    
+}

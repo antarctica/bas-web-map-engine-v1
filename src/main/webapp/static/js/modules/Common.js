@@ -45,7 +45,19 @@ magic.modules.Common = function() {
                 }
             }
             return(formattedValue);
-        },       
+        },   
+        
+        /**
+         * Human readable file size method
+         * http://stackoverflow.com/questions/10420352/converting-file-size-in-bytes-to-human-readable
+         * @param {int} bytes
+         * @returns {String}
+         */
+        fileSize: function(bytes) {
+            var exp = Math.log(bytes) / Math.log(1024) | 0;
+            var result = (bytes / Math.pow(1024, exp)).toFixed(2);
+            return result + ' ' + (exp == 0 ? "bytes": "kMGTPEZY"[exp - 1] + "B");
+        },
         
         /**
          * Replace urls in given value by links

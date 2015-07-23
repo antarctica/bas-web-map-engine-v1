@@ -52,14 +52,14 @@ public class ApplicationConfigController {
 	 */
 	@RequestMapping(value="/appconfig/{appname}", method=RequestMethod.GET, produces="application/json; charset=utf-8")	
     @ResponseBody
-	public ResponseEntity<String> appConfig(HttpServletRequest request, @PathVariable("appname") String appname) throws ServletException, IOException, ServiceException { 
+	public ResponseEntity<String> appConfig(HttpServletRequest request, @PathVariable("appname") String appname) throws ServletException, IOException, ServiceException {
+        
         JsonObject sourceData = getSourceData(appname);
+        JsonObject viewData = getMapViewData(appname);
         WebMapServer wms = new WebMapServer(new URL(sourceData.get("wms").getAsString()));
         WMSCapabilities capabilities = wms.getCapabilities();
         Layer root = capabilities.getLayer();
-        /* Assume we will have a non-named layer with title <appname> either at the root or second level */
-        Layer appTopLevel = getAppTopLevelNode(root, appname);
-        JsonArray treeDef = new JsonArray();
+        
         /* Extract the layers to be turned on by default */
         String[] showLayersArr = new String[] {};
         String showLayers = env.getProperty(appname + ".show_layers");
@@ -72,11 +72,25 @@ public class ApplicationConfigController {
         if (expandGroups != null && !expandGroups.isEmpty()) {
             expandGroupsArr = expandGroups.split(",");
         }
-        treewalk(treeDef, appTopLevel, env.getProperty(appname + ".projection"), sourceData.get("name_prefix").getAsString(), showLayersArr, expandGroupsArr); 
+        
+        /* Assume we will have a non-named layer with title <appname> either at the root or second level */
+        JsonArray treeDef = new JsonArray();
+        treewalk(
+            treeDef, 
+            getAppTopLevelNode(root, appname),
+            new LayerTreeData(
+                viewData.get("projection").getAsString(),
+                sourceData.get("endpoint").getAsString(), 
+                sourceData.get("name_prefix").getAsString(), 
+                showLayersArr, 
+                expandGroupsArr
+            )            
+        );
+        
         /* Assemble final payload */
         JsonObject payload = new JsonObject();
         payload.add("tree", treeDef);
-        payload.add("view", getMapViewData(appname));
+        payload.add("view", viewData);
         payload.add("sources", sourceData);
         return(packageResults(HttpStatus.OK, payload.toString(), null));        
     }
@@ -85,15 +99,11 @@ public class ApplicationConfigController {
      * Assemble the JSON layer tree definition by walking the layer hierarchy
      * @param JsonArray treeDef
      * @param Layer layer 
-     * @param String projection
-     * @param String prefix
-     * @param String[] showLayers
-     * @param String[] expandGroups
+     * @param LayerTreeData data
      */
-    private void treewalk(JsonArray treeDef, Layer layer, String projection, String prefix, String[] showLayers, String[] expandGroups) {
+    private void treewalk(JsonArray treeDef, Layer layer, LayerTreeData data) {
         boolean baseContainer = layer.getTitle().toLowerCase().startsWith("base");
         
-        int count = 0;
         for (Layer child : layer.getChildren()) {
             JsonObject cjo = new JsonObject();            
             if (child.getName() == null) {
@@ -101,25 +111,28 @@ public class ApplicationConfigController {
                 JsonArray nodes = new JsonArray();
                 cjo.add("nodes", nodes);                
                 JsonObject state = new JsonObject();
-                state.addProperty("expanded", inArray(expandGroups, child.getTitle()));
+                state.addProperty("expanded", inArray(data.getExpandGroups(), child.getTitle()));
                 cjo.addProperty("text", child.getTitle());
                 cjo.addProperty("radio", child.getTitle().toLowerCase().startsWith("base"));
-                cjo.add("state", state);               
-                treewalk(nodes, child, projection, prefix, showLayers, expandGroups);
+                cjo.addProperty("nodeid", data.getNodeId());
+                cjo.add("state", state);
+                data.setNodeId(data.getNodeId()+1);
+                treewalk(nodes, child, data);
             } else {
                 /* This is a data layer */
                 JsonObject layerProps = new JsonObject();
                 cjo.add("props", layerProps);
-                cjo.addProperty("text", humanFriendlyName(child.getName(), prefix));
+                cjo.addProperty("text", humanFriendlyName(child.getName(), data.getPrefix()));
+                cjo.addProperty("nodeid", data.getNodeId());
                 if (baseContainer) {
                     layerProps.addProperty("radio", baseContainer);                    
-                    if (inArray(showLayers, child.getName()) || count == 0) {
+                    if (inArray(data.getShowLayers(), child.getName())) {
                         /* Turn on this base layer by default */
                         JsonObject state = new JsonObject();
                         state.addProperty("checked", true);
                         cjo.add("state", state);
                     }                    
-                } else if (inArray(showLayers, child.getName())) {
+                } else if (inArray(data.getShowLayers(), child.getName())) {
                     /* Turn on this overlay layer by default */
                     JsonObject state = new JsonObject();
                     state.addProperty("checked", true);
@@ -138,7 +151,7 @@ public class ApplicationConfigController {
                         if (ce.getSRSName().equals("EPSG:4326")) {
                             /* WGS84 bounding box */
                             layerProps.add("bboxwgs84", envelopeToJsonArray(ce, false));
-                        } else if (ce.getSRSName().equals(projection)) {
+                        } else if (ce.getSRSName().equals(data.getProjection())) {
                             /* Application projection box */
                             layerProps.add("bboxsrs", envelopeToJsonArray(ce, true));
                         }
@@ -177,12 +190,12 @@ public class ApplicationConfigController {
                     }
                     if (!layerProps.has("legendurl")) {
                         /* Construct a legend URL */
-                        layerProps.addProperty("legendurl", BAS_MAPS + prefix + "/wms?service=WMS&request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&layer=" + child.getName());
+                        layerProps.addProperty("legendurl", BAS_MAPS + data.getEndpoint() + "/wms?service=WMS&request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&layer=" + child.getName());
                     }
                 }
             }
             treeDef.add(cjo);
-            count++;
+            data.setNodeId(data.getNodeId()+1);
         }
     }    
     
@@ -415,27 +428,78 @@ public class ApplicationConfigController {
      * @return boolean
      */
     private boolean inArray(String[] arr, String targetValue) {
-	for (String s : arr){
-		if (s.equals(targetValue))
-			return(true);
-	}
-	return(false);
-}
+        for (String s : arr){
+            if (s.equals(targetValue))
+                return(true);
+        }
+        return(false);
+    }
     
-// Exception handler
-//    /**
-//     * Handle exceptions caused by bad JSON
-//     * @param HttpMessageNotReadableException ex
-//     * @throws IOException 
-//     */
-//    @ExceptionHandler(HttpMessageNotReadableException.class)
-//    @ResponseStatus(value=HttpStatus.BAD_REQUEST)
-//    @ResponseBody
-//    public ResponseEntity<String> handleBadJsonException(HttpMessageNotReadableException ex) throws IOException {       
-//        JsonObject jo = new JsonObject();
-//        jo.addProperty("status", 400);
-//        jo.addProperty("detail", "Credentials were not valid JSON");
-//        return(packageResults(HttpStatus.BAD_REQUEST, null, "Credentials were not valid JSON"));
-//    }                
+    private class LayerTreeData {
+        
+        int nodeId = 0;
+        private String projection;
+        private String endpoint;
+        private String prefix;
+        private String[] showLayers;
+        private String[] expandGroups;
+        
+        public LayerTreeData(String projection, String endpoint, String prefix, String[] showLayers, String[] expandGroups) {
+            this.projection = projection;
+            this.endpoint = endpoint;
+            this.prefix = prefix;
+            this.showLayers = showLayers;
+            this.expandGroups = expandGroups;
+        }
+        
+        public int getNodeId() {
+            return nodeId;
+        }
+        
+        public void setNodeId(int nodeId) {
+            this.nodeId = nodeId;
+        }
+
+        public String getProjection() {
+            return projection;
+        }
+
+        public void setProjection(String projection) {
+            this.projection = projection;
+        }
+
+        public String getEndpoint() {
+            return endpoint;
+        }
+
+        public void setEndpoint(String endpoint) {
+            this.endpoint = endpoint;
+        }
+
+        public String getPrefix() {
+            return prefix;
+        }
+
+        public void setPrefix(String prefix) {
+            this.prefix = prefix;
+        }
+
+        public String[] getShowLayers() {
+            return showLayers;
+        }
+
+        public void setShowLayers(String[] showLayers) {
+            this.showLayers = showLayers;
+        }
+
+        public String[] getExpandGroups() {
+            return expandGroups;
+        }
+
+        public void setExpandGroups(String[] expandGroups) {
+            this.expandGroups = expandGroups;
+        }
+                        
+    }
    
 }

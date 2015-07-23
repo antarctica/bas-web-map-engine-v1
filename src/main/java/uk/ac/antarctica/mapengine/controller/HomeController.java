@@ -6,11 +6,13 @@ package uk.ac.antarctica.mapengine.controller;
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import uk.ac.antarctica.mapengine.util.ActivityLogger;
 
 @Controller
 public class HomeController {
@@ -29,6 +31,7 @@ public class HomeController {
         request.getSession().setAttribute("app", app);
         model.addAttribute("app", app); 
         model.addAttribute("debug", false); 
+        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Home page for " + app + " requested");
         return("map");
     }
     
@@ -46,6 +49,7 @@ public class HomeController {
         request.getSession().setAttribute("app", app);
         model.addAttribute("app", app);
         model.addAttribute("debug", true);
+        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Debug home page for " + app + " requested");
         return("map");
     }
     

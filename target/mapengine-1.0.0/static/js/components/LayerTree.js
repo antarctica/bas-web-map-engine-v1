@@ -8,13 +8,14 @@ magic.classes.LayerTree = function(target, treedata, sourceData) {
     
     this.baseLayers = [];
     this.overlayLayers = [];
-    this.initNodes(this.treedata);
+    
+    this.initNodes(this.treedata, $("#" + this.target));
     
     this.coastlineNodes = [];
     $("#" + this.target).treeview({
         data: treedata,
         showCheckbox: true,
-        onAfterTreeRender: $.proxy(function() {            
+        onAfterTreeRender: $.proxy(function(atrEvt) {            
             /* Add in the collapse button for the layer tree */
             $("li[data-nodeid=0]").append('<span data-toggle="tooltip" data-placement="bottom" title="Collapse layer tree" class="layer-tree-collapse fa fa-angle-double-left"></span>');
             $("span.layer-tree-collapse").on("click", $.proxy(function(evt) {
@@ -26,7 +27,7 @@ magic.classes.LayerTree = function(target, treedata, sourceData) {
             /* Layer dropdown skeletons */           
             $("li.node-layer-tree span.node-icon:not(.icon-layers)").parent().each($.proxy(function(idx, elt) {
                 var nodeId = $(elt).attr("data-nodeid");
-                if (nodeId) {                    
+                if (nodeId) {                             
                     $(elt).addClass("dropdown");
                     $(elt).append(
                         '<a class="layer-tool" id="layer-opts-' + nodeId + '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' + 
@@ -51,7 +52,7 @@ magic.classes.LayerTree = function(target, treedata, sourceData) {
                     var layer = magic.runtime.appcontainer.getLayerByName(layerName);
                     magic.runtime.attribution.show(layer);
                 }
-            });
+            });            
         }, this)
     });
         
@@ -115,7 +116,7 @@ magic.classes.LayerTree = function(target, treedata, sourceData) {
                 /* Turn off all the child layers beneath this container */
                 this.layerGroupStatusProcessor(node.nodes, false);
             }
-    }, this));
+    }, this));        
     
     /* Layer tree expansion button */
     $("button.layer-tree-expand").on("click", $.proxy(function(evt) {
@@ -158,16 +159,34 @@ magic.classes.LayerTree.prototype.isRasterLayer = function(layer) {
 /**
  * Insert per-node properties and styling into layer tree structure, as well as creating OL layers where needed
  * @param {array} nodes
+ * @param {object} div
  */
-magic.classes.LayerTree.prototype.initNodes = function(nodes) {
+magic.classes.LayerTree.prototype.initNodes = function(nodes, div) {
     $.each(nodes, $.proxy(function (i, nd) {
-        nd.selectable = false;
         if ($.isArray(nd.nodes)) {
             /* Style a group */
+            div.html(
+                '<div class="panel panel-default">' + 
+                    '<div class="panel-heading" id="layer-group-heading-"' + nd.nodeId + '">' + 
+                        '<h4 class="panel-title">' + 
+                            '<a role="button" data-toggle="collapse" href="#layer-group-panel-' + nd.nodeId + '">' + 
+                                '<span style="font-weight:bold">' + nd.text + '</span>' + 
+                            '</a>' + 
+                        '</h4>' + 
+                    '</div>' + 
+                    '<div id="layer-group-panel-"' + nd.nodeId + '" class="panel-collapse collapse in">' + 
+                        '<div class="panel-body">' + 
+                            '<ul class="list-group" id="layer-group-' + nd.nodeId + '">' + 
+                            '</ul>' + 
+                        '</div>' + 
+                    '</div>' + 
+                '</div>'
+            );
+    //HERE
             nd.icon = "icon-layers";            
             nd.color = "#404040";
             nd.backColor = "#e0e0e0";
-            nd.text = '<span style="font-weight:bold">' + nd.text + '</span>';
+            nd.text = '';
             this.initNodes(nd.nodes);
         } else {
             /* Style a data node */
@@ -176,6 +195,9 @@ magic.classes.LayerTree.prototype.initNodes = function(nodes) {
             nd.backColor = "#ffffff";
             var name = nd.text; /* Save name as we may insert ellipsis into name text for presentation purposes */
             nd.text = magic.modules.Common.ellipsis(nd.text, 25);
+            /* Layer filtering */
+            nd.filterable = true;
+            nd.current_filter = null;
             if (nd.props) {
                 /* Create a data layer */
                 var layer = null,
@@ -189,9 +211,7 @@ magic.classes.LayerTree.prototype.initNodes = function(nodes) {
                         opacity: 1.0,
                         metadata: $.extend({}, nd.props, {
                             checkstate: checkState,
-                            attrs: null,
-                            filterable: true,
-                            current_filter: null
+                            attrs: null
                         }),
                         source: new ol.source.ImageWMS(({
                             /* TODO: revisit for WebGL - may need crossOrigin = true here */
@@ -224,9 +244,7 @@ magic.classes.LayerTree.prototype.initNodes = function(nodes) {
                         opacity: nd.props.radio ? 1.0 : 0.8,
                         metadata: $.extend({}, nd.props, {
                             checkstate: checkState,
-                            attrs: null,
-                            filterable: true,
-                            current_filter: null
+                            attrs: null
                         }),
                         source: wmsSource
                     });        

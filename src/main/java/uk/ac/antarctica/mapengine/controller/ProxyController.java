@@ -10,8 +10,11 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.io.IOException;
+import java.util.HashMap;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.util.EntityUtils;
@@ -19,10 +22,12 @@ import org.json.XML;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import uk.ac.antarctica.mapengine.util.ActivityLogger;
 
 @Controller
 public class ProxyController {
@@ -33,6 +38,9 @@ public class ProxyController {
     };
     
     private static final String RAMADDA_URL = "http://ramadda.nerc-bas.ac.uk/repository/entry/show";
+    
+    /* Per-application download trees for performance */
+    private static HashMap<String, JsonArray> DOWNLOAD_TREE_CACHE = new HashMap();
     
    /**
 	 * Proxy for BAS API calls
@@ -69,20 +77,27 @@ public class ProxyController {
 	}
     
     /**
-	 * Proxy for BAS Ramadda calls
+	 * Proxy for BAS Ramadda entry/show calls
 	 * @param HttpServletRequest request
+     * @param String appname
 	 * @param String id
 	 * @return String
 	 * @throws ServletException
 	 * @throws IOException 
 	 */
-	@RequestMapping(value="/downloads", method=RequestMethod.GET, produces="application/json; charset=utf-8")	
+	@RequestMapping(value="/downloads/{appname}/{id}", method=RequestMethod.GET, produces="application/json; charset=utf-8")	
     @ResponseBody
-	public ResponseEntity<String> ramadda(HttpServletRequest request, @RequestParam(value="id", required=true) String id) throws ServletException, IOException {
+	public ResponseEntity<String> ramaddaEntryShow(HttpServletRequest request, @PathVariable("appname") String appname, @PathVariable("id") String id) throws ServletException, IOException {
         ResponseEntity<String> ret;
          try {
-            JsonArray jaOut = new JsonArray();
-            buildDownloadTree(jaOut, id);
+            JsonArray jaOut;
+            if (DOWNLOAD_TREE_CACHE.containsKey(appname)) {
+                jaOut = DOWNLOAD_TREE_CACHE.get(appname);
+            } else {
+                jaOut = new JsonArray();
+                buildDownloadTree(jaOut, id);
+                DOWNLOAD_TREE_CACHE.put(appname, jaOut);
+            }
             ret = new ResponseEntity<>(jaOut.toString(), HttpStatus.OK);
         } catch(IllegalStateException ise) {
             ret = packageResults(HttpStatus.BAD_REQUEST, null, "Failed to retrieve download information (error was " + ise.getMessage(), false, false);
@@ -90,6 +105,35 @@ public class ProxyController {
             ret = packageResults(HttpStatus.BAD_REQUEST, null, "Failed to retrieve download information (error was " + ioe.getMessage(), false, false);
         }
 		return(ret);
+	}
+    
+    /**
+	 * Proxy for BAS Ramadda entry/get calls
+	 * @param HttpServletRequest request
+	 * @param String id
+     * @param String attachname
+	 * @throws ServletException
+	 * @throws IOException 
+	 */
+	@RequestMapping(value="/getdata/{id}/{attachname:.+}", method=RequestMethod.GET)	
+	public void ramaddaEntryGet(HttpServletRequest request, 
+        HttpServletResponse response,
+        @PathVariable("id") String id,
+        @PathVariable("attachname") String attachname) throws ServletException, IOException {
+        byte[] download = downloadFromRamadda(id);
+        String mime = "application/octet-stream";
+        String ext = getExtension(attachname);
+        if (ext.equals("zip")) {
+            mime = "application/zip";
+        } else if (ext.equals("kml")) {
+            mime = "application/vnd.google-earth.kml+xml";
+        } else if (ext.equals("tif")) {
+            mime = "image/tiff";
+        } 
+        response.setContentType(mime);
+        response.setHeader("Content-Disposition","attachment;filename=" + attachname);
+        IOUtils.write(download, response.getOutputStream());
+        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Downloaded " + attachname);
 	}
     
     /**
@@ -160,6 +204,8 @@ public class ProxyController {
 
     /**
      * Take a JSON feed in Ramadda's format and simplify the datastructure for easy assimilation into Bootstrap tree structure
+     * Makes quite a few HTTP calls to retrieve the whole tree at once, as the client-side treeview plugin doesn't allow the 
+     * retrieval of nodes on the fly - tree is therefore cached on a per-app basis to avoid these overheads
      * Note: will be done much more elegantly via a properly styled Ramadda instance
      * @param JsonArray jaOut tree structure
      * @param String ramaddaId
@@ -168,36 +214,49 @@ public class ProxyController {
         JsonArray jarr = getRamaddaContent(ramaddaId);  
         for (int i = 0; i < jarr.size(); i++) {
             JsonObject jao = jarr.get(i).getAsJsonObject();
-            JsonObject jaoOut = new JsonObject();                
-            jaoOut.addProperty("text", jao.getAsJsonPrimitive("name").getAsString());
+            JsonObject jaoOut = new JsonObject();                            
             boolean isGroup = jao.getAsJsonPrimitive("isGroup").getAsBoolean();
             if (isGroup) {
                 JsonArray nodes = new JsonArray();
                 jaoOut.add("nodes", nodes);
-                jaoOut.addProperty("icon", "fa fa-folder");
+                jaoOut.addProperty("text", "<span style=\"font-weight:bold\">" + humanReadableDownloadName(jao.getAsJsonPrimitive("name").getAsString()) + "</span>");
+                jaoOut.addProperty("icon", "icon-layers");
+                jaoOut.addProperty("backColor", "#e0e0e0");
+                JsonObject state = new JsonObject();
+                state.addProperty("expanded", false);
+                jaoOut.add("state", state);
                 buildDownloadTree(nodes, jao.getAsJsonPrimitive("id").getAsString());
             } else {
                 String filename = jao.getAsJsonPrimitive("filename").getAsString();
                 String icon = "fa fa-file-o";
-                int lastDot = filename.lastIndexOf(".");
-                if (lastDot != -1) {
-                    String ext = filename.substring(lastDot + 1);                    
-                    if (ext.equals("zip")) {
-                        icon = "fa fa-file-archive-o";
-                    } else if (icon.equals("kml")) {
-                        icon = "fa fa-globe";
-                    }
-                }                    
+                String ext = getExtension(filename);
+                if (ext.equals("zip")) {
+                    icon = "fa fa-file-archive-o";
+                } else if (ext.equals("kml")) {
+                    icon = "fa fa-globe";
+                } else if (ext.equals("tif")) {
+                    icon = "fa fa-file-image-o";
+                }                                 
                 jaoOut.addProperty("icon", icon);
+                jaoOut.addProperty("text", humanReadableDownloadName(jao.getAsJsonPrimitive("name").getAsString())); 
+                jaoOut.addProperty("backColor", "#ffffff");
                 jaoOut.addProperty("published", jao.getAsJsonPrimitive("createDate").getAsString());
                 jaoOut.addProperty("filename", filename);
-                jaoOut.addProperty("filesize", jao.getAsJsonPrimitive("filesize").getAsInt());
-            }
-            jaoOut.addProperty("ramadda_id", jao.getAsJsonPrimitive("id").getAsString());
+                jaoOut.addProperty("filesize", jao.getAsJsonPrimitive("filesize").getAsInt()); 
+                jaoOut.addProperty("ramadda_id", jao.getAsJsonPrimitive("id").getAsString());
+            }            
+            jaoOut.addProperty("color", "#404040");
+            jaoOut.addProperty("selectable", false);
             jaOut.add(jaoOut);
         }        
     }
     
+    /**
+     * Get Ramadda JSON content for a download entity whose id is supplied
+     * @param String id
+     * @return JsonArray
+     * @throws IOException 
+     */
     private JsonArray getRamaddaContent(String id) throws IOException {
         JsonArray jarr = new JsonArray();
         HttpResponse response = Request.Get(RAMADDA_URL + "?entryid=" + id + "&output=json")
@@ -213,6 +272,59 @@ public class ProxyController {
             throw new IllegalStateException("Failed to parse content for id " + id);
         }
         return(jarr);
+    }
+    
+    /**
+     * Get Ramadda JSON content for a download entity whose id is supplied
+     * @param String id
+     * @return byte[]
+     * @throws IOException 
+     */
+    private byte[] downloadFromRamadda(String id) throws IOException {
+        byte[] out = null;
+        String getUrl = RAMADDA_URL.replaceFirst("show$", "get");
+        HttpResponse response = Request.Get(getUrl + "?entryid=" + id)
+            .connectTimeout(60000)
+            .socketTimeout(60000)
+            .execute()
+            .returnResponse();
+        int code = response.getStatusLine().getStatusCode();
+        if (code == 200) {      
+            out = EntityUtils.toByteArray(response.getEntity());
+        } else {
+            throw new IllegalStateException("Failed to download content for id " + id);
+        }
+        return(out);
+    }
+
+    /**
+     * Create a human readable name for a download file/folder 
+     * @param String name
+     * @return String
+     */
+    private String humanReadableDownloadName(String name) {
+        int lastDot = name.lastIndexOf(".");
+        if (lastDot != -1) {
+            name = name.substring(0, lastDot);   /* Strip extension */
+            name = name.replaceFirst("_(polygon|line|point)$", ""); /* Replace _polygon/line/point at the end */            
+        }
+        name = name.replaceAll("_", " ");
+        name = name.substring(0, 1).toUpperCase() + name.substring(1);
+        return(name);
+    }
+    
+    /**
+     * Get a filename extension
+     * @param String filename
+     * @return String
+     */
+    private String getExtension(String filename) {
+        String ext = "";
+        int lastDot = filename.lastIndexOf(".");
+        if (lastDot != -1) {
+            ext = filename.substring(lastDot + 1);                    
+        }
+        return(ext);
     }
     
 }

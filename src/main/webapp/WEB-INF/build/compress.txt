@@ -35,3 +35,4 @@ js/components/OverviewMap.js
 js/components/Download.js
 js/components/AttributionModal.js
 js/components/LayerTreeOptionsMenu.js
+js/components/LayerFilter.js
