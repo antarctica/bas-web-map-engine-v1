@@ -2,49 +2,50 @@
 
 magic.classes.LayerTreeOptionsMenu = function(options) {    
     
-    this.node = options.node;    
+    this.nodeid = options.nodeid;
+    this.layer = options.layer;
     
     /* Markup */
-    $("#layer-opts-dm-" + this.node.nodeId).html(
+    $("#layer-opts-dm-" + this.nodeid).html(
         '<li>' + 
-            '<a href="Javascript:void(0)" id="ztl-' + this.node.nodeId + '">Zoom to layer extent</a>' + 
+            '<a href="Javascript:void(0)" id="ztl-' + this.nodeid + '">Zoom to layer extent</a>' + 
         '</li>' + 
         '<li>' + 
-            '<a href="Javascript:void(0)" id="ftr-' + this.node.nodeId + '">Filter by attribute</a>' +
-            '<div class="hidden" id="wrapper-ftr-' + this.node.nodeId + '">' +                                    
+            '<a href="Javascript:void(0)" id="ftr-' + this.nodeid + '">Filter by attribute</a>' +
+            '<div class="hidden" id="wrapper-ftr-' + this.nodeid + '">' +                                    
             '</div>' + 
         '</li>' + 
         '<li>' + 
-            '<a href="Javascript:void(0)" id="opc-' + this.node.nodeId + '">Change layer transparency</a>' + 
-            '<div class="hidden" id="wrapper-opc-' + this.node.nodeId + '">' + 
+            '<a href="Javascript:void(0)" id="opc-' + this.nodeid + '">Change layer transparency</a>' + 
+            '<div class="hidden" id="wrapper-opc-' + this.nodeid + '">' + 
                 '<div class="icon-roundrectangle slider-purpose" data-toggle="tooltip" data-placement="top" title="Layer opaque"></div>' + 
-                '<div class="noUi-extended layer-webgl-property-slider" id="opc-slider-' + this.node.nodeId + '"></div>' + 
+                '<div class="noUi-extended layer-webgl-property-slider" id="opc-slider-' + this.nodeid + '"></div>' + 
                 '<div class="icon-pattern slider-purpose" data-toggle="tooltip" data-placement="top" title="Layer transparent"></div>' + 
             '</div>' + 
         '</li>'
 /* Awaiting a more effective WebGL implementation in OL3 - David 22/07/15 */        
 //        '<li>' + 
-//            '<a href="Javascript:void(0)" id="brt-' + this.node.nodeId + '">Change layer brightness</a>' + 
-//            '<div class="hidden" id="wrapper-brt-' + this.node.nodeId + '">' + 
+//            '<a href="Javascript:void(0)" id="brt-' + this.nodeid + '">Change layer brightness</a>' + 
+//            '<div class="hidden" id="wrapper-brt-' + this.nodeid + '">' + 
 //                '<div class="icon-brightness slider-purpose" data-toggle="tooltip" data-placement="top" title="Layer brightness none"></div>' + 
-//                '<div class="noUi-extended layer-webgl-property-slider" id="brt-slider-' + this.node.nodeId + '"></div>' + 
+//                '<div class="noUi-extended layer-webgl-property-slider" id="brt-slider-' + this.nodeid + '"></div>' + 
 //                '<div class="icon-brightnessfull slider-purpose" data-toggle="tooltip" data-placement="top" title="Layer brightness full"></div>' +
 //            '</div>' + 
 //        '</li>' + 
 //        '<li>' + 
-//            '<a href="Javascript:void(0)" id="ctr-' + this.node.nodeId + '">Change layer contrast</a>' + 
-//            '<div class="hidden" id="wrapper-ctr-' + this.node.nodeId + '">' + 
+//            '<a href="Javascript:void(0)" id="ctr-' + this.nodeid + '">Change layer contrast</a>' + 
+//            '<div class="hidden" id="wrapper-ctr-' + this.nodeid + '">' + 
 //                '<div class="fa fa-circle-o slider-purpose" data-toggle="tooltip" data-placement="top" title="Layer contrast none"></div>' + 
-//                '<div class="noUi-extended layer-webgl-property-slider" id="ctr-slider-' + this.node.nodeId + '"></div>' + 
+//                '<div class="noUi-extended layer-webgl-property-slider" id="ctr-slider-' + this.nodeid + '"></div>' + 
 //                '<div class="fa fa-circle slider-purpose" data-toggle="tooltip" data-placement="top" title="Layer contrast full"></div>' + 
 //            '</div>' + 
 //        '</li>'  
     );
     /* Handlers */
     /* Zoom to layer extent */
-    if (this.node.layer.getVisible()) {
+    if (this.layer.getVisible()) {
         /* Layer is visible on the map */
-        $("#ztl-" + this.node.nodeId).off("click").on("click", $.proxy(function(evt) {
+        $("#ztl-" + this.nodeid).off("click").on("click", $.proxy(function(evt) {
             var extent = this.extentFromMetadata();
             if (extent) {    
                 magic.runtime.map.getView().fit(extent, magic.runtime.map.getSize());
@@ -52,18 +53,19 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
         }, this));
     } else {
         /* Layer invisible, so option is unavailable */
-        $("#ztl-" + this.node.nodeId).parent().addClass("disabled");
+        $("#ztl-" + this.nodeid).parent().addClass("disabled");
     }
     /* Filter layer */
-    if (this.node.filterable === false || !this.node.layer.getVisible()) {
+    if (this.layer.get("metadata")["filterable"] === false || !this.layer.getVisible()) {
         /* Hide filter link for layer where it isn't possible */
-        $("#ftr-" + this.node.nodeId).parent().addClass("disabled");
+        $("#ftr-" + this.nodeid).parent().addClass("disabled");
     } else {
-        $("#ftr-" + this.node.nodeId).off("click").on("click", $.proxy(function(evt) {
+        $("#ftr-" + this.nodeid).off("click").on("click", $.proxy(function(evt) {
             evt.stopPropagation();
-            new magic.classes.LayerFilter({
-                node: this.node,
-                target: $(evt.currentTarget).next("div")
+            new magic.classes.LayerFilter({               
+                target: $(evt.currentTarget).next("div"),
+                nodeid: this.nodeid,
+                layer: this.layer
             })                        
         }, this));
     }
@@ -84,14 +86,14 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
  * @param {float} step 
  */
 magic.classes.LayerTreeOptionsMenu.prototype.addWebglSliderHandler = function(idbase, minVal, maxVal, step) { 
-    if (this.node.layer.getVisible()) {
+    if (this.layer.getVisible()) {
         /* Add the handlers */
-        $("#" + idbase + "-" + this.node.nodeId).off("click").on("click", $.proxy(function(evt) {
+        $("#" + idbase + "-" + this.nodeid).off("click").on("click", $.proxy(function(evt) {
             evt.stopPropagation();
             var wrapper = $(evt.currentTarget).next("div");
             if (wrapper.hasClass("hidden")) {
                 wrapper.removeClass("hidden").addClass("show");
-                var layer = this.node.layer;
+                var layer = this.layer;
                 var startValue = 0.0;
                 switch(idbase) {
                     case "opc": startValue = layer.getOpacity(); break;
@@ -123,7 +125,7 @@ magic.classes.LayerTreeOptionsMenu.prototype.addWebglSliderHandler = function(id
             }                        
         }, this));
     } else {
-        $("#" + idbase + "-" + this.node.nodeId).parent().addClass("disabled");
+        $("#" + idbase + "-" + this.nodeid).parent().addClass("disabled");
     }
 };
 
@@ -133,7 +135,7 @@ magic.classes.LayerTreeOptionsMenu.prototype.addWebglSliderHandler = function(id
  */
 magic.classes.LayerTreeOptionsMenu.prototype.extentFromMetadata = function() {
     var extent = null;
-    var md = this.node.layer.get("metadata");
+    var md = this.layer.get("metadata");
     if (md) {
         if (md.bboxsrs) {
             extent = md.bboxsrs;

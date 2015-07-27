@@ -8,117 +8,19 @@ magic.classes.LayerTree = function(target, treedata, sourceData) {
     
     this.baseLayers = [];
     this.overlayLayers = [];
+    this.nodeLayerTranslation = {};
     
-    this.initNodes(this.treedata, $("#" + this.target));
+    this.initTree(this.treedata, $("#" + this.target));
     
-    this.coastlineNodes = [];
-    $("#" + this.target).treeview({
-        data: treedata,
-        showCheckbox: true,
-        onAfterTreeRender: $.proxy(function(atrEvt) {            
-            /* Add in the collapse button for the layer tree */
-            $("li[data-nodeid=0]").append('<span data-toggle="tooltip" data-placement="bottom" title="Collapse layer tree" class="layer-tree-collapse fa fa-angle-double-left"></span>');
-            $("span.layer-tree-collapse").on("click", $.proxy(function(evt) {
-                evt.stopPropagation();
-                $("#" + this.target).hide({
-                    complete: magic.runtime.appcontainer.fitMapToViewport
-                });
-            }, this));            
-            /* Layer dropdown skeletons */           
-            $("li.node-layer-tree span.node-icon:not(.icon-layers)").parent().each($.proxy(function(idx, elt) {
-                var nodeId = $(elt).attr("data-nodeid");
-                if (nodeId) {                             
-                    $(elt).addClass("dropdown");
-                    $(elt).append(
-                        '<a class="layer-tool" id="layer-opts-' + nodeId + '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' + 
-                            '<span class="fa fa-bars"></span><b class="caret"></b>' + 
-                        '</a>' + 
-                        '<ul id="layer-opts-dm-' + nodeId + '" aria-labelled-by="layer-opts-' + nodeId + '" class="dropdown-menu dropdown-menu-right">' +                             
-                        '</ul>'
-                    );
-                    $("#layer-opts-" + nodeId).off("click").on("click", $.proxy(function(evt) {  
-                        evt.stopPropagation();
-                        var nd = $("#" + this.target).treeview("getNode", nodeId);
-                        new magic.classes.LayerTreeOptionsMenu({node: nd});
-                        $(evt.target).parent().dropdown("toggle");                        
-                    }, this));
-                }
-            }, this));
-            /* The get layer info buttons */
-            $("li.node-layer-tree span.fa-info-circle").on("click", function(evt) {
-                evt.stopPropagation();
-                var layerName = $(evt.target).parent().prop("innerText");
-                if (layerName) {
-                    var layer = magic.runtime.appcontainer.getLayerByName(layerName);
-                    magic.runtime.attribution.show(layer);
-                }
-            });            
-        }, this)
-    });
-        
-    $("#" + this.target)
-        .on("nodeChecked", $.proxy(function(evt, node) {
-            var lt = $("#" + this.target);
-            if (node.layer) {
-                node.layer.setVisible(true);
-                var isRaster = this.isRasterLayer(node.layer);
-                if (node.props.radio) {
-                    /* Turn off all other base layers */
-                    var exIsRaster = false;
-                    var siblings = lt.treeview("getSiblings", node);
-                    $.each(siblings, $.proxy(function(si, sn) {
-                        if (sn != node) {
-                            var bl = sn.layer;
-                            if (bl.getVisible()) {
-                                exIsRaster = this.isRasterLayer(bl);
-                                bl.setVisible(false);
-                            }
-                            lt.treeview("uncheckNode", sn, {silent: true})
-                        }
-                    }, this));                    
-                    if (isRaster != exIsRaster) {
-                        /* Transition to/from a raster layer from/to a vector one => set coastline visibility accordingly */
-                        var coastVis = !isRaster;
-                        if (this.coastlineNodes.length == 0) {
-                            /* Search for coastline nodes */
-                            var coasts = lt.treeview("search", ["coastline", {ignoreCase: true, exactMatch: false, revealResults: false}]);
-                            $.each(coasts, $.proxy(function(ci, cn) {
-                                if (cn.icon != "icon-layers") {
-                                    /* Data layer */
-                                    this.coastlineNodes.push(cn)                                ;
-                                }
-                            }, this));
-                            /* Remove gratuitous red highlighting */
-                            lt.treeview("clearSearch");
-                        }
-                        $.each(this.coastlineNodes, $.proxy(function(ci, cn) {                           
-                            cn.layer.setVisible(coastVis);                               
-                            lt.treeview((coastVis ? "" : "un") + "checkNode", cn, {silent: true});                                
-                        }, this));
-                        
-                    }
-                    /* Trigger baselayerchanged event */
-                    $.event.trigger({
-                        type: "baselayerchanged",
-                        layer: node.layer
-                    });
-                } 
-            } else if (node.nodes && !node.radio) {
-                /* Turn on all the child layers beneath this container */
-                this.layerGroupStatusProcessor(node.nodes, true);
-            }
-    }, this))
-        .on("nodeUnchecked", $.proxy(function(evt, node) {
-            var lt = $("#" + this.target);    
-            if (node.layer) {
-                node.layer.setVisible(false);
-            } else if (node.nodes) {
-                /* Turn off all the child layers beneath this container */
-                this.layerGroupStatusProcessor(node.nodes, false);
-            }
-    }, this));        
+    /* Collapse layer tree handler */
+    $("span.layer-tree-collapse").on("click", $.proxy(function(evt) {
+        evt.stopPropagation();        
+        $("#" + this.target).hide({
+            complete: magic.runtime.appcontainer.fitMapToViewport
+        });
+    }, this));
     
-    /* Layer tree expansion button */
+    /* Expand layer tree handler */
     $("button.layer-tree-expand").on("click", $.proxy(function(evt) {
         evt.stopPropagation();
         $("#" + this.target).show({
@@ -126,6 +28,80 @@ magic.classes.LayerTree = function(target, treedata, sourceData) {
         });
     }, this));        
     
+    /* Assign layer visibility handlers */
+    $("input.layer-vis-selector").change($.proxy(function(evt) {
+        var id = evt.currentTarget.id;
+        var nodeid = id.substring(id.lastIndexOf("-")+1);
+        var layer = this.nodeLayerTranslation[nodeid];
+        if (id.indexOf("base-layer-rb") != -1) {
+            /* Base layer visibility change */
+            var isRaster = this.isRasterLayer(layer), exIsRaster = false;
+            $.each(this.baseLayers, $.proxy(function(bli, bl) {
+                if (bl.getVisible() && this.isRasterLayer(bl)) {
+                    exIsRaster = true;
+                }
+                bl.setVisible(bl.get("metadata")["nodeid"] == nodeid);
+            }, this));
+            if (isRaster != exIsRaster) {
+                /* Toggle coastline layers if a raster backdrop is turned on or off */
+                var coastVis = !isRaster;
+                $.each(this.overlayLayers, $.proxy(function(oli, olyr) {
+                    if (olyr.get("name").toLowerCase().indexOf("coastline") != -1) {
+                        olyr.setVisible(coastVis);
+                    }
+                }, this));
+            }
+        } else {
+            /* Overlay layer visibility change */
+            layer.setVisible(evt.currentTarget.checked);
+        }
+    }, this));
+    
+    /* Assign layer group visibility handlers */
+    $("input.layer-vis-group-selector").change($.proxy(function(evt) {
+        var checked = evt.currentTarget.checked;
+        $(evt.currentTarget).parent().next().find("li").each($.proxy(function(idx, elt) {
+            var nodeid = elt.id.substring(elt.id.lastIndexOf("-")+1);
+            this.nodeLayerTranslation[nodeid].setVisible(checked);
+            $("#layer-cb-" + nodeid).prop("checked", checked);
+        }, this));       
+    }, this));
+    
+    /* The get layer info buttons */
+    $("span[id^='layer-info-']").on("click", $.proxy(function(evt) {
+        var id = evt.currentTarget.id;
+        var nodeid = id.substring(id.lastIndexOf("-")+1);       
+        magic.runtime.attribution.show(this.nodeLayerTranslation[nodeid]);
+    }, this));            
+    
+    /* Layer dropdown handlers */           
+    $("a.layer-tool").click($.proxy(function(evt) {
+        var id = evt.currentTarget.id;
+        var nodeid = id.substring(id.lastIndexOf("-")+1);
+        new magic.classes.LayerTreeOptionsMenu({
+            nodeid: nodeid,
+            layer: this.nodeLayerTranslation[nodeid]
+        });
+    }, this));
+    
+    /* Change tooltip for collapsible panels */
+    $("div[id^='layer-group-panel-']").on("shown.bs.collapse", $.proxy(function(evt) {
+        var tgt = $(evt.currentTarget);
+        var tt = (tgt.hasClass("in") ? "Collapse" : "Expand") + " this group";
+        tgt.parent().first().find("span.panel-title").attr("data-original-title", tt).tooltip("fixTitle");        
+    }, this));
+    
+    /* Change tooltip for collapsible panels */
+    $("div[id^='layer-group-panel-']").on("hidden.bs.collapse", $.proxy(function(evt) {
+        var tgt = $(evt.currentTarget);
+        var tt = (tgt.hasClass("in") ? "Collapse" : "Expand") + " this group";
+        tgt.parent().first().find("span.panel-title").attr("data-original-title", tt).tooltip("fixTitle");        
+    }, this));
+        
+};
+
+magic.classes.LayerTree.prototype.getTarget = function() {
+    return(this.target);
 };
 
 magic.classes.LayerTree.prototype.getLayers = function() {
@@ -159,50 +135,76 @@ magic.classes.LayerTree.prototype.isRasterLayer = function(layer) {
 /**
  * Insert per-node properties and styling into layer tree structure, as well as creating OL layers where needed
  * @param {array} nodes
- * @param {object} div
+ * @param {jQuery,Object} element
  */
-magic.classes.LayerTree.prototype.initNodes = function(nodes, div) {
+magic.classes.LayerTree.prototype.initTree = function(nodes, element) {
     $.each(nodes, $.proxy(function (i, nd) {
         if ($.isArray(nd.nodes)) {
             /* Style a group */
-            div.html(
-                '<div class="panel panel-default">' + 
-                    '<div class="panel-heading" id="layer-group-heading-"' + nd.nodeId + '">' + 
-                        '<h4 class="panel-title">' + 
-                            '<a role="button" data-toggle="collapse" href="#layer-group-panel-' + nd.nodeId + '">' + 
+            var expClass = " in", title = "Collapse this group", expander = "", allCb = "";
+            if (!nd.state || nd.state.expanded === false) {
+                expClass = "";
+                title = "Expand this group";
+            }
+            if (nd.radio) {
+                expander = '<span data-toggle="tooltip" data-placement="bottom" title="Collapse layer tree" class="layer-tree-collapse fa fa-angle-double-left"></span>';
+                allCb = '<span style="margin:5px"></span>'; /* Spacer */
+            } else {
+                allCb = '<input class="layer-vis-group-selector" id="group-cb-' + nd.nodeid + '" type="checkbox" />';
+            }
+            element.append(
+                '<div class="panel panel-default layer-group-panel">' + 
+                    '<div class="panel-heading" id="layer-group-heading-"' + nd.nodeid + '">' + 
+                        '<span class="icon-layers"></span>' +
+                         allCb +
+                        '<span class="panel-title layer-group-panel-title" data-toggle="tooltip" data-placement="right" title="' + title + '">' + 
+                            '<a role="button" data-toggle="collapse" href="#layer-group-panel-' + nd.nodeid + '">' + 
                                 '<span style="font-weight:bold">' + nd.text + '</span>' + 
                             '</a>' + 
-                        '</h4>' + 
+                        '</span>' + 
+                        expander + 
                     '</div>' + 
-                    '<div id="layer-group-panel-"' + nd.nodeId + '" class="panel-collapse collapse in">' + 
-                        '<div class="panel-body">' + 
-                            '<ul class="list-group" id="layer-group-' + nd.nodeId + '">' + 
+                    '<div id="layer-group-panel-' + nd.nodeid + '" class="panel-collapse collapse' + expClass + '">' + 
+                        '<div class="panel-body" style="padding:0px">' + 
+                            '<ul class="list-group layer-list-group" id="layer-group-' + nd.nodeid + '">' + 
                             '</ul>' + 
                         '</div>' + 
                     '</div>' + 
                 '</div>'
-            );
-    //HERE
-            nd.icon = "icon-layers";            
-            nd.color = "#404040";
-            nd.backColor = "#e0e0e0";
-            nd.text = '';
-            this.initNodes(nd.nodes);
+            );            
+            this.initTree(nd.nodes, $("#layer-group-" + nd.nodeid));
         } else {
             /* Style a data node */
-            nd.icon = "fa fa-info-circle";
-            nd.color = "#404040";
-            nd.backColor = "#ffffff";
+            var cb;
+            var checkState = nd.state ? nd.state.checked === true : false;
+            if (nd.props.radio) {
+                cb = '<input class="layer-vis-selector" name="base-layers-rb" id="base-layer-rb-' + nd.nodeid + '" type="radio" ' + (checkState ? "checked" : "") + '/>';
+            } else {
+                cb = '<input class="layer-vis-selector" id="layer-cb-' + nd.nodeid + '" type="checkbox" ' + (checkState ? "checked" : "") + '/>';
+            }
             var name = nd.text; /* Save name as we may insert ellipsis into name text for presentation purposes */
-            nd.text = magic.modules.Common.ellipsis(nd.text, 25);
-            /* Layer filtering */
-            nd.filterable = true;
-            nd.current_filter = null;
+            element.append(
+                '<li class="list-group-item layer-list-group-item" id="layer-item-' + nd.nodeid + '">' +
+                    '<span style="float:left">' + 
+                        '<span id="layer-info-' + nd.nodeid + '" class="fa fa-info-circle" style="cursor:pointer"></span>' + 
+                        cb + 
+                        '<span id="layer-filter-badge-' + nd.nodeid + '" class="badge filter-badge hidden" data-toggle="tooltip" data-placement="right" title="">filter</span>' + 
+                        magic.modules.Common.ellipsis(nd.text, 25) + 
+                    '</span>' + 
+                    '<span style="float:right">' + 
+                        '<a class="layer-tool" id="layer-opts-' + nd.nodeid + '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' + 
+                            '<span class="fa fa-bars"></span><b class="caret"></b>' + 
+                        '</a>' + 
+                        '<ul id="layer-opts-dm-' + nd.nodeid + '" aria-labelled-by="layer-opts-' + nd.nodeid + '" class="dropdown-menu dropdown-menu-right">' +                             
+                        '</ul>' + 
+                    '</span>' +
+                '</li>'
+            );
+            /* Layer filtering */            
             if (nd.props) {
                 /* Create a data layer */
                 var layer = null,
-                    kw = nd.props.keywords,
-                    checkState = nd.state ? nd.state.checked === true : false;              
+                    kw = nd.props.keywords;     
                 if ($.isArray(kw) && $.inArray("point", kw) != -1) {
                     /* Render point layers with a single tile for labelling free of tile boundary effects */
                     layer = new ol.layer.Image({
@@ -210,7 +212,10 @@ magic.classes.LayerTree.prototype.initNodes = function(nodes, div) {
                         visible: checkState,
                         opacity: 1.0,
                         metadata: $.extend({}, nd.props, {
+                            nodeid: nd.nodeid, 
                             checkstate: checkState,
+                            filterable: true,
+                            filter: null,
                             attrs: null
                         }),
                         source: new ol.source.ImageWMS(({
@@ -243,7 +248,10 @@ magic.classes.LayerTree.prototype.initNodes = function(nodes, div) {
                         visible: checkState,
                         opacity: nd.props.radio ? 1.0 : 0.8,
                         metadata: $.extend({}, nd.props, {
+                            nodeid: nd.nodeid, 
                             checkstate: checkState,
+                            filterable: true,
+                            filter: null,
                             attrs: null
                         }),
                         source: wmsSource
@@ -257,30 +265,8 @@ magic.classes.LayerTree.prototype.initNodes = function(nodes, div) {
                     this.overlayLayers.push(layer);
                 }
                 nd.layer = layer;
+                this.nodeLayerTranslation[nd.nodeid] = layer;
             }
         }
     }, this));
-};
-
-/**
- * Checking/unchecking a layer group controls all child layer visibility
- * @param {array} nodes
- * @param {boolean} state
- */
-magic.classes.LayerTree.prototype.layerGroupStatusProcessor = function(nodes, state) {
-    var lt = $("#" + this.target);
-    $.each(nodes, $.proxy(function (i, nd) {
-        lt.treeview((state ? "" : "un") + "checkNode", nd.nodeId, {silent: true});
-        if ($.isArray(nd.nodes)) {
-            this.layerGroupStatusProcessor(nd.nodes, state);
-        } else {
-            if (nd.layer) {
-                nd.layer.setVisible(state);
-            }
-        }
-    }, this));
-};
-
-magic.classes.LayerTree.prototype.getTarget = function() {
-    return(this.target);
 };

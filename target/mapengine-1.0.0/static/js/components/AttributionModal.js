@@ -25,7 +25,7 @@ magic.classes.AttributionModal = function(options) {
             '<!-- Attribution modal -->' + 
             '<div class="modal fade" id="attribution-modal" tabindex="-1" role="dialog" aria-labelledby="attribution-title" aria-hidden="true">' + 
                 '<div class="modal-dialog modal-sm">' + 
-                    '<div class="modal-content">' + 
+                    '<div class="modal-content" style="width:400px">' + 
                         '<div class="modal-header">' + 
                             '<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>' + 
                             '<h4 class="modal-title" id="attribution-title">Layer name</h4>' + 

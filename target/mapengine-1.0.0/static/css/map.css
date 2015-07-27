@@ -160,20 +160,6 @@ img.applogo {
     color: #fff;
 }
 
-a.layer-tool {
-    float: right;
-    color: #202020;
-}
-
-a.layer-tool:hover {
-    text-decoration: none; 
-}
-
-/* Eliminate rounded corners at top of side-panel layer list */
-div#layer-tree>ul.list-group>.list-group-item:first-child {
-    border-radius: 0;
-}
-
 #map-container {
     position: absolute;
     left: 300px;
@@ -188,14 +174,18 @@ div#layer-tree>ul.list-group>.list-group-item:first-child {
     height: 100%;
 }
 
-/* Layer tree collapse button */
-span.layer-tree-collapse {
-    float: right;
-    font-size: 20px;
+/* Layer tree styles */
+
+@media(min-width:768px) {
+    /* Collapse button */
+    span.layer-tree-collapse {
+        float: right;
+        font-size: 20px;
+    }
 }
 
 @media(min-width:768px) {
-    /* Layer tree expand button */
+    /* Expand button */
     button.layer-tree-expand {
         position: absolute;
         left: 0;
@@ -203,6 +193,47 @@ span.layer-tree-collapse {
         width: 43px;
         height: 43px;
     }
+}
+
+div.layer-group-panel {
+    border-radius: 0px;
+    margin-bottom: 0px;
+    border-bottom: 0px;
+}
+
+span.layer-group-panel-title {
+    margin-left: 0px;
+}
+
+ul.layer-list-group {
+    margin-bottom: 0px;
+    border-radius: 0px !important;
+}
+
+li.layer-list-group-item {
+    height: 40px;
+    border-radius: 0px !important;
+}
+
+input.layer-vis-selector, input.layer-vis-group-selector {
+    margin: 5px;
+}
+
+a.layer-tool {
+    float: right;
+    color: #202020;
+}
+
+a.layer-tool:hover {
+    text-decoration: none;
+    cursor: pointer;
+}
+
+span.filter-badge {
+    float: left !important;
+    background-color: #ff0000;
+    color: #ffffff;
+    margin-right: 5px;
 }
 
 /* Button ribbon styles */
@@ -345,7 +376,7 @@ div#all-attributes-modal {
 }
 
 /* Attribution modal styles */
-div#attribution-modal {   
+div#attribution-modal {    
 }
 
 div#attribution-legend {
@@ -582,11 +613,4 @@ a.download-file-tool:hover {
 
 div.tooltip-inner {
     max-width: 350px;
-}
-
-span.filter-badge {
-    float: left !important;
-    background-color: #ff0000;
-    color: #ffffff;
-    
 }

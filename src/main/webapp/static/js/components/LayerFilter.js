@@ -2,52 +2,62 @@
 
 magic.classes.LayerFilter = function(options) {
         
-    this.node = options.node;
+    /* API options */
+    this.nodeid = options.nodeid;
     
     this.target = options.target;
     
+    this.layer = options.layer;
+    
+    /* Internal */
+    this.attr = null;
+    this.comparison = null;
+    this.op = null;
+    this.val1 = null;
+    this.val2 = null;
+    
     this.target.html(
         '<form style="width: 230px">' +
-            '<input id="ftr-comparison-type-' + this.node.nodeId + '" type="hidden" value="string">' + 
+            '<input id="ftr-comparison-type-' + this.nodeid + '" type="hidden" value="string">' + 
             '<div class="form-group form-group-sm col-sm-12">' +
-                '<select id="ftr-attr-' + this.node.nodeId + '" class="form-control">' +
+                '<select id="ftr-attr-' + this.nodeid + '" class="form-control">' +
                     /* Options are added from a describe feature call */
                 '</select>' +                            
             '</div>' +
             '<div class="form-group form-group-sm col-sm-12">' +
-                '<select id="ftr-op-str-' + this.node.nodeId + '" class="form-control">' +
-                    '<option id="ftr-op-str-like-' + this.node.nodeId + '" value="ilike">like (case-insensitive)</option>' + 
-                    '<option id="ftr-op-str-eq-' + this.node.nodeId + '" value="=" selected>equal to (case sensitive)</option>' +                                                       
+                '<select id="ftr-op-str-' + this.nodeid + '" class="form-control">' +
+                    '<option id="ftr-op-str-like-' + this.nodeid + '" value="ilike">like (case-insensitive)</option>' + 
+                    '<option id="ftr-op-str-eq-' + this.nodeid + '" value="=" selected>equal to (case sensitive)</option>' +                                                       
                 '</select>' +                            
             '</div>' +
             '<div class="form-group form-group-sm col-sm-12" class="hidden">' +
-                '<select id="ftr-op-num-' + this.node.nodeId + '" class="form-control">' +
-                    '<option id="ftr-op-num-eq-' + this.node.nodeId + '" value="=" selected>equal to</option>' +
-                    '<option id="ftr-op-num-gt-' + this.node.nodeId + '" value=">">greater than</option>' +
-                    '<option id="ftr-op-num-lt-' + this.node.nodeId + '" value="<">less than</option>' +
-                    '<option id="ftr-op-num-gte-' + this.node.nodeId + '" value=">=">greater than or equal to</option>' +
-                    '<option id="ftr-op-num-lte-' + this.node.nodeId + '" value="<=">less than or equal to</option>' +
-                    '<option id="ftr-op-num-btw-' + this.node.nodeId + '" value="between">between</option>' +
+                '<select id="ftr-op-num-' + this.nodeid + '" class="form-control">' +
+                    '<option id="ftr-op-num-eq-' + this.nodeid + '" value="=" selected>equal to</option>' +
+                    '<option id="ftr-op-num-gt-' + this.nodeid + '" value=">">greater than</option>' +
+                    '<option id="ftr-op-num-lt-' + this.nodeid + '" value="<">less than</option>' +
+                    '<option id="ftr-op-num-gte-' + this.nodeid + '" value=">=">greater than or equal to</option>' +
+                    '<option id="ftr-op-num-lte-' + this.nodeid + '" value="<=">less than or equal to</option>' +
+                    '<option id="ftr-op-num-btw-' + this.nodeid + '" value="between">between</option>' +
                 '</select>' +                            
             '</div>' +
             '<div class="form-group form-group-sm col-sm-12">' +
-                '<input id="ftr-val-str-' + this.node.nodeId + '" class="form-control" type="text" required="true" placeholder="Attribute value" ' + 
+                '<input id="ftr-val-str-' + this.nodeid + '" class="form-control" type="text" required="true" placeholder="Attribute value" ' + 
                     'data-toggle="tooltip" data-placement="right" title="Enter the attribute value to filter on" />' + 
             '</div>' + 
             '<div class="form-group form-group-sm col-sm-12" class="hidden">' +
-                '<input id="ftr-val-num1-' + this.node.nodeId + '" class="form-control" type="number" required="true" placeholder="Numeric attribute value" ' + 
+                '<input id="ftr-val-num1-' + this.nodeid + '" class="form-control" type="number" required="true" placeholder="Numeric attribute value" ' + 
                     'data-toggle="tooltip" data-placement="right" title="Enter numeric attribute value to filter on" />' + 
             '</div>' + 
             '<div class="form-group form-group-sm col-sm-12" class="hidden">' +
-                '<input id="ftr-val-num2-' + this.node.nodeId + '" class="form-control" type="number" required="false" placeholder="Numeric attribute value" ' + 
+                '<input id="ftr-val-num2-' + this.nodeid + '" class="form-control" type="number" required="false" placeholder="Numeric attribute value" ' + 
                     'data-toggle="tooltip" data-placement="right" title="Enter upper numeric attribute value to filter on" />' + 
             '</div>' + 
             '<div class="form-group form-group-sm col-sm-12">' +
-                '<button id="ftr-btn-go-' + this.node.nodeId + '" class="btn btn-default btn-sm" type="button" ' + 
+                '<button id="ftr-btn-go-' + this.nodeid + '" class="btn btn-default btn-sm" type="button" ' + 
                     'data-toggle="tooltip" data-placement="right" title="Set filter on layer">' + 
                     '<span class="fa fa-filter"></span>' + 
                 '</button>' +
-                '<button id="ftr-btn-reset-' + this.node.nodeId + '" class="btn btn-default btn-sm" type="button" ' + 
+                '<button id="ftr-btn-reset-' + this.nodeid + '" class="btn btn-default btn-sm" type="button" ' + 
                     'data-toggle="tooltip" data-placement="right" title="Remove layer filter">' + 
                     '<span class="fa fa-minus-circle"></span>' + 
                 '</button>' +
@@ -60,14 +70,14 @@ magic.classes.LayerFilter = function(options) {
         /* Allow clicking on the inputs without the dropdown going away */
         this.target.children("form").click(function(evt2) {evt2.stopPropagation()});
         this.loadAttributeOptions();
-        $("#ftr-attr-" + this.node.nodeId).off("change").on("change", $.proxy(function(evt) {
+        $("#ftr-attr-" + this.nodeid).off("change").on("change", $.proxy(function(evt) {
             this.setFilterOptions($(evt.target).val());                                
         }, this));
-        $("#ftr-op-num-" + this.node.nodeId).off("change").on("change", $.proxy(function(evt) {
+        $("#ftr-op-num-" + this.nodeid).off("change").on("change", $.proxy(function(evt) {
             this.setFilterOptions(null, $(evt.target).val());                    
         }, this));
-        $("#ftr-btn-go-" + this.node.nodeId).off("click").on("click", $.proxy(this.applyFilter, this));
-        $("#ftr-btn-reset-" + this.node.nodeId).off("click").on("click", $.proxy(this.resetFilter, this));
+        $("#ftr-btn-go-" + this.nodeid).off("click").on("click", $.proxy(this.applyFilter, this));
+        $("#ftr-btn-reset-" + this.nodeid).off("click").on("click", $.proxy(this.resetFilter, this));
     } else {
         this.target.removeClass("show").addClass("hidden");
     }           
@@ -77,7 +87,7 @@ magic.classes.LayerFilter = function(options) {
  * Get options for layer attribute names
  */
 magic.classes.LayerFilter.prototype.loadAttributeOptions = function() {
-    var layer = this.node.layer;
+    var layer = this.layer;
     if (layer) {
         var md = layer.get("metadata");
         if (md) {
@@ -103,10 +113,10 @@ magic.classes.LayerFilter.prototype.loadAttributeOptions = function() {
                         } else {
                             /* Failed - this layer can't be filtered */
                             md.attrs = null;
-                            this.node.filterable = false;
-                            this.node.current_filter = null;
-                            $("#wrapper-ftr-" + this.node.nodeId).removeClass("show").addClass("hidden");
-                            $("#ftr-" + this.node.nodeId).removeClass("show").addClass("hidden");
+                            md.filterable = false;
+                            md.filter = null;
+                            $("#wrapper-ftr-" + this.nodeid).removeClass("show").addClass("hidden");
+                            $("#ftr-" + this.nodeid).removeClass("show").addClass("hidden");
                         }
                     }, this));                        
                 }
@@ -121,15 +131,14 @@ magic.classes.LayerFilter.prototype.loadAttributeOptions = function() {
  * @param {string} selOp
  */
 magic.classes.LayerFilter.prototype.setFilterOptions = function(selAttr, selOp) {
-    var md = this.node.layer.get("metadata");
+    var md = this.layer.get("metadata");
     if (md && md.attrs) {
         var attrs = md.attrs,
-            exFilter = this.node.current_filter,
-            select = $("#ftr-attr-" + this.node.nodeId),
-            fattr = selAttr || (exFilter != null ? exFilter.attr :  null),
-            fop = selOp || (exFilter != null ? exFilter.op :  null),
-            fval1 = exFilter != null ? exFilter.val1 :  null,
-            fval2 = exFilter != null ? exFilter.val2 :  null,
+            select = $("#ftr-attr-" + this.nodeid),
+            fattr = selAttr || (this.attr || null),
+            fop = selOp || (this.op || null),
+            fval1 = this.val1 || null,
+            fval2 = this.val2 || null,
             selectedType = null, firstType = null;
         /* Append the options to the attribute selector */
         $.each(attrs, function(idx, props) {
@@ -153,43 +162,43 @@ magic.classes.LayerFilter.prototype.setFilterOptions = function(selAttr, selOp) 
             /* Hide the non-relevant option types */
             if (selectedType == "xsd:string") {
                 /* Show string operation and value fields */
-                $("#ftr-comparison-type-" + this.node.nodeId).val("string");
-                $("#ftr-op-str-" + this.node.nodeId).parent().removeClass("hidden").addClass("show");
-                $("#ftr-val-str-" + this.node.nodeId).parent().removeClass("hidden").addClass("show");
-                $("#ftr-op-num-" + this.node.nodeId).parent().removeClass("show").addClass("hidden");
-                $("#ftr-val-num1-" + this.node.nodeId).parent().removeClass("show").addClass("hidden");
-                $("#ftr-val-num2-" + this.node.nodeId).parent().removeClass("show").addClass("hidden");
+                $("#ftr-comparison-type-" + this.nodeid).val("string");
+                $("#ftr-op-str-" + this.nodeid).parent().removeClass("hidden").addClass("show");
+                $("#ftr-val-str-" + this.nodeid).parent().removeClass("hidden").addClass("show");
+                $("#ftr-op-num-" + this.nodeid).parent().removeClass("show").addClass("hidden");
+                $("#ftr-val-num1-" + this.nodeid).parent().removeClass("show").addClass("hidden");
+                $("#ftr-val-num2-" + this.nodeid).parent().removeClass("show").addClass("hidden");
                 if (fop != null) {
-                    $("#ftr-op-str-" + this.node.nodeId).val(fop);
+                    $("#ftr-op-str-" + this.nodeid).val(fop);
                 } else {
-                    $("#ftr-op-str-" + this.node.nodeId)[0].selectedIndex = 0;
+                    $("#ftr-op-str-" + this.nodeid)[0].selectedIndex = 0;
                 }
                 if (fval1 != null) {
-                    $("#ftr-val-str-" + this.node.nodeId).val(fval1);
+                    $("#ftr-val-str-" + this.nodeid).val(fval1);
                 }
             } else {
                 /* Number operation and value fields */
-                $("#ftr-comparison-type-" + this.node.nodeId).val("number");
-                $("#ftr-op-str-" + this.node.nodeId).parent().removeClass("show").addClass("hidden");
-                $("#ftr-val-str-" + this.node.nodeId).parent().removeClass("show").addClass("hidden");
-                $("#ftr-op-num-" + this.node.nodeId).parent().removeClass("hidden").addClass("show");
-                $("#ftr-val-num1-" + this.node.nodeId).parent().removeClass("hidden").addClass("show");            
+                $("#ftr-comparison-type-" + this.nodeid).val("number");
+                $("#ftr-op-str-" + this.nodeid).parent().removeClass("show").addClass("hidden");
+                $("#ftr-val-str-" + this.nodeid).parent().removeClass("show").addClass("hidden");
+                $("#ftr-op-num-" + this.nodeid).parent().removeClass("hidden").addClass("show");
+                $("#ftr-val-num1-" + this.nodeid).parent().removeClass("hidden").addClass("show");            
                 if (fop != null) {
-                    $("#ftr-op-num-" + this.node.nodeId).val(fop);
+                    $("#ftr-op-num-" + this.nodeid).val(fop);
                 } else {
-                    $("#ftr-op-num-" + this.node.nodeId)[0].selectedIndex = 0;
+                    $("#ftr-op-num-" + this.nodeid)[0].selectedIndex = 0;
                 }
                 if (fval1 != null) {
-                    $("#ftr-val-num1-" + this.node.nodeId).val(fval1);
+                    $("#ftr-val-num1-" + this.nodeid).val(fval1);
                 }
                 if (fop == "between") {
-                    $("#ftr-val-num2-" + this.node.nodeId).parent().removeClass("hidden").addClass("show");
+                    $("#ftr-val-num2-" + this.nodeid).parent().removeClass("hidden").addClass("show");
                     if (fval2 != null) {
-                        $("#ftr-val-num2-" + this.node.nodeId).val(fval2);
+                        $("#ftr-val-num2-" + this.nodeid).val(fval2);
                     }
                 } else {
-                    $("#ftr-val-num2-" + this.node.nodeId).parent().removeClass("show").addClass("hidden");
-                    $("#ftr-val-num2-" + this.node.nodeId).val(null);
+                    $("#ftr-val-num2-" + this.nodeid).parent().removeClass("show").addClass("hidden");
+                    $("#ftr-val-num2-" + this.nodeid).val(null);
                 }
             }
         } 
@@ -203,32 +212,32 @@ magic.classes.LayerFilter.prototype.setFilterOptions = function(selAttr, selOp) 
 magic.classes.LayerFilter.prototype.applyFilter = function() {
     var ecql = null;          
     /* Construct a new ECQL filter based on form inputs */
-    var fattr = $("#ftr-attr-" + this.node.nodeId).val();
-    var comparisonType = $("#ftr-comparison-type-" + this.node.nodeId).val();
+    var fattr = $("#ftr-attr-" + this.nodeid).val();
+    var comparisonType = $("#ftr-comparison-type-" + this.nodeid).val();
     var fop = null, fval1 = null, fval2 = null, rules = [];
     var filterString = "";
     if (comparisonType == "string") {
-        fop = $("#ftr-op-str-" + this.node.nodeId).val();
-        fval1 = $("#ftr-val-str-" + this.node.nodeId).val();
+        fop = $("#ftr-op-str-" + this.nodeid).val();
+        fval1 = $("#ftr-val-str-" + this.nodeid).val();
         rules.push({
-            field: "ftr-val-str-" + this.node.nodeId,
+            field: "ftr-val-str-" + this.nodeid,
             type: "required",
             allowBlank: false
         });
         filterString = fattr + " " + fop + " '" + fval1;
     } else {
-        fop = $("#ftr-op-num-" + this.node.nodeId).val();
-        fval1 = $("#ftr-val-num1-" + this.node.nodeId).val();
+        fop = $("#ftr-op-num-" + this.nodeid).val();
+        fval1 = $("#ftr-val-num1-" + this.nodeid).val();
         rules.push({
-            field: "ftr-val-num1-" + this.node.nodeId,
+            field: "ftr-val-num1-" + this.nodeid,
             type: "required",
             allowBlank: false
         });
         filterString = fattr + " " + fop + " " + fval1;
         if (fop == "between") {
-            fval2 = $("#ftr-val-num2-" + this.node.nodeId).val();
+            fval2 = $("#ftr-val-num2-" + this.nodeid).val();
             rules.push({
-                field: "ftr-val-num2-" + this.node.nodeId,
+                field: "ftr-val-num2-" + this.nodeid,
                 type: "required",
                 allowBlank: false
             });
@@ -239,31 +248,23 @@ magic.classes.LayerFilter.prototype.applyFilter = function() {
     var validation = new magic.classes.Validation({rules: rules});
     if (validation.validateAll()) {
         /* Inputs ok */
-        this.node.current_filter = {
-            attr: fattr,
-            comparison: comparisonType,
-            op: fop, 
-            val1: fval1,
-            val2: fval2
-        };
+        this.attr = fattr;
+        this.comparison = comparisonType;
+        this.op = fop;
+        this.val1 = fval1;
+        this.val2 = fval2;      
         if (comparisonType == "string") {
             ecql = fattr + " " + fop + " '" + fval1 + (fop == "ilike" ? "%'" : "'");
         } else {           
             ecql = fattr + " " + fop + " " + fval1 + (fop == "between" ? " and " + fval2 : "");            
         }
-        this.node.layer.getSource().updateParams($.extend({}, 
-            this.node.layer.getSource().getParams(), 
+        this.layer.getSource().updateParams($.extend({}, 
+            this.layer.getSource().getParams(), 
             {"cql_filter": ecql}
         ));
-        $("#ftr-btn-reset-" + this.node.nodeId).removeClass("disabled");
-        var li = $("li[data-nodeid=" + this.node.nodeId + "]");
-        var fbadge = li.children("span.filter-badge");
-        if (fbadge.length > 0) {
-            fbadge.remove();
-        }
-        /* Add a filter badge */
-        li.children("span.indent").remove();
-        li.prepend('<span class="badge filter-badge" data-toggle="tooltip" data-placement="right" title="' + filterString + '">filter</span>');
+        $("#ftr-btn-reset-" + this.nodeid).removeClass("disabled");
+        /* Show filter badge */
+        $("#layer-filter-badge-" + this.nodeid).removeClass("hidden").addClass("show").attr("data-original-title", filterString).tooltip("fixTitle");
     }
 };
 
@@ -271,26 +272,19 @@ magic.classes.LayerFilter.prototype.applyFilter = function() {
  * Reset a layer filter
  */
 magic.classes.LayerFilter.prototype.resetFilter = function() {    
-    /* Reset current filter on layer */
-    this.node.current_filter = {
-        attr: null,
-        comparison: null,
-        op: null, 
-        val1: null,
-        val2: null
-    };
-    this.node.layer.getSource().updateParams($.extend({}, 
-        this.node.layer.getSource().getParams(),
+    /* Reset current filter on layer */    
+    this.attr = null;
+    this.comparison = null;
+    this.op = null;
+    this.val1 = null;
+    this.val2 = null;
+    this.layer.getSource().updateParams($.extend({}, 
+        this.layer.getSource().getParams(),
         {"cql_filter": null}
     ));
-    $("#ftr-btn-reset-" + this.node.nodeId).addClass("disabled");
-    var li = $("li[data-nodeid=" + this.node.nodeId + "]");
-    var fbadge = li.children("span.badge");
-    if (fbadge.length != 0) {
-        /* Remove filter badge */
-        li.children("span.filter-badge").remove();
-        li.prepend('<span class="indent"></span>');
-    }
+    $("#ftr-btn-reset-" + this.nodeid).addClass("disabled");    
+    /* Hide filter badge */
+    $("#layer-filter-badge-" + this.nodeid).removeClass("show").addClass("hidden");
 };
 
 
