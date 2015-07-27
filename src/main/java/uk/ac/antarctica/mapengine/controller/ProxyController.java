@@ -65,6 +65,7 @@ public class ProxyController {
                 .returnResponse();
             int code = response.getStatusLine().getStatusCode();
             String content = EntityUtils.toString(response.getEntity(), "UTF-8");
+            System.out.println(content);
             if (code == 200) {                
                 ret = packageResults(HttpStatus.OK, content, "", isGfi, isDft);
             } else {
@@ -203,9 +204,7 @@ public class ProxyController {
     }
 
     /**
-     * Take a JSON feed in Ramadda's format and simplify the datastructure for easy assimilation into Bootstrap tree structure
-     * Makes quite a few HTTP calls to retrieve the whole tree at once, as the client-side treeview plugin doesn't allow the 
-     * retrieval of nodes on the fly - tree is therefore cached on a per-app basis to avoid these overheads
+     * Take a JSON feed in Ramadda's format and simplify the datastructure for easy assimilation into Bootstrap tree structure    
      * Note: will be done much more elegantly via a properly styled Ramadda instance
      * @param JsonArray jaOut tree structure
      * @param String ramaddaId
@@ -219,34 +218,19 @@ public class ProxyController {
             if (isGroup) {
                 JsonArray nodes = new JsonArray();
                 jaoOut.add("nodes", nodes);
-                jaoOut.addProperty("text", "<span style=\"font-weight:bold\">" + humanReadableDownloadName(jao.getAsJsonPrimitive("name").getAsString()) + "</span>");
-                jaoOut.addProperty("icon", "icon-layers");
-                jaoOut.addProperty("backColor", "#e0e0e0");
+                jaoOut.addProperty("text", humanReadableDownloadName(jao.getAsJsonPrimitive("name").getAsString()));               
                 JsonObject state = new JsonObject();
                 state.addProperty("expanded", false);
                 jaoOut.add("state", state);
                 buildDownloadTree(nodes, jao.getAsJsonPrimitive("id").getAsString());
             } else {
-                String filename = jao.getAsJsonPrimitive("filename").getAsString();
-                String icon = "fa fa-file-o";
-                String ext = getExtension(filename);
-                if (ext.equals("zip")) {
-                    icon = "fa fa-file-archive-o";
-                } else if (ext.equals("kml")) {
-                    icon = "fa fa-globe";
-                } else if (ext.equals("tif")) {
-                    icon = "fa fa-file-image-o";
-                }                                 
-                jaoOut.addProperty("icon", icon);
+                String filename = jao.getAsJsonPrimitive("filename").getAsString();                
                 jaoOut.addProperty("text", humanReadableDownloadName(jao.getAsJsonPrimitive("name").getAsString())); 
-                jaoOut.addProperty("backColor", "#ffffff");
                 jaoOut.addProperty("published", jao.getAsJsonPrimitive("createDate").getAsString());
                 jaoOut.addProperty("filename", filename);
                 jaoOut.addProperty("filesize", jao.getAsJsonPrimitive("filesize").getAsInt()); 
                 jaoOut.addProperty("ramadda_id", jao.getAsJsonPrimitive("id").getAsString());
             }            
-            jaoOut.addProperty("color", "#404040");
-            jaoOut.addProperty("selectable", false);
             jaOut.add(jaoOut);
         }        
     }

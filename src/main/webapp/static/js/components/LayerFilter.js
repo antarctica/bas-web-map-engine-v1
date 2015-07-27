@@ -70,14 +70,14 @@ magic.classes.LayerFilter = function(options) {
         /* Allow clicking on the inputs without the dropdown going away */
         this.target.children("form").click(function(evt2) {evt2.stopPropagation()});
         this.loadAttributeOptions();
-        $("#ftr-attr-" + this.nodeid).off("change").on("change", $.proxy(function(evt) {
+        $("#ftr-attr-" + this.nodeid).on("change", $.proxy(function(evt) {
             this.setFilterOptions($(evt.target).val());                                
         }, this));
-        $("#ftr-op-num-" + this.nodeid).off("change").on("change", $.proxy(function(evt) {
-            this.setFilterOptions(null, $(evt.target).val());                    
+        $("#ftr-op-num-" + this.nodeid).on("change", $.proxy(function(evt) {
+            this.setFilterOptions($("#ftr-attr-" + this.nodeid).val(), $(evt.target).val());                    
         }, this));
-        $("#ftr-btn-go-" + this.nodeid).off("click").on("click", $.proxy(this.applyFilter, this));
-        $("#ftr-btn-reset-" + this.nodeid).off("click").on("click", $.proxy(this.resetFilter, this));
+        $("#ftr-btn-go-" + this.nodeid).on("click", $.proxy(this.applyFilter, this));
+        $("#ftr-btn-reset-" + this.nodeid).on("click", $.proxy(this.resetFilter, this));
     } else {
         this.target.removeClass("show").addClass("hidden");
     }           
@@ -139,7 +139,8 @@ magic.classes.LayerFilter.prototype.setFilterOptions = function(selAttr, selOp) 
             fop = selOp || (this.op || null),
             fval1 = this.val1 || null,
             fval2 = this.val2 || null,
-            selectedType = null, firstType = null;
+            selectedType = this.comparison || null,
+            firstType = null;
         /* Append the options to the attribute selector */
         $.each(attrs, function(idx, props) {
             if (props.type.indexOf("gml:") == -1) {

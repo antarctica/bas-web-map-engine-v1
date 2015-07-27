@@ -229,6 +229,15 @@ a.layer-tool:hover {
     cursor: pointer;
 }
 
+a.layer-group-tool {
+    color: #202020;
+    text-decoration: none;
+}
+
+a.layer-group-tool:hover {
+    text-decoration: underline;
+}
+
 span.filter-badge {
     float: left !important;
     background-color: #ff0000;
@@ -597,14 +606,55 @@ div.slider-purpose {
     max-width: none;
 }
 
-/* Downloader styles */
-li.node-downloader-content span.indent {
-    margin-left: -25px !important;
-}
-
 a.download-file-tool {
     float: right;
     color: #202020;
+}
+
+div.download-group-panel {
+    border-radius: 0px;
+    margin-bottom: 0px;
+    border-bottom: 0px;
+}
+
+span.download-group-panel-title {
+    margin-left: 5px;
+}
+
+ul.download-list-group {
+    margin-bottom: 0px;
+    border-radius: 0px !important;
+}
+
+li.download-list-group-item {
+    height: 40px;
+    border-radius: 0px !important;
+}
+
+a.layer-tool {
+    float: right;
+    color: #202020;
+}
+
+a.layer-tool:hover {
+    text-decoration: none;
+    cursor: pointer;
+}
+
+a.layer-group-tool {
+    color: #202020;
+    text-decoration: none;
+}
+
+a.layer-group-tool:hover {
+    text-decoration: underline;
+}
+
+span.filter-badge {
+    float: left !important;
+    background-color: #ff0000;
+    color: #ffffff;
+    margin-right: 5px;
 }
 
 a.download-file-tool:hover {

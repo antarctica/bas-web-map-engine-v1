@@ -51,6 +51,11 @@ magic.classes.LayerTree = function(target, treedata, sourceData) {
                     }
                 }, this));
             }
+            /* Trigger baselayerchanged event */
+            $.event.trigger({
+                type: "baselayerchanged",
+                layer: layer
+            });
         } else {
             /* Overlay layer visibility change */
             layer.setVisible(evt.currentTarget.checked);
@@ -158,7 +163,7 @@ magic.classes.LayerTree.prototype.initTree = function(nodes, element) {
                         '<span class="icon-layers"></span>' +
                          allCb +
                         '<span class="panel-title layer-group-panel-title" data-toggle="tooltip" data-placement="right" title="' + title + '">' + 
-                            '<a role="button" data-toggle="collapse" href="#layer-group-panel-' + nd.nodeid + '">' + 
+                            '<a class="layer-group-tool" role="button" data-toggle="collapse" href="#layer-group-panel-' + nd.nodeid + '">' + 
                                 '<span style="font-weight:bold">' + nd.text + '</span>' + 
                             '</a>' + 
                         '</span>' + 

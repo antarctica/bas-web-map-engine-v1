@@ -12,6 +12,9 @@ magic.classes.Download = function(options) {
     /* Ramadda identifier for the top level directory listing for downloads */
     this.download_id = options.download_id || null;
     
+    /* assigned node id */
+    this.nodeid = 0;
+    
     /* Internal properties */                  
     this.template = 
         '<div class="popover download-popover popover-auto-width" role="popover">' + 
@@ -48,31 +51,7 @@ magic.classes.Download.prototype.activate = function() {
         .done($.proxy(function(data) {
             if ($.isArray(data)) {
                 /* Download tree successfully received */
-                $("#" + this.id + "-content").treeview({
-                    data: data,
-                    onAfterTreeRender: $.proxy(function(atrEvt) {                        
-                        /* Add download buttons and tooltips */           
-                        $("li.node-downloader-content span.node-icon:not(.icon-layers)").parent().each($.proxy(function(idx, elt) {
-                            var nodeId = $(elt).attr("data-nodeid");
-                            var nd = $(atrEvt.target).treeview("getNode", nodeId);
-                            if (nd) {  
-                                $(elt).attr("data-toggle", "tooltip");
-                                $(elt).attr("data-placement", "left");
-                                $(elt).attr("data-html", "true");
-                                $(elt).attr("title", this.nodeTooltip(nd));
-                                $(elt).append(
-                                    '<a href="Javascript:void(0)" class="download-file-tool" id="download-file-tool-' + nodeId + '">' + 
-                                        '<span class="glyphicon glyphicon-download-alt"></span>' + 
-                                    '</a>'
-                                );
-                                $("#download-file-tool-" + nodeId).off("click").on("click", $.proxy(function(evt) {  
-                                    evt.stopPropagation();
-                                    window.location = magic.config.paths.baseurl + "/getdata/" + encodeURIComponent(nd.ramadda_id) + "/" + encodeURIComponent(nd.filename);  
-                                }, this));
-                            }
-                        }, this));
-                    }, this)
-                });                
+                this.initTree(data, $("#" + this.id + "-content"));                
             } else {
                 /* Failed to download tree */
                 $("#" + this.id + "-content").html("Failed to retrieve download data");
@@ -90,6 +69,97 @@ magic.classes.Download.prototype.activate = function() {
 
 magic.classes.Download.prototype.deactivate = function() {    
 };
+
+/**
+ * Insert data into download tree structure
+ * @param {array} nodes
+ * @param {jQuery,Object} element
+ */
+magic.classes.Download.prototype.initTree = function(nodes, element) {
+    $.each(nodes, $.proxy(function (i, nd) {
+        if ($.isArray(nd.nodes)) {
+            /* Style a group */
+            var expClass = " in", title = "Collapse this group";
+            if (!nd.state || nd.state.expanded === false) {
+                expClass = "";
+                title = "Expand this group";
+            }            
+            element.prepend(
+                '<div class="panel panel-default download-group-panel">' + 
+                    '<div class="panel-heading" id="download-group-heading-"' + this.nodeid + '">' + 
+                        '<span class="icon-layers"></span>' +
+                        '<span class="panel-title download-group-panel-title" data-toggle="tooltip" data-placement="right" title="' + title + '">' + 
+                            '<a class="download-group-tool" role="button" data-toggle="collapse" href="#download-group-panel-' + this.nodeid + '">' + 
+                                '<span style="font-weight:bold">' + nd.text + '</span>' + 
+                            '</a>' + 
+                        '</span>' + 
+                    '</div>' + 
+                    '<div id="download-group-panel-' + this.nodeid + '" class="panel-collapse collapse' + expClass + '">' + 
+                        '<div class="panel-body" style="padding:0px">' + 
+                            '<ul class="list-group download-list-group" id="download-group-' + this.nodeid + '">' + 
+                            '</ul>' + 
+                        '</div>' + 
+                    '</div>' + 
+                '</div>'
+            );            
+            this.initTree(nd.nodes, $("#download-group-" + this.nodeid));
+        } else {
+            /* Style a data node */            
+            element.prepend(
+                '<li class="list-group-item download-list-group-item" id="download-item-' + this.nodeid + '">' +
+                    '<span style="float:left">' + 
+                        '<span ' + 
+                            'id="download-info-' + this.nodeid + '" ' + 
+                            'class="' + this.nodeIcon(nd) + '" ' + 
+                            'data-toggle="tooltip" ' + 
+                            'data-html="true" ' + 
+                            'data-placement="left" ' + 
+                            'title="' + this.nodeTooltip(nd) + '" ' + 
+                            'style="margin-right:5px;cursor:help">' + 
+                        '</span>' +                        
+                        magic.modules.Common.ellipsis(nd.text, 25) + 
+                    '</span>' + 
+                    '<span style="float:right">' + 
+                        '<a href="Javascript:void(0)" data-toggle="tooltip" data-placement="right" title="Download data" class="download-file-tool" id="download-file-tool-' + this.nodeid + '">' + 
+                            '<span class="glyphicon glyphicon-download-alt"></span>' + 
+                        '</a>' + 
+                    '</span>' +
+                '</li>'
+            );
+            $("#download-file-tool-" + this.nodeid).on("click", $.proxy(function(evt) {
+                evt.stopPropagation();
+                window.location = magic.config.paths.baseurl + "/getdata/" + encodeURIComponent(nd.ramadda_id) + "/" + encodeURIComponent(nd.filename);  
+            }, this));
+        }
+        this.nodeid++;
+    }, this));
+};
+
+/**
+ * Get an icon for this download based on filename
+ * @param {object} node
+ * @returns {string}
+ */
+magic.classes.Download.prototype.nodeIcon = function(node) {
+    var icon = "fa fa-file-o";
+    if (node.filename) {
+        var lastDot = node.filename.lastIndexOf(".");
+        if (lastDot != -1) {
+            var ext = node.filename.substring(lastDot+1);
+            switch(ext) {
+                case "zip":
+                    icon = "fa fa-file-archive-o"; break;
+                case "kml":
+                    icon = "fa fa-globe"; break;
+                case "tif":
+                    icon = "fa fa-file-image-o"; break;
+                default: break;
+            }            
+        }
+    }    
+    return(icon);
+};
+
 
 /**
  * Get a tooltip for this download based on node data
