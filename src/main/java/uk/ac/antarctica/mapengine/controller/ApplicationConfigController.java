@@ -1,5 +1,5 @@
 /*
- *  Aircraft position API controller
+ *  Application configuration controller
  */
 package uk.ac.antarctica.mapengine.controller;
 

@@ -43,7 +43,7 @@ magic.classes.Measurement = function(options) {
         '<div class="popover measure-tool-popover" role="popover">' +
             '<div class="arrow"></div>' +
             '<h3 class="popover-title"></h3>' +
-            '<div class="popover-content"></div>' +
+            '<div class="popover-content measurement-popover-content"></div>' +
         '</div>';
     this.content =
         '<div id="' + this.id + '-content">' +

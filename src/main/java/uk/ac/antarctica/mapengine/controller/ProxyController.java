@@ -1,7 +1,6 @@
 /*
  * Proxy a URL
  */
-
 package uk.ac.antarctica.mapengine.controller;
 
 import com.google.gson.Gson;
@@ -9,6 +8,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import javax.servlet.ServletException;
@@ -16,9 +16,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.fluent.Form;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.util.EntityUtils;
 import org.json.XML;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -31,28 +34,32 @@ import uk.ac.antarctica.mapengine.util.ActivityLogger;
 
 @Controller
 public class ProxyController {
-    
-    private static final String[] ALLOWED_SERVERS = new String[] {
+
+    @Autowired
+    private Environment env;
+
+    private static final String[] ALLOWED_SERVERS = new String[]{
         "https://api.bas.ac.uk",
         "https://maps.bas.ac.uk"
     };
-    
+
     private static final String RAMADDA_URL = "http://ramadda.nerc-bas.ac.uk/repository/entry/show";
-    
+
     /* Per-application download trees for performance */
     private static HashMap<String, JsonArray> DOWNLOAD_TREE_CACHE = new HashMap();
-    
-   /**
-	 * Proxy for BAS API calls
-	 * @param HttpServletRequest request
-	 * @param String url
-	 * @return String
-	 * @throws ServletException
-	 * @throws IOException 
-	 */
-	@RequestMapping(value="/proxy", method=RequestMethod.GET, produces="application/json; charset=utf-8")	
+
+    /**
+     * Proxy for BAS API calls
+     *
+     * @param HttpServletRequest request
+     * @param String url
+     * @return String
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/proxy", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
     @ResponseBody
-	public ResponseEntity<String> proxy(HttpServletRequest request, @RequestParam(value="url", required=true) String url) throws ServletException, IOException {
+    public ResponseEntity<String> proxy(HttpServletRequest request, @RequestParam(value = "url", required = true) String url) throws ServletException, IOException {
         ResponseEntity<String> ret;
         if (isAllowed(url)) {
             /* Allowed to call this API from here */
@@ -66,31 +73,47 @@ public class ProxyController {
             int code = response.getStatusLine().getStatusCode();
             String content = EntityUtils.toString(response.getEntity(), "UTF-8");
             System.out.println(content);
-            if (code == 200) {                
+            if (code == 200) {
                 ret = packageResults(HttpStatus.OK, content, "", isGfi, isDft);
             } else {
                 ret = packageResults(HttpStatus.BAD_REQUEST, null, "Unexpected return from " + url, isGfi, isDft);
-            }            
+            }
         } else {
             ret = packageResults(HttpStatus.BAD_REQUEST, null, "Proxy of " + url + " not allowed", false, false);
-        }       
-		return(ret);
-	}
-    
+        }
+        return (ret);
+    }
+
     /**
-	 * Proxy for BAS Ramadda entry/show calls
-	 * @param HttpServletRequest request
+     * Proxy a request to log into the local Geoserver as admin
+     *
+     * @param HttpServletRequest request
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/gslogin", method = RequestMethod.GET)
+    public void geoserverLogin(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String content = Request.Post("http://add.antarctica.ac.uk/geoserver2/j_spring_security_check")
+            .bodyForm(Form.form().add("username", "admin").add("password", "a44Gs#!!").build())
+            .execute().returnContent().asString();
+        IOUtils.write(content, response.getOutputStream());
+    }
+
+    /**
+     * Proxy for BAS Ramadda entry/show calls
+     *
+     * @param HttpServletRequest request
      * @param String appname
-	 * @param String id
-	 * @return String
-	 * @throws ServletException
-	 * @throws IOException 
-	 */
-	@RequestMapping(value="/downloads/{appname}/{id}", method=RequestMethod.GET, produces="application/json; charset=utf-8")	
+     * @param String id
+     * @return String
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/downloads/{appname}/{id}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
     @ResponseBody
-	public ResponseEntity<String> ramaddaEntryShow(HttpServletRequest request, @PathVariable("appname") String appname, @PathVariable("id") String id) throws ServletException, IOException {
+    public ResponseEntity<String> ramaddaEntryShow(HttpServletRequest request, @PathVariable("appname") String appname, @PathVariable("id") String id) throws ServletException, IOException {
         ResponseEntity<String> ret;
-         try {
+        try {
             JsonArray jaOut;
             if (DOWNLOAD_TREE_CACHE.containsKey(appname)) {
                 jaOut = DOWNLOAD_TREE_CACHE.get(appname);
@@ -100,24 +123,25 @@ public class ProxyController {
                 DOWNLOAD_TREE_CACHE.put(appname, jaOut);
             }
             ret = new ResponseEntity<>(jaOut.toString(), HttpStatus.OK);
-        } catch(IllegalStateException ise) {
+        } catch (IllegalStateException ise) {
             ret = packageResults(HttpStatus.BAD_REQUEST, null, "Failed to retrieve download information (error was " + ise.getMessage(), false, false);
         } catch (IOException ioe) {
             ret = packageResults(HttpStatus.BAD_REQUEST, null, "Failed to retrieve download information (error was " + ioe.getMessage(), false, false);
         }
-		return(ret);
-	}
-    
+        return (ret);
+    }
+
     /**
-	 * Proxy for BAS Ramadda entry/get calls
-	 * @param HttpServletRequest request
-	 * @param String id
+     * Proxy for BAS Ramadda entry/get calls
+     *
+     * @param HttpServletRequest request
+     * @param String id
      * @param String attachname
-	 * @throws ServletException
-	 * @throws IOException 
-	 */
-	@RequestMapping(value="/getdata/{id}/{attachname:.+}", method=RequestMethod.GET)	
-	public void ramaddaEntryGet(HttpServletRequest request, 
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/getdata/{id}/{attachname:.+}", method = RequestMethod.GET)
+    public void ramaddaEntryGet(HttpServletRequest request,
         HttpServletResponse response,
         @PathVariable("id") String id,
         @PathVariable("attachname") String attachname) throws ServletException, IOException {
@@ -130,15 +154,16 @@ public class ProxyController {
             mime = "application/vnd.google-earth.kml+xml";
         } else if (ext.equals("tif")) {
             mime = "image/tiff";
-        } 
+        }
         response.setContentType(mime);
-        response.setHeader("Content-Disposition","attachment;filename=" + attachname);
+        response.setHeader("Content-Disposition", "attachment;filename=" + attachname);
         IOUtils.write(download, response.getOutputStream());
         ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Downloaded " + attachname);
-	}
-    
+    }
+
     /**
      * Do the packaging of an API return
+     *
      * @param HttpStatus status
      * @param String data
      * @param String message
@@ -150,7 +175,7 @@ public class ProxyController {
         ResponseEntity<String> ret;
         Gson mapper = new Gson();
         JsonObject jo = new JsonObject();
-        if (status.equals(HttpStatus.OK) && data != null) { 
+        if (status.equals(HttpStatus.OK) && data != null) {
             if (dft) {
                 /* DescribeFeatureType request comes back in XML, so bit of translation required */
                 org.json.JSONObject ojJo = XML.toJSONObject(data);
@@ -164,11 +189,11 @@ public class ProxyController {
                         .getJSONObject("xsd:sequence")
                         .getJSONArray("xsd:element");
                     ret = new ResponseEntity<>(ojJa.toString(), status);
-                } catch(Exception ex) {
+                } catch (Exception ex) {
                     jo.addProperty("status", HttpStatus.BAD_REQUEST.value());
                     jo.addProperty("detail", "Describe failed");
                     ret = new ResponseEntity<>(mapper.toJson(jo), status);
-                }                
+                }
             } else {
                 /* Can assume anything else was JSON */
                 jo = mapper.fromJson(data, JsonObject.class);
@@ -186,60 +211,64 @@ public class ProxyController {
             jo.addProperty("detail", message);
             ret = new ResponseEntity<>(mapper.toJson(jo), status);
         }
-        return(ret);
+        return (ret);
     }
 
     /**
      * Check url is from an allowed server
+     *
      * @param String url
      * @return boolean
      */
     private boolean isAllowed(String url) {
         for (String s : ALLOWED_SERVERS) {
             if (url.startsWith(s)) {
-                return(true);
+                return (true);
             }
         }
-        return(false);
+        return (false);
     }
 
     /**
-     * Take a JSON feed in Ramadda's format and simplify the datastructure for easy assimilation into Bootstrap tree structure    
-     * Note: will be done much more elegantly via a properly styled Ramadda instance
+     * Take a JSON feed in Ramadda's format and simplify the datastructure for
+     * easy assimilation into Bootstrap tree structure Note: will be done much
+     * more elegantly via a properly styled Ramadda instance
+     *
      * @param JsonArray jaOut tree structure
      * @param String ramaddaId
      */
     private void buildDownloadTree(JsonArray jaOut, String ramaddaId) throws IOException {
-        JsonArray jarr = getRamaddaContent(ramaddaId);  
+        JsonArray jarr = getRamaddaContent(ramaddaId);
         for (int i = 0; i < jarr.size(); i++) {
             JsonObject jao = jarr.get(i).getAsJsonObject();
-            JsonObject jaoOut = new JsonObject();                            
+            JsonObject jaoOut = new JsonObject();
             boolean isGroup = jao.getAsJsonPrimitive("isGroup").getAsBoolean();
             if (isGroup) {
                 JsonArray nodes = new JsonArray();
                 jaoOut.add("nodes", nodes);
-                jaoOut.addProperty("text", humanReadableDownloadName(jao.getAsJsonPrimitive("name").getAsString()));               
+                jaoOut.addProperty("text", humanReadableDownloadName(jao.getAsJsonPrimitive("name").getAsString()));
                 JsonObject state = new JsonObject();
                 state.addProperty("expanded", false);
                 jaoOut.add("state", state);
                 buildDownloadTree(nodes, jao.getAsJsonPrimitive("id").getAsString());
             } else {
-                String filename = jao.getAsJsonPrimitive("filename").getAsString();                
-                jaoOut.addProperty("text", humanReadableDownloadName(jao.getAsJsonPrimitive("name").getAsString())); 
+                String filename = jao.getAsJsonPrimitive("filename").getAsString();
+                jaoOut.addProperty("text", humanReadableDownloadName(jao.getAsJsonPrimitive("name").getAsString()));
                 jaoOut.addProperty("published", jao.getAsJsonPrimitive("createDate").getAsString());
                 jaoOut.addProperty("filename", filename);
-                jaoOut.addProperty("filesize", jao.getAsJsonPrimitive("filesize").getAsInt()); 
+                jaoOut.addProperty("filesize", jao.getAsJsonPrimitive("filesize").getAsInt());
                 jaoOut.addProperty("ramadda_id", jao.getAsJsonPrimitive("id").getAsString());
-            }            
+            }
             jaOut.add(jaoOut);
-        }        
+        }
     }
-    
+
     /**
      * Get Ramadda JSON content for a download entity whose id is supplied
+     *
      * @param String id
      * @return JsonArray
-     * @throws IOException 
+     * @throws IOException
      */
     private JsonArray getRamaddaContent(String id) throws IOException {
         JsonArray jarr = new JsonArray();
@@ -248,21 +277,22 @@ public class ProxyController {
             .socketTimeout(60000)
             .execute()
             .returnResponse();
-        int code = response.getStatusLine().getStatusCode();        
-        if (code == 200) {      
+        int code = response.getStatusLine().getStatusCode();
+        if (code == 200) {
             String content = EntityUtils.toString(response.getEntity(), "UTF-8");
-            jarr = new JsonParser().parse(content).getAsJsonArray();           
+            jarr = new JsonParser().parse(content).getAsJsonArray();
         } else {
             throw new IllegalStateException("Failed to parse content for id " + id);
         }
-        return(jarr);
+        return (jarr);
     }
-    
+
     /**
-     * Get Ramadda JSON content for a download entity whose id is supplied
+     * Get Ramadda actual content for a download entity whose id is supplied
+     *
      * @param String id
      * @return byte[]
-     * @throws IOException 
+     * @throws IOException
      */
     private byte[] downloadFromRamadda(String id) throws IOException {
         byte[] out = null;
@@ -273,16 +303,17 @@ public class ProxyController {
             .execute()
             .returnResponse();
         int code = response.getStatusLine().getStatusCode();
-        if (code == 200) {      
+        if (code == 200) {
             out = EntityUtils.toByteArray(response.getEntity());
         } else {
             throw new IllegalStateException("Failed to download content for id " + id);
         }
-        return(out);
+        return (out);
     }
 
     /**
-     * Create a human readable name for a download file/folder 
+     * Create a human readable name for a download file/folder
+     *
      * @param String name
      * @return String
      */
@@ -290,15 +321,18 @@ public class ProxyController {
         int lastDot = name.lastIndexOf(".");
         if (lastDot != -1) {
             name = name.substring(0, lastDot);   /* Strip extension */
-            name = name.replaceFirst("_(polygon|line|point)$", ""); /* Replace _polygon/line/point at the end */            
+
+            name = name.replaceFirst("_(polygon|line|point)$", ""); /* Replace _polygon/line/point at the end */
+
         }
         name = name.replaceAll("_", " ");
         name = name.substring(0, 1).toUpperCase() + name.substring(1);
-        return(name);
+        return (name);
     }
-    
+
     /**
      * Get a filename extension
+     *
      * @param String filename
      * @return String
      */
@@ -306,9 +340,9 @@ public class ProxyController {
         String ext = "";
         int lastDot = filename.lastIndexOf(".");
         if (lastDot != -1) {
-            ext = filename.substring(lastDot + 1);                    
+            ext = filename.substring(lastDot + 1);
         }
-        return(ext);
+        return (ext);
     }
-    
+
 }

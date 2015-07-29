@@ -7,7 +7,7 @@ magic.classes.ControlButtonRibbon = function(config) {
     var id = "control-button-ribbon", ribbonId = id + "-group", maximiseId = "maximise-" + ribbonId;
     
     /* Get position for ribbon */
-    var ribbonTop = ($("div.navbar-header").outerHeight()-50) + "px", ribbonLeft = "0px";
+    var ribbonTop = ($("nav.navbar").outerHeight()-50) + "px", ribbonLeft = "0px";
     
     /* Add the outer markup and the maximise button */
     var insertAt = $("#map").find("div.ol-overlaycontainer-stopevent");

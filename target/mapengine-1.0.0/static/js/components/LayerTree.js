@@ -152,7 +152,7 @@ magic.classes.LayerTree.prototype.initTree = function(nodes, element) {
                 title = "Expand this group";
             }
             if (nd.radio) {
-                expander = '<span data-toggle="tooltip" data-placement="bottom" title="Collapse layer tree" class="layer-tree-collapse fa fa-angle-double-left"></span>';
+                expander = '<span data-toggle="tooltip" data-placement="bottom" title="Collapse layer tree" class="layer-tree-collapse fa fa-angle-double-left hidden-xs"></span>';
                 allCb = '<span style="margin:5px"></span>'; /* Spacer */
             } else {
                 allCb = '<input class="layer-vis-group-selector" id="group-cb-' + nd.nodeid + '" type="checkbox" />';
