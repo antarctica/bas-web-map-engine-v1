@@ -8,7 +8,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import javax.servlet.ServletException;
@@ -16,7 +15,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.fluent.Form;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.util.EntityUtils;
 import org.json.XML;
@@ -66,10 +64,10 @@ public class ProxyController {
             boolean isGfi = url.toLowerCase().contains("getfeatureinfo");
             boolean isDft = url.toLowerCase().contains("describefeaturetype");
             HttpResponse response = Request.Get(url)
-                .connectTimeout(60000)
-                .socketTimeout(60000)
-                .execute()
-                .returnResponse();
+                    .connectTimeout(60000)
+                    .socketTimeout(60000)
+                    .execute()
+                    .returnResponse();
             int code = response.getStatusLine().getStatusCode();
             String content = EntityUtils.toString(response.getEntity(), "UTF-8");
             System.out.println(content);
@@ -82,21 +80,6 @@ public class ProxyController {
             ret = packageResults(HttpStatus.BAD_REQUEST, null, "Proxy of " + url + " not allowed", false, false);
         }
         return (ret);
-    }
-
-    /**
-     * Proxy a request to log into the local Geoserver as admin
-     *
-     * @param HttpServletRequest request
-     * @throws ServletException
-     * @throws IOException
-     */
-    @RequestMapping(value = "/gslogin", method = RequestMethod.GET)
-    public void geoserverLogin(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String content = Request.Post("http://add.antarctica.ac.uk/geoserver2/j_spring_security_check")
-            .bodyForm(Form.form().add("username", "admin").add("password", "a44Gs#!!").build())
-            .execute().returnContent().asString();
-        IOUtils.write(content, response.getOutputStream());
     }
 
     /**
@@ -142,9 +125,9 @@ public class ProxyController {
      */
     @RequestMapping(value = "/getdata/{id}/{attachname:.+}", method = RequestMethod.GET)
     public void ramaddaEntryGet(HttpServletRequest request,
-        HttpServletResponse response,
-        @PathVariable("id") String id,
-        @PathVariable("attachname") String attachname) throws ServletException, IOException {
+            HttpServletResponse response,
+            @PathVariable("id") String id,
+            @PathVariable("attachname") String attachname) throws ServletException, IOException {
         byte[] download = downloadFromRamadda(id);
         String mime = "application/octet-stream";
         String ext = getExtension(attachname);
@@ -182,12 +165,12 @@ public class ProxyController {
                 try {
                     /* What a palaver getting the actual data out of the tortuous XML! */
                     org.json.JSONArray ojJa = ojJo
-                        .getJSONObject("xsd:schema")
-                        .getJSONObject("xsd:complexType")
-                        .getJSONObject("xsd:complexContent")
-                        .getJSONObject("xsd:extension")
-                        .getJSONObject("xsd:sequence")
-                        .getJSONArray("xsd:element");
+                            .getJSONObject("xsd:schema")
+                            .getJSONObject("xsd:complexType")
+                            .getJSONObject("xsd:complexContent")
+                            .getJSONObject("xsd:extension")
+                            .getJSONObject("xsd:sequence")
+                            .getJSONArray("xsd:element");
                     ret = new ResponseEntity<>(ojJa.toString(), status);
                 } catch (Exception ex) {
                     jo.addProperty("status", HttpStatus.BAD_REQUEST.value());
@@ -273,10 +256,10 @@ public class ProxyController {
     private JsonArray getRamaddaContent(String id) throws IOException {
         JsonArray jarr = new JsonArray();
         HttpResponse response = Request.Get(RAMADDA_URL + "?entryid=" + id + "&output=json")
-            .connectTimeout(60000)
-            .socketTimeout(60000)
-            .execute()
-            .returnResponse();
+                .connectTimeout(60000)
+                .socketTimeout(60000)
+                .execute()
+                .returnResponse();
         int code = response.getStatusLine().getStatusCode();
         if (code == 200) {
             String content = EntityUtils.toString(response.getEntity(), "UTF-8");
@@ -298,10 +281,10 @@ public class ProxyController {
         byte[] out = null;
         String getUrl = RAMADDA_URL.replaceFirst("show$", "get");
         HttpResponse response = Request.Get(getUrl + "?entryid=" + id)
-            .connectTimeout(60000)
-            .socketTimeout(60000)
-            .execute()
-            .returnResponse();
+                .connectTimeout(60000)
+                .socketTimeout(60000)
+                .execute()
+                .returnResponse();
         int code = response.getStatusLine().getStatusCode();
         if (code == 200) {
             out = EntityUtils.toByteArray(response.getEntity());
