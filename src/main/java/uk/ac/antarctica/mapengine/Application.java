@@ -4,6 +4,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.web.SpringBootServletInitializer;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @EnableScheduling
@@ -20,5 +23,15 @@ public class Application extends SpringBootServletInitializer {
     }
 
     private static Class<Application> applicationClass = Application.class;
+    
+    @Bean
+    public LdapContextSource contextSource() {
+        LdapContextSource contextSource = new LdapContextSource();
+        contextSource.setUrl("ldap://ldap.nerc-bas.ac.uk");
+        contextSource.setBase("dc=nerc-bas,dc=ac,dc=uk");
+        contextSource.setUserDn("ou=People");
+        contextSource.setPassword("password");
+        return(contextSource);
+    }
     
 }

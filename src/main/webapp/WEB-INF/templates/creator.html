@@ -7,8 +7,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1"></meta>
         <meta name="description" content="Map creation wizard"></meta>
         <meta name="author" content="David Herbert, British Antarctic Survey"></meta>
-        <link rel="icon" type="image/vnd.microsoft.icon" href="/creator.ico"></link>
-        <link rel="shortcut icon" type="image/vnd.microsoft.icon" href="/creator.ico"></link>
+        <link rel="icon" type="image/vnd.microsoft.icon" href="/bas.ico"></link>
+        <link rel="shortcut icon" type="image/vnd.microsoft.icon" href="/bas.ico"></link>
         <title>MAGIC Web Map Creator</title>
 
         <link href="static/css/bootstrap.min.css" rel="stylesheet"></link>
@@ -69,11 +69,10 @@
                             <div class="navbar-inner">
                                 <div class="container">
                                     <ul>
-                                        <li><a href="#tab1" data-toggle="tab">Log in</a></li>
-                                        <li><a href="#tab2" data-toggle="tab">Map metadata</a></li>
-                                        <li><a href="#tab3" data-toggle="tab">Map controls</a></li>
-                                        <li><a href="#tab4" data-toggle="tab">Layer tree</a></li>
-                                        <li><a href="#tab5" data-toggle="tab">Finish</a></li>                                    
+                                        <li><a href="#tab1" data-toggle="tab">Map metadata</a></li>
+                                        <li><a href="#tab2" data-toggle="tab">Map controls</a></li>
+                                        <li><a href="#tab3" data-toggle="tab">Layer tree</a></li>
+                                        <li><a href="#tab4" data-toggle="tab">Finish</a></li>                                    
                                     </ul>
                                 </div>
                             </div>
@@ -90,10 +89,7 @@
                             </div>
                             <div class="tab-pane" id="tab4">
                                 <div th:include="creator_fragments/content :: tab4"></div>
-                            </div>
-                            <div class="tab-pane" id="tab5">
-                                <div th:include="creator_fragments/content :: tab5"></div>
-                            </div>                        
+                            </div>                                    
                             <ul class="pager wizard">
                                 <li class="previous first" style="display:none;"><a href="#">First</a></li>
                                 <li class="previous"><a href="#">Previous</a></li>

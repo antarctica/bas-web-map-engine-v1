@@ -1,0 +1,16 @@
+body {
+    margin-top: 20px;
+}
+
+div.login-form-container {
+    float: left;
+    width: 700px;
+}
+
+input.login-form-control {
+    width: 300px;
+}
+
+form {
+    width: 300px;
+}

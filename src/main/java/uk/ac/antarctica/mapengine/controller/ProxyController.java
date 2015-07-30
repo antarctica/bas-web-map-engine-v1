@@ -70,7 +70,6 @@ public class ProxyController {
                     .returnResponse();
             int code = response.getStatusLine().getStatusCode();
             String content = EntityUtils.toString(response.getEntity(), "UTF-8");
-            System.out.println(content);
             if (code == 200) {
                 ret = packageResults(HttpStatus.OK, content, "", isGfi, isDft);
             } else {
@@ -81,6 +80,34 @@ public class ProxyController {
         }
         return (ret);
     }
+    
+    /**
+     * Proxy a request to log into the local Geoserver as admin - output some Javascript which will do the login without 
+     * displaying the password in clear text within the source
+     *
+     * @param HttpServletRequest request
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/gslogin", method = RequestMethod.GET)
+    public void geoserverLogin(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String url = request.getRequestURL().toString();
+        if (url.contains("localhost")) {
+            /* For debugging purposes */
+            url = "http://add.antarctica.ac.uk/geoserver2/j_spring_security_check";
+        } else {
+            url = url.replaceFirst("gslogin", "geoserver/j_spring_security_check");
+        }
+        String content = 
+                "var form = $('<form></form>');" + 
+                "form.append('<input type=\"hidden\" name=\"username\" value=\"admin\"></input>');" + 
+                "form.append('<input type=\"hidden\" name=\"password\" value=\"a44Gs#!!\"></input>');" + 
+                "form.attr(\"method\", \"post\");" + 
+                "form.attr(\"action\", \"" + url + "\");" + 
+                "$(\"body\").append(form);" + 
+                "form.submit();";
+        IOUtils.write(content, response.getOutputStream());
+    }   
 
     /**
      * Proxy for BAS Ramadda entry/show calls

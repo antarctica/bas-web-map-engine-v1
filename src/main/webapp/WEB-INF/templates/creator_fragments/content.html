@@ -3,24 +3,8 @@
       xmlns:th="http://www.thymeleaf.org">
     <head>
         <title></title>
-    </head>
+    </head>    
     <body th:fragment="tab1">
-        <div class="well well-lg">
-            <h3>Welcome to the MAGIC Web Map Creation Wizard</h3>
-            This wizard takes you through the steps of basic web map configuration.<br /> Please log in using your BAS username and LDAP (SOUTH) password to begin.
-        </div>
-        <form>
-            <div class="form-group">
-                <label for="creator-username">Username</label>
-                <input type="text" class="form-control map-creator-control" id="creator-username" placeholder="Your BAS username"></input>
-            </div>
-            <div class="form-group">
-                <label for="creator-password">Password</label>
-                <input type="password" class="form-control map-creator-control" id="creator-password" placeholder="Your BAS LDAP (SOUTH) password"></input>
-            </div>            
-        </form>        
-    </body>
-    <body th:fragment="tab2">
         <div class="well well-lg">
             <h3>Configure the basic map metadata</h3>
             Supply the basic data about your map.  The favicon is the small icon displayed in browser tabs when the map site is open.<br />
@@ -29,14 +13,14 @@
         <form>
             <div class="form-group">
                 <label for="creator-map-title">Map title</label>
-                <input type="text" class="form-control map-creator-control" id="creator-map-title" placeholder="Map strapline"></input>
+                <input type="text" class="form-control map-creator-control" id="creator-map-title" placeholder="Map strapline" required="required"></input>
             </div>
             <div class="form-group">
                 <label for="creator-map-version">Version</label>
                 <input type="text" class="form-control map-creator-control" id="creator-map-version" placeholder="1.0"></input>
             </div>
             <div class="form-group">
-                <label for="creator-map-icon">Map icon</label>
+                <label for="creator-map-icon">Upload map icon (defaults to BAS)</label>
                 <div class="input-group">
                     <span class="input-group-btn">
                         <span class="btn btn-primary btn-file">
@@ -47,7 +31,7 @@
                 </div>
             </div>            
             <div class="form-group">
-                <label for="creator-map-favicon">Map favicon</label>
+                <label for="creator-map-favicon">Upload map favicon (defaults to BAS)</label>
                 <div class="input-group">
                     <span class="input-group-btn">
                         <span class="btn btn-primary btn-file">
@@ -63,7 +47,7 @@
             </div>
             <div class="form-group">
                 <label for="creator-map-workspace">WMS workspace</label>
-                <input type="text" class="form-control map-creator-control" id="creator-map-workspace" placeholder="name of data workspace"></input>
+                <input type="text" class="form-control map-creator-control" id="creator-map-workspace" placeholder="name of data workspace" required="required"></input>
             </div>
             <div class="form-group">
                 <label for="creator-map-projection">Map projection (CRS)</label>
@@ -76,7 +60,7 @@
             </div>            
         </form>        
     </body>
-    <body th:fragment="tab3">
+    <body th:fragment="tab2">
         <div class="well well-lg">
             <h3>Configure which specialised controls the map requires</h3>
             The map will always have zoom to maximum extent, zoom in/out, zoom by box drag and get feature info controls.<br />
@@ -123,13 +107,13 @@
             </div>
         </form>
     </body>
-    <body th:fragment="tab4">
+    <body th:fragment="tab3">
         <div class="well well-lg">
             <h3>Configure the map layer structure</h3>            
         </div> 
         <a href="static/html/gs_iframe.html" target="_blank">Go to Geoserver (opens in a new tab)</a>
     </body>
-    <body th:fragment="tab5">
+    <body th:fragment="tab4">
         <div class="well well-lg">
             <h3>TO DO 5</h3>
         </div>       

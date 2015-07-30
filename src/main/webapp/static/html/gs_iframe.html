@@ -5,19 +5,17 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <script src="../../static/js/jquery.js"></script>
+        <script src="../../static/js/components/init.js"></script>
         <script type="text/javascript">
 
             function geoserverLogin() {
-                var form = $("<form></form>");
-                form.append('<input type="hidden" name="username" value="admin"></input>');
-                form.append('<input type="hidden" name="password" value="a44Gs#!!"></input>');
-                form.attr("method", "post");
-                form.attr("action", "http://add.antarctica.ac.uk/geoserver2/j_spring_security_check");
-                $("body").append(form);
-                form.submit();
+                $.get(magic.config.paths.baseurl + "/gslogin", function(data) {
+                    eval(data);
+                });                
             }
 
         </script>
+        <noscript>JavaScript is disabled</noscript>
     </head>
     <body onload="geoserverLogin()">
     </body>
