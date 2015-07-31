@@ -83,7 +83,7 @@ magic.classes.FeatureInfoButton.prototype.queryFeatures = function (evt) {
             gfiParams.push(layer.getSource().getParams()["LAYERS"]);
         }
     });
-    if (gfiLayer) {
+    if (gfiLayer) {        
         $.getJSON(magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(gfiLayer.getSource().getGetFeatureInfoUrl(
             evt.coordinate, 
             magic.runtime.map.getView().getResolution(), 

@@ -58,7 +58,7 @@ magic.classes.AppContainer = function(payload) {
     /* Create an attribution modal for legend/metadata */
     magic.runtime.attribution = new magic.classes.AttributionModal({target: "attribution-modal", wms: payload.sources.wms});
             
-    if ($.inArray("geosearch", payload.view.controls) && payload.sources.gazetteers) {
+    if ($.inArray("geosearch", payload.view.controls) != -1 && payload.sources.gazetteers) {
         /* Activate geosearch */
         magic.runtime.map_interaction_tools.push(new magic.classes.Geosearch({
             gazetteers: payload.sources.gazetteers.split(","),
@@ -69,7 +69,7 @@ magic.classes.AppContainer = function(payload) {
         $("#geosearch-tool").closest("li").hide();
     }
     
-    if ($.inArray("measurement", payload.view.controls)) {
+    if ($.inArray("measurement", payload.view.controls) != -1) {
         /* Activate measuring tool */
         magic.runtime.map_interaction_tools.push(new magic.classes.Measurement({
             target: "measure-tool"
@@ -79,7 +79,7 @@ magic.classes.AppContainer = function(payload) {
         $("#measure-tool").closest("li").hide();
     }
     
-    if ($.inArray("overview", payload.view.controls)) {
+    if ($.inArray("overview", payload.view.controls) != -1) {
         /* Activate overview map tool */
         magic.runtime.overview = new magic.classes.OverviewMap({
             target: "overview-map-tool"
@@ -90,7 +90,7 @@ magic.classes.AppContainer = function(payload) {
         $("#overview-map-tool").closest("li").hide();
     }
     
-    if ($.inArray("download", payload.view.controls)) {
+    if ($.inArray("download", payload.view.controls) != -1) {
         /* Activate download */
         magic.runtime.download = new magic.classes.Download({
             target: "download-tool",

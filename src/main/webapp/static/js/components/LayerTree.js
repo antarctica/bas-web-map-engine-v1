@@ -10,7 +10,7 @@ magic.classes.LayerTree = function(target, treedata, sourceData) {
     this.overlayLayers = [];
     this.nodeLayerTranslation = {};
     
-    this.initTree(this.treedata, $("#" + this.target));
+    this.initTree(this.treedata, $("#" + this.target), 0);
     
     /* Collapse layer tree handler */
     $("span.layer-tree-collapse").on("click", $.proxy(function(evt) {
@@ -141,8 +141,9 @@ magic.classes.LayerTree.prototype.isRasterLayer = function(layer) {
  * Insert per-node properties and styling into layer tree structure, as well as creating OL layers where needed
  * @param {array} nodes
  * @param {jQuery,Object} element
+ * @param {int} depth
  */
-magic.classes.LayerTree.prototype.initTree = function(nodes, element) {
+magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
     $.each(nodes, $.proxy(function (i, nd) {
         if ($.isArray(nd.nodes)) {
             /* Style a group */
@@ -157,9 +158,11 @@ magic.classes.LayerTree.prototype.initTree = function(nodes, element) {
             } else {
                 allCb = '<input class="layer-vis-group-selector" id="group-cb-' + nd.nodeid + '" type="checkbox" />';
             }
+            var indent = 15*depth;
             element.append(
                 '<div class="panel panel-default layer-group-panel">' + 
                     '<div class="panel-heading" id="layer-group-heading-"' + nd.nodeid + '">' + 
+                        '<span style="display:inline-block;width:' + indent + 'px"></span>' +
                         '<span class="icon-layers"></span>' +
                          allCb +
                         '<span class="panel-title layer-group-panel-title" data-toggle="tooltip" data-placement="right" title="' + title + '">' + 
@@ -177,7 +180,7 @@ magic.classes.LayerTree.prototype.initTree = function(nodes, element) {
                     '</div>' + 
                 '</div>'
             );            
-            this.initTree(nd.nodes, $("#layer-group-" + nd.nodeid));
+            this.initTree(nd.nodes, $("#layer-group-" + nd.nodeid), depth+1);
         } else {
             /* Style a data node */
             var cb;

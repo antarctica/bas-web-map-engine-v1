@@ -10,6 +10,8 @@ js/ellipsoid/ellipsoid.js
 js/jquery.js
 js/proj4.js
 js/proj4defs/3031.js
+js/proj4defs/3762.js
+js/proj4defs/3995.js
 js/bootstrap.min.js
 js/typeahead.bundle.min.js
 js/nouislider.min.js
