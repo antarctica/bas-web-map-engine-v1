@@ -10,6 +10,7 @@ magic.classes.AppContainer = function(payload) {
     var viewData = payload.view;
     magic.runtime.projection = ol.proj.get(viewData.projection);
     magic.runtime.projection.setExtent(viewData.proj_extent);
+    magic.runtime.projection.setWorldExtent(viewData.proj_extent);
     magic.runtime.resolutions = viewData.resolutions;
     magic.runtime.center = viewData.center;
     magic.runtime.rotation = viewData.rotation ? viewData.rotation*Math.PI/180.0 : 0.0;

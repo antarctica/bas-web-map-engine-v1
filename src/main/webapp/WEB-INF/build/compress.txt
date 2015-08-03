@@ -27,6 +27,7 @@ js/components/DragZoomButton.js
 js/components/FullScreenButton.js
 js/components/ResetRotationButton.js
 js/components/HeightMeasureButton.js
+js/components/GraticuleButton.js
 js/components/FeaturePopup.js
 js/components/FeatureInfoButton.js
 js/components/Geosearch.js

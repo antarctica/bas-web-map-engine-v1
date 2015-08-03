@@ -166,7 +166,6 @@ magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
             } else {
                 allCb = '<input class="layer-vis-group-selector" id="group-cb-' + nd.nodeid + '" type="checkbox" />';
             }
-            console.dir(element);
             element.append(
                 ((element.length > 0 && element[0].tagName.toLowerCase() == "ul") ? '<li class="list-group-item layer-list-group-group" id="layer-item-' + nd.nodeid + '">' : "") + 
                 '<div class="panel panel-default layer-group-panel">' + 

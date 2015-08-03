@@ -64,6 +64,11 @@ magic.classes.ControlButtonRibbon.prototype.init = function() {
                 this.appendControlButton(new magic.classes.ResetRotationButton("reset-rotation", this).getButton()); 
                 break;
                 
+            case "graticule":
+                /* Show graticule */                                
+                this.appendControlButton(new magic.classes.GraticuleButton("graticule", this).getButton()); 
+                break;
+                
             case "height-measure":
                 /* Measure the height at a point (toggle button) */
                 var hm = new magic.classes.HeightMeasureButton("height-measure", this);
