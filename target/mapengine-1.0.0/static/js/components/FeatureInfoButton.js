@@ -75,8 +75,8 @@ magic.classes.FeatureInfoButton.prototype.deactivate = function () {
 magic.classes.FeatureInfoButton.prototype.queryFeatures = function (evt) {    
     var gfiLayer = null, gfiParams = [];
     magic.runtime.map.getLayers().forEach(function(layer) {
-        /* ImageWMS layers will always be point layers */
-        if (layer.getVisible() === true && layer instanceof ol.layer.Image && layer.getSource() instanceof ol.source.ImageWMS) {
+        /* Weed out the clickable (interavtive) layers */
+        if (layer.getVisible() === true && layer.get("metadata") && layer.get("metadata")["clickable"] === true) {
             if (!gfiLayer) {
                 gfiLayer = layer;
             }

@@ -53,7 +53,7 @@ magic.classes.AppContainer = function(payload) {
     magic.runtime.controls.init();
     
     /* Create a popup overlay and add handler to show it on clicking a feature */
-    magic.runtime.featureinfo = new magic.classes.FeaturePopup({});
+    magic.runtime.featureinfo = new magic.classes.FeaturePopup({namePrefix: payload.sources.name_prefix});
     
     /* Create an attribution modal for legend/metadata */
     magic.runtime.attribution = new magic.classes.AttributionModal({target: "attribution-modal", wms: payload.sources.wms});

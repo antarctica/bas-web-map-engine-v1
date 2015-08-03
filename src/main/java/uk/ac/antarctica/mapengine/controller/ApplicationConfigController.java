@@ -72,6 +72,18 @@ public class ApplicationConfigController {
         if (expandGroups != null && !expandGroups.isEmpty()) {
             expandGroupsArr = expandGroups.split(",");
         }
+        /* Extract the layers to be clickable by default */
+        String[] clickableLayersArr = new String[] {};
+        String clickableLayers = env.getProperty(appname + ".clickable_layers");
+        if (clickableLayers != null && !clickableLayers.isEmpty()) {
+            clickableLayersArr = clickableLayers.split(",");
+        }
+        /* Extract the layers to be rendered as single tiles (to avoid excessive labelling e.g. graticule, place-names ) */
+        String[] singleTileLayersArr = new String[] {};
+        String singleTileLayers = env.getProperty(appname + ".singletile_layers");
+        if (singleTileLayers != null && !singleTileLayers.isEmpty()) {
+            singleTileLayersArr = singleTileLayers.split(",");
+        }
         
         /* Assume we will have a non-named layer with title <appname> either at the root or second level */
         JsonArray treeDef = new JsonArray();
@@ -83,7 +95,9 @@ public class ApplicationConfigController {
                 sourceData.get("endpoint").getAsString(), 
                 sourceData.get("name_prefix").getAsString(), 
                 showLayersArr, 
-                expandGroupsArr
+                expandGroupsArr,
+                clickableLayersArr,
+                singleTileLayersArr
             )            
         );
         
@@ -125,19 +139,22 @@ public class ApplicationConfigController {
                 cjo.addProperty("text", humanFriendlyName(child.getName(), data.getPrefix()));
                 cjo.addProperty("nodeid", data.getNodeId());
                 if (baseContainer) {
-                    layerProps.addProperty("radio", baseContainer);                    
-                    if (inArray(data.getShowLayers(), child.getName())) {
-                        /* Turn on this base layer by default */
-                        JsonObject state = new JsonObject();
-                        state.addProperty("checked", true);
-                        cjo.add("state", state);
-                    }                    
-                } else if (inArray(data.getShowLayers(), child.getName())) {
-                    /* Turn on this overlay layer by default */
-                    JsonObject state = new JsonObject();
-                    state.addProperty("checked", true);
-                    cjo.add("state", state);
+                    layerProps.addProperty("radio", baseContainer);
                 }
+                JsonObject state = new JsonObject();
+                if (inArray(data.getShowLayers(), stripWorkspace(child.getName()))) {
+                    /* Turn on this overlay layer by default */                    
+                    state.addProperty("checked", true);                    
+                }
+                if (inArray(data.getClickableLayers(), stripWorkspace(child.getName()))) {
+                    /* Set layer clickable */                    
+                    state.addProperty("clickable", true);
+                }
+                if (inArray(data.getSingleTileLayers(), stripWorkspace(child.getName()))) {
+                    /* Set layer single tile */                    
+                    state.addProperty("singletile", true);
+                }
+                cjo.add("state", state);
                 layerProps.addProperty("name", child.getName());
                 layerProps.addProperty("cascaded", child.getCascaded());
                 if (child.get_abstract() != null) {
@@ -395,10 +412,19 @@ public class ApplicationConfigController {
      */
     private String humanFriendlyName(String name, String strip) {
         String lcName = name.toLowerCase(), lcStrip = strip.toLowerCase();
-        lcName = lcName.replaceFirst("^[A-Za-z0-9_]+:", "");                    /* Strip workspace prefix e.g. add: */
+        lcName = stripWorkspace(lcName);                                        /* Strip workspace prefix e.g. add: */
         lcName = lcName.replaceFirst("^" + strip.toLowerCase() + "_?", "");     /* Strip the feature name prefix e.g. antarctic_ */
         lcName = lcName.replaceAll("_", " ");                                   /* Underscore to space */
         return(lcName.substring(0, 1).toUpperCase() + lcName.substring(1));     /* Initial cap */
+    }
+    
+    /**
+     * Strip a workspace prefix e.g. add: from a layer name
+     * @param String name
+     * @return String
+     */
+    private String stripWorkspace(String name) {
+        return(name.replaceFirst("^[A-Za-z0-9_]+:", ""));
     }
                     
     /**
@@ -443,13 +469,17 @@ public class ApplicationConfigController {
         private String prefix;
         private String[] showLayers;
         private String[] expandGroups;
+        private String[] clickableLayers;
+        private String[] singleTileLayers;
         
-        public LayerTreeData(String projection, String endpoint, String prefix, String[] showLayers, String[] expandGroups) {
+        public LayerTreeData(String projection, String endpoint, String prefix, String[] showLayers, String[] expandGroups, String[] clickableLayers, String[] singleTileLayers) {
             this.projection = projection;
             this.endpoint = endpoint;
             this.prefix = prefix;
             this.showLayers = showLayers;
             this.expandGroups = expandGroups;
+            this.clickableLayers = clickableLayers;
+            this.singleTileLayers = singleTileLayers;
         }
         
         public int getNodeId() {
@@ -498,6 +528,22 @@ public class ApplicationConfigController {
 
         public void setExpandGroups(String[] expandGroups) {
             this.expandGroups = expandGroups;
+        }
+
+        public String[] getClickableLayers() {
+            return clickableLayers;
+        }
+
+        public void setClickableLayers(String[] clickableLayers) {
+            this.clickableLayers = clickableLayers;
+        }
+
+        public String[] getSingleTileLayers() {
+            return singleTileLayers;
+        }
+
+        public void setSingleTileLayers(String[] singleTileLayers) {
+            this.singleTileLayers = singleTileLayers;
         }
                         
     }

@@ -67,8 +67,13 @@ magic.classes.LayerTree = function(target, treedata, sourceData) {
         var checked = evt.currentTarget.checked;
         $(evt.currentTarget).parent().next().find("li").each($.proxy(function(idx, elt) {
             var nodeid = elt.id.substring(elt.id.lastIndexOf("-")+1);
-            this.nodeLayerTranslation[nodeid].setVisible(checked);
-            $("#layer-cb-" + nodeid).prop("checked", checked);
+            var lyr = this.nodeLayerTranslation[nodeid];
+            if (lyr) {
+                lyr.setVisible(checked);
+                $("#layer-cb-" + nodeid).prop("checked", checked);
+            } else {
+                $("#group-cb-" + nodeid).prop("checked", checked);
+            }            
         }, this));       
     }, this));
     
@@ -93,14 +98,16 @@ magic.classes.LayerTree = function(target, treedata, sourceData) {
     $("div[id^='layer-group-panel-']").on("shown.bs.collapse", $.proxy(function(evt) {
         var tgt = $(evt.currentTarget);
         var tt = (tgt.hasClass("in") ? "Collapse" : "Expand") + " this group";
-        tgt.parent().first().find("span.panel-title").attr("data-original-title", tt).tooltip("fixTitle");        
+        tgt.parent().first().find("span.panel-title").attr("data-original-title", tt).tooltip("fixTitle");
+        evt.stopPropagation();
     }, this));
     
     /* Change tooltip for collapsible panels */
     $("div[id^='layer-group-panel-']").on("hidden.bs.collapse", $.proxy(function(evt) {
         var tgt = $(evt.currentTarget);
         var tt = (tgt.hasClass("in") ? "Collapse" : "Expand") + " this group";
-        tgt.parent().first().find("span.panel-title").attr("data-original-title", tt).tooltip("fixTitle");        
+        tgt.parent().first().find("span.panel-title").attr("data-original-title", tt).tooltip("fixTitle");
+        evt.stopPropagation();
     }, this));
         
 };
@@ -145,6 +152,7 @@ magic.classes.LayerTree.prototype.isRasterLayer = function(layer) {
  */
 magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
     $.each(nodes, $.proxy(function (i, nd) {
+        var indent = 15*depth;
         if ($.isArray(nd.nodes)) {
             /* Style a group */
             var expClass = " in", title = "Collapse this group", expander = "", allCb = "";
@@ -158,8 +166,9 @@ magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
             } else {
                 allCb = '<input class="layer-vis-group-selector" id="group-cb-' + nd.nodeid + '" type="checkbox" />';
             }
-            var indent = 15*depth;
+            console.dir(element);
             element.append(
+                ((element.length > 0 && element[0].tagName.toLowerCase() == "ul") ? '<li class="list-group-item layer-list-group-group" id="layer-item-' + nd.nodeid + '">' : "") + 
                 '<div class="panel panel-default layer-group-panel">' + 
                     '<div class="panel-heading" id="layer-group-heading-"' + nd.nodeid + '">' + 
                         '<span style="display:inline-block;width:' + indent + 'px"></span>' +
@@ -178,26 +187,45 @@ magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
                             '</ul>' + 
                         '</div>' + 
                     '</div>' + 
-                '</div>'
-            );            
+                '</div>' + 
+                ((element.length > 0 && element[0].tagName.toLowerCase() == "ul") ? '</li>' : "")
+            );             
             this.initTree(nd.nodes, $("#layer-group-" + nd.nodeid), depth+1);
         } else {
             /* Style a data node */
             var cb;
-            var checkState = nd.state ? nd.state.checked === true : false;
+            var checkState = false, clickState = false, singleTileState = false;
+            if (nd.state) {
+                checkState = nd.state.checked === true;
+                clickState = nd.state.clickable === true;
+                singleTileState = nd.state.singletile === true;
+            }           
             if (nd.props.radio) {
                 cb = '<input class="layer-vis-selector" name="base-layers-rb" id="base-layer-rb-' + nd.nodeid + '" type="radio" ' + (checkState ? "checked" : "") + '/>';
             } else {
                 cb = '<input class="layer-vis-selector" id="layer-cb-' + nd.nodeid + '" type="checkbox" ' + (checkState ? "checked" : "") + '/>';
             }
-            var name = nd.text; /* Save name as we may insert ellipsis into name text for presentation purposes */
+            var name = nd.text, /* Save name as we may insert ellipsis into name text for presentation purposes */
+                ellipsisName = magic.modules.Common.ellipsis(nd.text, 25),
+                infoTitle = "Get layer legend/metadata",
+                nameSpan = ellipsisName;
+            if (name != ellipsisName) {
+                /* Tooltip to give the full version of any shortened name */
+                nameSpan = '<span data-toggle="tooltip" data-placement="top" title="' + name + '">' + ellipsisName + '</span>';
+            }
             element.append(
-                '<li class="list-group-item layer-list-group-item" id="layer-item-' + nd.nodeid + '">' +
-                    '<span style="float:left">' + 
-                        '<span id="layer-info-' + nd.nodeid + '" class="fa fa-info-circle" style="cursor:pointer"></span>' + 
+                '<li class="list-group-item layer-list-group-item" id="layer-item-' + nd.nodeid + '">' +                    
+                    '<span style="float:left">' +
+                        '<span style="display:inline-block;width:' + indent + 'px"></span>' +
+                        '<span id="layer-info-' + nd.nodeid + '" ' + 
+                            'class="fa fa-info-circle' + (clickState ? ' clickable' : '') + '" ' + 
+                            'data-toggle="tooltip" data-placement="right" data-html="true" ' + 
+                            'title="' + (clickState ? infoTitle + "<br />Click on map features for info" : infoTitle) + '" ' + 
+                            'style="cursor:pointer">' + 
+                        '</span>' + 
                         cb + 
                         '<span id="layer-filter-badge-' + nd.nodeid + '" class="badge filter-badge hidden" data-toggle="tooltip" data-placement="right" title="">filter</span>' + 
-                        magic.modules.Common.ellipsis(nd.text, 25) + 
+                        nameSpan + 
                     '</span>' + 
                     '<span style="float:right">' + 
                         '<a class="layer-tool" id="layer-opts-' + nd.nodeid + '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' + 
@@ -211,9 +239,8 @@ magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
             /* Layer filtering */            
             if (nd.props) {
                 /* Create a data layer */
-                var layer = null,
-                    kw = nd.props.keywords;     
-                if ($.isArray(kw) && $.inArray("point", kw) != -1) {
+                var layer = null;
+                if (singleTileState) {
                     /* Render point layers with a single tile for labelling free of tile boundary effects */
                     layer = new ol.layer.Image({
                         name: name,
@@ -222,6 +249,7 @@ magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
                         metadata: $.extend({}, nd.props, {
                             nodeid: nd.nodeid, 
                             checkstate: checkState,
+                            clickable: clickState,
                             filterable: true,
                             filter: null,
                             attrs: null
@@ -258,6 +286,7 @@ magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
                         metadata: $.extend({}, nd.props, {
                             nodeid: nd.nodeid, 
                             checkstate: checkState,
+                            clickable: clickState,
                             filterable: true,
                             filter: null,
                             attrs: null

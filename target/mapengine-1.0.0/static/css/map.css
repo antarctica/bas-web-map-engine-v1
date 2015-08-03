@@ -195,6 +195,10 @@ img.applogo {
     }
 }
 
+.clickable {    
+    color: #ff0000;
+}
+
 div.layer-group-panel {
     border-radius: 0px;
     margin-bottom: 0px;
@@ -212,6 +216,12 @@ ul.layer-list-group {
 
 li.layer-list-group-item {
     height: 40px;
+    border-radius: 0px !important;
+}
+
+li.layer-list-group-group {
+    padding: 0px;
+    border: 0px;
     border-radius: 0px !important;
 }
 

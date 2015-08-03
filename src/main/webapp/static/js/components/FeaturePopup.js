@@ -8,6 +8,8 @@ magic.classes.FeaturePopup = function(options) {
     this.featureCollection = options.features || [];    
     /* id of DOM element to bind popup to */
     this.popupId = options.popupId || "popup";
+    /* Name prefix (will strip this from the beginning of popup titles) */
+    this.namePrefix = options.namePrefix || "";
     
     /* Internal */  
     
@@ -159,12 +161,14 @@ magic.classes.FeaturePopup.prototype.basicMarkup = function() {
         var attrs = this.coreAttributes(feat);
         content += '<div class="feature-popup-table-cont ' + (i > 0 ? "hidden" : "show") + '">';
         content += '<table class="table table-striped table-condensed feature-popup-table">';
-        $.each(["name", "lon", "lat"], $.proxy(function(idx, key) {
-            if ($.isNumeric(attrs[key])) {
-                content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td align="right">' + attrs[key] + '</td></tr>';
-            } else {
-                content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td>' + attrs[key] + '</td></tr>';
-            }           
+        $.each(attrs, $.proxy(function(key, value) {
+            if (value) {
+                if ($.isNumeric(value)) {
+                    content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td align="right">' + value + '</td></tr>';
+                } else {
+                    content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td>' + value + '</td></tr>';
+                }   
+            }
         }, this));
         content += '<tr><td colspan="2" align="center"><button type="button" id="full-attr-set-' + i + '" class="btn btn-primary btn-xs">Full attribute set</button></td></tr>';
         content += '</table>';
@@ -310,39 +314,51 @@ magic.classes.FeaturePopup.prototype.fixPopoverPosition = function() {
  * @param {Object} feat feature
  */
 magic.classes.FeaturePopup.prototype.coreAttributes = function(feat) {
-    var coreAttrs = {
-        name: null,
-        lon: null,
-        lat: null
-    };
-    var attrs = this.gfi ? feat.properties : feat.getProperties();    
-    $.each(attrs, $.proxy(function(key, value) {
-        key = key.toLowerCase();
-        if (coreAttrs.name == null && (key.indexOf("name") == 0 || magic.modules.Common.endsWith(key.toLowerCase(), "name"))) {
-            coreAttrs.name = value;
-        } else if (coreAttrs.lon == null && (key == "lon" || key == "longitude" || key == "x")) {
-            if ($.isNumeric(value)) {
-                coreAttrs.lon = parseFloat(value).toFixed(4);
+    var coreAttrs = {};        
+    var geomType = feat.geometry.type;
+    var attrs = this.gfi ? feat.properties : feat.getProperties();
+    if (geomType.toLowerCase() == "point") {
+        /* Try and extract a core set of attributes for points */
+        coreAttrs = {
+            name: null,
+            lon: null,
+            lat: null
+        };
+        $.each(attrs, $.proxy(function(key, value) {
+            key = key.toLowerCase();
+            if (coreAttrs.name == null && (key.indexOf("name") == 0 || magic.modules.Common.endsWith(key.toLowerCase(), "name"))) {
+                coreAttrs.name = value;
+            } else if (coreAttrs.lon == null && (key == "lon" || key == "longitude" || key == "x")) {
+                if ($.isNumeric(value)) {
+                    coreAttrs.lon = parseFloat(value).toFixed(4);
+                }
+            } else if (coreAttrs.lat == null && (key == "lat" || key == "latitude" || key == "y")) {
+                if ($.isNumeric(value)) {
+                    coreAttrs.lat = parseFloat(value).toFixed(4);
+                }
             }
-        } else if (coreAttrs.lat == null && (key == "lat" || key == "latitude" || key == "y")) {
-            if ($.isNumeric(value)) {
-                coreAttrs.lat = parseFloat(value).toFixed(4);
+        }, this));
+        /* Fill in any remaining null values with defaults or best guesses */
+        if (coreAttrs.name == null) {
+            coreAttrs.name = "Feature";
+        }
+        if (coreAttrs.lon == null || coreAttrs.lat == null) {
+            if (this.gfi) {
+                /* Project the geometry coordinates */
+                var coordWgs84 = ol.proj.transform(feat.geometry.coordinates, magic.runtime.projection, "EPSG:4326");
+                coreAttrs.lon = coordWgs84[0].toFixed(4);
+                coreAttrs.lat = coordWgs84[1].toFixed(4);
+            } else {
+                coreAttrs.lon = coreAttrs.lat = 0.0;
             }
         }
-    }, this));
-    /* Fill in any remaining null values with defaults or best guesses */
-    if (coreAttrs.name == null) {
-        coreAttrs.name = "Feature";
-    }
-    if (coreAttrs.lon == null || coreAttrs.lat == null) {
-        if (this.gfi) {
-            /* Project the geometry coordinates */
-            var coordWgs84 = ol.proj.transform(feat.geometry.coordinates, magic.runtime.projection, "EPSG:4326");
-            coreAttrs.lon = coordWgs84[0].toFixed(4);
-            coreAttrs.lat = coordWgs84[1].toFixed(4);
-        } else {
-            coreAttrs.lon = coreAttrs.lat = 0.0;
-        }
+    } else {
+        $.each(attrs, $.proxy(function(key, value) {
+            key = key.toLowerCase();
+            if (key != "gid" && key != "id" && key != "bbox") {
+                coreAttrs[key] = value;
+            }            
+        }, this));
     }
     return(coreAttrs);
 };
@@ -357,8 +373,12 @@ magic.classes.FeaturePopup.prototype.layerNameFromFid = function(fid) {
         var dotAt = layerName.indexOf(".");
         if (dotAt != -1) {
             layerName = layerName.substring(0, dotAt);
-        }
+        }        
         layerName = layerName.replace(/_/g, " ");
+        if (this.namePrefix != "") {
+            var re = new RegExp("^" + this.namePrefix + "\\s+");
+            layerName = layerName.replace(re, "");
+        }
         layerName = magic.modules.Common.initCap(layerName);
     }
     return(layerName);
