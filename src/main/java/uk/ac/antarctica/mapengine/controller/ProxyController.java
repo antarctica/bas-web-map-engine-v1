@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Request;
+import org.apache.http.entity.ContentType;
 import org.apache.http.util.EntityUtils;
 import org.json.XML;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,11 +64,13 @@ public class ProxyController {
             /* Allowed to call this API from here */
             boolean isGfi = url.toLowerCase().contains("getfeatureinfo");
             boolean isDft = url.toLowerCase().contains("describefeaturetype");
-            HttpResponse response = Request.Get(url)
-                    .connectTimeout(60000)
-                    .socketTimeout(60000)
-                    .execute()
-                    .returnResponse();
+            Request get = Request.Get(url)
+                .connectTimeout(60000)
+                .socketTimeout(60000);
+            if (request.getHeader("Authorization") != null) {                
+                get.addHeader("Authorization", request.getHeader("Authorization"));
+            }
+            HttpResponse response = get.execute().returnResponse();
             int code = response.getStatusLine().getStatusCode();
             String content = EntityUtils.toString(response.getEntity(), "UTF-8");
             if (code == 200) {
@@ -78,6 +81,35 @@ public class ProxyController {
         } else {
             ret = packageResults(HttpStatus.BAD_REQUEST, null, "Proxy of " + url + " not allowed", false, false);
         }
+        return (ret);
+    }
+    
+    /**
+     * Proxy an authentication token request for the aircraft API
+     *
+     * @param HttpServletRequest request
+     * @param String url
+     * @return String
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/airtoken", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
+    @ResponseBody
+    public ResponseEntity<String> airtoken(HttpServletRequest request) throws ServletException, IOException {
+        ResponseEntity<String> ret;
+        HttpResponse response = Request.Post("https://api.bas.ac.uk/aircraft/v1/tokens")
+                .bodyString("{\"username\": \"basfids\", \"password\": \"r0thera14\"}", ContentType.APPLICATION_JSON)
+                .connectTimeout(60000)
+                .socketTimeout(60000)
+                .execute()
+                .returnResponse();
+        int code = response.getStatusLine().getStatusCode();
+        String content = EntityUtils.toString(response.getEntity(), "UTF-8");
+        if (code == 200) {
+            ret = packageResults(HttpStatus.OK, content, "", false, false);
+        } else {
+            ret = packageResults(HttpStatus.BAD_REQUEST, null, "Unexpected return from token request", false, false);
+        }      
         return (ret);
     }
     
@@ -213,7 +245,11 @@ public class ProxyController {
                 } else {
                     /* API return */
                     JsonElement je = jo.get("data");
-                    ret = new ResponseEntity<>(je.toString(), status);
+                    if (je != null) {
+                        ret = new ResponseEntity<>(je.toString(), status);
+                    } else {
+                        ret = new ResponseEntity<>(jo.toString(), status);
+                    }
                 }
             }
         } else {

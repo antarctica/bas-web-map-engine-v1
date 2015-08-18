@@ -199,10 +199,30 @@ img.applogo {
     color: #ff0000;
 }
 
+.non-clickable {
+    color: #000000;
+}
+
 div.layer-group-panel {
     border-radius: 0px;
     margin-bottom: 0px;
     border-bottom: 0px;
+}
+
+div.layer-group-heading-0 {    
+    background-color: #dddddd !important;
+}
+
+div.layer-group-heading-1 {    
+    background-color: #eeeeee !important;
+}
+
+div.layer-group-heading-2 {    
+    background-color: #f8f8f8 !important;
+}
+
+div.layer-group-heading-3 {    
+    background-color: #ffffff !important;
 }
 
 span.layer-group-panel-title {

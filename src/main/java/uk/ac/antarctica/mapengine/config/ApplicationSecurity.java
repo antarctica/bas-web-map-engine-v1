@@ -31,7 +31,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
     public void configure(WebSecurity web) throws Exception {
         web
             .ignoring()
-            .antMatchers("/*.ico", "/static/**", "/home/**", "/debug/**", "/appconfig/**", "/ping", "/proxy", "/downloads/**", "/getdata/**");
+            .antMatchers("/*.ico", "/static/**", "/home/**", "/debug/**", "/appconfig/**", "/ping", "/proxy", "/airtoken", "/downloads/**", "/getdata/**");
     }
 
     @Override

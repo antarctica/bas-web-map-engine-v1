@@ -10,22 +10,20 @@ magic.classes.LayerTree = function(target, treedata, sourceData) {
     this.overlayLayers = [];
     this.nodeLayerTranslation = {};
     
+    this.collapsed = false;
+    
     this.initTree(this.treedata, $("#" + this.target), 0);
     
     /* Collapse layer tree handler */
     $("span.layer-tree-collapse").on("click", $.proxy(function(evt) {
-        evt.stopPropagation();        
-        $("#" + this.target).hide({
-            complete: magic.runtime.appcontainer.fitMapToViewport
-        });
+        evt.stopPropagation(); 
+        this.setCollapsed(true);        
     }, this));
     
     /* Expand layer tree handler */
     $("button.layer-tree-expand").on("click", $.proxy(function(evt) {
         evt.stopPropagation();
-        $("#" + this.target).show({
-            complete: magic.runtime.appcontainer.fitMapToViewport
-        });
+        this.setCollapsed(false);
     }, this));        
     
     /* Assign layer visibility handlers */
@@ -128,6 +126,23 @@ magic.classes.LayerTree.prototype.getOverlayLayers = function() {
     return(this.overlayLayers);
 };
 
+magic.classes.LayerTree.prototype.getCollapsed = function() {
+    return(this.collapsed);
+};
+
+magic.classes.LayerTree.prototype.setCollapsed = function(collapsed) {
+    if (collapsed) {
+        $("#" + this.target).hide({
+            complete: magic.runtime.appcontainer.fitMapToViewport
+        });
+    } else {
+        $("#" + this.target).show({
+            complete: magic.runtime.appcontainer.fitMapToViewport
+        });
+    }
+    this.collapsed = collapsed;
+};
+
 /**
  * Return true if supplied layer is a raster
  * @returns {boolean}
@@ -169,7 +184,7 @@ magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
             element.append(
                 ((element.length > 0 && element[0].tagName.toLowerCase() == "ul") ? '<li class="list-group-item layer-list-group-group" id="layer-item-' + nd.nodeid + '">' : "") + 
                 '<div class="panel panel-default layer-group-panel">' + 
-                    '<div class="panel-heading" id="layer-group-heading-"' + nd.nodeid + '">' + 
+                    '<div class="panel-heading layer-group-heading-' + depth + '" id="layer-group-heading-' + nd.nodeid + '">' + 
                         '<span style="display:inline-block;width:' + indent + 'px"></span>' +
                         '<span class="icon-layers"></span>' +
                          allCb +
@@ -217,7 +232,7 @@ magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
                     '<span style="float:left">' +
                         '<span style="display:inline-block;width:' + indent + 'px"></span>' +
                         '<span id="layer-info-' + nd.nodeid + '" ' + 
-                            'class="fa fa-info-circle' + (clickState ? ' clickable' : '') + '" ' + 
+                            'class="fa fa-info-circle' + (clickState ? ' clickable' : ' non-clickable') + '" ' + 
                             'data-toggle="tooltip" data-placement="right" data-html="true" ' + 
                             'title="' + (clickState ? infoTitle + "<br />Click on map features for info" : infoTitle) + '" ' + 
                             'style="cursor:pointer">' + 

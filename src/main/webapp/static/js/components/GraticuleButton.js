@@ -42,9 +42,11 @@ magic.classes.GraticuleButton.prototype.isActive = function () {
  * Activate the control
  */
 magic.classes.GraticuleButton.prototype.activate = function () {
+    this.active = true;
     // TODO - ol graticule component does not seem very robust as of 03/08/2015   
     this.graticule = new ol.Graticule({});
     this.graticule.setMap(magic.runtime.map);
+    this.btn.addClass("active");
     this.btn.attr("data-original-title", this.activeTitle).tooltip("fixTitle");
 };
 
@@ -52,6 +54,8 @@ magic.classes.GraticuleButton.prototype.activate = function () {
  * Deactivate the control
  */
 magic.classes.GraticuleButton.prototype.deactivate = function () {
-    this.btn.attr("data-original-title", "Zoom in by dragging a box on map").tooltip("fixTitle");
+    this.active = false;
+    this.btn.removeClass("active");
+    this.btn.attr("data-original-title", this.inactiveTitle).tooltip("fixTitle");
 };
     
