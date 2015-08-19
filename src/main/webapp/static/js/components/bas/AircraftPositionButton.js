@@ -17,6 +17,7 @@ magic.classes.AircraftPositionButton = function (name, ribbon) {
     /* Display layer within main map */
     this.geoJson = null;
     this.layer = null;
+    this.insetLayer = null;
         
     this.btn = $('<button>', {
         "id": "btn-" + this.name,
@@ -63,6 +64,19 @@ magic.classes.AircraftPositionButton.prototype.activate = function () {
                 features: []
             })
         });
+        magic.runtime.map.addLayer(this.layer);
+    }    
+    if (!this.insetLayer) {
+        this.insetLayer = new ol.layer.Vector({
+            name: "_bas_aircraft_locations_inset",
+            visible: true,
+            source: new ol.source.Vector({
+                features: []
+            })
+        });
+        if (magic.runtime.inset) {
+            magic.runtime.inset.addLayer(this.insetLayer);
+        }
     }
     this.getData();
     window.setTimeout(this.getData, 600000);
@@ -98,16 +112,48 @@ magic.classes.AircraftPositionButton.prototype.getData = function() {
                 success: $.proxy(function(data) {
                     var feats = this.geoJson.readFeatures(data);
                     var inFeats = [], outFeats = [];
+                    var projExtent = magic.modules.GeoUtils.projectionLatLonExtent(magic.runtime.projection.getCode());
                     $.each(feats, $.proxy(function(idx, f) {
-                        // TO DO - projection
-                        if (f.getGeometry().intersectsExtent(magic.runtime.projection.getExtent())) {
-                            inFeats.push(f);
+                        var props = f.getProperties();
+                        var colour = props.speed > 5 ? "green" : "red";                        
+                        var fclone = f.clone();
+                        if (f.getGeometry().intersectsExtent(projExtent)) {                            
+                            fclone.getGeometry().transform("EPSG:4326", magic.runtime.projection);
+                            var style = new ol.style.Style({
+                                image: new ol.style.Icon({
+                                    rotateWithView: true,
+                                    rotation: magic.modules.Common.toRadians(magic.modules.GeoUtils.headingWrtTrueNorth(fclone.getGeometry, props.heading)),
+                                    src: magic.config.paths.baseurl + "/static/images/airplane_" + colour + "_roundel.png"
+                                })
+                            });
+                            fclone.setStyle(style);
+                            inFeats.push(fclone);
                         } else {
-                            outFeats.push(f);
+                            fclone.getGeometry().transform("EPSG:4326", "EPSG:3857");
+                            var style = new ol.style.Style({
+                                image: new ol.style.Icon({
+                                    rotation: magic.modules.Common.toRadians(props.heading),
+                                    src: magic.config.paths.baseurl + "/static/images/airplane_" + colour + "_roundel.png"
+                                })
+                            });
+                            fclone.setStyle(style);
+                            outFeats.push(fclone);
                         }                        
-                    }, this)); 
-                    console.dir(inFeats);
-                    console.dir(outFeats);
+                    }, this));
+                    this.layer.getSource().clear();
+                    if (inFeats.length > 0) {
+                        this.layer.getSource().addFeatures(inFeats);
+                    }
+                    if (magic.runtime.inset) {
+                        this.insetLayer.getSource().clear();
+                        if (outFeats.length > 0) {
+                            this.insetLayer.getSource().addFeatures(outFeats);
+                            magic.runtime.inset.activate();
+                        } else {
+                            /* Can dispense with displaying the inset (if no other layers still have features to show)? */
+                            magic.runtime.inset.deactivate();
+                        }                    
+                    }
                 }, this),
                 error: function(jqXhr, status, msg) {
                     if (status && msg) {

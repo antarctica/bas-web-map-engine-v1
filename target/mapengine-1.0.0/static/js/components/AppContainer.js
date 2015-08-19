@@ -58,6 +58,9 @@ magic.classes.AppContainer = function(payload) {
     
     /* Create an attribution modal for legend/metadata */
     magic.runtime.attribution = new magic.classes.AttributionModal({target: "attribution-modal", wms: payload.sources.wms});
+    
+    /* Create WGS84 inset map with single OSM layer */
+    magic.runtime.inset = new magic.classes.InsetMap();
             
     if ($.inArray("geosearch", payload.view.controls) != -1 && payload.sources.gazetteers) {
         /* Activate geosearch */

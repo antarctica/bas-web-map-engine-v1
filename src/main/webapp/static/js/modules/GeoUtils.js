@@ -249,6 +249,30 @@ magic.modules.GeoUtils = function() {
         },
         
         /**
+         * Get the lat/lon extent of a projection
+         * @param {string} proj
+         * @returns {ol.Extent}
+         */
+        projectionLatLonExtent: function(proj) {
+            var extent = [];
+            switch(proj) {
+                case "EPSG:3031":
+                    extent = [-180.0,-90.0,180.0,-50.0];
+                    break;
+                case "EPSG:3995":
+                    extent = [-180.0, 60.0, 180.0, 90.0];
+                    break;
+                case "EPSG:3762":
+                    extent = [-50.0,-65.0,-18.0,-50.0];
+                    break;
+                default:
+                    extent = [-180.0, -90.0, 180.0, 90.0];
+                    break;
+            }
+            return(extent);
+        },
+        
+        /**
          * Detect if two longitudes representing a segment are equal and coincide with the dateline 
          * (+/- 180 to within tolerance)
          * @param {float} lon0
@@ -381,7 +405,24 @@ magic.modules.GeoUtils = function() {
             var mpu = ol.proj.METERS_PER_UNIT[units];
             var scale = resolution * mpu * 39.37 * dpi; /* NB magic numbers */
             return(parseFloat(scale));
+        }, 
+        
+        /**
+         * For a point in projected co-ordinates, translate a heading so it looks plausible on the map
+         * @param {ol.geom.Point} p
+         * @param {float} heading
+         * @return {float}
+         */
+        headingWrtTrueNorth: function(p, heading) {
+            var pcoords = p.getCoordinates();
+            var vp = new Vector(pcoords[0], pcoords[1]);
+            /* Point towards top of map from P */
+            var b = new ol.geom.Point([0, 1]);
+            var vb = new Vector(b.x, b.y);		
+            var cosAngle = vp.unit().dot(vb);
+            return((heading - 180.0*Math.acos(cosAngle)/Math.PI) % 360.0);
         }
+        
     });
 
 }();

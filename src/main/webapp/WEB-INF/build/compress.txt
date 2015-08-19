@@ -8,6 +8,7 @@ css/whhg-reduced.min.css
 js/ol.min.js
 js/ellipsoid/ellipsoid.js
 js/jquery.js
+js/vector.js
 js/proj4.js
 js/proj4defs/3031.js
 js/proj4defs/3762.js
@@ -33,7 +34,10 @@ js/components/FeatureInfoButton.js
 js/components/Geosearch.js
 js/components/Measurement.js
 js/components/OverviewMap.js
+js/components/InsetMap.js
 js/components/Download.js
 js/components/AttributionModal.js
 js/components/LayerTreeOptionsMenu.js
 js/components/LayerFilter.js
+js/components/LayerFilter.js
+js/components/bas/AircraftPositionButton.js
