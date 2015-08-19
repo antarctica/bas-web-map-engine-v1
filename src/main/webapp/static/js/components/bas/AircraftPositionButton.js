@@ -33,9 +33,8 @@ magic.classes.AircraftPositionButton = function (name, ribbon) {
         } else {
             this.activate();
         }
-    }, this));
-             
-    
+    }, this));                 
+    window.setTimeout(this.getData, 600000);
 };
 
 magic.classes.AircraftPositionButton.prototype.getButton = function () {
@@ -56,6 +55,7 @@ magic.classes.AircraftPositionButton.prototype.activate = function () {
             geometryName: "geom"
         });
     }
+    var fetch = false;
     if (!this.layer) {
         this.layer = new ol.layer.Vector({
             name: "_bas_aircraft_locations",
@@ -65,6 +65,9 @@ magic.classes.AircraftPositionButton.prototype.activate = function () {
             })
         });
         magic.runtime.map.addLayer(this.layer);
+        fetch = true;
+    } else {
+        this.layer.setVisible(true);
     }    
     if (!this.insetLayer) {
         this.insetLayer = new ol.layer.Vector({
@@ -76,11 +79,15 @@ magic.classes.AircraftPositionButton.prototype.activate = function () {
         });
         if (magic.runtime.inset) {
             magic.runtime.inset.addLayer(this.insetLayer);
+            fetch = true;
         }
+    } else {
+        this.insetLayer.setVisible(true);
+    }    
+    if (fetch) {
+        this.getData();
     }
-    this.getData();
-    window.setTimeout(this.getData, 600000);
-    this.btn.addClass("active");
+    this.btn.toggleClass("active");
     this.btn.attr("data-original-title", this.activeTitle).tooltip("fixTitle");
 };
 
@@ -89,7 +96,9 @@ magic.classes.AircraftPositionButton.prototype.activate = function () {
  */
 magic.classes.AircraftPositionButton.prototype.deactivate = function () {
     this.active = false;
-    this.btn.removeClass("active");
+    this.layer.setVisible(false);
+    this.insetLayer.setVisible(false);
+    this.btn.toggleClass("active");
     this.btn.attr("data-original-title", this.inactiveTitle).tooltip("fixTitle");
 };
     
@@ -124,6 +133,20 @@ magic.classes.AircraftPositionButton.prototype.getData = function() {
                                     rotateWithView: true,
                                     rotation: magic.modules.Common.toRadians(magic.modules.GeoUtils.headingWrtTrueNorth(fclone.getGeometry, props.heading)),
                                     src: magic.config.paths.baseurl + "/static/images/airplane_" + colour + "_roundel.png"
+                                }),
+                                text: new ol.style.Text({
+                                    font: "Arial",
+                                    scale: 1.2,
+                                    offsetX: 14,
+                                    text: props.callsign,
+                                    textAlign: "left",
+                                    fill: new ol.style.Fill({
+                                        color: "#ff0000"
+                                    }),
+                                    stroke: new ol.style.Stroke({
+                                        color: "#ffffff",
+                                        width: 1
+                                    })
                                 })
                             });
                             fclone.setStyle(style);
@@ -134,6 +157,20 @@ magic.classes.AircraftPositionButton.prototype.getData = function() {
                                 image: new ol.style.Icon({
                                     rotation: magic.modules.Common.toRadians(props.heading),
                                     src: magic.config.paths.baseurl + "/static/images/airplane_" + colour + "_roundel.png"
+                                }),
+                                text: new ol.style.Text({
+                                    font: "Arial",
+                                    scale: 1.2,
+                                    offsetX: 14,
+                                    text: props.callsign,
+                                    textAlign: "left",
+                                    fill: new ol.style.Fill({
+                                        color: "#ff0000"
+                                    }),
+                                    stroke: new ol.style.Stroke({
+                                        color: "#ffffff",
+                                        width: 1
+                                    })
                                 })
                             });
                             fclone.setStyle(style);

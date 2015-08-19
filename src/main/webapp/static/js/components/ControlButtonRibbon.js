@@ -74,6 +74,11 @@ magic.classes.ControlButtonRibbon.prototype.init = function() {
                 this.appendControlButton(new magic.classes.AircraftPositionButton("aircraft", this).getButton()); 
                 break;
                 
+            case "ships":
+                /* Show ship positions */                                
+                this.appendControlButton(new magic.classes.ShipPositionButton("ships", this).getButton()); 
+                break;
+                
             case "height-measure":
                 /* Measure the height at a point (toggle button) */
                 var hm = new magic.classes.HeightMeasureButton("height-measure", this);

@@ -147,6 +147,22 @@ magic.modules.Common = function() {
         },
         
         /**
+         * Number of keys in an object literal 
+         * Thanks to http://stackoverflow.com/questions/5533192/how-to-get-object-length
+         * @param {Object} obj
+         * @returns {int}
+         */
+        objectLength: function(obj) {
+            var count = 0;
+            for (var key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                    count++;
+                }
+            }
+            return(count);
+        },
+        
+        /**
          * Capitalise the first letter of the string
          * @param {string} str
          * @returns {string}

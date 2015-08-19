@@ -38,7 +38,7 @@ magic.classes.FeaturePopup = function(options) {
         $("#map-container").after(
             '<!-- Full attribute set modal -->' + 
             '<div class="modal fade" id="all-attributes-modal" tabindex="-1" role="dialog" aria-labelledby="all-attributes-title" aria-hidden="true">' + 
-                '<div class="modal-dialog modal-lg">' + 
+                '<div class="modal-dialog">' + 
                     '<div class="modal-content">' + 
                         '<div class="modal-header">' + 
                             '<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>' + 
@@ -158,10 +158,10 @@ magic.classes.FeaturePopup.prototype.title = function() {
 magic.classes.FeaturePopup.prototype.basicMarkup = function() {    
     var content = "";
     $.each(this.featureCollection, $.proxy(function(i, feat) {
-        var attrs = this.coreAttributes(feat);
+        var cad = this.coreAttributeData(feat);
         content += '<div class="feature-popup-table-cont ' + (i > 0 ? "hidden" : "show") + '">';
         content += '<table class="table table-striped table-condensed feature-popup-table">';
-        $.each(attrs, $.proxy(function(key, value) {
+        $.each(cad.attrs, $.proxy(function(key, value) {
             if (value) {
                 if ($.isNumeric(value)) {
                     content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td align="right">' + value + '</td></tr>';
@@ -170,7 +170,9 @@ magic.classes.FeaturePopup.prototype.basicMarkup = function() {
                 }   
             }
         }, this));
-        content += '<tr><td colspan="2" align="center"><button type="button" id="full-attr-set-' + i + '" class="btn btn-primary btn-xs">Full attribute set</button></td></tr>';
+        if (cad.reduced) {
+            content += '<tr><td colspan="2" align="center"><button type="button" id="full-attr-set-' + i + '" class="btn btn-primary btn-xs">Full attribute set</button></td></tr>';
+        }
         content += '</table>';
         content += '</div>';
     }, this));
@@ -233,16 +235,18 @@ magic.classes.FeaturePopup.prototype.selectFeature = function() {
             var data = this.gfi ? this.featureCollection[fidx]["properties"] : this.featureCollection[fidx].getProperties();
             var content = '<table class="table table-striped table-condensed feature-popup-table">';
             $.each(data, $.proxy(function(key, value) {
-                if ($.isNumeric(value)) {
-                    if (Math.floor(value) != value) {
-                        /* Floating point */
-                        value = value.toFixed(4);
+                if (key != "gid") {
+                    if ($.isNumeric(value)) {
+                        if (Math.floor(value) != value) {
+                            /* Floating point */
+                            value = value.toFixed(4);
+                        }
+                        content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td align="right">' + value + '</td></tr>';
                     }
-                    content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td align="right">' + value + '</td></tr>';
+                    else if (key != "geometry" && key != "bbox" && key.indexOf("__") == -1 && value != null) {
+                        content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td>' + value + '</td></tr>';
+                    }    
                 }
-                else if (key != "geometry" && key != "bbox" && key.indexOf("__") == -1 && value != null) {
-                    content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td>' + value + '</td></tr>';
-                }                           
             }, this));
             content += '</table>';
             $("#all-attributes-content").html(content);
@@ -313,12 +317,13 @@ magic.classes.FeaturePopup.prototype.fixPopoverPosition = function() {
  * Scan data object to isolate name, lon, lat values if possible
  * @param {Object} feat feature
  */
-magic.classes.FeaturePopup.prototype.coreAttributes = function(feat) {
-    var coreAttrs = {};        
-    var geomType = feat.geometry.type;
+magic.classes.FeaturePopup.prototype.coreAttributeData = function(feat) {
+    var coreAttrs = {}; 
+    var reduced = false;
+    var geomType = this.gfi ? feat.geometry.type : feat.getGeometry().getType();
     var attrs = this.gfi ? feat.properties : feat.getProperties();
-    if (geomType.toLowerCase() == "point") {
-        /* Try and extract a core set of attributes for points */
+    if (magic.modules.Common.objectLength(attrs) > 10 && geomType.toLowerCase() == "point") {
+        /* Try and extract a core set for points with a large number of attributes which would be hard to display in a single popup */
         coreAttrs = {
             name: null,
             lon: null,
@@ -352,6 +357,7 @@ magic.classes.FeaturePopup.prototype.coreAttributes = function(feat) {
                 coreAttrs.lon = coreAttrs.lat = 0.0;
             }
         }
+        reduced = true;
     } else {
         $.each(attrs, $.proxy(function(key, value) {
             key = key.toLowerCase();
@@ -360,7 +366,10 @@ magic.classes.FeaturePopup.prototype.coreAttributes = function(feat) {
             }            
         }, this));
     }
-    return(coreAttrs);
+    return({
+        attrs: coreAttrs,
+        reduced: reduced
+    });
 };
 
 /**

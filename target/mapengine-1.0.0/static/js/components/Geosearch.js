@@ -105,16 +105,16 @@ magic.classes.Geosearch = function(options) {
                     '<div id="' + this.id + '-position" role="tabpanel" class="tab-pane">' + 
                         '<div class="form-group form-group-sm col-sm-12">' + 
                             '<input id="' + this.id + '-lon" class="form-control" type="text" placeholder="Longitude" ' + 
-                                'data-toggle="tooltip" data-placement="left" title="Examples: -65.5  65 30 00W (dms)  W65 30.00 (ddm)"/>' + 
+                                'data-toggle="tooltip" data-placement="right" title="Examples: -65.5  65 30 00W (dms)  W65 30.00 (ddm)"/>' + 
                         '</div>' + 
                         '<div class="form-group form-group-sm col-sm-12">' +
                             '<input id="' + this.id + '-lat" class="form-control" type="text" placeholder="Latitude" ' + 
-                                'data-toggle="tooltip" data-placement="left" title="Examples: -60.25  60 15 00S (dms)  S60 15.00 (ddm)" />' + 
+                                'data-toggle="tooltip" data-placement="right" title="Examples: -60.25  60 15 00S (dms)  S60 15.00 (ddm)" />' + 
                         '</div>' + 
                         '<div class="form-group form-group-sm col-sm-12" style="margin-bottom:5px">' +
                             '<div class="input-group">' + 
                                 '<input id="' + this.id + '-label" class="form-control" type="text" placeholder="Label" ' + 
-                                    'data-toggle="tooltip" data-placement="left" title="Type a label for the point" />' + 
+                                    'data-toggle="tooltip" data-placement="right" title="Type a label for the point" />' + 
                                 '<span class="input-group-btn">' +
                                     '<button id="' + this.id + '-position-go" class="btn btn-default btn-sm" type="button" ' + 
                                         'data-toggle="tooltip" data-placement="right" title="Show position">' + 
