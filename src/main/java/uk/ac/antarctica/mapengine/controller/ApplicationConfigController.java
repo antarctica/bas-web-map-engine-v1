@@ -6,6 +6,7 @@ package uk.ac.antarctica.mapengine.controller;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import java.io.IOException;
 import java.net.URL;
@@ -15,6 +16,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import org.geotools.data.ows.CRSEnvelope;
 import org.geotools.data.ows.Layer;
+import org.geotools.data.ows.SimpleHttpClient;
 import org.geotools.data.ows.StyleImpl;
 import org.geotools.data.ows.WMSCapabilities;
 import org.geotools.data.wms.WebMapServer;
@@ -22,8 +24,11 @@ import org.geotools.data.wms.xml.Attribution;
 import org.geotools.ows.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -37,6 +42,9 @@ public class ApplicationConfigController {
     
     @Autowired
     private Environment env;
+    
+    @Autowired
+    private JdbcTemplate userDataTpl;
     
     /* Double default decimal format */
     DecimalFormat df = new DecimalFormat("#.####");
@@ -54,9 +62,14 @@ public class ApplicationConfigController {
     @ResponseBody
 	public ResponseEntity<String> appConfig(HttpServletRequest request, @PathVariable("appname") String appname) throws ServletException, IOException, ServiceException {
         
+        if (request.getUserPrincipal() != null) {
+            System.out.println(request.getUserPrincipal().getName());
+        }
+                
         JsonObject sourceData = getSourceData(appname);
+        
         JsonObject viewData = getMapViewData(appname);
-        WebMapServer wms = new WebMapServer(new URL(sourceData.get("wms").getAsString()));
+        WebMapServer wms = new WebMapServer(new URL(sourceData.get("wms").getAsString()), new SimpleHttpClient());
         WMSCapabilities capabilities = wms.getCapabilities();
         Layer root = capabilities.getLayer();
         
@@ -84,7 +97,7 @@ public class ApplicationConfigController {
         if (singleTileLayers != null && !singleTileLayers.isEmpty()) {
             singleTileLayersArr = singleTileLayers.split(",");
         }
-        
+                
         /* Assume we will have a non-named layer with title <appname> either at the root or second level */
         JsonArray treeDef = new JsonArray();
         treewalk(
@@ -100,12 +113,13 @@ public class ApplicationConfigController {
                 singleTileLayersArr
             )            
         );
-        
+                
         /* Assemble final payload */
         JsonObject payload = new JsonObject();
         payload.add("tree", treeDef);
         payload.add("view", viewData);
         payload.add("sources", sourceData);
+        payload.add("prefs", getPreferencesData(request));
         return(packageResults(HttpStatus.OK, payload.toString(), null));        
     }
     
@@ -281,7 +295,10 @@ public class ApplicationConfigController {
             url = "Javascript:void(0)";
         }
         sourceData.addProperty("url", url);
-        /* Application endpoint */
+        /* Application endpoint 
+         * This is distinct from the workspace, at the price of a bit of extra complication - the endpoint is the 'antarctic' qualifier in e.g.
+         * https://maps.bas.ac.uk/antarctic, whereas the workspace is the Geoserver workspace endpoint name (e.g. add) which is not generally the same
+         */
         String endpoint = env.getProperty(appname + ".endpoint");
         if (endpoint == null || endpoint.isEmpty()) {
             endpoint = "antarctic";
@@ -300,7 +317,11 @@ public class ApplicationConfigController {
         }
         sourceData.addProperty("name_prefix", prefix);
         /* Construct WMS URL */
-        sourceData.addProperty("wms", BAS_MAPS + endpoint + "/wms");        
+        String wms = env.getProperty(appname + ".wms");
+        if (wms == null || wms.isEmpty()) {
+            wms = BAS_MAPS + endpoint + "/wms";
+        }
+        sourceData.addProperty("wms", wms);        
         /* Gazetteer data source */
         String gazetteers = env.getProperty(appname + ".gazetteers");
         if (gazetteers == null || gazetteers.isEmpty()) {
@@ -459,6 +480,42 @@ public class ApplicationConfigController {
                 return(true);
         }
         return(false);
+    }
+
+    /**
+     * Get the preferences for the logged-in user, or a default set if there is nobody logged in
+     * convenience method - ordinarily will use REST API defined in UserPreferencesController
+     * @param HttpServletRequest request
+     * @return JsonObject
+     */
+    private JsonObject getPreferencesData(HttpServletRequest request) {
+        JsonObject out = null;
+        String userName = (request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null);
+        if (userName == null || userName.isEmpty()) {
+            /* Default set */
+            out = defaultPreferencesSet();
+        } else {
+            /* Get set from db */
+            try {
+                String jsonRow = userDataTpl.queryForObject("SELECT row_to_json(preferences) FROM preferences WHERE username=?", String.class, userName);
+                out = new JsonParser().parse(jsonRow).getAsJsonObject();                
+            } catch(IncorrectResultSizeDataAccessException irsdae) {
+                out = defaultPreferencesSet();
+            } catch(DataAccessException dae) {
+                out = defaultPreferencesSet();
+            }
+        }
+        return(out);
+    }
+    
+    private JsonObject defaultPreferencesSet() {
+        JsonObject out = new JsonObject();
+        out.addProperty("distance", "km");
+        out.addProperty("area", "km");
+        out.addProperty("elevation", "m");
+        out.addProperty("coordinates", "dd");
+        out.addProperty("dates", "dmy");
+        return(out);
     }
     
     private class LayerTreeData {

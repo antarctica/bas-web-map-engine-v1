@@ -10,7 +10,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.servlet.configuration.EnableWebMvcSecurity;
 
@@ -22,41 +21,29 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
     private SecurityProperties security;
 
     @Autowired
-    private DataSource dataSource;
-    
+    private DataSource userDataSource;
+
     @Autowired
     private LdapContextSource contextSource;
-   
-    @Override
-    public void configure(WebSecurity web) throws Exception {
-        web
-            .ignoring()
-            .antMatchers("/*.ico", "/static/**", "/home/**", "/debug/**", "/appconfig/**", "/ping", "/proxy", "/airtoken", "/downloads/**", "/getdata/**");
-    }
-
+    
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
             .authorizeRequests()
-                .anyRequest().fullyAuthenticated()
-                .and()
-            .formLogin()
-                .defaultSuccessUrl("/creator")
-                .loginPage("/login")
-                .permitAll()
-                .and()
-            .logout()
-                .permitAll();
+                .antMatchers("/*.ico", "/static/**", "/home/**", "/debug/**", "/appconfig/**", "/ping", "/proxy", "/airtoken", "/downloads/**", "/getdata/**").permitAll()
+                .antMatchers("/creator", "/opsgis").fullyAuthenticated().and().formLogin().loginPage("/login").permitAll().and().logout().invalidateHttpSession(true);
+                    
+                        
     }
 
     @Override
     public void configure(AuthenticationManagerBuilder auth) throws Exception {
-        //auth.jdbcAuthentication().dataSource(this.dataSource);        
+        //auth.jdbcAuthentication().dataSource(this.userDataSource);        
         auth
             .ldapAuthentication()
-                .userDnPatterns("uid={0},ou=People")
-                .groupSearchBase(null)
-                .contextSource(this.contextSource);
+            .userDnPatterns("uid={0},ou=People")
+            .groupSearchBase(null)
+            .contextSource(this.contextSource);
     }
 
 }

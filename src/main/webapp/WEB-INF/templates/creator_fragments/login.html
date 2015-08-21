@@ -8,7 +8,7 @@
         <meta name="description" content="Map creation wizard"></meta>
         <meta name="author" content="David Herbert, British Antarctic Survey"></meta>
 
-        <title>MAGIC Web Map Creation Wizard - login</title>
+        <title>MAGIC Web Mapping Services - Login</title>
 
         <link rel="icon" type="image/vnd.microsoft.icon" href="/bas.ico"></link>
         <link rel="shortcut icon" type="image/vnd.microsoft.icon" href="/bas.ico"></link>        
@@ -37,8 +37,8 @@
     <body>
         <div class="container login-form-container">
             <div class="well well-lg">
-                <h3>Welcome to the MAGIC Web Map Creation Wizard</h3>
-                This wizard takes you through the steps of basic web map configuration.<br /> Please log in using your BAS username and LDAP (SOUTH) password to begin.
+                <h3>Welcome to MAGIC Web Mapping Services</h3>
+                Please log in using your BAS username and LDAP (SOUTH) password to begin.
             </div>
             <form th:action="@{/login}" method="post" style="width:300px">               
                 <div th:if="${param.logout}" class="has-success"> 

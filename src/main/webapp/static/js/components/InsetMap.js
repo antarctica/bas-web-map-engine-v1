@@ -75,7 +75,7 @@ magic.classes.InsetMap.prototype.addLayer = function(layer) {
 };
 
 magic.classes.InsetMap.prototype.activate = function() {
-    this.target.removeClass("hidden").addClass("show");
+    this.target.toggleClass("hidden");
     this.target.popover("show");
 };
 

@@ -7,6 +7,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1"></meta>
         <meta name="description" content="Map creation wizard"></meta>
         <meta name="author" content="David Herbert, British Antarctic Survey"></meta>
+        <meta name="_csrf" th:content="${_csrf.token}"/>
+        <!-- default header name is X-CSRF-TOKEN -->
+        <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
         <link rel="icon" type="image/vnd.microsoft.icon" href=""></link>
         <link rel="shortcut icon" type="image/vnd.microsoft.icon" href=""></link>
         <title></title>
@@ -21,6 +24,7 @@
         <script th:inline="javascript">
             /*<![CDATA[*/
             magic.runtime.app = [[${app}]];
+            magic.runtime.username = [[${username}]];
             /*]]>*/
         </script>
         <script type="text/javascript">
@@ -48,6 +52,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1"></meta>
         <meta name="description" content="Map creation wizard"></meta>
         <meta name="author" content="David Herbert, British Antarctic Survey"></meta>
+        <meta name="_csrf" th:content="${_csrf.token}"/>
+        <!-- default header name is X-CSRF-TOKEN -->
+        <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
         <link rel="icon" type="image/vnd.microsoft.icon" href=""></link>
         <link rel="shortcut icon" type="image/vnd.microsoft.icon" href=""></link>
         <title></title>
@@ -100,11 +107,13 @@
         <script src="../static/js/components/AttributionModal.js"></script>
         <script src="../static/js/components/LayerTreeOptionsMenu.js"></script>
         <script src="../static/js/components/LayerFilter.js"></script>
+        <script src="../static/js/components/UserPreferences.js"></script>
         <script src="../static/js/components/bas/AircraftPositionButton.js"></script>
         <script src="../static/js/components/bas/ShipPositionButton.js"></script>
         <script th:inline="javascript">
             /*<![CDATA[*/
             magic.runtime.app = [[${app}]];
+            magic.runtime.username = [[${username}]];
                     /*]]>*/
         </script>
         <script type="text/javascript">

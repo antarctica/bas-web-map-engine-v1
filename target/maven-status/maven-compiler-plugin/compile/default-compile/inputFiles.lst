@@ -6,5 +6,6 @@ C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\util\ActivityLogger.j
 C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\config\CustomServletContextListener.java
 C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\controller\ProxyController.java
 C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\config\ThymeleafConfig.java
+C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\controller\UserPreferencesController.java
 C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\controller\HomeController.java
 C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\controller\PingController.java

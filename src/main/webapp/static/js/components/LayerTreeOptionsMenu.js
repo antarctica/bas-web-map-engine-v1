@@ -92,7 +92,7 @@ magic.classes.LayerTreeOptionsMenu.prototype.addWebglSliderHandler = function(id
             evt.stopPropagation();
             var wrapper = $(evt.currentTarget).next("div");
             if (wrapper.hasClass("hidden")) {
-                wrapper.removeClass("hidden").addClass("show");
+                wrapper.toggleClass("hidden");
                 var layer = this.layer;
                 var startValue = 0.0;
                 switch(idbase) {
@@ -121,7 +121,7 @@ magic.classes.LayerTreeOptionsMenu.prototype.addWebglSliderHandler = function(id
                     }
                 });
             } else {
-                wrapper.removeClass("show").addClass("hidden");
+                wrapper.toggleClass("hidden");
             }                        
         }, this));
     } else {

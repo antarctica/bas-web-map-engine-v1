@@ -39,6 +39,6 @@ js/components/Download.js
 js/components/AttributionModal.js
 js/components/LayerTreeOptionsMenu.js
 js/components/LayerFilter.js
-js/components/LayerFilter.js
+js/components/UserPreferences.js
 js/components/bas/AircraftPositionButton.js
 js/components/bas/ShipPositionButton.js

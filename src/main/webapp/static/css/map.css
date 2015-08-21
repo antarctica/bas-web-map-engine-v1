@@ -727,3 +727,12 @@ div.inset-map-popover-content {
     width: 100%;
     height: 365px;
 }
+
+/* Form button styles for indicating ok/error */
+span.post-ok {
+    color: #3c763d;
+}
+
+span.post-error {
+    color: #a94442;
+}

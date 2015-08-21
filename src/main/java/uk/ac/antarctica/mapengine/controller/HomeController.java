@@ -54,6 +54,25 @@ public class HomeController {
     }
     
     /**
+     * Render Operations GIS home page (debug version)    
+     * @param HttpServletRequest request,
+     * @param String app
+     * @param ModelMap model
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/opsgis", method = RequestMethod.GET)
+    public String opsgisDebug(HttpServletRequest request, ModelMap model) throws ServletException, IOException {      
+        request.getSession().setAttribute("app", "opsgis");        
+        model.addAttribute("app", "opsgis");
+        model.addAttribute("username", request.getUserPrincipal().getName());
+        model.addAttribute("debug", true);
+        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Ops GIS home page requested");
+        return("map");
+    }
+    
+    /**
      * Render map creator home page     
      * @param HttpServletRequest request,
      * @param ModelMap model

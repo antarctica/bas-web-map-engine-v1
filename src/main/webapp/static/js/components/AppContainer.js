@@ -105,9 +105,15 @@ magic.classes.AppContainer = function(payload) {
         $("#download-tool").closest("li").hide();
     }
         
-    /* Hide the login/profile preferences 
-     * TO DO - implement login if required */
-    $("#user-prefs").hide();
+    /* Profile/preferences */
+    if (!magic.runtime.username) {
+        $("#user-menu").hide();
+    }
+    magic.runtime.preferences = new magic.classes.UserPreferences({
+        target: "unit-prefs",
+        username: magic.runtime.username,
+        preferences: payload.prefs
+    });
     
     /* Updates height of map when window resizes */
     $(window).on("resize", $.proxy(function() {
@@ -129,6 +135,7 @@ magic.classes.AppContainer = function(payload) {
     $("#appurl").attr("href", payload.sources.url);
     $("link[rel='icon']").attr("href", "/" + payload.sources.favicon);
     $("link[rel='shortcut icon']").attr("href", "/" + payload.sources.favicon);
+    $("#log-out-user").attr("href", magic.config.paths.baseurl + "/logout");
         
     /* Listen for controls being activated */
     $(document).on("mapinteractionactivated", function(evt, arg) {

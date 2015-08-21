@@ -101,15 +101,15 @@ magic.classes.ControlButtonRibbon.prototype.init = function() {
     this.createControlButton("minimise-control-ribbon", "fa fa-caret-left", this.buttons.length, "Minimise control toolbar")
     .on("click", $.proxy(function(evt) {
         var shown = this.ribbonDiv, hidden = this.maximiseDiv;
-        hidden.removeClass("hidden").addClass("show");
-        shown.removeClass("show").addClass("hidden");       
+        hidden.toggleClass("hidden");
+        shown.toggleClass("hidden");       
     }, this));
     /* Add a maximise ribbon button */    
     this.createControlButton("maximise-control-ribbon", "fa fa-caret-right", -1, "Maximise control toolbar", this.maximiseDiv)
     .on("click", $.proxy(function(evt) {
         var hidden = this.ribbonDiv, shown = this.maximiseDiv;
-        hidden.removeClass("hidden").addClass("show");
-        shown.removeClass("show").addClass("hidden");
+        hidden.toggleClass("hidden");
+        shown.toggleClass("hidden");
     }, this));
 };
 

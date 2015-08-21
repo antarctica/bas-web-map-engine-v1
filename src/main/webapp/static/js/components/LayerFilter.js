@@ -17,7 +17,7 @@ magic.classes.LayerFilter = function(options) {
     this.val2 = null;
     
     this.target.html(
-        '<form style="width: 230px">' +
+        '<form style="width: 230px; margin-top: 10px">' +
             '<input id="ftr-comparison-type-' + this.nodeid + '" type="hidden" value="string">' + 
             '<div class="form-group form-group-sm col-sm-12">' +
                 '<select id="ftr-attr-' + this.nodeid + '" class="form-control">' +
@@ -66,7 +66,7 @@ magic.classes.LayerFilter = function(options) {
     );
        
     if (this.target.hasClass("hidden")) {
-        this.target.removeClass("hidden").addClass("show");
+        this.target.toggleClass("hidden");
         /* Allow clicking on the inputs without the dropdown going away */
         this.target.children("form").click(function(evt2) {evt2.stopPropagation()});
         this.loadAttributeOptions();
@@ -79,7 +79,7 @@ magic.classes.LayerFilter = function(options) {
         $("#ftr-btn-go-" + this.nodeid).on("click", $.proxy(this.applyFilter, this));
         $("#ftr-btn-reset-" + this.nodeid).on("click", $.proxy(this.resetFilter, this));
     } else {
-        this.target.removeClass("show").addClass("hidden");
+        this.target.toggleClass("hidden");
     }           
 };
 
@@ -115,8 +115,8 @@ magic.classes.LayerFilter.prototype.loadAttributeOptions = function() {
                             md.attrs = null;
                             md.filterable = false;
                             md.filter = null;
-                            $("#wrapper-ftr-" + this.nodeid).removeClass("show").addClass("hidden");
-                            $("#ftr-" + this.nodeid).removeClass("show").addClass("hidden");
+                            $("#wrapper-ftr-" + this.nodeid).toggleClass("hidden");
+                            $("#ftr-" + this.nodeid).toggleClass("hidden");
                         }
                     }, this));                        
                 }
@@ -164,11 +164,11 @@ magic.classes.LayerFilter.prototype.setFilterOptions = function(selAttr, selOp) 
             if (selectedType == "xsd:string") {
                 /* Show string operation and value fields */
                 $("#ftr-comparison-type-" + this.nodeid).val("string");
-                $("#ftr-op-str-" + this.nodeid).parent().removeClass("hidden").addClass("show");
-                $("#ftr-val-str-" + this.nodeid).parent().removeClass("hidden").addClass("show");
-                $("#ftr-op-num-" + this.nodeid).parent().removeClass("show").addClass("hidden");
-                $("#ftr-val-num1-" + this.nodeid).parent().removeClass("show").addClass("hidden");
-                $("#ftr-val-num2-" + this.nodeid).parent().removeClass("show").addClass("hidden");
+                $("#ftr-op-str-" + this.nodeid).parent().toggleClass("hidden");
+                $("#ftr-val-str-" + this.nodeid).parent().toggleClass("hidden");
+                $("#ftr-op-num-" + this.nodeid).parent().toggleClass("hidden");
+                $("#ftr-val-num1-" + this.nodeid).parent().toggleClass("hidden");
+                $("#ftr-val-num2-" + this.nodeid).parent().toggleClass("hidden");
                 if (fop != null) {
                     $("#ftr-op-str-" + this.nodeid).val(fop);
                 } else {
@@ -180,10 +180,10 @@ magic.classes.LayerFilter.prototype.setFilterOptions = function(selAttr, selOp) 
             } else {
                 /* Number operation and value fields */
                 $("#ftr-comparison-type-" + this.nodeid).val("number");
-                $("#ftr-op-str-" + this.nodeid).parent().removeClass("show").addClass("hidden");
-                $("#ftr-val-str-" + this.nodeid).parent().removeClass("show").addClass("hidden");
-                $("#ftr-op-num-" + this.nodeid).parent().removeClass("hidden").addClass("show");
-                $("#ftr-val-num1-" + this.nodeid).parent().removeClass("hidden").addClass("show");            
+                $("#ftr-op-str-" + this.nodeid).parent().toggleClass("hidden");
+                $("#ftr-val-str-" + this.nodeid).parent().toggleClass("hidden");
+                $("#ftr-op-num-" + this.nodeid).parent().toggleClass("hidden");
+                $("#ftr-val-num1-" + this.nodeid).parent().toggleClass("hidden");            
                 if (fop != null) {
                     $("#ftr-op-num-" + this.nodeid).val(fop);
                 } else {
@@ -193,12 +193,12 @@ magic.classes.LayerFilter.prototype.setFilterOptions = function(selAttr, selOp) 
                     $("#ftr-val-num1-" + this.nodeid).val(fval1);
                 }
                 if (fop == "between") {
-                    $("#ftr-val-num2-" + this.nodeid).parent().removeClass("hidden").addClass("show");
+                    $("#ftr-val-num2-" + this.nodeid).parent().toggleClass("hidden");
                     if (fval2 != null) {
                         $("#ftr-val-num2-" + this.nodeid).val(fval2);
                     }
                 } else {
-                    $("#ftr-val-num2-" + this.nodeid).parent().removeClass("show").addClass("hidden");
+                    $("#ftr-val-num2-" + this.nodeid).parent().toggleClass("hidden");
                     $("#ftr-val-num2-" + this.nodeid).val(null);
                 }
             }
@@ -265,7 +265,7 @@ magic.classes.LayerFilter.prototype.applyFilter = function() {
         ));
         $("#ftr-btn-reset-" + this.nodeid).removeClass("disabled");
         /* Show filter badge */
-        $("#layer-filter-badge-" + this.nodeid).removeClass("hidden").addClass("show").attr("data-original-title", filterString).tooltip("fixTitle");
+        $("#layer-filter-badge-" + this.nodeid).toggleClass("hidden").attr("data-original-title", filterString).tooltip("fixTitle");
     }
 };
 
@@ -285,7 +285,7 @@ magic.classes.LayerFilter.prototype.resetFilter = function() {
     ));
     $("#ftr-btn-reset-" + this.nodeid).addClass("disabled");    
     /* Hide filter badge */
-    $("#layer-filter-badge-" + this.nodeid).removeClass("show").addClass("hidden");
+    $("#layer-filter-badge-" + this.nodeid).toggleClass("hidden");
 };
 
 
