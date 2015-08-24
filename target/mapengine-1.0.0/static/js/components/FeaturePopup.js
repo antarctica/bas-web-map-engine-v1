@@ -213,17 +213,17 @@ magic.classes.FeaturePopup.prototype.selectFeature = function() {
     /* Show the relevant title from the markup */
     $("span.feature-popup-title-cont").each($.proxy(function(idx, elt) {
         if (idx == this.featurePointer) {
-            $(elt).toggleClass("hidden");
+            $(elt).removeClass("hidden").addClass("show");
         } else {
-            $(elt).toggleClass("hidden");
+            $(elt).removeClass("show").addClass("hidden");
         }
     }, this));
     /* Show the relevant div from the combined markup */
     $("div.feature-popup-table-cont").each($.proxy(function(idx, elt) {
         if (idx == this.featurePointer) {
-            $(elt).toggleClass("hidden");
+            $(elt).removeClass("hidden").addClass("show");
         } else {
-            $(elt).toggleClass("hidden");
+            $(elt).removeClass("show").addClass("hidden");
         }
     }, this));
     /* Add full attribute set modal handler */

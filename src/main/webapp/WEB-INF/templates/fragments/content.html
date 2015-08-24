@@ -45,7 +45,7 @@
                 </ul>                                
                 <ul class="nav navbar-right top-nav">
                     <li id="user-menu" class="dropdown">
-                        <a href="Javascript:void(0)" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-user"></i> Logged in as <span th:text="${username}"></span><b class="caret"></b></a>
+                        <a href="Javascript:void(0)" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-user"></i><span th:inline="text"> Logged in as [[${#httpServletRequest.remoteUser}]]</span><b class="caret"></b></a>
                         <ul class="dropdown-menu">
                             <li>
                                 <a id="unit-prefs" href="Javascript:void(0)"><i class="fa fa-wrench"></i> Unit preferences</a>
@@ -80,8 +80,10 @@
         <button class="inset-map-expand btn btn-default hidden" data-toggle="popover" data-placement="left" data-html="true">
             <span class="fa fa-map"></span>
         </button>
-
-        <!-- Popup for height measurement -->
-        <div id="height-popup" title="DEM height"></div>          
+       
+        <div id="height-popup" title="DEM height"></div>
+        
+        <form id="logout-form" method="POST" th:action="@{/logout}">
+        </form>
     </body>
 </html>

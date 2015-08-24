@@ -135,8 +135,15 @@ magic.classes.AppContainer = function(payload) {
     $("#appurl").attr("href", payload.sources.url);
     $("link[rel='icon']").attr("href", "/" + payload.sources.favicon);
     $("link[rel='shortcut icon']").attr("href", "/" + payload.sources.favicon);
-    $("#log-out-user").attr("href", magic.config.paths.baseurl + "/logout");
-        
+    
+    /* Logout behaviour */
+    if (magic.runtime.username) {
+        $("#log-out-user").click(function(evt) {
+            evt.preventDefault();
+            $("#logout-form").submit();
+        }); 
+    }
+            
     /* Listen for controls being activated */
     $(document).on("mapinteractionactivated", function(evt, arg) {
         if (evt) {

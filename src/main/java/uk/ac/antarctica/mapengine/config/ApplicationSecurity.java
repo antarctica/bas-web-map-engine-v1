@@ -31,9 +31,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
         http
             .authorizeRequests()
                 .antMatchers("/*.ico", "/static/**", "/home/**", "/debug/**", "/appconfig/**", "/ping", "/proxy", "/airtoken", "/downloads/**", "/getdata/**").permitAll()
-                .antMatchers("/creator", "/opsgis").fullyAuthenticated().and().formLogin().loginPage("/login").permitAll().and().logout().invalidateHttpSession(true);
-                    
-                        
+                .antMatchers("/creator", "/opsgis").fullyAuthenticated().and().formLogin().loginPage("/login").permitAll().and().logout().permitAll().invalidateHttpSession(true);                                            
     }
 
     @Override

@@ -14,3 +14,12 @@ input.login-form-control {
 form {
     width: 300px;
 }
+
+/* Styles for indicating ok/error */
+.post-ok {
+    color: #3c763d;
+}
+
+.post-error {
+    color: #a94442;
+}

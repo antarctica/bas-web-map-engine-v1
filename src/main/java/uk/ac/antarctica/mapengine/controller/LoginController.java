@@ -16,7 +16,7 @@ public class LoginController {
      */
 	@RequestMapping(value="/login", method = RequestMethod.GET)
 	public String loginForm() {
-		return("creator_fragments/login");
+		return("fragments/login");
 	}
     
     /**
@@ -25,6 +25,14 @@ public class LoginController {
 	@RequestMapping(value="/login", method = RequestMethod.POST)
 	public String creatorHome() {
 		return("creator");
+	}
+    
+    /**
+     * Output the home page
+     */
+	@RequestMapping(value="/logout", method = RequestMethod.POST)
+	public String loggedOut() {
+		return("fragments/login");
 	}
 
 }
