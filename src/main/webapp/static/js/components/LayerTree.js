@@ -14,6 +14,11 @@ magic.classes.LayerTree = function(target, treedata, sourceData) {
     
     this.initTree(this.treedata, $("#" + this.target), 0);
     
+    var expanderLocation = $("#" + this.target).find("div.panel-heading:first");
+    if (expanderLocation) {
+        expanderLocation.append('<span data-toggle="tooltip" data-placement="bottom" title="Collapse layer tree" class="layer-tree-collapse fa fa-angle-double-left hidden-xs"></span>');
+    }
+    
     /* Collapse layer tree handler */
     $("span.layer-tree-collapse").on("click", $.proxy(function(evt) {
         evt.stopPropagation(); 
@@ -165,7 +170,7 @@ magic.classes.LayerTree.prototype.isRasterLayer = function(layer) {
  * @param {jQuery,Object} element
  * @param {int} depth
  */
-magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
+magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {    
     $.each(nodes, $.proxy(function (i, nd) {
         var indent = 15*depth;
         if ($.isArray(nd.nodes)) {
@@ -175,8 +180,7 @@ magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
                 expClass = "";
                 title = "Expand this group";
             }
-            if (nd.radio) {
-                expander = '<span data-toggle="tooltip" data-placement="bottom" title="Collapse layer tree" class="layer-tree-collapse fa fa-angle-double-left hidden-xs"></span>';
+            if (nd.radio) {                
                 allCb = '<span style="margin:5px"></span>'; /* Spacer */
             } else {
                 allCb = '<input class="layer-vis-group-selector" id="group-cb-' + nd.nodeid + '" type="checkbox" />';
@@ -319,5 +323,5 @@ magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
                 this.nodeLayerTranslation[nd.nodeid] = layer;
             }
         }
-    }, this));
+    }, this));    
 };

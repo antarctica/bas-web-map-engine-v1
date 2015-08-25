@@ -39,7 +39,9 @@ public class ProxyController {
 
     private static final String[] ALLOWED_SERVERS = new String[]{
         "https://api.bas.ac.uk",
-        "https://maps.bas.ac.uk"
+        "https://maps.bas.ac.uk",
+        "http://rolgis.nerc-bas.ac.uk",
+        "http://rolgis.rothera.nerc-bas.ac.uk"
     };
 
     private static final String RAMADDA_URL = "http://ramadda.nerc-bas.ac.uk/repository/entry/show";

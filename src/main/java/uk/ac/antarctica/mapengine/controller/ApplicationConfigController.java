@@ -11,7 +11,9 @@ import com.google.gson.JsonPrimitive;
 import java.io.IOException;
 import java.net.URL;
 import java.text.DecimalFormat;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import org.geotools.data.ows.CRSEnvelope;
@@ -37,9 +39,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class ApplicationConfigController {
-    
-    private static final String BAS_MAPS = "https://maps.bas.ac.uk/";
-    
+            
     @Autowired
     private Environment env;
     
@@ -52,75 +52,163 @@ public class ApplicationConfigController {
     /* JSON mapper */
     private final Gson mapper = new Gson();
     
+    /* Application configuration parameter defaults */
+    private static final String BAS_MAPS = "https://maps.bas.ac.uk/";
+    
+    private static final HashMap<String,HashMap<String,Object>> DEFAULT_PARAMS = new HashMap();
+    static {
+        /* Application source metadata */
+        HashMap<String,Object> SOURCE_PARAMS = new HashMap();
+        DEFAULT_PARAMS.put("SOURCE_DATA", SOURCE_PARAMS);
+        SOURCE_PARAMS.put("title", "Default Web Mapping Application");
+        SOURCE_PARAMS.put("version", "1.0");
+        SOURCE_PARAMS.put("logo", "1x1.png");
+        SOURCE_PARAMS.put("favicon", "bas.ico");
+        SOURCE_PARAMS.put("download_id", "Javascript:void(0)");
+        SOURCE_PARAMS.put("endpoint", "antarctic");
+        SOURCE_PARAMS.put("workspace", "add");
+        SOURCE_PARAMS.put("name_prefix", "antarctic");
+        SOURCE_PARAMS.put("wms", BAS_MAPS + "antarctic");
+        SOURCE_PARAMS.put("gazetteers", "cga");
+        /* Map view metadata */
+        HashMap<String,Object> VIEW_PARAMS = new HashMap();
+        DEFAULT_PARAMS.put("VIEW_DATA", VIEW_PARAMS);
+        VIEW_PARAMS.put("projection", "EPSG:3031");
+        VIEW_PARAMS.put("proj_extent", new Double[]{-5000000.0,-5000000.0,5000000.0,5000000.0});
+        VIEW_PARAMS.put("center", new Double[]{0.0,0.0});
+        VIEW_PARAMS.put("resolutions", new Double[]{5600.0,2800.0,1400.0,560.0,280.0,140.0,56.0,28.0,14.0,5.6,2.8,1.4,0.56});
+        VIEW_PARAMS.put("rotation", 0.0);
+        VIEW_PARAMS.put("zoom", 0);
+        VIEW_PARAMS.put("controls", new String[]{"zoom-to-max-extent","zoom-in","zoom-out","drag-zoom","full-screen","reset-rotation","feature-info"});
+        /* Map layer behaviour metadata */
+        HashMap<String,Object> LAYER_PARAMS = new HashMap();
+        DEFAULT_PARAMS.put("LAYER_DATA", LAYER_PARAMS);
+        LAYER_PARAMS.put("show_layers", new String[]{});
+        LAYER_PARAMS.put("expand_groups", new String[]{});
+        LAYER_PARAMS.put("clickable_layers", new String[]{});
+        LAYER_PARAMS.put("singletile_layers", new String[]{});
+    }
+    
+    /* User unit preferences table name */
+    private static final String PREFS_TABLE = "preferences";
+    
+    /* User map definition table name */
+    private static final String MAPDEFS_TABLE = "maps";
+    
     /**
 	 * Get application configuration from Geoserver	instance
+     * @param HttpServletRequest request,
+     * @param String appname
+     * @param String usermap
+     * @param ModelMap model
      * @return
 	 * @throws ServletException
 	 * @throws IOException		 
 	 */
-	@RequestMapping(value="/appconfig/{appname}", method=RequestMethod.GET, produces="application/json; charset=utf-8")	
+	@RequestMapping(value="/appconfig/{appname}/{usermap}", method=RequestMethod.GET, produces="application/json; charset=utf-8")	
     @ResponseBody
-	public ResponseEntity<String> appConfig(HttpServletRequest request, @PathVariable("appname") String appname) throws ServletException, IOException, ServiceException {
+	public ResponseEntity<String> appConfig(HttpServletRequest request, @PathVariable("appname") String appname, @PathVariable("usermap") String usermap) 
+        throws ServletException, IOException, ServiceException {
         
-        if (request.getUserPrincipal() != null) {
-            System.out.println(request.getUserPrincipal().getName());
+        /* See if we have anything in the database for this app/usermap combination */
+        Map<String,Object> userMapData = null;
+        try {
+            userMapData = userDataTpl.queryForMap("SELECT * FROM " + MAPDEFS_TABLE + " WHERE appname=? AND usermap=?", appname, usermap);
+        } catch(Exception ex) {
         }
-                
-        JsonObject sourceData = getSourceData(appname);
+              
+        HashMap<String,Object> sourceData = getDefinitions("SOURCE_DATA", userMapData, appname);
+        HashMap<String,Object> viewData = getDefinitions("VIEW_DATA", userMapData, appname);
+        HashMap<String,Object> layerData = getDefinitions("LAYER_DATA", userMapData, appname);
         
-        JsonObject viewData = getMapViewData(appname);
-        WebMapServer wms = new WebMapServer(new URL(sourceData.get("wms").getAsString()), new SimpleHttpClient());
+        WebMapServer wms = new WebMapServer(new URL((String)sourceData.get("wms")), new SimpleHttpClient());
         WMSCapabilities capabilities = wms.getCapabilities();
         Layer root = capabilities.getLayer();
-        
-        /* Extract the layers to be turned on by default */
-        String[] showLayersArr = new String[] {};
-        String showLayers = env.getProperty(appname + ".show_layers");
-        if (showLayers != null && !showLayers.isEmpty()) {
-            showLayersArr = showLayers.split(",");
-        }
-        /* Extract the layer groups to be expanded by default */
-        String[] expandGroupsArr = new String[] {};
-        String expandGroups = env.getProperty(appname + ".expand_groups");
-        if (expandGroups != null && !expandGroups.isEmpty()) {
-            expandGroupsArr = expandGroups.split(",");
-        }
-        /* Extract the layers to be clickable by default */
-        String[] clickableLayersArr = new String[] {};
-        String clickableLayers = env.getProperty(appname + ".clickable_layers");
-        if (clickableLayers != null && !clickableLayers.isEmpty()) {
-            clickableLayersArr = clickableLayers.split(",");
-        }
-        /* Extract the layers to be rendered as single tiles (to avoid excessive labelling e.g. graticule, place-names ) */
-        String[] singleTileLayersArr = new String[] {};
-        String singleTileLayers = env.getProperty(appname + ".singletile_layers");
-        if (singleTileLayers != null && !singleTileLayers.isEmpty()) {
-            singleTileLayersArr = singleTileLayers.split(",");
-        }
-                
+                                
         /* Assume we will have a non-named layer with title <appname> either at the root or second level */
         JsonArray treeDef = new JsonArray();
         treewalk(
             treeDef, 
             getAppTopLevelNode(root, appname),
             new LayerTreeData(
-                viewData.get("projection").getAsString(),
-                sourceData.get("endpoint").getAsString(), 
-                sourceData.get("name_prefix").getAsString(), 
-                showLayersArr, 
-                expandGroupsArr,
-                clickableLayersArr,
-                singleTileLayersArr
+                (String)viewData.get("projection"),
+                (String)sourceData.get("endpoint"), 
+                (String)sourceData.get("name_prefix"), 
+                (String[])layerData.get("show_layers"),
+                (String[])layerData.get("expand_groups"),
+                (String[])layerData.get("clickable_layers"),
+                (String[])layerData.get("singletile_layers")                
             )            
         );
                 
         /* Assemble final payload */
         JsonObject payload = new JsonObject();
         payload.add("tree", treeDef);
-        payload.add("view", viewData);
-        payload.add("sources", sourceData);
+        payload.add("view", mapper.toJsonTree(viewData));
+        payload.add("sources", mapper.toJsonTree(sourceData));
         payload.add("prefs", getPreferencesData(request));
         return(packageResults(HttpStatus.OK, payload.toString(), null));        
+    }
+    
+    /**
+     * Get map source, view and layer definitions from either database (preferred), local environment (application.properties) or defaults
+     * @param String dataTypeKey
+     * @param Map<String,Object> userMapData
+     * @param String appname
+     * @return HashMap
+     */
+    private HashMap<String,Object> getDefinitions(String dataTypeKey, Map<String,Object> userMapData, String appname) {
+        HashMap<String,Object> out = new HashMap();
+        if (DEFAULT_PARAMS.containsKey(dataTypeKey)) {
+            for (String k : DEFAULT_PARAMS.get(dataTypeKey).keySet()) {
+                Object defaultVal = DEFAULT_PARAMS.get(dataTypeKey).get(k);
+                Object newVal = null;
+                if (userMapData != null && userMapData.containsKey(k)) {
+                    newVal = conversion((String)userMapData.get(k), defaultVal);
+                } else {
+                    String envProp = env.getProperty(appname + "." + k);
+                    if (envProp != null && !envProp.isEmpty()) {
+                        newVal = conversion(envProp, defaultVal);
+                    } else {
+                        newVal = defaultVal;
+                    }
+                }
+                out.put(k, newVal);               
+            }
+        }
+        return(out);
+    }
+    
+    /**
+     * Convert string value to the same type as the default value
+     * @param String value
+     * @param Object defaultValue
+     * @return 
+     */
+    private Object conversion(String value, Object defaultValue) {
+        Object out = null;
+        if (defaultValue instanceof Double[]) {
+            /* Convert comma-separated string to double array */
+            String[] dstrs = value.split(",");
+            Double[] darr = new Double[dstrs.length];
+            int i = 0;
+            for (String ds : dstrs) {
+                darr[i++] = Double.parseDouble(ds);
+            }
+            out = darr;
+        } else if (defaultValue instanceof Double) {
+            /* Convert to double */
+            out = Double.parseDouble(value);
+        } else if (defaultValue instanceof Integer) {
+            /* Convert to integer */
+            out = Integer.parseInt(value);
+        } else if (defaultValue instanceof String[]) {
+            /* Explode string array */
+            out = value.split(",");
+        } else {
+            out = value;
+        }
+        return(out);
     }
     
     /**
@@ -253,136 +341,41 @@ public class ApplicationConfigController {
     }
     
     /**
-     * Get data source information (eventually retrieved via mapping API)
-     * @param String appname
+     * Get the preferences for the logged-in user, or a default set if there is nobody logged in
+     * convenience method - ordinarily will use REST API defined in UserPreferencesController
+     * @param HttpServletRequest request
      * @return JsonObject
      */
-    private JsonObject getSourceData(String appname) {
-        JsonObject sourceData = new JsonObject();
-        /* Application title */
-        String title = env.getProperty(appname + ".title");
-        if (title == null || title.isEmpty()) {
-            title = "Default Web Mapping Application";
+    private JsonObject getPreferencesData(HttpServletRequest request) {
+        JsonObject out = null;
+        String userName = (request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null);
+        if (userName == null || userName.isEmpty()) {
+            /* Default set */
+            out = defaultPreferencesSet();
+        } else {
+            /* Get set from db */
+            try {
+                String jsonRow = userDataTpl.queryForObject("SELECT row_to_json(" + PREFS_TABLE + ") FROM " + PREFS_TABLE + " WHERE username=?", String.class, userName);
+                out = new JsonParser().parse(jsonRow).getAsJsonObject();                
+            } catch(IncorrectResultSizeDataAccessException irsdae) {
+                out = defaultPreferencesSet();
+            } catch(DataAccessException dae) {
+                out = defaultPreferencesSet();
+            }
         }
-        sourceData.addProperty("title", title);
-        /* Application version */
-        String version = env.getProperty(appname + ".version");
-        if (version == null || version.isEmpty()) {
-            version = "1.0";
-        }
-        sourceData.addProperty("version", version);
-        /* Application logo */
-        String logo = env.getProperty(appname + ".logo");
-        if (logo == null || logo.isEmpty()) {
-            logo = "1x1.png";
-        }
-        sourceData.addProperty("logo", logo);
-        /* Application favicon */
-        String favicon = env.getProperty(appname + ".favicon");
-        if (favicon == null || favicon.isEmpty()) {
-            logo = "bas.ico";
-        }
-        sourceData.addProperty("favicon", favicon);
-        /* Application Ramadda download id for top level directory */
-        String downloadId = env.getProperty(appname + ".download_id");
-        if (downloadId == null || downloadId.isEmpty()) {
-            downloadId = "";
-        }
-        sourceData.addProperty("download_id", downloadId);
-        /* Application url (external site to link to via the logo) */
-        String url = env.getProperty(appname + ".url");
-        if (url == null || url.isEmpty()) {
-            url = "Javascript:void(0)";
-        }
-        sourceData.addProperty("url", url);
-        /* Application endpoint 
-         * This is distinct from the workspace, at the price of a bit of extra complication - the endpoint is the 'antarctic' qualifier in e.g.
-         * https://maps.bas.ac.uk/antarctic, whereas the workspace is the Geoserver workspace endpoint name (e.g. add) which is not generally the same
-         */
-        String endpoint = env.getProperty(appname + ".endpoint");
-        if (endpoint == null || endpoint.isEmpty()) {
-            endpoint = "antarctic";
-        }
-        sourceData.addProperty("endpoint", endpoint);
-        /* Workspace */
-        String workspace = env.getProperty(appname + ".workspace");
-        if (workspace == null || workspace.isEmpty()) {
-            workspace = endpoint;
-        }
-        sourceData.addProperty("workspace", workspace);
-        /* Name prefix (to strip off the front of data layer names to create a more human-friendly title for layers in layer tree) */
-        String prefix = env.getProperty(appname + ".name_prefix");
-        if (prefix == null || prefix.isEmpty()) {
-            prefix = endpoint;
-        }
-        sourceData.addProperty("name_prefix", prefix);
-        /* Construct WMS URL */
-        String wms = env.getProperty(appname + ".wms");
-        if (wms == null || wms.isEmpty()) {
-            wms = BAS_MAPS + endpoint + "/wms";
-        }
-        sourceData.addProperty("wms", wms);        
-        /* Gazetteer data source */
-        String gazetteers = env.getProperty(appname + ".gazetteers");
-        if (gazetteers == null || gazetteers.isEmpty()) {
-            gazetteers = "cga";
-        }
-        sourceData.addProperty("gazetteers", gazetteers);
-        return(sourceData);
+        return(out);
     }
     
-    /**
-     * Retrieve map view data (eventually retrieved via mapping API)
-     * @param String appname
-     * @return JsonObject 
-     */
-    private JsonObject getMapViewData(String appname) {
-        JsonObject viewData = new JsonObject();
-        /* View projection */
-        String projection = env.getProperty(appname + ".projection");
-        if (projection == null || projection.isEmpty()) {
-            projection = "EPSG:3031";
-        }
-        viewData.addProperty("projection", projection);
-        /* Projection extent */
-        String extentStr = env.getProperty(appname + ".proj_extent");
-        if (extentStr == null || extentStr.isEmpty()) {
-            extentStr = "-5000000,-5000000,5000000,5000000";
-        }
-        viewData.add("proj_extent", commaSeparatedStringToDoubleJsonArray(extentStr));
-        /* Map center */
-        String centerStr = env.getProperty(appname + ".center");
-        if (centerStr == null || centerStr.isEmpty()) {
-            centerStr = "0,0";
-        }
-        viewData.add("center", commaSeparatedStringToDoubleJsonArray(centerStr));
-        /* Map resolutions array */
-        String resStr = env.getProperty(appname + ".resolutions");
-        if (resStr == null || resStr.isEmpty()) {
-            resStr = "5600.0,2800.0,1400.0,560.0,280.0,140.0,56.0,28.0,14.0,5.6,2.8,1.4,0.56";
-        }
-        viewData.add("resolutions", commaSeparatedStringToDoubleJsonArray(resStr));
-        /* Map rotation */
-        Double rotation = env.getProperty(appname + ".rotation", Double.class);
-        if (rotation == null) {
-            rotation = 0.0;
-        }
-        viewData.addProperty("rotation", rotation);
-        /* Map default zoom */
-        Integer zoom = env.getProperty(appname + ".zoom", Integer.class);
-        if (zoom == null) {
-            zoom = 0;
-        }
-        viewData.addProperty("zoom", zoom);
-        /* Control buttons */
-        String controlStr = env.getProperty(appname + ".controls");
-        if (controlStr == null || controlStr.isEmpty()) {
-            controlStr = "zoom-to-max-extent,zoom-in,zoom-out,drag-zoom,full-screen,reset-rotation,height-measure,feature-info";
-        }
-        viewData.add("controls", mapper.toJsonTree(controlStr.split(",")));
-        return(viewData);
-    }
-    
+    private JsonObject defaultPreferencesSet() {
+        JsonObject out = new JsonObject();
+        out.addProperty("distance", "km");
+        out.addProperty("area", "km");
+        out.addProperty("elevation", "m");
+        out.addProperty("coordinates", "dd");
+        out.addProperty("dates", "dmy");
+        return(out);
+    }   
+        
     /**
      * Convert envelope co-ordinates to a JsonArray, rounding decimals
      * @param CRSEnvelope ce
@@ -406,23 +399,6 @@ public class ApplicationConfigController {
             }
         }
         return(jarr);
-    }
-    
-    /**
-     * Convert comma-separated list of doubles in string to JsonArray
-     * @param String doubleStr
-     * @return JsonArray 
-     */
-    private JsonArray commaSeparatedStringToDoubleJsonArray(String doubleStr) {
-        JsonArray jaDoubles = new JsonArray();
-        //DecimalFormat df8 = new DecimalFormat("#.########");
-        if (doubleStr != null && !doubleStr.isEmpty()) {
-            for (String dStr : doubleStr.split(",")) {
-                double d = Double.parseDouble(dStr);
-                jaDoubles.add(new JsonPrimitive(d));
-            }
-        }
-        return(jaDoubles);
     }
     
     /**
@@ -480,43 +456,7 @@ public class ApplicationConfigController {
                 return(true);
         }
         return(false);
-    }
-
-    /**
-     * Get the preferences for the logged-in user, or a default set if there is nobody logged in
-     * convenience method - ordinarily will use REST API defined in UserPreferencesController
-     * @param HttpServletRequest request
-     * @return JsonObject
-     */
-    private JsonObject getPreferencesData(HttpServletRequest request) {
-        JsonObject out = null;
-        String userName = (request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null);
-        if (userName == null || userName.isEmpty()) {
-            /* Default set */
-            out = defaultPreferencesSet();
-        } else {
-            /* Get set from db */
-            try {
-                String jsonRow = userDataTpl.queryForObject("SELECT row_to_json(preferences) FROM preferences WHERE username=?", String.class, userName);
-                out = new JsonParser().parse(jsonRow).getAsJsonObject();                
-            } catch(IncorrectResultSizeDataAccessException irsdae) {
-                out = defaultPreferencesSet();
-            } catch(DataAccessException dae) {
-                out = defaultPreferencesSet();
-            }
-        }
-        return(out);
-    }
-    
-    private JsonObject defaultPreferencesSet() {
-        JsonObject out = new JsonObject();
-        out.addProperty("distance", "km");
-        out.addProperty("area", "km");
-        out.addProperty("elevation", "m");
-        out.addProperty("coordinates", "dd");
-        out.addProperty("dates", "dmy");
-        return(out);
-    }
+    }   
     
     private class LayerTreeData {
         
