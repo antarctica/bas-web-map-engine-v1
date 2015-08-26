@@ -83,6 +83,9 @@ magic.classes.AircraftPositionButton.prototype.activate = function () {
         }
     } else {
         this.insetLayer.setVisible(true);
+        if (magic.runtime.inset) {
+            magic.runtime.inset.activate();
+        }
     }    
     if (fetch) {
         this.getData();

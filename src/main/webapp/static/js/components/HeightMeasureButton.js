@@ -55,6 +55,7 @@ magic.classes.HeightMeasureButton.prototype.activate = function() {
     
     this.active = true;
     var spn = this.btn.children("span");
+    this.btn.toggleClass("active");
     spn.removeClass("fa fa-arrows-v").addClass("glyphicon glyphicon-stop");
     this.btn.attr("data-original-title", this.activeTitle).tooltip("fixTitle");
     /* Add map click handler (NOTE: assumes first base layer is a DEM) */        
@@ -67,6 +68,7 @@ magic.classes.HeightMeasureButton.prototype.activate = function() {
 magic.classes.HeightMeasureButton.prototype.deactivate = function() {
     this.active = false;
     var spn = this.btn.children("span");
+    this.btn.toggleClass("active");
     spn.removeClass("glyphicon glyphicon-stop").addClass("fa fa-arrows-v");
     this.btn.attr("data-original-title", this.inactiveTitle).tooltip("fixTitle");    
     /* Remove map click handler */

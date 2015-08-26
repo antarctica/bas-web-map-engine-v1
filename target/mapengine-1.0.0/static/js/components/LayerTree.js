@@ -175,7 +175,7 @@ magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
         var indent = 15*depth;
         if ($.isArray(nd.nodes)) {
             /* Style a group */
-            var expClass = " in", title = "Collapse this group", expander = "", allCb = "";
+            var expClass = " in", title = "Collapse this group", allCb = "";
             if (!nd.state || nd.state.expanded === false) {
                 expClass = "";
                 title = "Expand this group";
@@ -197,7 +197,6 @@ magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
                                 '<span style="font-weight:bold">' + nd.text + '</span>' + 
                             '</a>' + 
                         '</span>' + 
-                        expander + 
                     '</div>' + 
                     '<div id="layer-group-panel-' + nd.nodeid + '" class="panel-collapse collapse' + expClass + '">' + 
                         '<div class="panel-body" style="padding:0px">' + 
@@ -281,6 +280,11 @@ magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
                 } else {
                     /* Non-point layer, or layer not keyworded with point tag */
                     var wmsVersion = (nd.props.cascaded && nd.props.cascaded > 0) ? "1.1.1" : "1.3.0";
+                    var opacity = 0.8;
+                    if (nd.props.radio || ($.isArray(nd.props.keywords) && $.inArray("raster", nd.props.keywords) != -1)) {
+                        /* Rasters will be opaque */
+                        opacity = 1.0
+                    }                    
                     var wmsSource = wmsSource = new ol.source.TileWMS({
                         url: this.sourcedata.wms,
                         params: {
@@ -300,7 +304,7 @@ magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
                     layer = new ol.layer.Tile({
                         name: name,
                         visible: checkState,
-                        opacity: nd.props.radio ? 1.0 : 0.8,
+                        opacity: opacity,
                         metadata: $.extend({}, nd.props, {
                             nodeid: nd.nodeid, 
                             checkstate: checkState,

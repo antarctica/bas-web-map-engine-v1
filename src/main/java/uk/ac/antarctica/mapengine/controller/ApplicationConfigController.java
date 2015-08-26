@@ -129,7 +129,7 @@ public class ApplicationConfigController {
         JsonArray treeDef = new JsonArray();
         treewalk(
             treeDef, 
-            getAppTopLevelNode(root, appname),
+            getAppTopLevelNode(root, appname, usermap),
             new LayerTreeData(
                 (String)viewData.get("projection"),
                 (String)sourceData.get("endpoint"), 
@@ -322,15 +322,21 @@ public class ApplicationConfigController {
      * Find the application root container in the capabilities layer tree
      * @param Layer root
      * @param String appname
+     * @param String usermap
      * @return Layer | null (latter indicates a flat hierarchy)
      */
-    private Layer getAppTopLevelNode(Layer root, String appname) {
+    private Layer getAppTopLevelNode(Layer root, String appname, String usermap) {
         Layer topLevel = root;
         if (!root.isQueryable() && root.getName() == null) {
-            /* The root of this hierarchy is not a named queryable layer i.e. is a ContainerTree - look for one with title == appname */
-            if (!root.getTitle().toLowerCase().equals(appname)) {
+            /* The root of this hierarchy is not a named queryable layer i.e. is a ContainerTree - look for one with title == appname
+             * or if a usermap is defined, one with title = <appname>_<usermap> */
+            String targetName = appname;
+            if (usermap != null && !usermap.isEmpty() && !usermap.equals("default")) {
+                targetName = appname + "_" + usermap;
+            }
+            if (!root.getTitle().toLowerCase().equals(targetName)) {
                 for (Layer child : root.getChildren()) {
-                    if (child.getTitle().toLowerCase().equals(appname)) {
+                    if (child.getTitle().toLowerCase().equals(targetName)) {
                         topLevel = child;
                         break;
                     }
@@ -404,15 +410,17 @@ public class ApplicationConfigController {
     /**
      * Take the layer name and construct a human friendly version of it for display in layer tree
      * @param String name
-     * @param String strip prefix to remove from beginning of name e.g. antarctic/arctic/sg assumed to be same as endpoint
+     * @param String strip prefix(es) to remove from beginning of name e.g. antarctic/arctic/sg/ops assumed to be same as endpoint
      * @return String
      */
     private String humanFriendlyName(String name, String strip) {
-        String lcName = name.toLowerCase(), lcStrip = strip.toLowerCase();
-        lcName = stripWorkspace(lcName);                                        /* Strip workspace prefix e.g. add: */
-        lcName = lcName.replaceFirst("^" + strip.toLowerCase() + "_?", "");     /* Strip the feature name prefix e.g. antarctic_ */
-        lcName = lcName.replaceAll("_", " ");                                   /* Underscore to space */
-        return(lcName.substring(0, 1).toUpperCase() + lcName.substring(1));     /* Initial cap */
+        String lcName = name.toLowerCase();
+        lcName = stripWorkspace(lcName);                                            /* Strip workspace prefix e.g. add: */
+        for (String prefix : strip.split(",")) {
+            lcName = lcName.replaceFirst("^" + prefix.toLowerCase() + "_?", "");    /* Strip the feature name prefix e.g. antarctic_ */
+        }                
+        lcName = lcName.replaceAll("_", " ");                                       /* Underscore to space */
+        return(lcName.substring(0, 1).toUpperCase() + lcName.substring(1));         /* Initial cap */
     }
     
     /**
