@@ -122,13 +122,19 @@ magic.classes.AircraftPositionButton.prototype.getData = function() {
                 headers: {"Authorization": "Bearer " + token},
                 method: "GET",
                 success: $.proxy(function(data) {
+                    if (!this.geoJson) {
+                        return;
+                    }
                     var feats = this.geoJson.readFeatures(data);
                     var inFeats = [], outFeats = [];
                     var projExtent = magic.modules.GeoUtils.projectionLatLonExtent(magic.runtime.projection.getCode());
                     $.each(feats, $.proxy(function(idx, f) {
-                        var props = f.getProperties();
+                        var props = $.extend({}, f.getProperties(), {
+                            "__title": "Aircraft position"
+                        });
                         var colour = props.speed > 5 ? "green" : "red";                        
                         var fclone = f.clone();
+                        fclone.setProperties(props);
                         if (f.getGeometry().intersectsExtent(projExtent)) {                            
                             fclone.getGeometry().transform("EPSG:4326", magic.runtime.projection);
                             var style = new ol.style.Style({

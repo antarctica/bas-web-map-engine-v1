@@ -406,7 +406,7 @@ div#all-attributes-modal {
     z-index: 20000;    
 }
 
-#popup-pager-xofy {
+div.popup-pager-xofy {
     height: 29px;
     float: left;
     padding-top: 6px;

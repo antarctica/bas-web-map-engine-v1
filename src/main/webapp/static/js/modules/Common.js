@@ -17,32 +17,24 @@ magic.modules.Common = function() {
         },
         
         /**
-         * Convert date value assumed in format <source> to <dest>
+         * Convert date value to format
          * @param {string} value
-         * @param {string} source (d-m-Y|Y-m-d)
-         * @param {type} dest (Y-m-d|d-m-Y)
-         * @returns {string} the date formatted according to dest
+         * @param {string} format (dmy|ymd)
+         * @returns {string} the date formatted accordingly
          */
-        dateFormat: function(value, source, dest) {
-            var formattedValue = "Bad date : " + value;
-            var dateParts = value.split(/[^\d]/);
+        dateFormat: function(value, format) {            
+            var formattedValue = value;
+            var dateParts = value.substring(0, 10).split(/[^\d]/); 
+            var dateRest = value.substring(10);
             if (dateParts.length == 3) {
-                if (source != dest) {
-                    var dd, mm, yyyy;
-                    if (source == "d-m-Y") {
-                        dd = dateParts[0].length == 1 ? "0" + dateParts[0] : dateParts[0];
-                        mm = dateParts[1].length == 1 ? "0" + dateParts[1] : dateParts[1];
-                        yyyy = dateParts[2];
-                        formattedValue = yyyy + "-" + mm + "-" + dd;
-                    } else {
-                        yyyy = dateParts[0];
-                        mm = dateParts[1].length == 1 ? "0" + dateParts[1] : dateParts[1];
-                        dd = dateParts[2].length == 1 ? "0" + dateParts[2] : dateParts[2];
-                        formattedValue = dd + "-" + mm + "-" + yyyy;
-                    }
-                } else {
-                    formattedValue = value;
-                }
+                /* Determine current format */
+                if ((dateParts[0].length == 4 && format == "dmy") || (dateParts[0].length == 2 && format == "ymd")) {
+                    /* Currently ymd => dmy, or currently dmy => ymd */
+                    formattedValue = dateParts[2] + "-" + dateParts[1] + "-" + dateParts[2];
+                } 
+                if (dateRest != "") {
+                    formattedValue += dateRest;
+                }                
             }
             return(formattedValue);
         },   

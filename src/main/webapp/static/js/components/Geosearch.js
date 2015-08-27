@@ -333,7 +333,8 @@ magic.classes.Geosearch.prototype.placenameSearchHandler = function(evt) {
             var attrs = $.extend({
                 geometry: new ol.geom.Point([jsonData.x, jsonData.y]), 
                 name: this.currentPlacenameSearch.placename,
-                "__gaz_name": gazName
+                "__gaz_name": gazName,
+                "__title": "Geosearch location"
             }, jsonData); 
             var feat = new ol.Feature(attrs);
             feat.setStyle(this.resultStyle);
@@ -394,7 +395,8 @@ magic.classes.Geosearch.prototype.positionSearchHandler = function(evt) {
             geometry: position, 
             lon: lon, 
             lat: lat, 
-            name: label
+            name: label,
+            "__title": "Geosearch location"
         });
         this.layer.getSource().addFeature(feat);
         this.flyMeThere(feat);

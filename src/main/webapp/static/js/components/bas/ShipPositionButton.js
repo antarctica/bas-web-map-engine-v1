@@ -125,7 +125,8 @@ magic.classes.ShipPositionButton.prototype.getData = function() {
                         code: elt.vessel.vessel_code,
                         lon: elt.latest_position.longitude,
                         lat: elt.latest_position.latitude,
-                        timestamp: elt.latest_position.datetime
+                        timestamp: elt.latest_position.datetime,
+                        "__title" : "Ship position"
                     };
                     var feat = new ol.Feature(attrs)
                     var geom = new ol.geom.Point([attrs.lon, attrs.lat]);
@@ -163,10 +164,9 @@ magic.classes.ShipPositionButton.prototype.getData = function() {
                 });                                
             } else {
                 alert("Failed to make sense of returned data from marine API");
-            }
-            
-            this.layer.getSource().clear();
-            if (inFeats.length > 0) {
+            }                        
+            if (inFeats.length > 0 && this.layer) {
+                this.layer.getSource().clear();
                 this.layer.getSource().addFeatures(inFeats);
             }
             if (magic.runtime.inset) {

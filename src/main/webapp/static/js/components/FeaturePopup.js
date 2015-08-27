@@ -10,8 +10,14 @@ magic.classes.FeaturePopup = function(options) {
     this.popupId = options.popupId || "popup";
     /* Name prefix (will strip this from the beginning of popup titles) */
     this.namePrefix = options.namePrefix || "";
+    /* The map the popup will appear on (defaults to main map) */
+    this.map = options.map || magic.runtime.map;
+    /* The map target div (defaults to map-container) */
+    this.mapdiv = options.mapdiv || "map-container";
+    /* Continuation modal id (defaults to all-attributes-modal) */
+    this.continuation = "all-attributes-modal";
     
-    /* Internal */  
+    /* Internal */      
     
     /* Set to true when all pager handlers have been bound */
     this.initPager = false;
@@ -20,10 +26,10 @@ magic.classes.FeaturePopup = function(options) {
     
     if ($("#" + this.popupId).length == 0) {
         /* Popup div needs creating */
-        $("#map-container").after(
+        $("#" + this.mapdiv).after(
             '<!-- Pop-up overlay -->' + 
             '<div id="' + this.popupId + '" class="ol-popup">' + 
-                '<div id="popup-content"></div>' + 
+                '<div id="' + this.popupId + '-content"></div>' + 
             '</div>'
         );
     }    
@@ -31,20 +37,20 @@ magic.classes.FeaturePopup = function(options) {
         element: $("#" + this.popupId),
         positioning: "center-center"
     });
-    magic.runtime.map.addOverlay(this.popup);
+    this.map.addOverlay(this.popup);
     
-    /* Text continuation markup */
-    if ($("#all-attributes-modal").length == 0) {
+    /* Text continuation markup (always done in main map as will never fit in an inset!) */
+    if ($(this.continuation).length == 0) {
         $("#map-container").after(
             '<!-- Full attribute set modal -->' + 
-            '<div class="modal fade" id="all-attributes-modal" tabindex="-1" role="dialog" aria-labelledby="all-attributes-title" aria-hidden="true">' + 
+            '<div class="modal fade" id="' + this.continuation + '" tabindex="-1" role="dialog" aria-labelledby="' + this.continuation + '-title" aria-hidden="true">' + 
                 '<div class="modal-dialog">' + 
                     '<div class="modal-content">' + 
                         '<div class="modal-header">' + 
                             '<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>' + 
-                            '<h4 class="modal-title" id="all-attributes-title">Full attribute set</h4>' + 
+                            '<h4 class="modal-title" id="' + this.continuation + '-title">Full attribute set</h4>' + 
                         '</div>' + 
-                        '<div id="all-attributes-content" class="modal-body">' + 
+                        '<div id="' + this.continuation + '-content" class="modal-body">' + 
                             'Loading attributes...' + 
                         '</div>' + 
                         '<div class="modal-footer">' + 
@@ -57,13 +63,13 @@ magic.classes.FeaturePopup = function(options) {
     }   
     
     /* Change mouse cursor when over a vector feature/overlay */
-    $(magic.runtime.map.getViewport()).on("mousemove", function(e) {
-        var pixel = magic.runtime.map.getEventPixel(e.originalEvent);
-        var hit = magic.runtime.map.forEachFeatureAtPixel(pixel, function() {
+    $(this.map.getViewport()).on("mousemove", $.proxy(function(e) {
+        var pixel = this.map.getEventPixel(e.originalEvent);
+        var hit = this.map.forEachFeatureAtPixel(pixel, function() {
             return(true);
         });
-        $("#" + magic.runtime.map.getTarget()).css("cursor", hit ? "pointer" : "");        
-    });
+        $("#" + this.map.getTarget()).css("cursor", hit ? "pointer" : "");        
+    }, this));
 };
 
 /**
@@ -94,9 +100,9 @@ magic.classes.FeaturePopup.prototype.show = function(showAt, featureData) {
             gfi: isGfi
         });
         $("#" + this.popupId).popover({
-            placement: function() {
+            placement: $.proxy(function() {
                 var placement = "bottom",
-                    popoverLocation = magic.runtime.map.getPixelFromCoordinate(showAt),
+                    popoverLocation = this.map.getPixelFromCoordinate(showAt),
                     mapHeight = $("#map").outerHeight(),
                     mtop = popoverLocation[1] - 400,
                     mbtm = popoverLocation[1] + 400;
@@ -105,7 +111,7 @@ magic.classes.FeaturePopup.prototype.show = function(showAt, featureData) {
                     placement = mtop > 0 ? "top" : "bottom";
                 }            
                 return(placement);
-            },        
+            }, this),        
             animation: false,
             title: this.title(),
             html: true,
@@ -133,19 +139,9 @@ magic.classes.FeaturePopup.prototype.hide = function() {
  */
 magic.classes.FeaturePopup.prototype.title = function() {
     var content = "";
-    $.each(this.featureCollection, $.proxy(function(i, feat) { 
-        if (this.gfi) {
-            /* GetFeatureInfo */
-            content += '<span class="feature-popup-title-cont ' + (i > 0 ? "hidden" : "show") + '">' + this.layerNameFromFid(feat.id) +
-                '<button type="button" style="float:right" class="close">&times;</button></span>'; 
-        } else {
-            /* Vector feature(s) */
-            if (feat.getProperties()["__gaz_name"]) {
-                /* Geosearch */
-                content += '<span class="feature-popup-title-cont ' + (i > 0 ? "hidden" : "show") + '">Geosearch location' +
-                    '<button type="button" style="float:right" class="close">&times;</button></span>'; 
-            }
-        }                      
+    $.each(this.featureCollection, $.proxy(function(i, feat) {
+        content += '<span class="feature-popup-title-cont ' + (i > 0 ? "hidden" : "show") + '">' + this.getCaption(feat) +
+                   '<button type="button" style="float:right" class="close">&times;</button></span>';      
     }, this));    
     return(content);
     
@@ -171,7 +167,7 @@ magic.classes.FeaturePopup.prototype.basicMarkup = function() {
             }
         }, this));
         if (cad.reduced) {
-            content += '<tr><td colspan="2" align="center"><button type="button" id="full-attr-set-' + i + '" class="btn btn-primary btn-xs">Full attribute set</button></td></tr>';
+            content += '<tr><td colspan="2" align="center"><button type="button" id="' + this.popupId + '-full-attr-set-' + i + '" class="btn btn-primary btn-xs">Full attribute set</button></td></tr>';
         }
         content += '</table>';
         content += '</div>';
@@ -180,19 +176,19 @@ magic.classes.FeaturePopup.prototype.basicMarkup = function() {
     if (this.featureCollection.length > 1) {
         /* Output a pager in initial configuration i.e. viewing first feature */               
         content += 
-            '<div id="popup-pager">' + 
+            '<div id="' + this.popupId + '-pager">' + 
                 '<div class="btn-group btn-group-xs" role="group">' + 
-                    '<button id="popup-pager-first" type="button" class="btn btn-default disabled">' + 
+                    '<button id="' + this.popupId + '-pager-first" type="button" class="btn btn-default disabled">' + 
                         '<span class="fa fa-angle-double-left" data-toggle="tooltip" data-placement="left" title="First feature"></span>' + 
                     '</button>' + 
-                    '<button id="popup-pager-prev" type="button" class="btn btn-default disabled">' + 
+                    '<button id="' + this.popupId + '-pager-prev" type="button" class="btn btn-default disabled">' + 
                         '<span class="fa fa-angle-left" data-toggle="tooltip" data-placement="top" title="Previous feature"></span>' + 
                     '</button>' + 
-                    '<div id="popup-pager-xofy">Showing 1 of ' + this.featureCollection.length + '</div>' + 
-                    '<button id="popup-pager-next" type="button" class="btn btn-default">' + 
+                    '<div class="popup-pager-xofy" id="' + this.popupId + '-pager-xofy">Showing 1 of ' + this.featureCollection.length + '</div>' + 
+                    '<button id="' + this.popupId + '-pager-next" type="button" class="btn btn-default">' + 
                         '<span class="fa fa-angle-right" data-toggle="tooltip" data-placement="top" title="Next feature"></span>' + 
                     '</button>' + 
-                    '<button id="popup-pager-last" type="button" class="btn btn-default">' + 
+                    '<button id="' + this.popupId + '-pager-last" type="button" class="btn btn-default">' + 
                         '<span class="fa fa-angle-double-right" data-toggle="tooltip" data-placement="right" title="Last feature"></span>' + 
                     '</button>' + 
                 '</div>' + 
@@ -208,7 +204,7 @@ magic.classes.FeaturePopup.prototype.basicMarkup = function() {
 magic.classes.FeaturePopup.prototype.selectFeature = function() {
     if (this.featureCollection.length > 1) {
         /* Update "showing x of y" message */
-        $("#popup-pager-xofy").html("Showing " + (this.featurePointer+1) + " of " + this.featureCollection.length);
+        $("#" + this.popupId + "-pager-xofy").html("Showing " + (this.featurePointer+1) + " of " + this.featureCollection.length);
     }
     /* Show the relevant title from the markup */
     $("span.feature-popup-title-cont").each($.proxy(function(idx, elt) {
@@ -233,8 +229,13 @@ magic.classes.FeaturePopup.prototype.selectFeature = function() {
         if (!isNaN(fidx) && fidx < this.featureCollection.length) {
             /* Got an index into the current feature collection */
             var data = this.gfi ? this.featureCollection[fidx]["properties"] : this.featureCollection[fidx].getProperties();
+            var keys = [];
+            for (var k in data) {
+                keys.push(k);
+            }
             var content = '<table class="table table-striped table-condensed feature-popup-table">';
-            $.each(data, $.proxy(function(key, value) {
+            $.each(keys.sort(), $.proxy(function(idx, key) {
+                var value = data[key];
                 if (key != "gid") {
                     if ($.isNumeric(value)) {
                         if (Math.floor(value) != value) {
@@ -243,56 +244,56 @@ magic.classes.FeaturePopup.prototype.selectFeature = function() {
                         }
                         content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td align="right">' + value + '</td></tr>';
                     }
-                    else if (key != "geometry" && key != "bbox" && key.indexOf("__") == -1 && value != null) {
+                    else if (key.indexOf("geom") == -1 && key != "bbox" && key.indexOf("__") == -1 && value != null) {
                         content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td>' + value + '</td></tr>';
                     }    
                 }
             }, this));
             content += '</table>';
-            $("#all-attributes-content").html(content);
-            $("#all-attributes-modal").modal("show");
+            $("#" + this.continuation + "-content").html(content);
+            $("#" + this.continuation).modal("show");
         }
     }, this));
     if (this.featureCollection.length > 1) {
         /* Do we need to add handlers for pager buttons? */
         if (!this.initPager) {
             /* Add handlers */
-            $("#popup-pager div button").off("click").on("click", $.proxy(function(evt) {                
+            $("#" + this.popupId + "-pager div button").off("click").on("click", $.proxy(function(evt) {                
                 switch(evt.currentTarget.id) {
-                    case "popup-pager-first":
+                    case this.popupId + "-pager-first":
                         this.featurePointer = 0;                       
                         break;
-                    case "popup-pager-prev":
+                    case this.popupId + "-pager-prev":
                         if (this.featurePointer > 0) {
                             this.featurePointer--;                           
                         }                                                
                         break;
-                    case "popup-pager-next":
+                    case this.popupId + "-pager-next":
                         if (this.featurePointer < this.featureCollection.length-1) {
                             this.featurePointer++;                            
                         }
                         break;
-                    case "popup-pager-last":
+                    case this.popupId + "-pager-last":
                         this.featurePointer = this.featureCollection.length-1;
                         break;
                     default:
                         break;
                 }
                 if (this.featurePointer == 0) {
-                    $("#popup-pager-first").addClass("disabled").prop("disabled", true);
-                    $("#popup-pager-prev").addClass("disabled").prop("disabled", true);
-                    $("#popup-pager-next").removeClass("disabled").prop("disabled", false);
-                    $("#popup-pager-last").removeClass("disabled").prop("disabled", false);
+                    $("#" + this.popupId + "-pager-first").addClass("disabled").prop("disabled", true);
+                    $("#" + this.popupId + "-pager-prev").addClass("disabled").prop("disabled", true);
+                    $("#" + this.popupId + "-pager-next").removeClass("disabled").prop("disabled", false);
+                    $("#" + this.popupId + "-pager-last").removeClass("disabled").prop("disabled", false);
                 } else if (this.featurePointer == this.featureCollection.length-1) {
-                    $("#popup-pager-first").removeClass("disabled").prop("disabled", false);
-                    $("#popup-pager-prev").removeClass("disabled").prop("disabled", false);
-                    $("#popup-pager-next").addClass("disabled").prop("disabled", true);
-                    $("#popup-pager-last").addClass("disabled").prop("disabled", true);
+                    $("#" + this.popupId + "-pager-first").removeClass("disabled").prop("disabled", false);
+                    $("#" + this.popupId + "-pager-prev").removeClass("disabled").prop("disabled", false);
+                    $("#" + this.popupId + "-pager-next").addClass("disabled").prop("disabled", true);
+                    $("#" + this.popupId + "-pager-last").addClass("disabled").prop("disabled", true);
                 } else {
-                    $("#popup-pager-first").removeClass("disabled").prop("disabled", false);
-                    $("#popup-pager-prev").removeClass("disabled").prop("disabled", false);
-                    $("#popup-pager-next").removeClass("disabled").prop("disabled", false);
-                    $("#popup-pager-last").removeClass("disabled").prop("disabled", false);
+                    $("#" + this.popupId + "-pager-first").removeClass("disabled").prop("disabled", false);
+                    $("#" + this.popupId + "-pager-prev").removeClass("disabled").prop("disabled", false);
+                    $("#" + this.popupId + "-pager-next").removeClass("disabled").prop("disabled", false);
+                    $("#" + this.popupId + "-pager-last").removeClass("disabled").prop("disabled", false);
                 }
                 this.selectFeature();
                 this.fixPopoverPosition();
@@ -322,25 +323,23 @@ magic.classes.FeaturePopup.prototype.coreAttributeData = function(feat) {
     var reduced = false;
     var geomType = this.gfi ? feat.geometry.type : feat.getGeometry().getType();
     var attrs = this.gfi ? feat.properties : feat.getProperties();
-    if (magic.modules.Common.objectLength(attrs) > 10 && geomType.toLowerCase() == "point") {
+    if (magic.modules.Common.objectLength(attrs) > 5 && geomType.toLowerCase() == "point") {
         /* Try and extract a core set for points with a large number of attributes which would be hard to display in a single popup */
         coreAttrs = {
             name: null,
             lon: null,
-            lat: null
+            lat: null,
+            date: null
         };
         $.each(attrs, $.proxy(function(key, value) {
-            key = key.toLowerCase();
-            if (coreAttrs.name == null && (key.indexOf("name") == 0 || magic.modules.Common.endsWith(key.toLowerCase(), "name"))) {
+            if (coreAttrs.name == null && this.isNameLike(key)) {
                 coreAttrs.name = value;
-            } else if (coreAttrs.lon == null && (key == "lon" || key == "longitude" || key == "x")) {
-                if ($.isNumeric(value)) {
-                    coreAttrs.lon = parseFloat(value).toFixed(4);
-                }
-            } else if (coreAttrs.lat == null && (key == "lat" || key == "latitude" || key == "y")) {
-                if ($.isNumeric(value)) {
-                    coreAttrs.lat = parseFloat(value).toFixed(4);
-                }
+            } else if (coreAttrs.lon == null && this.isLongitudeLike(key)) {
+                coreAttrs.lon = magic.runtime.preferences.applyPref("coordinates", $.isNumeric(value) ? parseFloat(value).toFixed(4) : value, "lon");
+            } else if (coreAttrs.lat == null && this.isLatitudeLike(key)) {
+                coreAttrs.lat = magic.runtime.preferences.applyPref("coordinates", $.isNumeric(value) ? parseFloat(value).toFixed(4) : value, "lat");
+            } else if (coreAttrs.date == null && this.isDatetimeLike(key)) {
+                coreAttrs.date = magic.runtime.preferences.applyPref("dates", value);
             }
         }, this));
         /* Fill in any remaining null values with defaults or best guesses */
@@ -350,19 +349,30 @@ magic.classes.FeaturePopup.prototype.coreAttributeData = function(feat) {
         if (coreAttrs.lon == null || coreAttrs.lat == null) {
             if (this.gfi) {
                 /* Project the geometry coordinates */
-                var coordWgs84 = ol.proj.transform(feat.geometry.coordinates, magic.runtime.projection, "EPSG:4326");
-                coreAttrs.lon = coordWgs84[0].toFixed(4);
-                coreAttrs.lat = coordWgs84[1].toFixed(4);
+                var coordWgs84 = ol.proj.transform(feat.geometry.coordinates, this.map.getView().getProjection(), "EPSG:4326");
+                coreAttrs.lon = magic.runtime.preferences.applyPref("coordinates", coordWgs84[0].toFixed(4), "lon");
+                coreAttrs.lat = magic.runtime.preferences.applyPref("coordinates", coordWgs84[1].toFixed(4), "lat");
             } else {
-                coreAttrs.lon = coreAttrs.lat = 0.0;
+                var pclone = feat.getGeometry().clone();
+                pclone.transform(this.map.getView().getProjection(), "EPSG:4326");
+                coreAttrs.lon = magic.runtime.preferences.applyPref("coordinates", pclone.getFirstCoordinate().toFixed(4), "lon");
+                coreAttrs.lat = magic.runtime.preferences.applyPref("coordinates", pclone.getLastCoordinate().toFixed(4), "lat");
             }
         }
         reduced = true;
     } else {
         $.each(attrs, $.proxy(function(key, value) {
             key = key.toLowerCase();
-            if (key != "gid" && key != "id" && key != "bbox") {
-                coreAttrs[key] = value;
+            if (key != "gid" && key != "id" && key != "bbox" && key.indexOf("geom") == -1) {
+                if (this.isLongitudeLike(key)) {
+                    coreAttrs[key] = magic.runtime.preferences.applyPref("coordinates", value, "lon");
+                } else if (this.isLatitudeLike(key)) {
+                    coreAttrs[key] = magic.runtime.preferences.applyPref("coordinates", value, "lat");
+                } else if (this.isDatetimeLike(key)) {
+                    coreAttrs[key] = magic.runtime.preferences.applyPref("dates", value);
+                } else {
+                    coreAttrs[key] = value;
+                }
             }            
         }, this));
     }
@@ -374,21 +384,65 @@ magic.classes.FeaturePopup.prototype.coreAttributeData = function(feat) {
 
 /**
  * Convert a feature id e.g. antarctic_facilities.23 to a layer name i.e. Antarctic facilities
+ * @param {ol.Feature} feat
  */
-magic.classes.FeaturePopup.prototype.layerNameFromFid = function(fid) {
-    var layerName = "unknown";
+magic.classes.FeaturePopup.prototype.getCaption = function(feat) {
+    var caption = "Feature";
+    var fid = feat.id;
     if (fid) {
-        layerName = fid;
-        var dotAt = layerName.indexOf(".");
+        caption = fid;
+        var dotAt = caption.indexOf(".");
         if (dotAt != -1) {
-            layerName = layerName.substring(0, dotAt);
+            caption = caption.substring(0, dotAt);
         }        
-        layerName = layerName.replace(/_/g, " ");
+        caption = caption.replace(/_/g, " ");
         if (this.namePrefix != "") {
             var re = new RegExp("^" + this.namePrefix + "\\s+");
-            layerName = layerName.replace(re, "");
+            caption = caption.replace(re, "");
         }
-        layerName = magic.modules.Common.initCap(layerName);
+        caption = magic.modules.Common.initCap(caption);
+    } else if (feat.getProperties()["__title"]) {
+        caption = feat.getProperties()["__title"];
     }
-    return(layerName);
+    return(caption);
+};
+
+/**
+ * Does the given key name look name-like?
+ * @param {String} key
+ * @returns {boolean}
+ */
+magic.classes.FeaturePopup.prototype.isNameLike = function(key) {
+    key = key.toLowerCase();
+    return(key.indexOf("name") == 0 || key.indexOf("callsign") == 0 ||  magic.modules.Common.endsWith(key.toLowerCase(), "name"));
+};
+
+/**
+ * Does the given key name look like a longitude?
+ * @param {String} key
+ * @returns {boolean}
+ */
+magic.classes.FeaturePopup.prototype.isLongitudeLike = function(key) {
+    key = key.toLowerCase();
+    return(key == "lon" || key == "long" || key == "longitude" || key == "x");
+};
+
+/**
+ * Does the given key name look like a latitude?
+ * @param {String} key
+ * @returns {boolean}
+ */
+magic.classes.FeaturePopup.prototype.isLatitudeLike = function(key) {
+    key = key.toLowerCase();
+    return(key == "lat" || key == "latitude" || key == "y");
+};
+
+/**
+ * Does the given key name look like a date/time?
+ * @param {String} key
+ * @returns {boolean}
+ */
+magic.classes.FeaturePopup.prototype.isDatetimeLike = function(key) {
+    key = key.toLowerCase();
+    return(key.indexOf("date") == 0 || key.indexOf("time") == 0 || key.indexOf("utc") != -1);
 };

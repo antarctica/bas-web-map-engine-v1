@@ -16,85 +16,54 @@ magic.modules.GeoUtils = function() {
         /**
          * Format a coordinate according to global preference
          * @param {float} coordinate
-         * @param {string} pref
+         * @param {string} destFormat (dms|ddm|dd)
+         * @param {string} axis (lon|lat)
          * @param {int} dp
          * @returns {String}
          */
-        formatCoordinate: function(coordinate, pref, dp) {
-            var formattedValue = "";
+        formatCoordinate: function(coordinate, destFormat, axis, dp) {
+            var formattedValue = "[invalid]";
             if (!dp && dp != 0) {
                 dp = 4;
             }
-            coordinate = parseFloat(coordinate).toFixed(dp);
-            switch (pref) {
-                case "dms":
-                    formattedValue = this.toDMS(coordinate, "lon", "dms");
-                    break;
-                case "ddm":
-                    formattedValue = this.toDDM(coordinate, "lon");
-                    break;
-                default:
-                    formattedValue = coordinate;
-                    break;
+            var dd = this.toDecDegrees(coordinate);
+            if (!isNaN(dd)) {
+                dd = parseFloat(dd.toFixed(dp));
+                switch (destFormat) {
+                    case "dms":
+                        formattedValue = this.toDMS(dd, axis, "dms");
+                        break;
+                    case "ddm":
+                        formattedValue = this.toDDM(dd, axis);
+                        break;
+                    default:
+                        formattedValue = dd;
+                        break;
+                }
             }
             return(formattedValue);
         },
         
         /**
          * Format a latitude/longitude co-ordinate according to a DMS scheme
-         * Taken from OpenLayers 2.13.1
          * @param {float} coordinate
          * @param {string} axis (lon|lat)
-         * @param {string} dmsOption (dms|dm|d)
          * @returns {string}
          */
-        toDMS: function(coordinate, axis, dmsOption) {
-
-            dmsOption = dmsOption || "dms";
-            /* Normalize for sphere being round */
-            coordinate = (coordinate + 540) % 360 - 180;
-
-            var absCoordinate = Math.abs(coordinate);
-            var dd = Math.floor(absCoordinate);
-
-            var mm = 60 * (absCoordinate - dd);
-            var tempMm = mm;
-            mm = Math.floor(mm);
-            var ss = 60 * (tempMm - mm);
-            ss = Math.round(ss * 10);
-            ss /= 10;
-            if (ss >= 60) {
-                ss -= 60;
-                mm++;
-                if (mm >= 60) {
-                    mm -= 60;
-                    dd++;
-                }
-            }
-            if (dd < 10) {
-                dd = "0" + dd;
-            }
-            var str = dd + "\u00B0";
-
-            if (dmsOption.indexOf("dm") >= 0) {
-                if (mm < 10) {
-                    mm = "0" + mm;
-                }
-                str += mm + "'";
-                if (dmsOption.indexOf("dms") >= 0) {
-                    if (ss < 10) {
-                        ss = "0" + ss;
-                    }
-                    str += ss + '"';
-                }
-            }
-
+        toDMS: function(coordinate, axis) {
+            var out = "";
             if (axis == "lon") {
-                str += coordinate < 0 ? "W" : "E";
+                var sourceCoord = [coordinate, 0.0];
+                var destCoord = ol.coordinate.toStringHDMS(sourceCoord);
+                var divider = "N";
+                out = destCoord.substring(destCoord.indexOf(divider)+2);
             } else {
-                str += coordinate < 0 ? "S" : "N";
+                var sourceCoord = [0.0, coordinate, 50.0];
+                var destCoord = ol.coordinate.toStringHDMS(sourceCoord);
+                var divider = coordinate < 0 ? "S" : "N";
+                out = destCoord.substring(0, destCoord.indexOf(divider));
             }
-            return(str);
+            return(out);
         },
         
         /**
@@ -188,27 +157,43 @@ magic.modules.GeoUtils = function() {
         validHemisphere: function(h) {
             return(h.length == 1 && h.match(/NESWnesw/));
         },
-           
+                          
         /**
-         * Format an elevation value
-         * @param {float} elevation
-         * @param {string} pref
+         * Format a distance, area or elevation value
+         * @param {float} value
+         * @param {int} dims 1|2
+         * @param {string} destFormat
+         * @param {string} sourceFormat
          * @param {int} dp
          * @returns {String}
          */
-        formatElevation: function(elevation, pref, dp) {
+        formatSpatial: function(value, dims, destFormat, sourceFormat, dp) {
             var formattedValue = "";
             if (!dp && dp != 0) {
                 dp = 1;
             }
-            elevation = parseFloat(elevation).toFixed(dp);
-            switch (pref) {
-                case "ft":
-                    formattedValue = (elevation * 3.2808399).toFixed(dp) + "ft";
-                    break;
-                default:
-                    formattedValue = elevation + "m";
-                    break;
+            if ($.isNumber(value) && sourceFormat != destFormat) {
+                var multipliers = {
+                    "m": 1.0,
+                    "ft": 3.2808399,
+                    "km": 0.001,
+                    "mi": 0.000621371192,
+                    "nm": 0.000539956803
+                };                
+                value = parseFloat(value);
+                if (sourceFormat != "m") {
+                    /* Convert first to metres */
+                    for (var i = 0; i < dims; i++) {
+                        value *= 1/multipliers[sourceFormat];
+                    }
+                }
+                /* Metres to destination format step */
+                if (destFormat != "m") {
+                    for (var i = 0; i < dims; i++) {
+                        value *= multipliers[destFormat];
+                    }
+                }                
+                formattedValue = value.toFixed(dp) + destFormat;           
             }
             return(formattedValue);
         },

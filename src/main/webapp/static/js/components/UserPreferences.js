@@ -190,3 +190,41 @@ magic.classes.UserPreferences.prototype.getOptions = function(valText, selected)
     }
     return(html);
 };
+
+/**
+ * Apply unit preferences to a value
+ * @param {string} pref
+ * @param {string|double|int} value
+ * @param {string} coord (lon|lat)
+ * @param {string} sourceFormat to help conversion where the source format is unknown
+ * @return {string|number}
+ */
+magic.classes.UserPreferences.prototype.applyPref = function(pref, value, coord, sourceFormat) {
+    var out = value;
+    if (pref == "coordinates" && !coord) {
+        coord = "lon";
+    }
+    if (pref == "distance" || pref == "area" || pref == "elevation") {
+        sourceFormat = "m";
+    }
+    switch(pref) {
+        case "coordinates":
+            out = magic.modules.GeoUtils.formatCoordinate(value, this.preferences[pref], coord);
+            break;
+        case "dates":
+            out = magic.modules.Common.dateFormat(value, this.preferences[pref]);
+            break;
+        case "distance":
+            out = magic.modules.GeoUtils.formatSpatial(value, 1, this.preferences[pref], sourceFormat, 2);
+            break;
+        case "area":
+            out = magic.modules.GeoUtils.formatSpatial(value, 2, this.preferences[pref], sourceFormat, 2);
+            break;
+        case "elevation":
+            out = magic.modules.GeoUtils.formatSpatial(value, 1, this.preferences[pref], sourceFormat, 1);
+            break;
+        default:
+            break;
+    }
+    return(out);
+};

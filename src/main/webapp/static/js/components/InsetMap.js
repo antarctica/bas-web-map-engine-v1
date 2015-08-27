@@ -33,8 +33,10 @@ magic.classes.InsetMap = function() {
             maxZoom: 10,
             zoom: 1          
         })
-    });     
+    });
     
+    this.featureinfo = null;
+        
     /* Internal */
     this.template = 
         '<div class="popover popover-auto-width popover-auto-height inset-map-popover" role="popover">' +
@@ -52,6 +54,13 @@ magic.classes.InsetMap = function() {
     .on("shown.bs.popover", $.proxy(function() {
         $("#inset-map").html("");
         this.map.setTarget("inset-map");
+        /* Create a popup overlay and add handler to show it on clicking a feature */
+        this.featureinfo = new magic.classes.FeaturePopup({
+            popupid: "inset-popup",
+            map: this.map,
+            mapdiv: "inset-map"
+        });   
+        this.map.on("singleclick", this.featureAtPixelHandler, this);
         /* Close button */
         $(".inset-map-popover").find("button.close").click($.proxy(function() { 
             this.target.popover("hide");
@@ -91,4 +100,40 @@ magic.classes.InsetMap.prototype.deactivate = function() {
     if (nf == 0) {
         this.target.popover("hide");
     }
+};
+
+/**
+ * Handler to show popups for clicks on features
+ * @param {jQuery.Event} evt
+ */
+magic.classes.InsetMap.prototype.featureAtPixelHandler = function(evt) {
+    var features = [], centroid = [];
+    var xs = 0.0, ys = 0.0;
+    this.map.forEachFeatureAtPixel(evt.pixel, function(feature, cb) {
+        if (cb != null) {                        
+            /* This is not a feature overlay i.e. an artefact of presentation not real data */                    
+            var clusterMembers = feature.get("features");
+            if (clusterMembers && $.isArray(clusterMembers)) {
+                /* Unpack cluster features */
+                $.each(clusterMembers, function(fi, f) {
+                    features.push(f);
+                    var coord = f.getGeometry().getCoordinates();
+                    xs += coord[0];
+                    ys += coord[1];
+                });
+            } else {
+                features.push(feature);
+                var coord = feature.getGeometry().getCoordinates();
+                xs += coord[0];
+                ys += coord[1];
+            }
+        }
+    });
+    if (features.length > 0) {
+        centroid = [
+            xs/features.length,
+            ys/features.length
+        ];
+        this.featureinfo.show(centroid, features);
+    }     
 };
