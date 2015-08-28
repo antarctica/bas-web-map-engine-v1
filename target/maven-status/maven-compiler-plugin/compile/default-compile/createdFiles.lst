@@ -8,6 +8,7 @@ uk\ac\antarctica\mapengine\controller\ApplicationConfigController$LayerTreeData.
 uk\ac\antarctica\mapengine\controller\HomeController.class
 uk\ac\antarctica\mapengine\config\CustomServletContextListener.class
 uk\ac\antarctica\mapengine\config\ThymeleafConfig.class
+uk\ac\antarctica\mapengine\Application$SessionListener.class
 uk\ac\antarctica\mapengine\config\ApplicationSecurity.class
 uk\ac\antarctica\mapengine\config\CustomServletContextListener$1.class
 uk\ac\antarctica\mapengine\controller\ProxyController.class

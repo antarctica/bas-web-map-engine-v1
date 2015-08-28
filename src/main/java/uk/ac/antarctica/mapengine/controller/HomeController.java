@@ -4,6 +4,7 @@
 package uk.ac.antarctica.mapengine.controller;
 
 import java.io.IOException;
+import java.security.Principal;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -27,12 +28,8 @@ public class HomeController {
      * @throws IOException
      */
     @RequestMapping(value = "/home/{app}", method = RequestMethod.GET)
-    public String appHome(HttpServletRequest request, @PathVariable("app") String app, ModelMap model) throws ServletException, IOException {       
-        request.getSession().setAttribute("app", app);
-        model.addAttribute("app", app); 
-        model.addAttribute("debug", false); 
-        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Home page for " + app + " requested");
-        return("map");
+    public String appHome(HttpServletRequest request, @PathVariable("app") String app, ModelMap model) throws ServletException, IOException {    
+        return(setHomeParameters(request, app, false, model));        
     }
     
     /**
@@ -47,10 +44,22 @@ public class HomeController {
      */
     @RequestMapping(value = "/home/{app}/{debug}", method = RequestMethod.GET)
     public String appHomeDebug(HttpServletRequest request, @PathVariable("app") String app, @PathVariable("debug") Integer debug, ModelMap model) throws ServletException, IOException {      
+        return(setHomeParameters(request, app, true, model)); 
+    }
+    
+    /**
+     * Set common session and model attributes for apps
+     * @param HttpServletRequest request
+     * @param String app
+     * @param boolean debug
+     * @param ModelMap model
+     * @return String
+     */
+    private String setHomeParameters(HttpServletRequest request, String app, boolean debug, ModelMap model) {
         request.getSession().setAttribute("app", app);
         model.addAttribute("app", app);
-        model.addAttribute("debug", debug == 1);
-        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Home page for " + app + " requested with debug = " + debug);
+        model.addAttribute("debug", debug);
+        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Home page for " + app + " requested, debug = " + debug);
         return("map");
     }
     
@@ -64,29 +73,7 @@ public class HomeController {
      */
     @RequestMapping(value = "/opsgis", method = RequestMethod.GET)
     public String opsgis(HttpServletRequest request, ModelMap model) throws ServletException, IOException {      
-        request.getSession().setAttribute("app", "opsgis");        
-        model.addAttribute("app", "opsgis");
-        model.addAttribute("username", request.getUserPrincipal().getName());
-        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Ops GIS home page requested");
-        return("map");
-    }
-    
-    /**
-     * Render Operations GIS home page (debug version)    
-     * @param HttpServletRequest request,
-     * @param ModelMap model
-     * @return
-     * @throws ServletException
-     * @throws IOException
-     */
-    @RequestMapping(value = "/opsgisd", method = RequestMethod.GET)
-    public String opsgisDebug(HttpServletRequest request, ModelMap model) throws ServletException, IOException {      
-        request.getSession().setAttribute("app", "opsgis");        
-        model.addAttribute("app", "opsgis");
-        model.addAttribute("username", request.getUserPrincipal().getName());
-        model.addAttribute("debug", true);
-        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Ops GIS home page (debug) requested");
-        return("map");
+        return(setOpsgisParameters(request, null, false, model));
     }
     
     /**
@@ -100,13 +87,20 @@ public class HomeController {
      */
     @RequestMapping(value = "/opsgis/{usermap}", method = RequestMethod.GET)
     public String opsgisUsermap(HttpServletRequest request, @PathVariable("usermap") String usermap, ModelMap model) throws ServletException, IOException {      
-        request.getSession().setAttribute("app", "opsgis");        
-        request.getSession().setAttribute("usermap", usermap);
-        model.addAttribute("app", "opsgis");
-        model.addAttribute("usermap", usermap);
-        model.addAttribute("username", request.getUserPrincipal().getName());
-        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Ops GIS home page requested with user map " + usermap);
-        return("map");
+        return(setOpsgisParameters(request, usermap, false, model));
+    }
+    
+    /**
+     * Render Operations GIS home page (debug version)    
+     * @param HttpServletRequest request,
+     * @param ModelMap model
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/opsgisd", method = RequestMethod.GET)
+    public String opsgisDebug(HttpServletRequest request, ModelMap model) throws ServletException, IOException {      
+        return(setOpsgisParameters(request, null, true, model));
     }
     
     /**
@@ -120,16 +114,27 @@ public class HomeController {
      */
     @RequestMapping(value = "/opsgisd/{usermap}", method = RequestMethod.GET)
     public String opsgisdUsermap(HttpServletRequest request, @PathVariable("usermap") String usermap, ModelMap model) throws ServletException, IOException {      
-        request.getSession().setAttribute("app", "opsgis");        
-        request.getSession().setAttribute("usermap", usermap);
-        model.addAttribute("app", "opsgis");
-        model.addAttribute("usermap", usermap);
-        model.addAttribute("username", request.getUserPrincipal().getName());
-        model.addAttribute("debug", true);
-        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Ops GIS home page (debug) requested with user map " + usermap);
-        return("map");
+        return(setOpsgisParameters(request, usermap, true, model));
     }
     
+    /**
+     * Set common session and model attributes for OpsGIS
+     * @param HttpServletRequest request
+     * @param String usermap
+     * @param boolean debug
+     * @param ModelMap model
+     * @return String
+     */
+    private String setOpsgisParameters(HttpServletRequest request, String usermap, boolean debug, ModelMap model) {
+        request.getSession().setAttribute("app", "opsgis");        
+        model.addAttribute("app", "opsgis");
+        model.addAttribute("usermap", usermap);
+        model.addAttribute("username", getUserName(request));
+        model.addAttribute("debug", debug);
+        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Ops GIS home page requested, usermap = " + usermap + ", debug = " + debug);
+        return("map");
+    }
+                    
     /**
      * Render map creator home page     
      * @param HttpServletRequest request,
@@ -156,6 +161,19 @@ public class HomeController {
     public String creatorEditMap(HttpServletRequest request, @PathVariable("app") String app, ModelMap model) throws ServletException, IOException {
         request.getSession().setAttribute("app", app);
         return("creator");
+    }
+    
+    /**
+     * Get user name
+     * @param HttpServletRequest request
+     * @return String
+     */
+    private String getUserName(HttpServletRequest request) {
+        Principal p = request.getUserPrincipal();
+        if (p != null) {
+            return(p.getName());
+        }
+        return(null);
     }
 
 }

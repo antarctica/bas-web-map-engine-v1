@@ -30,11 +30,11 @@ magic.modules.Common = function() {
                 /* Determine current format */
                 if ((dateParts[0].length == 4 && format == "dmy") || (dateParts[0].length == 2 && format == "ymd")) {
                     /* Currently ymd => dmy, or currently dmy => ymd */
-                    formattedValue = dateParts[2] + "-" + dateParts[1] + "-" + dateParts[2];
-                } 
-                if (dateRest != "") {
-                    formattedValue += dateRest;
-                }                
+                    formattedValue = dateParts[2] + "-" + dateParts[1] + "-" + dateParts[0];
+                    if (dateRest != "") {
+                        formattedValue += dateRest;
+                    }     
+                }                            
             }
             return(formattedValue);
         },   

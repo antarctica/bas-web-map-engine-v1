@@ -150,7 +150,7 @@ magic.classes.AircraftPositionButton.prototype.getData = function() {
                                     text: props.callsign,
                                     textAlign: "left",
                                     fill: new ol.style.Fill({
-                                        color: "#ff0000"
+                                        color: colour == "red" ? "#e50000" : "#008000"
                                     }),
                                     stroke: new ol.style.Stroke({
                                         color: "#ffffff",
@@ -174,7 +174,7 @@ magic.classes.AircraftPositionButton.prototype.getData = function() {
                                     text: props.callsign,
                                     textAlign: "left",
                                     fill: new ol.style.Fill({
-                                        color: "#ff0000"
+                                        color: colour == "red" ? "#e50000" : "#008000"
                                     }),
                                     stroke: new ol.style.Stroke({
                                         color: "#ffffff",

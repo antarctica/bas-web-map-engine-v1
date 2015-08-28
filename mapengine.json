@@ -78,7 +78,8 @@
     "ol.interaction.Draw",
     "ol.interaction.Draw#*",
     "ol.Collection#*",
-    "ol.proj.METERS_PER_UNIT"
+    "ol.proj.METERS_PER_UNIT",
+    "ol.coordinate.*"
   ],
   "compile": {
     "externs": [

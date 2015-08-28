@@ -242,9 +242,17 @@ magic.classes.FeaturePopup.prototype.selectFeature = function() {
                             /* Floating point */
                             value = value.toFixed(4);
                         }
+                        if (this.isLongitudeLike(key)) {
+                            value = magic.runtime.preferences.applyPref("coordinates", value, "lon")
+                        } else if (this.isLatitudeLike(key)) {
+                            value = magic.runtime.preferences.applyPref("coordinates", value, "lat")
+                        }
                         content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td align="right">' + value + '</td></tr>';
                     }
                     else if (key.indexOf("geom") == -1 && key != "bbox" && key.indexOf("__") == -1 && value != null) {
+                        if (this.isDatetimeLike(key)) {
+                            value = magic.runtime.preferences.applyPref("dates", value)
+                        }
                         content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td>' + value + '</td></tr>';
                     }    
                 }
@@ -343,10 +351,10 @@ magic.classes.FeaturePopup.prototype.coreAttributeData = function(feat) {
             }
         }, this));
         /* Fill in any remaining null values with defaults or best guesses */
-        if (coreAttrs.name == null) {
+        if (coreAttrs.name == null || coreAttrs.name == "") {
             coreAttrs.name = "Feature";
         }
-        if (coreAttrs.lon == null || coreAttrs.lat == null) {
+        if (coreAttrs.lon == null || coreAttrs.lon == "" || coreAttrs.lat == null || coreAttrs.lat == "") {
             if (this.gfi) {
                 /* Project the geometry coordinates */
                 var coordWgs84 = ol.proj.transform(feat.geometry.coordinates, this.map.getView().getProjection(), "EPSG:4326");

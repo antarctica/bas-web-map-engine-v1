@@ -58,10 +58,10 @@ magic.modules.GeoUtils = function() {
                 var divider = "N";
                 out = destCoord.substring(destCoord.indexOf(divider)+2);
             } else {
-                var sourceCoord = [0.0, coordinate, 50.0];
+                var sourceCoord = [0.0, coordinate];
                 var destCoord = ol.coordinate.toStringHDMS(sourceCoord);
                 var divider = coordinate < 0 ? "S" : "N";
-                out = destCoord.substring(0, destCoord.indexOf(divider));
+                out = destCoord.substring(0, destCoord.indexOf(divider)+1);
             }
             return(out);
         },
@@ -75,7 +75,7 @@ magic.modules.GeoUtils = function() {
         toDDM: function(coordinate, axis) {
             var ddm = "";
             var dms = this.toDMS(coordinate, axis);
-            var dmsParts = dms.split(/[^A-Za-z0-9.]/);
+            var dmsParts = dms.split(/[^A-Za-z0-9.]+/);
             if (dmsParts.length == 4) {
                 var dmins = parseFloat(dmsParts[1]) + parseFloat(dmsParts[2] / 60.0);
                 ddm = dmsParts[3] + dmsParts[0] + " " + (dmins.toFixed(3));

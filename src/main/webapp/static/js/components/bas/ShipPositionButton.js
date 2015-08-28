@@ -169,9 +169,9 @@ magic.classes.ShipPositionButton.prototype.getData = function() {
                 this.layer.getSource().clear();
                 this.layer.getSource().addFeatures(inFeats);
             }
-            if (magic.runtime.inset) {
-                this.insetLayer.getSource().clear();
-                if (outFeats.length > 0) {
+            if (magic.runtime.inset) {                
+                if (outFeats.length > 0 && this.insetLayer) {
+                    this.insetLayer.getSource().clear();
                     this.insetLayer.getSource().addFeatures(outFeats);
                     magic.runtime.inset.activate();
                 } else {
