@@ -1,9 +1,8 @@
 /* Static low-level common methods module */
 
-magic.modules.Common = function() {
+magic.modules.Common = function () {
 
     return({
-        
         /* Taken from OL2 Util.js */
         inches_per_unit: {
             "inches": 1.0,
@@ -15,16 +14,179 @@ magic.modules.Common = function() {
             "yd": 36,
             "nm": 1852 * 39.37
         },
-        
+        /* Default styles, as plain objects to avoid problems with cloning OL objects */
+        default_styles: {
+            "Point": {
+                image: "circle",
+                radius: 5,
+                fill: "rgba(255,255,0,0.5)",                               
+                stroke: "#ff0",                        
+                width: 1                
+            },
+            "LineString": {
+                stroke: "#f00",
+                width: 3
+            },
+            "Polygon": {
+                fill: "rgba(0,255,255,0.5)",                
+                stroke: "#0ff",
+                width: 1                
+            },
+            "MultiPoint": {
+                image: "circle",
+                radius: 5,
+                fill: "rgba(255,0,255,0.5)",                                 
+                stroke: "#f0f",
+                width: 1
+            },
+            "MultiLineString": {
+                stroke: "#0f0",
+                width: 3
+            },
+            "MultiPolygon": {
+                fill: "rgba(0,0,255,0.5)",
+                stroke: "#00f",
+                width: 1
+            }
+        },
+        /* Colour palette for distinctive styling of drag/drop layers 
+         * Based on https://en.wikipedia.org/wiki/List_of_software_palettes#Apple_Macintosh_default_16-color_palette 
+         * leaving out white and light grey for obvious reasons */
+        color_palette: [            
+            "#FF6403",  /* orange */
+            "#800000",  /* dark red */
+            "#DD0907",  /* red */
+            "#F20884",  /* magenta */
+            "#4700A5",  /* purple */
+            "#0000D3",  /* blue */
+            "#02ABEA",  /* cyan */
+            "#1FB714",  /* green */
+            "#006412",  /* dark green */
+            "#562C05",  /* brown */
+            "#90713A",  /* tan */
+            "#808080",  /* medium grey */
+            "#404040",  /* dark grey */
+            "#000000"   /* black */
+        ],
+        /**
+         * Convert hex RGB in form #ffffff to decimal
+         * http://stackoverflow.com/questions/8468855/convert-a-rgb-colour-value-to-decimal
+         * @param {string} rgb
+         * @returns {string}
+         */
+        rgbToDec: function(rgb, opacity) {
+            opacity = opacity || 1.0;
+            rgb = eval("0x" + rgb.replace(/#/, ""));
+            var components = {
+                r: (rgb & 0xff0000) >> 16, 
+                g: (rgb & 0x00ff00) >> 8, 
+                b: (rgb & 0x0000ff)
+            };
+            return("rgba(" + components.r + "," + components.g + "," + components.b + "," + opacity + ")");
+        },
+        /**
+         * Put together a suitable style for an uploaded layer, distinct from the rest
+         * @param {string} geomType
+         * @param {int} paletteEntry
+         * @param {string} label
+         * @returns {Array<ol.Style>}
+         */
+        fetchStyle: function(geomType, paletteEntry, label) {
+            var style = magic.modules.Common.default_styles[geomType];
+            if (style) {
+                var styling = {};
+                if (geomType == "Point" || geomType == "MultiPoint") {
+                    /* Create image */
+                    styling.image = new ol.style.Circle({
+                        fill: new ol.style.Fill({
+                            color: this.rgbToDec(this.color_palette[paletteEntry], 0.5)
+                        }),
+                        radius: style.radius || 5,
+                        stroke: new ol.style.Stroke({
+                            color: this.rgbToDec(this.color_palette[paletteEntry]),
+                            width: style.width || 1
+                        })
+                    });                                        
+                } else if (geomType == "LineString" || geomType == "MultiLineString") {
+                    styling.stroke = new ol.style.Stroke({
+                        color: this.rgbToDec(this.color_palette[paletteEntry]),
+                        width: style.width || 1
+                    });
+                } else {
+                    styling.fill = new ol.style.Fill({
+                        color: this.rgbToDec(this.color_palette[paletteEntry], 0.5),                               
+                    });
+                    styling.stroke = new ol.style.Stroke({
+                        color: this.rgbToDec(this.color_palette[paletteEntry]),
+                        width: style.width || 1
+                    })                    
+                } 
+                if (label) {
+                    styling.text = new ol.style.Text({
+                        font: "Arial",
+                        scale: 1.2,
+                        offsetX: 10,
+                        text: label,
+                        textAlign: "left",
+                        fill: new ol.style.Fill({
+                            color: this.rgbToDec(this.color_palette[paletteEntry])
+                        }),
+                        stroke: new ol.style.Stroke({
+                            color: "#ffffff",
+                            width: 1
+                        })
+                    });
+                }
+                return([new ol.style.Style(styling)]);
+            } else {
+                return(null);
+            }            
+        },
+        /**
+         * Does the given key name look name-like?
+         * @param {String} key
+         * @returns {boolean}
+         */
+        isNameLike: function(key) {
+           key = key.toLowerCase();
+           return(key.indexOf("name") == 0 || key.indexOf("callsign") == 0 ||  magic.modules.Common.endsWith(key.toLowerCase(), "name"));
+        },
+        /**
+         * Does the given key name look like a longitude?
+         * @param {String} key
+         * @returns {boolean}
+         */
+        isLongitudeLike: function(key) {
+           key = key.toLowerCase();
+           return(key == "lon" || key == "long" || key == "longitude" || key == "x");
+        },
+        /**
+         * Does the given key name look like a latitude?
+         * @param {String} key
+         * @returns {boolean}
+         */
+        isLatitudeLike: function(key) {
+           key = key.toLowerCase();
+           return(key == "lat" || key == "latitude" || key == "y");
+        },
+        /**
+         * Does the given key name look like a date/time?
+         * @param {String} key
+         * @returns {boolean}
+         */
+        isDatetimeLike: function(key) {
+           key = key.toLowerCase();
+           return(key.indexOf("date") == 0 || key.indexOf("time") == 0 || key.indexOf("utc") != -1);
+        },
         /**
          * Convert date value to format
          * @param {string} value
          * @param {string} format (dmy|ymd)
          * @returns {string} the date formatted accordingly
          */
-        dateFormat: function(value, format) {            
+        dateFormat: function (value, format) {
             var formattedValue = value;
-            var dateParts = value.substring(0, 10).split(/[^\d]/); 
+            var dateParts = value.substring(0, 10).split(/[^\d]/);
             var dateRest = value.substring(10);
             if (dateParts.length == 3) {
                 /* Determine current format */
@@ -33,31 +195,29 @@ magic.modules.Common = function() {
                     formattedValue = dateParts[2] + "-" + dateParts[1] + "-" + dateParts[0];
                     if (dateRest != "") {
                         formattedValue += dateRest;
-                    }     
-                }                            
+                    }
+                }
             }
             return(formattedValue);
-        },   
-        
+        },
         /**
          * Human readable file size method
          * http://stackoverflow.com/questions/10420352/converting-file-size-in-bytes-to-human-readable
          * @param {int} bytes
          * @returns {String}
          */
-        fileSize: function(bytes) {
+        fileSize: function (bytes) {
             var exp = Math.log(bytes) / Math.log(1024) | 0;
             var result = (bytes / Math.pow(1024, exp)).toFixed(2);
-            return result + ' ' + (exp == 0 ? "bytes": "kMGTPEZY"[exp - 1] + "B");
+            return result + ' ' + (exp == 0 ? "bytes" : "kMGTPEZY"[exp - 1] + "B");
         },
-        
         /**
          * Replace urls in given value by links
          * Courtesy of http://stackoverflow.com/questions/37684/how-to-replace-plain-urls-with-links
          * @param {type} value
          * @returns {String}
          */
-        linkify: function(value) {
+        linkify: function (value) {
 
             if (!value) {
                 return("");
@@ -78,40 +238,37 @@ magic.modules.Common = function() {
                     .replace(emailAddressPattern, '<a href="mailto:$&">$&</a>')
                     );
         },
-        
         /**
          * Break long string every 'size' characters with a <br />
          * @param {string} str
          * @param {int} size
          * @returns {string}
          */
-        chunk: function(str, size) {
+        chunk: function (str, size) {
             if (typeof size == "undefined") {
                 size = 2;
             }
             return(str.match(RegExp('.{1,' + size + '}', 'g')).join("<br />"));
         },
-        
         /**
          * Break a string longer than size characters at the final space before the size limit (if possible)
          * @param {string} str
          * @param {int} size
          */
-        ellipsis: function(str, size) {
+        ellipsis: function (str, size) {
             if (str.length <= size) {
                 return(str);
             }
             var out = str.substr(0, size),
-                lastSp = out.lastIndexOf(" ");
-            if (lastSp == -1 || lastSp < size/2) {
+                    lastSp = out.lastIndexOf(" ");
+            if (lastSp == -1 || lastSp < size / 2) {
                 /* No space, or too near the beginning to be informative */
-                out = out.substr(0, size-3) + "...";
+                out = out.substr(0, size - 3) + "...";
             } else {
                 out = out.substr(0, lastSp) + "...";
             }
             return(out);
         },
-        
         /**
          * For multiline labelling - http://stackoverflow.com/questions/14484787/wrap-text-in-javascript
          * @param {type} string
@@ -119,7 +276,7 @@ magic.modules.Common = function() {
          * @param {string} spaceReplacer
          * @returns {string}
          */
-        stringDivider: function(str, width, spaceReplacer) {
+        stringDivider: function (str, width, spaceReplacer) {
             if (str.length > width) {
                 var p = width;
                 for (; p > 0 && (str[p] != " " && str[p] != "-"); p--) {
@@ -137,14 +294,13 @@ magic.modules.Common = function() {
             }
             return(str);
         },
-        
         /**
          * Number of keys in an object literal 
          * Thanks to http://stackoverflow.com/questions/5533192/how-to-get-object-length
          * @param {Object} obj
          * @returns {int}
          */
-        objectLength: function(obj) {
+        objectLength: function (obj) {
             var count = 0;
             for (var key in obj) {
                 if (obj.hasOwnProperty(key)) {
@@ -153,26 +309,23 @@ magic.modules.Common = function() {
             }
             return(count);
         },
-        
         /**
          * Capitalise the first letter of the string
          * @param {string} str
          * @returns {string}
          */
-        initCap: function(str) {
+        initCap: function (str) {
             return(str.substring(0, 1).toUpperCase() + str.substring(1));
         },
-        
         /**
          * 
          * @param {string} str
          * @param {string} suffix
          * @returns {boolean}
          */
-        endsWith: function(str, suffix) {
+        endsWith: function (str, suffix) {
             return(str.indexOf(suffix, str.length - suffix.length) !== -1);
         },
-        
         /**
          * Do unit conversion for length and area units
          * @param {float} value
@@ -180,7 +333,7 @@ magic.modules.Common = function() {
          * @param {string} to units e.g. miles for lengths, miles2 for areas etc
          * @returns {String}
          */
-        unitConverter: function(value, from, to) {
+        unitConverter: function (value, from, to) {
             var converted = 0.0, fromUnits = from, toUnits = to, order = 1;
             if (from.indexOf("2") == from.length - 1) {
                 fromUnits = from.substring(0, from.length - 1);
@@ -195,25 +348,22 @@ magic.modules.Common = function() {
             }
             return(converted);
         },
-        
         /**
          * Degrees to radians
          * @param {float} degs
          * @returns {float}
          */
-        toRadians: function(degs) {
+        toRadians: function (degs) {
             return(degs * Math.PI / 180.0);
         },
-        
         /**
          * Radians to degrees
          * @param {float} rads
          * @returns {float}
          */
-        toDegrees: function(rads) {
+        toDegrees: function (rads) {
             return(rads * 180.0 / Math.PI);
         },
-        
         /**
          * Are two floating point numbers equal to within a supplied tolerance?
          * @param {float} num
@@ -221,10 +371,9 @@ magic.modules.Common = function() {
          * @param {float} resolution
          * @returns {Boolean}
          */
-        floatsEqual: function(num, value, resolution) {
+        floatsEqual: function (num, value, resolution) {
             return(Math.abs(num - value) <= resolution);
         },
-        
         /**
          * Is a floating point number within specified range (including a tolerance at the ends)
          * @param {float} num
@@ -233,7 +382,7 @@ magic.modules.Common = function() {
          * @param {float} resolution
          * @returns {Boolean}
          */
-        floatInRange: function(num, rangeLo, rangeHi, resolution) {
+        floatInRange: function (num, rangeLo, rangeHi, resolution) {
             return(
                     (num > rangeLo || Math.abs(num - rangeLo) <= resolution) &&
                     (num < rangeHi || Math.abs(num - rangeHi) <= resolution)

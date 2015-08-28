@@ -242,15 +242,15 @@ magic.classes.FeaturePopup.prototype.selectFeature = function() {
                             /* Floating point */
                             value = value.toFixed(4);
                         }
-                        if (this.isLongitudeLike(key)) {
+                        if (magic.modules.Common.isLongitudeLike(key)) {
                             value = magic.runtime.preferences.applyPref("coordinates", value, "lon")
-                        } else if (this.isLatitudeLike(key)) {
+                        } else if (magic.modules.Common.isLatitudeLike(key)) {
                             value = magic.runtime.preferences.applyPref("coordinates", value, "lat")
                         }
                         content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td align="right">' + value + '</td></tr>';
                     }
                     else if (key.indexOf("geom") == -1 && key != "bbox" && key.indexOf("__") == -1 && value != null) {
-                        if (this.isDatetimeLike(key)) {
+                        if (magic.modules.Common.isDatetimeLike(key)) {
                             value = magic.runtime.preferences.applyPref("dates", value)
                         }
                         content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td>' + value + '</td></tr>';
@@ -340,13 +340,13 @@ magic.classes.FeaturePopup.prototype.coreAttributeData = function(feat) {
             date: null
         };
         $.each(attrs, $.proxy(function(key, value) {
-            if (coreAttrs.name == null && this.isNameLike(key)) {
+            if (coreAttrs.name == null && magic.modules.Common.isNameLike(key)) {
                 coreAttrs.name = value;
-            } else if (coreAttrs.lon == null && this.isLongitudeLike(key)) {
+            } else if (coreAttrs.lon == null && magic.modules.Common.isLongitudeLike(key)) {
                 coreAttrs.lon = magic.runtime.preferences.applyPref("coordinates", $.isNumeric(value) ? parseFloat(value).toFixed(4) : value, "lon");
-            } else if (coreAttrs.lat == null && this.isLatitudeLike(key)) {
+            } else if (coreAttrs.lat == null && magic.modules.Common.isLatitudeLike(key)) {
                 coreAttrs.lat = magic.runtime.preferences.applyPref("coordinates", $.isNumeric(value) ? parseFloat(value).toFixed(4) : value, "lat");
-            } else if (coreAttrs.date == null && this.isDatetimeLike(key)) {
+            } else if (coreAttrs.date == null && magic.modules.Common.isDatetimeLike(key)) {
                 coreAttrs.date = magic.runtime.preferences.applyPref("dates", value);
             }
         }, this));
@@ -372,11 +372,11 @@ magic.classes.FeaturePopup.prototype.coreAttributeData = function(feat) {
         $.each(attrs, $.proxy(function(key, value) {
             key = key.toLowerCase();
             if (key != "gid" && key != "id" && key != "bbox" && key.indexOf("geom") == -1) {
-                if (this.isLongitudeLike(key)) {
+                if (magic.modules.Common.isLongitudeLike(key)) {
                     coreAttrs[key] = magic.runtime.preferences.applyPref("coordinates", value, "lon");
-                } else if (this.isLatitudeLike(key)) {
+                } else if (magic.modules.Common.isLatitudeLike(key)) {
                     coreAttrs[key] = magic.runtime.preferences.applyPref("coordinates", value, "lat");
-                } else if (this.isDatetimeLike(key)) {
+                } else if (magic.modules.Common.isDatetimeLike(key)) {
                     coreAttrs[key] = magic.runtime.preferences.applyPref("dates", value);
                 } else {
                     coreAttrs[key] = value;
@@ -413,44 +413,4 @@ magic.classes.FeaturePopup.prototype.getCaption = function(feat) {
         caption = feat.getProperties()["__title"];
     }
     return(caption);
-};
-
-/**
- * Does the given key name look name-like?
- * @param {String} key
- * @returns {boolean}
- */
-magic.classes.FeaturePopup.prototype.isNameLike = function(key) {
-    key = key.toLowerCase();
-    return(key.indexOf("name") == 0 || key.indexOf("callsign") == 0 ||  magic.modules.Common.endsWith(key.toLowerCase(), "name"));
-};
-
-/**
- * Does the given key name look like a longitude?
- * @param {String} key
- * @returns {boolean}
- */
-magic.classes.FeaturePopup.prototype.isLongitudeLike = function(key) {
-    key = key.toLowerCase();
-    return(key == "lon" || key == "long" || key == "longitude" || key == "x");
-};
-
-/**
- * Does the given key name look like a latitude?
- * @param {String} key
- * @returns {boolean}
- */
-magic.classes.FeaturePopup.prototype.isLatitudeLike = function(key) {
-    key = key.toLowerCase();
-    return(key == "lat" || key == "latitude" || key == "y");
-};
-
-/**
- * Does the given key name look like a date/time?
- * @param {String} key
- * @returns {boolean}
- */
-magic.classes.FeaturePopup.prototype.isDatetimeLike = function(key) {
-    key = key.toLowerCase();
-    return(key.indexOf("date") == 0 || key.indexOf("time") == 0 || key.indexOf("utc") != -1);
 };

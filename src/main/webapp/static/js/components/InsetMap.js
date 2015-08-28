@@ -92,7 +92,7 @@ magic.classes.InsetMap.prototype.deactivate = function() {
     var nf = 0;
     this.map.getLayers().forEach(function(lyr, idx, arr) {
         var name = lyr.get("name");
-        if (name.indexOf("_inset") > 0) {
+        if (name && name.indexOf("_inset") > 0) {
             /* A vector overlay layer - check number of features */
             nf += lyr.getSource().getFeatures().length;
         }
