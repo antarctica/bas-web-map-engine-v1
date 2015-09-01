@@ -77,6 +77,8 @@
     "ol.interaction.DragZoom#*",
     "ol.interaction.Draw",
     "ol.interaction.Draw#*",
+    "ol.interaction.DragAndDrop",
+    "ol.interaction.DragAndDrop#*",
     "ol.Collection#*",
     "ol.proj.METERS_PER_UNIT",
     "ol.coordinate.*"
