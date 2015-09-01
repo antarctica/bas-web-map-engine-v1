@@ -18,6 +18,8 @@
     "ol.format.GeoJSON",
     "ol.format.GeoJSON#readFeatures",
     "ol.format.GML",
+    "ol.format.GPX",
+    "ol.format.KML",
     "ol.layer.Vector",
     "ol.layer.Vector#*",
     "ol.source.Vector",
