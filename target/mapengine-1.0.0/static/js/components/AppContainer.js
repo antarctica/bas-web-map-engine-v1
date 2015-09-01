@@ -252,11 +252,10 @@ magic.classes.AppContainer.prototype.layerNameFromFileName = function(fileName) 
  * @returns {ol.style.Style}
  */
 magic.classes.AppContainer.prototype.constructStyle = function(feat) {
-    var geomType = feat.getGeometry().getType()
+    var geomType = feat.getGeometry().getType();
     var paletteEntry = magic.runtime.userlayers.length % magic.modules.Common.color_palette.length;
     var label = null;
     $.each(feat.getProperties(), function(key, value) {
-        console.log(key);
         if (magic.modules.Common.isNameLike(key)) {
             label = value;
             return(false);
