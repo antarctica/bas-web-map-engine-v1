@@ -67,7 +67,7 @@ public class ApplicationConfigController {
         SOURCE_PARAMS.put("download_id", "Javascript:void(0)");
         SOURCE_PARAMS.put("endpoint", "antarctic");
         SOURCE_PARAMS.put("workspace", "add");
-        SOURCE_PARAMS.put("name_prefix", "antarctic");
+        SOURCE_PARAMS.put("name_prefix", new String[]{"antarctic"});
         SOURCE_PARAMS.put("wms", BAS_MAPS + "antarctic");
         SOURCE_PARAMS.put("gazetteers", "cga");
         /* Map view metadata */
@@ -90,10 +90,10 @@ public class ApplicationConfigController {
     }
     
     /* User unit preferences table name */
-    private static final String PREFS_TABLE = "preferences";
+    private static final String PREFS_TABLE = "public.preferences";
     
     /* User map definition table name */
-    private static final String MAPDEFS_TABLE = "maps";
+    private static final String MAPDEFS_TABLE = "public.maps";
     
     /**
 	 * Get application configuration from Geoserver	instance
@@ -133,7 +133,7 @@ public class ApplicationConfigController {
             new LayerTreeData(
                 (String)viewData.get("projection"),
                 (String)sourceData.get("endpoint"), 
-                (String)sourceData.get("name_prefix"), 
+                (String[])sourceData.get("name_prefix"), 
                 (String[])layerData.get("show_layers"),
                 (String[])layerData.get("expand_groups"),
                 (String[])layerData.get("clickable_layers"),
@@ -163,8 +163,8 @@ public class ApplicationConfigController {
             for (String k : DEFAULT_PARAMS.get(dataTypeKey).keySet()) {
                 Object defaultVal = DEFAULT_PARAMS.get(dataTypeKey).get(k);
                 Object newVal = null;
-                if (userMapData != null && userMapData.containsKey(k)) {
-                    newVal = conversion((String)userMapData.get(k), defaultVal);
+                if (userMapData != null && userMapData.containsKey(k) && userMapData.get(k) != null) {
+                    newVal = conversion(userMapData.get(k), defaultVal);
                 } else {
                     String envProp = env.getProperty(appname + "." + k);
                     if (envProp != null && !envProp.isEmpty()) {
@@ -181,33 +181,40 @@ public class ApplicationConfigController {
     
     /**
      * Convert string value to the same type as the default value
-     * @param String value
+     * @param Object value
      * @param Object defaultValue
      * @return 
      */
-    private Object conversion(String value, Object defaultValue) {
+    private Object conversion(Object value, Object defaultValue) {
         Object out = null;
-        if (defaultValue instanceof Double[]) {
-            /* Convert comma-separated string to double array */
-            String[] dstrs = value.split(",");
-            Double[] darr = new Double[dstrs.length];
-            int i = 0;
-            for (String ds : dstrs) {
-                darr[i++] = Double.parseDouble(ds);
-            }
-            out = darr;
-        } else if (defaultValue instanceof Double) {
-            /* Convert to double */
-            out = Double.parseDouble(value);
-        } else if (defaultValue instanceof Integer) {
-            /* Convert to integer */
-            out = Integer.parseInt(value);
-        } else if (defaultValue instanceof String[]) {
-            /* Explode string array */
-            out = value.split(",");
-        } else {
+        if (value == null) {
+            out = defaultValue;
+        } else if (!(value instanceof String)) {
             out = value;
-        }
+        } else {
+            /* Convert value in string to same type as defaultValue */
+            if (defaultValue instanceof Double[]) {
+                /* Convert comma-separated string to double array */
+                String[] dstrs = ((String)value).split(",");
+                Double[] darr = new Double[dstrs.length];
+                int i = 0;
+                for (String ds : dstrs) {
+                    darr[i++] = Double.parseDouble(ds);
+                }
+                out = darr;
+            } else if (defaultValue instanceof Double) {
+                /* Convert to double */
+                out = Double.parseDouble((String)value);
+            } else if (defaultValue instanceof Integer) {
+                /* Convert to integer */
+                out = Integer.parseInt((String)value);
+            } else if (defaultValue instanceof String[]) {
+                /* Explode string array */
+                out = ((String)value).split(",");
+            } else {
+                out = value;
+            }
+        }        
         return(out);
     }
     
@@ -329,10 +336,10 @@ public class ApplicationConfigController {
         Layer topLevel = root;
         if (!root.isQueryable() && root.getName() == null) {
             /* The root of this hierarchy is not a named queryable layer i.e. is a ContainerTree - look for one with title == appname
-             * or if a usermap is defined, one with title = <appname>_<usermap> */
+             * or if a usermap is defined, one with title = <appname>.<usermap> */
             String targetName = appname;
             if (usermap != null && !usermap.isEmpty() && !usermap.equals("default")) {
-                targetName = appname + "_" + usermap;
+                targetName = appname + "." + usermap;
             }
             if (!root.getTitle().toLowerCase().equals(targetName)) {
                 for (Layer child : root.getChildren()) {
@@ -410,13 +417,13 @@ public class ApplicationConfigController {
     /**
      * Take the layer name and construct a human friendly version of it for display in layer tree
      * @param String name
-     * @param String strip prefix(es) to remove from beginning of name e.g. antarctic/arctic/sg/ops assumed to be same as endpoint
+     * @param String[] strip prefix(es) to remove from beginning of name e.g. antarctic/arctic/sg/ops assumed to be same as endpoint
      * @return String
      */
-    private String humanFriendlyName(String name, String strip) {
+    private String humanFriendlyName(String name, String[] strip) {
         String lcName = name.toLowerCase();
         lcName = stripWorkspace(lcName);                                            /* Strip workspace prefix e.g. add: */
-        for (String prefix : strip.split(",")) {
+        for (String prefix : strip) {
             lcName = lcName.replaceFirst("^" + prefix.toLowerCase() + "_?", "");    /* Strip the feature name prefix e.g. antarctic_ */
         }                
         lcName = lcName.replaceAll("_", " ");                                       /* Underscore to space */
@@ -471,13 +478,13 @@ public class ApplicationConfigController {
         int nodeId = 0;
         private String projection;
         private String endpoint;
-        private String prefix;
+        private String[] prefix;
         private String[] showLayers;
         private String[] expandGroups;
         private String[] clickableLayers;
         private String[] singleTileLayers;
         
-        public LayerTreeData(String projection, String endpoint, String prefix, String[] showLayers, String[] expandGroups, String[] clickableLayers, String[] singleTileLayers) {
+        public LayerTreeData(String projection, String endpoint, String[] prefix, String[] showLayers, String[] expandGroups, String[] clickableLayers, String[] singleTileLayers) {
             this.projection = projection;
             this.endpoint = endpoint;
             this.prefix = prefix;
@@ -511,11 +518,11 @@ public class ApplicationConfigController {
             this.endpoint = endpoint;
         }
 
-        public String getPrefix() {
+        public String[] getPrefix() {
             return prefix;
         }
 
-        public void setPrefix(String prefix) {
+        public void setPrefix(String[] prefix) {
             this.prefix = prefix;
         }
 
