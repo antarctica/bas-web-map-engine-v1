@@ -11,6 +11,9 @@ magic.classes.HeightMeasureButton = function(name, ribbon) {
         hPopDiv = $("#height-popup");
     }
     
+    /* Internal */   
+    this.demLayer = this.getDEMLayer();
+    
     this.heightPopup = new ol.Overlay({element: hPopDiv[0]});
     magic.runtime.map.addOverlay(this.heightPopup);
     
@@ -48,39 +51,42 @@ magic.classes.HeightMeasureButton.prototype.isActive = function() {
 /**
  * Activate the control
  */
-magic.classes.HeightMeasureButton.prototype.activate = function() {
-    
-    /* Trigger mapinteractionactivated event */
-    $(document).trigger("mapinteractionactivated", [this]);  
-    
-    this.active = true;
-    var spn = this.btn.children("span");
-    this.btn.toggleClass("active");
-    spn.removeClass("fa fa-arrows-v").addClass("glyphicon glyphicon-stop");
-    this.btn.attr("data-original-title", this.activeTitle).tooltip("fixTitle");
-    /* Add map click handler (NOTE: assumes first base layer is a DEM) */        
-    magic.runtime.map.on("singleclick", this.queryHeight, this);
+magic.classes.HeightMeasureButton.prototype.activate = function() {    
+    if (this.demLayer) {
+        /* Trigger mapinteractionactivated event */
+        $(document).trigger("mapinteractionactivated", [this]);  
+        this.active = true;
+        var spn = this.btn.children("span");
+        this.btn.toggleClass("active");
+        spn.removeClass("fa fa-arrows-v").addClass("glyphicon glyphicon-stop");
+        this.btn.attr("data-original-title", this.activeTitle).tooltip("fixTitle");
+        /* Add map click handler */        
+        magic.runtime.map.on("singleclick", this.queryHeight, this);
+        magic.runtime.map.on("moveend", $.proxy(this.destroyPopup, this));
+    }
 };
 
 /**
  * Deactivate the control
  */
 magic.classes.HeightMeasureButton.prototype.deactivate = function() {
-    this.active = false;
-    var spn = this.btn.children("span");
-    this.btn.toggleClass("active");
-    spn.removeClass("glyphicon glyphicon-stop").addClass("fa fa-arrows-v");
-    this.btn.attr("data-original-title", this.inactiveTitle).tooltip("fixTitle");    
-    /* Remove map click handler */
-    var element = this.heightPopup.getElement();
-    $(element).popover("destroy");
-    magic.runtime.map.un("singleclick", this.queryHeight, this);
+    if (this.demLayer) {
+        this.active = false;
+        var spn = this.btn.children("span");
+        this.btn.toggleClass("active");
+        spn.removeClass("glyphicon glyphicon-stop").addClass("fa fa-arrows-v");
+        this.btn.attr("data-original-title", this.inactiveTitle).tooltip("fixTitle");    
+        /* Remove map click handler */
+        var element = this.heightPopup.getElement();
+        $(element).popover("destroy");
+        magic.runtime.map.un("singleclick", this.queryHeight, this);
+        magic.runtime.map.un("moveend", $.proxy(this.destroyPopup, this));
+    }
 };
 
 magic.classes.HeightMeasureButton.prototype.queryHeight = function(evt) {
-    var base1 = magic.runtime.map.getLayers().item(0);
-    if (base1) {
-        var source = base1.getSource();
+    if (this.demLayer) {
+        var source = this.demLayer.getSource();
         var viewResolution = magic.runtime.view.getResolution();
         var url = source.getGetFeatureInfoUrl(
             evt.coordinate, viewResolution, magic.runtime.projection.getCode(),
@@ -120,6 +126,25 @@ magic.classes.HeightMeasureButton.prototype.queryHeight = function(evt) {
 };
 
 /**
+ * Get layer having DEM in keywords, indicating it is the height determination layer
+ * @returns {ol.Layer}
+ */
+magic.classes.HeightMeasureButton.prototype.getDEMLayer = function() {
+    var theLayer = null;
+    magic.runtime.map.getLayers().forEach(function (layer) {
+        var md = layer.get("metadata");       
+        if (md && md.keywords) {
+            if ($.isArray(md.keywords) && $.inArray("DEM", md.keywords) != -1) {
+                theLayer = layer;
+                return(false);
+            }
+        }       
+    });
+    return(theLayer);
+};
+
+
+/**
  * Extract the DEM value from the GFI feature collection
  * @param {Object} json FeatureCollection
  * @returns {undefined}
@@ -139,5 +164,13 @@ magic.classes.HeightMeasureButton.prototype.getDemValue = function(json) {
         }
     }
     return(dem);
+};
+
+/**
+ * Destroy the height popup
+ */
+magic.classes.HeightMeasureButton.prototype.destroyPopup = function() {
+    var element = this.heightPopup.getElement();
+    $(element).popover("destroy");
 };
     
