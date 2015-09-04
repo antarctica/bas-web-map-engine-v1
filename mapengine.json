@@ -40,6 +40,8 @@
     "ol.geom.MultiPoint#*",
     "ol.geom.MultiLineString",
     "ol.geom.MultiLineString#*",
+    "ol.geom.LineString",
+    "ol.geom.LineString#*",
     "ol.source.TileWMS",
     "ol.source.TileWMS#*",
     "ol.geom.Polygon",
