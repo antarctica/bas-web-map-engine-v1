@@ -134,6 +134,7 @@ magic.classes.AppContainer = function (payload) {
         }
     }, this);
 
+    /* Allow drag and drop of user GPS and KML layers */
     magic.runtime.userlayers = [];
     dd.on("addfeatures", $.proxy(function(evt) {
         var md = {}, layerName = "";
@@ -143,7 +144,8 @@ magic.classes.AppContainer = function (payload) {
             layerName = this.layerNameFromFileName(evt.file.name);
         } else {
             /* Some defaults */
-            layerName = magic.runtime.username + "_userlayer_" + (magic.runtime.userlayers.length+1);
+            var uname = !magic.runtime.username ? "guest" : magic.runtime.username;
+            layerName = uname + "_userlayer_" + (magic.runtime.userlayers.length+1);
         }
         var vectorSource = new ol.source.Vector({
             features: evt.features
@@ -242,7 +244,8 @@ magic.classes.AppContainer.prototype.layerNameFromFileName = function(fileName) 
     if (fileName) {
         return(fileName.replace(/\./g, " "));
     } else {
-        return(magic.runtime.username + "_userlayer_" + (magic.runtime.userlayers.length+1));
+        var uname = !magic.runtime.username ? "guest" : magic.runtime.username;;
+        return(uname + "_userlayer_" + (magic.runtime.userlayers.length+1));
     }
 };
 
