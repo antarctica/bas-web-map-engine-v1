@@ -36,6 +36,8 @@
     "ol.Overlay#getElement",
     "ol.geom.Point",
     "ol.geom.Point#*",
+    "ol.geom.MultiPoint",
+    "ol.geom.MultiPoint#*",
     "ol.geom.MultiLineString",
     "ol.geom.MultiLineString#*",
     "ol.source.TileWMS",
