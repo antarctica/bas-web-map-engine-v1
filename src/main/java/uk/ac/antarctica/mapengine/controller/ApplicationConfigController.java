@@ -124,7 +124,7 @@ public class ApplicationConfigController {
         HashMap<String,Object> viewData = getDefinitions("VIEW_DATA", userMapData, appname);
         HashMap<String,Object> layerData = getDefinitions("LAYER_DATA", userMapData, appname);
         
-        WebMapServer wms = new WebMapServer(new URL((String)sourceData.get("wms")));//, new SimpleHttpClient());
+        WebMapServer wms = new WebMapServer(new URL((String)sourceData.get("wms")), new SimpleHttpClient());
         WMSCapabilities capabilities = wms.getCapabilities();
         Layer root = capabilities.getLayer();
                                 
@@ -230,7 +230,7 @@ public class ApplicationConfigController {
     private void treewalk(JsonArray treeDef, Layer layer, LayerTreeData data) {
         boolean baseContainer = layer.getTitle().toLowerCase().startsWith("base");
         
-        for (Layer child : layer.getChildren()) {
+        for (Layer child : layer.getChildren()) {            
             JsonObject cjo = new JsonObject();            
             if (child.getName() == null) {
                 /* This is a container */
@@ -245,10 +245,9 @@ public class ApplicationConfigController {
                 data.setNodeId(data.getNodeId()+1);
                 treewalk(nodes, child, data);
             } else {
-                /* This is a data layer */
+                /* This is a data layer */      
                 JsonObject layerProps = new JsonObject();
                 cjo.add("props", layerProps);
-                //cjo.addProperty("text", humanFriendlyName(child.getName(), data.getPrefix()));
                 cjo.addProperty("text", humanFriendlyName(child.getTitle(), data.getPrefix()));
                 cjo.addProperty("nodeid", data.getNodeId());
                 if (baseContainer) {
@@ -266,6 +265,10 @@ public class ApplicationConfigController {
                 if (inArray(data.getSingleTileLayers(), stripWorkspace(child.getName()))) {
                     /* Set layer single tile */                    
                     state.addProperty("singletile", true);
+                }
+                if (child.getDimension("time") != null) {
+                    /* Time series layer */
+                    state.addProperty("timeseries", true);
                 }
                 cjo.add("state", state);
                 layerProps.addProperty("name", child.getName());

@@ -31,6 +31,7 @@ js/components/HeightMeasureButton.js
 js/components/GraticuleButton.js
 js/components/FeaturePopup.js
 js/components/FeatureInfoButton.js
+js/components/MosaicTimeSeriesPlayer.js
 js/components/Geosearch.js
 js/components/Measurement.js
 js/components/OverviewMap.js

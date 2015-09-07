@@ -57,6 +57,11 @@ public class Application extends SpringBootServletInitializer {
     public JdbcTemplate userDataTpl() {
         return (new JdbcTemplate(userDataSource()));
     }
+    
+    @Bean
+    public JdbcTemplate gisDataTpl() {
+        return (new JdbcTemplate(gisDataSource()));
+    }
 
     @Bean
     public HttpSessionListener httpSessionListener() {

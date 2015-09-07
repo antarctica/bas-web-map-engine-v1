@@ -22,6 +22,11 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
                 '<div class="noUi-extended layer-webgl-property-slider" id="opc-slider-' + this.nodeid + '"></div>' + 
                 '<div class="icon-pattern slider-purpose" data-toggle="tooltip" data-placement="top" title="Layer transparent"></div>' + 
             '</div>' + 
+        '</li>' + 
+        '<li>' + 
+            '<a href="Javascript:void(0)" id="tss-' + this.nodeid + '">View time series</a>' +
+            '<div class="hidden" id="wrapper-tss-' + this.nodeid + '">' +                                    
+            '</div>' + 
         '</li>'
 /* Awaiting a more effective WebGL implementation in OL3 - David 22/07/15 */        
 //        '<li>' + 
@@ -66,7 +71,7 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
                 target: $(evt.currentTarget).next("div"),
                 nodeid: this.nodeid,
                 layer: this.layer
-            })                        
+            });                       
         }, this));
     }
     /* Transparency control */
@@ -76,6 +81,20 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
     //this.addWebglSliderHandler("brt", -1.0, 1.0, 0.2);
     /* Contrast control */
     //this.addWebglSliderHandler("ctr", 0.0, 10.0, 1.0);
+    /* Time series moview player */
+    if (this.layer.get("metadata")["timeseries"] === false || !this.layer.getVisible()) {
+        /* Hide time series player for layer where it isn't possible */
+        $("#tss-" + this.nodeid).parent().addClass("disabled");
+    } else {
+        $("#tss-" + this.nodeid).off("click").on("click", $.proxy(function(evt) {
+            evt.stopPropagation();
+            new magic.classes.MosaicTimeSeriesPlayer({               
+                target: $(evt.currentTarget).next("div"),
+                nodeid: this.nodeid,
+                layer: this.layer
+            });                  
+        }, this));
+    }
 };
 
 /**

@@ -211,11 +211,12 @@ magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
         } else {
             /* Style a data node */
             var cb;
-            var checkState = false, clickState = false, singleTileState = false;
+            var checkState = false, clickState = false, singleTileState = false, timeSeries = false;
             if (nd.state) {
                 checkState = nd.state.checked === true;
                 clickState = nd.state.clickable === true;
                 singleTileState = nd.state.singletile === true;
+                timeSeries = nd.state.timeseries === true;
             }           
             if (nd.props.radio) {
                 cb = '<input class="layer-vis-selector" name="base-layers-rb" id="base-layer-rb-' + nd.nodeid + '" type="radio" ' + (checkState ? "checked" : "") + '/>';
@@ -267,6 +268,7 @@ magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
                             nodeid: nd.nodeid, 
                             checkstate: checkState,
                             clickable: clickState,
+                            timeseries: timeSeries,
                             filterable: true,
                             filter: null,
                             attrs: null
@@ -309,6 +311,7 @@ magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
                             nodeid: nd.nodeid, 
                             checkstate: checkState,
                             clickable: clickState,
+                            timeseries: timeSeries,
                             filterable: true,
                             filter: null,
                             attrs: null
