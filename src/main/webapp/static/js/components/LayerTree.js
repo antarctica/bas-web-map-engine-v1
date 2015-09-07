@@ -172,7 +172,7 @@ magic.classes.LayerTree.prototype.isRasterLayer = function(layer) {
  */
 magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {    
     $.each(nodes, $.proxy(function (i, nd) {
-        var indent = 15*depth;
+        var indent = 8*depth;
         if ($.isArray(nd.nodes)) {
             /* Style a group */
             var expClass = " in", title = "Collapse this group", allCb = "";

@@ -89,11 +89,14 @@ public class ApplicationConfigController {
         LAYER_PARAMS.put("singletile_layers", new String[]{});
     }
     
+    /* Database schema where user data is stored */
+    private static final String USERDATA_SCHEMA = "public";
+    
     /* User unit preferences table name */
-    private static final String PREFS_TABLE = "public.preferences";
+    private static final String PREFS_TABLE = "preferences";
     
     /* User map definition table name */
-    private static final String MAPDEFS_TABLE = "public.maps";
+    private static final String MAPDEFS_TABLE = "maps";
     
     /**
 	 * Get application configuration from Geoserver	instance
@@ -113,7 +116,7 @@ public class ApplicationConfigController {
         /* See if we have anything in the database for this app/usermap combination */
         Map<String,Object> userMapData = null;
         try {
-            userMapData = userDataTpl.queryForMap("SELECT * FROM " + MAPDEFS_TABLE + " WHERE appname=? AND usermap=?", appname, usermap);
+            userMapData = userDataTpl.queryForMap("SELECT * FROM " + USERDATA_SCHEMA + "." + MAPDEFS_TABLE + " WHERE appname=? AND usermap=?", appname, usermap);
         } catch(Exception ex) {
         }
               
@@ -121,7 +124,7 @@ public class ApplicationConfigController {
         HashMap<String,Object> viewData = getDefinitions("VIEW_DATA", userMapData, appname);
         HashMap<String,Object> layerData = getDefinitions("LAYER_DATA", userMapData, appname);
         
-        WebMapServer wms = new WebMapServer(new URL((String)sourceData.get("wms")), new SimpleHttpClient());
+        WebMapServer wms = new WebMapServer(new URL((String)sourceData.get("wms")));//, new SimpleHttpClient());
         WMSCapabilities capabilities = wms.getCapabilities();
         Layer root = capabilities.getLayer();
                                 
@@ -245,7 +248,8 @@ public class ApplicationConfigController {
                 /* This is a data layer */
                 JsonObject layerProps = new JsonObject();
                 cjo.add("props", layerProps);
-                cjo.addProperty("text", humanFriendlyName(child.getName(), data.getPrefix()));
+                //cjo.addProperty("text", humanFriendlyName(child.getName(), data.getPrefix()));
+                cjo.addProperty("text", humanFriendlyName(child.getTitle(), data.getPrefix()));
                 cjo.addProperty("nodeid", data.getNodeId());
                 if (baseContainer) {
                     layerProps.addProperty("radio", baseContainer);
@@ -368,7 +372,7 @@ public class ApplicationConfigController {
         } else {
             /* Get set from db */
             try {
-                String jsonRow = userDataTpl.queryForObject("SELECT row_to_json(" + PREFS_TABLE + ") FROM " + PREFS_TABLE + " WHERE username=?", String.class, userName);
+                String jsonRow = userDataTpl.queryForObject("SELECT row_to_json(" + PREFS_TABLE + ") FROM " + USERDATA_SCHEMA + "." + PREFS_TABLE + " WHERE username=?", String.class, userName);
                 out = new JsonParser().parse(jsonRow).getAsJsonObject();                
             } catch(IncorrectResultSizeDataAccessException irsdae) {
                 out = defaultPreferencesSet();
@@ -417,17 +421,20 @@ public class ApplicationConfigController {
     /**
      * Take the layer name and construct a human friendly version of it for display in layer tree
      * @param String name
-     * @param String[] strip prefix(es) to remove from beginning of name e.g. antarctic/arctic/sg/ops assumed to be same as endpoint
+     * @param String[] strip prefix(es) to remove from beginning of name e.g. antarctic/arctic/sg/ops
      * @return String
      */
     private String humanFriendlyName(String name, String[] strip) {
-        String lcName = name.toLowerCase();
-        lcName = stripWorkspace(lcName);                                            /* Strip workspace prefix e.g. add: */
+        String hfName = name, lcName = name.toLowerCase();
         for (String prefix : strip) {
-            lcName = lcName.replaceFirst("^" + prefix.toLowerCase() + "_?", "");    /* Strip the feature name prefix e.g. antarctic_ */
-        }                
-        lcName = lcName.replaceAll("_", " ");                                       /* Underscore to space */
-        return(lcName.substring(0, 1).toUpperCase() + lcName.substring(1));         /* Initial cap */
+            if (lcName.startsWith(prefix)) {                
+                hfName = hfName.substring(prefix.length()).trim();
+                lcName = hfName.toLowerCase();
+            }
+        }
+        /* Replace (all resolutions) string if present */
+        hfName = hfName.replace("(all resolutions)", "").trim();
+        return(hfName.substring(0, 1).toUpperCase() + hfName.substring(1));        
     }
     
     /**

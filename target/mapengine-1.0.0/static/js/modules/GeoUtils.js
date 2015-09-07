@@ -22,7 +22,7 @@ magic.modules.GeoUtils = function() {
          * @returns {String}
          */
         formatCoordinate: function(coordinate, destFormat, axis, dp) {
-            var formattedValue = "[invalid]";
+            var formattedValue = null;
             if (!dp && dp != 0) {
                 dp = 4;
             }

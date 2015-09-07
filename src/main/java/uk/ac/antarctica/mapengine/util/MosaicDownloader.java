@@ -17,12 +17,12 @@ public class MosaicDownloader {
     /* User unit preferences table name */
     private static final String MOSAICS_TABLE = "public.mosaics";
     
-    @Scheduled(initialDelay=60000, fixedDelay=3600000)
-    public void downloadMosaics() {
-        List<Map<String,Object>> instructions = userDataTpl.queryForList("SELECT * FROM " + MOSAICS_TABLE);
-        for (Map m : instructions) {
-            
-        }
-	}
+//    @Scheduled(initialDelay=60000, fixedDelay=3600000)
+//    public void downloadMosaics() {
+//        List<Map<String,Object>> instructions = userDataTpl.queryForList("SELECT * FROM " + MOSAICS_TABLE);
+//        for (Map m : instructions) {
+//            
+//        }
+//	}
     
 }
