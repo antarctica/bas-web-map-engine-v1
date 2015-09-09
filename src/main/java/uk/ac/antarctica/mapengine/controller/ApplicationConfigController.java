@@ -8,6 +8,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
+import it.geosolutions.geoserver.rest.GeoServerRESTReader;
 import java.io.IOException;
 import java.net.URL;
 import java.text.DecimalFormat;
@@ -141,7 +142,7 @@ public class ApplicationConfigController {
                 (String[])layerData.get("expand_groups"),
                 (String[])layerData.get("clickable_layers"),
                 (String[])layerData.get("singletile_layers")                
-            )            
+            )
         );
                 
         /* Assemble final payload */
@@ -228,7 +229,9 @@ public class ApplicationConfigController {
      * @param LayerTreeData data
      */
     private void treewalk(JsonArray treeDef, Layer layer, LayerTreeData data) {
+        
         boolean baseContainer = layer.getTitle().toLowerCase().startsWith("base");
+        GeoServerRESTReader reader = null;
         
         for (Layer child : layer.getChildren()) {            
             JsonObject cjo = new JsonObject();            
@@ -268,7 +271,7 @@ public class ApplicationConfigController {
                 }
                 if (child.getDimension("time") != null) {
                     /* Time series layer */
-                    state.addProperty("timeseries", true);
+                    state.addProperty("timeseries", true);                                      
                 }
                 cjo.add("state", state);
                 layerProps.addProperty("name", child.getName());
@@ -330,7 +333,7 @@ public class ApplicationConfigController {
             treeDef.add(cjo);
             data.setNodeId(data.getNodeId()+1);
         }
-    }    
+    }         
     
     /**
      * Find the application root container in the capabilities layer tree
@@ -481,7 +484,7 @@ public class ApplicationConfigController {
                 return(true);
         }
         return(false);
-    }   
+    }      
     
     private class LayerTreeData {
         

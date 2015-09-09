@@ -737,3 +737,11 @@ span.post-ok {
 span.post-error {
     color: #a94442;
 }
+
+/* Mosaic movie player styles */
+button.mosaic-player {
+    float: left;    
+    color:#202020;
+    margin-left: 10px;
+    margin-top: 6px;
+}

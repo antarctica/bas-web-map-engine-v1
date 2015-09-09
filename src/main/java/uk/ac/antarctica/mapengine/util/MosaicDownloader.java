@@ -81,6 +81,7 @@ public class MosaicDownloader {
                             encoder.setMetadataDimension("time", dim);
                             encoder.setName(mosaicName);
                             encoder.setTitle(mosaicTitle);
+                            encoder.addKeyword("raster");
                             encoder.setAbstract(mosaicAbstract + " Date of latest image : " + dlStr);
                             encoder.setSRS("EPSG:3031");
                             GSLayerEncoder layerEncoder = new GSLayerEncoder();

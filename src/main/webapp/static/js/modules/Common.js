@@ -149,7 +149,14 @@ magic.modules.Common = function () {
          */
         isNameLike: function(key) {
            key = key.toLowerCase();
-           return(key.indexOf("name") == 0 || key.indexOf("callsign") == 0 ||  magic.modules.Common.endsWith(key.toLowerCase(), "name"));
+           var nameKeys = ["^name.*$", "^callsign$", "^[^n]*name$"];
+           for (var i = 0; i < nameKeys.length; i++) {
+               var patt = new RegExp(nameKeys[i]);
+               if (patt.test(key)) {
+                   return(true);
+               }
+           }
+           return(false);
         },
         /**
          * Does the given key name look like a longitude?
@@ -158,7 +165,14 @@ magic.modules.Common = function () {
          */
         isLongitudeLike: function(key) {
            key = key.toLowerCase();
-           return(key == "lon" || key == "long" || key == "longitude" || key == "x");
+           var lonKeys = ["^lon.*$", "^x$", "^xcoord.*$"];
+           for (var i = 0; i < lonKeys.length; i++) {
+               var patt = new RegExp(lonKeys[i]);
+               if (patt.test(key)) {
+                   return(true);
+               }
+           }
+           return(false);
         },
         /**
          * Does the given key name look like a latitude?
@@ -167,7 +181,14 @@ magic.modules.Common = function () {
          */
         isLatitudeLike: function(key) {
            key = key.toLowerCase();
-           return(key == "lat" || key == "latitude" || key == "y");
+           var latKeys = ["^lat.*$", "^y$", "^ycoord.*$"];
+           for (var i = 0; i < latKeys.length; i++) {
+               var patt = new RegExp(latKeys[i]);
+               if (patt.test(key)) {
+                   return(true);
+               }
+           }
+           return(false);
         },
         /**
          * Does the given key name look like a date/time?
@@ -176,7 +197,14 @@ magic.modules.Common = function () {
          */
         isDatetimeLike: function(key) {
            key = key.toLowerCase();
-           return(key.indexOf("date") == 0 || key.indexOf("time") == 0 || key.indexOf("utc") != -1);
+           var dateKeys = ["^date.*$", "^time.*$", "^utc$", "^[^u]*update.*$"];
+           for (var i = 0; i < dateKeys.length; i++) {
+               var patt = new RegExp(dateKeys[i]);
+               if (patt.test(key)) {
+                   return(true);
+               }
+           }
+           return(false);
         },
         /**
          * Convert date value to format

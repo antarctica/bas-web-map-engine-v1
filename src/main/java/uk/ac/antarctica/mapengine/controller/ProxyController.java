@@ -8,6 +8,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import it.geosolutions.geoserver.rest.HTTPUtils;
 import java.io.IOException;
 import java.util.HashMap;
 import javax.servlet.ServletException;
@@ -141,6 +142,27 @@ public class ProxyController {
                 "$(\"body\").append(form);" + 
                 "form.submit();";
         IOUtils.write(content, response.getOutputStream());
+    }   
+    
+    /**
+     * Proxy a request to Geoserver REST API
+     *
+     * @param HttpServletRequest request
+     * @param String url
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/gsrest", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
+    @ResponseBody
+    public ResponseEntity<String> geoserverRest(HttpServletRequest request, @RequestParam(value = "url", required = true) String url) throws ServletException, IOException {
+        ResponseEntity<String> ret;
+        String content = HTTPUtils.get(url, "admin", "a44Gs#!!");
+        if (content != null) {
+            ret = packageResults(HttpStatus.OK, content, "", false, false);
+        } else {
+            ret = packageResults(HttpStatus.BAD_REQUEST, null, "Unexpected return from REST proxy", false, false);
+        }
+        return(ret);
     }   
 
     /**

@@ -84,11 +84,19 @@ magic.classes.FeaturePopup.prototype.show = function(showAt, featureData) {
         /* Probably from GetFeatureInfo */
         isGfi = true;
         showPopup = true;
-        collection = featureData.features;
+        $.each(featureData.features, function(idx, f) {
+            if (f.geometry != null) {
+                collection.push(f);
+            }
+        });
     } else if ($.isArray(featureData) && featureData.length > 0) {
         /* Vectors */
         showPopup = true;
-        collection = featureData;
+        $.each(featureData.features, function(idx, f) {
+            if (f.getGeometry()) {
+                collection.push(f);
+            }
+        });
     }    
     if (showPopup) {        
         this.popup.setPosition(showAt);
@@ -153,20 +161,26 @@ magic.classes.FeaturePopup.prototype.title = function() {
  */
 magic.classes.FeaturePopup.prototype.basicMarkup = function() {    
     var content = "";
+    var basicSchema = ["name", "lon", "lat", "date"];
     $.each(this.featureCollection, $.proxy(function(i, feat) {
-        var cad = this.coreAttributeData(feat);
+        var attrdata = this.prepareAttributeData(feat);
         content += '<div class="feature-popup-table-cont ' + (i > 0 ? "hidden" : "show") + '">';
         content += '<table class="table table-striped table-condensed feature-popup-table">';
-        $.each(cad.attrs, $.proxy(function(key, value) {
-            if (value) {
-                if ($.isNumeric(value)) {
-                    content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td align="right">' + value + '</td></tr>';
-                } else {
-                    content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td>' + value + '</td></tr>';
-                }   
+        $.each(basicSchema, $.proxy(function(idx, elt) {
+            var coreKey = attrdata.core[elt];
+            if (coreKey) {
+                var coreVal = attrdata.attrs[coreKey];
+                if (coreVal) {
+                    if ($.isNumeric(coreVal)) {
+                        content += '<tr><td>' + magic.modules.Common.initCap(coreKey) + '</td><td align="right">' + coreVal + '</td></tr>';
+                    } else {
+                        content += '<tr><td>' + magic.modules.Common.initCap(coreKey) + '</td><td>' + coreVal + '</td></tr>';
+                    }   
+                }
             }
         }, this));
-        if (cad.reduced) {
+        var totalKeys = magic.modules.Common.objectLength(attrdata.attrs);
+        if (totalKeys > basicSchema.length) {
             content += '<tr><td colspan="2" align="center"><button type="button" id="' + this.popupId + '-full-attr-set-' + i + '" class="btn btn-primary btn-xs">Full attribute set</button></td></tr>';
         }
         content += '</table>';
@@ -228,38 +242,25 @@ magic.classes.FeaturePopup.prototype.selectFeature = function() {
         var fidx = parseInt(btnId.substring(btnId.lastIndexOf("-")+1));
         if (!isNaN(fidx) && fidx < this.featureCollection.length) {
             /* Got an index into the current feature collection */
-            var data = this.gfi ? this.featureCollection[fidx]["properties"] : this.featureCollection[fidx].getProperties();
+            var attrdata = this.prepareAttributeData(this.featureCollection[fidx]);
             var keys = [];
-            for (var k in data) {
+            for (var k in attrdata.attrs) {
                 keys.push(k);
             }
             var content = '<table class="table table-striped table-condensed feature-popup-table">';
-            $.each(keys.sort(), $.proxy(function(idx, key) {
-                var value = data[key];
-                if (key != "gid") {
-                    if ($.isNumeric(value)) {
-                        if (Math.floor(value) != value) {
-                            /* Floating point */
-                            value = value.toFixed(4);
-                        }
-                        if (magic.modules.Common.isLongitudeLike(key)) {
-                            value = magic.runtime.preferences.applyPref("coordinates", value, "lon")
-                        } else if (magic.modules.Common.isLatitudeLike(key)) {
-                            value = magic.runtime.preferences.applyPref("coordinates", value, "lat")
-                        }
+            $.each(keys.sort(), function(idx, key) {
+                var value = attrdata.attrs[key];
+                if (value) {
+                    if ($.isNumeric(value)) {                        
                         content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td align="right">' + value + '</td></tr>';
-                    }
-                    else if (key.indexOf("geom") == -1 && key != "bbox" && key.indexOf("__") == -1 && value != null) {
-                        if (magic.modules.Common.isDatetimeLike(key)) {
-                            value = magic.runtime.preferences.applyPref("dates", value)
-                        }
+                    } else {                        
                         content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td>' + value + '</td></tr>';
-                    }    
+                    }
                 }
-            }, this));
+            });
             content += '</table>';
             $("#" + this.continuation + "-content").html(content);
-            $("#" + this.continuation).modal("show");
+            $("#" + this.continuation).modal("show");            
         }
     }, this));
     if (this.featureCollection.length > 1) {
@@ -326,68 +327,107 @@ magic.classes.FeaturePopup.prototype.fixPopoverPosition = function() {
  * Scan data object to isolate name, lon, lat values if possible
  * @param {Object} feat feature
  */
-magic.classes.FeaturePopup.prototype.coreAttributeData = function(feat) {
-    var coreAttrs = {}; 
-    var reduced = false;
-    var geomType = this.gfi ? feat.geometry.type : feat.getGeometry().getType();
-    var attrs = this.gfi ? feat.properties : feat.getProperties();
-    if (magic.modules.Common.objectLength(attrs) > 5 && geomType.toLowerCase() == "point") {
-        /* Try and extract a core set for points with a large number of attributes which would be hard to display in a single popup */
-        coreAttrs = {
-            name: null,
-            lon: null,
-            lat: null,
-            date: null
+magic.classes.FeaturePopup.prototype.prepareAttributeData = function(feat) {
+    var coreAttrs = {
+        name: null,
+        lon: null,
+        lat: null,
+        date: null
+    }, fullAttrs = {}; 
+    var geomType = (this.gfi ? (feat.geometry ? feat.geometry.type : "unknown") : (feat.getGeometry() ? feat.getGeometry().getType() : "unknown")).toLowerCase();
+    if (geomType != "unknown") {
+        var attrs = this.gfi ? feat.properties : feat.getProperties();
+        /* Sieve the attributes according to type, and cull unimportant ones */
+        var sieve = {
+            ints: [],
+            floats: [],
+            dates: [],
+            strings: []
         };
         $.each(attrs, $.proxy(function(key, value) {
-            if (coreAttrs.name == null && magic.modules.Common.isNameLike(key)) {
-                coreAttrs.name = value;
-            } else if (coreAttrs.lon == null && magic.modules.Common.isLongitudeLike(key)) {
-                coreAttrs.lon = magic.runtime.preferences.applyPref("coordinates", $.isNumeric(value) ? parseFloat(value).toFixed(4) : value, "lon");
-            } else if (coreAttrs.lat == null && magic.modules.Common.isLatitudeLike(key)) {
-                coreAttrs.lat = magic.runtime.preferences.applyPref("coordinates", $.isNumeric(value) ? parseFloat(value).toFixed(4) : value, "lat");
-            } else if (coreAttrs.date == null && magic.modules.Common.isDatetimeLike(key)) {
-                coreAttrs.date = magic.runtime.preferences.applyPref("dates", value);
+            if (!this.isCullable(key)) {
+                if ($.isNumeric(value)) {
+                    if (Math.floor(value) == value) {
+                        sieve.ints.push(key);
+                    } else {
+                        sieve.floats.push(key);
+                    }
+                } else if (!isNaN(Date.parse(value))) {
+                    sieve.dates.push(key);
+                } else {
+                    sieve.strings.push(key);
+                }            
             }
         }, this));
-        /* Fill in any remaining null values with defaults or best guesses */
-        if (coreAttrs.name == null || coreAttrs.name == "") {
-            coreAttrs.name = "Feature";
-        }
-        if (coreAttrs.lon == null || coreAttrs.lon == "" || coreAttrs.lat == null || coreAttrs.lat == "") {
+        /* Now have a sieve of attributes sorted by type */
+        $.each(sieve.ints, $.proxy(function(idx, key) {        
+            fullAttrs[key] = parseInt(attrs[key]);               
+        }, this));
+        $.each(sieve.floats, $.proxy(function(idx, key) {
+            if (geomType == "point" && magic.modules.Common.isLongitudeLike(key)) {
+                fullAttrs[key] = magic.runtime.preferences.applyPref("coordinates", parseFloat(attrs[key]).toFixed(4), "lon");
+                if (coreAttrs.lon == null) {
+                    coreAttrs.lon = key;
+                }
+            } else if (geomType == "point" && magic.modules.Common.isLatitudeLike(key)) {
+                fullAttrs[key] = magic.runtime.preferences.applyPref("coordinates", parseFloat(attrs[key]).toFixed(4), "lat");
+                if (coreAttrs.lat == null) {
+                    coreAttrs.lat = key;
+                }
+            } else {
+                fullAttrs[key] = parseFloat(attrs[key]).toFixed(2);
+            }       
+        }, this));
+        $.each(sieve.dates, $.proxy(function(idx, key) {
+            fullAttrs[key] = magic.runtime.preferences.applyPref("dates", attrs[key]);
+            if (magic.modules.Common.isDatetimeLike(key) && coreAttrs.date == null) {
+                coreAttrs.date = key;
+            }        
+        }, this));
+        $.each(sieve.strings, $.proxy(function(idx, key) {
+            fullAttrs[key] = attrs[key];
+            if (magic.modules.Common.isNameLike(key) && attrs[key] && new RegExp("^[A-Za-z0-9 -_]+$").test(attrs[key]) && coreAttrs.name == null) {
+                coreAttrs.name = key;
+            }        
+        }, this));
+        /* Now should have all core attributes filled in - check if any are missing */
+        if (geomType == "point" && (!coreAttrs.lon || !coreAttrs.lat)) {
             if (this.gfi) {
                 /* Project the geometry coordinates */
                 var coordWgs84 = ol.proj.transform(feat.geometry.coordinates, this.map.getView().getProjection(), "EPSG:4326");
-                coreAttrs.lon = magic.runtime.preferences.applyPref("coordinates", coordWgs84[0].toFixed(4), "lon");
-                coreAttrs.lat = magic.runtime.preferences.applyPref("coordinates", coordWgs84[1].toFixed(4), "lat");
+                fullAttrs["__lon"] = magic.runtime.preferences.applyPref("coordinates", coordWgs84[0].toFixed(4), "lon");
+                fullAttrs["__lat"] = magic.runtime.preferences.applyPref("coordinates", coordWgs84[1].toFixed(4), "lat");                        
             } else {
                 var pclone = feat.getGeometry().clone();
                 pclone.transform(this.map.getView().getProjection(), "EPSG:4326");
-                coreAttrs.lon = magic.runtime.preferences.applyPref("coordinates", pclone.getFirstCoordinate().toFixed(4), "lon");
-                coreAttrs.lat = magic.runtime.preferences.applyPref("coordinates", pclone.getLastCoordinate().toFixed(4), "lat");
+                fullAttrs["__lon"] = magic.runtime.preferences.applyPref("coordinates", pclone.getFirstCoordinate().toFixed(4), "lon");
+                fullAttrs["__lat"] = magic.runtime.preferences.applyPref("coordinates", pclone.getLastCoordinate().toFixed(4), "lat");
             }
+            coreAttrs.lon = "__lon";
+            coreAttrs.lat = "__lat";
         }
-        reduced = true;
-    } else {
-        $.each(attrs, $.proxy(function(key, value) {
-            key = key.toLowerCase();
-            if (key != "gid" && key != "id" && key != "bbox" && key.indexOf("geom") == -1) {
-                if (magic.modules.Common.isLongitudeLike(key)) {
-                    coreAttrs[key] = magic.runtime.preferences.applyPref("coordinates", value, "lon");
-                } else if (magic.modules.Common.isLatitudeLike(key)) {
-                    coreAttrs[key] = magic.runtime.preferences.applyPref("coordinates", value, "lat");
-                } else if (magic.modules.Common.isDatetimeLike(key)) {
-                    coreAttrs[key] = magic.runtime.preferences.applyPref("dates", value);
-                } else {
-                    coreAttrs[key] = value;
-                }
-            }            
-        }, this));
     }
     return({
-        attrs: coreAttrs,
-        reduced: reduced
+        attrs: fullAttrs,   /* Processed key/value pairs */
+        core: coreAttrs     /* Keys for the core attributes */
     });
+};
+
+/**
+ * Is this an important attribute or one that can be ignored?
+ * @param {string} attrKey
+ * @returns {Boolean}
+ */
+magic.classes.FeaturePopup.prototype.isCullable = function(attrKey) {
+    var cull = ["^id$", "^gid$", "^bbox$", "^geom.*$", "^__.*$", "^bounded.*$"];
+    attrKey = attrKey.toLowerCase();
+    for (var i = 0; i < cull.length; i++) {
+        var patt = new RegExp(cull[i]);
+        if (patt.test(attrKey)) {
+            return(true);
+        }
+    }
+    return(false);
 };
 
 /**

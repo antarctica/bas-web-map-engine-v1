@@ -269,7 +269,7 @@ magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
                             checkstate: checkState,
                             clickable: clickState,
                             timeseries: timeSeries,
-                            filterable: true,
+                            filterable: clickState,
                             filter: null,
                             attrs: null
                         }),
@@ -312,7 +312,7 @@ magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
                             checkstate: checkState,
                             clickable: clickState,
                             timeseries: timeSeries,
-                            filterable: true,
+                            filterable: clickState,
                             filter: null,
                             attrs: null
                         }),
