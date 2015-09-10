@@ -92,12 +92,13 @@ magic.classes.FeaturePopup.prototype.show = function(showAt, featureData) {
     } else if ($.isArray(featureData) && featureData.length > 0) {
         /* Vectors */
         showPopup = true;
-        $.each(featureData.features, function(idx, f) {
+        $.each(featureData, function(idx, f) {
             if (f.getGeometry()) {
                 collection.push(f);
             }
         });
-    }    
+    }
+    showPopup = collection.length > 0;    
     if (showPopup) {        
         this.popup.setPosition(showAt);
         var isGfi = "features" in featureData;

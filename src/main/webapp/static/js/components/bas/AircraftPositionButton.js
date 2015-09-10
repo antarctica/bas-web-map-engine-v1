@@ -68,7 +68,7 @@ magic.classes.AircraftPositionButton.prototype.activate = function () {
         fetch = true;
     } else {
         this.layer.setVisible(true);
-    }    
+    }   
     if (!this.insetLayer) {
         this.insetLayer = new ol.layer.Vector({
             name: "_bas_aircraft_locations_inset",
@@ -92,6 +92,8 @@ magic.classes.AircraftPositionButton.prototype.activate = function () {
     }
     this.btn.toggleClass("active");
     this.btn.attr("data-original-title", this.activeTitle).tooltip("fixTitle");
+    $(document).on("insetmapclosed", $.proxy(function(evt) {
+    }, this));
 };
 
 /**

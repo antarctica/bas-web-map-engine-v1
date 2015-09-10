@@ -34,7 +34,9 @@ magic.classes.ShipPositionButton = function (name, ribbon) {
             this.activate();
         }
     }, this));    
-    window.setTimeout(this.getData, 300000);    
+    window.setTimeout(this.getData, 300000);
+    $(document).on("insetmapclosed", $.proxy(function(evt) {
+    }, this));
 };
 
 magic.classes.ShipPositionButton.prototype.getButton = function () {

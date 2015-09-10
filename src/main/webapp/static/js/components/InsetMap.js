@@ -26,7 +26,7 @@ magic.classes.InsetMap = function() {
             })
         ],
         interactions: ol.interaction.defaults(),
-        target: "inset",
+        target: "inset-map",
         view: new ol.View({
             center: [0,0],
             minZoom: 1,
@@ -56,7 +56,7 @@ magic.classes.InsetMap = function() {
         this.map.setTarget("inset-map");
         /* Create a popup overlay and add handler to show it on clicking a feature */
         this.featureinfo = new magic.classes.FeaturePopup({
-            popupid: "inset-popup",
+            popupId: "inset-popup",
             map: this.map,
             mapdiv: "inset-map"
         });   
@@ -67,7 +67,9 @@ magic.classes.InsetMap = function() {
         }, this));
     }, this))
     .on("hidden.bs.popover", $.proxy(function() {
-        
+        this.featureinfo.hide();
+        /* Trigger insetmapclosed event */
+        $.event.trigger({type: "insetmapclosed"});
     }, this));
 };
 

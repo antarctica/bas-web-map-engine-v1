@@ -36,7 +36,6 @@ js/components/Geosearch.js
 js/components/Measurement.js
 js/components/OverviewMap.js
 js/components/InsetMap.js
-js/components/Download.js
 js/components/AttributionModal.js
 js/components/LayerTreeOptionsMenu.js
 js/components/LayerFilter.js

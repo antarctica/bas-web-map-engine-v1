@@ -41,18 +41,20 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
             .and()
             .logout()
             //.logoutSuccessUrl("/home/add")
-            .permitAll()
-            .invalidateHttpSession(true);
+            .permitAll();
+            /* Loses the CSRF token and causes an error */
+            //.invalidateHttpSession(true);
     }
 
     @Override
     public void configure(AuthenticationManagerBuilder auth) throws Exception {
-        //auth.jdbcAuthentication().dataSource(this.userDataSource);        
+        //auth.jdbcAuthentication().dataSource(this.userDataSource);         
         auth
             .ldapAuthentication()
             .userDnPatterns("uid={0},ou=People")
             .groupSearchBase(null)
-            .contextSource(this.contextSource);
+            .contextSource(this.contextSource); 
+        auth.authenticationProvider(new RamaddaAuthenticationProvider());
     }
     
 }
