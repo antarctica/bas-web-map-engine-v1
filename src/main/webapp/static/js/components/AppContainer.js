@@ -100,15 +100,20 @@ magic.classes.AppContainer = function (payload) {
         $("#overview-map-tool").closest("li").hide();
     }
 
-    if ($.inArray("download", payload.view.controls) != -1) {
-        /* Activate download */
-        magic.runtime.download = new magic.classes.Download({
-            target: "download-tool",
-            download_id: payload.sources.download_id
+    if ($.inArray("repository", payload.view.controls) != -1) {
+        /* Activate repository tool */
+        $("#repo-tool").closest("li").show();
+        $("#repo-tool").on("click", function(evt) {
+            evt.stopPropagation();
+            var repoUrl = payload.sources.repository;
+            if (magic.runtime.username) {
+                repoUrl = repoUrl.replace("{username}", magic.runtime.username);
+            }
+            window.open(repoUrl, "_blank");
         });
     } else {
         /* Hide the download button */
-        $("#download-tool").closest("li").hide();
+        $("#repo-tool").closest("li").hide();
     }
 
     /* Profile/preferences */

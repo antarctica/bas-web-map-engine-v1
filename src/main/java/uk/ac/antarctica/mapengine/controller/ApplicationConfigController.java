@@ -65,7 +65,7 @@ public class ApplicationConfigController {
         SOURCE_PARAMS.put("version", "1.0");
         SOURCE_PARAMS.put("logo", "1x1.png");
         SOURCE_PARAMS.put("favicon", "bas.ico");
-        SOURCE_PARAMS.put("download_id", "Javascript:void(0)");
+        SOURCE_PARAMS.put("repository", "");
         SOURCE_PARAMS.put("endpoint", "antarctic");
         SOURCE_PARAMS.put("workspace", "add");
         SOURCE_PARAMS.put("name_prefix", new String[]{"antarctic"});
