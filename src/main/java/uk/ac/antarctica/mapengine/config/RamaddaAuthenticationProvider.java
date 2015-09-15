@@ -24,7 +24,6 @@ public class RamaddaAuthenticationProvider implements AuthenticationProvider {
       throws RamaddaAuthenticationException {
         String name = authentication.getName();
         String password = authentication.getCredentials().toString();
-        System.out.println("Username: " + name + ", password: " + password);
         try {
             /* Use the credentials to try to authenticate against local Ramadda installation */
             String loginUrl = RAMADDA_LOGIN + "?output=xml&user.password=" + password + "&user.id=" + name;

@@ -69,7 +69,7 @@ public class ApplicationConfigController {
         SOURCE_PARAMS.put("endpoint", "antarctic");
         SOURCE_PARAMS.put("workspace", "add");
         SOURCE_PARAMS.put("name_prefix", new String[]{"antarctic"});
-        SOURCE_PARAMS.put("wms", BAS_MAPS + "antarctic");
+        SOURCE_PARAMS.put("wms", BAS_MAPS + "wms/antarctic");
         SOURCE_PARAMS.put("gazetteers", "cga");
         /* Map view metadata */
         HashMap<String,Object> VIEW_PARAMS = new HashMap();

@@ -39,19 +39,19 @@ public class Application extends SpringBootServletInitializer {
         contextSource.setPassword("password");
         return (contextSource);
     }
-
+    
     @Bean
     @Primary
-    @ConfigurationProperties(prefix = "datasource.gis")
-    public DataSource gisDataSource() {
-        return DataSourceBuilder.create().build();
-    }
-
-    @Bean
     @ConfigurationProperties(prefix = "datasource.user")
     public DataSource userDataSource() {
         return DataSourceBuilder.create().build();
     }
+
+    @Bean    
+    @ConfigurationProperties(prefix = "datasource.gis")
+    public DataSource gisDataSource() {
+        return DataSourceBuilder.create().build();
+    }   
 
     @Bean
     public JdbcTemplate userDataTpl() {

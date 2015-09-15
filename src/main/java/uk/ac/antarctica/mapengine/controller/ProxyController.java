@@ -36,6 +36,7 @@ public class ProxyController {
     private static final String[] ALLOWED_SERVERS = new String[]{
         "https://api.bas.ac.uk",
         "https://maps.bas.ac.uk",
+        "http://bslbatgis.nerc-bas.ac.uk",
         "http://rolgis.nerc-bas.ac.uk",
         "http://rolgis.rothera.nerc-bas.ac.uk"
     };
@@ -57,6 +58,7 @@ public class ProxyController {
             /* Allowed to call this API from here */
             boolean isGfi = url.toLowerCase().contains("getfeatureinfo");
             boolean isDft = url.toLowerCase().contains("describefeaturetype");
+            System.out.println("Proxying URL " + url);
             Request get = Request.Get(url)
                 .connectTimeout(60000)
                 .socketTimeout(60000);

@@ -13,12 +13,12 @@ magic.classes.AppContainer = function (payload) {
     magic.runtime.projection.setWorldExtent(viewData.proj_extent);
     magic.runtime.resolutions = viewData.resolutions;
     magic.runtime.center = viewData.center;
-    magic.runtime.rotation = viewData.rotation ? viewData.rotation * Math.PI / 180.0 : 0.0;
+    magic.runtime.rotation = viewData.rotation ? magic.modules.Common.toRadians(viewData.rotation) : 0.0;
     magic.runtime.view = new ol.View({
         center: viewData.center,
         maxResolution: viewData.resolutions[0],
         resolutions: viewData.resolutions,
-        rotation: viewData.rotation,
+        rotation: magic.runtime.rotation,
         zoom: viewData.zoom,
         projection: magic.runtime.projection
     });
@@ -35,6 +35,8 @@ magic.classes.AppContainer = function (payload) {
     });
     magic.runtime.map = new ol.Map({
         renderer: "canvas",
+        loadTilesWhileAnimating: true,
+        loadTilesWhileInteracting: true,
         layers: magic.runtime.layertree.getLayers(),
         controls: [
             new ol.control.ScaleLine({minWidth: 100, className: "custom-scale-line-top", units: "metric"}),

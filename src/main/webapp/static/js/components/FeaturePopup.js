@@ -167,21 +167,23 @@ magic.classes.FeaturePopup.prototype.basicMarkup = function() {
         var attrdata = this.prepareAttributeData(feat);
         content += '<div class="feature-popup-table-cont ' + (i > 0 ? "hidden" : "show") + '">';
         content += '<table class="table table-striped table-condensed feature-popup-table">';
+        var nDisplayed = 0;
         $.each(basicSchema, $.proxy(function(idx, elt) {
             var coreKey = attrdata.core[elt];
             if (coreKey) {
+                nDisplayed++;
                 var coreVal = attrdata.attrs[coreKey];
                 if (coreVal) {
                     if ($.isNumeric(coreVal)) {
                         content += '<tr><td>' + magic.modules.Common.initCap(coreKey) + '</td><td align="right">' + coreVal + '</td></tr>';
                     } else {
-                        content += '<tr><td>' + magic.modules.Common.initCap(coreKey) + '</td><td>' + coreVal + '</td></tr>';
+                        content += '<tr><td>' + magic.modules.Common.initCap(coreKey) + '</td><td>' + magic.modules.Common.linkify(coreVal) + '</td></tr>';
                     }   
                 }
             }
         }, this));
         var totalKeys = magic.modules.Common.objectLength(attrdata.attrs);
-        if (totalKeys > basicSchema.length) {
+        if (totalKeys > nDisplayed) {
             content += '<tr><td colspan="2" align="center"><button type="button" id="' + this.popupId + '-full-attr-set-' + i + '" class="btn btn-primary btn-xs">Full attribute set</button></td></tr>';
         }
         content += '</table>';
@@ -255,7 +257,7 @@ magic.classes.FeaturePopup.prototype.selectFeature = function() {
                     if ($.isNumeric(value)) {                        
                         content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td align="right">' + value + '</td></tr>';
                     } else {                        
-                        content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td>' + value + '</td></tr>';
+                        content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td>' + magic.modules.Common.linkify(value) + '</td></tr>';
                     }
                 }
             });
@@ -391,6 +393,10 @@ magic.classes.FeaturePopup.prototype.prepareAttributeData = function(feat) {
                 coreAttrs.name = key;
             }        
         }, this));
+        if (coreAttrs.name == null) {
+            /* Name will be the first string value */
+            coreAttrs.name = sieve.strings[0];
+        }
         /* Now should have all core attributes filled in - check if any are missing */
         if (geomType == "point" && (!coreAttrs.lon || !coreAttrs.lat)) {
             if (this.gfi) {

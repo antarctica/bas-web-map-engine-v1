@@ -90,7 +90,8 @@ magic.classes.FeatureInfoButton.prototype.queryFeatures = function (evt) {
                 "LAYERS": gfiParams.join(","),
                 "QUERY_LAYERS": gfiParams.join(","),
                 "INFO_FORMAT": "application/json", 
-                "FEATURE_COUNT": 10
+                "FEATURE_COUNT": 10,
+                "buffer": 10
             }
         ))).done($.proxy(function(data) {
             if ($.isArray(data.features) && data.features.length > 0) {

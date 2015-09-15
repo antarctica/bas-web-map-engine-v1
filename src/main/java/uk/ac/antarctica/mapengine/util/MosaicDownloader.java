@@ -1,5 +1,5 @@
 /*
- * Download mosaics according to schema in database table
+ * Download mosaics according to schema in database table (OpsGIS only)
  */
 package uk.ac.antarctica.mapengine.util;
 
@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 
@@ -29,11 +30,13 @@ public class MosaicDownloader {
     @Autowired
     private JdbcTemplate gisDataTpl;
     
-    /* User unit preferences table name */
-    private static final String MOSAICS_TABLE = "public.mosaics";
-    
+    @Autowired
+    private Environment env;
+       
     @Scheduled(initialDelay=60000, fixedDelay=3600000)
     public void downloadMosaics() {
+        
+        System.out.println(new Date().toString() + ": downloadMosaics entered");
         
         /* From : http://stackoverflow.com/questions/16702011/tomcat-deploying-the-same-application-twice-in-netbeans, answer by Basil Bourque */ 
         final String catalinaBase = System.getProperty("catalina.base");
@@ -44,67 +47,84 @@ public class MosaicDownloader {
             inDevelopment = Boolean.TRUE;
         }
         
-        if (!inDevelopment) {        
-            /* Now prepared to do the publishing proper */            
-            GeoServerRESTPublisher publisher = new GeoServerRESTPublisher("http://rolgis.nerc-bas.ac.uk/geoserver", "admin", "a44Gs#!!");
-            List<Map<String,Object>> instructions = userDataTpl.queryForList("SELECT * FROM " + MOSAICS_TABLE);
-            for (Map m : instructions) {
-                /* Unpack the instructions */
-                String mosaicName = (String)m.get("name");
-                String mosaicDir = System.getProperty("user.home") + "/geoserver_data/coverages/" + mosaicName;
-                String mosaicWs = (String)m.get("workspace");
-                String mosaicStyle = (String)m.get("style");
-                String mosaicTitle = (String)m.get("title");
-                String mosaicAbstract = (String)m.get("abstract");
-                int downloadInterval = (Integer)m.get("intl");
-                Date downloadedLast = null;
-                String dlStr = "never";
-                if (m.get("last") != null) {
-                    downloadedLast = (Date)m.get("last");
-                    dlStr = downloadedLast.toString();
-                }            
-                System.out.println("Instructions for mosaic " + mosaicName + ": style " + mosaicStyle + ", ws " + mosaicWs + ", interval " + downloadInterval + ", last downloaded " + dlStr);
-                if (downloadedLast == null || timeToDownload(downloadedLast, downloadInterval)) {
-                    try {
-                        /* Download the file */
-                        String downloadUrl = (String)m.get("url");
-                        if (downloadGranule(downloadUrl, downloadInterval, mosaicName, mosaicDir)) {
-                            /* Download ok - first remove the existing store from Geoserver, removing the PostGIS table as well */
-                            gisDataTpl.execute("DROP TABLE IF EXISTS public." + mosaicName + " CASCADE");
-                            publisher.removeCoverageStore(mosaicWs, mosaicName, true);
-                            System.out.println("Removed existing store");
-                            /* Now build the metadata to tell Geoserver this is a time layer */
-                            /* http://code.google.com/p/geoserver-manager/source/browse/wiki/PublishingLayersAdvanced.wiki?r=14 */
-                            GSCoverageEncoder encoder = new GSImageMosaicEncoder();
-                            GSDimensionInfoEncoder dim = new GSDimensionInfoEncoder(true);
-                            dim.setPresentation(GSDimensionInfoEncoder.Presentation.LIST);
-                            encoder.setMetadataDimension("time", dim);
-                            encoder.setName(mosaicName);
-                            encoder.setTitle(mosaicTitle);
-                            encoder.addKeyword("raster");
-                            encoder.setAbstract(mosaicAbstract + " Date of latest image : " + dlStr);
-                            encoder.setSRS("EPSG:3031");
-                            GSLayerEncoder layerEncoder = new GSLayerEncoder();
-                            if (mosaicStyle != null) {
-                                /* Set the style */
-                                layerEncoder.setDefaultStyle(mosaicStyle);
+        /* Where mosaic download instructions live */
+        String mosaicTable = env.getProperty("mosaic.instructions");
+        String mosaicGs = env.getProperty("mosaic.publisher");
+        String mosaicUsername = env.getProperty("mosaic.publisher.username");
+        String mosaicPassword = env.getProperty("mosaic.publisher.password");
+        
+        if (!inDevelopment && gisDataTpl != null && mosaicTable != null && !mosaicTable.isEmpty() && mosaicGs != null && !mosaicGs.isEmpty()) {        
+            /* Now prepared to do the publishing proper */
+            List<Map<String,Object>> instructions;
+            try {
+                instructions = userDataTpl.queryForList("SELECT * FROM " + mosaicTable);
+            } catch(Exception ex) {
+                instructions = null;
+            }
+            if (instructions != null) {
+                GeoServerRESTPublisher publisher = new GeoServerRESTPublisher(mosaicGs, mosaicUsername, mosaicPassword);
+                for (Map m : instructions) {
+                    /* Unpack the instructions */
+                    String mosaicName = (String)m.get("name");
+                    String mosaicDir = System.getProperty("user.home") + "/geoserver_data/coverages/" + mosaicName;
+                    String mosaicWs = (String)m.get("workspace");
+                    String mosaicStyle = (String)m.get("style");
+                    String mosaicTitle = (String)m.get("title");
+                    String mosaicAbstract = (String)m.get("abstract");
+                    int downloadInterval = (Integer)m.get("intl");
+                    Date downloadedLast = null;
+                    String dlStr = "never";
+                    if (m.get("last") != null) {
+                        downloadedLast = (Date)m.get("last");
+                        dlStr = downloadedLast.toString();
+                    }            
+                    System.out.println("Instructions for mosaic " + mosaicName + ": style " + mosaicStyle + ", ws " + mosaicWs + ", interval " + downloadInterval + ", last downloaded " + dlStr);
+                    if (downloadedLast == null || timeToDownload(downloadedLast, downloadInterval)) {
+                        try {
+                            /* Download the file */
+                            String downloadUrl = (String)m.get("url");
+                            if (downloadGranule(downloadUrl, downloadInterval, mosaicName, mosaicDir)) {
+                                /* Download ok - first remove the existing store from Geoserver, removing the PostGIS table as well */
+                                
+                                gisDataTpl.execute("DROP TABLE IF EXISTS public." + mosaicName + " CASCADE");
+                                publisher.removeCoverageStore(mosaicWs, mosaicName, true);
+                                System.out.println("Removed existing store");
+                                /* Now build the metadata to tell Geoserver this is a time layer */
+                                /* http://code.google.com/p/geoserver-manager/source/browse/wiki/PublishingLayersAdvanced.wiki?r=14 */
+                                GSCoverageEncoder encoder = new GSImageMosaicEncoder();
+                                GSDimensionInfoEncoder dim = new GSDimensionInfoEncoder(true);
+                                dim.setPresentation(GSDimensionInfoEncoder.Presentation.LIST);
+                                encoder.setMetadataDimension("time", dim);
+                                encoder.setName(mosaicName);
+                                encoder.setTitle(mosaicTitle);
+                                encoder.addKeyword("raster");
+                                encoder.setAbstract(mosaicAbstract + " Date of latest image : " + dlStr);
+                                encoder.setSRS("EPSG:3031");
+                                GSLayerEncoder layerEncoder = new GSLayerEncoder();
+                                if (mosaicStyle != null) {
+                                    /* Set the style */
+                                    layerEncoder.setDefaultStyle(mosaicStyle);
+                                }
+                                boolean published = publisher.publishExternalMosaic(mosaicWs, mosaicName, new File(mosaicDir), encoder, layerEncoder);       
+                                System.out.println("Publish " + (published ? "succeeded" : "failed"));
+                            } else {
+                                System.out.println("Failed to download the image granule");
                             }
-                            boolean published = publisher.publishExternalMosaic(mosaicWs, mosaicName, new File(mosaicDir), encoder, layerEncoder);       
-                            System.out.println("Publish " + (published ? "succeeded" : "failed"));
-                        } else {
-                            System.out.println("Failed to download the image granule");
+                        } catch(Exception ex) {
+                            System.out.println("Exception " + ex.getMessage() + " encountered");
                         }
-                    } catch(Exception ex) {
-                        System.out.println("Exception " + ex.getMessage() + " encountered");
+                    } else {
+                        /* Skipping this one as nothing to do */
+                        System.out.println("Nothing to do - download is up to date");
                     }
-                } else {
-                    /* Skipping this one as nothing to do */
-                    System.out.println("Nothing to do - download is up to date");
-                }
+                } 
+            } else {
+                System.out.println("No download instructions found - nothing to do");
             }
         } else {
             System.out.println("Skipping mosaic download as this is a development version");
         }
+        System.out.println(new Date().toString() + ": downloadMosaics entered");        
 	}
     
     /**
