@@ -36,14 +36,13 @@ public class HomeController {
      * Render application-specific home page (debug version)    
      * @param HttpServletRequest request,
      * @param String app
-     * @param Integer debug
      * @param ModelMap model
      * @return
      * @throws ServletException
      * @throws IOException
      */
-    @RequestMapping(value = "/home/{app}/{debug}", method = RequestMethod.GET)
-    public String appHomeDebug(HttpServletRequest request, @PathVariable("app") String app, @PathVariable("debug") Integer debug, ModelMap model) throws ServletException, IOException {      
+    @RequestMapping(value = "/debug/{app}", method = RequestMethod.GET)
+    public String appHomeDebug(HttpServletRequest request, @PathVariable("app") String app, ModelMap model) throws ServletException, IOException {      
         return(setHomeParameters(request, app, true, model)); 
     }
     

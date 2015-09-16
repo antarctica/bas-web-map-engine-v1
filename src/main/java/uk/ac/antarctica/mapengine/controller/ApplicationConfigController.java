@@ -5,18 +5,24 @@ package uk.ac.antarctica.mapengine.controller;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import it.geosolutions.geoserver.rest.GeoServerRESTReader;
 import java.io.IOException;
 import java.net.URL;
+import java.security.Principal;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.fluent.Request;
+import org.apache.http.util.EntityUtils;
 import org.geotools.data.ows.CRSEnvelope;
 import org.geotools.data.ows.Layer;
 import org.geotools.data.ows.SimpleHttpClient;
@@ -37,6 +43,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import uk.ac.antarctica.mapengine.config.RamaddaConnectionException;
 
 @RestController
 public class ApplicationConfigController {
@@ -69,7 +76,7 @@ public class ApplicationConfigController {
         SOURCE_PARAMS.put("endpoint", "antarctic");
         SOURCE_PARAMS.put("workspace", "add");
         SOURCE_PARAMS.put("name_prefix", new String[]{"antarctic"});
-        SOURCE_PARAMS.put("wms", BAS_MAPS + "wms/antarctic");
+        SOURCE_PARAMS.put("wms", BAS_MAPS + "/antarctic/wms");
         SOURCE_PARAMS.put("gazetteers", "cga");
         /* Map view metadata */
         HashMap<String,Object> VIEW_PARAMS = new HashMap();
@@ -144,6 +151,9 @@ public class ApplicationConfigController {
                 (String[])layerData.get("singletile_layers")                
             )
         );
+        
+        /* Look for user layers in the repository if present */
+        appendUserLayers(treeDef, sourceData, usermap, request.getUserPrincipal());
                 
         /* Assemble final payload */
         JsonObject payload = new JsonObject();
@@ -181,6 +191,146 @@ public class ApplicationConfigController {
             }
         }
         return(out);
+    }
+    
+    /**
+     * Scan repository if present and assemble a sub-tree of user-defined layers
+     * @param JsonArray treeDef 
+     * @param HashMap<String,Object> mapdata
+     * @param String usermap
+     * @param Principal userdata
+     */
+    private void appendUserLayers(JsonArray treeDef, HashMap<String, Object> mapdata, String usermap, Principal userdata) {
+        Object repoObj = mapdata.containsKey("repository") ? mapdata.get("repository") : null;
+        if (repoObj != null) {
+            String repo = (String)repoObj;
+            if (!repo.isEmpty()) {
+                /* Scan the locations defined as containing:
+                 * Global (public) layers
+                 * <repo>/Data/default
+                 * <repo>/Data/<usermap>
+                 * User (private) layers
+                 * <repo>/Users/<username>
+                 * <repo>/Users/<username>/<usermap>
+                 */
+                JsonArray userLayers = new JsonArray();
+                JsonArray publicLayers = new JsonArray();
+                String username = userdata != null ? userdata.getName() : null;
+                ArrayList<String> repoLocations = new ArrayList();
+                if (username != null) {
+                    /* Add some user-specific locations */
+                    repoLocations.add(repo + "/Users/" + username);
+                    if (usermap != null && !usermap.isEmpty()) {
+                        repoLocations.add(repo + "/Users/" + username + "/" + usermap);
+                    }
+                }
+                /* Add global locations */
+                repoLocations.add(repo + "/Data/default");
+                repoLocations.add(repo + "/Data/" + usermap);
+                try {
+                    for (String loc : repoLocations) {
+                        if (loc.contains("/Users/")) {
+                            repoTreewalk(userLayers, loc);
+                        } else {
+                            repoTreewalk(publicLayers, loc);
+                        }
+                    }
+                    if (userLayers.size() > 0) {
+                        JsonObject ulo = new JsonObject();
+                        JsonObject state = new JsonObject();
+                        state.addProperty("expanded", true);
+                        String uname = username != null ? (username.substring(0, 1).toUpperCase() + username.substring(1) + " user ") : "User ";
+                        ulo.addProperty("text",  uname + "layers");
+                        ulo.add("nodes", userLayers);                                        
+                        ulo.add("state", state);
+                        treeDef.add(ulo);
+                    }
+                    if (publicLayers.size() > 0) {
+                        JsonObject plo = new JsonObject();
+                        JsonObject state = new JsonObject();
+                        state.addProperty("expanded", true);
+                        plo.addProperty("text", "Public layers");
+                        plo.add("nodes", publicLayers);                                        
+                        plo.add("state", state);
+                        treeDef.add(plo);
+                    }
+                } catch(RamaddaConnectionException rce) {
+                } 
+            }
+        }
+    }
+    
+    /**
+     * Walk the tree of JSON data returned from the repository under repoUrl
+     * @param JsonArray layers
+     * @param String repoUrl 
+     */
+    private void repoTreewalk(JsonArray layers, String repoUrl) throws RamaddaConnectionException {
+        String content = retrieveRepoData(repoUrl + (repoUrl.contains("?") ? "&" : "?") + "output=json");
+        if (content != null) {
+            JsonElement jel = new JsonParser().parse(content);
+            if (jel != null) {
+                JsonArray jarr = jel.getAsJsonArray();
+                boolean addNode = true;
+                for (int i = 0; i < jarr.size(); i++) {
+                    JsonObject jo = jarr.get(i).getAsJsonObject();
+                    JsonObject newJo = new JsonObject();
+                    addNode = true;
+                    if (jo.has("isGroup")) {
+                        /* Array => folder in the repo so recurse */
+                        JsonArray nodes = new JsonArray();
+                        newJo.add("nodes", nodes);                
+                        JsonObject state = new JsonObject();
+                        state.addProperty("expanded", true);
+                        String name = jo.get("name").getAsString();
+                        newJo.addProperty("text", name.substring(0, 1).toUpperCase() + name.substring(1));
+                        newJo.addProperty("nodeid", jo.get("id").getAsString());
+                        newJo.add("state", state);
+                        repoTreewalk(nodes, repoUrl + "/" + jo.get("name").getAsString() + "?entryid=" + jo.get("id").getAsString());
+                    } else {
+                        /* Object => leaf node in the repo */
+                        String type = jo.get("type").getAsString();
+                        if (type.equals("geo_kml") || type.equals("geo_gpx")) {
+                            /* GPX or KML/KMZ file */
+                            JsonObject state = new JsonObject();
+                            state.addProperty("checked", false);
+                            state.addProperty("clickable", true); 
+                            newJo.addProperty("text", jo.get("name").getAsString());
+                            newJo.addProperty("nodeid", jo.get("id").getAsString());
+                            newJo.add("props", jo);
+                            newJo.add("state", state);
+                        } else {
+                            addNode = false;
+                        }
+                    }
+                    if (addNode) {
+                        layers.add(newJo);
+                    }
+                }
+            }
+        }
+    }
+    
+    /**
+     * Connect to repository and retrieve data from given url
+     * @param String url
+     * @return String
+     * @throws RamaddaConnectionException 
+     */
+    private String retrieveRepoData(String url) throws RamaddaConnectionException {
+        String content = null;
+        try {
+            Request get = Request.Get(url)
+                .connectTimeout(5000)
+                .socketTimeout(5000);       
+            HttpResponse response = get.execute().returnResponse();
+            if (response.getStatusLine().getStatusCode() < 400) {
+                content = EntityUtils.toString(response.getEntity(), "UTF-8");
+            } 
+        } catch(Exception ex) {
+            throw new RamaddaConnectionException("Failed to connect to repo, error was: " + ex.getMessage());
+        }
+        return(content);
     }
     
     /**
@@ -485,7 +635,7 @@ public class ApplicationConfigController {
         }
         return(false);
     }      
-    
+       
     private class LayerTreeData {
         
         int nodeId = 0;

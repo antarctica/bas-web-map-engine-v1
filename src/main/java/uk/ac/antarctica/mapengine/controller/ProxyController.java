@@ -60,8 +60,8 @@ public class ProxyController {
             boolean isDft = url.toLowerCase().contains("describefeaturetype");
             System.out.println("Proxying URL " + url);
             Request get = Request.Get(url)
-                .connectTimeout(60000)
-                .socketTimeout(60000);
+                .connectTimeout(10000)
+                .socketTimeout(10000);
             if (request.getHeader("Authorization") != null) {                
                 get.addHeader("Authorization", request.getHeader("Authorization"));
             }
@@ -80,6 +80,36 @@ public class ProxyController {
     }
     
     /**
+     * Proxy for Ramadda download of XML files
+     *
+     * @param HttpServletRequest request
+     * @param String url
+     * @return String
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/xmlproxy", method = RequestMethod.GET, produces = {"application/xml; charset=utf-8", "text/xml; charset=utf-8"})
+    public void xmlProxy(HttpServletRequest request, HttpServletResponse response, @RequestParam(value = "url", required = true) String url) throws ServletException, IOException {
+        String content = "";
+        if (isAllowed(url)) {
+            /* Allowed to call this URL from here */           
+            System.out.println("Proxying XML URL " + url);
+            Request get = Request.Get(url)
+                .connectTimeout(10000)
+                .socketTimeout(10000);           
+            HttpResponse httpResponse = get.execute().returnResponse();
+            int code = httpResponse.getStatusLine().getStatusCode();
+            content = EntityUtils.toString(httpResponse.getEntity(), "UTF-8");
+            if (code >= 400) {
+                content = xmlExceptionReport(code + "", "Status " + code + " from proxy");
+            }
+        } else {
+            content = xmlExceptionReport("400", "Bad request " + url);
+        }
+        IOUtils.write(content, response.getOutputStream());
+    }
+    
+    /**
      * Proxy an authentication token request for the aircraft API
      *
      * @param HttpServletRequest request
@@ -94,8 +124,8 @@ public class ProxyController {
         ResponseEntity<String> ret;
         HttpResponse response = Request.Post("https://api.bas.ac.uk/aircraft/v1/tokens")
                 .bodyString("{\"username\": \"basfids\", \"password\": \"r0thera14\"}", ContentType.APPLICATION_JSON)
-                .connectTimeout(60000)
-                .socketTimeout(60000)
+                .connectTimeout(10000)
+                .socketTimeout(10000)
                 .execute()
                 .returnResponse();
         int code = response.getStatusLine().getStatusCode();
@@ -228,5 +258,16 @@ public class ProxyController {
         }
         return (false);
     }
+    
+    private static String xmlExceptionReport(String code, String msg) {
+		return(
+			"<?xml version=\"1.0\" ?>" +
+			"<ExceptionReport> " +
+				"<Exception code=\"" + code + "\">" +
+					"<ExceptionText>" + msg + "</ExceptionText>" +
+				"</Exception>" +
+			"</ExceptionReport>"
+		);
+	}
           
 }

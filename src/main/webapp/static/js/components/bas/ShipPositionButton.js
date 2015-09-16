@@ -184,7 +184,7 @@ magic.classes.ShipPositionButton.prototype.getData = function() {
         }, this),
         error: function(jqXhr, status, msg) {
             if (status && msg) {
-                alert("Error: " + status + " " + msg + " - potential network outage?");
+                alert("Error: " + status + " " + msg + " getting vessel positions - potential network outage?");
             } else {
                 alert("Failed to get ship positional data - potential network outage?");
             }      

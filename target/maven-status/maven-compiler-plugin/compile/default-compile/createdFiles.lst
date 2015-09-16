@@ -9,6 +9,7 @@ uk\ac\antarctica\mapengine\controller\HomeController.class
 uk\ac\antarctica\mapengine\util\MosaicDownloader.class
 uk\ac\antarctica\mapengine\config\ThymeleafConfig.class
 uk\ac\antarctica\mapengine\config\CustomServletContextListener.class
+uk\ac\antarctica\mapengine\config\RamaddaConnectionException.class
 uk\ac\antarctica\mapengine\config\RamaddaAuthenticationException.class
 uk\ac\antarctica\mapengine\Application$SessionListener.class
 uk\ac\antarctica\mapengine\config\ApplicationSecurity.class

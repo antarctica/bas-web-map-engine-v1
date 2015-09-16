@@ -33,11 +33,11 @@ magic.classes.LayerTree = function(target, treedata, sourceData) {
     
     /* Assign layer visibility handlers */
     $("input.layer-vis-selector").change($.proxy(function(evt) {
-        var id = evt.currentTarget.id;
-        var nodeid = id.substring(id.lastIndexOf("-")+1);
+        var id = evt.currentTarget.id;    
+        var nodeid = this.getNodeId(id);
         var layer = this.nodeLayerTranslation[nodeid];
         if (id.indexOf("base-layer-rb") != -1) {
-            /* Base layer visibility change */
+            /* Base layer visibility change */           
             var isRaster = this.isRasterLayer(layer), exIsRaster = false;
             $.each(this.baseLayers, $.proxy(function(bli, bl) {
                 if (bl.getVisible() && this.isRasterLayer(bl)) {
@@ -60,7 +60,7 @@ magic.classes.LayerTree = function(target, treedata, sourceData) {
                 layer: layer
             });
         } else {
-            /* Overlay layer visibility change */
+            /* Overlay layer visibility change */            
             layer.setVisible(evt.currentTarget.checked);
         }
     }, this));
@@ -69,7 +69,7 @@ magic.classes.LayerTree = function(target, treedata, sourceData) {
     $("input.layer-vis-group-selector").change($.proxy(function(evt) {
         var checked = evt.currentTarget.checked;
         $(evt.currentTarget).parent().next().find("li").each($.proxy(function(idx, elt) {
-            var nodeid = elt.id.substring(elt.id.lastIndexOf("-")+1);
+            var nodeid = this.getNodeId(elt.id);
             var lyr = this.nodeLayerTranslation[nodeid];
             if (lyr) {
                 lyr.setVisible(checked);
@@ -83,14 +83,14 @@ magic.classes.LayerTree = function(target, treedata, sourceData) {
     /* The get layer info buttons */
     $("span[id^='layer-info-']").on("click", $.proxy(function(evt) {
         var id = evt.currentTarget.id;
-        var nodeid = id.substring(id.lastIndexOf("-")+1);       
+        var nodeid = this.getNodeId(id);       
         magic.runtime.attribution.show(this.nodeLayerTranslation[nodeid]);
     }, this));            
     
     /* Layer dropdown handlers */           
     $("a.layer-tool").click($.proxy(function(evt) {
         var id = evt.currentTarget.id;
-        var nodeid = id.substring(id.lastIndexOf("-")+1);
+        var nodeid = this.getNodeId(id);
         new magic.classes.LayerTreeOptionsMenu({
             nodeid: nodeid,
             layer: this.nodeLayerTranslation[nodeid]
@@ -170,7 +170,8 @@ magic.classes.LayerTree.prototype.isRasterLayer = function(layer) {
  * @param {jQuery,Object} element
  * @param {int} depth
  */
-magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {    
+magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
+    var stylePaletteEntry = 0;
     $.each(nodes, $.proxy(function (i, nd) {
         var indent = 8*depth;
         if ($.isArray(nd.nodes)) {
@@ -258,7 +259,37 @@ magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
             if (nd.props) {
                 /* Create a data layer */
                 var layer = null;
-                if (singleTileState) {
+                if (!$.isNumeric(nd.nodeid) && magic.runtime.repository) {
+                    /* Vector GPX or KML layer */
+                    var format = null;
+                    if (nd.props.type == "geo_kml") {
+                        format = new ol.format.KML();
+                    } else if (nd.props.type == "geo_gpx") {
+                        format = new ol.format.GPX();
+                    }
+                    var url = magic.runtime.repository.replace("/show/", "/get/") + "?entryid=" + nd.nodeid;
+                    var source = new ol.source.Vector({
+                        format: format,
+                        url: magic.config.paths.baseurl + "/xmlproxy?url=" + encodeURIComponent(url)
+                    });
+                    layer = new ol.layer.Vector({
+                        name: nd.props.name,
+                        source: source,
+                        updateWhileAnimating: true,
+                        updateWhileInteracting: true,
+                        visible: false,
+                        style: magic.modules.Common.fetchStyle(nd.props.geometry.type, stylePaletteEntry++),
+                        metadata: $.extend({}, nd.props, {
+                            nodeid: nd.nodeid, 
+                            checkstate: false,
+                            clickable: true,
+                            timeseries: false,
+                            filterable: false,
+                            filter: null,
+                            attrs: null
+                        })
+                    });
+                } else if (singleTileState) {
                     /* Render point layers with a single tile for labelling free of tile boundary effects */
                     layer = new ol.layer.Image({
                         name: name,
@@ -331,4 +362,20 @@ magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
             }
         }
     }, this));    
+};
+
+/**
+ * Translate an element id to a node id
+ * @returns {string}
+ */
+magic.classes.LayerTree.prototype.getNodeId = function(eltId) {
+    var nodeid = null;
+    if (eltId.length > 36) {
+        /* A Ramadda-style node id - fixed length of 36 characters */
+        nodeid = eltId.substr(eltId.length - 36);
+    } else {
+        /* Node id is number after last '-' */
+        nodeid = eltId.substring(eltId.lastIndexOf("-")+1);
+    }
+    return(nodeid);
 };

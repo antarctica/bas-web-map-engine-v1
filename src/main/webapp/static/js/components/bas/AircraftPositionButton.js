@@ -205,7 +205,7 @@ magic.classes.AircraftPositionButton.prototype.getData = function() {
                 }, this),
                 error: function(jqXhr, status, msg) {
                     if (status && msg) {
-                        alert("Error: " + status + " " + msg + " - potential network outage?");
+                        alert("Error: " + status + " " + msg + " getting aircraft positions - potential network outage?");
                     } else {
                         alert("Failed to get aircraft positional data - potential network outage?");
                     }      
@@ -214,7 +214,7 @@ magic.classes.AircraftPositionButton.prototype.getData = function() {
         }, this),
         error: function(jqXhr, status, msg) {
             if (status && msg) {
-                alert("Error: " + status + " " + msg + " - potential network outage?");
+                alert("Error: " + status + " " + msg + " getting aircraft API token - potential network outage?");
             } else {
                 alert("Failed to get aircraft API token - potential network outage?");
             }            

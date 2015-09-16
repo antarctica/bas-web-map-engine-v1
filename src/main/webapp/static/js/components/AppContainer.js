@@ -24,6 +24,7 @@ magic.classes.AppContainer = function (payload) {
     });
 
     /* Set up layer tree */
+    magic.runtime.repository = payload.sources.repository;
     magic.runtime.layertree = new magic.classes.LayerTree("layer-tree", payload.tree, payload.sources);
 
     /* Set up OL map */
@@ -101,16 +102,13 @@ magic.classes.AppContainer = function (payload) {
         /* Hide the overview map button */
         $("#overview-map-tool").closest("li").hide();
     }
-
-    if ($.inArray("repository", payload.view.controls) != -1) {
-        /* Activate repository tool */
+    
+    if ($.inArray("repository", payload.view.controls) != -1 && magic.runtime.repository) {
+        /* Activate repository tool */        
         $("#repo-tool").closest("li").show();
         $("#repo-tool").on("click", function(evt) {
             evt.stopPropagation();
-            var repoUrl = payload.sources.repository;
-            if (magic.runtime.username) {
-                repoUrl = repoUrl.replace("{username}", magic.runtime.username);
-            }
+            var repoUrl = magic.runtime.repository;            
             window.open(repoUrl, "_blank");
         });
     } else {

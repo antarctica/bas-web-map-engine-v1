@@ -97,16 +97,7 @@ magic.modules.Common = function () {
                 var styling = {};
                 if (geomType == "Point" || geomType == "MultiPoint") {
                     /* Create image */
-                    styling.image = new ol.style.Circle({
-                        fill: new ol.style.Fill({
-                            color: this.rgbToDec(this.color_palette[paletteEntry], 0.5)
-                        }),
-                        radius: style.radius || 5,
-                        stroke: new ol.style.Stroke({
-                            color: this.rgbToDec(this.color_palette[paletteEntry]),
-                            width: style.width || 1
-                        })
-                    });                                        
+                    styling.image = this.getPointImageStyle(paletteEntry)                 
                 } else if (geomType == "LineString" || geomType == "MultiLineString") {
                     styling.stroke = new ol.style.Stroke({
                         color: this.rgbToDec(this.color_palette[paletteEntry]),
@@ -141,6 +132,68 @@ magic.modules.Common = function () {
             } else {
                 return(null);
             }            
+        },
+        /**
+         * Make some different choices for icon style for points to allow more distinction between layers on the map
+         * Supports:
+         * - circle
+         * - star
+         * - square
+         * - triangle
+         * @param {int} paletteEntry
+         * @returns {ol.style.<Circle|RegularShape>}
+         */
+        getPointImageStyle: function(paletteEntry) {
+            var idx = paletteEntry % 4;
+            if (idx == 0) {
+                return(new ol.style.Circle({
+                    fill: new ol.style.Fill({
+                        color: this.rgbToDec(this.color_palette[paletteEntry], 0.5)
+                    }),
+                    radius: 5,
+                    stroke: new ol.style.Stroke({
+                        color: this.rgbToDec(this.color_palette[paletteEntry]),
+                        width: 1
+                    })
+                }));       
+            } else if (idx == 1) {
+                return(new ol.style.RegularShape({
+                    rotation: 0,
+                    radius1: 3,
+                    radius2: 5,
+                    fill: new ol.style.Fill({
+                        color: this.rgbToDec(this.color_palette[paletteEntry], 0.5)
+                    }),
+                    stroke: new ol.style.Stroke({
+                        color: this.rgbToDec(this.color_palette[paletteEntry]),
+                        width: 1
+                    })
+                }));
+            } else if (idx == 2) {
+                return(new ol.style.RegularShape({
+                    points: 4,
+                    radius: 5,
+                    fill: new ol.style.Fill({
+                        color: this.rgbToDec(this.color_palette[paletteEntry], 0.5)
+                    }),
+                    stroke: new ol.style.Stroke({
+                        color: this.rgbToDec(this.color_palette[paletteEntry]),
+                        width: 1
+                    })
+                }));
+            } else if (idx == 3) {
+                return(new ol.style.RegularShape({
+                    points: 3,
+                    radius: 5,
+                    fill: new ol.style.Fill({
+                        color: this.rgbToDec(this.color_palette[paletteEntry], 0.5)
+                    }),
+                    stroke: new ol.style.Stroke({
+                        color: this.rgbToDec(this.color_palette[paletteEntry]),
+                        width: 1
+                    })
+                }));
+            }
         },
         /**
          * Does the given key name look name-like?

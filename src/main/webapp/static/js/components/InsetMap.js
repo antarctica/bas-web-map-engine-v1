@@ -67,7 +67,9 @@ magic.classes.InsetMap = function() {
         }, this));
     }, this))
     .on("hidden.bs.popover", $.proxy(function() {
-        this.featureinfo.hide();
+        if (this.featureinfo) {
+            this.featureinfo.hide();
+        }
         /* Trigger insetmapclosed event */
         $.event.trigger({type: "insetmapclosed"});
     }, this));

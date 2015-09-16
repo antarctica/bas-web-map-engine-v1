@@ -159,8 +159,11 @@ magic.classes.LayerTreeOptionsMenu.prototype.extentFromMetadata = function() {
         if (md.bboxsrs) {
             extent = md.bboxsrs;
         } else if (md.bboxwgs84) {
-             extent = magic.modules.GeoUtils.extentFromWgs84Extent(md.bboxwgs84);
-        }       
+            extent = magic.modules.GeoUtils.extentFromWgs84Extent(md.bboxwgs84);
+        } else if (md.bbox) {
+            /* GPX or KML layer */
+            extent = magic.modules.GeoUtils.extentFromWgs84Extent(md.bbox);
+        }
     }    
     return(extent);
 };

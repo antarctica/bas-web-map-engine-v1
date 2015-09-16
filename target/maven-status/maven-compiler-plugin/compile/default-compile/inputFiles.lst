@@ -3,6 +3,7 @@ C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\config\RamaddaAuthent
 C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\Application.java
 C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\controller\ProxyController.java
 C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\config\ThymeleafConfig.java
+C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\config\RamaddaConnectionException.java
 C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\controller\PingController.java
 C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\config\ApplicationSecurity.java
 C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\util\ActivityLogger.java
