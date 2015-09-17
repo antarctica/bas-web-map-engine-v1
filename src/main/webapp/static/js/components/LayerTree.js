@@ -280,7 +280,12 @@ magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
                         visible: false,
                         style: magic.modules.Common.fetchStyle(nd.props.geometry.type, stylePaletteEntry++),
                         metadata: $.extend({}, nd.props, {
-                            nodeid: nd.nodeid, 
+                            nodeid: nd.nodeid,
+                            abstract: this.getUserLayerAbstract(nd.props),
+                            wmsfeed: this.getUserLayerDownloadUrl(nd.props),
+                            bboxwgs84: nd.props.bbox,
+                            metadataurl: this.getUserLayerMetadataUrl(nd.props),
+                            srs: "EPSG:4326",
                             checkstate: false,
                             clickable: true,
                             timeseries: false,
@@ -291,12 +296,19 @@ magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
                     });
                 } else if (singleTileState) {
                     /* Render point layers with a single tile for labelling free of tile boundary effects */
+                    var wmsSource = new ol.source.ImageWMS(({
+                        /* TODO: revisit for WebGL - may need crossOrigin = true here */
+                        url: this.sourcedata.wms,
+                        params: {"LAYERS": nd.props.name},
+                        projection: magic.runtime.projection
+                    }));
                     layer = new ol.layer.Image({
                         name: name,
                         visible: checkState,
                         opacity: 1.0,
                         metadata: $.extend({}, nd.props, {
                             nodeid: nd.nodeid, 
+                            srs: wmsSource.getProjection().getCode(),
                             checkstate: checkState,
                             clickable: clickState,
                             timeseries: timeSeries,
@@ -304,11 +316,7 @@ magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
                             filter: null,
                             attrs: null
                         }),
-                        source: new ol.source.ImageWMS(({
-                            /* TODO: revisit for WebGL - may need crossOrigin = true here */
-                            url: this.sourcedata.wms,
-                            params: {"LAYERS": nd.props.name}
-                        }))
+                        source: wmsSource 
                     });      
                 } else {
                     /* Non-point layer, or layer not keyworded with point tag */
@@ -318,7 +326,7 @@ magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
                         /* Rasters will be opaque */
                         opacity = 1.0
                     }                    
-                    var wmsSource = wmsSource = new ol.source.TileWMS({
+                    var wmsSource = new ol.source.TileWMS({
                         url: this.sourcedata.wms,
                         params: {
                             "LAYERS": nd.props.name, 
@@ -339,7 +347,8 @@ magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
                         visible: checkState,
                         opacity: opacity,
                         metadata: $.extend({}, nd.props, {
-                            nodeid: nd.nodeid, 
+                            nodeid: nd.nodeid,
+                            srs: wmsSource.getProjection().getCode(),
                             checkstate: checkState,
                             clickable: clickState,
                             timeseries: timeSeries,
@@ -378,4 +387,56 @@ magic.classes.LayerTree.prototype.getNodeId = function(eltId) {
         nodeid = eltId.substring(eltId.lastIndexOf("-")+1);
     }
     return(nodeid);
+};
+
+/**
+ * Construct an abstract for a user layer
+ * @returns {string}
+ */
+magic.classes.LayerTree.prototype.getUserLayerAbstract = function(props) {
+    var abstract = "";
+    if (props) {
+        var lines = [];
+        var triggers = ["description", "filename", "filesize", "typeName", "createDate", "creator"];
+        var labels = ["", "Uploaded file: ", "File size: ", "File type: ", "Created on: ", "Creator: "];
+        $.each(triggers, function(idx, t) {
+            if (props[t]) {
+                var value = t == "filesize" ? magic.modules.Common.fileSize(props[t]) : props[t];
+                lines.push(labels[idx] + value);
+            }
+        });
+        abstract = lines.join("<br />");
+    }
+    return(abstract);
+};
+
+/**
+ * Construct a metadata URL for a user layer
+ * @returns {Object}
+ */
+magic.classes.LayerTree.prototype.getUserLayerMetadataUrl = function(props) {
+    var mdUrl = {};
+    if (props && $.isArray(props.services) && props.services.length > 0) {
+        mdUrl = {url: props.services[0].url};
+    }
+    return(mdUrl);
+};
+
+/**
+ * Construct a download URL for the underlying file of a user layer
+ * @returns {string}
+ */
+magic.classes.LayerTree.prototype.getUserLayerDownloadUrl = function(props) {
+    var dldUrl = "";
+    if (props && $.isArray(props.services) && props.services.length > 0) {
+        var getUrl = props.services[0].url;
+        if (getUrl) {
+            dldUrl = getUrl.replace("/entry/show", "/entry/get");
+            var ampPos = dldUrl.indexOf("&");
+            if (ampPos != -1) {
+                dldUrl = dldUrl.substring(0, ampPos);
+            }
+        }
+    }
+    return(dldUrl);
 };

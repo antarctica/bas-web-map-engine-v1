@@ -148,22 +148,30 @@ magic.classes.AttributionModal.prototype.metadataMarkup = function() {
                         }
                         break;
                     case "wms":
-                        var proj = magic.runtime.projection.getCode();
-                        var getMap = this.wms + "?" + 
-                            "SERVICE=WMS&" + 
-                            "VERSION=1.3.0&" + 
-                            "REQUEST=GetMap&" + 
-                            "FORMAT=image/png&" + 
-                            "TRANSPARENT=true&" + 
-                            "LAYERS=" + md.name + "&" + 
-                            "CRS=" + proj + "&" + 
-                            "SRS=" + proj + "&" + 
-                            "TILED=true&" + 
-                            "WIDTH=1000&" + 
-                            "HEIGHT=1000&" + 
-                            "STYLES=&" + 
-                            "BBOX=" + magic.runtime.projection.getExtent().join(",");
-                        content += '<tr><td valign="top">' + mf.caption + '</td><td class="metadata"><a href="' + getMap + '" target="_blank">[external resource]</a></td></tr>';
+                        if (value) {
+                            var icon = "";
+                            if (md.icon) {
+                                icon = '<img src="' + md.icon + '" alt="' + (md.typeName || "unknown") + '" />'
+                            }
+                            content += '<tr><td valign="top">' + icon + '&nbsp;Repository</td><td class="metadata"><a href="' + value + '" target="_blank">[download file]</a></td></tr>';
+                        } else {
+                            var proj = magic.runtime.projection.getCode();
+                            var getMap = this.wms + "?" + 
+                                "SERVICE=WMS&" + 
+                                "VERSION=1.3.0&" + 
+                                "REQUEST=GetMap&" + 
+                                "FORMAT=image/png&" + 
+                                "TRANSPARENT=true&" + 
+                                "LAYERS=" + md.name + "&" + 
+                                "CRS=" + proj + "&" + 
+                                "SRS=" + proj + "&" + 
+                                "TILED=true&" + 
+                                "WIDTH=1000&" + 
+                                "HEIGHT=1000&" + 
+                                "STYLES=&" + 
+                                "BBOX=" + magic.runtime.projection.getExtent().join(",");
+                            content += '<tr><td valign="top">' + mf.caption + '</td><td class="metadata"><a href="' + getMap + '" target="_blank">[external resource]</a></td></tr>';
+                        }
                         break;
                     default:                         
                         break;
