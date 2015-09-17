@@ -7,9 +7,7 @@ magic.classes.FeaturePopup = function(options) {
     /* List of features to render attributes of */
     this.featureCollection = options.features || [];    
     /* id of DOM element to bind popup to */
-    this.popupId = options.popupId || "popup";
-    /* Name prefix (will strip this from the beginning of popup titles) */
-    this.namePrefix = options.namePrefix || "";
+    this.popupId = options.popupId || "popup";   
     /* The map the popup will appear on (defaults to main map) */
     this.map = options.map || magic.runtime.map;
     /* The map target div (defaults to map-container) */
@@ -75,38 +73,17 @@ magic.classes.FeaturePopup = function(options) {
 /**
  * Show the popup at the given point with the feature data
  * @param {ol.coordinate} showAt
- * @param {Array|Object} featureData
+ * @param {Array} featureData array of feature attribute objects, with __geomtype set to the geometry type (in lower case)
  */
 magic.classes.FeaturePopup.prototype.show = function(showAt, featureData) {    
     $("#" + this.popupId).popover("destroy");
-    var showPopup = false, isGfi = false, collection = [];
-    if ($.isPlainObject(featureData) && "features" in featureData) {
-        /* Probably from GetFeatureInfo */
-        isGfi = true;
-        showPopup = true;
-        $.each(featureData.features, function(idx, f) {
-            if (f.geometry != null) {
-                collection.push(f);
-            }
-        });
-    } else if ($.isArray(featureData) && featureData.length > 0) {
-        /* Vectors */
-        showPopup = true;
-        $.each(featureData, function(idx, f) {
-            if (f.getGeometry()) {
-                collection.push(f);
-            }
-        });
-    }
-    showPopup = collection.length > 0;    
+    var showPopup = featureData.length > 0;    
     if (showPopup) {        
         this.popup.setPosition(showAt);
-        var isGfi = "features" in featureData;
         $.extend(this, {
             featurePointer: 0,
             initPager: false,
-            featureCollection: collection,
-            gfi: isGfi
+            featureCollection: featureData
         });
         $("#" + this.popupId).popover({
             placement: $.proxy(function() {
@@ -149,7 +126,7 @@ magic.classes.FeaturePopup.prototype.hide = function() {
 magic.classes.FeaturePopup.prototype.title = function() {
     var content = "";
     $.each(this.featureCollection, $.proxy(function(i, feat) {
-        content += '<span class="feature-popup-title-cont ' + (i > 0 ? "hidden" : "show") + '">' + this.getCaption(feat) +
+        content += '<span class="feature-popup-title-cont ' + (i > 0 ? "hidden" : "show") + '">' + feat["__title"] +
                    '<button type="button" style="float:right" class="close">&times;</button></span>';      
     }, this));    
     return(content);
@@ -328,18 +305,17 @@ magic.classes.FeaturePopup.prototype.fixPopoverPosition = function() {
 
 /**
  * Scan data object to isolate name, lon, lat values if possible
- * @param {Object} feat feature
+ * @param {Object} attrs feature attributes
  */
-magic.classes.FeaturePopup.prototype.prepareAttributeData = function(feat) {
+magic.classes.FeaturePopup.prototype.prepareAttributeData = function(attrs) {
     var coreAttrs = {
         name: null,
         lon: null,
         lat: null,
         date: null
     }, fullAttrs = {}; 
-    var geomType = (this.gfi ? (feat.geometry ? feat.geometry.type : "unknown") : (feat.getGeometry() ? feat.getGeometry().getType() : "unknown")).toLowerCase();
-    if (geomType != "unknown") {
-        var attrs = this.gfi ? feat.properties : feat.getProperties();
+    var geomType = attrs["__geomtype"];
+    if (geomType && geomType != "unknown") {
         /* Sieve the attributes according to type, and cull unimportant ones */
         var sieve = {
             ints: [],
@@ -396,23 +372,7 @@ magic.classes.FeaturePopup.prototype.prepareAttributeData = function(feat) {
         if (coreAttrs.name == null) {
             /* Name will be the first string value */
             coreAttrs.name = sieve.strings[0];
-        }
-        /* Now should have all core attributes filled in - check if any are missing */
-        if (geomType == "point" && (!coreAttrs.lon || !coreAttrs.lat)) {
-            if (this.gfi) {
-                /* Project the geometry coordinates */
-                var coordWgs84 = ol.proj.transform(feat.geometry.coordinates, this.map.getView().getProjection(), "EPSG:4326");
-                fullAttrs["__lon"] = magic.runtime.preferences.applyPref("coordinates", coordWgs84[0].toFixed(4), "lon");
-                fullAttrs["__lat"] = magic.runtime.preferences.applyPref("coordinates", coordWgs84[1].toFixed(4), "lat");                        
-            } else {
-                var pclone = feat.getGeometry().clone();
-                pclone.transform(this.map.getView().getProjection(), "EPSG:4326");
-                fullAttrs["__lon"] = magic.runtime.preferences.applyPref("coordinates", pclone.getFirstCoordinate().toFixed(4), "lon");
-                fullAttrs["__lat"] = magic.runtime.preferences.applyPref("coordinates", pclone.getLastCoordinate().toFixed(4), "lat");
-            }
-            coreAttrs.lon = "__lon";
-            coreAttrs.lat = "__lat";
-        }
+        }   
     }
     return({
         attrs: fullAttrs,   /* Processed key/value pairs */
@@ -435,29 +395,4 @@ magic.classes.FeaturePopup.prototype.isCullable = function(attrKey) {
         }
     }
     return(false);
-};
-
-/**
- * Convert a feature id e.g. antarctic_facilities.23 to a layer name i.e. Antarctic facilities
- * @param {ol.Feature} feat
- */
-magic.classes.FeaturePopup.prototype.getCaption = function(feat) {
-    var caption = "Feature";
-    var fid = feat.id;
-    if (fid) {
-        caption = fid;
-        var dotAt = caption.indexOf(".");
-        if (dotAt != -1) {
-            caption = caption.substring(0, dotAt);
-        }        
-        caption = caption.replace(/_/g, " ");
-        if (this.namePrefix != "") {
-            var re = new RegExp("^" + this.namePrefix + "\\s+");
-            caption = caption.replace(re, "");
-        }
-        caption = magic.modules.Common.initCap(caption);
-    } else if (feat.getProperties()["__title"]) {
-        caption = feat.getProperties()["__title"];
-    }
-    return(caption);
 };

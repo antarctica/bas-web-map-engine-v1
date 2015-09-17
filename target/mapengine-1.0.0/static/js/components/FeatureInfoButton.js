@@ -70,18 +70,22 @@ magic.classes.FeatureInfoButton.prototype.deactivate = function () {
  * Send a GetFeatureInfo request to all point layers
  * @param {jQuery.Event} evt
  */
-magic.classes.FeatureInfoButton.prototype.queryFeatures = function (evt) {    
+magic.classes.FeatureInfoButton.prototype.queryFeatures = function(evt) {    
     var gfiLayer = null, gfiParams = [];
     magic.runtime.map.getLayers().forEach(function(layer) {
-        /* Weed out the clickable (interactive) layers */
-        if (layer.getVisible() === true && layer.get("metadata") && layer.get("metadata")["clickable"] === true) {
-            if (!gfiLayer) {
-                gfiLayer = layer;
+        /* Weed out the clickable (interactive) layers, eliminating user GPX/KML layers */
+        if (layer.getVisible() === true) {
+            var md = layer.get("metadata");
+            if (md && md["clickable"] === true && !(md.type == "geo_kml" || md.type == "geo_gpx")) {
+                if (!gfiLayer) {
+                    gfiLayer = layer;
+                }
+                gfiParams.push(layer.getSource().getParams()["LAYERS"]);
             }
-            gfiParams.push(layer.getSource().getParams()["LAYERS"]);
-        }
+        }        
     });
-    if (gfiLayer) {        
+    if (gfiLayer) {
+        var px = evt.pixel;
         $.getJSON(magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(gfiLayer.getSource().getGetFeatureInfoUrl(
             evt.coordinate, 
             magic.runtime.map.getView().getResolution(), 
@@ -94,11 +98,57 @@ magic.classes.FeatureInfoButton.prototype.queryFeatures = function (evt) {
                 "buffer": 10
             }
         ))).done($.proxy(function(data) {
+            /* Get the vector features first */
+            var fprops = this.featuresAtPixel(px);
             if ($.isArray(data.features) && data.features.length > 0) {
-                magic.runtime.featureinfo.show(evt.coordinate, data);
+                $.each(data.features, function(idx, f) {
+                    if (f.geometry) {
+                        var capBits = f.id.split(/[^A-Za-z0-9]/);
+                        capBits = capBits.slice(0, capBits.length-1);
+                        var caption = magic.modules.Common.initCap(capBits.join(" "));                        
+                        fprops.push($.extend({}, f.properties, {
+                            "__geomtype": f.geometry.type.toLowerCase(),
+                            "__title": caption
+                        }));
+                    }
+                });
             }
+            magic.runtime.featureinfo.show(evt.coordinate, fprops);
         }, this));
     }
+};
+
+/**
+ * Get all vector features at the given pixel (e.g. from Geosearch or user GPX/KML layers)
+ * @param {ol.coordinate} px pixel coordinate
+ */
+magic.classes.FeatureInfoButton.prototype.featuresAtPixel = function(px) {
+    var fprops = [];
+    magic.runtime.map.forEachFeatureAtPixel(px, function(feature, layer) {
+        if (layer != null) {
+            /* This is not a feature overlay i.e. an artefact of presentation not real data */
+            var clusterMembers = feature.get("features");
+            if (clusterMembers && $.isArray(clusterMembers)) {
+                /* Unpack cluster features */
+                $.each(clusterMembers, function(fi, f) {
+                    if (f.getGeometry()) {
+                        fprops.push($.extend({}, f.getProperties(), {
+                            "__geomtype": f.getGeometry().getType().toLowerCase(),
+                            "__title": layer.get("name")
+                        }));
+                    }                    
+                });
+            } else {
+                if (feature.getGeometry()) {
+                    fprops.push($.extend({}, feature.getProperties(), {
+                        "__geomtype": feature.getGeometry().getType().toLowerCase(),
+                        "__title": layer.get("name")
+                    }));
+                }          
+            }
+        }
+    }, this);
+    return(fprops);
 };
 
     

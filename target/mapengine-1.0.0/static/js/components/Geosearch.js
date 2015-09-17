@@ -444,33 +444,30 @@ magic.classes.Geosearch.prototype.getIconStyle = function(opacity, icon) {
  * @param {jQuery.Event} evt
  */
 magic.classes.Geosearch.prototype.featureAtPixelHandler = function(evt) {
-    var features = [], centroid = [];
-    var xs = 0.0, ys = 0.0;
-    magic.runtime.map.forEachFeatureAtPixel(evt.pixel, function(feature, cb) {
-        if (cb != null) {                        
-            /* This is not a feature overlay i.e. an artefact of presentation not real data */                    
+    var fprops = [];
+    magic.runtime.map.forEachFeatureAtPixel(evt.pixel, function(feature, layer) {
+        if (layer != null) {
+            /* This is not a feature overlay i.e. an artefact of presentation not real data */
             var clusterMembers = feature.get("features");
             if (clusterMembers && $.isArray(clusterMembers)) {
                 /* Unpack cluster features */
                 $.each(clusterMembers, function(fi, f) {
-                    features.push(f);
-                    var coord = f.getGeometry().getCoordinates();
-                    xs += coord[0];
-                    ys += coord[1];
+                    if (f.getGeometry()) {
+                        fprops.push($.extend({}, f.getProperties(), {
+                            "__geomtype": f.getGeometry().getType().toLowerCase()
+                        }));
+                    }                    
                 });
             } else {
-                features.push(feature);
-                var coord = feature.getGeometry().getCoordinates();
-                xs += coord[0];
-                ys += coord[1];
+                if (feature.getGeometry()) {
+                    fprops.push($.extend({}, feature.getProperties(), {
+                        "__geomtype": feature.getGeometry().getType().toLowerCase()
+                    }));
+                }          
             }
         }
-    });
-    if (features.length > 0) {
-        centroid = [
-            xs/features.length,
-            ys/features.length
-        ];
-        magic.runtime.featureinfo.show(centroid, features);
-    }     
+    }, this, function(candidate) {
+        return(candidate.getVisible() && candidate.get("name") == "_" + this.id);
+    }, this);
+    magic.runtime.featureinfo.show(evt.coordinate, fprops);         
 };

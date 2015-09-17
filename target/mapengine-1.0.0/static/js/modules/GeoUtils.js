@@ -14,7 +14,7 @@ magic.modules.GeoUtils = function() {
         WGS84: new ol.Ellipsoid(6378137, 1 / 298.257223563),
         
         /**
-         * Format a coordinate according to global preference
+         * Format a lon/lat coordinate according to global preference
          * @param {float} coordinate
          * @param {string} destFormat (dms|ddm|dd)
          * @param {string} axis (lon|lat)
@@ -26,20 +26,29 @@ magic.modules.GeoUtils = function() {
             if (!dp && dp != 0) {
                 dp = 4;
             }
-            var dd = this.toDecDegrees(coordinate);
-            if (!isNaN(dd)) {
-                dd = parseFloat(dd.toFixed(dp));
-                switch (destFormat) {
-                    case "dms":
-                        formattedValue = this.toDMS(dd, axis, "dms");
-                        break;
-                    case "ddm":
-                        formattedValue = this.toDDM(dd, axis);
-                        break;
-                    default:
-                        formattedValue = dd;
-                        break;
+            var rangeLo = axis == "lat" ? -90.0 : -180.0;
+            var rangeHi = axis == "lat" ? 90.0 : 180.0;                
+            if (magic.modules.Common.floatInRange(coordinate, rangeLo, rangeHi, 1e-08)) {
+                /* Quick sanity check that it's a sensible number passes */
+                var dd = this.toDecDegrees(coordinate);
+                if (!isNaN(dd)) {
+                    dd = parseFloat(dd.toFixed(dp));
+                    switch (destFormat) {
+                        case "dms":
+                            formattedValue = this.toDMS(dd, axis, "dms");
+                            break;
+                        case "ddm":
+                            formattedValue = this.toDDM(dd, axis);
+                            break;
+                        default:
+                            formattedValue = dd;
+                            break;
+                    }
+                } else {
+                    formattedValue = coordinate;
                 }
+            } else {
+                formattedValue = coordinate;
             }
             return(formattedValue);
         },
