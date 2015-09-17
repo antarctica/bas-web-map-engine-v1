@@ -111,33 +111,28 @@ magic.classes.InsetMap.prototype.deactivate = function() {
  * @param {jQuery.Event} evt
  */
 magic.classes.InsetMap.prototype.featureAtPixelHandler = function(evt) {
-    var features = [], centroid = [];
-    var xs = 0.0, ys = 0.0;
-    this.map.forEachFeatureAtPixel(evt.pixel, function(feature, cb) {
-        if (cb != null) {                        
-            /* This is not a feature overlay i.e. an artefact of presentation not real data */                    
+    var fprops = [];
+    this.map.forEachFeatureAtPixel(evt.pixel, function(feature, layer) {
+        if (layer != null) {
+            /* This is not a feature overlay i.e. an artefact of presentation not real data */
             var clusterMembers = feature.get("features");
             if (clusterMembers && $.isArray(clusterMembers)) {
                 /* Unpack cluster features */
                 $.each(clusterMembers, function(fi, f) {
-                    features.push(f);
-                    var coord = f.getGeometry().getCoordinates();
-                    xs += coord[0];
-                    ys += coord[1];
+                    if (f.getGeometry()) {
+                        fprops.push($.extend({}, f.getProperties(), {
+                            "__geomtype": f.getGeometry().getType().toLowerCase()
+                        }));
+                    }                    
                 });
             } else {
-                features.push(feature);
-                var coord = feature.getGeometry().getCoordinates();
-                xs += coord[0];
-                ys += coord[1];
+                if (feature.getGeometry()) {
+                    fprops.push($.extend({}, feature.getProperties(), {
+                        "__geomtype": feature.getGeometry().getType().toLowerCase()
+                    }));
+                }          
             }
         }
-    });
-    if (features.length > 0) {
-        centroid = [
-            xs/features.length,
-            ys/features.length
-        ];
-        this.featureinfo.show(centroid, features);
-    }     
+    }, this);
+    this.featureinfo.show(evt.coordinate, fprops);         
 };

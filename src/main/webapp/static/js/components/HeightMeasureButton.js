@@ -12,7 +12,7 @@ magic.classes.HeightMeasureButton = function(name, ribbon) {
     }
     
     /* Internal */   
-    this.demLayer = this.getDEMLayer();
+    this.demLayers = this.getDEMLayers();
     
     this.heightPopup = new ol.Overlay({element: hPopDiv[0]});
     magic.runtime.map.addOverlay(this.heightPopup);
@@ -52,7 +52,7 @@ magic.classes.HeightMeasureButton.prototype.isActive = function() {
  * Activate the control
  */
 magic.classes.HeightMeasureButton.prototype.activate = function() {    
-    if (this.demLayer) {
+    if (this.demLayers.length > 0) {
         /* Trigger mapinteractionactivated event */
         $(document).trigger("mapinteractionactivated", [this]);  
         this.active = true;
@@ -70,7 +70,7 @@ magic.classes.HeightMeasureButton.prototype.activate = function() {
  * Deactivate the control
  */
 magic.classes.HeightMeasureButton.prototype.deactivate = function() {
-    if (this.demLayer) {
+    if (this.demLayers.length > 0) {
         this.active = false;
         var spn = this.btn.children("span");
         this.btn.toggleClass("active");
@@ -85,12 +85,15 @@ magic.classes.HeightMeasureButton.prototype.deactivate = function() {
 };
 
 magic.classes.HeightMeasureButton.prototype.queryHeight = function(evt) {
-    if (this.demLayer) {
+    if (this.demLayers.length > 0) {
+        // TODO
         var source = this.demLayer.getSource();
         var viewResolution = magic.runtime.view.getResolution();
         var url = source.getGetFeatureInfoUrl(
             evt.coordinate, viewResolution, magic.runtime.projection.getCode(),
-            {"INFO_FORMAT": "application/json"});
+            {
+                "INFO_FORMAT": "application/json"
+            });
         if (url) {
             var ll = ol.proj.transform(evt.coordinate, magic.runtime.projection.getCode(), "EPSG:4326");
             var element = this.heightPopup.getElement();
@@ -127,20 +130,19 @@ magic.classes.HeightMeasureButton.prototype.queryHeight = function(evt) {
 
 /**
  * Get layer having DEM in keywords, indicating it is the height determination layer
- * @returns {ol.Layer}
+ * @returns {Array<ol.Layer>}
  */
-magic.classes.HeightMeasureButton.prototype.getDEMLayer = function() {
-    var theLayer = null;
+magic.classes.HeightMeasureButton.prototype.getDEMLayers = function() {
+    var theLayers = [];
     magic.runtime.map.getLayers().forEach(function (layer) {
         var md = layer.get("metadata");       
         if (md && md.keywords) {
             if ($.isArray(md.keywords) && $.inArray("DEM", md.keywords) != -1) {
-                theLayer = layer;
-                return(false);
+                theLayers.push(layer);
             }
         }       
     });
-    return(theLayer);
+    return(theLayers);
 };
 
 
