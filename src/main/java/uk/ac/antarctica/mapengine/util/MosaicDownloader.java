@@ -32,6 +32,9 @@ public class MosaicDownloader {
     
     @Autowired
     private Environment env;
+    
+    public MosaicDownloader() {        
+    }
        
     @Scheduled(initialDelay=60000, fixedDelay=3600000)
     public void downloadMosaics() {
@@ -124,7 +127,7 @@ public class MosaicDownloader {
         } else {
             System.out.println("Skipping mosaic download as this is a development version");
         }
-        System.out.println(new Date().toString() + ": downloadMosaics entered");        
+        System.out.println(new Date().toString() + ": downloadMosaics exited");        
 	}
     
     /**

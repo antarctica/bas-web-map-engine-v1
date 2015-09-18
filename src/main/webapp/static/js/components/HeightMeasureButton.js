@@ -1,9 +1,8 @@
 /* Measure height at map point button */
 
-magic.classes.HeightMeasureButton = function(name, ribbon) {
+magic.classes.HeightMeasureButton = function(name) {
     
     this.name = name;    
-    this.ribbon = ribbon;
     
     var hPopDiv = $("#height-popup");
     if (hPopDiv.length == 0) {
