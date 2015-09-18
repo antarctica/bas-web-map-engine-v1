@@ -317,6 +317,12 @@ button.ribbon-middle-tool {
     margin-left: -1px;
 }
 
+/* Yuck */
+button.ribbon-middle-tool:hover {
+    border-radius: 0;
+    margin-left: -1px;
+}
+
 button.ribbon-last-tool {
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;

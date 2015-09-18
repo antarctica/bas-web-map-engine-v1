@@ -181,7 +181,7 @@ magic.modules.GeoUtils = function() {
             if (!dp && dp != 0) {
                 dp = 1;
             }
-            if ($.isNumber(value) && sourceFormat != destFormat) {
+            if ($.isNumeric(value) && sourceFormat != destFormat) {
                 var multipliers = {
                     "m": 1.0,
                     "ft": 3.2808399,

@@ -43,7 +43,7 @@ magic.classes.FeatureInfoButton.prototype.isActive = function () {
 magic.classes.FeatureInfoButton.prototype.activate = function () {
     
     /* Trigger mapinteractionactivated event */
-    $(document).trigger("mapinteractionactivated", [this]);  
+    $(document).trigger("mapinteractionactivated", this);  
     
     this.active = true;   
     this.btn.addClass("active");

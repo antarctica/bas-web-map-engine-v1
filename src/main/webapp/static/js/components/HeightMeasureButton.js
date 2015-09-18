@@ -12,7 +12,7 @@ magic.classes.HeightMeasureButton = function(name, ribbon) {
     }
     
     /* Internal */   
-    this.demLayers = this.getDEMLayers();
+    this.demLayers = magic.runtime.dems;
     
     this.heightPopup = new ol.Overlay({element: hPopDiv[0]});
     magic.runtime.map.addOverlay(this.heightPopup);
@@ -52,12 +52,12 @@ magic.classes.HeightMeasureButton.prototype.isActive = function() {
  * Activate the control
  */
 magic.classes.HeightMeasureButton.prototype.activate = function() {    
-    if (this.demLayers.length > 0) {
+    if ($.isArray(this.demLayers) && this.demLayers.length > 0) {
         /* Trigger mapinteractionactivated event */
-        $(document).trigger("mapinteractionactivated", [this]);  
+        $(document).trigger("mapinteractionactivated", this);  
         this.active = true;
         var spn = this.btn.children("span");
-        this.btn.toggleClass("active");
+        this.btn.addClass("active");
         spn.removeClass("fa fa-arrows-v").addClass("glyphicon glyphicon-stop");
         this.btn.attr("data-original-title", this.activeTitle).tooltip("fixTitle");
         /* Add map click handler */        
@@ -70,10 +70,10 @@ magic.classes.HeightMeasureButton.prototype.activate = function() {
  * Deactivate the control
  */
 magic.classes.HeightMeasureButton.prototype.deactivate = function() {
-    if (this.demLayers.length > 0) {
+    if ($.isArray(this.demLayers) && this.demLayers.length > 0) {
         this.active = false;
         var spn = this.btn.children("span");
-        this.btn.toggleClass("active");
+        this.btn.removeClass("active");
         spn.removeClass("glyphicon glyphicon-stop").addClass("fa fa-arrows-v");
         this.btn.attr("data-original-title", this.inactiveTitle).tooltip("fixTitle");    
         /* Remove map click handler */
@@ -85,15 +85,26 @@ magic.classes.HeightMeasureButton.prototype.deactivate = function() {
 };
 
 magic.classes.HeightMeasureButton.prototype.queryHeight = function(evt) {
-    if (this.demLayers.length > 0) {
-        // TODO
-        var source = this.demLayer.getSource();
+    if ($.isArray(this.demLayers) && this.demLayers.length > 0) {
+        var gfiLayer = null;
+        magic.runtime.map.getLayers().forEach(function(layer) {            
+            var md = layer.get("metadata");
+            if (md && md["clickable"] === true && !(md.type == "geo_kml" || md.type == "geo_gpx")) {
+                if (!gfiLayer) {
+                    gfiLayer = layer;
+                }
+            }
+        });
         var viewResolution = magic.runtime.view.getResolution();
-        var url = source.getGetFeatureInfoUrl(
+        var url = gfiLayer.getSource().getGetFeatureInfoUrl(
             evt.coordinate, viewResolution, magic.runtime.projection.getCode(),
             {
-                "INFO_FORMAT": "application/json"
+                "LAYERS": this.demLayers.join(","),
+                "QUERY_LAYERS": this.demLayers.join(","),
+                "INFO_FORMAT": "application/json",
+                "FEATURE_COUNT": this.demLayers.length
             });
+        console.log(url);
         if (url) {
             var ll = ol.proj.transform(evt.coordinate, magic.runtime.projection.getCode(), "EPSG:4326");
             var element = this.heightPopup.getElement();
@@ -105,12 +116,14 @@ magic.classes.HeightMeasureButton.prototype.queryHeight = function(evt) {
             })
             .done($.proxy(function(data) {
                 /* Expect a feature collection with one feature containing a properties object */
+                var lon = magic.runtime.preferences.applyPref("coordinates", parseFloat(ll[0]).toFixed(2), "lon");
+                var lat = magic.runtime.preferences.applyPref("coordinates", parseFloat(ll[1]).toFixed(2), "lat");
                 $(element).popover({
                     "container": "body",
                     "placement": "top",
                     "animation": false,
                     "html": true,
-                    "content": "(" + ll[0].toFixed(2) + ", " + ll[1].toFixed(2) + ") " + this.getDemValue(data) + "m"
+                    "content": "(" + lon + ", " + lat + ") " + this.getDemValue(data)
                 }); 
                 $(element).popover("show");
             }, this))
@@ -129,24 +142,6 @@ magic.classes.HeightMeasureButton.prototype.queryHeight = function(evt) {
 };
 
 /**
- * Get layer having DEM in keywords, indicating it is the height determination layer
- * @returns {Array<ol.Layer>}
- */
-magic.classes.HeightMeasureButton.prototype.getDEMLayers = function() {
-    var theLayers = [];
-    magic.runtime.map.getLayers().forEach(function (layer) {
-        var md = layer.get("metadata");       
-        if (md && md.keywords) {
-            if ($.isArray(md.keywords) && $.inArray("DEM", md.keywords) != -1) {
-                theLayers.push(layer);
-            }
-        }       
-    });
-    return(theLayers);
-};
-
-
-/**
  * Extract the DEM value from the GFI feature collection
  * @param {Object} json FeatureCollection
  * @returns {undefined}
@@ -154,15 +149,20 @@ magic.classes.HeightMeasureButton.prototype.getDEMLayers = function() {
 magic.classes.HeightMeasureButton.prototype.getDemValue = function(json) {
     var dem = "unknown";
     if ($.isArray(json.features) && json.features.length > 0) {
-        if (json.features[0].properties) {
-            /* Look for the property that is a number */
-            $.each(json.features[0].properties, function(key, value) {
-                if (!isNaN(parseFloat(value))) {
-                    dem = value;
-                    return(false);
-                }
-                return(true);
-            });
+        /* Look for a sensible number */    
+        var fdem = -99999;
+        $.each(json.features, function(idx, f) {
+            if (f.properties) {
+                $.each(f.properties, function(key, value) {
+                    var fval = parseFloat(value);
+                    if (!isNaN(fval) && Math.abs(fval) < 9000 && fval > fdem) {
+                        fdem = fval;
+                    }
+                });
+            }
+        });
+        if (fdem != -99999) {
+            dem = magic.runtime.preferences.applyPref("elevation", parseFloat(fdem).toFixed(1), "m");
         }
     }
     return(dem);

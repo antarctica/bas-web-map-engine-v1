@@ -201,10 +201,10 @@ magic.classes.UserPreferences.prototype.getOptions = function(valText, selected)
  */
 magic.classes.UserPreferences.prototype.applyPref = function(pref, value, coord, sourceFormat) {
     var out = value;
-    if (pref == "coordinates" && !coord) {
+    if (!coord && pref == "coordinates") {
         coord = "lon";
     }
-    if (pref == "distance" || pref == "area" || pref == "elevation") {
+    if (!sourceFormat && (pref == "distance" || pref == "area" || pref == "elevation")) {
         sourceFormat = "m";
     }
     switch(pref) {

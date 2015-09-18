@@ -281,7 +281,7 @@ magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
                         style: magic.modules.Common.fetchStyle(nd.props.geometry.type, stylePaletteEntry++),
                         metadata: $.extend({}, nd.props, {
                             nodeid: nd.nodeid,
-                            abstract: this.getUserLayerAbstract(nd.props),
+                            "abstract": this.getUserLayerAbstract(nd.props),
                             wmsfeed: this.getUserLayerDownloadUrl(nd.props),
                             bboxwgs84: nd.props.bbox,
                             metadataurl: this.getUserLayerMetadataUrl(nd.props),
@@ -394,7 +394,7 @@ magic.classes.LayerTree.prototype.getNodeId = function(eltId) {
  * @returns {string}
  */
 magic.classes.LayerTree.prototype.getUserLayerAbstract = function(props) {
-    var abstract = "";
+    var theAbstract = "";
     if (props) {
         var lines = [];
         var triggers = ["description", "filename", "filesize", "typeName", "createDate", "creator"];
@@ -405,9 +405,9 @@ magic.classes.LayerTree.prototype.getUserLayerAbstract = function(props) {
                 lines.push(labels[idx] + value);
             }
         });
-        abstract = lines.join("<br />");
+        theAbstract = lines.join("<br />");
     }
-    return(abstract);
+    return(theAbstract);
 };
 
 /**

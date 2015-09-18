@@ -59,6 +59,7 @@ magic.classes.AppContainer = function (payload) {
     magic.runtime.map_interaction_tools = [];
 
     /* Control button ribbon */
+    magic.runtime.dems = payload.sources.dem_layers;
     magic.runtime.controls = new magic.classes.ControlButtonRibbon(payload.view.controls);
     magic.runtime.controls.init();
 
@@ -187,14 +188,20 @@ magic.classes.AppContainer = function (payload) {
     }
 
     /* Listen for controls being activated */
-    $(document).on("mapinteractionactivated", function (evt, arg) {
+    $(document).on("mapinteractionactivated", function (evt, tool) {
         if (evt) {
+            console.dir(magic.runtime.map_interaction_tools);
             $.each(magic.runtime.map_interaction_tools, function (mti, mt) {
-                if (arg != mt) {
+                console.log("See what to do with");
+                console.dir(mt);
+                console.log("End see");
+                if (tool != mt) {
                     if ($.isFunction(mt.deactivate)) {
+                        console.log("Deactivate it");
                         mt.deactivate();
                     }
                     if ($.isFunction(mt.getTarget)) {
+                        console.log("Hide its popover");
                         mt.getTarget().popover("hide");
                     }
                 }

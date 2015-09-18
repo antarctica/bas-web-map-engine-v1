@@ -92,7 +92,7 @@ magic.classes.ShipPositionButton.prototype.activate = function () {
     if (fetch) {
         this.getData();
     }
-    this.btn.addClass("active");
+    this.btn.toggleClass("active");
     this.btn.attr("data-original-title", this.activeTitle).tooltip("fixTitle");
 };
 
@@ -103,7 +103,7 @@ magic.classes.ShipPositionButton.prototype.deactivate = function () {
     this.active = false;
     this.layer.setVisible(false);
     this.insetLayer.setVisible(false);
-    this.btn.removeClass("active");
+    this.btn.toggleClass("active");
     this.btn.attr("data-original-title", this.inactiveTitle).tooltip("fixTitle");
 };
     

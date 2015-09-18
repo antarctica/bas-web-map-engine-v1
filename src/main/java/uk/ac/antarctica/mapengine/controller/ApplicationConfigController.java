@@ -78,6 +78,7 @@ public class ApplicationConfigController {
         SOURCE_PARAMS.put("name_prefix", new String[]{"antarctic"});
         SOURCE_PARAMS.put("wms", BAS_MAPS + "/antarctic/wms");
         SOURCE_PARAMS.put("gazetteers", "cga");
+        SOURCE_PARAMS.put("dem_layers", new String[]{});    /* Bit messy, but DEM layers may be children of actual layers - easier to specify here */
         /* Map view metadata */
         HashMap<String,Object> VIEW_PARAMS = new HashMap();
         DEFAULT_PARAMS.put("VIEW_DATA", VIEW_PARAMS);
@@ -94,7 +95,7 @@ public class ApplicationConfigController {
         LAYER_PARAMS.put("show_layers", new String[]{});
         LAYER_PARAMS.put("expand_groups", new String[]{});
         LAYER_PARAMS.put("clickable_layers", new String[]{});
-        LAYER_PARAMS.put("singletile_layers", new String[]{});
+        LAYER_PARAMS.put("singletile_layers", new String[]{});        
     }
     
     /* Database schema where user data is stored */
