@@ -24,6 +24,7 @@ magic.classes.AppContainer = function (payload) {
     });
 
     /* Set up layer tree */
+    magic.runtime.userlayers = [];
     magic.runtime.repository = payload.sources.repository;
     magic.runtime.layertree = new magic.classes.LayerTree("layer-tree", payload.tree, payload.sources);
 
@@ -70,7 +71,7 @@ magic.classes.AppContainer = function (payload) {
     magic.runtime.attribution = new magic.classes.AttributionModal({target: "attribution-modal", wms: payload.sources.wms});
 
     /* Create WGS84 inset map with single OSM layer */
-    magic.runtime.inset = new magic.classes.InsetMap();
+    magic.runtime.inset = new magic.classes.InsetMap({wms: payload.sources.wms, ws: payload.sources.workspace});
 
     if ($.inArray("geosearch", payload.view.controls) != -1 && payload.sources.gazetteers) {
         /* Activate geosearch */
@@ -140,8 +141,7 @@ magic.classes.AppContainer = function (payload) {
         }
     }, this);
 
-    /* Allow drag and drop of user GPS and KML layers */
-    magic.runtime.userlayers = [];
+    /* Allow drag and drop of user GPS and KML layers */    
     dd.on("addfeatures", $.proxy(function(evt) {
         var md = {}, layerName = "";
         if (evt.file) {
@@ -190,18 +190,12 @@ magic.classes.AppContainer = function (payload) {
     /* Listen for controls being activated */
     $(document).on("mapinteractionactivated", function (evt, tool) {
         if (evt) {
-            console.dir(magic.runtime.map_interaction_tools);
             $.each(magic.runtime.map_interaction_tools, function (mti, mt) {
-                console.log("See what to do with");
-                console.dir(mt);
-                console.log("End see");
                 if (tool != mt) {
                     if ($.isFunction(mt.deactivate)) {
-                        console.log("Deactivate it");
                         mt.deactivate();
                     }
                     if ($.isFunction(mt.getTarget)) {
-                        console.log("Hide its popover");
                         mt.getTarget().popover("hide");
                     }
                 }
@@ -276,5 +270,6 @@ magic.classes.AppContainer.prototype.constructStyle = function(feat) {
             return(false);
         }
     });
+    console.log("Label is " + label);
     return(magic.modules.Common.fetchStyle(geomType, paletteEntry, label));        
 };

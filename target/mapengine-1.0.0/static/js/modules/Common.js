@@ -159,8 +159,9 @@ magic.modules.Common = function () {
             } else if (idx == 1) {
                 return(new ol.style.RegularShape({
                     rotation: 0,
-                    radius1: 3,
-                    radius2: 5,
+                    points: 5,
+                    radius1: 7,
+                    radius2: 2,
                     fill: new ol.style.Fill({
                         color: this.rgbToDec(this.color_palette[paletteEntry], 0.5)
                     }),

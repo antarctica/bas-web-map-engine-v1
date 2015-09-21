@@ -84,8 +84,10 @@ magic.classes.FeatureInfoButton.prototype.queryFeatures = function(evt) {
             }
         }        
     });
-    if (gfiLayer) {
-        var px = evt.pixel;
+    /* Get the vector features first */
+    var px = evt.pixel;
+    var fprops = this.featuresAtPixel(px);
+    if (gfiLayer) {        
         $.getJSON(magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(gfiLayer.getSource().getGetFeatureInfoUrl(
             evt.coordinate, 
             magic.runtime.map.getView().getResolution(), 
@@ -97,9 +99,7 @@ magic.classes.FeatureInfoButton.prototype.queryFeatures = function(evt) {
                 "FEATURE_COUNT": 10,
                 "buffer": 10
             }
-        ))).done($.proxy(function(data) {
-            /* Get the vector features first */
-            var fprops = this.featuresAtPixel(px);
+        ))).done($.proxy(function(data) {            
             if ($.isArray(data.features) && data.features.length > 0) {
                 $.each(data.features, function(idx, f) {
                     if (f.geometry) {
@@ -115,6 +115,8 @@ magic.classes.FeatureInfoButton.prototype.queryFeatures = function(evt) {
             }
             magic.runtime.featureinfo.show(evt.coordinate, fprops);
         }, this));
+    } else {
+        magic.runtime.featureinfo.show(evt.coordinate, fprops);
     }
 };
 

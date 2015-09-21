@@ -171,7 +171,6 @@ magic.classes.LayerTree.prototype.isRasterLayer = function(layer) {
  * @param {int} depth
  */
 magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
-    var stylePaletteEntry = 0;
     $.each(nodes, $.proxy(function (i, nd) {
         var indent = 8*depth;
         if ($.isArray(nd.nodes)) {
@@ -272,13 +271,25 @@ magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
                         format: format,
                         url: magic.config.paths.baseurl + "/xmlproxy?url=" + encodeURIComponent(url)
                     });
+                    var layerNo = magic.runtime.userlayers.length;
                     layer = new ol.layer.Vector({
                         name: nd.props.name,
                         source: source,
                         updateWhileAnimating: true,
                         updateWhileInteracting: true,
                         visible: false,
-                        style: magic.modules.Common.fetchStyle(nd.props.geometry.type, stylePaletteEntry++),
+                        style: $.proxy(function(feat) {
+                            var geomType = feat.getGeometry().getType();    
+                            var paletteEntry = this.layerNo % magic.modules.Common.color_palette.length;
+                            var label = null;
+                            $.each(feat.getProperties(), function(key, value) {
+                                if (magic.modules.Common.isNameLike(key)) {
+                                    label = value;
+                                    return(false);
+                                }
+                            });
+                            return(magic.modules.Common.fetchStyle(geomType, paletteEntry, label));       
+                        }, {layerNo: layerNo}),
                         metadata: $.extend({}, nd.props, {
                             nodeid: nd.nodeid,
                             "abstract": this.getUserLayerAbstract(nd.props),
@@ -294,6 +305,7 @@ magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
                             attrs: null
                         })
                     });
+                    magic.runtime.userlayers.push(layer);
                 } else if (singleTileState) {
                     /* Render point layers with a single tile for labelling free of tile boundary effects */
                     var wmsSource = new ol.source.ImageWMS(({
