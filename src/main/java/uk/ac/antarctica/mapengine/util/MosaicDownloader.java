@@ -87,8 +87,7 @@ public class MosaicDownloader {
                             /* Download the file */
                             String downloadUrl = (String)m.get("url");
                             if (downloadGranule(downloadUrl, downloadInterval, mosaicName, mosaicDir)) {
-                                /* Download ok - first remove the existing store from Geoserver, removing the PostGIS table as well */
-                                
+                                /* Download ok - first remove the existing store from Geoserver, removing the PostGIS table as well */                                
                                 gisDataTpl.execute("DROP TABLE IF EXISTS public." + mosaicName + " CASCADE");
                                 publisher.removeCoverageStore(mosaicWs, mosaicName, true);
                                 System.out.println("Removed existing store");
@@ -110,6 +109,10 @@ public class MosaicDownloader {
                                 }
                                 boolean published = publisher.publishExternalMosaic(mosaicWs, mosaicName, new File(mosaicDir), encoder, layerEncoder);       
                                 System.out.println("Publish " + (published ? "succeeded" : "failed"));
+                                if (published) {
+                                    /* Update the last downloaded time */
+                                    gisDataTpl.update("UPDATE " + mosaicTable + " SET last=? WHERE name=?", new Object[]{new Date(), mosaicName});
+                                }
                             } else {
                                 System.out.println("Failed to download the image granule");
                             }

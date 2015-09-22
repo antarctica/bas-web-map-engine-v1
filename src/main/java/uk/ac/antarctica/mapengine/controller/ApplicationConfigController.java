@@ -144,7 +144,7 @@ public class ApplicationConfigController {
             getAppTopLevelNode(root, appname, usermap),
             new LayerTreeData(
                 (String)viewData.get("projection"),
-                (String)sourceData.get("endpoint"), 
+                (String)sourceData.get("wms"), 
                 (String[])sourceData.get("name_prefix"), 
                 (String[])layerData.get("show_layers"),
                 (String[])layerData.get("expand_groups"),
@@ -477,7 +477,7 @@ public class ApplicationConfigController {
                     }
                     if (!layerProps.has("legendurl")) {
                         /* Construct a legend URL */
-                        layerProps.addProperty("legendurl", BAS_MAPS + data.getEndpoint() + "/wms?service=WMS&request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&layer=" + child.getName());
+                        layerProps.addProperty("legendurl", data.getWms() + "?service=WMS&request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&layer=" + child.getName());
                     }
                 }
             }
@@ -641,16 +641,16 @@ public class ApplicationConfigController {
         
         int nodeId = 0;
         private String projection;
-        private String endpoint;
+        private String wms;
         private String[] prefix;
         private String[] showLayers;
         private String[] expandGroups;
         private String[] clickableLayers;
         private String[] singleTileLayers;
         
-        public LayerTreeData(String projection, String endpoint, String[] prefix, String[] showLayers, String[] expandGroups, String[] clickableLayers, String[] singleTileLayers) {
+        public LayerTreeData(String projection, String wms, String[] prefix, String[] showLayers, String[] expandGroups, String[] clickableLayers, String[] singleTileLayers) {
             this.projection = projection;
-            this.endpoint = endpoint;
+            this.wms = wms;
             this.prefix = prefix;
             this.showLayers = showLayers;
             this.expandGroups = expandGroups;
@@ -674,12 +674,12 @@ public class ApplicationConfigController {
             this.projection = projection;
         }
 
-        public String getEndpoint() {
-            return endpoint;
+        public String getWms() {
+            return wms;
         }
 
-        public void setEndpoint(String endpoint) {
-            this.endpoint = endpoint;
+        public void setWms(String wms) {
+            this.wms = wms;
         }
 
         public String[] getPrefix() {
