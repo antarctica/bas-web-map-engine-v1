@@ -25,6 +25,7 @@
             /*<![CDATA[*/
             magic.runtime.app = [[${app}]];
             magic.runtime.usermap = [[${usermap}]];
+            magic.runtime.viewname = [[${viewname}]];
             magic.runtime.username = [[${username}]];
             /*]]>*/
         </script>
@@ -32,7 +33,9 @@
 
             $(document).ready(function () {
                 var payloadRequest = $.ajax({
-                    url: magic.config.paths.baseurl + "/appconfig/" + magic.runtime.app + (magic.runtime.usermap ? "/" + magic.runtime.usermap : "/default"),
+                    url: magic.config.paths.baseurl + "/appconfig/" + magic.runtime.app + 
+                        (magic.runtime.usermap ? "/" + magic.runtime.usermap : "/default") + 
+                        (magic.runtime.viewname ? "/" + magic.runtime.viewname : ""),
                     method: "GET",
                     dataType: "json"
                 });
@@ -109,12 +112,14 @@
         <script src="../static/js/components/LayerTreeOptionsMenu.js"></script>
         <script src="../static/js/components/LayerFilter.js"></script>
         <script src="../static/js/components/UserPreferences.js"></script>
+        <script src="../static/js/components/SavedMapViews.js"></script>
         <script src="../static/js/components/bas/AircraftPositionButton.js"></script>
         <script src="../static/js/components/bas/ShipPositionButton.js"></script>
         <script th:inline="javascript">
             /*<![CDATA[*/
             magic.runtime.app = [[${app}]];
             magic.runtime.usermap = [[${usermap}]];
+            magic.runtime.viewname = [[${viewname}]];
             magic.runtime.username = [[${username}]];
                     /*]]>*/
         </script>
@@ -122,7 +127,9 @@
 
                     $(document).ready(function () {
                 var payloadRequest = $.ajax({
-                    url: magic.config.paths.baseurl + "/appconfig/" + magic.runtime.app + (magic.runtime.usermap ? "/" + magic.runtime.usermap : "/default"),
+                    url: magic.config.paths.baseurl + "/appconfig/" + magic.runtime.app + 
+                        (magic.runtime.usermap ? "/" + magic.runtime.usermap : "/default") + 
+                        (magic.runtime.viewname ? "/" + magic.runtime.viewname : ""),
                     method: "GET",
                     dataType: "json"
                 });

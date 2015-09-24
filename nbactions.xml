@@ -13,7 +13,7 @@
             </goals>
             <properties>
                 <netbeans.deploy>true</netbeans.deploy>
-                <netbeans.deploy.clientUrlPart>/home/apip</netbeans.deploy.clientUrlPart>
+                <netbeans.deploy.clientUrlPart>/opsgis</netbeans.deploy.clientUrlPart>
                 
             </properties>
         </action>
@@ -31,7 +31,7 @@
             <properties>
                 <netbeans.deploy.debugmode>true</netbeans.deploy.debugmode>
                 <netbeans.deploy>true</netbeans.deploy>
-                <netbeans.deploy.clientUrlPart>/home/apip</netbeans.deploy.clientUrlPart>
+                <netbeans.deploy.clientUrlPart>/opsgis</netbeans.deploy.clientUrlPart>
                 
             </properties>
         </action>
@@ -48,7 +48,7 @@
             <properties>
                 <netbeans.deploy>true</netbeans.deploy>
                 <netbeans.deploy.profilemode>true</netbeans.deploy.profilemode>
-                <netbeans.deploy.clientUrlPart>/home/apip</netbeans.deploy.clientUrlPart>
+                <netbeans.deploy.clientUrlPart>/opsgis</netbeans.deploy.clientUrlPart>
             </properties>
         </action>
         <action>

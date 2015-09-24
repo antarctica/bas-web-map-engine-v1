@@ -74,6 +74,7 @@ public class MosaicDownloader {
                     String mosaicStyle = (String)m.get("style");
                     String mosaicTitle = (String)m.get("title");
                     String mosaicAbstract = (String)m.get("abstract");
+                    String mosaicPreprocess = (String)m.get("preprocess");
                     int downloadInterval = (Integer)m.get("intl");
                     Date downloadedLast = null;
                     String dlStr = "never";
@@ -82,47 +83,47 @@ public class MosaicDownloader {
                         dlStr = downloadedLast.toString();
                     }            
                     System.out.println("Instructions for mosaic " + mosaicName + ": style " + mosaicStyle + ", ws " + mosaicWs + ", interval " + downloadInterval + ", last downloaded " + dlStr);
-                    if (downloadedLast == null || timeToDownload(downloadedLast, downloadInterval)) {
-                        try {
-                            /* Download the file */
-                            String downloadUrl = (String)m.get("url");
-                            if (downloadGranule(downloadUrl, downloadInterval, mosaicName, mosaicDir)) {
-                                /* Download ok - first remove the existing store from Geoserver, removing the PostGIS table as well */                                
-                                gisDataTpl.execute("DROP TABLE IF EXISTS public." + mosaicName + " CASCADE");
-                                publisher.removeCoverageStore(mosaicWs, mosaicName, true);
-                                System.out.println("Removed existing store");
-                                /* Now build the metadata to tell Geoserver this is a time layer */
-                                /* http://code.google.com/p/geoserver-manager/source/browse/wiki/PublishingLayersAdvanced.wiki?r=14 */
-                                GSCoverageEncoder encoder = new GSImageMosaicEncoder();
-                                GSDimensionInfoEncoder dim = new GSDimensionInfoEncoder(true);
-                                dim.setPresentation(GSDimensionInfoEncoder.Presentation.LIST);
-                                encoder.setMetadataDimension("time", dim);
-                                encoder.setName(mosaicName);
-                                encoder.setTitle(mosaicTitle);
-                                encoder.addKeyword("raster");
-                                encoder.setAbstract(mosaicAbstract + " Date of latest image : " + dlStr);
-                                encoder.setSRS("EPSG:3031");
-                                GSLayerEncoder layerEncoder = new GSLayerEncoder();
-                                if (mosaicStyle != null) {
-                                    /* Set the style */
-                                    layerEncoder.setDefaultStyle(mosaicStyle);
-                                }
-                                boolean published = publisher.publishExternalMosaic(mosaicWs, mosaicName, new File(mosaicDir), encoder, layerEncoder);       
-                                System.out.println("Publish " + (published ? "succeeded" : "failed"));
-                                if (published) {
-                                    /* Update the last downloaded time */
-                                    gisDataTpl.update("UPDATE " + mosaicTable + " SET last=? WHERE name=?", new Object[]{new Date(), mosaicName});
-                                }
-                            } else {
-                                System.out.println("Failed to download the image granule");
-                            }
-                        } catch(Exception ex) {
-                            System.out.println("Exception " + ex.getMessage() + " encountered");
-                        }
-                    } else {
-                        /* Skipping this one as nothing to do */
-                        System.out.println("Nothing to do - download is up to date");
-                    }
+//                    if (downloadedLast == null || timeToDownload(downloadedLast, downloadInterval)) {
+//                        try {
+//                            /* Download the file */
+//                            String downloadUrl = (String)m.get("url");
+//                            if (downloadGranule(downloadUrl, downloadInterval, mosaicName, mosaicDir, mosaicPreprocess)) {
+//                                /* Download ok - first remove the existing store from Geoserver, removing the PostGIS table as well */                                
+//                                gisDataTpl.execute("DROP TABLE IF EXISTS " + mosaicWs + "." + mosaicName + " CASCADE");
+//                                publisher.removeCoverageStore(mosaicWs, mosaicName, true);
+//                                System.out.println("Removed existing store");
+//                                /* Now build the metadata to tell Geoserver this is a time layer */
+//                                /* http://code.google.com/p/geoserver-manager/source/browse/wiki/PublishingLayersAdvanced.wiki?r=14 */
+//                                GSCoverageEncoder encoder = new GSImageMosaicEncoder();
+//                                GSDimensionInfoEncoder dim = new GSDimensionInfoEncoder(true);
+//                                dim.setPresentation(GSDimensionInfoEncoder.Presentation.LIST);
+//                                encoder.setMetadataDimension("time", dim);
+//                                encoder.setName(mosaicName);
+//                                encoder.setTitle(mosaicTitle);
+//                                encoder.addKeyword("raster");
+//                                encoder.setAbstract(mosaicAbstract + " Date of latest image : " + dlStr);
+//                                encoder.setSRS("EPSG:3031");
+//                                GSLayerEncoder layerEncoder = new GSLayerEncoder();
+//                                if (mosaicStyle != null) {
+//                                    /* Set the style */
+//                                    layerEncoder.setDefaultStyle(mosaicStyle);
+//                                }
+//                                boolean published = publisher.publishExternalMosaic(mosaicWs, mosaicName, new File(mosaicDir), encoder, layerEncoder);       
+//                                System.out.println("Publish " + (published ? "succeeded" : "failed"));
+//                                if (published) {
+//                                    /* Update the last downloaded time */
+//                                    userDataTpl.update("UPDATE " + mosaicTable + " SET last=? WHERE name=?", new Object[]{new Date(), mosaicName});
+//                                }
+//                            } else {
+//                                System.out.println("Failed to download the image granule");
+//                            }
+//                        } catch(Exception ex) {
+//                            System.out.println("Exception " + ex.getMessage() + " encountered");
+//                        }
+//                    } else {
+//                        /* Skipping this one as nothing to do */
+//                        System.out.println("Nothing to do - download is up to date");
+//                    }
                 } 
             } else {
                 System.out.println("No download instructions found - nothing to do");
@@ -153,19 +154,39 @@ public class MosaicDownloader {
      * @param String mosaicDir
      * @return boolean
      */
-    private boolean downloadGranule(String downloadUrl, int downloadInterval, String mosaicName, String mosaicDir) {
+    private boolean downloadGranule(String downloadUrl, int downloadInterval, String mosaicName, String mosaicDir, String preprocess) {
         boolean ok = false;
+        File tempFile = new File(System.getProperty("java.io.tmpdir") + "/_dld" + Calendar.getInstance().getTimeInMillis() + ".tif");
         try {
             URL url = new URL(downloadUrl);
             SimpleDateFormat sdf = new SimpleDateFormat(downloadInterval < 24 ? "yyyyMMddhhmmss" : "yyyyMMdd");
             String datePart = sdf.format(new Date());            
             File granule = new File(mosaicDir + "/" + mosaicName + "_" + datePart + ".tif");
-            IOUtils.copy(url.openStream(), new FileOutputStream(granule));
+            if (preprocess != null && !preprocess.isEmpty()) {
+                /* Write initial download into temporary location */                
+                IOUtils.copy(url.openStream(), new FileOutputStream(tempFile));
+                String preprocCommand = preprocess;
+                preprocCommand = preprocCommand.replace("{home}", System.getProperty("user.home"));
+                preprocCommand = preprocCommand.replace("{download}", tempFile.getAbsolutePath());
+                preprocCommand = preprocCommand.replace("{final}", granule.getAbsolutePath());
+                System.out.println("Need to preprocess downloaded file using command " + preprocCommand);
+                String[] args = preprocCommand.split(" ");
+                Process p = new ProcessBuilder(args).start();
+                p.waitFor();
+                if (p.exitValue() != 0) {                   
+                    System.out.println("Preprocess step failed - code was " + p.exitValue());
+                }
+            } else {
+                /* Download straight to granule location */
+                IOUtils.copy(url.openStream(), new FileOutputStream(granule));
+            }            
             if (granule.exists() && granule.canRead() && granule.length() > 0) {
                 ok = true;
             }
         } catch(Exception ex) {
-            System.out.println("Exception " + ex.getMessage() + " encountered while downloading");
+            System.out.println("Exception " + ex.getMessage() + " encountered while downloading granule");
+        } finally {
+            tempFile.delete();
         }
         return(ok);
     }

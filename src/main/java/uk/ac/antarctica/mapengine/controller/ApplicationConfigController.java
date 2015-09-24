@@ -5,7 +5,6 @@ package uk.ac.antarctica.mapengine.controller;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
@@ -20,9 +19,6 @@ import java.util.List;
 import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.fluent.Request;
-import org.apache.http.util.EntityUtils;
 import org.geotools.data.ows.CRSEnvelope;
 import org.geotools.data.ows.Layer;
 import org.geotools.data.ows.SimpleHttpClient;
@@ -44,6 +40,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import uk.ac.antarctica.mapengine.config.RamaddaConnectionException;
+import uk.ac.antarctica.mapengine.util.RamaddaUtils;
 
 @RestController
 public class ApplicationConfigController {
@@ -105,33 +102,80 @@ public class ApplicationConfigController {
     private static final String PREFS_TABLE = "preferences";
     
     /* User map definition table name */
-    private static final String MAPDEFS_TABLE = "maps";
+    private static final String MAPDEFS_TABLE = "maps";        
     
     /**
-	 * Get application configuration from Geoserver	instance
+	 * Get application configuration from Geoserver	instance and database
      * @param HttpServletRequest request,
      * @param String appname
      * @param String usermap
-     * @param ModelMap model
      * @return
 	 * @throws ServletException
 	 * @throws IOException		 
 	 */
 	@RequestMapping(value="/appconfig/{appname}/{usermap}", method=RequestMethod.GET, produces="application/json; charset=utf-8")	
     @ResponseBody
-	public ResponseEntity<String> appConfig(HttpServletRequest request, @PathVariable("appname") String appname, @PathVariable("usermap") String usermap) 
-        throws ServletException, IOException, ServiceException {
+	public ResponseEntity<String> appConfig(HttpServletRequest request, 
+        @PathVariable("appname") String appname, 
+        @PathVariable("usermap") String usermap) 
+        throws ServletException, IOException, ServiceException {                
+        return(packageResults(HttpStatus.OK, assemblePayload(request, appname, usermap, null).toString(), null));        
+    }
+    
+    /**
+	 * Get application configuration from Geoserver	instance, database and saved user views
+     * @param HttpServletRequest request,
+     * @param String appname
+     * @param String usermap
+     * @param String viewname
+     * @return
+	 * @throws ServletException
+	 * @throws IOException		 
+	 */
+	@RequestMapping(value="/appconfig/{appname}/{usermap}/{viewname}", method=RequestMethod.GET, produces="application/json; charset=utf-8")	
+    @ResponseBody
+	public ResponseEntity<String> appConfigView(HttpServletRequest request, 
+        @PathVariable("appname") String appname, 
+        @PathVariable("usermap") String usermap,
+        @PathVariable("viewname") String viewname) 
+        throws ServletException, IOException, ServiceException {                
+        return(packageResults(HttpStatus.OK, assemblePayload(request, appname, usermap, viewname).toString(), null));        
+    }
+    
+    private JsonObject assemblePayload(HttpServletRequest request, String appname, String usermap, String viewname) throws IOException, ServiceException {
+        
+        JsonObject payload = new JsonObject();
+        
+        String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
         
         /* See if we have anything in the database for this app/usermap combination */
-        Map<String,Object> userMapData = null;
+        HashMap<String,Object> userMapData = null;
         try {
-            userMapData = userDataTpl.queryForMap("SELECT * FROM " + USERDATA_SCHEMA + "." + MAPDEFS_TABLE + " WHERE appname=? AND usermap=?", appname, usermap);
+            userMapData = (HashMap)userDataTpl.queryForMap("SELECT * FROM " + USERDATA_SCHEMA + "." + MAPDEFS_TABLE + " " + 
+                "WHERE appname=? AND usermap=?", appname, usermap);
         } catch(Exception ex) {
         }
+        
+        HashMap<String,Object> userViewData = null;
+        if (username != null && viewname != null) {
+            try {
+                userViewData = (HashMap)userDataTpl.queryForMap("SELECT * FROM " + USERDATA_SCHEMA + "." + MAPDEFS_TABLE + " " + 
+                    "WHERE appname=? AND usermap=? AND viewname=? AND owner=?", appname, usermap, viewname, username);
+            } catch(Exception ex) {
+            }
+        }
+        HashMap<String, Object> allData = new HashMap();
+        if (userMapData != null) {
+            allData.putAll(userMapData);
+        }
+        if (userViewData != null) {
+            /* User view data will take precedence */
+            allData.putAll(userViewData);
+        }
               
-        HashMap<String,Object> sourceData = getDefinitions("SOURCE_DATA", userMapData, appname);
-        HashMap<String,Object> viewData = getDefinitions("VIEW_DATA", userMapData, appname);
-        HashMap<String,Object> layerData = getDefinitions("LAYER_DATA", userMapData, appname);
+        HashMap<String,Object> sourceData = getDefinitions("SOURCE_DATA", allData, appname);
+        HashMap<String,Object> viewData = getDefinitions("VIEW_DATA", allData, appname);
+        HashMap<String,Object> layerData = getDefinitions("LAYER_DATA", allData, appname);
         
         WebMapServer wms = new WebMapServer(new URL((String)sourceData.get("wms")), new SimpleHttpClient());
         WMSCapabilities capabilities = wms.getCapabilities();
@@ -156,15 +200,15 @@ public class ApplicationConfigController {
         /* Look for user layers in the repository if present */
         appendUserLayers(treeDef, sourceData, usermap, request.getUserPrincipal());
                 
-        /* Assemble final payload */
-        JsonObject payload = new JsonObject();
+        /* Assemble final payload */        
         payload.add("tree", treeDef);
         payload.add("view", mapper.toJsonTree(viewData));
         payload.add("sources", mapper.toJsonTree(sourceData));
         payload.add("prefs", getPreferencesData(request));
-        return(packageResults(HttpStatus.OK, payload.toString(), null));        
+        
+        return(payload);
     }
-    
+                    
     /**
      * Get map source, view and layer definitions from either database (preferred), local environment (application.properties) or defaults
      * @param String dataTypeKey
@@ -193,7 +237,7 @@ public class ApplicationConfigController {
         }
         return(out);
     }
-    
+        
     /**
      * Scan repository if present and assemble a sub-tree of user-defined layers
      * @param JsonArray treeDef 
@@ -231,9 +275,9 @@ public class ApplicationConfigController {
                 try {
                     for (String loc : repoLocations) {
                         if (loc.contains("/Users/")) {
-                            repoTreewalk(userLayers, loc);
+                            RamaddaUtils.repoTreewalk(userLayers, loc);
                         } else {
-                            repoTreewalk(publicLayers, loc);
+                            RamaddaUtils.repoTreewalk(publicLayers, loc);
                         }
                     }
                     if (userLayers.size() > 0) {
@@ -259,80 +303,7 @@ public class ApplicationConfigController {
                 } 
             }
         }
-    }
-    
-    /**
-     * Walk the tree of JSON data returned from the repository under repoUrl
-     * @param JsonArray layers
-     * @param String repoUrl 
-     */
-    private void repoTreewalk(JsonArray layers, String repoUrl) throws RamaddaConnectionException {
-        String content = retrieveRepoData(repoUrl + (repoUrl.contains("?") ? "&" : "?") + "output=json");
-        if (content != null) {
-            JsonElement jel = new JsonParser().parse(content);
-            if (jel != null) {
-                JsonArray jarr = jel.getAsJsonArray();
-                boolean addNode = true;
-                for (int i = 0; i < jarr.size(); i++) {
-                    JsonObject jo = jarr.get(i).getAsJsonObject();
-                    JsonObject newJo = new JsonObject();
-                    addNode = true;
-                    if (jo.has("isGroup")) {
-                        /* Array => folder in the repo so recurse */
-                        JsonArray nodes = new JsonArray();
-                        newJo.add("nodes", nodes);                
-                        JsonObject state = new JsonObject();
-                        state.addProperty("expanded", true);
-                        String name = jo.get("name").getAsString();
-                        newJo.addProperty("text", name.substring(0, 1).toUpperCase() + name.substring(1));
-                        newJo.addProperty("nodeid", jo.get("id").getAsString());
-                        newJo.add("state", state);
-                        repoTreewalk(nodes, repoUrl + "/" + jo.get("name").getAsString() + "?entryid=" + jo.get("id").getAsString());
-                    } else {
-                        /* Object => leaf node in the repo */
-                        String type = jo.get("type").getAsString();
-                        if (type.equals("geo_kml") || type.equals("geo_gpx")) {
-                            /* GPX or KML/KMZ file */
-                            JsonObject state = new JsonObject();
-                            state.addProperty("checked", false);
-                            state.addProperty("clickable", true); 
-                            newJo.addProperty("text", jo.get("name").getAsString());
-                            newJo.addProperty("nodeid", jo.get("id").getAsString());
-                            newJo.add("props", jo);
-                            newJo.add("state", state);
-                        } else {
-                            addNode = false;
-                        }
-                    }
-                    if (addNode) {
-                        layers.add(newJo);
-                    }
-                }
-            }
-        }
-    }
-    
-    /**
-     * Connect to repository and retrieve data from given url
-     * @param String url
-     * @return String
-     * @throws RamaddaConnectionException 
-     */
-    private String retrieveRepoData(String url) throws RamaddaConnectionException {
-        String content = null;
-        try {
-            Request get = Request.Get(url)
-                .connectTimeout(5000)
-                .socketTimeout(5000);       
-            HttpResponse response = get.execute().returnResponse();
-            if (response.getStatusLine().getStatusCode() < 400) {
-                content = EntityUtils.toString(response.getEntity(), "UTF-8");
-            } 
-        } catch(Exception ex) {
-            throw new RamaddaConnectionException("Failed to connect to repo, error was: " + ex.getMessage());
-        }
-        return(content);
-    }
+    }        
     
     /**
      * Convert string value to the same type as the default value

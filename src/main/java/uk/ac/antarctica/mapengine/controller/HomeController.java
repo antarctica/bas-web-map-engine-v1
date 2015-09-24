@@ -72,7 +72,7 @@ public class HomeController {
      */
     @RequestMapping(value = "/opsgis", method = RequestMethod.GET)
     public String opsgis(HttpServletRequest request, ModelMap model) throws ServletException, IOException {      
-        return(setOpsgisParameters(request, null, false, model));
+        return(setOpsgisParameters(request, null, null, false, model));
     }
     
     /**
@@ -86,7 +86,22 @@ public class HomeController {
      */
     @RequestMapping(value = "/opsgis/{usermap}", method = RequestMethod.GET)
     public String opsgisUsermap(HttpServletRequest request, @PathVariable("usermap") String usermap, ModelMap model) throws ServletException, IOException {      
-        return(setOpsgisParameters(request, usermap, false, model));
+        return(setOpsgisParameters(request, usermap, null, false, model));
+    }
+    
+    /**
+     * Render Operations GIS home page with a particular user map and a user-defined view
+     * @param HttpServletRequest request,
+     * @param String usermap
+     * @param String viewname
+     * @param ModelMap model
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/opsgis/{usermap}/{viewname}", method = RequestMethod.GET)
+    public String opsgisUsermap(HttpServletRequest request, @PathVariable("usermap") String usermap, @PathVariable("viewname") String viewname, ModelMap model) throws ServletException, IOException {      
+        return(setOpsgisParameters(request, usermap, viewname, false, model));
     }
     
     /**
@@ -99,7 +114,7 @@ public class HomeController {
      */
     @RequestMapping(value = "/opsgisd", method = RequestMethod.GET)
     public String opsgisDebug(HttpServletRequest request, ModelMap model) throws ServletException, IOException {      
-        return(setOpsgisParameters(request, null, true, model));
+        return(setOpsgisParameters(request, null, null, true, model));
     }
     
     /**
@@ -113,21 +128,38 @@ public class HomeController {
      */
     @RequestMapping(value = "/opsgisd/{usermap}", method = RequestMethod.GET)
     public String opsgisdUsermap(HttpServletRequest request, @PathVariable("usermap") String usermap, ModelMap model) throws ServletException, IOException {      
-        return(setOpsgisParameters(request, usermap, true, model));
+        return(setOpsgisParameters(request, usermap, null, true, model));
+    }
+    
+    /**
+     * Render Operations GIS home page with a particular user map and user-defined view
+     * @param HttpServletRequest request,
+     * @param String usermap
+     * @param String viewname
+     * @param ModelMap model
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/opsgisd/{usermap}/{viewname}", method = RequestMethod.GET)
+    public String opsgisdUsermap(HttpServletRequest request, @PathVariable("usermap") String usermap, @PathVariable("viewname") String viewname, ModelMap model) throws ServletException, IOException {      
+        return(setOpsgisParameters(request, usermap, viewname, true, model));
     }
     
     /**
      * Set common session and model attributes for OpsGIS
      * @param HttpServletRequest request
      * @param String usermap
+     * @param String viewname
      * @param boolean debug
      * @param ModelMap model
      * @return String
      */
-    private String setOpsgisParameters(HttpServletRequest request, String usermap, boolean debug, ModelMap model) {
+    private String setOpsgisParameters(HttpServletRequest request, String usermap, String viewname, boolean debug, ModelMap model) {
         request.getSession().setAttribute("app", "opsgis");        
         model.addAttribute("app", "opsgis");
         model.addAttribute("usermap", usermap);
+        model.addAttribute("viewname", viewname);
         model.addAttribute("username", getUserName(request));
         model.addAttribute("debug", debug);
         ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Ops GIS home page requested, usermap = " + usermap + ", debug = " + debug);

@@ -273,7 +273,7 @@ magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
                     });
                     var layerNo = magic.runtime.userlayers.length;
                     layer = new ol.layer.Vector({
-                        name: nd.props.name,
+                        name: name,
                         source: source,
                         updateWhileAnimating: true,
                         updateWhileInteracting: true,

@@ -127,6 +127,10 @@ magic.classes.AppContainer = function (payload) {
         username: magic.runtime.username,
         preferences: payload.prefs
     });
+    magic.runtime.savedviews = new magic.classes.SavedMapViews({
+        target: "saved-map-views",
+        username: magic.runtime.username
+    });
 
     /* Updates height of map when window resizes */
     $(window).on("resize", $.proxy(function () {
