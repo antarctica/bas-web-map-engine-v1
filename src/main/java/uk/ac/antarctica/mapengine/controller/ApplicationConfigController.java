@@ -73,7 +73,7 @@ public class ApplicationConfigController {
         SOURCE_PARAMS.put("endpoint", "antarctic");
         SOURCE_PARAMS.put("workspace", "add");
         SOURCE_PARAMS.put("name_prefix", new String[]{"antarctic"});
-        SOURCE_PARAMS.put("wms", BAS_MAPS + "/antarctic/wms");
+        SOURCE_PARAMS.put("wms", BAS_MAPS + "antarctic/wms");
         SOURCE_PARAMS.put("gazetteers", "cga");
         SOURCE_PARAMS.put("dem_layers", new String[]{});    /* Bit messy, but DEM layers may be children of actual layers - easier to specify here */
         /* Map view metadata */
@@ -152,7 +152,7 @@ public class ApplicationConfigController {
         HashMap<String,Object> userMapData = null;
         try {
             userMapData = (HashMap)userDataTpl.queryForMap("SELECT * FROM " + USERDATA_SCHEMA + "." + MAPDEFS_TABLE + " " + 
-                "WHERE appname=? AND usermap=?", appname, usermap);
+                "WHERE appname=? AND usermap=? AND owner IS NULL", appname, usermap);
         } catch(Exception ex) {
         }
         

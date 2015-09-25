@@ -55,7 +55,6 @@ public class UserViewsController {
 
     /**
      * Get names of saved map views for a user
-     *
      * @param HttpServletRequest request,
      * @param String appname
      * @param String usermap
@@ -63,7 +62,7 @@ public class UserViewsController {
      * @throws ServletException
      * @throws IOException
      */
-    @RequestMapping(value = "/mapviews/{appname}/{usermap}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
+    @RequestMapping(value = "/mapview/{appname}/{usermap}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
     @ResponseBody
     public ResponseEntity<String> mapViews(HttpServletRequest request, @PathVariable("appname") String appname, @PathVariable("usermap") String usermap)
         throws ServletException, IOException, ServiceException {
@@ -86,13 +85,12 @@ public class UserViewsController {
 
     /**
      * Save a map view whose data is POST-ed
-     *
      * @param String payload
      * @param String appname
      * @param String usermap
      * @throws Exception
      */
-    @RequestMapping(value = "/savemapview/{appname}/{usermap}", method = RequestMethod.POST, produces = "application/json; charset=utf-8", headers = {"Content-type=application/json"})
+    @RequestMapping(value = "/mapview/{appname}/{usermap}", method = RequestMethod.POST, produces = "application/json; charset=utf-8", headers = {"Content-type=application/json"})
     public ResponseEntity<String> saveMapView(HttpServletRequest request,
         @RequestBody @Valid UserViewSet viewData,
         @PathVariable("appname") String appname,
@@ -119,18 +117,28 @@ public class UserViewsController {
                         if (!key.equals("id")) {
                             fields[fc] = key;
                             values[fc] = "?";
-                            if (key.equals("viewname")) {
-                                args[fc] = viewData.getViewname();
-                            } else if (key.equals("center")) {
-                                args[fc] = viewData.getCenter();
-                            } else if (key.equals("zoom")) {
-                                args[fc] = viewData.getZoom();
-                            } else if (key.equals("show_layers")) {
-                                args[fc] = viewData.getShow_layers();
-                            } else if (key.equals("expand_groups")) {
-                                args[fc] = viewData.getExpand_groups();
-                            } else {
-                                args[fc] = exRow.get(key);
+                            switch (key) {
+                                case "viewname":
+                                    args[fc] = viewData.getViewname();
+                                    break;
+                                case "owner":
+                                    args[fc] = username;
+                                    break;
+                                case "center":
+                                    args[fc] = viewData.getCenter();
+                                    break;
+                                case "zoom":
+                                    args[fc] = viewData.getZoom();
+                                    break;
+                                case "show_layers":
+                                    args[fc] = viewData.getShow_layers();
+                                    break;
+                                case "expand_groups":
+                                    args[fc] = viewData.getExpand_groups();
+                                    break;
+                                default:
+                                    args[fc] = exRow.get(key);
+                                    break;
                             }
                             fc++;                            
                         }
@@ -138,14 +146,44 @@ public class UserViewsController {
                     query = query.replace("{FIELDS}", StringUtils.join(fields, ",")).replace("{VALUES}", StringUtils.join(values, ","));
                     System.out.println(query);
                     userDataTpl.update(query, args);
-                    ret = packageResults(HttpStatus.OK, "ok", null);
+                    ret = packageResults(HttpStatus.OK, null, "Saved successfully");
                 } else {
                     /* Update of existing view */
                     userDataTpl.update("UPDATE " + mapTable + " SET center=?, zoom=?, show_layers=?, expand_groups=? WHERE appname=? AND usermap=? AND viewname=? AND owner=?",
                         viewData.getCenter(), viewData.getZoom(), viewData.getShow_layers(), viewData.getExpand_groups(),
                         appname, usermap, viewData.getViewname(), username);
-                    ret = packageResults(HttpStatus.OK, "ok", null);
+                    ret = packageResults(HttpStatus.OK, null, "Updated successfully");
                 } 
+            } catch (Exception ex) {
+                ret = packageResults(HttpStatus.BAD_REQUEST, null, "Error occurred: " + ex.getMessage());
+            }
+        } else {
+            ret = packageResults(HttpStatus.BAD_REQUEST, null, "Need to be logged in as a user to make this request");
+        }
+        return (ret);
+    }
+    
+    /**
+     * Delete a map view     
+     * @param String appname
+     * @param String usermap
+     * @param String viewname     
+     * @throws Exception
+     */
+    @RequestMapping(value = "/mapview/{appname}/{usermap}/{viewname}", method = RequestMethod.DELETE, produces = "application/json; charset=utf-8")
+    public ResponseEntity<String> delMapView(HttpServletRequest request,
+        @PathVariable("appname") String appname,
+        @PathVariable("usermap") String usermap,
+        @PathVariable("viewname") String viewname) throws Exception {
+
+        ResponseEntity<String> ret;
+        String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
+        String mapTable = USERDATA_SCHEMA + "." + MAPDEFS_TABLE;
+
+        if (username != null) {
+            try {               
+                userDataTpl.update("DELETE FROM " + mapTable + " WHERE appname=? AND usermap=? AND viewname=? AND owner=?", appname, usermap, viewname, username);
+                ret = packageResults(HttpStatus.OK, null, "Deleted successfully");                
             } catch (Exception ex) {
                 ret = packageResults(HttpStatus.BAD_REQUEST, null, "Error occurred: " + ex.getMessage());
             }

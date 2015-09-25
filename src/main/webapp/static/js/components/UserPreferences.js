@@ -107,18 +107,7 @@ magic.classes.UserPreferences = function(options) {
                         '</div>' + 
                     '</div>' +
                     '<div class="form-group form-group-sm col-sm-12" style="padding-left:30px">' +
-                        '<button id="' + this.target + '-go" class="btn btn-default btn-sm" type="button" ' + 
-                            'data-toggle="tooltip" data-placement="right" title="Set preferences">' + 
-                            '<span class="fa fa-wrench"></span>' + 
-                        '</button>' +
-                        '<button id="' + this.target + '-fb-ok" class="btn btn-default btn-sm" style="display:none" type="button" ' + 
-                            'data-toggle="tooltip" data-placement="right" title="Ok">' + 
-                            '<span class="glyphicon glyphicon-ok post-ok"></span>' + 
-                        '</button>' +
-                        '<button id="' + this.target + '-fb-error" class="btn btn-default btn-sm hidden" style="display:none" type="button" ' + 
-                            'data-toggle="tooltip" data-placement="right" title="Error">' + 
-                            '<span class="glyphicon glyphicon-remove post-error"></span>' + 
-                        '</button>' +
+                        magic.modules.Common.buttonFeedbackSet(this.target, "Set preferences") +                         
                         '<button id="' + this.target + '-cancel" class="btn btn-default btn-sm" type="button" ' + 
                             'data-toggle="tooltip" data-placement="right" title="Cancel">' + 
                             '<span class="fa fa-times-circle"></span>' + 
@@ -145,25 +134,7 @@ magic.classes.UserPreferences = function(options) {
                         "X-CSRF-TOKEN": csrfHeaderVal
                     },
                     success: $.proxy(function(data) {
-                        var btnGo = $("#" + this.target + "-go"),
-                            btnFbOk = $("#" + this.target + "-fb-ok"),
-                            btnFbError = $("#" + this.target + "-fb-error"),
-                            effect;
-                        btnGo.hide();
-                        /* See https://api.jquery.com/promise/ for queuing up animations like this */
-                        if (data.status == 200) {                            
-                            btnFbOk.attr("data-original-title", data.detail).tooltip("fixTitle");
-                            effect = function(){return(btnFbOk.fadeIn(300).delay(600).fadeOut(300))};                                                      
-                        } else {
-                            btnFbError.attr("data-original-title", data.detail).tooltip("fixTitle");
-                            effect = function(){return(btnFbError.fadeIn(600).delay(1200).fadeOut(600))};
-                        }
-                        $.when(effect()).done(function() {
-                            btnGo.show();
-                            if (data.status == 200) {
-                                contentDiv.toggleClass("hidden");
-                            }
-                        });                        
+                        magic.modules.Common.buttonClickFeedback(this.target, data.status < 400, data.detail);                        
                     }, this)
                 });
             }, this));

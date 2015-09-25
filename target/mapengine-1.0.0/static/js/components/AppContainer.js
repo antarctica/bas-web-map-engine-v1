@@ -178,7 +178,7 @@ magic.classes.AppContainer = function (payload) {
     /* Display application metadata */
     $("#apptitle").text(payload.sources.title);
     $(document).attr("title", payload.sources.title);
-    $("#applogo").attr("src", "../static/images/" + payload.sources.logo);
+    $("#applogo").attr("src", "/static/images/" + payload.sources.logo);
     $("#appurl").attr("href", payload.sources.url);
     $("link[rel='icon']").attr("href", "/" + payload.sources.favicon);
     $("link[rel='shortcut icon']").attr("href", "/" + payload.sources.favicon);

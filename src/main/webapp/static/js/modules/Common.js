@@ -85,6 +85,53 @@ magic.modules.Common = function () {
             return("rgba(" + components.r + "," + components.g + "," + components.b + "," + opacity + ")");
         },
         /**
+         * Create a set of buttons suitable for giving feedback on a POST/PUT/DELETE operation
+         * @param {type} btnBaseId
+         * @param {type} msg
+         * @returns {String}
+         */
+        buttonFeedbackSet: function(btnBaseId, msg) {
+            return(
+                '<button id="' + btnBaseId + '-go" class="btn btn-default btn-sm" type="button" ' + 
+                    'data-toggle="tooltip" data-placement="top" title="' + msg + '">' + 
+                    '<span class="fa fa-arrow-circle-right"></span>' + 
+                '</button>' +
+                '<button id="' + btnBaseId + '-fb-ok" class="btn btn-default btn-sm" style="display:none" type="button" ' + 
+                    'data-toggle="tooltip" data-placement="top" title="Ok">' + 
+                    '<span class="glyphicon glyphicon-ok post-ok"></span>' + 
+                '</button>' +
+                '<button id="' + btnBaseId + '-fb-error" class="btn btn-default btn-sm" style="display:none" type="button" ' + 
+                    'data-toggle="tooltip" data-placement="top" title="Error">' + 
+                    '<span class="glyphicon glyphicon-remove post-error"></span>' + 
+                '</button>'
+            );
+        },
+        /**
+         * Give success/failure feedback by animating a button set
+         * Assumes three buttons, the first was clicked, the other two are initially hidden 
+         * @param {string} btnBaseId       
+         * @param {boolean} success 
+         * @param {string} msg      
+         */
+        buttonClickFeedback: function(btnBaseId, success, msg) {
+            var btnGo = $("#" + btnBaseId + "-go"),
+                btnFbOk = $("#" + btnBaseId + "-fb-ok"),
+                btnFbError = $("#" + btnBaseId + "-fb-error"),
+                effect;
+            btnGo.hide();
+            /* See https://api.jquery.com/promise/ for queuing up animations like this */
+            if (success) {                            
+                btnFbOk.attr("data-original-title", msg).tooltip("fixTitle");
+                effect = function(){return(btnFbOk.fadeIn(300).delay(600).fadeOut(300))};                                                      
+            } else {
+                btnFbError.attr("data-original-title", msg).tooltip("fixTitle");
+                effect = function(){return(btnFbError.fadeIn(600).delay(1200).fadeOut(600))};
+            }
+            $.when(effect()).done(function() {
+                btnGo.show();                            
+            });                        
+        },
+        /**
          * Put together a suitable style for an uploaded layer, distinct from the rest
          * @param {string} geomType
          * @param {int} paletteEntry
