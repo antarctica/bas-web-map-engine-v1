@@ -110,7 +110,7 @@ magic.classes.SavedMapViews = function(options) {
                 /* Load a view */
                 var view = $("#" + this.target + "-view-list").val();
                 var pathBits = window.location.pathname.split("/");
-                window.location = magic.config.paths.baseurl + "/" + pathBits[1] + "/" + magic.runtime.usermap + "/" + view;
+                window.location = magic.config.paths.baseurl + "/" + pathBits[1] + "/" + (magic.runtime.usermap ? magic.runtime.usermap : "default") + "/" + view;
             }, this));
         }
     }, this));
@@ -123,7 +123,7 @@ magic.classes.SavedMapViews = function(options) {
  * @param {string} selected
  */
 magic.classes.SavedMapViews.prototype.populateViewList = function(selectId, selected) {
-    var getListUrl = magic.config.paths.baseurl + "/mapview/" + magic.runtime.app + "/" + magic.runtime.usermap;
+    var getListUrl = magic.config.paths.baseurl + "/mapview/" + magic.runtime.app + "/" + (magic.runtime.usermap ? magic.runtime.usermap : "default");
     $.getJSON(getListUrl, $.proxy(function(views) {
         if ($.isArray(views) && views.length > 0) {
             var html = "";

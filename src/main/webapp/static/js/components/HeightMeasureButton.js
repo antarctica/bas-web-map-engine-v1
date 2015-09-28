@@ -103,7 +103,6 @@ magic.classes.HeightMeasureButton.prototype.queryHeight = function(evt) {
                 "INFO_FORMAT": "application/json",
                 "FEATURE_COUNT": this.demLayers.length
             });
-        console.log(url);
         if (url) {
             var ll = ol.proj.transform(evt.coordinate, magic.runtime.projection.getCode(), "EPSG:4326");
             var element = this.heightPopup.getElement();

@@ -14,7 +14,6 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import uk.ac.antarctica.mapengine.util.MosaicDownloader;
 
 @EnableScheduling
 @SpringBootApplication
@@ -64,10 +63,10 @@ public class Application extends SpringBootServletInitializer {
         return (new JdbcTemplate(gisDataSource()));
     }
     
-    @Bean
-    public MosaicDownloader mosaicDownloader() {
-        return (new MosaicDownloader());
-    }
+//    @Bean
+//    public MosaicDownloader mosaicDownloader() {
+//        return (new MosaicDownloader());
+//    }
 
     @Bean
     public HttpSessionListener httpSessionListener() {

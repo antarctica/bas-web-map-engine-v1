@@ -14,7 +14,6 @@ uk\ac\antarctica\mapengine\controller\UserPreferencesController.class
 uk\ac\antarctica\mapengine\controller\PingController.class
 uk\ac\antarctica\mapengine\controller\ApplicationConfigController$LayerTreeData.class
 uk\ac\antarctica\mapengine\controller\HomeController.class
-uk\ac\antarctica\mapengine\util\MosaicDownloader.class
 uk\ac\antarctica\mapengine\config\CustomServletContextListener.class
 uk\ac\antarctica\mapengine\config\RamaddaAuthenticationException.class
 uk\ac\antarctica\mapengine\config\RamaddaConnectionException.class

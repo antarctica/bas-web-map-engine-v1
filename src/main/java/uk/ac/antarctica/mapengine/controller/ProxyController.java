@@ -58,7 +58,6 @@ public class ProxyController {
             /* Allowed to call this API from here */
             boolean isGfi = url.toLowerCase().contains("getfeatureinfo");
             boolean isDft = url.toLowerCase().contains("describefeaturetype");
-            System.out.println("Proxying URL " + url);
             Request get = Request.Get(url)
                 .connectTimeout(10000)
                 .socketTimeout(10000);
@@ -93,7 +92,6 @@ public class ProxyController {
         String content = "";
         if (isAllowed(url)) {
             /* Allowed to call this URL from here */           
-            System.out.println("Proxying XML URL " + url);
             Request get = Request.Get(url)
                 .connectTimeout(10000)
                 .socketTimeout(10000);           

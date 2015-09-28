@@ -274,6 +274,5 @@ magic.classes.AppContainer.prototype.constructStyle = function(feat) {
             return(false);
         }
     });
-    console.log("Label is " + label);
     return(magic.modules.Common.fetchStyle(geomType, paletteEntry, label));        
 };
