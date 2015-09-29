@@ -7,7 +7,12 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import it.geosolutions.geoserver.rest.HTTPUtils;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -18,7 +23,6 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.util.EntityUtils;
 import org.json.XML;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -26,12 +30,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import uk.ac.antarctica.mapengine.exception.RamaddaConnectionException;
+import uk.ac.antarctica.mapengine.external.StaticImageService;
+import uk.ac.antarctica.mapengine.external.StaticImageServiceRegistry;
+import uk.ac.antarctica.mapengine.util.RamaddaUtils;
 
 @Controller
 public class ProxyController {
 
     @Autowired
-    private Environment env;
+    private StaticImageServiceRegistry staticImageServiceRegistry;
 
     private static final String[] ALLOWED_SERVERS = new String[]{
         "https://api.bas.ac.uk",
@@ -79,7 +87,34 @@ public class ProxyController {
     }
     
     /**
-     * Proxy for Ramadda download of XML files
+     * Proxy for Ramadda download of XML files e.g. KML/GPX
+     * @param HttpServletRequest request
+     * @param String url
+     * @return String
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/proxy/repo", method = RequestMethod.GET, produces = {"application/xml; charset=utf-8", "text/xml; charset=utf-8"})
+    public void ramaddaProxy(HttpServletRequest request, HttpServletResponse response, @RequestParam(value = "url", required = true) String url) throws ServletException, IOException {
+        String content = "";
+        if (isAllowed(url)) {
+            try {
+                /* Allowed to call this URL from here */
+                content = RamaddaUtils.retrieveRepoData(url);
+                if (content == null || content.isEmpty()) {
+                    content = xmlExceptionReport("400", "Failed to retrieve data from repository at " + url);
+                }
+            } catch (RamaddaConnectionException ex) {
+                content = xmlExceptionReport("400", "Failed to connect to repository at " + url);
+            }
+        } else {
+            content = xmlExceptionReport("400", "Proxy of this server is not allowed " + url);
+        }
+        IOUtils.write(content, response.getOutputStream());
+    }
+    
+    /**
+     * Proxy for serving images from local SAN - returns a 1x1 PNG image in the case of not found
      *
      * @param HttpServletRequest request
      * @param String url
@@ -87,24 +122,23 @@ public class ProxyController {
      * @throws ServletException
      * @throws IOException
      */
-    @RequestMapping(value = "/xmlproxy", method = RequestMethod.GET, produces = {"application/xml; charset=utf-8", "text/xml; charset=utf-8"})
-    public void xmlProxy(HttpServletRequest request, HttpServletResponse response, @RequestParam(value = "url", required = true) String url) throws ServletException, IOException {
-        String content = "";
-        if (isAllowed(url)) {
-            /* Allowed to call this URL from here */           
-            Request get = Request.Get(url)
-                .connectTimeout(10000)
-                .socketTimeout(10000);           
-            HttpResponse httpResponse = get.execute().returnResponse();
-            int code = httpResponse.getStatusLine().getStatusCode();
-            content = EntityUtils.toString(httpResponse.getEntity(), "UTF-8");
-            if (code >= 400) {
-                content = xmlExceptionReport(code + "", "Status " + code + " from proxy");
+    @RequestMapping(value = "/staticimage", method = RequestMethod.GET, produces = {"image/png"})
+    public void imageproxy(HttpServletRequest request, HttpServletResponse response, 
+        @RequestParam(value = "service", required = true) String service,
+        @RequestParam(value = "t", required = false) String t) throws ServletException, IOException {   
+        
+        String path1x1 = request.getSession().getServletContext().getRealPath("/static/images/1x1.png");
+        HashMap<String,StaticImageService> r = staticImageServiceRegistry.getRegistry();
+        if (r.containsKey(service)) {
+            File img = r.get(service).serveImage(t);
+            if (img != null) {
+                IOUtils.copy(new FileInputStream(img), response.getOutputStream());
+            } else {
+                IOUtils.copy(new FileInputStream(path1x1), response.getOutputStream());
             }
         } else {
-            content = xmlExceptionReport("400", "Bad request " + url);
+            IOUtils.copy(new FileInputStream(path1x1), response.getOutputStream());
         }
-        IOUtils.write(content, response.getOutputStream());
     }
     
     /**
@@ -126,7 +160,7 @@ public class ProxyController {
                 .socketTimeout(10000)
                 .execute()
                 .returnResponse();
-        int code = response.getStatusLine().getStatusCode();
+        int code = response.getStatusLine().getStatusCode();        
         String content = EntityUtils.toString(response.getEntity(), "UTF-8");
         if (code == 200) {
             ret = packageResults(HttpStatus.OK, content, "", false, false);

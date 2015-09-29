@@ -1,7 +1,7 @@
 /*
  * Packaging for Ramadda connect exception
  */
-package uk.ac.antarctica.mapengine.config;
+package uk.ac.antarctica.mapengine.exception;
 
 public class RamaddaConnectionException extends Exception {
 

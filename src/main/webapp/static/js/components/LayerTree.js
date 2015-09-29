@@ -258,7 +258,29 @@ magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
             if (nd.props) {
                 /* Create a data layer */
                 var layer = null;
-                if (!$.isNumeric(nd.nodeid) && magic.runtime.repository) {
+                if (nd.state.static) {
+                    /* Static image layer */
+                    layer = new ol.layer.Image({
+                        name: name,
+                        source: new ol.source.ImageStatic({
+                            url: magic.config.paths.baseurl + "/staticimage?service=" + nd.state.static,
+                            projection: magic.runtime.projection,
+                            imageExtent: nd.props.bboxsrs
+                        }),
+                        metadata: $.extend({}, nd.props, {
+                            nodeid: nd.state.static,                            
+                            wmsfeed: null,
+                            bboxwgs84: nd.props.bbox,
+                            metadataurl: null,
+                            srs: magic.runtime.projection.getCode(),
+                            checkstate: false,
+                            timeseries: true,
+                            filterable: false,
+                            filter: null,
+                            attrs: null
+                        })
+                    });
+                } else if (!$.isNumeric(nd.nodeid) && magic.runtime.repository) {
                     /* Vector GPX or KML layer */
                     var format = null;
                     if (nd.props.type == "geo_kml") {
@@ -269,7 +291,7 @@ magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
                     var url = magic.runtime.repository.replace("/show/", "/get/") + "?entryid=" + nd.nodeid;
                     var source = new ol.source.Vector({
                         format: format,
-                        url: magic.config.paths.baseurl + "/xmlproxy?url=" + encodeURIComponent(url)
+                        url: magic.config.paths.baseurl + "/proxy/repo?url=" + encodeURIComponent(url)
                     });
                     var layerNo = magic.runtime.userlayers.length;
                     layer = new ol.layer.Vector({

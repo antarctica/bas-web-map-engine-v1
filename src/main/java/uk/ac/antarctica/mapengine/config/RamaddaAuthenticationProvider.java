@@ -3,6 +3,7 @@
  */
 package uk.ac.antarctica.mapengine.config;
 
+import uk.ac.antarctica.mapengine.exception.RamaddaAuthenticationException;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.http.Header;

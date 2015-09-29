@@ -1,6 +1,6 @@
-/* Mosaic time series player definition for PVAN sea ice charts */
+/* Static imagery time servies player (proxied direct off SAN rather than through Geoserver) */
 
-magic.classes.PvanSicTimeSeriesPlayer = function(options) {
+magic.classes.StaticTimeSeriesPlayer = function(options) {
         
     /* API options */
     this.nodeid = options.nodeid;
@@ -54,8 +54,7 @@ magic.classes.PvanSicTimeSeriesPlayer = function(options) {
                 } else {
                     alert("No data");
                 }
-            }, this));
-            
+            }, this));            
         }
     }
 };
@@ -64,7 +63,7 @@ magic.classes.PvanSicTimeSeriesPlayer = function(options) {
  * Show the required image from the mosaic
  * @param {jQuery.Event} evt
  */
-magic.classes.PvanSicTimeSeriesPlayer.prototype.showImage = function(evt) {
+magic.classes.StaticTimeSeriesPlayer.prototype.showImage = function(evt) {
     evt.stopPropagation();
     if (evt.data.pointer == "0") {
         this.imagePointer = 0;
@@ -87,7 +86,7 @@ magic.classes.PvanSicTimeSeriesPlayer.prototype.showImage = function(evt) {
  * Play a movie from the current time
  * @param {jQuery.Event} evt
  */
-magic.classes.PvanSicTimeSeriesPlayer.prototype.playMovie = function(evt) {
+magic.classes.StaticTimeSeriesPlayer.prototype.playMovie = function(evt) {
     evt.stopPropagation();
     var timer = setInterval(
         $.proxy(function() {
@@ -105,7 +104,7 @@ magic.classes.PvanSicTimeSeriesPlayer.prototype.playMovie = function(evt) {
 /**
  * Set the button disabled statuses according to the current image pointer
  */
-magic.classes.PvanSicTimeSeriesPlayer.prototype.syncButtons = function() {
+magic.classes.StaticTimeSeriesPlayer.prototype.syncButtons = function() {
     var btns = this.target.children("button");
     $(btns[0]).prop("disabled", this.imagePointer == 0);
     $(btns[1]).prop("disabled", this.imagePointer == 0);
@@ -117,7 +116,7 @@ magic.classes.PvanSicTimeSeriesPlayer.prototype.syncButtons = function() {
 /**
  * Update the layer parameters
  */
-magic.classes.PvanSicTimeSeriesPlayer.prototype.updateLayer = function() {
+magic.classes.StaticTimeSeriesPlayer.prototype.updateLayer = function() {
     /* Actually show the image in the layer */
     var t = this.getTime();
     $("#granule-date-" + this.nodeid).html(t.replace(".000Z", ""));
@@ -131,7 +130,7 @@ magic.classes.PvanSicTimeSeriesPlayer.prototype.updateLayer = function() {
 /**
  * Get the date of the current granule
  */
-magic.classes.PvanSicTimeSeriesPlayer.prototype.getTime = function() {
+magic.classes.StaticTimeSeriesPlayer.prototype.getTime = function() {
     var t = this.granules[this.imagePointer].properties.chart_date;
     /* See http://suite.opengeo.org/4.1/geoserver/tutorials/imagemosaic_timeseries/imagemosaic_time-elevationseries.html for description of the pernickety date format */
     t = t.replace("+0000", "Z");

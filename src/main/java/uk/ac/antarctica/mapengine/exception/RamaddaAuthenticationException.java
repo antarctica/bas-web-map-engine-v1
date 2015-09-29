@@ -1,7 +1,7 @@
 /*
  * Packaging for Ramadda exceptions
  */
-package uk.ac.antarctica.mapengine.config;
+package uk.ac.antarctica.mapengine.exception;
 
 import org.springframework.security.core.AuthenticationException;
 

@@ -10,7 +10,7 @@ import com.google.gson.JsonParser;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.util.EntityUtils;
-import uk.ac.antarctica.mapengine.config.RamaddaConnectionException;
+import uk.ac.antarctica.mapengine.exception.RamaddaConnectionException;
 
 public class RamaddaUtils {
     

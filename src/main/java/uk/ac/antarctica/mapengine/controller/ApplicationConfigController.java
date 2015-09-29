@@ -39,7 +39,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-import uk.ac.antarctica.mapengine.config.RamaddaConnectionException;
+import uk.ac.antarctica.mapengine.exception.RamaddaConnectionException;
+import uk.ac.antarctica.mapengine.external.StaticImageService;
+import uk.ac.antarctica.mapengine.external.StaticImageServiceRegistry;
 import uk.ac.antarctica.mapengine.util.RamaddaUtils;
 
 @RestController
@@ -50,6 +52,9 @@ public class ApplicationConfigController {
     
     @Autowired
     private JdbcTemplate userDataTpl;
+    
+    @Autowired
+    private StaticImageServiceRegistry staticImageServiceRegistry;
     
     /* Double default decimal format */
     DecimalFormat df = new DecimalFormat("#.####");
@@ -196,6 +201,15 @@ public class ApplicationConfigController {
                 (String[])layerData.get("singletile_layers")                
             )
         );
+        
+        /* Add in custom layers (opsgis only) */
+        if (env.getProperty("static.services") != null && !env.getProperty("static.services").isEmpty()) {
+            staticImageServiceRegistry.register(env.getProperty("static.services"));
+            HashMap<String,StaticImageService> r = staticImageServiceRegistry.getRegistry();
+            for (String serviceName : r.keySet()) {
+                treeDef.set(2, r.get(serviceName).layerEntry());
+            }            
+        }
         
         /* Look for user layers in the repository if present */
         appendUserLayers(treeDef, sourceData, usermap, request.getUserPrincipal());

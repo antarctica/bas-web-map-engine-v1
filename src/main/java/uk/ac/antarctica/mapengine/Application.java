@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import uk.ac.antarctica.mapengine.util.ImageLayerDownloader;
+import uk.ac.antarctica.mapengine.external.StaticImageServiceRegistry;
 
 @EnableScheduling
 @SpringBootApplication
@@ -65,8 +65,8 @@ public class Application extends SpringBootServletInitializer {
     }
     
     @Bean
-    public ImageLayerDownloader imageLayerDownloader() {
-        return (new ImageLayerDownloader());
+    public StaticImageServiceRegistry staticImageServiceRegistry() {
+        return (new StaticImageServiceRegistry());
     }
 
     @Bean

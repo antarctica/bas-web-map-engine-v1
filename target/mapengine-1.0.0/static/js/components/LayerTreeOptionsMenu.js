@@ -88,11 +88,19 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
     } else {
         $("#tss-" + this.nodeid).off("click").on("click", $.proxy(function(evt) {
             evt.stopPropagation();
-            new magic.classes.MosaicTimeSeriesPlayer({               
-                target: $(evt.currentTarget).next("div"),
-                nodeid: this.nodeid,
-                layer: this.layer
-            });                  
+            var staticService = this.layer.get("metadata")["static"];
+            if (staticService) {
+                new magic.classes.StaticTimeSeriesPlayer({               
+                    target: $(evt.currentTarget).next("div"),
+                    layer: this.layer             
+                });      
+            } else {
+                new magic.classes.MosaicTimeSeriesPlayer({               
+                    target: $(evt.currentTarget).next("div"),
+                    nodeid: this.nodeid,
+                    layer: this.layer             
+                });                  
+            }
         }, this));
     }
 };
