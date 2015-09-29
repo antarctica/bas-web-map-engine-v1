@@ -13,6 +13,7 @@ uk\ac\antarctica\mapengine\Application.class
 uk\ac\antarctica\mapengine\controller\UserPreferencesController.class
 uk\ac\antarctica\mapengine\controller\PingController.class
 uk\ac\antarctica\mapengine\controller\ApplicationConfigController$LayerTreeData.class
+uk\ac\antarctica\mapengine\util\ImageLayerDownloader.class
 uk\ac\antarctica\mapengine\controller\HomeController.class
 uk\ac\antarctica\mapengine\config\CustomServletContextListener.class
 uk\ac\antarctica\mapengine\config\RamaddaAuthenticationException.class
