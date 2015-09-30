@@ -104,7 +104,7 @@ magic.classes.LayerFilter.prototype.loadAttributeOptions = function() {
                 }
                 if (wmsUrl) {
                     var wfs = wmsUrl.replace("wms", "wfs");
-                    $.getJSON(magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(wfs + "?request=describefeaturetype&typename=" + md.name))
+                    $.getJSON(magic.config.paths.baseurl + "/proxy/gs/dft?url=" + encodeURIComponent(wfs + "?request=describefeaturetype&typename=" + md.name))
                     .done($.proxy(function(data) {
                         if ($.isArray(data)) {
                             /* List of attributes successfully retrieved */

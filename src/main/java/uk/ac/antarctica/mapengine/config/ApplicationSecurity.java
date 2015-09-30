@@ -30,8 +30,8 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
             .authorizeRequests()
-            .antMatchers("/*.ico", "/static/**", "/home/**", "/debug/**", "/appconfig/**", "/ping", "/proxy", "/airtoken").permitAll()
-            .antMatchers("/creator", "/opsgis/**", "/opsgisd/**", "/gsrest", "/mapview/**", "/prefs/**")
+            .antMatchers("/*.ico", "/static/**", "/home/**", "/debug/**", "/appconfig/**", "/ping", "/proxy/api", "/proxy/gs/gfi", "/proxy/gs/dft", "/proxy/repo", "/proxy/static").permitAll()
+            .antMatchers("/creator", "/opsgis/**", "/opsgisd/**", "/proxy/aircraft", "/proxy/gs/rest", "/proxy/gs/login", "/mapview/**", "/prefs/**")
             .fullyAuthenticated()
             .and()
             .formLogin()

@@ -258,17 +258,20 @@ magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
             if (nd.props) {
                 /* Create a data layer */
                 var layer = null;
-                if (nd.state.static) {
+                if (nd.state["static"]) {
                     /* Static image layer */
                     layer = new ol.layer.Image({
                         name: name,
+                        visible: false,
                         source: new ol.source.ImageStatic({
-                            url: magic.config.paths.baseurl + "/staticimage?service=" + nd.state.static,
+                            url: magic.config.paths.baseurl + "/proxy/static?service=" + nd.state["static"],
                             projection: magic.runtime.projection,
                             imageExtent: nd.props.bboxsrs
                         }),
                         metadata: $.extend({}, nd.props, {
-                            nodeid: nd.state.static,                            
+                            nodeid: nd.nodeid,
+                            static: nd.state["static"],
+                            times: nd.state["times"],
                             wmsfeed: null,
                             bboxwgs84: nd.props.bbox,
                             metadataurl: null,
@@ -413,6 +416,7 @@ magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
  */
 magic.classes.LayerTree.prototype.getNodeId = function(eltId) {
     var nodeid = null;
+    console.log(eltId);
     if (eltId.length > 36) {
         /* A Ramadda-style node id - fixed length of 36 characters */
         nodeid = eltId.substr(eltId.length - 36);
@@ -420,6 +424,7 @@ magic.classes.LayerTree.prototype.getNodeId = function(eltId) {
         /* Node id is number after last '-' */
         nodeid = eltId.substring(eltId.lastIndexOf("-")+1);
     }
+    console.log(nodeid);
     return(nodeid);
 };
 

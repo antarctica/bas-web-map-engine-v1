@@ -3,6 +3,7 @@
  */
 package uk.ac.antarctica.mapengine.external;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -10,7 +11,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.UUID;
 import org.apache.commons.io.IOUtils;
 import org.springframework.scheduling.annotation.Scheduled;
 
@@ -72,14 +75,14 @@ public class PvanSicImageService extends StaticImageService {
         if (new File(getDataStore()).canRead()) {
             try {
                 if (t == null || t.isEmpty()) {
-                    long[] range = imageTimeRange();
-                    if (range != null) {
-                        t = range[1] + "";
+                    ArrayList<Long> times = imageTimes();
+                    if (!times.isEmpty()) {
+                        t = times.get(times.size()-1) + "";
                     }
                 }
                 if (t != null && !t.isEmpty()) {
                     File f = new File(getDataStore() + "/amsr2_" + t + ".png");
-                    if (output.canRead()) {
+                    if (f.canRead()) {
                         output = f;
                     }
                 }
@@ -103,13 +106,15 @@ public class PvanSicImageService extends StaticImageService {
         JsonObject state = new JsonObject();
         state.addProperty("expanded", true);
         sicGroup.addProperty("text", "Sea ice concentration");
+        sicGroup.addProperty("nodeid", UUID.randomUUID().toString());
         /* Create nodes */
         JsonObject amsr2 = new JsonObject();        
         amsr2.addProperty("text", "Uni Bremen AMSR2");
+        amsr2.addProperty("nodeid", UUID.randomUUID().toString());
         JsonObject props = new JsonObject();
         props.addProperty("name", "bremen_sic");
         props.addProperty("abstract", "Bremen Uni AMSR2 Sea Ice Concentration chart, Supplied by Bremen University, following Spreen, G., L. Kaleschke, and G.Heygster(2008), " + 
-            "Sea ice remote sensing using AMSR-E 89 GHz channels J. Geophys. Res.,vol. 113, C02S03, doi:10.1029/2005JC003384. http://www.iup.uni-bremen.de:8084/amsr2/");
+            "Sea ice remote sensing using AMSR-E 89 GHz channels J. Geophys. Res.,vol. 113, C02S03, doi:10.1029/2005JC003384. http://www.iup.uni-bremen.de:8084/amsr2/");        
         JsonArray bboxsrs = new JsonArray();        
         bboxsrs.add(new JsonPrimitive(-3958720));
         bboxsrs.add(new JsonPrimitive(-3964989));
@@ -127,6 +132,8 @@ public class PvanSicImageService extends StaticImageService {
         lstate.addProperty("checked", false);
         lstate.addProperty("timeseries", true);
         lstate.addProperty("static", "sic");
+        ArrayList<Long> times = this.imageTimes();        
+        lstate.add("times", new Gson().toJsonTree(times));
         amsr2.add("state", lstate);
         JsonArray nodes = new JsonArray();
         nodes.add(amsr2);

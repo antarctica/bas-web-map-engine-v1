@@ -88,7 +88,7 @@ magic.classes.FeatureInfoButton.prototype.queryFeatures = function(evt) {
     var px = evt.pixel;
     var fprops = this.featuresAtPixel(px);
     if (gfiLayer) {        
-        $.getJSON(magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(gfiLayer.getSource().getGetFeatureInfoUrl(
+        $.getJSON(magic.config.paths.baseurl + "/proxy/gs/gfi?url=" + encodeURIComponent(gfiLayer.getSource().getGetFeatureInfoUrl(
             evt.coordinate, 
             magic.runtime.map.getView().getResolution(), 
             magic.runtime.map.getView().getProjection(),

@@ -112,7 +112,7 @@ magic.classes.ShipPositionButton.prototype.getData = function() {
     /* Aircraft positional API */
     var shipApi = "https://api.bas.ac.uk/marine/v1/vessels/position/";        
     $.ajax({
-        url: magic.config.paths.baseurl + "/proxy?url=" + shipApi,
+        url: magic.config.paths.baseurl + "/proxy/api?url=" + encodeURIComponent(shipApi),
         method: "GET",
         success: $.proxy(function(data) {
             /* Format is as https://github.com/felnne/bas-api-documentation/blob/master/marine-api/v1/documentation/resources/vessel.md */           

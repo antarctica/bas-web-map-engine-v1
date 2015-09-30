@@ -92,6 +92,9 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
             if (staticService) {
                 new magic.classes.StaticTimeSeriesPlayer({               
                     target: $(evt.currentTarget).next("div"),
+                    nodeid: this.nodeid,
+                    service: staticService,
+                    extent: this.layer.get("metadata")["bboxsrs"],
                     layer: this.layer             
                 });      
             } else {

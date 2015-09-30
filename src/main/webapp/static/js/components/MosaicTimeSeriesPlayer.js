@@ -24,7 +24,7 @@ magic.classes.MosaicTimeSeriesPlayer = function(options) {
             var params = this.layer.getSource().getParams();
             var fparts = params["LAYERS"].split(":");
             restUrl += ("/" + params["WORKSPACE"] + "/coveragestores/" + fparts[1] + "/coverages/" + fparts[1] + "/index/granules");
-            $.getJSON(magic.config.paths.baseurl + "/gsrest?url=" + encodeURIComponent(restUrl), $.proxy(function(data) {
+            $.getJSON(magic.config.paths.baseurl + "/proxy/gs/rest?url=" + encodeURIComponent(restUrl), $.proxy(function(data) {
                 var feats = data.features;
                 if ($.isArray(feats) && feats.length > 0) {
                     feats.sort(function(a, b) {
@@ -89,17 +89,42 @@ magic.classes.MosaicTimeSeriesPlayer.prototype.showImage = function(evt) {
  */
 magic.classes.MosaicTimeSeriesPlayer.prototype.playMovie = function(evt) {
     evt.stopPropagation();
-    var timer = setInterval(
+    var playBtn = $(this.target.children("button")[2]);
+    this.movie = setInterval(
         $.proxy(function() {
-            if (this.imagePointer < this.granules.length - 1) {
+            if (this.imagePointer < this.times.length - 1) {
+                if (playBtn.hasClass("fa-play")) {
+                    playBtn.removeClass("fa-play").addClass("fa-pause");
+                    playBtn.attr("data-original-title", "Pause movie").tooltip("fixTitle");
+                    playBtn.off("click").on("click", $.proxy(this.pauseMovie, this));                    
+                }
                 this.imagePointer++;
                 this.updateLayer();
             } else {
-                clearInterval(timer);
+                clearInterval(this.movie);
+                if (playBtn.hasClass("fa-pause")) {
+                    playBtn.removeClass("fa-pause").addClass("fa-play");
+                    playBtn.attr("data-original-title", "Play movie of mosaic images").tooltip("fixTitle");
+                }
             }
             this.syncButtons(); 
-        }, this), 1000
+        }, this), 2000
     );          
+};
+
+/**
+ * Pause a movie
+ * @param {jQuery.Event} evt
+ */
+magic.classes.MosaicTimeSeriesPlayer.prototype.pauseMovie = function(evt) {
+    evt.stopPropagation();
+    var playBtn = $(this.target.children("button")[2]);
+    clearInterval(this.movie);
+    if (playBtn.hasClass("fa-pause")) {
+        playBtn.removeClass("fa-pause").addClass("fa-play");
+        playBtn.attr("data-original-title", "Play movie of mosaic images").tooltip("fixTitle");
+    }
+    playBtn.off("click").on("click", $.proxy(this.playMovie, this));    
 };
 
 /**

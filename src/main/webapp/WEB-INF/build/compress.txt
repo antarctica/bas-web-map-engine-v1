@@ -43,3 +43,4 @@ js/components/UserPreferences.js
 js/components/SavedMapViews.js
 js/components/bas/AircraftPositionButton.js
 js/components/bas/ShipPositionButton.js
+js/components/bas/StaticTimeSeriesPlayer.js

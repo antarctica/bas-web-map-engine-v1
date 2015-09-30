@@ -16,7 +16,7 @@ magic.classes.Geosearch = function(options) {
     
     /* Get data about gazetteers, keyed by name */
     this.gazetteerData = {};
-    $.getJSON(magic.config.paths.baseurl + "/proxy?url=https://api.bas.ac.uk/locations/v1/gazetteer", $.proxy(function(payload) {
+    $.getJSON(magic.config.paths.baseurl + "/proxy/api?url=https://api.bas.ac.uk/locations/v1/gazetteer", $.proxy(function(payload) {
         $.map(payload, $.proxy(function(gd) {
             this.gazetteerData[gd.gazetteer] = gd;
         }, this));
@@ -249,7 +249,7 @@ magic.classes.Geosearch.prototype.getSources = function() {
     var sources = $.map(this.gazetteers, $.proxy(function(gaz) {
         return({
             source: function(query, syncResults, asyncResults) {
-                $.getJSON(magic.config.paths.baseurl + "/proxy?url=https://api.bas.ac.uk/locations/v1/gazetteer/" + gaz + "/" + query + "/brief", asyncResults);
+                $.getJSON(magic.config.paths.baseurl + "/proxy/api?url=https://api.bas.ac.uk/locations/v1/gazetteer/" + gaz + "/" + query + "/brief", asyncResults);
             },
             name: gaz,
             display: $.proxy(function(value) {
@@ -328,7 +328,7 @@ magic.classes.Geosearch.prototype.placenameSearchHandler = function(evt) {
     var gazName = this.currentPlacenameSearch["__gaz_name"];        
     if (exIdx < 0) {
         /* Fetch data */
-        $.getJSON(magic.config.paths.baseurl + "/proxy?url=https://api.bas.ac.uk/locations/v1/placename/" + gazName + "/" + this.currentPlacenameSearch["id"], $.proxy(function(jsonData) {
+        $.getJSON(magic.config.paths.baseurl + "/proxy/api?url=https://api.bas.ac.uk/locations/v1/placename/" + gazName + "/" + this.currentPlacenameSearch["id"], $.proxy(function(jsonData) {
             delete jsonData["suggestion"];
             var attrs = $.extend({
                 geometry: new ol.geom.Point([jsonData.x, jsonData.y]), 

@@ -110,114 +110,95 @@ magic.classes.AircraftPositionButton.prototype.deactivate = function () {
 
 magic.classes.AircraftPositionButton.prototype.getData = function() {
     /* Aircraft positional API */
-    var airApi = "https://api.bas.ac.uk/aircraft/v1";
-    /* First retrieve a valid token */
     $.ajax({
-        url: magic.config.paths.baseurl + "/airtoken",
+        url: magic.config.paths.baseurl + "/proxy/aircraft",
         method: "GET",
-        headers: {"content-type": "application/json; charset=utf-8"},
-        success: $.proxy(function (tdata) {
-            var token = tdata.token;
-            /* Token ok, so retrieve actual positional data */
-            $.ajax({
-                url: magic.config.paths.baseurl + "/proxy?url=" + airApi + "/aircraft/position",
-                headers: {"Authorization": "Bearer " + token},
-                method: "GET",
-                success: $.proxy(function(data) {
-                    if (!this.geoJson) {
-                        return;
-                    }
-                    var feats = this.geoJson.readFeatures(data);
-                    var inFeats = [], outFeats = [];
-                    var projExtent = magic.modules.GeoUtils.projectionLatLonExtent(magic.runtime.projection.getCode());
-                    $.each(feats, $.proxy(function(idx, f) {
-                        var props = $.extend({}, f.getProperties(), {
-                            "__title": "Aircraft position"
-                        });
-                        var colour = props.speed > 5 ? "green" : "red";                        
-                        var fclone = f.clone();
-                        fclone.setProperties(props);
-                        if (f.getGeometry().intersectsExtent(projExtent)) {                            
-                            fclone.getGeometry().transform("EPSG:4326", magic.runtime.projection);
-                            var style = new ol.style.Style({
-                                image: new ol.style.Icon({
-                                    rotateWithView: true,
-                                    rotation: magic.modules.Common.toRadians(magic.modules.GeoUtils.headingWrtTrueNorth(fclone.getGeometry, props.heading)),
-                                    src: magic.config.paths.baseurl + "/static/images/airplane_" + colour + "_roundel.png"
-                                }),
-                                text: new ol.style.Text({
-                                    font: "Arial",
-                                    scale: 1.2,
-                                    offsetX: 14,
-                                    text: props.callsign,
-                                    textAlign: "left",
-                                    fill: new ol.style.Fill({
-                                        color: colour == "red" ? "#e50000" : "#008000"
-                                    }),
-                                    stroke: new ol.style.Stroke({
-                                        color: "#ffffff",
-                                        width: 1
-                                    })
-                                })
-                            });
-                            fclone.setStyle(style);
-                            inFeats.push(fclone);
-                        } else {
-                            fclone.getGeometry().transform("EPSG:4326", "EPSG:3857");
-                            var style = new ol.style.Style({
-                                image: new ol.style.Icon({
-                                    rotation: magic.modules.Common.toRadians(props.heading),
-                                    src: magic.config.paths.baseurl + "/static/images/airplane_" + colour + "_roundel.png"
-                                }),
-                                text: new ol.style.Text({
-                                    font: "Arial",
-                                    scale: 1.2,
-                                    offsetX: 14,
-                                    text: props.callsign,
-                                    textAlign: "left",
-                                    fill: new ol.style.Fill({
-                                        color: colour == "red" ? "#e50000" : "#008000"
-                                    }),
-                                    stroke: new ol.style.Stroke({
-                                        color: "#ffffff",
-                                        width: 1
-                                    })
-                                })
-                            });
-                            fclone.setStyle(style);
-                            outFeats.push(fclone);
-                        }                        
-                    }, this));
-                    this.layer.getSource().clear();
-                    if (inFeats.length > 0) {
-                        this.layer.getSource().addFeatures(inFeats);
-                    }
-                    if (magic.runtime.inset) {
-                        this.insetLayer.getSource().clear();
-                        if (outFeats.length > 0) {
-                            this.insetLayer.getSource().addFeatures(outFeats);
-                            magic.runtime.inset.activate();
-                        } else {
-                            /* Can dispense with displaying the inset (if no other layers still have features to show)? */
-                            magic.runtime.inset.deactivate();
-                        }                    
-                    }
-                }, this),
-                error: function(jqXhr, status, msg) {
-                    if (status && msg) {
-                        alert("Error: " + status + " " + msg + " getting aircraft positions - potential network outage?");
-                    } else {
-                        alert("Failed to get aircraft positional data - potential network outage?");
-                    }      
-                }
-            });
+        success: $.proxy(function(data) {
+            if (!this.geoJson) {
+                return;
+            }
+            var feats = this.geoJson.readFeatures(data);
+            var inFeats = [], outFeats = [];
+            var projExtent = magic.modules.GeoUtils.projectionLatLonExtent(magic.runtime.projection.getCode());
+            $.each(feats, $.proxy(function(idx, f) {
+                var props = $.extend({}, f.getProperties(), {
+                    "__title": "Aircraft position"
+                });
+                var colour = props.speed > 5 ? "green" : "red";                        
+                var fclone = f.clone();
+                fclone.setProperties(props);
+                if (f.getGeometry().intersectsExtent(projExtent)) {                            
+                    fclone.getGeometry().transform("EPSG:4326", magic.runtime.projection);
+                    var style = new ol.style.Style({
+                        image: new ol.style.Icon({
+                            rotateWithView: true,
+                            rotation: magic.modules.Common.toRadians(magic.modules.GeoUtils.headingWrtTrueNorth(fclone.getGeometry, props.heading)),
+                            src: magic.config.paths.baseurl + "/static/images/airplane_" + colour + "_roundel.png"
+                        }),
+                        text: new ol.style.Text({
+                            font: "Arial",
+                            scale: 1.2,
+                            offsetX: 14,
+                            text: props.callsign,
+                            textAlign: "left",
+                            fill: new ol.style.Fill({
+                                color: colour == "red" ? "#e50000" : "#008000"
+                            }),
+                            stroke: new ol.style.Stroke({
+                                color: "#ffffff",
+                                width: 1
+                            })
+                        })
+                    });
+                    fclone.setStyle(style);
+                    inFeats.push(fclone);
+                } else {
+                    fclone.getGeometry().transform("EPSG:4326", "EPSG:3857");
+                    var style = new ol.style.Style({
+                        image: new ol.style.Icon({
+                            rotation: magic.modules.Common.toRadians(props.heading),
+                            src: magic.config.paths.baseurl + "/static/images/airplane_" + colour + "_roundel.png"
+                        }),
+                        text: new ol.style.Text({
+                            font: "Arial",
+                            scale: 1.2,
+                            offsetX: 14,
+                            text: props.callsign,
+                            textAlign: "left",
+                            fill: new ol.style.Fill({
+                                color: colour == "red" ? "#e50000" : "#008000"
+                            }),
+                            stroke: new ol.style.Stroke({
+                                color: "#ffffff",
+                                width: 1
+                            })
+                        })
+                    });
+                    fclone.setStyle(style);
+                    outFeats.push(fclone);
+                }                        
+            }, this));
+            this.layer.getSource().clear();
+            if (inFeats.length > 0) {
+                this.layer.getSource().addFeatures(inFeats);
+            }
+            if (magic.runtime.inset) {
+                this.insetLayer.getSource().clear();
+                if (outFeats.length > 0) {
+                    this.insetLayer.getSource().addFeatures(outFeats);
+                    magic.runtime.inset.activate();
+                } else {
+                    /* Can dispense with displaying the inset (if no other layers still have features to show)? */
+                    magic.runtime.inset.deactivate();
+                }                    
+            }
         }, this),
         error: function(jqXhr, status, msg) {
             if (status && msg) {
-                alert("Error: " + status + " " + msg + " getting aircraft API token - potential network outage?");
+                alert("Error: " + status + " " + msg + " getting aircraft positions - potential network outage?");
             } else {
-                alert("Failed to get aircraft API token - potential network outage?");
-            }            
+                alert("Failed to get aircraft positional data - potential network outage?");
+            }      
         }
-    });        
+    });
 };

@@ -109,7 +109,7 @@ magic.classes.HeightMeasureButton.prototype.queryHeight = function(evt) {
             $(element).popover("destroy");
             this.heightPopup.setPosition(evt.coordinate);
             $.ajax({
-                url: magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(url),
+                url: magic.config.paths.baseurl + "/proxy/gs/gfi?url=" + encodeURIComponent(url),
                 method: "GET"
             })
             .done($.proxy(function(data) {

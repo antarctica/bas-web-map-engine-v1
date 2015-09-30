@@ -5,6 +5,8 @@ package uk.ac.antarctica.mapengine.external;
 
 import com.google.gson.JsonObject;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,32 +39,25 @@ public abstract class StaticImageService {
     public abstract JsonObject layerEntry();
     
     /**
-     * Return a pair of longs indicating the minimum and maximum times represented by an image set, or null if no valid images were present
+     * Return an ascending sorted list of longs representing all the granule time values
      * @return 
      */
-    public long[] imageTimeRange() {
-        long[] range = null;
+    public ArrayList<Long> imageTimes() {
+        ArrayList<Long> times = new ArrayList();
         File ds = new File(getDataStore());
         if (ds.canRead()) {
-            long minR = Long.MAX_VALUE, maxR = Long.MIN_VALUE;
             Pattern p = Pattern.compile("\\d{" + getTimeFormat().length() + "}");
             for (String name : ds.list()) {
                 Matcher m = p.matcher(name);
+                m.find();
                 try {
-                    long tstamp = Long.parseLong(m.group(1));
-                    if (tstamp < minR) {
-                        minR = tstamp;
-                    }
-                    if (tstamp > maxR) {
-                        maxR = tstamp;
-                    }
-                } catch(Exception ex) {}                
+                    long tstamp = Long.parseLong(m.group(0));
+                    times.add(tstamp);
+                } catch(Exception ex) {}                         
             }
-            if (minR != Long.MAX_VALUE && maxR != Long.MIN_VALUE) {
-                range = new long[]{minR, maxR};
-            }
+            Collections.sort(times);
         }
-        return(range);
+        return(times);
     }
     
     /**
