@@ -205,10 +205,9 @@ public class ApplicationConfigController {
         /* Look for user layers in the repository if present */
         appendUserLayers(treeDef, sourceData, usermap, request.getUserPrincipal());
         
-        /* Add in custom layers (opsgis only) */
-        if (env.getProperty("static.services") != null && !env.getProperty("static.services").isEmpty()) {
-            staticImageServiceRegistry.register(env.getProperty("static.services"));
-            HashMap<String,StaticImageService> r = staticImageServiceRegistry.getRegistry();
+        /* Add in custom static image layers if required */
+        HashMap<String,StaticImageService> r = staticImageServiceRegistry.getRegistry();
+        if (!r.isEmpty()) {            
             for (String serviceName : r.keySet()) {
                 treeDef.set(2, r.get(serviceName).layerEntry());
             }            

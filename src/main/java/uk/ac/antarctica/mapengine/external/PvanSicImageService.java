@@ -29,13 +29,12 @@ public class PvanSicImageService extends StaticImageService {
     }
        
     /**
-     * Scheduled download of a week's worth of PNG images of AMSR2 charts
-     */
-    @Scheduled(initialDelay=60000, fixedDelay=3600000)
+     * Download of a week's worth of PNG images of AMSR2 charts
+     */    
     @Override
     public void downloadImage() {        
         
-        System.out.println(new Date().toString() + ": downloadImage entered");
+        System.out.println(new Date().toString() + ": PvanSicImageService.downloadImage entered");
                 
         if (new File(getDataStore()).canRead()) {
             try {
@@ -57,7 +56,7 @@ public class PvanSicImageService extends StaticImageService {
         } else {
             System.out.println("Cannot read image directory " + getDataStore());
         }
-        System.out.println(new Date().toString() + ": downloadImage exited");        
+        System.out.println(new Date().toString() + ": PvanSicImageService.downloadImage exited");        
 	}
     
     /**
@@ -131,7 +130,7 @@ public class PvanSicImageService extends StaticImageService {
         JsonObject lstate = new JsonObject();
         lstate.addProperty("checked", false);
         lstate.addProperty("timeseries", true);
-        lstate.addProperty("static", "sic");
+        lstate.addProperty("staticservice", "sic");
         ArrayList<Long> times = this.imageTimes();        
         lstate.add("times", new Gson().toJsonTree(times));
         amsr2.add("state", lstate);

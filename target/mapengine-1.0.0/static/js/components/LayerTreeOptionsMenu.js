@@ -88,7 +88,7 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
     } else {
         $("#tss-" + this.nodeid).off("click").on("click", $.proxy(function(evt) {
             evt.stopPropagation();
-            var staticService = this.layer.get("metadata")["static"];
+            var staticService = this.layer.get("metadata")["staticservice"];
             if (staticService) {
                 new magic.classes.StaticTimeSeriesPlayer({               
                     target: $(evt.currentTarget).next("div"),

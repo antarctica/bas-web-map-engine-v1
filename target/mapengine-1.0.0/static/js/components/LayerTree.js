@@ -258,21 +258,21 @@ magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
             if (nd.props) {
                 /* Create a data layer */
                 var layer = null;
-                if (nd.state["static"]) {
+                if (nd.state["staticservice"]) {
                     /* Static image layer */
                     layer = new ol.layer.Image({
                         name: name,
                         visible: false,
                         source: new ol.source.ImageStatic({
-                            url: magic.config.paths.baseurl + "/proxy/static?service=" + nd.state["static"],
+                            url: magic.config.paths.baseurl + "/proxy/static?service=" + nd.state["staticservice"],
                             projection: magic.runtime.projection,
                             imageExtent: nd.props.bboxsrs
                         }),
                         metadata: $.extend({}, nd.props, {
                             nodeid: nd.nodeid,
-                            static: nd.state["static"],
+                            staticservice: nd.state["staticservice"],
                             times: nd.state["times"],
-                            wmsfeed: null,
+                            wmsfeed: "none",
                             bboxwgs84: nd.props.bbox,
                             metadataurl: null,
                             srs: magic.runtime.projection.getCode(),

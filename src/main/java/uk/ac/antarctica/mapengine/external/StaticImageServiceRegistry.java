@@ -4,6 +4,7 @@
 package uk.ac.antarctica.mapengine.external;
 
 import java.util.HashMap;
+import org.springframework.scheduling.annotation.Scheduled;
 
 public class StaticImageServiceRegistry {
     
@@ -28,6 +29,14 @@ public class StaticImageServiceRegistry {
     
     public HashMap<String,StaticImageService> getRegistry() {
         return(registry);
+    }
+    
+    @Scheduled(initialDelay=60000, fixedDelay=3600000)
+    public void downloadImages() {
+        for (String serviceName : registry.keySet()) {
+            StaticImageService service = registry.get(serviceName);
+            service.downloadImage();
+        }
     }
     
 }

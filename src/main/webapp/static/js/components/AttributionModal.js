@@ -96,6 +96,12 @@ magic.classes.AttributionModal.prototype.legendMarkup = function() {
                 '<div style="width:100%;background-color:#272b30">' + 
                     '<img style="padding:10px;background-color:#272b30" src="' + md.legendurl + opts + '" alt="legend" />' + 
                 '</div>';               
+        } else if (md && md.staticservice) {
+            /* Assume there will be a PNG image of the legend required in static/images/legends/<service>.png */
+            content += 
+                '<div style="width:100%;background-color:#272b30">' + 
+                    '<img style="padding:10px;background-color:#272b30" src="' + magic.config.paths.baseurl + '/static/images/legends/' + md.staticservice + '.png" alt="legend" />' + 
+                '</div>';        
         } else {
             content += '<div class="attribution-title">No legend available</div>';
         }
@@ -149,11 +155,13 @@ magic.classes.AttributionModal.prototype.metadataMarkup = function() {
                         break;
                     case "wms":
                         if (value) {
-                            var icon = "";
-                            if (md.icon) {
-                                icon = '<img src="' + md.icon + '" alt="' + (md.typeName || "unknown") + '" />'
+                            if (value != "none") {
+                                var icon = "";
+                                if (md.icon) {
+                                    icon = '<img src="' + md.icon + '" alt="' + (md.typeName || "unknown") + '" />'
+                                }
+                                content += '<tr><td valign="top">' + icon + '&nbsp;Repository</td><td class="metadata"><a href="' + value + '" target="_blank">[download file]</a></td></tr>';
                             }
-                            content += '<tr><td valign="top">' + icon + '&nbsp;Repository</td><td class="metadata"><a href="' + value + '" target="_blank">[download file]</a></td></tr>';
                         } else {
                             var proj = magic.runtime.projection.getCode();
                             var getMap = this.wms + "?" + 

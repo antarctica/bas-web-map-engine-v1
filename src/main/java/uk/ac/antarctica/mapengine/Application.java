@@ -3,6 +3,7 @@ package uk.ac.antarctica.mapengine;
 import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
 import javax.sql.DataSource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
@@ -11,6 +12,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.web.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -19,6 +21,9 @@ import uk.ac.antarctica.mapengine.external.StaticImageServiceRegistry;
 @EnableScheduling
 @SpringBootApplication
 public class Application extends SpringBootServletInitializer {
+    
+    @Autowired
+    Environment env;
 
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
@@ -66,7 +71,9 @@ public class Application extends SpringBootServletInitializer {
     
     @Bean
     public StaticImageServiceRegistry staticImageServiceRegistry() {
-        return (new StaticImageServiceRegistry());
+        StaticImageServiceRegistry r = new StaticImageServiceRegistry();
+        r.register(env.getProperty("static.services"));
+        return (r);
     }
 
     @Bean
