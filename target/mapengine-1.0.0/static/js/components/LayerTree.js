@@ -416,7 +416,6 @@ magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
  */
 magic.classes.LayerTree.prototype.getNodeId = function(eltId) {
     var nodeid = null;
-    console.log(eltId);
     if (eltId.length > 36) {
         /* A Ramadda-style node id - fixed length of 36 characters */
         nodeid = eltId.substr(eltId.length - 36);
@@ -424,7 +423,6 @@ magic.classes.LayerTree.prototype.getNodeId = function(eltId) {
         /* Node id is number after last '-' */
         nodeid = eltId.substring(eltId.lastIndexOf("-")+1);
     }
-    console.log(nodeid);
     return(nodeid);
 };
 

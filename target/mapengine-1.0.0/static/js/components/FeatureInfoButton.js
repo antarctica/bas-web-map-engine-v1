@@ -134,17 +134,19 @@ magic.classes.FeatureInfoButton.prototype.featuresAtPixel = function(px) {
                 /* Unpack cluster features */
                 $.each(clusterMembers, function(fi, f) {
                     if (f.getGeometry()) {
-                        fprops.push($.extend({}, f.getProperties(), {
+                        var exProps = f.getProperties();
+                        fprops.push($.extend({}, exProps, {
                             "__geomtype": f.getGeometry().getType().toLowerCase(),
-                            "__title": layer.get("name")
+                            "__title": exProps["__title"] || layer.get("name")
                         }));
                     }                    
                 });
             } else {
                 if (feature.getGeometry()) {
-                    fprops.push($.extend({}, feature.getProperties(), {
+                    var exProps = feature.getProperties();
+                    fprops.push($.extend({}, exProps, {
                         "__geomtype": feature.getGeometry().getType().toLowerCase(),
-                        "__title": layer.get("name")
+                        "__title": exProps["__title"] || layer.get("name")
                     }));
                 }          
             }

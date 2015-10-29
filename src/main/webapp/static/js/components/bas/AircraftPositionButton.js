@@ -132,7 +132,7 @@ magic.classes.AircraftPositionButton.prototype.getData = function() {
                     var style = new ol.style.Style({
                         image: new ol.style.Icon({
                             rotateWithView: true,
-                            rotation: magic.modules.Common.toRadians(magic.modules.GeoUtils.headingWrtTrueNorth(fclone.getGeometry, props.heading)),
+                            rotation: magic.modules.Common.toRadians(magic.modules.GeoUtils.headingWrtTrueNorth(fclone.getGeometry(), props.heading)),
                             src: magic.config.paths.baseurl + "/static/images/airplane_" + colour + "_roundel.png"
                         }),
                         text: new ol.style.Text({
