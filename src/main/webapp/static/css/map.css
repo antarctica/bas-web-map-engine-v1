@@ -212,18 +212,26 @@ div.layer-group-panel {
 
 div.layer-group-heading-0 {    
     background-color: #dddddd !important;
+    border-color: #c0c0c0 !important;
+    border: 1px solid #c0c0c0 !important;
 }
 
 div.layer-group-heading-1 {    
     background-color: #eeeeee !important;
+    border-color: #c0c0c0 !important;
+    border: 1px solid #c0c0c0 !important;
 }
 
 div.layer-group-heading-2 {    
     background-color: #f8f8f8 !important;
+    border-color: #c0c0c0 !important;
+    border: 1px solid #c0c0c0 !important;
 }
 
 div.layer-group-heading-3 {    
     background-color: #ffffff !important;
+    border-color: #c0c0c0 !important;
+    border: 1px solid #c0c0c0 !important;
 }
 
 span.layer-group-panel-title {

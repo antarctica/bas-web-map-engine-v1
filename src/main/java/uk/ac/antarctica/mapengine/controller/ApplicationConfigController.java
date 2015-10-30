@@ -205,12 +205,18 @@ public class ApplicationConfigController {
         /* Look for user layers in the repository if present */
         appendUserLayers(treeDef, sourceData, usermap, request.getUserPrincipal());
         
-        /* Add in custom static image layers if required */
+        /* Add in custom static image layers if required (hardwired into the second slot in the tree) */
         HashMap<String,StaticImageService> r = staticImageServiceRegistry.getRegistry();
-        if (!r.isEmpty()) {            
+        if (!r.isEmpty()) {
+            JsonArray modTreeDef = new JsonArray();
+            modTreeDef.add(treeDef.get(0));
             for (String serviceName : r.keySet()) {
-                treeDef.set(2, r.get(serviceName).layerEntry());
-            }            
+                modTreeDef.add(r.get(serviceName).layerEntry());
+            }
+            for (int i = 1; i < treeDef.size(); i++) {
+                modTreeDef.add(treeDef.get(i));
+            }
+            treeDef = modTreeDef;
         }                
                 
         /* Assemble final payload */        
