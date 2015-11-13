@@ -44,7 +44,7 @@
                     </div>
                     <!-- Collect the nav links, forms, and other content for toggling -->
                     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                        <ul class="nav navbar-nav">
+                        <ul class="nav navbar-left top-nav">
                             <li>
                                 <a href="#">About</a>
                             </li>
@@ -55,10 +55,17 @@
                                 <a href="#">Contact</a>
                             </li>
                         </ul>
+                        <ul class="nav navbar-right top-nav">
+                            <li>
+                                <div>
+                                    <i class="fa fa-user"></i><span th:inline="text"> Logged in as [[${#httpServletRequest.remoteUser}]]</span>
+                                </div>
+                            </li>
+                        </ul>
                     </div>
                     <!-- /.navbar-collapse -->
                 </div>
-                <!-- /.container -->
+                <!-- /.container -->                
             </nav>
 
             <!-- Page Content -->
@@ -69,34 +76,39 @@
                             <div class="navbar-inner">
                                 <div class="container">
                                     <ul>
-                                        <li><a href="#tab1" data-toggle="tab">Map metadata</a></li>
-                                        <li><a href="#tab2" data-toggle="tab">Map controls</a></li>
-                                        <li><a href="#tab3" data-toggle="tab">Layer tree</a></li>
+                                        <li><a href="#tab1" data-toggle="tab">Start</a></li>
+                                        <li><a href="#tab2" data-toggle="tab">Core map information</a></li>
+                                        <li><a href="#tab3" data-toggle="tab">Map layers</a></li>
                                         <li><a href="#tab4" data-toggle="tab">Finish</a></li>                                    
                                     </ul>
                                 </div>
                             </div>
                         </div>
-                        <div class="tab-content">
-                            <div class="tab-pane" id="tab1">
-                                <div th:include="creator_fragments/content :: tab1"></div>
-                            </div>
-                            <div class="tab-pane" id="tab2">
-                                <div th:include="creator_fragments/content :: tab2"></div>
-                            </div>
-                            <div class="tab-pane" id="tab3">
-                                <div th:include="creator_fragments/content :: tab3"></div>
-                            </div>
-                            <div class="tab-pane" id="tab4">
-                                <div th:include="creator_fragments/content :: tab4"></div>
-                            </div>                                    
-                            <ul class="pager wizard">
-                                <li class="previous first" style="display:none;"><a href="#">First</a></li>
-                                <li class="previous"><a href="#">Previous</a></li>
-                                <li class="next last" style="display:none;"><a href="#">Last</a></li>
-                                <li class="next"><a href="#">Next</a></li>
-                            </ul>
+                        <div id="bar" class="progress progress-striped active">
+                            <div class="bar"></div>
                         </div>
+                        <form id="map-creator-form" class="form-horizontal">
+                            <div class="tab-content">
+                                <div class="tab-pane" id="tab1">
+                                    <div th:include="creator_fragments/tab1 :: layout"></div>
+                                </div>
+                                <div class="tab-pane" id="tab2">
+                                    <div th:include="creator_fragments/tab2 :: layout"></div>
+                                </div>
+                                <div class="tab-pane" id="tab3">
+                                    <div th:include="creator_fragments/tab3 :: layout"></div>
+                                </div>
+                                <div class="tab-pane" id="tab4">
+                                    <div th:include="creator_fragments/tab4 :: layout"></div>
+                                </div>                                    
+                                <ul class="pager wizard">
+                                    <li class="previous first" style="display:none;"><a href="#">First</a></li>
+                                    <li class="previous"><a href="#">Previous</a></li>
+                                    <li class="next last" style="display:none;"><a href="#">Last</a></li>
+                                    <li class="next"><a href="#">Next</a></li>
+                                </ul>
+                            </div>
+                        </form>
                     </div>
                 </section>
             </div>
@@ -106,7 +118,13 @@
         <script type="text/javascript">
 
             $(document).ready(function () {
-                $("#rootwizard").bootstrapWizard();
+                $("#rootwizard").bootstrapWizard({onTabShow: function(tab, navigation, index) {
+                    var $total = navigation.find("li").length;
+                    var $current = index+1;
+                    var $percent = ($current/$total) * 100;
+                    $('#rootwizard').find(".bar").css({width:$percent+'%'});
+                }});
+                $('[data-toggle="tooltip"]').tooltip();
             });
 
         </script>

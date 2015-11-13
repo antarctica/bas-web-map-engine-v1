@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+    <head th:fragment="layout">
+        <meta charset="utf-8"></meta>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge"></meta>
+        <meta name="viewport" content="width=device-width, initial-scale=1"></meta>
+        <meta name="description" content="Map creation wizard"></meta>
+        <meta name="author" content="David Herbert, British Antarctic Survey"></meta>
+        <meta name="_csrf" th:content="${_csrf.token}"/>
+        <!-- default header name is X-CSRF-TOKEN -->
+        <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+        <link rel="icon" type="image/vnd.microsoft.icon" href="/bas.ico"></link>
+        <link rel="shortcut icon" type="image/vnd.microsoft.icon" href="/bas.ico"></link>
+        <title></title>
+        <link href="/static/buildcss/allcss.css" rel="stylesheet"></link>        
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+        <script src="/static/buildjs/alljs.js"></script>        
+        <script th:inline="javascript">
+            /*<![CDATA[*/
+            magic.runtime.app = [[${app}]];
+            magic.runtime.usermap = [[${usermap}]];
+            magic.runtime.viewname = [[${viewname}]];
+            magic.runtime.username = [[${username}]];
+            /*]]>*/
+        </script>
+        <script type="text/javascript">
+
+            $(document).ready(function () {
+                var payloadRequest = $.ajax({
+                    url: magic.config.paths.baseurl + "/appconfig/" + magic.runtime.app + 
+                        (magic.runtime.usermap ? "/" + magic.runtime.usermap : "/default") + 
+                        (magic.runtime.viewname ? "/" + magic.runtime.viewname : ""),
+                    method: "GET",
+                    dataType: "json"
+                });
+                payloadRequest.done(function(payload) {
+                    magic.runtime.appcontainer = new magic.classes.AppContainer(payload);
+                });
+                payloadRequest.fail(function(xhr, status) {
+                    alert("Failed to get config payload for application " + magic.runtime.app + ", error was " + status);
+                });
+
+            });
+
+        </script>
+    </head>
+    <head th:fragment="debug_layout">
+        <meta charset="utf-8"></meta>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge"></meta>
+        <meta name="viewport" content="width=device-width, initial-scale=1"></meta>
+        <meta name="description" content="Map creation wizard"></meta>
+        <meta name="author" content="David Herbert, British Antarctic Survey"></meta>
+        <meta name="_csrf" th:content="${_csrf.token}"/>
+        <!-- default header name is X-CSRF-TOKEN -->
+        <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+        <link rel="icon" type="image/vnd.microsoft.icon" href="/bas.ico"></link>
+        <link rel="shortcut icon" type="image/vnd.microsoft.icon" href="/bas.ico"></link>
+        <title></title>
+
+        <link href="/static/css/ol.css" rel="stylesheet"></link>
+        <link href="/static/css/bootstrap.min.css" rel="stylesheet"></link>
+        <link href="/static/css/nouislider.min.css" rel="stylesheet"></link>
+        <link href="/static/css/prettify.css" rel="stylesheet"></link>
+        <link href="/static/css/map.css" rel="stylesheet"></link>
+        <link href="/static/css/font-awesome.min.css" rel="stylesheet" type="text/css"></link>
+        <link href="/static/css/whhg-reduced.min.css" rel="stylesheet" type="text/css"></link>
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+        <script src="/static/js/debug/ol.debug.js"></script>
+        <script src="/static/js/ellipsoid/ellipsoid.js"></script>
+        <script src="/static/js/jquery.js"></script>
+        <script src="/static/js/vector.js"></script>
+        <script src="/static/js/proj4.js"></script>
+        <script src="/static/js/proj4defs/3031.js"></script>
+        <script src="/static/js/proj4defs/3762.js"></script>
+        <script src="/static/js/proj4defs/3995.js"></script>
+        <script src="/static/js/bootstrap.min.js"></script>
+        <script src="/static/js/typeahead.bundle.min.js"></script>
+        <script src="/static/js/nouislider.min.js"></script>
+        <script src="/static/js/prettify.js"></script>
+        <script src="/static/js/components/init.js"></script>
+        <script src="/static/js/modules/Common.js"></script>
+        <script src="/static/js/modules/GeoUtils.js"></script>
+        <script src="/static/js/components/AppContainer.js"></script>
+        <script src="/static/js/components/Validation.js"></script>
+        <script src="/static/js/components/LayerTree.js"></script>
+        <script src="/static/js/components/ControlButtonRibbon.js"></script>
+        <script src="/static/js/components/DragZoomButton.js"></script>
+        <script src="/static/js/components/FullScreenButton.js"></script>
+        <script src="/static/js/components/ResetRotationButton.js"></script>
+        <script src="/static/js/components/HeightMeasureButton.js"></script>
+        <script src="/static/js/components/GraticuleButton.js"></script>
+        <script src="/static/js/components/FeaturePopup.js"></script>
+        <script src="/static/js/components/FeatureInfoButton.js"></script>
+        <script src="/static/js/components/MosaicTimeSeriesPlayer.js"></script>
+        <script src="/static/js/components/Geosearch.js"></script>
+        <script src="/static/js/components/Measurement.js"></script>
+        <script src="/static/js/components/OverviewMap.js"></script>
+        <script src="/static/js/components/InsetMap.js"></script>
+        <script src="/static/js/components/AttributionModal.js"></script>
+        <script src="/static/js/components/LayerTreeOptionsMenu.js"></script>
+        <script src="/static/js/components/LayerFilter.js"></script>
+        <script src="/static/js/components/UserPreferences.js"></script>
+        <script src="/static/js/components/SavedMapViews.js"></script>
+        <script src="/static/js/components/bas/AircraftPositionButton.js"></script>
+        <script src="/static/js/components/bas/ShipPositionButton.js"></script>
+        <script src="/static/js/components/bas/StaticTimeSeriesPlayer.js"></script>
+        <script th:inline="javascript">
+            /*<![CDATA[*/
+            magic.runtime.app = [[${app}]];
+            magic.runtime.usermap = [[${usermap}]];
+            magic.runtime.viewname = [[${viewname}]];
+            magic.runtime.username = [[${username}]];
+                    /*]]>*/
+        </script>
+        <script type="text/javascript">
+
+                    $(document).ready(function () {
+                var payloadRequest = $.ajax({
+                    url: magic.config.paths.baseurl + "/appconfig/" + magic.runtime.app + 
+                        (magic.runtime.usermap ? "/" + magic.runtime.usermap : "/default") + 
+                        (magic.runtime.viewname ? "/" + magic.runtime.viewname : ""),
+                    method: "GET",
+                    dataType: "json"
+                });
+                payloadRequest.done(function (payload) {
+                    magic.runtime.appcontainer = new magic.classes.AppContainer(payload);
+                });
+                payloadRequest.fail(function (xhr, status) {
+                    alert("Failed to get config payload for application " + magic.runtime.app + ", error was " + status);
+                });
+
+            });
+
+        </script>
+    </head>
+    <body>        
+    </body>
+</html>

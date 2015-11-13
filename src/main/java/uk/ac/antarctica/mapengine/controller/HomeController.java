@@ -71,7 +71,7 @@ public class HomeController {
      * @throws IOException
      */
     @RequestMapping(value = "/opsgis", method = RequestMethod.GET)
-    public String opsgis(HttpServletRequest request, ModelMap model) throws ServletException, IOException {      
+    public String opsgis(HttpServletRequest request, ModelMap model) throws ServletException, IOException {
         return(setOpsgisParameters(request, null, null, false, model));
     }
     

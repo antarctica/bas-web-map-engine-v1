@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title></title>
+    </head>    
+    <body th:fragment="layout">
+        <div class="well well-lg">
+            <h3>Welcome to the MAGIC Map Creation Wizard</h3>            
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <h4>Select how to create your map</h4>
+                <div class="radio form-inline">
+                    <label for="creator-method-new"><input type="radio" name="creator-method" id="creator-method-new" value="new" checked="checked"></input>
+                        Create a new blank map
+                    </label>
+                    <input class="form-control" type="text" style="visibility: hidden"></input>
+                </div>
+                <div class="radio form-inline">
+                    <label class="radio-plus-select" for="creator-method-clone"><input type="radio" name="creator-method" id="creator-method-clone" value="clone"></input>
+                        Clone an existing map
+                    </label>
+                    <select class="form-control" disabled="diasbled">
+                        <option value="">Select a map</option>                       
+                    </select>
+                </div>
+                <div class="radio form-inline">
+                    <label class="radio-plus-select" for="creator-method-edit"><input type="radio" name="creator-method" id="creator-method-edit" value="edit"></input>
+                        Edit an existing map
+                    </label>
+                    <select class="form-control" disabled="diasbled">
+                        <option value="">Select a map</option>                        
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <h4>Basic map information</h4>
+                <div class="form-group">
+                    <label for="map-name" class="col-sm-2 control-label">Name of map</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control map-creator-control" id="map-name" placeholder="Name for map" 
+                               data-toggle="tooltip" data-placement="right" title="lowercase letters, numbers and _ allowed" required="required">                                   
+                        </input>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="map-description" class="col-sm-2 control-label">Description</label>
+                    <div class="col-sm-10">
+                        <textarea class="form-control map-creator-control" id="map-description"
+                                data-toggle="tooltip" data-placement="right" title="Useful info like map purpose, intended audience etc" required="required">                            
+                        </textarea>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="map-version" class="col-sm-2 control-label">Version</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control map-creator-control" id="map-version" value="1.0"
+                               data-toggle="tooltip" data-placement="right" title="Map version (will automatically increase if not specified)">                            
+                        </input>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="map-owner_email" class="col-sm-2 control-label">Contact email</label>
+                    <div class="col-sm-10">
+                        <input type="email" class="form-control map-creator-control" id="map-owner_email" placeholder="Valid email address"
+                               data-toggle="tooltip" data-placement="right" title="Contact email for map owner" required="required">                            
+                        </input>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="utf-8"></meta>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge"></meta>
+        <meta name="viewport" content="width=device-width, initial-scale=1"></meta>
+        <meta name="description" content="Map creation wizard"></meta>
+        <meta name="author" content="David Herbert, British Antarctic Survey"></meta>
+
+        <title>MAGIC Web Mapping Services - Login</title>
+
+        <link rel="icon" type="image/vnd.microsoft.icon" href="/bas.ico"></link>
+        <link rel="shortcut icon" type="image/vnd.microsoft.icon" href="/bas.ico"></link>        
+        <link href="static/css/bootstrap.min.css" rel="stylesheet"></link>
+        <link href="static/css/login.css" rel="stylesheet"></link>
+
+        <script src="static/js/jquery.js"></script>
+        <script src="static/js/bootstrap.min.js"></script>
+        <script th:inline="javascript" defer="defer">
+            /*<![CDATA[*/            
+            var error = [[${param.error}]];
+            
+            $(function() {
+                if ($.isArray(error)) {                    
+                    $("#creator-username").parent().addClass("has-error").addClass("has-feedback");
+                    $("#creator-password").parent().addClass("has-error").addClass("has-feedback");
+                } else {
+                    $("#creator-username").parent().removeClass("has-error").removeClass("has-feedback");
+                    $("#creator-password").parent().removeClass("has-error").removeClass("has-feedback");
+                }
+            });
+            
+            /*]]>*/
+        </script>
+    </head>
+    <body>
+        <div class="container login-form-container">
+            <div class="well well-lg">
+                <h3>Welcome to MAGIC Web Mapping Services</h3>
+                Please log in using your BAS username and LDAP (SOUTH) password to begin.
+            </div>
+            <form th:action="@{/login}" method="post" style="width:300px">               
+                <div th:if="${param.logout}" class="post-ok" style="margin-bottom:10px"> 
+                    You have been logged out
+                </div>
+                <div th:if="${param.error}" class="post-error" style="margin-bottom:10px"> 
+                    Unable to log you in - please try again
+                </div>
+                <div class="form-group">
+                    <label for="creator-username">Username</label>
+                    <input type="text" class="form-control login-form-control" name="username" id="creator-username" placeholder="Your BAS username" required="required"></input>
+                    <span class="glyphicon glyphicon-remove form-control-feedback" aria-hidden="true"></span>
+                </div>
+                <div class="form-group">
+                    <label for="creator-password">Password</label>
+                    <input type="password" class="form-control login-form-control" name="password" id="creator-password" placeholder="Your BAS LDAP (SOUTH) password" required="required"></input>
+                    <span class="glyphicon glyphicon-remove form-control-feedback" aria-hidden="true"></span>
+                </div>
+                <div class="form-group">
+                    <input type="submit" class="btn btn-default"></input>
+                </div>   
+            </form>
+        </div>
+    </body>    
+</html>
