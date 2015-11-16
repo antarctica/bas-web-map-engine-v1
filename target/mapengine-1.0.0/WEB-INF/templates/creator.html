@@ -83,10 +83,7 @@
                                     </ul>
                                 </div>
                             </div>
-                        </div>
-                        <div id="bar" class="progress progress-striped active">
-                            <div class="bar"></div>
-                        </div>
+                        </div>                        
                         <form id="map-creator-form" class="form-horizontal">
                             <div class="tab-content">
                                 <div class="tab-pane" id="tab1">
@@ -100,7 +97,10 @@
                                 </div>
                                 <div class="tab-pane" id="tab4">
                                     <div th:include="creator_fragments/tab4 :: layout"></div>
-                                </div>                                    
+                                </div>
+                                <div id="bar" class="progress progress-striped active">
+                                    <div class="progress-bar" role="progressbar"></div>
+                                </div>
                                 <ul class="pager wizard">
                                     <li class="previous first" style="display:none;"><a href="#">First</a></li>
                                     <li class="previous"><a href="#">Previous</a></li>
@@ -118,11 +118,11 @@
         <script type="text/javascript">
 
             $(document).ready(function () {
-                $("#rootwizard").bootstrapWizard({onTabShow: function(tab, navigation, index) {
-                    var $total = navigation.find("li").length;
-                    var $current = index+1;
-                    var $percent = ($current/$total) * 100;
-                    $('#rootwizard').find(".bar").css({width:$percent+'%'});
+                $("#rootwizard").bootstrapWizard({onTabShow: function (tab, navigation, index) {
+                    var total = navigation.find("li").length;
+                    var current = index + 1;
+                    var percent = (current / total) * 100;
+                    $("#rootwizard").find(".progress-bar").css({width: percent + "%"});
                 }});
                 $('[data-toggle="tooltip"]').tooltip();
             });
