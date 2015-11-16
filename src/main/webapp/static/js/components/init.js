@@ -3,7 +3,9 @@
 var magic = {
     
     /* Common quantities */
-    common: {},
+    common: {
+        creator: {}
+    },
     
     /* Layer and view configuration */
     config: {

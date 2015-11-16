@@ -1,0 +1,313 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Web map specification",
+    "type": "object",
+    "properties": {
+        "id": {
+			"description": "Unique map identifier (UUID)",
+			"type": "string",
+			"pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+        },
+		"name": {
+			"type": "string",
+			"pattern": "^[a-z0-9_]+$"
+		},
+		"description": {
+			"description": "Long description of map",
+			"type": "string"
+		},
+		"version": {
+			"description": "version",
+			"type": "string"
+		},
+		"logo": {
+			"description": "Path to logo image (png)",
+			"type": "string"
+		},
+		"favicon": {
+			"description": "Path to favicon .ico image",
+			"type": "string"
+		},
+		"repository": {
+			"description": "URL of accompanying data repository in Ramadda",
+			"type": "string",
+			"format": "uri"
+		},
+		"creation_date": {
+			"description": "ISO date of map creation",
+			"type": "string",
+			"format": "date-time"
+		},
+		"modified_date": {
+			"description": "ISO date of last map modification",
+			"type": "string",
+			"format": "date-time"
+		},
+		"owner_name": {
+			"description": "Name/username of the map owner",
+			"type": "string"
+		},
+		"owner_email": {
+			"description": "Contact email address of the map owner",
+			"type": "string",
+			"format": "email"
+		},
+		"metadata_url": {
+			"description": "Metadata URL",
+			"type": "string",
+			"format": "uri"
+		},
+		"data": {
+			"description": "Web map data",
+			"type": "object",
+			"properties": {
+				"projection": {
+					"description": "Map projection as an EPSG code",
+					"type": "string",
+					"pattern": "^EPSG:\\d{4,6}$"
+				},
+				"center": {
+					"description": "Centre of map in projected coordinates",
+					"type": "array",
+					"items": {
+						"type": "number"
+					},
+					"minItems": 2,
+					"maxItems": 2
+				},
+				"zoom": {
+					"description": "Default zoom level of map",
+					"type": "integer",
+					"minimum": 0,
+					"maximum": 15
+				},
+				"min_zoom": {
+					"description": "Minimum required zoom level",
+					"type": "integer",
+					"minimum": 0,
+					"maximum": 15
+				},
+				"max_zoom": {
+					"description": "Maximum required zoom level",
+					"type": "integer",
+					"minimum": 0,
+					"maximum": 15
+				},
+				"resolutions": {
+					"description": "Array of resolutions allowed for the map (total possible zoom levels)",
+					"type": "array",
+					"items": {
+						"type": "number"
+					},
+					"minItems": 2
+				},
+				"controls": {
+					"description": "Array of names of controls for the map",
+					"type": "array",
+					"items": {
+						"type": "string",
+						"enum": [
+							"zoom_world",
+							"zoom_in",
+							"zoom_out",
+							"box_zoom",
+							"full_screen",
+							"rotation",
+							"graticule",
+							"aircraft_positions",
+							"ship_positions",
+							"geosearch",
+							"overview_map",
+							"download_data",
+							"measure_height",
+							"measure_distance_area",
+							"feature-info"
+						]
+					}
+				},
+				"gazetteers": {
+					"description": "Array of gazetteer codes for geosearch",
+					"type": "array",
+					"items": {
+						"type": "string",
+						"enum": ["bat", "cga", "arctic", "sg"]
+					}
+				},
+				"primary_wms": {
+					"description": "URL of primary WMS service",
+					"type": "string",
+					"format": "uri"
+				},
+				"primary_wfs": {
+					"description": "URL of primary WFS service",
+					"type": "string",
+					"format": "uri"
+				},
+				"layers": {
+					"id": "layer_array",
+					"description": "Layer and layer group specifications",
+					"type": "array",
+					"items": {
+						"type": "object",
+						"oneOf": [
+							{
+								"id": "layer_group",
+								"description": "Layer group",
+								"properties": {
+									"id": {
+										"description": "Layer group identifier (UUID)",
+										"type": "string",
+										"pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+									},
+									"name": {
+										"description": "Display name for layer group"
+									},
+									"expanded": {
+										"description": "Whether layer group starts out expanded or not",
+										"type": "boolean"										
+									},
+									"layers": {
+										"type": "array",
+										"$ref": "layer_array"
+									}
+								},
+								"required": [
+									"id", "name", "expanded", "layers"
+								]
+							},
+							{
+								"id": "layer",
+								"description": "Layer",
+								"properties": {
+									"id": {
+										"description": "Layer identifier (UUID)",
+										"type": "string",
+										"pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+									},
+									"name": {
+										"description": "Display name for layer",
+										"type": "string"
+									},
+									"wms": {
+										"description": "WMS serving layer",
+										"type": "string",
+										"format": "uri"
+									},
+									"geojson": {
+										"description": "GeoJSON serving layer",
+										"type": "string",
+										"format": "uri"
+									},
+									"legend_graphic": {
+										"description": "WMS serving legend graphic information (different from wms if cascading)",
+										"type": "string",
+										"format": "uri"
+									},
+									"feature_name": {
+										"description": "Data feature name defined on server (<ws:name> for Geoserver)",
+										"type": "string"
+									},
+									"feature_wms_style": {
+										"description": "Name of WMS style to use, defined on server",
+										"type": "string"
+									},
+									"feature_vector_style": {
+										"description": "Definition of a vector style to use (TO DO)",
+										"type": "string"
+									},
+									"min_scale": {
+										"description": "Minimum scale denominator for layer to be visible",
+										"type": "number"
+									},
+									"max_scale": {
+										"description": "Maximum scale denominator for layer to be visible",
+										"type": "number"
+									},
+									"opacity": {
+										"description": "Layer opacity",
+										"type": "number",
+										"minimum": 0,
+										"maximum": 1
+									},
+									"geom_type": {
+										"description": "Layer geometry type",
+										"type": "string", 
+										"enum": ["point", "line", "polygon", "raster"]
+									},
+									"is_base": {
+										"description": "Is this a base (i.e. backdrop) layer?",
+										"type": "boolean"
+									},
+									"is_interactive": {
+										"description": "Is this an interactive (popup-enabled) layer?",
+										"type": "boolean"
+									},
+									"is_singletile": {
+										"description": "Is this a single tiled layer (for wide-area rasters, place-names etc)?",
+										"type": "boolean"
+									},
+									"is_visible": {
+										"description": "Is this layer visible by default?",
+										"type": "boolean"
+									},
+									"is_dem": {
+										"description": "Is this layer a Digital Elevation Model (DEM)?",
+										"type": "boolean"
+									},
+									"attribute_map": {
+										"description": "Array of the layer attributes",
+										"type": "array",
+										"items": {
+											"type": "object",
+											"properties": {
+												"attr_name": {
+													"description": "Attribute name",
+													"type": "string"													
+												},
+												"attr_nillable": {
+													"description": "Whether attribute can be null",
+													"type": "boolean"
+												},
+												"attr_type": {
+													"description": "Type of attribute",
+													"type": "string",
+													"enum": [
+														"string", "double", "int", "boolean", "date", "time"
+													]													
+												},
+												"attr_filter": {
+													"description": "Run-time CQL filter on this layer attribute",
+													"type": "string"
+												},
+												"attr_alias": {
+													"description": "Human-friendly alias for this attribute name",
+													"type": "string"
+												},
+												"attr_unique_values": {
+													"description": "Whether to present unique values of attr in a drop-down",
+													"type": "boolean"
+												}
+											},
+											"required": [
+												"attr_name", "attr_nillable", "attr_type"
+											]
+										}
+									}
+								},
+								"required": [
+									"id", "name", "feature_name", "geom_type"
+								]
+							}
+						]
+					}
+				}
+			},
+			"required": [
+				"projection", "center", "zoom", "resolutions"
+			]
+		},
+		"required": [
+			"id", "name", "description", "owner_name", "owner_email"
+		]
+    }
+}

@@ -24,7 +24,10 @@
         <script src="/static/js/jquery.js"></script>
         <script src="/static/js/bootstrap.min.js"></script>
         <script src="/static/js/jquery.bootstrap.wizard.min.js"></script>
-        <script src="/static/js/prettify.js"></script>        
+        <script src="/static/js/prettify.js"></script>
+        <script src="/static/js/components/init.js"></script>
+        <script src="/static/js/modules/Common.js"></script>
+        <script src="/static/js/creator/Creator.js"></script>
     </head>
 
     <body>
@@ -118,12 +121,10 @@
         <script type="text/javascript">
 
             $(document).ready(function () {
-                $("#rootwizard").bootstrapWizard({onTabShow: function (tab, navigation, index) {
-                    var total = navigation.find("li").length;
-                    var current = index + 1;
-                    var percent = (current / total) * 100;
-                    $("#rootwizard").find(".progress-bar").css({width: percent + "%"});
-                }});
+                magic.common.Creator.init();
+                $("#rootwizard").bootstrapWizard({
+                    onTabShow: magic.common.Creator.updateProgressBar
+                });
                 $('[data-toggle="tooltip"]').tooltip();
             });
 
