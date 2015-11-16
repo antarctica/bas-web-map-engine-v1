@@ -1,3 +1,17 @@
 {
-    "name": "darb1"
+    "id": "",
+    "name": "New blank map",
+    "description": "Longer description of the purpose of the map goes here",
+    "version": "1.0",
+    "logo": "bas.png",
+    "favicon": "bas.ico",
+    "repository": null,
+    "creation_date": null,
+    "modified_date": null,
+    "owner_name": null,
+    "owner_email": "owner@example.com",
+    "metadata_url": null,
+    "data": {
+        "projection"
+    }    
 }
