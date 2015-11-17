@@ -48,26 +48,15 @@ public class Application extends SpringBootServletInitializer {
     
     @Bean
     @Primary
-    @ConfigurationProperties(prefix = "datasource.user")
-    public DataSource userDataSource() {
+    @ConfigurationProperties(prefix = "datasource.magic")
+    public DataSource magicDataSource() {
         return DataSourceBuilder.create().build();
     }
 
-    @Bean    
-    @ConfigurationProperties(prefix = "datasource.gis")
-    public DataSource gisDataSource() {
-        return DataSourceBuilder.create().build();
-    }   
-
     @Bean
-    public JdbcTemplate userDataTpl() {
-        return (new JdbcTemplate(userDataSource()));
-    }
-    
-    @Bean
-    public JdbcTemplate gisDataTpl() {
-        return (new JdbcTemplate(gisDataSource()));
-    }
+    public JdbcTemplate magicDataTpl() {
+        return (new JdbcTemplate(magicDataSource()));
+    }      
     
     @Bean
     public StaticImageServiceRegistry staticImageServiceRegistry() {

@@ -74,13 +74,17 @@ magic.common.Creator = function() {
                 $.each(["new", "edit", "clone"], $.proxy(function(idx, elt) {
                     if (elt == this.value) {
                         /* Checked one */
-                        $(this).parent().next("select").prop("disabled", false);
+                        var select = $(this).parent().next("select");
+                        select.prop("disabled", false);
+                        if (elt == "edit" || elt == "clone") {
+                            this.loadMapOptions(select, elt)
+                        }
                     } else {
                         /* Has been unchecked */
                         $("#creator-method-" + elt).parent().next("select").prop("disabled", true);
                     }
                 }, this));
-            });            
+            });           
         },
         
         /**
@@ -95,6 +99,13 @@ magic.common.Creator = function() {
             var percent = (current / total) * 100;
             $("#rootwizard").find(".progress-bar").css({width: percent + "%"});
         }
+        
+        /**
+         * Load the given drop-down with the the list of maps the current user can perform the action on
+         * @param {object} select
+         * @param {string} action         
+         */
+        
         
     });
     

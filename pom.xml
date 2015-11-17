@@ -126,7 +126,7 @@
             <groupId>it.geosolutions</groupId>
             <artifactId>geoserver-manager</artifactId>
             <version>1.5.2</version>
-        </dependency>
+        </dependency>        
        
     </dependencies>
 

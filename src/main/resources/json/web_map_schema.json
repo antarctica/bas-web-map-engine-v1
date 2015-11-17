@@ -5,43 +5,75 @@
     "properties": {
         "id": {
 			"description": "Unique map identifier (UUID)",
-			"type": "string",
-			"pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+			"anyOf": [
+                {
+                    "type": "string",
+                    "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+                },
+                {
+                    "type": "null"
+                }
+            ]					
         },
 		"name": {
 			"type": "string",
 			"pattern": "^[a-z0-9_]+$"
 		},
+        "title": {
+            "description": "Brief human-friendly title of map",
+            "type": "string"
+        },
 		"description": {
 			"description": "Long description of map",
 			"type": "string"
 		},
 		"version": {
 			"description": "version",
-			"type": "string"
+			"type": ["string", "null"]
 		},
 		"logo": {
 			"description": "Path to logo image (png)",
-			"type": "string"
+			"type": ["string", "null"]
 		},
 		"favicon": {
 			"description": "Path to favicon .ico image",
-			"type": "string"
+			"type": ["string", "null"]
 		},
 		"repository": {
 			"description": "URL of accompanying data repository in Ramadda",
-			"type": "string",
-			"format": "uri"
+            "anyOf": [
+                {
+                    "type": "string",
+                    "format": "uri"
+                },
+                {
+                    "type": "null"
+                }
+            ]						
 		},
 		"creation_date": {
 			"description": "ISO date of map creation",
-			"type": "string",
-			"format": "date-time"
+            "anyOf": [
+                {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                {
+                    "type": "null"
+                }
+            ]						
 		},
 		"modified_date": {
 			"description": "ISO date of last map modification",
-			"type": "string",
-			"format": "date-time"
+			"anyOf": [
+                {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                {
+                    "type": "null"
+                }
+            ]			
 		},
 		"owner_name": {
 			"description": "Name/username of the map owner",
@@ -54,8 +86,15 @@
 		},
 		"metadata_url": {
 			"description": "Metadata URL",
-			"type": "string",
-			"format": "uri"
+            "anyOf": [
+                {
+                    "type": "string",
+                    "format": "uri"
+                },
+                {
+                    "type": "null"
+                }
+            ]			
 		},
 		"data": {
 			"description": "Web map data",
@@ -149,15 +188,15 @@
 					"type": "array",
 					"items": {
 						"type": "object",
-						"oneOf": [
+						"anyOf": [
 							{
 								"id": "layer_group",
 								"description": "Layer group",
 								"properties": {
 									"id": {
 										"description": "Layer group identifier (UUID)",
-										"type": "string",
-										"pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+                                        "type": "string",
+                                        "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"                                         						
 									},
 									"name": {
 										"description": "Display name for layer group"
@@ -182,7 +221,7 @@
 									"id": {
 										"description": "Layer identifier (UUID)",
 										"type": "string",
-										"pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+                                        "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
 									},
 									"name": {
 										"description": "Display name for layer",
@@ -306,8 +345,11 @@
 				"projection", "center", "zoom", "resolutions"
 			]
 		},
+        "is_public": {
+            "type": "boolean"
+        },
 		"required": [
-			"id", "name", "description", "owner_name", "owner_email"
+			"name", "description", "owner_name", "owner_email"
 		]
     }
 }
