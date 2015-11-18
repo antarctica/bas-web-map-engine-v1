@@ -1,10 +1,12 @@
 uk\ac\antarctica\mapengine\controller\LoginController.class
 uk\ac\antarctica\mapengine\util\ActivityLogger.class
 uk\ac\antarctica\mapengine\external\PvanSicImageService.class
+uk\ac\antarctica\mapengine\controller\MapController$MapData.class
 uk\ac\antarctica\mapengine\controller\ApplicationConfigController.class
 uk\ac\antarctica\mapengine\controller\UserPreferencesController$PreferenceSet.class
 uk\ac\antarctica\mapengine\util\RamaddaUtils.class
 uk\ac\antarctica\mapengine\config\ThymeleafConfig.class
+uk\ac\antarctica\mapengine\controller\MapController$MapDataValidator.class
 uk\ac\antarctica\mapengine\Application$SessionListener.class
 uk\ac\antarctica\mapengine\config\ApplicationSecurity.class
 uk\ac\antarctica\mapengine\controller\UserViewsController$UserViewSet.class
@@ -15,6 +17,7 @@ uk\ac\antarctica\mapengine\controller\UserPreferencesController.class
 uk\ac\antarctica\mapengine\controller\PingController.class
 uk\ac\antarctica\mapengine\external\StaticImageService.class
 uk\ac\antarctica\mapengine\controller\ApplicationConfigController$LayerTreeData.class
+uk\ac\antarctica\mapengine\controller\MapController.class
 uk\ac\antarctica\mapengine\controller\HomeController.class
 uk\ac\antarctica\mapengine\config\CustomServletContextListener.class
 uk\ac\antarctica\mapengine\controller\UserViewsController$UserViewSetValidator.class

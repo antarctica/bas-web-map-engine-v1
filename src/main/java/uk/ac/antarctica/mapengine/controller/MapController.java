@@ -43,13 +43,7 @@ public class MapController {
     
     /* Database table where the map definitions are stored */
     private static final String MAPDEFS = "webmap.maps";
-
-    /* Database schema where user data is stored */
-    private static final String USERDATA_SCHEMA = "webmap";
-
-    /* User map definition table name */
-    private static final String MAPDEFS_TABLE = "maps";
-
+   
     @Autowired
     private JdbcTemplate magicDataTpl;
 
@@ -177,13 +171,13 @@ public class MapController {
     
     /*---------------------------------------------------------------- Save map data ----------------------------------------------------------------*/
     
-   /**
-    * Save a new map view whose data is POST-ed (use PUT for updating)
-    * @param String payload   
-    * @throws Exception
-    */
+    /**
+     * Save a new map view whose data is POST-ed (use PUT for updating)
+     * @param String payload   
+     * @throws Exception
+     */
     @RequestMapping(value = "/maps/save", method = RequestMethod.POST, produces = "application/json; charset=utf-8", headers = {"Content-type=application/json"})
-    public ResponseEntity<String> saveMapView(HttpServletRequest request,
+    public ResponseEntity<String> saveMap(HttpServletRequest request,
         @RequestBody @Valid MapData md) throws Exception {
         ResponseEntity<String> ret;
         String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
@@ -223,76 +217,129 @@ public class MapController {
             }            
         } else {
             ret = packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to perform this action");
-        }
-        
-        
-        String mapTable = USERDATA_SCHEMA + "." + MAPDEFS_TABLE;
-
-//        if (username != null) {
-//            try {               
-//                /* Check if this view exists */
-//                int count = userDataTpl.queryForObject("SELECT count(viewname) FROM " + mapTable  + " "
-//                    + "WHERE appname=? AND usermap=? AND viewname=? AND owner=?", new Object[]{appname, usermap, viewData.getViewname(), username}, Integer.class);
-//                if (count == 0) {
-//                    /* New view => clone the default view for this application/usermap */
-//                    Map<String, Object> exRow = userDataTpl.queryForMap("SELECT * FROM " + mapTable + " WHERE appname=? AND usermap=? AND owner IS NULL", appname, usermap);
-//                    String query = "INSERT INTO " + mapTable + " ({FIELDS}) VALUES({VALUES})";
-//                    String[] fields = new String[exRow.size()-1];
-//                    String[] values = new String[exRow.size()-1];
-//                    Object[] args = new Object[exRow.size()-1];
-//                    int fc = 0;
-//                    for (String key : exRow.keySet()) {
-//                        if (!key.equals("id")) {
-//                            fields[fc] = key;
-//                            values[fc] = "?";
-//                            switch (key) {
-//                                case "viewname":
-//                                    args[fc] = viewData.getViewname();
-//                                    break;
-//                                case "owner":
-//                                    args[fc] = username;
-//                                    break;
-//                                case "center":
-//                                    args[fc] = viewData.getCenter();
-//                                    break;
-//                                case "zoom":
-//                                    args[fc] = viewData.getZoom();
-//                                    break;
-//                                case "show_layers":
-//                                    args[fc] = viewData.getShow_layers();
-//                                    break;
-//                                case "expand_groups":
-//                                    args[fc] = viewData.getExpand_groups();
-//                                    break;
-//                                default:
-//                                    args[fc] = exRow.get(key);
-//                                    break;
-//                            }
-//                            fc++;                            
-//                        }
-//                    }
-//                    query = query.replace("{FIELDS}", StringUtils.join(fields, ",")).replace("{VALUES}", StringUtils.join(values, ","));
-//                    System.out.println(query);
-//                    userDataTpl.update(query, args);
-//                    ret = packageResults(HttpStatus.OK, null, "Saved successfully");
-//                } else {
-//                    /* Update of existing view */
-//                    userDataTpl.update("UPDATE " + mapTable + " SET center=?, zoom=?, show_layers=?, expand_groups=? WHERE appname=? AND usermap=? AND viewname=? AND owner=?",
-//                        viewData.getCenter(), viewData.getZoom(), viewData.getShow_layers(), viewData.getExpand_groups(),
-//                        appname, usermap, viewData.getViewname(), username);
-//                    ret = packageResults(HttpStatus.OK, null, "Updated successfully");
-//                } 
-//            } catch (Exception ex) {
-//                ret = packageResults(HttpStatus.BAD_REQUEST, null, "Error occurred: " + ex.getMessage());
-//            }
-//        } else {
-//            ret = packageResults(HttpStatus.BAD_REQUEST, null, "Need to be logged in as a user to make this request");
-//        }
+        }        
         return (ret);
     }
     
     /**
-     * Do the packaging of views return     
+     * Save a new map view whose data is POST-ed (use PUT for updating)
+     * @param String id
+     * @param String payload   
+     * @throws Exception
+     */
+    @RequestMapping(value = "/maps/update/{id}", method = RequestMethod.PUT, produces = "application/json; charset=utf-8", headers = {"Content-type=application/json"})
+    public ResponseEntity<String> updateMap(HttpServletRequest request,
+        @PathVariable("id") String id,
+        @RequestBody @Valid MapData md) throws Exception {
+        ResponseEntity<String> ret;
+        String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
+        if (username != null) {
+            /* Check logged in user is the owner of the map */
+            String owner = recordOwner(id);
+            if (owner == null) {
+                /* Unable to determine if owner */
+                ret = packageResults(HttpStatus.UNAUTHORIZED, null, "Failed to determine if you are the owner of record with id " + id);
+            } else if (!owner.equals(username)) {
+                /* Not the owner */
+                ret = packageResults(HttpStatus.UNAUTHORIZED, null, "You are not the owner of record with id " + id);
+            } else {
+                /* Default the non-completed fields */
+                Date now = new Date();                
+                md.setModified_date(now);
+                /* Assemble UPDATE query */
+                try {
+                    String sql = "UPDATE " + MAPDEFS + " SET " + 
+                        "name=?, " + 
+                        "title=?, " +
+                        "description=?, " + 
+                        "version=?, " + 
+                        "logo=?, " + 
+                        "favicon=?, " + 
+                        "repository=?, " +
+                        "modified_date=?, " + 
+                        "owner_email=?, " + 
+                        "metadata_url=?, " + 
+                        "data=?, " + 
+                        "is_public=? WHERE id=?";
+                    magicDataTpl.update(sql, new Object[] {
+                        md.getName(),
+                        md.getTitle(),
+                        md.getDescription(),
+                        md.getVersion(),
+                        md.getLogo(),
+                        md.getFavicon(),
+                        md.getRepository(),
+                        md.getModified_date(),
+                        md.getOwner_email(),
+                        md.getMetadata_url(),
+                        md.getData(),
+                        md.isIs_public(),
+                        md.getId()
+                    });
+                    ret = packageResults(HttpStatus.OK, null, "Successfully updated");
+                } catch(DataAccessException dae) {
+                    ret = packageResults(HttpStatus.BAD_REQUEST, null, "Error updating data, message was: " + dae.getMessage());
+                }
+            }
+        } else {
+            ret = packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to perform this action");
+        }        
+        return (ret);
+    }
+    
+    /*---------------------------------------------------------------- Delete map data ----------------------------------------------------------------*/
+    
+    /**
+     * Save a new map view whose data is POST-ed (use PUT for updating)
+     * @param String id
+     * @param String payload   
+     * @throws Exception
+     */
+    @RequestMapping(value = "/maps/delete/{id}", method = RequestMethod.DELETE, produces = "application/json; charset=utf-8", headers = {"Content-type=application/json"})
+    public ResponseEntity<String> deleteMap(HttpServletRequest request,
+        @PathVariable("id") String id) throws Exception {
+        ResponseEntity<String> ret;
+        String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
+        if (username != null) {
+            /* Check logged in user is the owner of the map */
+            String owner = recordOwner(id);
+            if (owner == null) {
+                /* Unable to determine if owner */
+                ret = packageResults(HttpStatus.UNAUTHORIZED, null, "Failed to determine if you are the owner of record with id " + id);
+            } else if (!owner.equals(username)) {
+                /* Not the owner */
+                ret = packageResults(HttpStatus.UNAUTHORIZED, null, "You are not the owner of record with id " + id);
+            } else {
+                /* Do deletion */                
+                try {
+                    magicDataTpl.update("DELETE FROM " + MAPDEFS + " WHERE id=?", new Object[]{id});                        
+                    ret = packageResults(HttpStatus.OK, null, "Successfully deleted");
+                } catch(DataAccessException dae) {
+                    ret = packageResults(HttpStatus.BAD_REQUEST, null, "Error deleting data, message was: " + dae.getMessage());
+                }
+            }
+        } else {
+            ret = packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to perform this action");
+        }        
+        return (ret);
+    }
+    
+    /**
+     * Get the owner of the record with given id
+     * @param String recordId
+     * @return String
+     */
+    private String recordOwner(String recordId) {
+        String owner = null;
+        try {
+            owner = magicDataTpl.queryForObject("SELECT owner_name FROM " + MAPDEFS + " WHERE id=?", new Object[]{recordId}, String.class);              
+        } catch(DataAccessException dae) {                
+        }
+        return(owner);
+    }
+    
+    /**
+     * Do the packaging of return values
      * @param HttpStatus status
      * @param String data
      * @param String message
@@ -318,59 +365,6 @@ public class MapController {
         return (ret);
     }
 
-
-//    
-//    /**
-//     * Delete a map view     
-//     * @param String appname
-//     * @param String usermap
-//     * @param String viewname     
-//     * @throws Exception
-//     */
-//    @RequestMapping(value = "/mapview/{appname}/{usermap}/{viewname}", method = RequestMethod.DELETE, produces = "application/json; charset=utf-8")
-//    public ResponseEntity<String> delMapView(HttpServletRequest request,
-//        @PathVariable("appname") String appname,
-//        @PathVariable("usermap") String usermap,
-//        @PathVariable("viewname") String viewname) throws Exception {
-//
-//        ResponseEntity<String> ret;
-//        String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
-//        String mapTable = USERDATA_SCHEMA + "." + MAPDEFS_TABLE;
-//
-//        if (username != null) {
-//            try {               
-//                userDataTpl.update("DELETE FROM " + mapTable + " WHERE appname=? AND usermap=? AND viewname=? AND owner=?", appname, usermap, viewname, username);
-//                ret = packageResults(HttpStatus.OK, null, "Deleted successfully");                
-//            } catch (Exception ex) {
-//                ret = packageResults(HttpStatus.BAD_REQUEST, null, "Error occurred: " + ex.getMessage());
-//            }
-//        } else {
-//            ret = packageResults(HttpStatus.BAD_REQUEST, null, "Need to be logged in as a user to make this request");
-//        }
-//        return (ret);
-//    }
-//    
-//    /**
-//     * Do the packaging of views return
-//     *
-//     * @param HttpStatus status
-//     * @param String data
-//     * @param String message
-//     * @return ResponseEntity<String>
-//     */
-//    private ResponseEntity<String> packageResults(HttpStatus status, String data, String message) {
-//        ResponseEntity<String> ret;
-//        if (status.equals(HttpStatus.OK) && data != null) {
-//            ret = new ResponseEntity<>(data, status);
-//        } else {
-//            JsonObject jo = new JsonObject();
-//            jo.addProperty("status", status.value());
-//            jo.addProperty("detail", message);
-//            ret = new ResponseEntity<>(jo.toString(), status);
-//        }
-//        return (ret);
-//    }
-//
     public class MapData {
 
         private String id = null;
@@ -543,14 +537,7 @@ public class MapController {
         public void validate(Object target, Errors e) {
 
             MapData md = (MapData) target;
-            
-            /* Check modified date after creation date */
-            if (md.getCreation_date() != null && md.getModified_date() != null) {
-                if (md.getCreation_date().compareTo(md.getModified_date()) > 0) {
-                    e.rejectValue("modified_date", "invalid", "Modified date is before creation date");
-                }
-            }
-            
+                      
             /* Check name is unique */
             try {
                 int nameCount = magicDataTpl.queryForObject("SELECT count(name) FROM " + MAPDEFS + " WHERE name=?", new Object[]{md.getName()}, Integer.class);

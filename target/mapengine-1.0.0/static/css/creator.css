@@ -103,3 +103,24 @@ input[readonly] {
 label.radio-plus-select {
     width: 180px;
 }
+
+/* Sortable lists */
+#creator-map-layertree {
+    width: 500px;
+}
+
+li.layertree-node {
+    list-style-type: none;
+    background-color: #e0e0e0;
+    padding: 10px;
+    margin: 3px;
+    border: 2px solid #a0a0a0;
+    border-radius: 3px;
+}
+
+ul.layertree-group {
+    list-style-type: none;
+    background-color: #f0f0f0;
+    padding: 3px;
+    border-radius: 3px;
+}
