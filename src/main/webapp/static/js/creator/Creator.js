@@ -3,6 +3,8 @@ magic.common.Creator = function () {
     return({
         /* The JSON definition of the map */
         map_context: null,
+        /* Dictionary of layers and layer groups by identifier */
+        layer_definition_dictionary: null,
         /* Core fields for new blank map */
         blank_map_core: {
             "id": "",
@@ -184,6 +186,18 @@ magic.common.Creator = function () {
                 ]
             }
         },
+        /* Template for a new layer */
+        blank_map_new_layer: {            
+            "id": "",
+            "name": "New layer"
+        },
+        /* Template for a new group */
+        blank_map_new_group: {
+            "id": "",
+            "name": "New layer group",
+            "layers": [                
+            ]
+        },
         /**
          * Assign all the form element handlers
          */
@@ -228,6 +242,7 @@ magic.common.Creator = function () {
          */
         loadMapContext: function (data) {
             this.map_context = data;
+            this.layer_definition_dictionary = {};
             /* Populate the straight inputs */
             var inputs = $("#map-creator-form").serializeArray();
             $.each(inputs, function (idx, elt) {
@@ -240,20 +255,33 @@ magic.common.Creator = function () {
                 /* Translate the layer data into a sortable list */
                 var layerTree = $("#creator-map-layertree");
                 layerTree.empty();
-                this.processLayers(data.data.layers, layerTree);
+                this.processLayers(data.data.layers, layerTree);                
                 /* http://camohub.github.io/jquery-sortable-lists/ */
                 layerTree.sortableLists({
-                    placeholderCss: {"background-color": "#fcf8e3"},
-                    hintCss: {"background-color": "#dff0d8"},
-                    isAllowed: function (elt, hint, target) {
-                        // TODO
-                    },
+                    placeholderCss: {"background-color": "#fcf8e3", "border": "2px dashed #fce04e"},
+                    hintCss: {"background-color": "#dff0d8", "border": "2px dashed #5cb85c"},
+                    isAllowed: $.proxy(function (elt, hint, target) {
+                        /* Allowed drag iff target is a group or the top level */
+                        var allowed = false;
+                        var dropZone = hint.parents("li").first();
+                        if (dropZone) {                            
+                            if (dropZone.length > 0 && dropZone[0].id) {
+                                /* Only allowed to be dropped within a group */
+                                allowed = this.layer_definition_dictionary[dropZone[0].id].layers
+                            } else if (dropZone.length == 0) {
+                                /* Dropped at the top level */
+                                allowed = true;
+                            }
+                        }
+                        return(allowed);
+                    }, this),
                     listSelector: "ul",
-                    listsClass: "list-group",
+                    listsClass: "list-group",                    
+                    insertZone: 50,
                     opener: {
                         active: true,
-                        close: "/static/images/1x1.png",
-                        open: "/static/images/1x1.png",
+                        close: "/static/images/sortable_lists/close.png",
+                        open: "/static/images/sortable_lists/open.png",                        
                         openerCss: {
                             "display": "inline-block",
                             "width": "18px",
@@ -263,11 +291,34 @@ magic.common.Creator = function () {
                             "margin-right": "5px",
                             "background-position": "center center",
                             "background-repeat": "no-repeat"
-                        },
-                        openerClass: ""
+                        }
                     },
-                    ignoreClass: "clickable"
+                    ignoreClass: "layer-name-button"
                 });
+                /* Assign the layer edit button handlers */
+                $(".layer-name-button").click(function(evt) {
+                    console.log("Click");
+                });
+                /* Add new layer button handler */
+                var btnNewLayer = $("#creator-map-new-layer");
+                if (btnNewLayer) {
+                    btnNewLayer.prop("disabled", false);
+                    btnNewLayer.click($.proxy(function(evt) {
+                        var id = magic.modules.Common.uuid();
+                        this.layer_definition_dictionary[id] = $.extend({}, this.blank_map_new_layer);
+                        layerTree.append(this.layerLiHtml(id, this.layer_definition_dictionary[id]["name"]));
+                    }, this));
+                }
+                /* Add new layer group button handler */
+                var btnNewGroup = $("#creator-map-new-group");
+                if (btnNewGroup) {
+                    btnNewGroup.prop("disabled", false);
+                    btnNewGroup.click($.proxy(function(evt) {
+                        var id = magic.modules.Common.uuid();
+                        this.layer_definition_dictionary[id] = $.extend({}, this.blank_map_new_group);
+                        layerTree.append(this.groupLiHtml(id, this.layer_definition_dictionary[id]["name"]));
+                    }, this));
+                }               
             }
         },
         /**
@@ -291,25 +342,16 @@ magic.common.Creator = function () {
         processLayers: function(layers, parent) {
             for (var i = 0; i < layers.length; i++) {
                 layers[i].id = magic.modules.Common.uuid();
-                console.dir(layers[i]);
+                this.layer_definition_dictionary[layers[i].id] = layers[i];
                 if (layers[i].layers) {
                     /* A layer group */
-                    var groupEl = $(
-                        '<li class="list-group-item list-group-item-heading" id="' + layers[i].id + '">' + 
-                            '<div><h4>' + layers[i].name + '</h4></div>' + 
-                            '<ul class="list-group" style="margin-bottom:10px !important"></ul>' + 
-                        '</li>'
-                    );
+                    var groupEl = this.groupLiHtml(layers[i].id, layers[i].name);
                     parent.append(groupEl);
                     this.processLayers(layers[i].layers, groupEl.children("ul"));
                 } else {
-                    /* A leaf node */
-                    var leafEl = $(
-                        '<li class="list-group-item list-group-item-info" id="' + layers[i].id + '">' + 
-                            '<div>' + layers[i].name + '</div>' +                             
-                        '</li>'
-                    );
-                    parent.append(leafEl);
+                    /* A leaf node */   
+                    var layerEl = this.layerLiHtml(layers[i].id, layers[i].name);
+                    parent.append(layerEl);                    
                 }
             }
         },
@@ -324,6 +366,43 @@ magic.common.Creator = function () {
             var current = index + 1;
             var percent = (current / total) * 100;
             $("#rootwizard").find(".progress-bar").css({width: percent + "%"});
+        },
+        /**
+         * HTML fragment for layer group list item
+         * @param {string} id
+         * @param {string} name
+         * @returns {element}
+         */
+        groupLiHtml: function(id, name) {
+            var li = $(
+                '<li class="list-group-item list-group-item-heading" id="' + id + '">' + 
+                    '<div>' + 
+                        '<button type="button" class="btn btn-info btn-sm layer-name-button" data-toggle="tooltip" data-placement="right" title="Click to update layer group data">' + 
+                            name + 
+                        '</button>' + 
+                    '</div>' + 
+                    '<ul class="list-group"></ul>' + 
+                '</li>'
+            );           
+            return(li);
+        },
+        /**
+         * HTML fragment for layer list item
+         * @param {string} id
+         * @param {string} name
+         * @returns {element}
+         */
+        layerLiHtml: function(id, name) {
+            var li = $(
+                '<li class="list-group-item list-group-item-info" id="' + id + '">' + 
+                    '<div>' + 
+                        '<button type="button" class="btn btn-info btn-sm layer-name-button" data-toggle="tooltip" data-placement="right" title="Click to update layer data">' + 
+                            name + 
+                        '</button>' + 
+                    '</div>' +     
+                '</li>'
+            );
+            return(li);
         }
 
     });

@@ -9,8 +9,10 @@
             <h3>Welcome to the MAGIC Map Creation Wizard</h3>            
         </div>
         <div class="panel panel-default">
-            <div class="panel-body">
-                <h4>Select how to create your map</h4>
+            <div class="panel-heading">
+                <h3 class="panel-title">Select how to create your map</h3>
+            </div>
+            <div class="panel-body">                
                 <div class="radio form-inline">
                     <label class="radio-plus-select" for="creator-method-new"><input type="radio" name="creator-method" id="creator-method-new" value="new" checked="checked"></input>
                         Create a new blank map
@@ -41,10 +43,12 @@
             </div>
         </div>
         <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Basic map information</h3>
+            </div>
             <div class="panel-body">
-                <h4>Basic map information</h4>
                 <div class="form-group">
-                    <label for="map-name" class="col-sm-2 control-label">Name of map</label>
+                    <label for="creator-map-name" class="col-sm-2 control-label">Name of map</label>
                     <div class="col-sm-10">
                         <input type="text" class="form-control map-creator-control" id="creator-map-name" name="creator-map-name" placeholder="Name for map" 
                                data-toggle="tooltip" data-placement="right" title="lowercase letters, numbers and _ allowed" required="required">                                   
@@ -52,7 +56,7 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="map-description" class="col-sm-2 control-label">Description</label>
+                    <label for="creator-map-description" class="col-sm-2 control-label">Description</label>
                     <div class="col-sm-10">
                         <textarea class="form-control map-creator-control" id="creator-map-description" name="creator-map-description"
                                 data-toggle="tooltip" data-placement="right" title="Useful info like map purpose, intended audience etc" required="required">                            
@@ -60,7 +64,7 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="map-version" class="col-sm-2 control-label">Version</label>
+                    <label for="creator-map-version" class="col-sm-2 control-label">Version</label>
                     <div class="col-sm-10">
                         <input type="text" class="form-control map-creator-control" id="creator-map-version" name="creator-map-version" value="1.0"
                                data-toggle="tooltip" data-placement="right" title="Map version">                            
@@ -68,7 +72,7 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="map-owner_email" class="col-sm-2 control-label">Contact email</label>
+                    <label for="creator-map-owner_email" class="col-sm-2 control-label">Contact email</label>
                     <div class="col-sm-10">
                         <input type="email" class="form-control map-creator-control" id="creator-map-owner_email" name="creator-map-owner_email" placeholder="Valid email address"
                                data-toggle="tooltip" data-placement="right" title="Contact email for map owner" required="required">                            

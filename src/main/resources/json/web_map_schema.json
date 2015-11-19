@@ -294,6 +294,14 @@
 										"description": "Is this layer a Digital Elevation Model (DEM)?",
 										"type": "boolean"
 									},
+                                    "is_time_dependent": {
+										"description": "Does this layer have a temporal component?",
+										"type": "boolean"
+									},
+                                    "is_filterable": {
+                                        "description": "Is this layer filterable by attribute?",
+                                        "type": "boolean"
+                                    },
 									"attribute_map": {
 										"description": "Array of the layer attributes",
 										"type": "array",

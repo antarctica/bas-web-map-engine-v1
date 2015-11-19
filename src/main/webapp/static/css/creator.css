@@ -104,9 +104,14 @@ label.radio-plus-select {
     width: 180px;
 }
 
-/* Sortable lists */
+/* Sortable list layertree */
 #creator-map-layertree {
     width: 500px;
+}
+
+#creator-map-layertree li {
+    padding-left: 50px !important;
+    padding-bottom: 5px !important;
 }
 
 li.layertree-node {
@@ -123,4 +128,9 @@ ul.layertree-group {
     background-color: #f0f0f0;
     padding: 3px;
     border-radius: 3px;
+}
+
+button.layer-name-button {
+    width: 300px;
+    margin-bottom: 6px;
 }
