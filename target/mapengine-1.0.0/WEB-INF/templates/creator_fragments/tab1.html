@@ -8,78 +8,80 @@
         <div class="well well-lg">
             <h3>Welcome to the MAGIC Map Creation Wizard</h3>            
         </div>
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h3 class="panel-title">Select how to create your map</h3>
-            </div>
-            <div class="panel-body">                
-                <div class="radio form-inline">
-                    <label class="radio-plus-select" for="creator-method-new"><input type="radio" name="creator-method" id="creator-method-new" value="new" checked="checked"></input>
-                        Create a new blank map
-                    </label>
-                    <select class="form-control" id="creator-method-new-region" name="creator-method-new-region">
-                        <option value="">Select region</option>
-                        <option value="antarctic">Antarctica</option> 
-                        <option value="arctic">Arctic</option> 
-                        <option value="southgeorgia">South Georgia</option> 
-                    </select>
+        <form id="cm-tab1" class="form-horizontal">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Select how to create your map</h3>
                 </div>
-                <div class="radio form-inline">
-                    <label class="radio-plus-select" for="creator-method-clone"><input type="radio" name="creator-method" id="creator-method-clone" value="clone"></input>
-                        Clone an existing map
-                    </label>
-                    <select class="form-control" id="creator-method-clone-mapid" name="creator-method-clone-mapid" disabled="disabled">
-                        <option value="">Select a map</option>                       
-                    </select>
-                </div>
-                <div class="radio form-inline">
-                    <label class="radio-plus-select" for="creator-method-edit"><input type="radio" name="creator-method" id="creator-method-edit" value="edit"></input>
-                        Edit an existing map
-                    </label>
-                    <select class="form-control" id="creator-method-edit-mapid" name="creator-method-edit-mapid" disabled="disabled">
-                        <option value="">Select a map</option>                        
-                    </select>
-                </div>
-            </div>
-        </div>
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h3 class="panel-title">Basic map information</h3>
-            </div>
-            <div class="panel-body">
-                <div class="form-group">
-                    <label for="creator-map-name" class="col-sm-2 control-label">Name of map</label>
-                    <div class="col-sm-10">
-                        <input type="text" class="form-control map-creator-control" id="creator-map-name" name="creator-map-name" placeholder="Name for map" 
-                               data-toggle="tooltip" data-placement="right" title="lowercase letters, numbers and _ allowed" required="required">                                   
-                        </input>
+                <div class="panel-body">                
+                    <div class="radio form-inline">
+                        <label class="radio-plus-select" for="cm-tab1-new-region"><input type="radio" name="cm-tab1-method" id="cm-tab1-new" value="new" checked="checked"></input>
+                            Create a new map of
+                        </label>
+                        <select class="form-control" id="cm-tab1-new-region" name="cm-tab1-new-region">
+                            <option value="">Select region</option>
+                            <option value="antarctic">Antarctica</option> 
+                            <option value="arctic">Arctic</option> 
+                            <option value="southgeorgia">South Georgia</option> 
+                        </select>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label for="creator-map-description" class="col-sm-2 control-label">Description</label>
-                    <div class="col-sm-10">
-                        <textarea class="form-control map-creator-control" id="creator-map-description" name="creator-map-description"
-                                data-toggle="tooltip" data-placement="right" title="Useful info like map purpose, intended audience etc" required="required">                            
-                        </textarea>
+                    <div class="radio form-inline">
+                        <label class="radio-plus-select" for="cm-tab1-clone-mapid"><input type="radio" name="cm-tab1-method" id="cm-tab1-clone" value="clone"></input>
+                            Clone an existing map
+                        </label>
+                        <select class="form-control" id="cm-tab1-clone-mapid" name="cm-tab1-clone-mapid" disabled="disabled">
+                            <option value="">Select a map</option>                       
+                        </select>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label for="creator-map-version" class="col-sm-2 control-label">Version</label>
-                    <div class="col-sm-10">
-                        <input type="text" class="form-control map-creator-control" id="creator-map-version" name="creator-map-version" value="1.0"
-                               data-toggle="tooltip" data-placement="right" title="Map version">                            
-                        </input>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="creator-map-owner_email" class="col-sm-2 control-label">Contact email</label>
-                    <div class="col-sm-10">
-                        <input type="email" class="form-control map-creator-control" id="creator-map-owner_email" name="creator-map-owner_email" placeholder="Valid email address"
-                               data-toggle="tooltip" data-placement="right" title="Contact email for map owner" required="required">                            
-                        </input>
+                    <div class="radio form-inline">
+                        <label class="radio-plus-select" for="cm-tab1-edit-mapid"><input type="radio" name="cm-tab1-method" id="cm-tab1-edit" value="edit"></input>
+                            Edit an existing map
+                        </label>
+                        <select class="form-control" id="cm-tab1-edit-mapid" name="cm-tab1-edit-mapid" disabled="disabled">
+                            <option value="">Select a map</option>                        
+                        </select>
                     </div>
                 </div>
             </div>
-        </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Basic map information</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="form-group">
+                        <label for="cm-tab1-name" class="col-sm-2 control-label">Name of map</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control map-creator-control" id="cm-tab1-name" name="cm-tab1-name" placeholder="Name for map" 
+                                   data-toggle="tooltip" data-placement="right" title="lowercase letters, numbers and _ allowed" required="required">                                   
+                            </input>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="cm-tab1-description" class="col-sm-2 control-label">Description</label>
+                        <div class="col-sm-10">
+                            <textarea class="form-control map-creator-control" id="cm-tab1-description" name="cm-tab1-description"
+                                      data-toggle="tooltip" data-placement="right" title="Useful info like map purpose, intended audience etc" required="required">                            
+                            </textarea>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="cm-tab1-version" class="col-sm-2 control-label">Version</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control map-creator-control" id="cm-tab1-version" name="cm-tab1-version" value="1.0"
+                                   data-toggle="tooltip" data-placement="right" title="Map version">                            
+                            </input>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="cm-tab1-owner_email" class="col-sm-2 control-label">Contact email</label>
+                        <div class="col-sm-10">
+                            <input type="email" class="form-control map-creator-control" id="cm-tab1-owner_email" name="cm-tab1-owner_email" placeholder="Valid email address"
+                                   data-toggle="tooltip" data-placement="right" title="Contact email for map owner" required="required">                            
+                            </input>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
     </body>
 </html>

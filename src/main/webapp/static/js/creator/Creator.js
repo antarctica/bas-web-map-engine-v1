@@ -31,9 +31,7 @@ magic.common.Creator = function () {
                 "max_zoom": 13,
                 "resolutions": [11200, 5600, 2800, 1400, 560, 280, 140, 16, 28, 14, 5.6, 2.8, 1.4, 0.56],
                 "controls": ["zoom_world", "zoom_in", "zoom_out", "box_zoom", "full_screen", "overview_map"],
-                "gazetteers": ["cga"],
-                "primary_wms": "https://maps.bas.ac.uk/antarctic/wms",
-                "primary_wfs": "https://maps.bas.ac.uk/antarctic/wfs",
+                "gazetteers": ["cga"],              
                 "layers": [
                     {
                         "id": "",
@@ -43,7 +41,10 @@ magic.common.Creator = function () {
                             {
                                 "id": "",
                                 "name": "Hillshade and bathymetry",
-                                "feature_name": "add:antarctic_hillshade_and_bathymetry",
+                                "source": {
+                                    "wms": "https://maps.bas.ac.uk/antarctic/wms",
+                                    "feature_name": "add:antarctic_hillshade_and_bathymetry",
+                                },                                
                                 "is_base": true,
                                 "is_visible": true,
                                 "is_dem": true
@@ -58,13 +59,19 @@ magic.common.Creator = function () {
                             {
                                 "id": "",
                                 "name": "Coastline",
-                                "feature_name": "add:antarctic_coastline",
+                                "source": {
+                                    "wms": "https://maps.bas.ac.uk/antarctic/wms",
+                                    "feature_name": "add:antarctic_coastline",
+                                },     
                                 "is_visible": true
                             },
                             {
                                 "id": "",
                                 "name": "Sub-Antarctic coastline",
-                                "feature_name": "add:sub_antarctic_coastline",
+                                "source": {
+                                    "wms": "https://maps.bas.ac.uk/antarctic/wms",
+                                    "feature_name": "add:sub_antarctic_coastline",
+                                },     
                                 "is_visible": true
                             }
                         ]
@@ -77,7 +84,10 @@ magic.common.Creator = function () {
                             {
                                 "id": "",
                                 "name": "Graticule",
-                                "feature_name": "add:antarctic_graticule",
+                                "source": {
+                                    "wms": "https://maps.bas.ac.uk/antarctic/wms",
+                                    "feature_name": "add:antarctic_graticule",
+                                },   
                                 "is_visible": true,
                                 "is_singletile": true
                             }
@@ -95,8 +105,6 @@ magic.common.Creator = function () {
                 "resolutions": [11200, 5600, 2800, 1400, 560, 280, 140],
                 "controls": ["zoom_world", "zoom_in", "zoom_out", "box_zoom", "full_screen", "overview_map"],
                 "gazetteers": ["arctic"],
-                "primary_wms": "https://maps.bas.ac.uk/arctic/wms",
-                "primary_wfs": "https://maps.bas.ac.uk/arctic/wfs",
                 "layers": [
                     {
                         "id": "",
@@ -106,7 +114,10 @@ magic.common.Creator = function () {
                             {
                                 "id": "",
                                 "name": "Hillshade and bathymetry",
-                                "feature_name": "arctic:arctic_hillshade_and_bathymetry",
+                                "source": {
+                                    "wms": "https://maps.bas.ac.uk/arctic/wms",
+                                    "feature_name": "arctic:arctic_hillshade_and_bathymetry",
+                                },   
                                 "is_base": true,
                                 "is_visible": true,
                                 "is_dem": true
@@ -121,7 +132,10 @@ magic.common.Creator = function () {
                             {
                                 "id": "",
                                 "name": "Coastline",
-                                "feature_name": "arctic:arctic_coastline",
+                                "source": {
+                                    "wms": "https://maps.bas.ac.uk/arctic/wms",
+                                    "feature_name": "arctic:arctic_coastline",
+                                },   
                                 "is_visible": true
                             }
                         ]
@@ -134,7 +148,10 @@ magic.common.Creator = function () {
                             {
                                 "id": "",
                                 "name": "Graticule",
-                                "feature_name": "arctic:arctic_graticule",
+                                "source": {
+                                    "wms": "https://maps.bas.ac.uk/arctic/wms",
+                                    "feature_name": "arctic:arctic_graticule",
+                                },   
                                 "is_visible": true,
                                 "is_singletile": true
                             }
@@ -151,9 +168,7 @@ magic.common.Creator = function () {
                 "max_zoom": 14,
                 "resolutions": [3360, 1680, 840, 420, 210, 105, 42, 21, 10.5, 4.2, 2.1, 1.2, 0.56, 0.28, 0.14],
                 "controls": ["zoom_world", "zoom_in", "zoom_out", "box_zoom", "full_screen", "overview_map"],
-                "gazetteers": ["sg"],
-                "primary_wms": "https://maps.bas.ac.uk/southgeorgia/wms",
-                "primary_wfs": "https://maps.bas.ac.uk/southgeorgia/wfs",
+                "gazetteers": ["sg"],                
                 "layers": [
                     {
                         "id": "",
@@ -163,7 +178,10 @@ magic.common.Creator = function () {
                             {
                                 "id": "",
                                 "name": "Hillshade and bathymetry",
-                                "feature_name": "sggis:sg_hillshade_and_bathymetry",
+                                "source": {
+                                    "wms": "https://maps.bas.ac.uk/southgeorgia/wms",
+                                    "feature_name": "sggis:sg_hillshade_and_bathymetry",
+                                },   
                                 "is_base": true,
                                 "is_visible": true,
                                 "is_dem": true
@@ -178,7 +196,10 @@ magic.common.Creator = function () {
                             {
                                 "id": "",
                                 "name": "Coastline",
-                                "feature_name": "sggis:sg_coastline",
+                                "source": {
+                                    "wms": "https://maps.bas.ac.uk/southgeorgia/wms",
+                                    "feature_name": "sggis:sg_coastline",
+                                },   
                                 "is_visible": true
                             }
                         ]
@@ -203,7 +224,7 @@ magic.common.Creator = function () {
          */
         init: function () {
             /* Creator method radio button change handler */
-            $("input[type=radio][name='creator-method']").change($.proxy(function (evt) {
+            $("input[type=radio][name='cm-tab1-method']").change($.proxy(function (evt) {
                 var rb = $(evt.currentTarget);
                 $.each(["new", "edit", "clone"], $.proxy(function (idx, elt) {
                     if (elt == rb.val()) {
@@ -215,22 +236,22 @@ magic.common.Creator = function () {
                         }
                     } else {
                         /* Has been unchecked */
-                        $("#creator-method-" + elt).parent().next("select").prop("disabled", true);
+                        $("#cm-tab1-" + elt).parent().next("select").prop("disabled", true);
                     }
                 }, this));
             }, this));
             /* Load a map definition depending on the selection */
-            $("select[name='creator-method-new-region']").change($.proxy(function (evt) {
+            $("select[name='cm-tab1-new-region']").change($.proxy(function (evt) {
                 var rg = $(evt.currentTarget).val();
                 var context = $.extend(true, {}, this.blank_map_core, {"data": this.blank_map_data[rg]});
                 this.loadMapContext(context);
             }, this));
-            $("select[name='creator-method-clone-mapid']").change($.proxy(function (evt) {
+            $("select[name='cm-tab1-clone-mapid']").change($.proxy(function (evt) {
                 $.getJSON(magic.config.paths.baseurl + "/maps/id/" + $(evt.currentTarget).val(), function (data) {
                     this.loadMapContext(data);
                 });
             }, this));
-            $("select[name='creator-method-edit-mapid']").change($.proxy(function (evt) {
+            $("select[name='cm-tab1-edit-mapid']").change($.proxy(function (evt) {
                 $.getJSON(magic.config.paths.baseurl + "/maps/id/" + $(evt.currentTarget).val(), function (data) {
                     this.loadMapContext(data);
                 });
@@ -243,82 +264,146 @@ magic.common.Creator = function () {
         loadMapContext: function (data) {
             this.map_context = data;
             this.layer_definition_dictionary = {};
-            /* Populate the straight inputs */
-            var inputs = $("#map-creator-form").serializeArray();
-            $.each(inputs, function (idx, elt) {
-                var name = elt.name.replace("creator-map-", "");
-                if (data[name]) {
-                    $("#" + elt.name).val(data[name]);
-                }
-            });
+            this.populateForm("cm-tab1", data);            
             if (data.data && $.isArray(data.data.layers)) {
                 /* Translate the layer data into a sortable list */
-                var layerTree = $("#creator-map-layertree");
+                var layerTree = $("#cm-tab2-layertree");
                 layerTree.empty();
                 this.processLayers(data.data.layers, layerTree);                
-                /* http://camohub.github.io/jquery-sortable-lists/ */
-                layerTree.sortableLists({
-                    placeholderCss: {"background-color": "#fcf8e3", "border": "2px dashed #fce04e"},
-                    hintCss: {"background-color": "#dff0d8", "border": "2px dashed #5cb85c"},
-                    isAllowed: $.proxy(function (elt, hint, target) {
-                        /* Allowed drag iff target is a group or the top level */
-                        var allowed = false;
-                        var dropZone = hint.parents("li").first();
-                        if (dropZone) {                            
-                            if (dropZone.length > 0 && dropZone[0].id) {
-                                /* Only allowed to be dropped within a group */
-                                allowed = this.layer_definition_dictionary[dropZone[0].id].layers
-                            } else if (dropZone.length == 0) {
-                                /* Dropped at the top level */
-                                allowed = true;
-                            }
-                        }
-                        return(allowed);
-                    }, this),
-                    listSelector: "ul",
-                    listsClass: "list-group",                    
-                    insertZone: 50,
-                    opener: {
-                        active: true,
-                        close: "/static/images/sortable_lists/close.png",
-                        open: "/static/images/sortable_lists/open.png",                        
-                        openerCss: {
-                            "display": "inline-block",
-                            "width": "18px",
-                            "height": "18px",
-                            "float": "left",
-                            "margin-left": "-35px",
-                            "margin-right": "5px",
-                            "background-position": "center center",
-                            "background-repeat": "no-repeat"
-                        }
-                    },
-                    ignoreClass: "layer-name-button"
-                });
+                this.initSortableList(layerTree);
                 /* Assign the layer edit button handlers */
-                $(".layer-name-button").click(function(evt) {
-                    console.log("Click");
-                });
+                $(".layer-name-button").click($.proxy(this.layerTreeButtonHandler, this));
                 /* Add new layer button handler */
-                var btnNewLayer = $("#creator-map-new-layer");
+                var btnNewLayer = $("#cm-tab2-new-layer");
                 if (btnNewLayer) {
                     btnNewLayer.prop("disabled", false);
                     btnNewLayer.click($.proxy(function(evt) {
                         var id = magic.modules.Common.uuid();
                         this.layer_definition_dictionary[id] = $.extend({}, this.blank_map_new_layer);
-                        layerTree.append(this.layerLiHtml(id, this.layer_definition_dictionary[id]["name"]));
+                        var newLi = this.layerLiHtml(id, this.layer_definition_dictionary[id]["name"]);
+                        layerTree.append(newLi);
+                        newLi.click($.proxy(this.layerTreeButtonHandler, this));
                     }, this));
                 }
                 /* Add new layer group button handler */
-                var btnNewGroup = $("#creator-map-new-group");
+                var btnNewGroup = $("#cm-tab2-new-group");
                 if (btnNewGroup) {
                     btnNewGroup.prop("disabled", false);
                     btnNewGroup.click($.proxy(function(evt) {
                         var id = magic.modules.Common.uuid();
                         this.layer_definition_dictionary[id] = $.extend({}, this.blank_map_new_group);
-                        layerTree.append(this.groupLiHtml(id, this.layer_definition_dictionary[id]["name"]));
+                        var newLi = this.groupLiHtml(id, this.layer_definition_dictionary[id]["name"]);
+                        layerTree.append(newLi);
+                        newLi.click($.proxy(this.layerTreeButtonHandler, this));
                     }, this));
-                }               
+                }
+                /* Add update layer group button handler */
+                var btnUpdateGroup = $("#cm-tab2-group-save");
+                if (btnUpdateGroup) {
+                    $("[id^=cm-update-group]").filter(":input").on("change keyup", function() {
+                        btnUpdateGroup.prop("disabled", false);
+                    });                                
+                    btnUpdateGroup.click("disabled", false);
+                }
+            }
+        },
+        /**
+         * Populate the named form with data
+         * @param {string} formName
+         * @param {object} data
+         */
+        populateForm: function(formName, data) {
+            var inputs = $("#" + formName).serializeArray();
+            $.each(inputs, function (idx, elt) {
+                var name = elt.name.replace(formName, "");
+                if (data[name]) {
+                    $("#" + elt.name).val(data[name]);
+                }
+            });
+        },
+        /**
+         * Initialise the sortable lists plugin for the layer tree
+         * @param {element} layerTree
+         */
+        initSortableList: function(layerTree) {
+            /* http://camohub.github.io/jquery-sortable-lists/ */
+            layerTree.sortableLists({
+                placeholderCss: {"background-color": "#fcf8e3", "border": "2px dashed #fce04e"},
+                hintCss: {"background-color": "#dff0d8", "border": "2px dashed #5cb85c"},
+                isAllowed: $.proxy(this.allowedDragHandler, this),
+                listSelector: "ul",
+                listsClass: "list-group",                    
+                insertZone: 50,
+                opener: {
+                    active: true,
+                    close: "/static/images/sortable_lists/close.png",
+                    open: "/static/images/sortable_lists/open.png",                        
+                    openerCss: {
+                        "display": "inline-block",
+                        "width": "18px",
+                        "height": "18px",
+                        "float": "left",
+                        "margin-left": "-35px",
+                        "margin-right": "5px",
+                        "background-position": "center center",
+                        "background-repeat": "no-repeat"
+                    }
+                },
+                ignoreClass: "layer-name-button"
+            });
+        },
+        /**
+         * Drag sortable element handler - implements logic to decide whether a given drag is allowed
+         * @param {element} elt
+         * @param {object} hint
+         * @param {element} target
+         * @returns {Boolean}
+         */
+        allowedDragHandler: function (elt, hint, target) {
+            /* Allowed drag iff target is a group or the top level */
+            var allowed = false;
+            var dropZone = hint.parents("li").first();
+            if (dropZone) {                            
+                if (dropZone.length > 0 && dropZone[0].id) {
+                    /* Only allowed to be dropped within a group */
+                    allowed = this.layer_definition_dictionary[dropZone[0].id].layers
+                } else if (dropZone.length == 0) {
+                    /* Dropped at the top level */
+                    allowed = true;
+                }
+            }
+            return(allowed);
+        },
+        /**
+         * Click handler for buttons in layer tree
+         * @param {jQuery.Event} evt
+         */
+        layerTreeButtonHandler: function(evt) {
+            var btn = $(evt.currentTarget);
+            var id = btn.parents("li").first().prop("id");
+            var dictEntry = this.layer_definition_dictionary[id];
+            var isGroup = dictEntry && dictEntry.layers;
+            //HERE
+            $("#cm-update-layer-panel").removeClass("hidden");            
+            if (isGroup) {
+                /* Group form snippet */
+                $("#cm-update-title").html("Layer group : " + dictEntry.name);
+                $("#cm-update-group-div").show();
+                $("#cm-update-layer-div").hide();
+                /* Disable the update/delete buttons */
+                $("#cm-update-group-save").prop("disabled", true);
+                $("#cm-update-group-delete").prop("disabled", true);
+                /* Populate the form snippet from the dictionary entry */
+                this.populateForm("cm-form-tab2-group", dictEntry);
+            } else {
+                /* Layer form snippet */
+                $("#cm-update-title").html("Data layer : " + dictEntry.name);
+                $("#cm-update-group-div").hide();
+                $("#cm-update-layer-div").show();
+                /* Disable the update/delete buttons */
+                $("#cm-update-layer-save").prop("disabled", true);
+                $("#cm-update-layer-delete").prop("disabled", true);
+                /* Populate the form snippet from the dictionary entry */
             }
         },
         /**

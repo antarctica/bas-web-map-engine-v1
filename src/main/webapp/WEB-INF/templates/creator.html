@@ -89,32 +89,30 @@
                                     </ul>
                                 </div>
                             </div>
-                        </div>                        
-                        <form id="creator-map-form" class="form-horizontal">
-                            <div class="tab-content">
-                                <div class="tab-pane" id="tab1">
-                                    <div th:include="creator_fragments/tab1 :: layout"></div>
-                                </div>
-                                <div class="tab-pane" id="tab2">
-                                    <div th:include="creator_fragments/tab2 :: layout"></div>
-                                </div>
-                                <div class="tab-pane" id="tab3">
-                                    <div th:include="creator_fragments/tab3 :: layout"></div>
-                                </div>
-                                <div class="tab-pane" id="tab4">
-                                    <div th:include="creator_fragments/tab4 :: layout"></div>
-                                </div>
-                                <div id="bar" class="progress progress-striped active">
-                                    <div class="progress-bar" role="progressbar"></div>
-                                </div>
-                                <ul class="pager wizard">
-                                    <li class="previous first" style="display:none;"><a href="#">First</a></li>
-                                    <li class="previous"><a href="#">Previous</a></li>
-                                    <li class="next last" style="display:none;"><a href="#">Last</a></li>
-                                    <li class="next"><a href="#">Next</a></li>
-                                </ul>
+                        </div>                                                
+                        <div class="tab-content">
+                            <div class="tab-pane" id="tab1">
+                                <div th:include="creator_fragments/tab1 :: layout"></div>
                             </div>
-                        </form>
+                            <div class="tab-pane" id="tab2">
+                                <div th:include="creator_fragments/tab2 :: layout"></div>
+                            </div>
+                            <div class="tab-pane" id="tab3">
+                                <div th:include="creator_fragments/tab3 :: layout"></div>
+                            </div>
+                            <div class="tab-pane" id="tab4">
+                                <div th:include="creator_fragments/tab4 :: layout"></div>
+                            </div>
+                            <div id="bar" class="progress progress-striped active">
+                                <div class="progress-bar" role="progressbar"></div>
+                            </div>
+                            <ul class="pager wizard">
+                                <li class="previous first" style="display:none;"><a href="#">First</a></li>
+                                <li class="previous"><a href="#">Previous</a></li>
+                                <li class="next last" style="display:none;"><a href="#">Last</a></li>
+                                <li class="next"><a href="#">Next</a></li>
+                            </ul>
+                        </div>
                     </div>
                 </section>
             </div>
@@ -133,7 +131,7 @@
                 $("body").tooltip({
                     selector: ".layer-name-button",
                     container: "body"
-                });                
+                });
             });
 
         </script>

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title></title>
+    </head>    
+    <body th:fragment="layout">
+        <form id="cm-tab2-group" class="form-horizontal">
+            <input type="hidden" name="cm-tab2-group-id"></input>
+            <div class="form-group">
+                <label for="cm-tab2-group-name" class="col-sm-4 control-label">Layer group name</label>
+                <div class="col-sm-8">                                    
+                    <input type="text" class="form-control" id="cm-tab2-group-name" name="cm-tab2-group-name" placeholder="Displayed name for group" 
+                           data-toggle="tooltip" data-placement="right" title="Letters, numbers, spaces and _ allowed" required="required">                                   
+                    </input>
+                </div>
+            </div>
+            <button id="cm-tab2-group-save" type="button" class="btn btn-primary">Update</button>
+            <button id="cm-tab2-group-delete" type="button" class="btn btn-danger btn-primary" disabled="disabled">Delete</button>
+        </form>
+    </body>
+</html>

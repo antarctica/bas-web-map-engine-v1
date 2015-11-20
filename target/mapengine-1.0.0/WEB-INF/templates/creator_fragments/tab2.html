@@ -10,37 +10,26 @@
         </div>
         <div class="row">
             <div class="col-md-6">
-                <div class="panel panel-default">
+                <div id="cm-tab2-layertree-panel" class="panel panel-default">
                     <div class="panel-heading">
                         <h3 class="panel-title">Choose the data layers you would like, and their order</h3>
                     </div>
                     <div class="panel-body">
-                        <ul id="creator-map-layertree" class="list-group">                    
+                        <ul id="cm-tab2-layertree" class="list-group">                    
                         </ul>
-                        <button id="creator-map-new-layer" type="button" class="btn btn-primary" disabled="disabled">New layer</button>
-                        <button id="creator-map-new-group" type="button" class="btn btn-primary" disabled="disabled">New group</button>                
+                        <button id="cm-tab2-new-layer" type="button" class="btn btn-primary" disabled="disabled">New layer</button>
+                        <button id="cm-tab2-new-group" type="button" class="btn btn-primary" disabled="disabled">New group</button>                
                     </div>
                 </div>
             </div>
             <div class="col-md-6">
-                <div class="panel panel-default hidden">
+                <div id="cm-tab2-update-panel" class="panel panel-default hidden">
                     <div class="panel-heading">
-                        <h3 id="creator-map-update-layer" class="panel-title"></h3>
+                        <h3 id="cm-tab2-update-panel-title" class="panel-title"></h3>
                     </div>
                     <div class="panel-body">
-                        <form id="update-layer-group-form">
-                            <div class="form-group">
-                                <label for="update-layer-group-name" class="col-sm-2 control-label">Group name</label>
-                                <div class="col-sm-10">
-                                    <input type="text" class="form-control map-creator-control" id="update-layer-group-name" name="update-layer-group-name" placeholder="Name for layer group" 
-                                           data-toggle="tooltip" data-placement="right" title="lowercase letters, numbers and _ allowed" required="required">                                   
-                                    </input>
-                                </div>
-                            </div>
-                        </form>
-                        <form id="update-layer-form">
-
-                        </form>
+                        <div id="cm-tab2-group-div" th:include="creator_fragments/update_group :: layout"></div>                        
+                        <div id="cm-tab2-layer-div" th:include="creator_fragments/update_layer :: layout"></div>                        
                     </div>
                 </div>
             </div>

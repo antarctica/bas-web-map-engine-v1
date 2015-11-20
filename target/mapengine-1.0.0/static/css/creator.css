@@ -105,11 +105,11 @@ label.radio-plus-select {
 }
 
 /* Sortable list layertree */
-#creator-map-layertree {
-    width: 500px;
+#cm-layertree {
+    width: 90%;
 }
 
-#creator-map-layertree li {
+#cm-layertree li {
     padding-left: 50px !important;
     padding-bottom: 5px !important;
 }
