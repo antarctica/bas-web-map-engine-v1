@@ -264,10 +264,10 @@ magic.common.Creator = function () {
         loadMapContext: function (data) {
             this.map_context = data;
             this.layer_definition_dictionary = {};
-            this.populateForm("cm-tab1", data);            
+            this.dictToForm("cm-tab1", data);            
             if (data.data && $.isArray(data.data.layers)) {
                 /* Translate the layer data into a sortable list */
-                var layerTree = $("#cm-tab2-layertree");
+                var layerTree = $("ul.layertree");
                 layerTree.empty();
                 this.processLayers(data.data.layers, layerTree);                
                 this.initSortableList(layerTree);
@@ -279,10 +279,10 @@ magic.common.Creator = function () {
                     btnNewLayer.prop("disabled", false);
                     btnNewLayer.click($.proxy(function(evt) {
                         var id = magic.modules.Common.uuid();
-                        this.layer_definition_dictionary[id] = $.extend({}, this.blank_map_new_layer);
+                        this.layer_definition_dictionary[id] = $.extend({}, this.blank_map_new_layer, {"id": id});
                         var newLi = this.layerLiHtml(id, this.layer_definition_dictionary[id]["name"]);
                         layerTree.append(newLi);
-                        newLi.click($.proxy(this.layerTreeButtonHandler, this));
+                        newLi.find("button").click($.proxy(this.layerTreeButtonHandler, this));
                     }, this));
                 }
                 /* Add new layer group button handler */
@@ -291,19 +291,54 @@ magic.common.Creator = function () {
                     btnNewGroup.prop("disabled", false);
                     btnNewGroup.click($.proxy(function(evt) {
                         var id = magic.modules.Common.uuid();
-                        this.layer_definition_dictionary[id] = $.extend({}, this.blank_map_new_group);
+                        this.layer_definition_dictionary[id] = $.extend({}, this.blank_map_new_group, {"id": id});
                         var newLi = this.groupLiHtml(id, this.layer_definition_dictionary[id]["name"]);
                         layerTree.append(newLi);
-                        newLi.click($.proxy(this.layerTreeButtonHandler, this));
+                        newLi.find("button").click($.proxy(this.layerTreeButtonHandler, this));
                     }, this));
                 }
                 /* Add update layer group button handler */
                 var btnUpdateGroup = $("#cm-tab2-group-save");
                 if (btnUpdateGroup) {
-                    $("[id^=cm-update-group]").filter(":input").on("change keyup", function() {
+                    $("[id^=cm-tab2-group]").filter(":input").on("change keyup", function() {
                         btnUpdateGroup.prop("disabled", false);
                     });                                
-                    btnUpdateGroup.click("disabled", false);
+                    btnUpdateGroup.click($.proxy(function(evt) {
+                        var id = $("#cm-tab2-group-id").val();
+                        /* Update dictionary entry */
+                        this.formToDict(this.layer_definition_dictionary[id], "cm-tab2-group");
+                        /* Update the tree button caption as we have updated the name */
+                        $("#" + id).find("button").html(this.layer_definition_dictionary[id]["name"]);
+                        $("#cm-tab2-update-panel").fadeOut("slow");
+                    }, this));
+                }
+                /* Add delete layer group button handler */
+                var btnDeleteGroup = $("#cm-tab2-group-delete");
+                if (btnDeleteGroup) {                                             
+                    btnDeleteGroup.click($.proxy(function(evt) {
+                        var id = $("#cm-tab2-group-id").val();
+                        var dictEntry = this.layer_definition_dictionary[id];
+                        this.confirmDeleteEntry(id, "Really delete group : " + dictEntry.name + "?");                                                       
+                    }, this));
+                }
+                /* Add update layer button handler */
+                var btnUpdateLayer = $("#cm-tab2-layer-save");
+                if (btnUpdateLayer) {
+                    $("[id^=cm-tab2-layer]").filter(":input").on("change keyup", function() {
+                        btnUpdateLayer.prop("disabled", false);
+                    });                                
+                    btnUpdateLayer.click(function() {
+                        //TODO
+                    });
+                }
+                /* Add delete layer  button handler */
+                var btnDeleteLayer = $("#cm-tab2-layer-delete");
+                if (btnDeleteLayer) {                                             
+                    btnDeleteLayer.click($.proxy(function(evt) {
+                        var id = $("#cm-tab2-layer-id").val();
+                        var dictEntry = this.layer_definition_dictionary[id];
+                        this.confirmDeleteEntry(id, "Really delete layer : " + dictEntry.name + "?");                                          
+                    }, this));
                 }
             }
         },
@@ -312,12 +347,26 @@ magic.common.Creator = function () {
          * @param {string} formName
          * @param {object} data
          */
-        populateForm: function(formName, data) {
+        dictToForm: function(formName, data) {
             var inputs = $("#" + formName).serializeArray();
             $.each(inputs, function (idx, elt) {
-                var name = elt.name.replace(formName, "");
+                var name = elt.name.replace(formName + "-", "");
                 if (data[name]) {
                     $("#" + elt.name).val(data[name]);
+                }
+            });
+        },
+        /**
+         * Populate the data object with named form input values
+         * @param {object} data
+         * @param {string} formName
+         */
+        formToDict: function(data, formName) {
+            var inputs = $("#" + formName).serializeArray();
+            $.each(inputs, function (idx, elt) {
+                var name = elt.name.replace(formName + "-", "");
+                if (data[name]) {
+                    data[name] = $("#" + elt.name).val();
                 }
             });
         },
@@ -383,28 +432,47 @@ magic.common.Creator = function () {
             var id = btn.parents("li").first().prop("id");
             var dictEntry = this.layer_definition_dictionary[id];
             var isGroup = dictEntry && dictEntry.layers;
-            //HERE
-            $("#cm-update-layer-panel").removeClass("hidden");            
+            $("#cm-tab2-update-panel").removeClass("hidden");            
             if (isGroup) {
                 /* Group form snippet */
-                $("#cm-update-title").html("Layer group : " + dictEntry.name);
-                $("#cm-update-group-div").show();
-                $("#cm-update-layer-div").hide();
+                $("#cm-tab2-update-panel-title").html("Layer group : " + dictEntry.name);
+                $("#cm-tab2-group-div").show();
+                $("#cm-tab2-layer-div").hide();
                 /* Disable the update/delete buttons */
-                $("#cm-update-group-save").prop("disabled", true);
-                $("#cm-update-group-delete").prop("disabled", true);
+                $("#cm-tab2-group-save").prop("disabled", true);
                 /* Populate the form snippet from the dictionary entry */
-                this.populateForm("cm-form-tab2-group", dictEntry);
+                this.dictToForm("cm-tab2-group", dictEntry);            
+                /* Disable the delete button if layer group contains any layers */
+                $("#cm-tab2-group-delete").prop("disabled", $("#" + id).find("ul").length > 0);    
             } else {
                 /* Layer form snippet */
-                $("#cm-update-title").html("Data layer : " + dictEntry.name);
-                $("#cm-update-group-div").hide();
-                $("#cm-update-layer-div").show();
+                $("#cm-tab2-update-panel-title").html("Data layer : " + dictEntry.name);
+                $("#cm-tab2-group-div").hide();
+                $("#cm-tab2-layer-div").show();
                 /* Disable the update/delete buttons */
-                $("#cm-update-layer-save").prop("disabled", true);
-                $("#cm-update-layer-delete").prop("disabled", true);
+                $("#cm-tab2-layer-save").prop("disabled", true);
+                $("#cm-tab2-layer-delete").prop("disabled", true);
                 /* Populate the form snippet from the dictionary entry */
+                this.dictToForm("cm-tab2-layer", dictEntry);
             }
+        },
+        /**
+         * Delete with confirm on a layer tree entry
+         * @param {string} id
+         * @param {string} msg
+         */
+        confirmDeleteEntry: function(id, msg) {            
+            bootbox.confirm(msg, $.proxy(function(result) {
+                if (result) {
+                    /* Do the deletion */
+                    $("#" + id).remove();
+                    delete this.layer_definition_dictionary[id];
+                    $("#cm-tab2-update-panel").fadeOut("slow");
+                    bootbox.hideAll();
+                } else {
+                    bootbox.hideAll();
+                }                            
+            }, this));                                                
         },
         /**
          * Load the given drop-down with the the list of maps the current user can perform the action on

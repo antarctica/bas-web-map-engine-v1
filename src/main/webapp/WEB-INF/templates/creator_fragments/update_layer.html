@@ -6,11 +6,11 @@
     </head>    
     <body th:fragment="layout">
         <form id="cm-tab2-layer" class="form-horizontal">
-            <input type="hidden" name="cm-tab2-layer-id"></input>
+            <input type="hidden" id="cm-tab2-layer-id" name="cm-tab2-layer-id"></input>
             <div class="form-group">
                 <label for="cm-tab2-layer-name" class="col-sm-4 control-label">Layer name</label>
                 <div class="col-sm-8">                                    
-                    <input type="text" class="form-control map-creator-control" id="cm-tab2-layer-name" name="cm-tab2-layer-name" placeholder="Name for layer" 
+                    <input type="text" class="form-control" id="cm-tab2-layer-name" name="cm-tab2-layer-name" placeholder="Name for layer" 
                            data-toggle="tooltip" data-placement="right" title="Letters, numbers, spaces and _ allowed" required="required">                                   
                     </input>
                 </div>
@@ -28,7 +28,7 @@
                 </div>
             </div>
             <button id="cm-tab2-layer-save" type="button" class="btn btn-primary">Update</button>
-            <button id="cm-tab2-layer-delete" type="button" class="btn btn-danger btn-primary" disabled="disabled">Delete</button>
+            <button id="cm-tab2-layer-delete" type="button" class="btn btn-danger btn-primary">Delete</button>
         </form>
     </body>
 </html>

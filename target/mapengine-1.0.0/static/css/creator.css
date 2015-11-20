@@ -104,12 +104,16 @@ label.radio-plus-select {
     width: 180px;
 }
 
+select.map-context-selection {
+    width: 300px !important;
+}
+
 /* Sortable list layertree */
-#cm-layertree {
+ul.layertree {
     width: 90%;
 }
 
-#cm-layertree li {
+ul.layertree li {
     padding-left: 50px !important;
     padding-bottom: 5px !important;
 }

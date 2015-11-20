@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.UUID;
 import org.apache.commons.io.IOUtils;
-import org.springframework.scheduling.annotation.Scheduled;
 
 public class PvanSicImageService extends StaticImageService {
     
