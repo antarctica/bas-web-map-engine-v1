@@ -14,30 +14,33 @@
                     <h3 class="panel-title">Select how to create your map</h3>
                 </div>
                 <div class="panel-body">                
-                    <div class="radio form-inline">
-                        <label class="radio-plus-select" for="cm-tab1-new-region"><input type="radio" name="cm-tab1-method" id="cm-tab1-new" value="new" checked="checked"></input>
+                    <div class="form-group">
+                        <label class="col-sm-2" for="cm-tab1-new-region">
+                            <input type="radio" name="cm-tab1-method" id="cm-tab1-new" value="new" checked="checked"></input>
                             Create a new map of
                         </label>
-                        <select class="form-control map-context-selection" id="cm-tab1-new-region" name="cm-tab1-new-region">
+                        <select class="form-control col-sm-10 input-by-radio" id="cm-tab1-new-region" name="cm-tab1-new-region">
                             <option value="">Select region</option>
                             <option value="antarctic">Antarctica</option> 
                             <option value="arctic">Arctic</option> 
                             <option value="southgeorgia">South Georgia</option> 
                         </select>
                     </div>
-                    <div class="radio form-inline">
-                        <label class="radio-plus-select" for="cm-tab1-clone-mapid"><input type="radio" name="cm-tab1-method" id="cm-tab1-clone" value="clone"></input>
-                            Clone an existing map
+                    <div class="form-group">
+                        <label class="col-sm-2" for="cm-tab1-clone-mapid">
+                            <input type="radio" name="cm-tab1-method"  value="clone"></input>
+                            Clone existing map
                         </label>
-                        <select class="form-control map-context-selection" id="cm-tab1-clone-mapid" name="cm-tab1-clone-mapid" disabled="disabled">
+                        <select class="form-control col-sm-10 input-by-radio" id="cm-tab1-clone-mapid" name="cm-tab1-clone-mapid" disabled="disabled">
                             <option value="">Select a map</option>                       
                         </select>
                     </div>
-                    <div class="radio form-inline">
-                        <label class="radio-plus-select" for="cm-tab1-edit-mapid"><input type="radio" name="cm-tab1-method" id="cm-tab1-edit" value="edit"></input>
-                            Edit an existing map
+                    <div class="form-group">
+                        <label class="col-sm-2" for="cm-tab1-edit-mapid">
+                            <input type="radio" name="cm-tab1-method" value="edit"></input>
+                            Edit existing map
                         </label>
-                        <select class="form-control map-context-selection" id="cm-tab1-edit-mapid" name="cm-tab1-edit-mapid" disabled="disabled">
+                        <select class="form-control col-sm-10 input-by-radio" id="cm-tab1-edit-mapid" name="cm-tab1-edit-mapid" disabled="disabled">
                             <option value="">Select a map</option>                        
                         </select>
                     </div>

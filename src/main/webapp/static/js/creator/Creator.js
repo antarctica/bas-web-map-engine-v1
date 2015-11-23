@@ -42,7 +42,7 @@ magic.common.Creator = function () {
                                 "id": "",
                                 "name": "Hillshade and bathymetry",
                                 "source": {
-                                    "wms": "https://maps.bas.ac.uk/antarctic/wms",
+                                    "wms_source": "https://maps.bas.ac.uk/antarctic/wms",
                                     "feature_name": "add:antarctic_hillshade_and_bathymetry",
                                     "is_base": true,                                    
                                     "is_dem": true
@@ -60,7 +60,7 @@ magic.common.Creator = function () {
                                 "id": "",
                                 "name": "Coastline",
                                 "source": {
-                                    "wms": "https://maps.bas.ac.uk/antarctic/wms",
+                                    "wms_source": "https://maps.bas.ac.uk/antarctic/wms",
                                     "feature_name": "add:antarctic_coastline"
                                 },     
                                 "is_visible": true
@@ -69,7 +69,7 @@ magic.common.Creator = function () {
                                 "id": "",
                                 "name": "Sub-Antarctic coastline",
                                 "source": {
-                                    "wms": "https://maps.bas.ac.uk/antarctic/wms",
+                                    "wms_source": "https://maps.bas.ac.uk/antarctic/wms",
                                     "feature_name": "add:sub_antarctic_coastline"
                                 },     
                                 "is_visible": true
@@ -85,7 +85,7 @@ magic.common.Creator = function () {
                                 "id": "",
                                 "name": "Graticule",
                                 "source": {
-                                    "wms": "https://maps.bas.ac.uk/antarctic/wms",
+                                    "wms_source": "https://maps.bas.ac.uk/antarctic/wms",
                                     "feature_name": "add:antarctic_graticule",
                                     "is_singletile": true
                                 },   
@@ -115,7 +115,7 @@ magic.common.Creator = function () {
                                 "id": "",
                                 "name": "Hillshade and bathymetry",
                                 "source": {
-                                    "wms": "https://maps.bas.ac.uk/arctic/wms",
+                                    "wms_source": "https://maps.bas.ac.uk/arctic/wms",
                                     "feature_name": "arctic:arctic_hillshade_and_bathymetry",
                                     "is_base": true,
                                     "is_dem": true
@@ -134,7 +134,7 @@ magic.common.Creator = function () {
                                 "id": "",
                                 "name": "Coastline",
                                 "source": {
-                                    "wms": "https://maps.bas.ac.uk/arctic/wms",
+                                    "wms_source": "https://maps.bas.ac.uk/arctic/wms",
                                     "feature_name": "arctic:arctic_coastline"
                                 },   
                                 "is_visible": true
@@ -150,7 +150,7 @@ magic.common.Creator = function () {
                                 "id": "",
                                 "name": "Graticule",
                                 "source": {
-                                    "wms": "https://maps.bas.ac.uk/arctic/wms",
+                                    "wms_source": "https://maps.bas.ac.uk/arctic/wms",
                                     "feature_name": "arctic:arctic_graticule",
                                     "is_singletile": true
                                 },   
@@ -180,7 +180,7 @@ magic.common.Creator = function () {
                                 "id": "",
                                 "name": "Hillshade and bathymetry",
                                 "source": {
-                                    "wms": "https://maps.bas.ac.uk/southgeorgia/wms",
+                                    "wms_source": "https://maps.bas.ac.uk/southgeorgia/wms",
                                     "feature_name": "sggis:sg_hillshade_and_bathymetry",
                                     "is_base": true,
                                     "is_dem": true
@@ -198,7 +198,7 @@ magic.common.Creator = function () {
                                 "id": "",
                                 "name": "Coastline",
                                 "source": {
-                                    "wms": "https://maps.bas.ac.uk/southgeorgia/wms",
+                                    "wms_source": "https://maps.bas.ac.uk/southgeorgia/wms",
                                     "feature_name": "sggis:sg_coastline"
                                 },   
                                 "is_visible": true
@@ -211,7 +211,10 @@ magic.common.Creator = function () {
         /* Template for a new layer */
         blank_map_new_layer: {            
             "id": "",
-            "name": "New layer"
+            "name": "New layer",
+            "source": {
+                "wms_source": "http://localhost:8080/geoserver/wms"
+            }
         },
         /* Template for a new group */
         blank_map_new_group: {
@@ -219,6 +222,52 @@ magic.common.Creator = function () {
             "name": "New layer group",
             "layers": [                
             ]
+        },
+        /* Possible WMS endpoints for each projection */
+        wms_endpoints: {
+            "EPSG:3031": [
+                {
+                    "name": "Antarctic Digital Database",
+                    "value": "https:///maps.bas.ac.uk/antarctic/wms"
+                },
+                {
+                    "name": "Operations GIS",
+                    "value": "http:/rolgis.nerc-bas.ac.uk:8080/geoserver/wms"
+                },
+                {
+                    "name": "CCAMLR GIS",
+                    "value": "https://gis.ccamlr.org/geoserver/wms"
+                },
+                {
+                    "name": "Antarctic Peninsula Information Portal",
+                    "value": "http://bslbatgis.nerc-bas.ac.uk:8080/geoserver/wms"
+                },
+                {
+                    "name": "Polar View",
+                    "value": "http://geos.polarview.aq/geoserver/wms"
+                },
+                {
+                    "name": "Environments.aq",
+                    "value": "https://"
+                }
+            ],
+            "EPSG:3995": [
+                {
+                    "name": "NERC Arctic Office Map",
+                    "value": "https:///maps.bas.ac.uk/arctic/wms"
+                }
+            ],
+            "EPSG:3762": [
+                {
+                    "name": "South Georgia GIS",
+                    "value": "https:///maps.bas.ac.uk/southgeorgia/wms"
+                }
+            ]
+        },
+        /* Default local Geoserver endpoint */
+        default_geoserver_wms: {
+            "name": "Local Geoserver WMS",
+            "value": "http://localhost:8080/geoserver/wms"
         },
         /**
          * Assign all the form element handlers
@@ -271,9 +320,7 @@ magic.common.Creator = function () {
                 var layerTree = $("ul.layertree");
                 layerTree.empty();
                 this.processLayers(data.data.layers, layerTree);                
-                this.initSortableList(layerTree);
-                /* Assign comboboxes */
-                $(".combobox").combobox();
+                this.initSortableList(layerTree);              
                 /* Assign the layer edit button handlers */
                 $(".layer-name-button").click($.proxy(this.layerTreeButtonHandler, this));
                 /* Add new layer button handler */
@@ -342,7 +389,7 @@ magic.common.Creator = function () {
                         var dictEntry = this.layer_definition_dictionary[id];
                         this.confirmDeleteEntry(id, "Really delete layer : " + dictEntry.name + "?");                                          
                     }, this));
-                }
+                }                
             }
         },
         /**
@@ -454,8 +501,42 @@ magic.common.Creator = function () {
                 $("#cm-tab2-layer-div").show();
                 /* Disable the update/delete buttons */
                 $("#cm-tab2-layer-save").prop("disabled", true);
-                /* Populate the form snippet from the dictionary entry */
+                /* Populate the top-level form snippet from the dictionary entry */
                 this.dictToForm("cm-tab2-layer", dictEntry);
+                this.populateLayerDefTab(dictEntry);                
+            }
+        },
+        /**
+         * Fill in the form area for a layer in tab 2
+         * @param {object} layerData
+         */
+        populateLayerDefTab: function(layerData) {
+            /* Determine which source sub-tab to display */
+            if (layerData.source) {
+                if (layerData.source.geojson_source) {
+                    /* GeoJSON */
+                    $("#cm-tab2-layer-source-geojson-tab").tab("show");
+                    //TODO
+                } else if (layerData.source.gpx_source) {
+                    /* GPX */
+                    $("#cm-tab2-layer-source-gpx-tab").tab("show");
+                    //TODO
+                } else if (layerData.source.kml_source) {
+                    /* KML */
+                    $("#cm-tab2-layer-source-kml-tab").tab("show");
+                    //TODO
+                } else {
+                    /* Defaults to WMS */
+                    $("#cm-tab2-layer-source-wms-tab").tab("show");
+                    if (this.loadWmsOptions($("#cm-tab2-layer-source-wms-known"), layerData.source.wms_source, this.map_context.data.projection)) {
+                        /* Enable the drop-down and select the known services radio */
+                        $("#cm-tab2-layer-source-wms-known-rb").prop("checked", true);
+                        // HERE
+                    } else {
+                        /* Enable the custom URL input and select the custom radio */
+                        $("#cm-tab2-layer-source-wms-custom-rb").prop("checked", true);
+                    }
+                }
             }
         },
         /**
@@ -475,6 +556,27 @@ magic.common.Creator = function () {
                     bootbox.hideAll();
                 }                            
             }, this));                                                
+        },
+        /**
+         * Load the given drop-down with the the list of possible WMS endpoints for the given projection, defaulting selection to the input
+         * @param {object} select
+         * @param {string} defval
+         * @param {string} proj
+         * @return {boolean} if defval occurred in the list
+         */
+        loadWmsOptions: function(select, defval, proj) {
+            var defaultInList = false;
+            select.find("option").remove();
+            var wmsOpts = $.extend({}, this.default_geoserver_wms, this.wms_endpoints[proj]);
+            $.each(wmsOpts, function(idx, elt) {
+                if (elt.value == defval) {
+                    defaultInList = true;
+                    select.append($('<option selected>', {value: elt.value}).text(elt.name));
+                } else {
+                    select.append($('<option>', {value: elt.value}).text(elt.name));
+                }
+            });
+            return(defaultInList);
         },
         /**
          * Load the given drop-down with the the list of maps the current user can perform the action on

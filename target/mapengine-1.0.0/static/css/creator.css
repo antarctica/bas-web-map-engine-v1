@@ -100,11 +100,11 @@ input[readonly] {
     white-space: normal;
 }
 
-label.radio-plus-select {
+label.input-by-radio-label {
     width: 180px;
 }
 
-select.map-context-selection {
+input.input-by-radio, select.input-by-radio {
     width: 300px !important;
 }
 

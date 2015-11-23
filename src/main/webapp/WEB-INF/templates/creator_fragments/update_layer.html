@@ -37,14 +37,59 @@
                 <!-- Source tab panes -->
                 <div class="tab-content">
                     <div role="tabpanel" class="tab-pane active" id="cm-tab2-layer-source-wms-tab">
-                        <div class="form-group">
-                            <label for="cm-tab2-layer-source-wms" class="col-sm-3 control-label">WMS endpoint</label>
-                            <div class="col-sm-9">
-                                <select id="cm-tab2-layer-source-wms" name="cm-tab2-layer-source-wms" class="form-control combobox"
-                                        data-toggle="tooltip" data-placement="right" title="Select a WMS service, or enter a new URL" required="required">
-                                    <option value=""></option>
-                                    <option value="http://localhost:8080/geoserver/wms">Local Geoserver</option>
-                                </select>                               
+                        <div class="panel-body">
+                            <div class="radio form-inline">
+                                <label class="input-by-radio-label" for="cm-tab2-layer-source-wms-known">
+                                    <input type="radio" name="cm-tab2-layer-source-wms-chooser" id="cm-tab2-layer-source-wms-known-rb" value="known"></input>
+                                    WMS endpoint
+                                </label>
+                                <select class="form-control input-by-radio" id="cm-tab2-layer-source-wms-known" name="cm-tab2-layer-source-wms-known"
+                                        data-toggle="tooltip" data-placement="right" title="Choose from range of known WMS services">                                    
+                                </select>
+                            </div>
+                            <div class="radio form-inline">
+                                <label class="input-by-radio-label" for="cm-tab2-layer-source-wms-custom">
+                                    <input type="radio" name="cm-tab2-layer-source-wms-chooser" id="cm-tab2-layer-source-wms-custom-rb" value="custom"></input>
+                                    or custom URL
+                                </label>
+                                <input type="text" class="form-control input-by-radio" id="cm-tab2-layer-source-wms_source-custom" name="cm-tab2-layer-source-wms_source-custom" placeholder="WMS URL" 
+                                       data-toggle="tooltip" data-placement="right" title="URL of the WMS endpoint for the data">                                   
+                                </input>
+                            </div>
+                            <div class="radio form-inline">
+                                <label class="input-by-radio-label" for="cm-tab2-layer-source-wms-feature_name">                                    
+                                    Data layer name
+                                </label>
+                                <select class="form-control input-by-radio" id="cm-tab2-layer-source-wms-feature_name" name="cm-tab2-layer-source-wms-feature_name"
+                                        data-toggle="tooltip" data-placement="right" title="Choose a data layer">                                    
+                                </select>
+                            </div>
+                            <div class="form-inline">
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" id="cm-tab2-layer-source-is_base" name="cm-tab2-layer-source-is_base"
+                                               data-toggle="tooltip" data-placement="right" title="Tick if this is a backdrop layer">                                
+                                        </input> Layer is a base (backdrop) layer
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-inline">
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" id="cm-tab2-layer-source-is_singletile" name="cm-tab2-layer-source-is_singletile"
+                                               data-toggle="tooltip" data-placement="right" title="Tick to use a single tile (for large rasters, or layers that need wide area labelling)">                                
+                                        </input> Layer is rendered as one large tile
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-inline">
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" id="cm-tab2-layer-source-is_dem" name="cm-tab2-layer-source-is_dem"
+                                               data-toggle="tooltip" data-placement="right" title="Tick if this layer is a DEM to be used in elevation measurement">                                
+                                        </input> Layer is a Digital Elevation Model (DEM)
+                                    </label>
+                                </div>
                             </div>
                         </div>
                     </div>

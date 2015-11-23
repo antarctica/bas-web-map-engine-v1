@@ -232,7 +232,7 @@
                                                 "description": "WMS serving layer",
                                                 "type": "object",
                                                 "properties": {
-                                                    "wms": {
+                                                    "wms_source": {
                                                         "description": "WMS feed serving layer",
                                                         "type": "string",
                                                         "format": "uri"
