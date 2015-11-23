@@ -44,10 +44,10 @@ magic.common.Creator = function () {
                                 "source": {
                                     "wms": "https://maps.bas.ac.uk/antarctic/wms",
                                     "feature_name": "add:antarctic_hillshade_and_bathymetry",
-                                },                                
-                                "is_base": true,
-                                "is_visible": true,
-                                "is_dem": true
+                                    "is_base": true,                                    
+                                    "is_dem": true
+                                },
+                                "is_visible": true
                             }
                         ]
                     },
@@ -61,7 +61,7 @@ magic.common.Creator = function () {
                                 "name": "Coastline",
                                 "source": {
                                     "wms": "https://maps.bas.ac.uk/antarctic/wms",
-                                    "feature_name": "add:antarctic_coastline",
+                                    "feature_name": "add:antarctic_coastline"
                                 },     
                                 "is_visible": true
                             },
@@ -70,7 +70,7 @@ magic.common.Creator = function () {
                                 "name": "Sub-Antarctic coastline",
                                 "source": {
                                     "wms": "https://maps.bas.ac.uk/antarctic/wms",
-                                    "feature_name": "add:sub_antarctic_coastline",
+                                    "feature_name": "add:sub_antarctic_coastline"
                                 },     
                                 "is_visible": true
                             }
@@ -87,9 +87,9 @@ magic.common.Creator = function () {
                                 "source": {
                                     "wms": "https://maps.bas.ac.uk/antarctic/wms",
                                     "feature_name": "add:antarctic_graticule",
+                                    "is_singletile": true
                                 },   
-                                "is_visible": true,
-                                "is_singletile": true
+                                "is_visible": true                                
                             }
                         ]
                     }
@@ -117,10 +117,11 @@ magic.common.Creator = function () {
                                 "source": {
                                     "wms": "https://maps.bas.ac.uk/arctic/wms",
                                     "feature_name": "arctic:arctic_hillshade_and_bathymetry",
-                                },   
-                                "is_base": true,
-                                "is_visible": true,
-                                "is_dem": true
+                                    "is_base": true,
+                                    "is_dem": true
+                                },  
+                                "is_visible": true
+                                
                             }
                         ]
                     },
@@ -134,7 +135,7 @@ magic.common.Creator = function () {
                                 "name": "Coastline",
                                 "source": {
                                     "wms": "https://maps.bas.ac.uk/arctic/wms",
-                                    "feature_name": "arctic:arctic_coastline",
+                                    "feature_name": "arctic:arctic_coastline"
                                 },   
                                 "is_visible": true
                             }
@@ -151,9 +152,9 @@ magic.common.Creator = function () {
                                 "source": {
                                     "wms": "https://maps.bas.ac.uk/arctic/wms",
                                     "feature_name": "arctic:arctic_graticule",
+                                    "is_singletile": true
                                 },   
-                                "is_visible": true,
-                                "is_singletile": true
+                                "is_visible": true                                
                             }
                         ]
                     }
@@ -181,10 +182,10 @@ magic.common.Creator = function () {
                                 "source": {
                                     "wms": "https://maps.bas.ac.uk/southgeorgia/wms",
                                     "feature_name": "sggis:sg_hillshade_and_bathymetry",
-                                },   
-                                "is_base": true,
-                                "is_visible": true,
-                                "is_dem": true
+                                    "is_base": true,
+                                    "is_dem": true
+                                },                                   
+                                "is_visible": true                                
                             }
                         ]
                     },
@@ -198,7 +199,7 @@ magic.common.Creator = function () {
                                 "name": "Coastline",
                                 "source": {
                                     "wms": "https://maps.bas.ac.uk/southgeorgia/wms",
-                                    "feature_name": "sggis:sg_coastline",
+                                    "feature_name": "sggis:sg_coastline"
                                 },   
                                 "is_visible": true
                             }
@@ -255,7 +256,7 @@ magic.common.Creator = function () {
                 $.getJSON(magic.config.paths.baseurl + "/maps/id/" + $(evt.currentTarget).val(), function (data) {
                     this.loadMapContext(data);
                 });
-            }, this));
+            }, this));                        
         },
         /**
          * Initialise the map context from the given object
@@ -271,6 +272,8 @@ magic.common.Creator = function () {
                 layerTree.empty();
                 this.processLayers(data.data.layers, layerTree);                
                 this.initSortableList(layerTree);
+                /* Assign comboboxes */
+                $(".combobox").combobox();
                 /* Assign the layer edit button handlers */
                 $(".layer-name-button").click($.proxy(this.layerTreeButtonHandler, this));
                 /* Add new layer button handler */
@@ -451,7 +454,6 @@ magic.common.Creator = function () {
                 $("#cm-tab2-layer-div").show();
                 /* Disable the update/delete buttons */
                 $("#cm-tab2-layer-save").prop("disabled", true);
-                $("#cm-tab2-layer-delete").prop("disabled", true);
                 /* Populate the form snippet from the dictionary entry */
                 this.dictToForm("cm-tab2-layer", dictEntry);
             }

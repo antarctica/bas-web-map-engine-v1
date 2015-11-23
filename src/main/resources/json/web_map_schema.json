@@ -246,8 +246,25 @@
                                                         "description": "Name of WMS style to use",
                                                         "type": "string",
                                                         "pattern": "^[a-zA-Z0-9_:]+$"
+                                                    },
+                                                    "is_base": {
+                                                        "description": "Is this a base (i.e. backdrop) layer?",
+                                                        "type": "boolean"
+                                                    },
+                                                    "is_singletile": {
+                                                        "description": "Is this a single tiled layer (for wide-area rasters, place-names etc)?",
+                                                        "type": "boolean"
+                                                    },
+                                                    "is_dem": {
+                                                        "description": "Is this layer a Digital Elevation Model (DEM)?",
+                                                        "type": "boolean"
+                                                    },
+                                                    "is_time_dependent": {
+                                                        "description": "Does this layer have a temporal component?",
+                                                        "type": "boolean"
                                                     }
-                                                }
+                                                },
+                                                "required": ["wms", "feature_name"]
                                             },
                                             {
                                                 "id": "geojson",
@@ -268,7 +285,8 @@
                                                         "description": "Definition of a vector style to use (JSON string TO DO)",
                                                         "type": "string"
                                                     }
-                                                }
+                                                },
+                                                "required": ["geojson_source"]
                                             },
                                             {
                                                 "id": "gpx",
@@ -284,7 +302,8 @@
                                                         "description": "Definition of a vector style to use (JSON string TO DO)",
                                                         "type": "string"
                                                     }
-                                                }
+                                                },
+                                                "required": ["gpx_source"]
                                             },
                                             {
                                                 "id": "kml",
@@ -300,7 +319,8 @@
                                                         "description": "Definition of a vector style to use (JSON string TO DO)",
                                                         "type": "string"
                                                     }
-                                                }
+                                                },
+                                                "required": ["kml_source"]
                                             }
                                         ]                                        
                                     },																		
@@ -322,35 +342,19 @@
 										"type": "number",
 										"minimum": 0,
 										"maximum": 1
-									},									
-									"is_base": {
-										"description": "Is this a base (i.e. backdrop) layer?",
+									},
+                                    "is_visible": {
+										"description": "Is this layer visible by default?",
 										"type": "boolean"
 									},
 									"is_interactive": {
 										"description": "Is this an interactive (popup-enabled) layer?",
 										"type": "boolean"
 									},
-									"is_singletile": {
-										"description": "Is this a single tiled layer (for wide-area rasters, place-names etc)?",
-										"type": "boolean"
-									},
-									"is_visible": {
-										"description": "Is this layer visible by default?",
-										"type": "boolean"
-									},
-									"is_dem": {
-										"description": "Is this layer a Digital Elevation Model (DEM)?",
-										"type": "boolean"
-									},
-                                    "is_time_dependent": {
-										"description": "Does this layer have a temporal component?",
-										"type": "boolean"
-									},
                                     "is_filterable": {
                                         "description": "Is this layer filterable by attribute?",
                                         "type": "boolean"
-                                    },
+                                    },																											                                    
 									"attribute_map": {
 										"description": "Array of the layer attributes",
 										"type": "array",

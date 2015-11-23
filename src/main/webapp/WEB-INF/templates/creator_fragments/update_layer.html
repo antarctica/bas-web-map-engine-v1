@@ -8,23 +8,55 @@
         <form id="cm-tab2-layer" class="form-horizontal">
             <input type="hidden" id="cm-tab2-layer-id" name="cm-tab2-layer-id"></input>
             <div class="form-group">
-                <label for="cm-tab2-layer-name" class="col-sm-4 control-label">Layer name</label>
-                <div class="col-sm-8">                                    
+                <label for="cm-tab2-layer-name" class="col-sm-3 control-label">Layer name</label>
+                <div class="col-sm-9">                                    
                     <input type="text" class="form-control" id="cm-tab2-layer-name" name="cm-tab2-layer-name" placeholder="Name for layer" 
                            data-toggle="tooltip" data-placement="right" title="Letters, numbers, spaces and _ allowed" required="required">                                   
                     </input>
                 </div>
             </div>
             <div class="form-group">
-                <label for="cm-tab2-layer-source-type" class="col-sm-4 control-label">Data source type</label>
-                <div class="col-sm-8">                                    
-                    <select class="form-control" id="cm-tab2-layer-update-layer-source-type" name="cm-tab2-layer-source-type">
-                        <option value="">Source type</option>
-                        <option value="wms">Web Map Service</option> 
-                        <option value="geojson">GeoJSON</option> 
-                        <option value="gpx">GPX file</option> 
-                        <option value="kml">KML file</option>                         
-                    </select>
+                <div class="col-sm-offset-3 col-sm-9">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="cm-tab2-layer-is_visible" name="cm-tab2-layer-is_visible"
+                                   data-toggle="tooltip" data-placement="right" title="Tick if you want layer to be visible in initial map view">                                
+                            </input> Layer is visible
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div role="tabpanel" class="panel panel-default">
+                <!-- Source type tabs -->
+                <ul class="nav nav-pills" role="tablist">
+                    <li role="presentation" class="active"><a href="#cm-tab2-layer-source-wms-tab" aria-controls="home" role="tab" data-toggle="tab">WMS</a></li>
+                    <li role="presentation"><a href="#cm-tab2-layer-source-geojson-tab" aria-controls="profile" role="tab" data-toggle="tab">GeoJSON</a></li>
+                    <li role="presentation"><a href="#cm-tab2-layer-source-gpx-tab" aria-controls="messages" role="tab" data-toggle="tab">GPX</a></li>
+                    <li role="presentation"><a href="#cm-tab2-layer-source-kml-tab" aria-controls="settings" role="tab" data-toggle="tab">KML</a></li>
+                </ul>
+                <!-- Source tab panes -->
+                <div class="tab-content">
+                    <div role="tabpanel" class="tab-pane active" id="cm-tab2-layer-source-wms-tab">
+                        <div class="form-group">
+                            <label for="cm-tab2-layer-source-wms" class="col-sm-3 control-label">WMS endpoint</label>
+                            <div class="col-sm-9">
+                                <select id="cm-tab2-layer-source-wms" name="cm-tab2-layer-source-wms" class="form-control combobox"
+                                        data-toggle="tooltip" data-placement="right" title="Select a WMS service, or enter a new URL" required="required">
+                                    <option value=""></option>
+                                    <option value="http://localhost:8080/geoserver/wms">Local Geoserver</option>
+                                </select>                               
+                            </div>
+                        </div>
+                    </div>
+                    <div role="tabpanel" class="tab-pane" id="cm-tab2-layer-source-geojson-tab">
+
+                    </div>
+                    <div role="tabpanel" class="tab-pane" id="cm-tab2-layer-source-gpx-tab">
+
+                    </div>
+                    <div role="tabpanel" class="tab-pane" id="cm-tab2-layer-source-kml-tab">
+
+                    </div>
                 </div>
             </div>
             <button id="cm-tab2-layer-save" type="button" class="btn btn-primary">Update</button>

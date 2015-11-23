@@ -95,6 +95,20 @@ public class ProxyController {
     }
     
     /**
+	 * Proxy for GetCapabilities requests from external servers
+	 * @param HttpServletRequest request
+	 * @param String url
+	 * @return String
+	 * @throws ServletException
+	 * @throws IOException 
+	 */
+	@RequestMapping(value="/proxy/gs/caps", method=RequestMethod.GET, produces = "text/xml; charset=utf-8")
+	public void getCapabilitiesProxy(
+		HttpServletRequest request, HttpServletResponse response, @RequestParam(value = "url", required = true) String url) throws ServletException, IOException {        
+        IOUtils.write(HTTPUtils.get(url, "admin", "a44Gs#!!"), response.getOutputStream());
+	}
+    
+    /**
      * Proxy for Geoserver GetFeatureInfo calls     
      * @param HttpServletRequest request
      * @param String url

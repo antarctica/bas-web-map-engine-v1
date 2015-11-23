@@ -11,7 +11,9 @@
         <link rel="shortcut icon" type="image/vnd.microsoft.icon" href="/bas.ico"></link>
         <title>MAGIC Web Map Creator</title>
 
+        <link href="/static/css/ol.css" rel="stylesheet"></link>
         <link href="/static/css/bootstrap.min.css" rel="stylesheet"></link>
+        <link href="/static/css/bootstrap-combobox.min.css" rel="stylesheet"></link>
         <link href="/static/css/prettify.css" rel="stylesheet"></link>
         <link href="/static/css/creator.css" rel="stylesheet"></link>
         <link href="/static/css/font-awesome.min.css" rel="stylesheet" type="text/css"></link>
@@ -22,9 +24,17 @@
             <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
             <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
         <![endif]-->
+        <script src="/static/js/debug/ol.debug.js"></script>
+        <script src="/static/js/ellipsoid/ellipsoid.js"></script>
         <script src="/static/js/jquery.js"></script>
+        <script src="/static/js/vector.js"></script>
+        <script src="/static/js/proj4.js"></script>
+        <script src="/static/js/proj4defs/3031.js"></script>
+        <script src="/static/js/proj4defs/3762.js"></script>
+        <script src="/static/js/proj4defs/3995.js"></script>
         <script src="/static/js/bootstrap.min.js"></script>
         <script src="/static/js/bootbox.min.js"></script>
+        <script src="/static/js/bootstrap-combobox.min.js"></script>
         <script src="/static/js/jquery.bootstrap.wizard.min.js"></script>
         <script src="/static/js/jquery-sortable-lists.min.js"></script>
         <script src="/static/js/prettify.js"></script>
@@ -131,6 +141,13 @@
                 $("body").tooltip({
                     selector: ".layer-name-button",
                     container: "body"
+                });
+                
+                var parser = new ol.format.WMSCapabilities();
+
+                $.ajax("http://bslmagg.nerc-bas.ac.uk:8080/geoserver/add/wms?request=getcapabilities").then(function(response) {
+                    var result = parser.read(response);
+                    console.dir(result);
                 });
             });
 
