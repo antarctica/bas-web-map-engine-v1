@@ -15,10 +15,14 @@ var magic = {
     },        
     
     /* Static modules */
-    modules: {},
+    modules: {
+        creator: {}
+    },
     
     /* Instantiable classes */
-    classes: {},
+    classes: {
+        creator: {}
+    },
     
     /* Runtime objects */
     runtime: {

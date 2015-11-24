@@ -36,9 +36,17 @@
         <script src="/static/js/jquery.bootstrap.wizard.min.js"></script>
         <script src="/static/js/jquery-sortable-lists.min.js"></script>
         <script src="/static/js/prettify.js"></script>
-        <script src="/static/js/components/init.js"></script>
+        <script src="/static/js/init.js"></script>
+        <script src="/static/js/creator/components/MapContext.js"></script>
+        <script src="/static/js/creator/components/LayerDictionary.js"></script>
+        <script src="/static/js/creator/components/LayerGroupUpdater.js"></script>
         <script src="/static/js/modules/Common.js"></script>
-        <script src="/static/js/creator/Creator.js"></script>
+        <script src="/static/js/creator/modules/Data.js"></script>
+        <script src="/static/js/creator/modules/Common.js"></script>
+        <script src="/static/js/creator/modules/Tab1.js"></script>
+        <script src="/static/js/creator/modules/Tab2.js"></script>
+        <script src="/static/js/creator/modules/Tab3.js"></script>
+        <script src="/static/js/creator/modules/Tab4.js"></script>        
     </head>
 
     <body>
@@ -130,23 +138,7 @@
         <script type="text/javascript">
 
             $(document).ready(function () {
-                magic.common.Creator.init();
-                $("#rootwizard").bootstrapWizard({
-                    onTabShow: magic.common.Creator.updateProgressBar
-                });
-                $('[data-toggle="tooltip"]').tooltip();
-                /* Dynamically-created */
-                $("body").tooltip({
-                    selector: ".layer-name-button",
-                    container: "body"
-                });
-                
-                var parser = new ol.format.WMSCapabilities();
-
-                $.ajax("http://bslmagg.nerc-bas.ac.uk:8080/geoserver/add/wms?request=getcapabilities").then(function(response) {
-                    var result = parser.read(response);
-                    console.dir(result);
-                });
+                magic.modules.creator.Common.init();                
             });
 
         </script>
