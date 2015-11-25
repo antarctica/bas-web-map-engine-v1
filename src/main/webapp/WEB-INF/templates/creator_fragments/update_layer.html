@@ -5,107 +5,23 @@
         <title></title>
     </head>    
     <body th:fragment="layout">
-        <form id="t2-layer" class="form-horizontal">
-            <input type="hidden" id="t2-layer-id" name="t2-layer-id"></input>
-            <div class="form-group">
-                <label for="t2-layer-name" class="col-sm-3 control-label">Layer name</label>
-                <div class="col-sm-9">                                    
-                    <input type="text" class="form-control" id="t2-layer-name" name="t2-layer-name" placeholder="Name for layer" 
-                           data-toggle="tooltip" data-placement="right" title="Letters, numbers, spaces and _ allowed" required="required">                                   
-                    </input>
-                </div>
+        <div role="tabpanel" class="panel panel-default">
+            <!-- Source type tabs -->
+            <ul class="nav nav-pills" role="tablist">
+                <li role="presentation" class="active"><a href="#t2-layer-wms-tab" aria-controls="home" role="tab" data-toggle="tab">WMS</a></li>
+                <li role="presentation"><a href="#t2-layer-geojson-tab" aria-controls="profile" role="tab" data-toggle="tab">GeoJSON</a></li>
+                <li role="presentation"><a href="#t2-layer-gpx-tab" aria-controls="messages" role="tab" data-toggle="tab">GPX</a></li>
+                <li role="presentation"><a href="#t2-layer-kml-tab" aria-controls="settings" role="tab" data-toggle="tab">KML</a></li>
+            </ul>
+            <!-- Source tab panes -->
+            <div class="tab-content">
+                <div role="tabpanel" class="tab-pane active" id="t2-layer-wms-tab" th:include="creator_fragments/layer_wms_tab :: layout"></div>
+                <div role="tabpanel" class="tab-pane" id="t2-layer-geojson-tab" th:include="creator_fragments/layer_geojson_tab :: layout"></div>
+                <div role="tabpanel" class="tab-pane" id="t2-layer-gpx-tab" th:include="creator_fragments/layer_gpx_tab :: layout"></div>
+                <div role="tabpanel" class="tab-pane" id="t2-layer-kml-tab" th:include="creator_fragments/layer_kml_tab :: layout"></div>
             </div>
-            <div class="form-group">
-                <div class="col-sm-offset-3 col-sm-9">
-                    <div class="checkbox">
-                        <label>
-                            <input type="checkbox" id="t2-layer-is_visible" name="t2-layer-is_visible"
-                                   data-toggle="tooltip" data-placement="right" title="Tick if you want layer to be visible in initial map view">                                
-                            </input> Layer is visible
-                        </label>
-                    </div>
-                </div>
-            </div>
-            <div role="tabpanel" class="panel panel-default">
-                <!-- Source type tabs -->
-                <ul class="nav nav-pills" role="tablist">
-                    <li role="presentation" class="active"><a href="#t2-layer-source-wms-tab" aria-controls="home" role="tab" data-toggle="tab">WMS</a></li>
-                    <li role="presentation"><a href="#t2-layer-source-geojson-tab" aria-controls="profile" role="tab" data-toggle="tab">GeoJSON</a></li>
-                    <li role="presentation"><a href="#t2-layer-source-gpx-tab" aria-controls="messages" role="tab" data-toggle="tab">GPX</a></li>
-                    <li role="presentation"><a href="#t2-layer-source-kml-tab" aria-controls="settings" role="tab" data-toggle="tab">KML</a></li>
-                </ul>
-                <!-- Source tab panes -->
-                <div class="tab-content">
-                    <div role="tabpanel" class="tab-pane active" id="t2-layer-source-wms-tab">
-                        <div class="panel-body">
-                            <div class="radio form-inline">
-                                <label class="input-by-radio-label" for="t2-layer-source-wms-known">
-                                    <input type="radio" name="t2-layer-source-wms-chooser" id="t2-layer-source-wms-known-rb" value="known"></input>
-                                    WMS endpoint
-                                </label>
-                                <select class="form-control input-by-radio" id="t2-layer-source-wms-known" name="t2-layer-source-wms-known"
-                                        data-toggle="tooltip" data-placement="right" title="Choose from range of known WMS services">                                    
-                                </select>
-                            </div>
-                            <div class="radio form-inline">
-                                <label class="input-by-radio-label" for="t2-layer-source-wms-custom">
-                                    <input type="radio" name="t2-layer-source-wms-chooser" id="t2-layer-source-wms-custom-rb" value="custom"></input>
-                                    or custom URL
-                                </label>
-                                <input type="text" class="form-control input-by-radio" id="t2-layer-source-wms_source-custom" name="t2-layer-source-wms_source-custom" placeholder="WMS URL" 
-                                       data-toggle="tooltip" data-placement="right" title="URL of the WMS endpoint for the data">                                   
-                                </input>
-                            </div>
-                            <div class="radio form-inline">
-                                <label class="input-by-radio-label" for="t2-layer-source-wms-feature_name">                                    
-                                    Data layer name
-                                </label>
-                                <select class="form-control input-by-radio" id="t2-layer-source-wms-feature_name" name="t2-layer-source-wms-feature_name"
-                                        data-toggle="tooltip" data-placement="right" title="Choose a data layer">                                    
-                                </select>
-                            </div>
-                            <div class="form-inline">
-                                <div class="checkbox">
-                                    <label>
-                                        <input type="checkbox" id="t2-layer-source-is_base" name="t2-layer-source-is_base"
-                                               data-toggle="tooltip" data-placement="right" title="Tick if this is a backdrop layer">                                
-                                        </input> Layer is a base (backdrop) layer
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="form-inline">
-                                <div class="checkbox">
-                                    <label>
-                                        <input type="checkbox" id="t2-layer-source-is_singletile" name="t2-layer-source-is_singletile"
-                                               data-toggle="tooltip" data-placement="right" title="Tick to use a single tile (for large rasters, or layers that need wide area labelling)">                                
-                                        </input> Layer is rendered as one large tile
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="form-inline">
-                                <div class="checkbox">
-                                    <label>
-                                        <input type="checkbox" id="t2-layer-source-is_dem" name="t2-layer-source-is_dem"
-                                               data-toggle="tooltip" data-placement="right" title="Tick if this layer is a DEM to be used in elevation measurement">                                
-                                        </input> Layer is a Digital Elevation Model (DEM)
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div role="tabpanel" class="tab-pane" id="t2-layer-source-geojson-tab">
-
-                    </div>
-                    <div role="tabpanel" class="tab-pane" id="t2-layer-source-gpx-tab">
-
-                    </div>
-                    <div role="tabpanel" class="tab-pane" id="t2-layer-source-kml-tab">
-
-                    </div>
-                </div>
-            </div>
-            <button id="t2-layer-save" type="button" class="btn btn-primary">Update</button>
-            <button id="t2-layer-delete" type="button" class="btn btn-danger btn-primary">Delete</button>
-        </form>
+        </div>
+        <button id="t2-layer-save" type="button" class="btn btn-primary">Update</button>
+        <button id="t2-layer-delete" type="button" class="btn btn-danger btn-primary">Delete</button>
     </body>
 </html>

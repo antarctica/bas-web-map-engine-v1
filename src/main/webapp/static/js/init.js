@@ -26,6 +26,9 @@ var magic = {
     
     /* Runtime objects */
     runtime: {
+        creator: {
+            catalogues: {}
+        },        
         pingSession: function() {
             $.get(magic.config.paths.baseurl + "/ping");
         },

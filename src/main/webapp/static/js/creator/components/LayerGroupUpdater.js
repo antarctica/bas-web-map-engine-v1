@@ -16,20 +16,18 @@ magic.classes.creator.LayerGroupUpdater = function(prefix, data) {
         btnUpdateGroup.prop("disabled", false);
     });                                
     btnUpdateGroup.click($.proxy(function(evt) {
-        var id = $("#" + this.data.id).val();
         /* Update dictionary entry */
-        magic.modules.creator.Common.formToDict(prefix + "-form", this.data);
+        magic.modules.creator.Common.formToDict(this.prefix + "-form", this.data);
         /* Update the tree button caption as we have updated the name */
-        $("#" + id).find("button").html(this.data.name);
+        $("#" + this.data.id).find("button").html(this.data.name);
         $("[id$='-update-panel']").fadeOut("slow");
     }, this));
      
     /* Add delete layer group button handler */            
-    var btnDeleteGroup = $("#" + this.prefix + "delete");
-    btnDeleteGroup.prop("disabled", $("#" + this.data.id).find("ul").length > 0);
+    var btnDeleteGroup = $("#" + this.prefix + "-delete");
+    btnDeleteGroup.prop("disabled", $("#" + this.data.id).find("ul").find("li").length > 0);
     btnDeleteGroup.click($.proxy(function(evt) {
-        var id = $("#" + this.data.id).val();
-        this.confirmDeleteEntry(id, "Really delete group : " + this.data.name + "?");                                                       
+        this.confirmDeleteEntry(this.data.id, "Really delete group : " + this.data.name + "?");                                                       
     }, this));
     
     /* Populate form snippet from data */
@@ -43,7 +41,7 @@ magic.classes.creator.LayerGroupUpdater = function(prefix, data) {
  * @param {string} msg
  */
 magic.classes.creator.LayerGroupUpdater.prototype.confirmDeleteEntry = function(id, msg) {            
-    bootbox.confirm(msg, function(result) {
+    bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">' + msg + '</div>', function(result) {
         if (result) {
             /* Do the deletion */
             $("#" + id).remove();

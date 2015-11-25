@@ -195,7 +195,8 @@
                                         "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"                                         						
 									},
 									"name": {
-										"description": "Display name for layer group"
+										"description": "Display name for layer group",
+                                        "pattern": "^[A-Za-z0-9_ ]+$"
 									},
 									"expanded": {
 										"description": "Whether layer group starts out expanded or not",
@@ -221,7 +222,8 @@
 									},
 									"name": {
 										"description": "Display name for layer",
-										"type": "string"
+										"type": "string",
+                                        "pattern": "^[A-Za-z0-9_ ]+$"
 									},
                                     "source": {
                                         "description": "Data source for layer",
@@ -325,7 +327,7 @@
                                         ]                                        
                                     },																		
 									"legend_graphic": {
-										"description": "WMS serving legend graphic information (different from wms if cascading)",
+										"description": "URL feed serving legend graphic information (different from wms if cascading, and allows non-WMS feeds)",
 										"type": "string",
 										"format": "uri"
 									},															

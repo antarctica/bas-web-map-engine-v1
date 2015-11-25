@@ -46,44 +46,95 @@ magic.modules.creator.Common = function () {
             }, this));    
         },
         /**
-         * Populate the named form with data 
-         * Note: naming conventions - forms e.g. t1-form will have all child inputs with ids t1-form-<name>
+         * Populate the named form with data, recursively if necessary
+         * Example:
+         * form name = t2-layer-form
+         * form inputs (simplified) = [t2-layer-id, t2-layer-name, t2-layer-source-is_base]
+         * data = {id: <id>, name: <name>, source: {is_base: true}}
+         * Naming convention for inputs indicates the level at which the data can be found i.e. source->is_base
          * @param {string} formName
          * @param {object} data
          */
         dictToForm: function(formName, data) {
-            var formEl = $("#" + formName);
+            var inputs = $("#" + formName + " :input");
             var prefix = formName.replace("form", "");
-            $.each(data, function(key, value) {
-                var fi = formEl.find("[id=" + prefix + key + "]");
-                if (fi.length > 0) {
-                    if (fi.attr("type") == "checkbox" || fi.attr("type") == "radio") {
-                        /* Set the "checked" property */
-                        fi.prop("checked", value);
-                    } else {
-                        /* Simple case */
-                        fi.val(value);
+            $.each(inputs, function(idx, fi) {
+                var fiEl = $(fi);
+                var fiName = fiEl.attr("name");
+                if (fiName && fiName.indexOf("_") != 0) {
+                    /* A named whose name does NOT start with _ will have an equivalent in the data object */
+                    var baseName = fiName.replace(prefix, "");
+                    var path = baseName.split("-");
+                    var target = data;
+                    for (var i = 0; i < path.length-1; i++) {
+                        if (target[path[i]]) {
+                            target = target[path[i]];
+                        } else {
+                            target = null;
+                            break;
+                        }
+                    }
+                    if (target != null) {
+                        var value = target[path[path.length-1]];
+                        if (fiEl.attr("type") == "checkbox" || fiEl.attr("type") == "radio") {
+                            /* Set the "checked" property */
+                            fiEl.prop("checked", value);
+                        } else {
+                            /* Simple case */
+                            fiEl.val(value);
+                        }
                     }
                 }
-            });           
+            });            
         },
         /**
-         * Populate the named form with data 
-         * Note: naming conventions - forms e.g. t1-form will have all child inputs with ids t1-form-<name> 
-         * where <name> is the name of the field in the JSON Schema
+         * Populate the data object with values from the given form, recursively if necessary
+         * Example:
+         * form name = t2-layer-form
+         * form inputs (simplified) = [t2-layer-id, t2-layer-name, t2-layer-source-is_base]
+         * data = {id: <id>, name: <name>, source: {is_base: true}}
+         * Naming convention for inputs indicates the level at which the data can be found i.e. source->is_base
          * @param {string} formName
          * @param {object} data
          */
-        formToDict: function(formName, data) {
-            console.log("Before...");
-            console.dir(data);
+        formToDict: function(formName, data) {       
+            var inputs = $("#" + formName + " :input");
+            var prefix = formName.replace("form", "");
+            $.each(inputs, function(idx, fi) {
+                var fiEl = $(fi);
+                if (fiEl.attr("name")) {
+                    /* A named attribute will usually have an equivalent in data */
+                    var baseName = fiEl.attr("name").replace(prefix, "");
+                    var path = baseName.split("-");
+                    var target = data;
+                    for (var i = 0; i < path.length-1; i++) {
+                        if (target[path[i]]) {
+                            target = target[path[i]];
+                        } else {
+                            target = null;
+                            break;
+                        }
+                    }
+                    if (target != null) {
+                        var value = target[path[path.length-1]];
+                        if (fiEl.attr("type") == "checkbox" || fiEl.attr("type") == "radio") {
+                            /* Set the "checked" property */
+                            fiEl.prop("checked", value);
+                        } else {
+                            /* Simple case */
+                            fiEl.val(value);
+                        }
+                    }
+                }
+            });            
+            
+            
             var inputs = $("#" + formName + " :input");
             var prefix = formName.replace("form", "");
             $.each(inputs, function(idx, fi) {
                 var fiEl = $(fi);
                 if (fiEl.attr("name")) {
                     var schemaName = fiEl.attr("name").replace(prefix, "");
-                    console.log(schemaName);
                     if (fiEl.attr("type") == "checkbox" || fiEl.attr("type") == "radio") {
                         /* Read the "checked" property */
                         data[schemaName] = fiEl.prop("checked");
@@ -92,9 +143,7 @@ magic.modules.creator.Common = function () {
                         data[schemaName] = fiEl.val();
                     }
                 }
-            });
-            console.log("After...");
-            console.dir(data);
+            });            
         }
 
     });

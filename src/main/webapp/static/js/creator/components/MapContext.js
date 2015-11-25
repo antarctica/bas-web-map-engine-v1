@@ -27,3 +27,11 @@ magic.classes.creator.MapContext.prototype.getLayers = function() {
     }
     return(layers)
 };
+
+magic.classes.creator.MapContext.prototype.getProjection = function() {
+    var proj = null;
+    if (this.context.data) {
+        proj = this.context.data.projection;
+    }
+    return(proj)
+};

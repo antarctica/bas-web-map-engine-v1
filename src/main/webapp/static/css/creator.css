@@ -16,12 +16,16 @@ body {
 }
 
 /* Wizard tabs */
-.map-creator-control {
-    width: 50% !important;
+.map-creator-control-xl {
+    width: 500px !important;
 }
 
-.map-creator-control-number {
-    width: 100px !important;
+.map-creator-control-lg {
+    width: 400px !important;
+}
+
+.map-creator-control-sm {
+    width: 300px !important;
 }
 
 /* http://www.abeautifulsite.net/whipping-file-inputs-into-shape-with-bootstrap-3/*/
@@ -98,14 +102,6 @@ input[readonly] {
 
 .top-nav>.open>.dropdown-menu>li>a {
     white-space: normal;
-}
-
-label.input-by-radio-label {
-    width: 180px;
-}
-
-input.input-by-radio, select.input-by-radio {
-    width: 300px !important;
 }
 
 /* Sortable list layertree */

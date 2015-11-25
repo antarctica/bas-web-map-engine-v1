@@ -5,7 +5,7 @@ magic.modules.creator.Tab1 = function () {
     return({
         init: function () {
             /* Creator method radio button change handler */
-            $("input[type=radio][name='t1-method-rb']").change($.proxy(function (evt) {
+            $("input[type=radio][name='_t1-method-rb']").change($.proxy(function (evt) {
                 var rb = $(evt.currentTarget);
                 $.each(["new", "edit", "clone"], $.proxy(function (idx, elt) {
                     if (elt == rb.val()) {
@@ -17,7 +17,7 @@ magic.modules.creator.Tab1 = function () {
                         }
                     } else {
                         /* Has been unchecked */
-                        $("#t1-" + elt).parent().next("select").prop("disabled", true);
+                        $("#t1-" + elt + "-rb").parent().next("select").prop("disabled", true);
                     }
                 }, this));
             }, this));
@@ -46,10 +46,18 @@ magic.modules.creator.Tab1 = function () {
             select.find("option").remove();
             /* Service returns [{name: <name>, title: <title>},...] */
             $.getJSON(magic.config.paths.baseurl + "/maps/dropdown/" + action, function (data) {
+                var selOpt = null;
                 $.each(data, function (idx, dd) {
-                    var optstr = "<option" + ((defval != null && dd.name == defval) ? " selected" : "") + ">";
-                    select.append($(optstr, {value: dd.name}).text(dd.title));
+                    var opt = $("<option>", {value: dd.name});
+                    opt.text(dd.title);
+                    select.append(opt);
+                    if (dd.name == defval) {
+                        selOpt = opt;
+                    }
                 });
+                if (selOpt != null) {
+                    selOpt.prop("selected", "selected");
+                }
             });
         }
 

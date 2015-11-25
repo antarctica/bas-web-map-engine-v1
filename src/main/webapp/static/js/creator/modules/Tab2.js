@@ -19,6 +19,7 @@ magic.modules.creator.Tab2 = function () {
         loadContext: function(context) {
             if (context.data && $.isArray(context.data.layers)) {
                 /* Translate the layer data into a sortable list */
+                $("#t2-update-panel").hide();    
                 var layerTree = $("ul.layertree");
                 layerTree.empty();
                 this.processLayers(context.data.layers, layerTree);                
@@ -77,25 +78,19 @@ magic.modules.creator.Tab2 = function () {
             var id = btn.parents("li").first().prop("id");
             var dictEntry = magic.modules.creator.Common.layer_dictionary.get(id);
             var isGroup = dictEntry && dictEntry.layers;
-            $("#t2-update-panel").removeClass("hidden");            
+            $("#t2-update-panel").show();            
             if (isGroup) {
                 /* Group form snippet */
                 $("#t2-update-panel-title").html("Layer group : " + dictEntry.name);
                 $("#t2-group-div").show();
                 $("#t2-layer-div").hide();
-                /* Disable the update/delete buttons */
-                console.log("Group...");
-                console.dir(dictEntry);
                 this.group_updater = new magic.classes.creator.LayerGroupUpdater("t2-group", dictEntry);                
             } else {
                 /* Layer form snippet */
                 $("#t2-update-panel-title").html("Data layer : " + dictEntry.name);
                 $("#t2-group-div").hide();
                 $("#t2-layer-div").show();
-                /* Disable the update/delete buttons */
-                $("#t2-layer-save").prop("disabled", true);
-                /* Populate the top-level form snippet from the dictionary entry */
-                magic.modules.creator.Common.dictToForm("t2-layer", dictEntry);
+                this.layer_updater = new magic.classes.creator.LayerUpdater("t2-layer", dictEntry);                
             }
         },
         /**

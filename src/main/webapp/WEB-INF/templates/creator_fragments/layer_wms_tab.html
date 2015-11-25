@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title></title>
+    </head>    
+    <body th:fragment="layout">
+        <div class="panel-body">
+            <form id="t2-layer-wms-form" class="form-horizontal">
+                <input type="hidden" id="t2-layer-wms-id" name="t2-layer-wms-id"></input>
+                <div class="form-group">
+                    <label for="t2-layer-wms-name" class="col-sm-3 control-label">Layer name</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" id="t2-layer-wms-name" name="t2-layer-wms-name" placeholder="Layer name" 
+                               data-toggle="tooltip" data-placement="right" title="Letters, numbers and _ allowed" required="required">                                   
+                        </input>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-offset-3 col-sm-9">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="t2-layer-wms-is_visible" name="t2-layer-wms-is_visible" value="expanded"
+                                       data-toggle="tooltip" data-placement="right" title="Tick if you want layer visible in initial map view">                                
+                                </input> Layer is visible
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-12">
+                        <a class="btn btn-default" style="width:100%" data-toggle="collapse" href="#t2-layer-wms-props-div">Edit WMS properties</a>
+                        <div class="collapse" id="t2-layer-wms-props-div">
+                            <div class="panel panel-default">
+                                <div class="panel-body">
+                                    <!-- wms_source, feature_name, style_name, legend_graphic, is_base, is_singletile, is_dem, is_time_dependent -->
+                                    <div class="form-group">
+                                        <label class="col-sm-3 control-label" for="t2-layer-wms-source-wms_source">
+                                            WMS source
+                                        </label>
+                                        <select class="form-control col-sm-9 map-creator-control-sm" id="t2-layer-wms-source-wms_source" name="t2-layer-wms-source-wms_source">
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-3 control-label" for="t2-layer-wms-source-feature_name">
+                                            Feature
+                                        </label>
+                                        <select class="form-control col-sm-9 map-creator-control-sm" id="t2-layer-wms-source-feature_name" name="t2-layer-wms-source-feature_name">
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="col-sm-offset-3 col-sm-9">
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input type="checkbox" id="t2-layer-wms-source-is_base" name="t2-layer-wms-source-is_base" value="base"
+                                                           data-toggle="tooltip" data-placement="right" title="Tick if base (backdrop) layer">                                
+                                                    </input> Layer is a base (backdrop) layer
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="col-sm-offset-3 col-sm-9">
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input type="checkbox" id="t2-layer-wms-source-is_singletile" name="t2-layer-wms-source-is_singletile" value="singletile"
+                                                           data-toggle="tooltip" data-placement="right" title="Tick to use a single tile (for large rasters, or layers that need wide area labelling)">                                
+                                                    </input> Layer rendered as one large tile
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="col-sm-offset-3 col-sm-9">
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input type="checkbox" id="t2-layer-wms-source-is_dem" name="t2-layer-wms-source-is_dem" value="dem"
+                                                           data-toggle="tooltip" data-placement="right" title="Tick if this layer is a DEM to be used in elevation measurement">                                
+                                                    </input> Layer is a Digital Elevation Model (DEM)
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="col-sm-offset-3 col-sm-9">
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input type="checkbox" id="t2-layer-wms-source-is_time_dependent" name="t2-layer-wms-source-is_time_dependent" value="timedep"
+                                                           data-toggle="tooltip" data-placement="right" title="Tick if this layer has a time dimension">                                
+                                                    </input> Layer has a time dimension
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-12">
+                        <a class="btn btn-default" style="width:100%" data-toggle="collapse" href="#t2-layer-app-props-div">Edit appearance properties</a>
+                        <div class="collapse" id="t2-layer-app-props-div">
+                            <div class="panel panel-default">
+                                <!-- min_scale, max_scale, opacity -->
+                                TO DO
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-12">
+                        <a class="btn btn-default" style="width:100%" data-toggle="collapse" href="#t2-layer-int-props-div">Edit interactivity properties</a>
+                        <div class="collapse" id="t2-layer-int-props-div">
+                            <div class="panel panel-default">
+                                <!-- is_interactive, is_filterable, attribute_map -->
+                                TO DO
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </body>
+</html>

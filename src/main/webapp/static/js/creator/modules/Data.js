@@ -227,7 +227,7 @@ magic.modules.creator.Data = function () {
             "EPSG:3031": [
                 {
                     "name": "Antarctic Digital Database",
-                    "value": "https:///maps.bas.ac.uk/antarctic/wms"
+                    "value": "https://maps.bas.ac.uk/antarctic/wms"
                 },
                 {
                     "name": "Operations GIS",
@@ -244,22 +244,18 @@ magic.modules.creator.Data = function () {
                 {
                     "name": "Polar View",
                     "value": "http://geos.polarview.aq/geoserver/wms"
-                },
-                {
-                    "name": "Environments.aq",
-                    "value": "https://"
                 }
             ],
             "EPSG:3995": [
                 {
                     "name": "NERC Arctic Office Map",
-                    "value": "https:///maps.bas.ac.uk/arctic/wms"
+                    "value": "https://maps.bas.ac.uk/arctic/wms"
                 }
             ],
             "EPSG:3762": [
                 {
                     "name": "South Georgia GIS",
-                    "value": "https:///maps.bas.ac.uk/southgeorgia/wms"
+                    "value": "https://maps.bas.ac.uk/southgeorgia/wms"
                 }
             ]
         },

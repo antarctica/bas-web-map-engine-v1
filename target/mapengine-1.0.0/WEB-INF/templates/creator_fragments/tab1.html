@@ -16,10 +16,10 @@
                 <div class="panel-body">                
                     <div class="form-group">
                         <label class="col-sm-2" for="t1-new">
-                            <input type="radio" name="t1-method-rb" id="t1-new-rb" value="new" checked="checked"></input>
+                            <input type="radio" name="_t1-method-rb" id="t1-new-rb" value="new" checked="checked"></input>
                             Create a new map of
                         </label>
-                        <select class="form-control col-sm-10 input-by-radio map-select" id="t1-new">
+                        <select class="form-control col-sm-10 map-creator-control-lg map-select" id="t1-new">
                             <option value="">Select region</option>
                             <option value="antarctic">Antarctica</option> 
                             <option value="arctic">Arctic</option> 
@@ -28,19 +28,19 @@
                     </div>
                     <div class="form-group">
                         <label class="col-sm-2" for="t1-clone">
-                            <input type="radio" name="t1-method-rb" id="t1-clone-rb" value="clone"></input>
+                            <input type="radio" name="_t1-method-rb" id="t1-clone-rb" value="clone"></input>
                             Clone existing map
                         </label>
-                        <select class="form-control col-sm-10 input-by-radio map-select" id="t1-clone" disabled="disabled">
+                        <select class="form-control col-sm-10 map-creator-control-lg map-select" id="t1-clone" disabled="disabled">
                             <option value="">Select a map</option>                       
                         </select>
                     </div>
                     <div class="form-group">
                         <label class="col-sm-2" for="t1-edit">
-                            <input type="radio" name="t1-method-rb" id="t1-edit-rb" value="edit"></input>
+                            <input type="radio" name="_t1-method-rb" id="t1-edit-rb" value="edit"></input>
                             Edit existing map
                         </label>
-                        <select class="form-control col-sm-10 input-by-radio map-select" id="t1-edit" disabled="disabled">
+                        <select class="form-control col-sm-10 map-creator-control-lg map-select" id="t1-edit" disabled="disabled">
                             <option value="">Select a map</option>                        
                         </select>
                     </div>
@@ -54,7 +54,7 @@
                     <div class="form-group">
                         <label for="t1-name" class="col-sm-2 control-label">Name of map</label>
                         <div class="col-sm-10">
-                            <input type="text" class="form-control map-creator-control" id="t1-name" name="t1-name" placeholder="Name for map" 
+                            <input type="text" class="form-control map-creator-control-xl" id="t1-name" name="t1-name" placeholder="Name for map" 
                                    data-toggle="tooltip" data-placement="right" title="lowercase letters, numbers and _ allowed" required="required">                                   
                             </input>
                         </div>
@@ -62,7 +62,7 @@
                     <div class="form-group">
                         <label for="t1-description" class="col-sm-2 control-label">Description</label>
                         <div class="col-sm-10">
-                            <textarea class="form-control map-creator-control" id="t1-description" name="t1-description"
+                            <textarea class="form-control map-creator-control-xl" id="t1-description" name="t1-description"
                                       data-toggle="tooltip" data-placement="right" title="Useful info like map purpose, intended audience etc" required="required">                            
                             </textarea>
                         </div>
@@ -70,7 +70,7 @@
                     <div class="form-group">
                         <label for="t1-version" class="col-sm-2 control-label">Version</label>
                         <div class="col-sm-10">
-                            <input type="text" class="form-control map-creator-control" id="t1-version" name="t1-version" value="1.0"
+                            <input type="text" class="form-control map-creator-control-xl" id="t1-version" name="t1-version" value="1.0"
                                    data-toggle="tooltip" data-placement="right" title="Map version">                            
                             </input>
                         </div>
@@ -78,7 +78,7 @@
                     <div class="form-group">
                         <label for="t1-owner_email" class="col-sm-2 control-label">Contact email</label>
                         <div class="col-sm-10">
-                            <input type="email" class="form-control map-creator-control" id="t1-owner_email" name="t1-owner_email" placeholder="Valid email address"
+                            <input type="email" class="form-control map-creator-control-xl" id="t1-owner_email" name="t1-owner_email" placeholder="Valid email address"
                                    data-toggle="tooltip" data-placement="right" title="Contact email for map owner" required="required">                            
                             </input>
                         </div>
