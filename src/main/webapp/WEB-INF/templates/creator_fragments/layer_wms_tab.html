@@ -123,7 +123,7 @@
                                         <div class="col-sm-9">
                                             <input type="number" class="form-control map-creator-control-sm" id="t2-layer-wms-min_scale" name="t2-layer-wms-min_scale" placeholder="Visible at minimum scale denominator" 
                                                    min="1000" max="100000000" step="1000"
-                                                   data-toggle="tooltip" data-placement="left" title="Minimum scale denominator layer should be visible at">                                   
+                                                   data-toggle="tooltip" data-placement="left" title="Minimum scale denominator layer should be visible at (defaults to maximum zoom scale of map)">                                   
                                             </input>
                                         </div>
                                     </div>
@@ -134,7 +134,7 @@
                                         <div class="col-sm-9">
                                             <input type="number" class="form-control map-creator-control-sm" id="t2-layer-wms-max_scale" name="t2-layer-wms-max_scale" placeholder="Visible at maximum scale denominator" 
                                                    min="1000" max="100000000" step="1000"
-                                                   data-toggle="tooltip" data-placement="left" title="Maximum scale denominator layer should be visible at">                                   
+                                                   data-toggle="tooltip" data-placement="left" title="Maximum scale denominator layer should be visible at (defaults to minimum zoom scale of map)">                                   
                                             </input>
                                         </div>
                                     </div>
@@ -157,26 +157,33 @@
                         <a class="btn btn-default" style="width:100%" data-toggle="collapse" href="#t2-layer-int-props-div">Edit interactivity properties</a>
                         <div class="collapse" id="t2-layer-int-props-div">
                             <div class="panel panel-default">
-                                <!-- is_interactive, is_filterable, attribute_map -->
-                                <div class="form-group">
-                                    <div class="col-sm-offset-3 col-sm-9">
-                                        <div class="checkbox">
-                                            <label>
-                                                <input type="checkbox" id="t2-layer-wms-source-is_interactive" name="t2-layer-wms-source-is_interactive" value="interactive"
-                                                       data-toggle="tooltip" data-placement="left" title="Tick if this layer should display a pop-up of selected attributes on the map">                                
-                                                </input> Layer should display attribute pop-ups
-                                            </label>
+                                <div class="panel-body">
+                                    <!-- is_interactive, is_filterable, attribute_map -->
+                                    <div class="form-group">
+                                        <div class="col-sm-offset-3 col-sm-9">
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input type="checkbox" id="t2-layer-wms-source-is_interactive" name="t2-layer-wms-source-is_interactive" value="interactive"
+                                                           data-toggle="tooltip" data-placement="left" title="Tick if this layer should display a pop-up of selected attributes on the map">                                
+                                                    </input> Layer should display attribute pop-ups
+                                                </label>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="form-group">
-                                    <div class="col-sm-offset-3 col-sm-9">
-                                        <div class="checkbox">
-                                            <label>
-                                                <input type="checkbox" id="t2-layer-wms-source-is_filterable" name="t2-layer-wms-source-is_filterable" value="filterable"
-                                                       data-toggle="tooltip" data-placement="left" title="Tick if this layer can be filtered by attribute value(s)">                                
-                                                </input> Layer can be filtered on attribute value(s)
-                                            </label>
+                                    <div class="form-group">
+                                        <div class="col-sm-offset-3 col-sm-9">
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input type="checkbox" id="t2-layer-wms-source-is_filterable" name="t2-layer-wms-source-is_filterable" value="filterable"
+                                                           data-toggle="tooltip" data-placement="left" title="Tick if this layer can be filtered by attribute value(s)">                                
+                                                    </input> Layer can be filtered on attribute value(s)
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="panel panel-default">
+                                        <div class="panel-body" id="t2-layer-wms-attributes-div">
+                                            
                                         </div>
                                     </div>
                                 </div>

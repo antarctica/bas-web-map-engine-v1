@@ -7,12 +7,17 @@ magic.classes.creator.LayerUpdater = function(prefix, data) {
     
     /* Layer group data object */
     this.data = data;
-    
+        
+    /* Derived quantities */
     /* Active layer specification tab */
     this.activeTab = this.getActiveTab();
     
     /* Source-specific name prefix */
     this.ssPrefix = this.prefix + "-" + this.activeTab;
+    
+    /* Attribute mapper */
+    this.attrMap = null;
+    /* End of derived quantities */
        
     /* Add update layer group button handler */    
     var btnUpdateLayer = $("#" + this.prefix + "-save");
@@ -57,9 +62,20 @@ magic.classes.creator.LayerUpdater = function(prefix, data) {
             this.populateWmsFeatureSelector(currentWms, $("select[name='" + this.ssPrefix + "-source-feature_name']"), this.data.source.feature_name);
             magic.modules.creator.Common.dictToForm(this.ssPrefix + "-form", this.data); 
         }
-        /* Populate the minimum and maximum scales */
-        
-        
+        /* Interactivity tab - add change handlers for filter/popup checkboxes */
+        $("#" + this.prefix + "-int-props-div").find("input[type='checkbox']").change($.proxy(function(evt) {
+            var cb = $(evt.currentTarget);
+            var attrDiv = $("#" + this.ssPrefix + "-attributes-div");
+            if (cb.prop("checked")) {
+                attrDiv.show();
+                this.populateAttributeMap(attrDiv, this.getWmsSourceUrl(), this.data.source.feature_name, this.data.attribute_map);
+            } else {
+                attrDiv.hide();
+            }
+        }, this));
+        if (this.data.is_filterable || this.data.is_interactive) {
+            this.populateAttributeMap(this.getWmsSourceUrl(), this.data.source.feature_name, this.data.attribute_map);
+        }                
     } else {
         magic.modules.creator.Common.dictToForm(this.ssPrefix + "-form", this.data);            
     }
@@ -103,6 +119,15 @@ magic.classes.creator.LayerUpdater.prototype.extractFeatureTypes = function(getC
     return(ftypes);
 };
 
+magic.classes.creator.LayerUpdater.prototype.getActiveTab = function() {
+    var activeTab = "wms";
+    var div = $("div[id^='" + this.prefix + "'][role='tabpanel'].active");
+    if (div.length > 0) {
+        activeTab = div.attr("id").replace(this.prefix + "-", "").replace("-tab", "");
+    }
+    return(activeTab);
+};
+
 /**
  * Populate the WMS feature type selection drop-down
  * @param {string} wmsUrl
@@ -134,6 +159,20 @@ magic.classes.creator.LayerUpdater.prototype.populateWmsSourceSelector = functio
     } else {
         bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">No projection defined for map</div>');
     }   
+};
+
+/**
+ * Populate the attribute map for this layer
+ * @param {Element} div
+ * @param {string} wms URL
+ * @param {string} feature
+ * @param {object} amap
+ */
+magic.classes.creator.LayerUpdater.prototype.populateAttributeMap = function(div, wms, feature, amap) {
+    if (!this.attrMap) {
+        this.attrMap = new magic.classes.creator.LayerAttributeMap(wms, feature);
+    }
+    div.html(this.attrMap.toForm(amap));
 };
 
 /**

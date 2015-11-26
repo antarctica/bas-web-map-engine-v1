@@ -367,21 +367,25 @@
 													"description": "Attribute name",
 													"type": "string"													
 												},
-												"attr_nillable": {
-													"description": "Whether attribute can be null",
-													"type": "boolean"
-												},
-												"attr_type": {
+                                                "attr_type": {
 													"description": "Type of attribute",
 													"type": "string",
 													"enum": [
 														"string", "double", "int", "boolean", "date", "time"
 													]													
 												},
-												"attr_filter": {
-													"description": "Run-time CQL filter on this layer attribute",
-													"type": "string"
+                                                "attr_displayed": {
+													"description": "Whether attribute is displayed in a pop-up",
+													"type": "boolean"
+												},	
+												"attr_nillable": {
+													"description": "Whether attribute can be null",
+													"type": "boolean"
 												},
+                                                "attr_filterable": {
+													"description": "Whether attribute can be filtered according to its values",
+													"type": "boolean"
+												},																								
 												"attr_alias": {
 													"description": "Human-friendly alias for this attribute name",
 													"type": "string"
@@ -389,6 +393,10 @@
 												"attr_unique_values": {
 													"description": "Whether to present unique values of attr in a drop-down",
 													"type": "boolean"
+												},
+                                                "attr_filter": {
+													"description": "(Run-time) CQL filter on this layer attribute",
+													"type": "string"
 												}
 											},
 											"required": [

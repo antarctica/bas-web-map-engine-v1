@@ -78,19 +78,19 @@ magic.modules.creator.Common = function () {
          * @param {object} data
          */
         dictToForm: function(formName, data) {
-            console.log("dictToForm start with " + formName);
+            //console.log("dictToForm start with " + formName);
             var inputs = $("#" + formName + " :input");
             var prefix = formName.replace("form", "");
             $.each(inputs, function(idx, fi) {
                 var fiEl = $(fi);
                 var fiName = fiEl.attr("name");
-                console.log("Input name is " + fiName);
+                //console.log("Input name is " + fiName);
                 if (fiName && fiName.indexOf("_") != 0) {
                     /* A named whose name does NOT start with _ will have an equivalent in the data object */
                     var baseName = fiName.replace(prefix, "");
                     var path = baseName.split("-");
-                    console.log(baseName);
-                    console.dir(path);
+                    //console.log(baseName);
+                    //console.dir(path);
                     var target = data;
                     for (var i = 0; i < path.length-1; i++) {
                         if (target[path[i]]) {
@@ -100,20 +100,17 @@ magic.modules.creator.Common = function () {
                             break;
                         }
                     }
-                    console.dir(target);
-                    if (target != null) {
-                        var value = target[path[path.length-1]];
-                        if (fiEl.attr("type") == "checkbox" || fiEl.attr("type") == "radio") {
-                            /* Set the "checked" property */
-                            fiEl.prop("checked", value);
-                        } else {
-                            /* Simple case */
-                            fiEl.val(value);
-                        }
+                    //console.dir(target);
+                    if (fiEl.attr("type") == "checkbox" || fiEl.attr("type") == "radio") {
+                        /* Set the "checked" property */
+                        fiEl.prop("checked", target == null ? false : (target[path[path.length-1]] ? true : false));
+                    } else {
+                        /* Simple case */
+                        fiEl.val(target == null ? null : target[path[path.length-1]]);
                     }
                 }
             });
-            console.log("dictToForm end");
+            //console.log("dictToForm end");
         },
         /**
          * Populate the data object with values from the given form, recursively if necessary

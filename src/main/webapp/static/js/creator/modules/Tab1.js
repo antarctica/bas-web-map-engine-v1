@@ -5,19 +5,19 @@ magic.modules.creator.Tab1 = function () {
     return({
         init: function () {
             /* Creator method radio button change handler */
-            $("input[type=radio][name='_t1-method-rb']").change($.proxy(function (evt) {
+            $("input[name$='action-rb']").change($.proxy(function (evt) {
                 var rb = $(evt.currentTarget);
                 $.each(["new", "edit", "clone"], $.proxy(function (idx, elt) {
                     if (elt == rb.val()) {
                         /* Checked one */
-                        var select = rb.parent().next("select");
+                        var select = $("#t1-" + elt);
                         select.prop("disabled", false);
                         if (elt == "edit" || elt == "clone") {
                             this.loadMapOptions(select, elt)
                         }
                     } else {
                         /* Has been unchecked */
-                        $("#t1-" + elt + "-rb").parent().next("select").prop("disabled", true);
+                        $("#t1-" + elt).prop("disabled", true);
                     }
                 }, this));
             }, this));
@@ -34,7 +34,16 @@ magic.modules.creator.Tab1 = function () {
          * @param {object} context
          */
         loadContext: function (context) {
-            magic.modules.creator.Common.dictToForm("t1-form", context);
+            //magic.modules.creator.Common.dictToForm("t1-form", context);
+            //TODO
+        },
+        /**
+         * Populate data from tab form
+         * @param {object} context
+         */
+        saveContext: function (context) {
+            //magic.modules.creator.Common.dictToForm("t1-form", context);
+            //TODO
         },
         /**
          * Load the given drop-down with the the list of maps the current user can perform the action on
