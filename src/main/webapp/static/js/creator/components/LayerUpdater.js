@@ -33,7 +33,7 @@ magic.classes.creator.LayerUpdater = function(prefix, data) {
     var btnDeleteLayer = $("#" + this.prefix + "-delete");
     btnDeleteLayer.prop("disabled", $("#" + this.data.id).find("ul").find("li").length > 0);
     btnDeleteLayer.click($.proxy(function(evt) {
-        this.confirmDeleteEntry(this.data.id, "Really delete group : " + this.data.name + "?");                                                       
+        this.confirmDeleteEntry(this.data.id, "Really delete layer : " + this.data.name + "?");                                                       
     }, this));
     
     /* Populate form snippet from data */
@@ -47,18 +47,20 @@ magic.classes.creator.LayerUpdater = function(prefix, data) {
                 var data = $.parseJSON(JSON.stringify(parser.read(response)));
                 if (data) {
                     magic.runtime.creator.catalogues[currentWms] = this.extractFeatureTypes(data);
-                    this.populateWmsFeatureSelector(currentWms, $("select[name='" + this.ssPrefix + "-wms-source-feature_name']"), this.data.source.feature_name);
-                    magic.modules.creator.Common.dictToForm(this.prefix + "-form", this.data); 
+                    this.populateWmsFeatureSelector(currentWms, $("select[name='" + this.ssPrefix + "-source-feature_name']"), this.data.source.feature_name);
+                    magic.modules.creator.Common.dictToForm(this.ssPrefix + "-form", this.data); 
                 } else {
                     bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to read capabilities for WMS ' + currentWms + '</div>');
                 }
             }, this));
         } else {
-            this.populateWmsFeatureSelector(currentWms, $("select[name='" + this.ssPrefix + "-wms-source-feature_name']"), this.data.source.feature_name);
-            magic.modules.creator.Common.dictToForm(this.prefix + "-form", this.data); 
+            this.populateWmsFeatureSelector(currentWms, $("select[name='" + this.ssPrefix + "-source-feature_name']"), this.data.source.feature_name);
+            magic.modules.creator.Common.dictToForm(this.ssPrefix + "-form", this.data); 
         }
+        /* Populate the minimum ans maximum scales */
+        TODO
     } else {
-        magic.modules.creator.Common.dictToForm(this.prefix + "-form", this.data);            
+        magic.modules.creator.Common.dictToForm(this.ssPrefix + "-form", this.data);            
     }
 };
 
@@ -110,18 +112,7 @@ magic.classes.creator.LayerUpdater.prototype.populateWmsFeatureSelector = functi
     select.find("option").remove();   
     var fopts = magic.runtime.creator.catalogues[wmsUrl];
     if (fopts) {
-        var selOpt = null;
-        $.each(fopts, function(idx, fopt) {
-            var opt = $("<option>", {value: fopt.value});
-            opt.text(fopt.name);
-            select.append(opt);
-            if (fopt.value == defval) {
-                selOpt = opt;
-            }
-        }); 
-        if (selOpt != null) {
-            selOpt.prop("selected", "selected");
-        }
+        magic.modules.creator.Common.populateSelect(select, fopts, "value", "name", defval);
     } else {
         bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">No feature types found for ' + wmsUrl + '</div>');
     }
@@ -138,18 +129,7 @@ magic.classes.creator.LayerUpdater.prototype.populateWmsSourceSelector = functio
     if (proj) {
         var eps = magic.modules.creator.Data.WMS_ENDPOINTS[proj].slice(0);
         eps.unshift(magic.modules.creator.Data.DEFAULT_GEOSERVER_WMS);
-        var selOpt = null;
-        $.each(eps, function(idx, ep) {
-            var opt = $("<option>", {value: ep.value});
-            opt.text(ep.name);            
-            select.append(opt);
-            if (ep.value == defval) {
-                selOpt = opt;
-            }
-        });
-        if (selOpt != null) {
-            selOpt.prop("selected", "selected");
-        }
+        magic.modules.creator.Common.populateSelect(select, eps, "value", "name", defval);
     } else {
         bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">No projection defined for map</div>');
     }   

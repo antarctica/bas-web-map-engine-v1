@@ -49,6 +49,14 @@
                                         </select>
                                     </div>
                                     <div class="form-group">
+                                        <label for="t2-layer-wms-legend_graphic" class="col-sm-3 control-label">Legend image</label>
+                                        <div class="col-sm-9 map-creator-control-sm">
+                                            <input type="text" class="form-control" id="t2-layer-wms-legend_graphic" name="t2-layer-wms-legend_graphic" placeholder="URL of legend image if required" 
+                                                   data-toggle="tooltip" data-placement="right" title="Custom URL for a legend image, defaults to using WMS">                                   
+                                            </input>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
                                         <div class="col-sm-offset-3 col-sm-9">
                                             <div class="checkbox">
                                                 <label>
@@ -102,8 +110,33 @@
                         <a class="btn btn-default" style="width:100%" data-toggle="collapse" href="#t2-layer-app-props-div">Edit appearance properties</a>
                         <div class="collapse" id="t2-layer-app-props-div">
                             <div class="panel panel-default">
-                                <!-- min_scale, max_scale, opacity -->
-                                TO DO
+                                <div class="panel-body">
+                                    <!-- min_scale, max_scale, opacity -->
+                                    <div class="form-group">
+                                        <label class="col-sm-3 control-label" for="t2-layer-wms-min_scale">
+                                            Min visible scale
+                                        </label>
+                                        <select class="form-control col-sm-9 map-creator-control-sm" id="t2-layer-wms-min_scale" name="t2-layer-wms-min_scale"
+                                                data-toggle="tooltip" data-placement="right" title="Minimum map scale at which to display this layer">
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-3 control-label" for="t2-layer-wms-max_scale">
+                                            Max visible scale
+                                        </label>
+                                        <select class="form-control col-sm-9 map-creator-control-sm" id="t2-layer-wms-max_scale" name="t2-layer-wms-max_scale"
+                                                data-toggle="tooltip" data-placement="right" title="Maximum map scale at which to display this layer">
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="t2-layer-wms-opacity" class="col-sm-3 control-label">Opacity</label>
+                                        <div class="col-sm-9 map-creator-control-sm">
+                                            <input type="text" class="form-control" id="t2-layer-wms-opacity" name="t2-layer-wms-opacity" placeholder="Layer opacity" 
+                                                   data-toggle="tooltip" data-placement="right" title="Layer opacity (0.0 = transparent, 1.0 = opaque)">                                   
+                                            </input>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

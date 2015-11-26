@@ -46,6 +46,28 @@ magic.modules.creator.Common = function () {
             }, this));    
         },
         /**
+         * Populate a select list from given options
+         * @param {Element} select
+         * @param {Array} optArr
+         * @param {string} valAttr
+         * @param {string} txtAttr
+         * @param {string} defval
+         */
+        populateSelect: function(select, optArr, valAttr, txtAttr, defval) {
+            var selOpt = null;
+            $.each(optArr, function(idx, optObj) {
+                var opt = $("<option>", {value: optObj[valAttr]});
+                opt.text(optObj[txtAttr]);            
+                select.append(opt);
+                if (optObj[valAttr] == defval) {
+                    selOpt = opt;
+                }
+            });
+            if (selOpt != null) {
+                selOpt.prop("selected", "selected");
+            }
+        },
+        /**
          * Populate the named form with data, recursively if necessary
          * Example:
          * form name = t2-layer-form
@@ -56,15 +78,19 @@ magic.modules.creator.Common = function () {
          * @param {object} data
          */
         dictToForm: function(formName, data) {
+            console.log("dictToForm start with " + formName);
             var inputs = $("#" + formName + " :input");
             var prefix = formName.replace("form", "");
             $.each(inputs, function(idx, fi) {
                 var fiEl = $(fi);
                 var fiName = fiEl.attr("name");
+                console.log("Input name is " + fiName);
                 if (fiName && fiName.indexOf("_") != 0) {
                     /* A named whose name does NOT start with _ will have an equivalent in the data object */
                     var baseName = fiName.replace(prefix, "");
                     var path = baseName.split("-");
+                    console.log(baseName);
+                    console.dir(path);
                     var target = data;
                     for (var i = 0; i < path.length-1; i++) {
                         if (target[path[i]]) {
@@ -74,6 +100,7 @@ magic.modules.creator.Common = function () {
                             break;
                         }
                     }
+                    console.dir(target);
                     if (target != null) {
                         var value = target[path[path.length-1]];
                         if (fiEl.attr("type") == "checkbox" || fiEl.attr("type") == "radio") {
@@ -85,7 +112,8 @@ magic.modules.creator.Common = function () {
                         }
                     }
                 }
-            });            
+            });
+            console.log("dictToForm end");
         },
         /**
          * Populate the data object with values from the given form, recursively if necessary

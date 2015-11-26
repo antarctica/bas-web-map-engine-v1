@@ -35,3 +35,25 @@ magic.classes.creator.MapContext.prototype.getProjection = function() {
     }
     return(proj)
 };
+
+/**
+ * Compute an array of scale denominators from OL resolutions (for human-friendliness!)
+ * @param {Array} resArr
+ * @returns {Array}
+ */
+magic.classes.creator.MapContext.prototype.scalesFromResolutions = function(resArr) {
+    var scaleArr = [];
+    var proj = this.getProjection();
+    if (proj) {
+        var projOl = ol.proj.get(proj);
+        scaleArr = $.map(resArr, function(res, idx) { 
+            /* Copied from magic.modules.GeoUtils */
+            var units = projOl.getUnits();
+            var dpi = 25.4 / 0.28;
+            var mpu = ol.proj.METERS_PER_UNIT[units];
+            var scale = res * mpu * 39.37 * dpi; /* NB magic numbers */
+            return(scale);
+        });
+    }
+    return(scaleArr);
+};

@@ -46,18 +46,7 @@ magic.modules.creator.Tab1 = function () {
             select.find("option").remove();
             /* Service returns [{name: <name>, title: <title>},...] */
             $.getJSON(magic.config.paths.baseurl + "/maps/dropdown/" + action, function (data) {
-                var selOpt = null;
-                $.each(data, function (idx, dd) {
-                    var opt = $("<option>", {value: dd.name});
-                    opt.text(dd.title);
-                    select.append(opt);
-                    if (dd.name == defval) {
-                        selOpt = opt;
-                    }
-                });
-                if (selOpt != null) {
-                    selOpt.prop("selected", "selected");
-                }
+                magic.modules.creator.Common.populateSelect(select, data, "name", "title", defval);
             });
         }
 
