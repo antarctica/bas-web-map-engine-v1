@@ -12,7 +12,7 @@
                     <label for="t2-layer-wms-name" class="col-sm-3 control-label">Layer name</label>
                     <div class="col-sm-9">
                         <input type="text" class="form-control" id="t2-layer-wms-name" name="t2-layer-wms-name" placeholder="Layer name" 
-                               data-toggle="tooltip" data-placement="right" title="Letters, numbers and _ allowed" required="required">                                   
+                               data-toggle="tooltip" data-placement="left" title="Letters, numbers and _ allowed" required="required">                                   
                         </input>
                     </div>
                 </div>
@@ -21,7 +21,7 @@
                         <div class="checkbox">
                             <label>
                                 <input type="checkbox" id="t2-layer-wms-is_visible" name="t2-layer-wms-is_visible" value="expanded"
-                                       data-toggle="tooltip" data-placement="right" title="Tick if you want layer visible in initial map view">                                
+                                       data-toggle="tooltip" data-placement="left" title="Tick if you want layer visible in initial map view">                                
                                 </input> Layer is visible
                             </label>
                         </div>
@@ -38,21 +38,25 @@
                                         <label class="col-sm-3 control-label" for="t2-layer-wms-source-wms_source">
                                             WMS source
                                         </label>
-                                        <select class="form-control col-sm-9 map-creator-control-sm" id="t2-layer-wms-source-wms_source" name="t2-layer-wms-source-wms_source">
-                                        </select>
+                                        <div class="col-sm-9">
+                                            <select class="form-control map-creator-control-sm" id="t2-layer-wms-source-wms_source" name="t2-layer-wms-source-wms_source">
+                                            </select>
+                                        </div>
                                     </div>
                                     <div class="form-group">
                                         <label class="col-sm-3 control-label" for="t2-layer-wms-source-feature_name">
                                             Feature
                                         </label>
-                                        <select class="form-control col-sm-9 map-creator-control-sm" id="t2-layer-wms-source-feature_name" name="t2-layer-wms-source-feature_name">
-                                        </select>
+                                        <div class="col-sm-9">
+                                            <select class="form-control map-creator-control-sm" id="t2-layer-wms-source-feature_name" name="t2-layer-wms-source-feature_name">
+                                            </select>
+                                        </div>
                                     </div>
                                     <div class="form-group">
                                         <label for="t2-layer-wms-legend_graphic" class="col-sm-3 control-label">Legend image</label>
-                                        <div class="col-sm-9 map-creator-control-sm">
-                                            <input type="text" class="form-control" id="t2-layer-wms-legend_graphic" name="t2-layer-wms-legend_graphic" placeholder="URL of legend image if required" 
-                                                   data-toggle="tooltip" data-placement="right" title="Custom URL for a legend image, defaults to using WMS">                                   
+                                        <div class="col-sm-9">
+                                            <input type="text" class="form-control map-creator-control-sm" id="t2-layer-wms-legend_graphic" name="t2-layer-wms-legend_graphic" placeholder="URL of legend image if required" 
+                                                   data-toggle="tooltip" data-placement="left" title="Custom URL for a legend image, defaults to using WMS">                                   
                                             </input>
                                         </div>
                                     </div>
@@ -61,7 +65,7 @@
                                             <div class="checkbox">
                                                 <label>
                                                     <input type="checkbox" id="t2-layer-wms-source-is_base" name="t2-layer-wms-source-is_base" value="base"
-                                                           data-toggle="tooltip" data-placement="right" title="Tick if base (backdrop) layer">                                
+                                                           data-toggle="tooltip" data-placement="left" title="Tick if base (backdrop) layer">                                
                                                     </input> Layer is a base (backdrop) layer
                                                 </label>
                                             </div>
@@ -72,7 +76,7 @@
                                             <div class="checkbox">
                                                 <label>
                                                     <input type="checkbox" id="t2-layer-wms-source-is_singletile" name="t2-layer-wms-source-is_singletile" value="singletile"
-                                                           data-toggle="tooltip" data-placement="right" title="Tick to use a single tile (for large rasters, or layers that need wide area labelling)">                                
+                                                           data-toggle="tooltip" data-placement="left" title="Tick to use a single tile (for large rasters, or layers that need wide area labelling)">                                
                                                     </input> Layer rendered as one large tile
                                                 </label>
                                             </div>
@@ -83,7 +87,7 @@
                                             <div class="checkbox">
                                                 <label>
                                                     <input type="checkbox" id="t2-layer-wms-source-is_dem" name="t2-layer-wms-source-is_dem" value="dem"
-                                                           data-toggle="tooltip" data-placement="right" title="Tick if this layer is a DEM to be used in elevation measurement">                                
+                                                           data-toggle="tooltip" data-placement="left" title="Tick if this layer is a DEM to be used in elevation measurement">                                
                                                     </input> Layer is a Digital Elevation Model (DEM)
                                                 </label>
                                             </div>
@@ -94,7 +98,7 @@
                                             <div class="checkbox">
                                                 <label>
                                                     <input type="checkbox" id="t2-layer-wms-source-is_time_dependent" name="t2-layer-wms-source-is_time_dependent" value="timedep"
-                                                           data-toggle="tooltip" data-placement="right" title="Tick if this layer has a time dimension">                                
+                                                           data-toggle="tooltip" data-placement="left" title="Tick if this layer has a time dimension">                                
                                                     </input> Layer has a time dimension
                                                 </label>
                                             </div>
@@ -116,23 +120,30 @@
                                         <label class="col-sm-3 control-label" for="t2-layer-wms-min_scale">
                                             Min visible scale
                                         </label>
-                                        <select class="form-control col-sm-9 map-creator-control-sm" id="t2-layer-wms-min_scale" name="t2-layer-wms-min_scale"
-                                                data-toggle="tooltip" data-placement="right" title="Minimum map scale at which to display this layer">
-                                        </select>
+                                        <div class="col-sm-9">
+                                            <input type="number" class="form-control map-creator-control-sm" id="t2-layer-wms-min_scale" name="t2-layer-wms-min_scale" placeholder="Visible at minimum scale denominator" 
+                                                   min="1000" max="100000000" step="1000"
+                                                   data-toggle="tooltip" data-placement="left" title="Minimum scale denominator layer should be visible at">                                   
+                                            </input>
+                                        </div>
                                     </div>
                                     <div class="form-group">
                                         <label class="col-sm-3 control-label" for="t2-layer-wms-max_scale">
                                             Max visible scale
                                         </label>
-                                        <select class="form-control col-sm-9 map-creator-control-sm" id="t2-layer-wms-max_scale" name="t2-layer-wms-max_scale"
-                                                data-toggle="tooltip" data-placement="right" title="Maximum map scale at which to display this layer">
-                                        </select>
+                                        <div class="col-sm-9">
+                                            <input type="number" class="form-control map-creator-control-sm" id="t2-layer-wms-max_scale" name="t2-layer-wms-max_scale" placeholder="Visible at maximum scale denominator" 
+                                                   min="1000" max="100000000" step="1000"
+                                                   data-toggle="tooltip" data-placement="left" title="Maximum scale denominator layer should be visible at">                                   
+                                            </input>
+                                        </div>
                                     </div>
                                     <div class="form-group">
                                         <label for="t2-layer-wms-opacity" class="col-sm-3 control-label">Opacity</label>
-                                        <div class="col-sm-9 map-creator-control-sm">
-                                            <input type="text" class="form-control" id="t2-layer-wms-opacity" name="t2-layer-wms-opacity" placeholder="Layer opacity" 
-                                                   data-toggle="tooltip" data-placement="right" title="Layer opacity (0.0 = transparent, 1.0 = opaque)">                                   
+                                        <div class="col-sm-9">
+                                            <input type="number" class="form-control map-creator-control-sm" id="t2-layer-wms-opacity" name="t2-layer-wms-opacity" placeholder="Layer opacity (0->1)"
+                                                   min="0" max="1" step="0.1"
+                                                   data-toggle="tooltip" data-placement="left" title="Layer opacity (0.0 = transparent, 1.0 = opaque)">                                   
                                             </input>
                                         </div>
                                     </div>
@@ -147,7 +158,28 @@
                         <div class="collapse" id="t2-layer-int-props-div">
                             <div class="panel panel-default">
                                 <!-- is_interactive, is_filterable, attribute_map -->
-                                TO DO
+                                <div class="form-group">
+                                    <div class="col-sm-offset-3 col-sm-9">
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox" id="t2-layer-wms-source-is_interactive" name="t2-layer-wms-source-is_interactive" value="interactive"
+                                                       data-toggle="tooltip" data-placement="left" title="Tick if this layer should display a pop-up of selected attributes on the map">                                
+                                                </input> Layer should display attribute pop-ups
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-sm-offset-3 col-sm-9">
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox" id="t2-layer-wms-source-is_filterable" name="t2-layer-wms-source-is_filterable" value="filterable"
+                                                       data-toggle="tooltip" data-placement="left" title="Tick if this layer can be filtered by attribute value(s)">                                
+                                                </input> Layer can be filtered on attribute value(s)
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

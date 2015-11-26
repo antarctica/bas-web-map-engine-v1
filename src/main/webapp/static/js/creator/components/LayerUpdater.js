@@ -57,8 +57,9 @@ magic.classes.creator.LayerUpdater = function(prefix, data) {
             this.populateWmsFeatureSelector(currentWms, $("select[name='" + this.ssPrefix + "-source-feature_name']"), this.data.source.feature_name);
             magic.modules.creator.Common.dictToForm(this.ssPrefix + "-form", this.data); 
         }
-        /* Populate the minimum ans maximum scales */
-        TODO
+        /* Populate the minimum and maximum scales */
+        
+        
     } else {
         magic.modules.creator.Common.dictToForm(this.ssPrefix + "-form", this.data);            
     }

@@ -46,7 +46,7 @@ magic.modules.creator.Common = function () {
             }, this));    
         },
         /**
-         * Populate a select list from given options
+         * Populate a select list from given array of option objects
          * @param {Element} select
          * @param {Array} optArr
          * @param {string} valAttr
