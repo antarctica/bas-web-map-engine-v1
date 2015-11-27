@@ -1,13 +1,16 @@
 /* Accompanying object for the 'update layer group' dialog form */
 
-magic.classes.creator.LayerGroupUpdater = function(prefix, data) {
+magic.classes.creator.LayerGroupUpdater = function(prefix) {
     
     /* Prefix to strip from ids/names to get corresponding JSON schema entries */
     this.prefix = prefix;
     
-    /* Layer group data object */
-    this.data = data;
-       
+    /* Field names */
+    this.form_fields = ["id", "name", "expanded"];   
+    
+    /* Context object */
+    this.data = null;
+    
     /* Add update layer group button handler */
     var btnUpdateGroup = $("#" + this.prefix + "-save");
     btnUpdateGroup.prop("disabled", true);     
@@ -16,23 +19,40 @@ magic.classes.creator.LayerGroupUpdater = function(prefix, data) {
         btnUpdateGroup.prop("disabled", false);
     });                                
     btnUpdateGroup.click($.proxy(function(evt) {
-        /* Update dictionary entry */
-        magic.modules.creator.Common.formToDict(this.prefix + "-form", this.data);
-        /* Update the tree button caption as we have updated the name */
-        $("#" + this.data.id).find("button").html(this.data.name);
-        $("[id$='-update-panel']").fadeOut("slow");
+        if (this.data) {
+            /* Update dictionary entry */
+            this.saveContext();
+            /* Update the tree button caption as we have updated the name */
+            $("#" + this.data.id).find("button").html(this.data.name);
+            $("[id$='-update-panel']").fadeOut("slow");
+        }
     }, this));
      
     /* Add delete layer group button handler */            
+    var btnDeleteGroup = $("#" + this.prefix + "-delete");   
+    btnDeleteGroup.prop("disabled", true);
+    btnDeleteGroup.click($.proxy(function(evt) {
+        if (this.data) {
+            this.confirmDeleteEntry(this.data.id, "Really delete group : " + this.data.name + "?");
+        }
+    }, this));    
+            
+};
+
+magic.classes.creator.LayerGroupUpdater.prototype.loadContext = function(context) {
+    
+    /* Layer group data object */
+    this.data = context;
+     
     var btnDeleteGroup = $("#" + this.prefix + "-delete");
     btnDeleteGroup.prop("disabled", $("#" + this.data.id).find("ul").find("li").length > 0);
-    btnDeleteGroup.click($.proxy(function(evt) {
-        this.confirmDeleteEntry(this.data.id, "Really delete group : " + this.data.name + "?");                                                       
-    }, this));
     
     /* Populate form snippet from data */
-    magic.modules.creator.Common.dictToForm(this.prefix + "-form", this.data);            
-            
+    magic.modules.creator.Common.dictToForm(this.form_fields, this.data, this.prefix);            
+};
+
+magic.classes.creator.LayerGroupUpdater.prototype.saveContext = function() {
+    magic.modules.creator.Common.formToDict(this.form_fields, this.data, this.prefix);           
 };
 
 /**

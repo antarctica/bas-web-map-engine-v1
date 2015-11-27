@@ -4,13 +4,16 @@ magic.modules.creator.Tab2 = function () {
 
     return({
         
-        /* Context for layer update */
+        /* Sub-tab for layer update */
         layer_updater: null,
 
-        /* Context for layer group update */
+        /* Sub-tab for layer group update */
         group_updater: null,
 
-        init: function() {           
+        init: function() {
+            this.layer_updater = new magic.classes.creator.LayerUpdater("t2-layer");
+            this.group_updater = new magic.classes.creator.LayerGroupUpdater("t2-group");
+            $("#t2-update-panel").hide();
         },
         /**
          * Populate tab form from data
@@ -47,26 +50,7 @@ magic.modules.creator.Tab2 = function () {
                         layerTree.append(newLi);
                         newLi.find("button").click($.proxy(this.layerTreeButtonHandler, this));
                     }, this));
-                }               
-                /* Add update layer button handler */
-//                var btnUpdateLayer = $("#t2-layer-save");
-//                if (btnUpdateLayer) {
-//                    $("[id^=t2-layer]").filter(":input").on("change keyup", function() {
-//                        btnUpdateLayer.prop("disabled", false);
-//                    });                                
-//                    btnUpdateLayer.click(function() {
-//                        //TODO
-//                    });
-//                }
-//                /* Add delete layer  button handler */
-//                var btnDeleteLayer = $("#t2-layer-delete");
-//                if (btnDeleteLayer) {                                             
-//                    btnDeleteLayer.click($.proxy(function(evt) {
-//                        var id = $("#t2-layer-id").val();
-//                        var dictEntry = magic.modules.creator.Common.layer_dictionary.get(id);
-//                        this.confirmDeleteEntry(id, "Really delete layer : " + dictEntry.name + "?");                                          
-//                    }, this));
-//                }                
+                }                               
             }
         },
         /**
@@ -84,13 +68,13 @@ magic.modules.creator.Tab2 = function () {
                 $("#t2-update-panel-title").html("Layer group : " + dictEntry.name);
                 $("#t2-group-div").show();
                 $("#t2-layer-div").hide();
-                this.group_updater = new magic.classes.creator.LayerGroupUpdater("t2-group", dictEntry);                
+                this.group_updater.loadContext(dictEntry);                
             } else {
                 /* Layer form snippet */
                 $("#t2-update-panel-title").html("Data layer : " + dictEntry.name);
                 $("#t2-group-div").hide();
                 $("#t2-layer-div").show();
-                this.layer_updater = new magic.classes.creator.LayerUpdater("t2-layer", dictEntry);                
+                this.layer_updater.loadContext(dictEntry);                
             }
         },
         /**

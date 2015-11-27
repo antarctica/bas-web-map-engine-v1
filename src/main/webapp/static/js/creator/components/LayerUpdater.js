@@ -1,23 +1,27 @@
 /* Accompanying object for the 'update layer' dialog form */
 
-magic.classes.creator.LayerUpdater = function(prefix, data) {
+magic.classes.creator.LayerUpdater = function(prefix) {
     
     /* Prefix to strip from ids/names to get corresponding JSON schema entries */
     this.prefix = prefix;
     
+    /* Sub-tabs */
+    this.style_definition = null;   //TODO
+    this.attribute_map = null;
+    
+    /* Common form inputs */
+    this.form_fields = ["id", "name", "legend_graphic", "min_scale", "max_scale", "opacity", "is_visible", "is_interactive", "is_filterable"]
+    
+    /* Form inputs, per tab */
+    this.source_form_fields = {
+        "wms": ["wms_source", "feature_name", "style_name", "is_base", "is_singletile", "is_dem", "is_time_dependent"],
+        "geojson": ["geojson_source", "feature_name"],
+        "gpx": ["gpx_source"],
+        "kml": ["kml_source"]                
+    };    
+    
     /* Layer group data object */
-    this.data = data;
-        
-    /* Derived quantities */
-    /* Active layer specification tab */
-    this.activeTab = this.getActiveTab();
-    
-    /* Source-specific name prefix */
-    this.ssPrefix = this.prefix + "-" + this.activeTab;
-    
-    /* Attribute mapper */
-    this.attrMap = null;
-    /* End of derived quantities */
+    this.data = null;    
        
     /* Add update layer group button handler */    
     var btnUpdateLayer = $("#" + this.prefix + "-save");
@@ -27,65 +31,129 @@ magic.classes.creator.LayerUpdater = function(prefix, data) {
         btnUpdateLayer.prop("disabled", false);
     });                                
     btnUpdateLayer.click($.proxy(function(evt) {
-        /* Update dictionary entry */
-        magic.modules.creator.Common.formToDict(this.prefix + "-form", this.data);
-        /* Update the tree button caption as we have updated the name */
-        $("#" + this.data.id).find("button").html(this.data.name);
-        $("[id$='-update-panel']").fadeOut("slow");
+        if (this.data) {
+            /* Update dictionary entry */
+            this.saveContext();
+            /* Update the tree button caption as we have updated the name */
+            $("#" + this.data.id).find("button").html(this.data.name);
+            $("[id$='-update-panel']").fadeOut("slow");
+        }
     }, this));
      
     /* Add delete layer group button handler */            
     var btnDeleteLayer = $("#" + this.prefix + "-delete");
-    btnDeleteLayer.prop("disabled", $("#" + this.data.id).find("ul").find("li").length > 0);
     btnDeleteLayer.click($.proxy(function(evt) {
-        this.confirmDeleteEntry(this.data.id, "Really delete layer : " + this.data.name + "?");                                                       
-    }, this));
-    
-    /* Populate form snippet from data */
-    if (this.activeTab == "wms") {
-        /* Populate the list of known WMS sources and the feature name choices */
-        var currentWms = this.getWmsSourceUrl();            
-        this.populateWmsSourceSelector($("select[name='" + this.ssPrefix + "-source-wms_source']"), currentWms);
-        if (!magic.runtime.creator.catalogues[currentWms]) {
-            var parser = new ol.format.WMSCapabilities();
-            $.ajax(currentWms + "?request=GetCapabilities").then($.proxy(function(response) {
-                var data = $.parseJSON(JSON.stringify(parser.read(response)));
-                if (data) {
-                    magic.runtime.creator.catalogues[currentWms] = this.extractFeatureTypes(data);
-                    this.populateWmsFeatureSelector(currentWms, $("select[name='" + this.ssPrefix + "-source-feature_name']"), this.data.source.feature_name);
-                    magic.modules.creator.Common.dictToForm(this.ssPrefix + "-form", this.data); 
-                } else {
-                    bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to read capabilities for WMS ' + currentWms + '</div>');
-                }
-            }, this));
-        } else {
-            this.populateWmsFeatureSelector(currentWms, $("select[name='" + this.ssPrefix + "-source-feature_name']"), this.data.source.feature_name);
-            magic.modules.creator.Common.dictToForm(this.ssPrefix + "-form", this.data); 
+        if (this.data) {
+            this.confirmDeleteEntry(this.data.id, "Really delete layer : " + this.data.name + "?");                                                       
         }
-        /* Interactivity tab - add change handlers for filter/popup checkboxes */
-        $("#" + this.prefix + "-int-props-div").find("input[type='checkbox']").change($.proxy(function(evt) {
-            var cb = $(evt.currentTarget);
-            var attrDiv = $("#" + this.ssPrefix + "-attributes-div");
-            if (cb.prop("checked")) {
-                attrDiv.show();
-                this.populateAttributeMap(attrDiv, this.getWmsSourceUrl(), this.data.source.feature_name, this.data.attribute_map);
-            } else {
-                attrDiv.hide();
-            }
-        }, this));
-        if (this.data.is_filterable || this.data.is_interactive) {
-            this.populateAttributeMap(this.getWmsSourceUrl(), this.data.source.feature_name, this.data.attribute_map);
-        }                
-    } else {
-        magic.modules.creator.Common.dictToForm(this.ssPrefix + "-form", this.data);            
-    }
+    }, this));    
 };
 
-magic.classes.creator.LayerUpdater.prototype.getWmsSourceUrl = function() {
-    if (this.data.source && this.data.source.wms_source) {
-        return(this.data.source.wms_source);
+magic.classes.creator.LayerUpdater.prototype.loadContext = function(context) {
+    
+    this.data = context;
+   
+    var activeTab = this.getActiveTab();
+    var sourcePrefix = this.prefix + "-" + activeTab;
+    
+    /* Attribute map sub-tab */
+    var attributeDiv = $("#" + this.prefix + "-attributes-div");
+    this.attribute_map = new magic.classes.creator.LayerAttributeMap(attributeDiv);
+    this.populateAttributeDiv(this.data.is_filterable === true || this.data.is_interactive === true, attributeDiv, activeTab);
+    
+    /* Add change handlers for filter/popup checkboxes */
+    $("#" + this.prefix + "-int-props-div").find("input[type='checkbox']").change($.proxy(function(evt) {        
+        var id = $(evt.currentTarget).attr("id");
+        var partnerId = id.indexOf("interactive") != -1 ? id.replace("interactive", "filterable") : id.replace("filterable", "interactive");
+        var show = ($(evt.currentTarget).prop("checked") === true) || ($("#" + partnerId).prop("checked") === true);
+        this.populateAttributeDiv(show, attributeDiv, activeTab);            
+    }, this));
+            
+    /* Common non-source specific fields */
+    magic.modules.creator.Common.dictToForm(this.form_fields, this.data, this.prefix); 
+                            
+    switch(activeTab) {
+        case "geojson":
+            //TODO
+            break;
+        case "gpx":
+            //TODO
+            break;
+        case "kml":
+            //TODO
+            break;
+        default: 
+            /* Add change handler for WMS selector */
+            var sourceSelect = $("select[name='" + sourcePrefix + "-wms_source']");                        
+            sourceSelect.off("change").on("change", $.proxy(function(evt) {
+                var selWms = $(evt.currentTarget).val();
+                this.populateWmsDataSources(selWms);
+            }, this));
+            magic.modules.creator.Common.dictToForm(this.source_form_fields[activeTab], this.data.source, sourcePrefix); 
+            this.populateWmsSourceSelector(sourceSelect, this.data.source.wms_source);
+            this.populateWmsDataSources(this.data.source.wms_source);             
+            break;
+    }                       
+};
+
+magic.classes.creator.LayerUpdater.prototype.saveContext = function() {
+    
+    /* Common non-source specific fields */
+    magic.modules.creator.Common.formToDict(this.form_fields, this.data, this.prefix);
+    
+    /* Source-specific fields */
+    var activeTab = this.getActiveTab();
+    var sourcePrefix = this.prefix + "-" + activeTab;
+    switch(activeTab) {
+        case "geojson":
+            //TODO
+            break;
+        case "gpx":
+            //TODO
+            break;
+        case "kml":
+            //TODO
+            break;
+        default: 
+            /* Update the data source fields from form */           
+            magic.modules.creator.Common.formToDict(this.source_form_fields[activeTab], this.data.source, sourcePrefix);
+            this.attribute_map.saveContext(this.data, "wms");
+            console.log(this.data);
+            break;
+    }                       
+};
+
+/**
+ * Populate the feature type selector from given WMS
+ * @param {string} wmsUrl
+ */
+magic.classes.creator.LayerUpdater.prototype.populateWmsDataSources = function(wmsUrl) {
+    var featSelect = $("select[name='" + this.prefix + "-wms-feature_name']");
+    if (!magic.runtime.creator.catalogues[wmsUrl]) {
+        var parser = new ol.format.WMSCapabilities();
+        var jqXhr = $.get(wmsUrl + "?request=GetCapabilities", $.proxy(function(response) {
+            var capsJson = $.parseJSON(JSON.stringify(parser.read(response)));
+            if (capsJson) {
+                magic.runtime.creator.catalogues[wmsUrl] = this.extractFeatureTypes(capsJson);
+                this.populateWmsFeatureSelector(wmsUrl, featSelect, this.data.source.feature_name);
+            } else {
+                bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to parse capabilities for WMS ' + wmsUrl + '</div>');
+            }
+        }, this)).fail(function() {
+            bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to read capabilities for WMS ' + wmsUrl + '</div>');
+            featSelect.find("option").remove();
+        });                    
     } else {
-        return(magic.modules.creator.Data.DEFAULT_GEOSERVER_WMS.value);
+        this.populateWmsFeatureSelector(wmsUrl, featSelect, this.data.source.feature_name);
+    }            
+};
+
+magic.classes.creator.LayerUpdater.prototype.populateAttributeDiv = function(show, div, sourceType) {
+    if (show) {
+        div.show();
+        this.attribute_map.loadContext(this.data, sourceType, div);
+    } else {
+        div.hide();
     }
 };
 
@@ -159,20 +227,6 @@ magic.classes.creator.LayerUpdater.prototype.populateWmsSourceSelector = functio
     } else {
         bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">No projection defined for map</div>');
     }   
-};
-
-/**
- * Populate the attribute map for this layer
- * @param {Element} div
- * @param {string} wms URL
- * @param {string} feature
- * @param {object} amap
- */
-magic.classes.creator.LayerUpdater.prototype.populateAttributeMap = function(div, wms, feature, amap) {
-    if (!this.attrMap) {
-        this.attrMap = new magic.classes.creator.LayerAttributeMap(wms, feature);
-    }
-    div.html(this.attrMap.toForm(amap));
 };
 
 /**

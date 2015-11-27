@@ -5,7 +5,7 @@
         <title></title>
     </head>    
     <body th:fragment="layout">        
-        <div class="well well-lg">
+        <div class="well well-sm">
             <h3>Welcome to the MAGIC Map Creation Wizard</h3>            
         </div>
         <form id="t1-form" class="form-horizontal">
@@ -57,11 +57,12 @@
                     <h3 class="panel-title">Basic map information</h3>
                 </div>
                 <div class="panel-body">
+                    <input type="hidden" name="t1-id" id="t1-id"></input>
                     <div class="form-group">
                         <label for="t1-name" class="col-sm-2 control-label">Name of map</label>
                         <div class="col-sm-10">
                             <input type="text" class="form-control map-creator-control-xl" id="t1-name" name="t1-name" placeholder="Name for map" 
-                                   maxlength="50" data-toggle="tooltip" data-placement="right" title="Name to be used in the URL - only lowercase letters, numbers and _ allowed" required="required">                                   
+                                   maxlength="50" data-toggle="tooltip" data-placement="right" title="Name to be used in the URL: only lowercase letters, numbers and _ allowed" required="required">                                   
                             </input>
                         </div>
                     </div>
@@ -69,7 +70,7 @@
                         <label for="t1-title" class="col-sm-2 control-label">Title of map</label>
                         <div class="col-sm-10">
                             <input type="text" class="form-control map-creator-control-xl" id="t1-title" name="t1-title" placeholder="Title for map" 
-                                   maxlength="100" data-toggle="tooltip" data-placement="right" title="Map title - letters, numbers, _ and spaces allowed" required="required">                                   
+                                   maxlength="100" data-toggle="tooltip" data-placement="right" title="Map title: letters, numbers, _ and spaces allowed" required="required">                                   
                             </input>
                         </div>
                     </div>

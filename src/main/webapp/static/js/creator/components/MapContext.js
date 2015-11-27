@@ -6,7 +6,7 @@ magic.classes.creator.MapContext = function() {
         
 };
 
-magic.classes.creator.MapContext.prototype.fetchMap = function(action, id, callback) {
+magic.classes.creator.MapContext.prototype.load = function(action, id, callback) {
     if (action == "new") {
         /* New blank map context */
         this.context = $.extend(true, {}, magic.modules.creator.Data.BLANK_MAP_CORE, {"data": magic.modules.creator.Data.BLANK_MAP_DATA[id]});

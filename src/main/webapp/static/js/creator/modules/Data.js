@@ -6,8 +6,9 @@ magic.modules.creator.Data = function () {
                 
         /* Core fields for new blank map */
         BLANK_MAP_CORE: {
-            "id": "",
-            "name": "New blank map",
+            "id": null,
+            "name": "new_map",
+            "title": "New blank map",
             "description": "Longer description of the purpose of the map goes here",
             "version": "1.0",
             "logo": "bas.png",
@@ -33,12 +34,12 @@ magic.modules.creator.Data = function () {
                 "gazetteers": ["cga"],              
                 "layers": [
                     {
-                        "id": "",
+                        "id": null,
                         "name": "Base layers",
                         "expanded": true,
                         "layers": [
                             {
-                                "id": "",
+                                "id": null,
                                 "name": "Hillshade and bathymetry",
                                 "source": {
                                     "wms_source": "https://maps.bas.ac.uk/antarctic/wms",
@@ -51,12 +52,12 @@ magic.modules.creator.Data = function () {
                         ]
                     },
                     {
-                        "id": "",
+                        "id": null,
                         "name": "Topo layers",
                         "expanded": true,
                         "layers": [
                             {
-                                "id": "",
+                                "id": null,
                                 "name": "Coastline",
                                 "source": {
                                     "wms_source": "https://maps.bas.ac.uk/antarctic/wms",
@@ -65,7 +66,7 @@ magic.modules.creator.Data = function () {
                                 "is_visible": true
                             },
                             {
-                                "id": "",
+                                "id": null,
                                 "name": "Sub-Antarctic coastline",
                                 "source": {
                                     "wms_source": "https://maps.bas.ac.uk/antarctic/wms",
@@ -76,12 +77,12 @@ magic.modules.creator.Data = function () {
                         ]
                     },
                     {
-                        "id": "",
+                        "id": null,
                         "name": "Grids",
                         "expanded": true,
                         "layers": [
                             {
-                                "id": "",
+                                "id": null,
                                 "name": "Graticule",
                                 "source": {
                                     "wms_source": "https://maps.bas.ac.uk/antarctic/wms",
@@ -106,12 +107,12 @@ magic.modules.creator.Data = function () {
                 "gazetteers": ["arctic"],
                 "layers": [
                     {
-                        "id": "",
+                        "id": null,
                         "name": "Base layers",
                         "expanded": true,
                         "layers": [
                             {
-                                "id": "",
+                                "id": null,
                                 "name": "Hillshade and bathymetry",
                                 "source": {
                                     "wms_source": "https://maps.bas.ac.uk/arctic/wms",
@@ -125,12 +126,12 @@ magic.modules.creator.Data = function () {
                         ]
                     },
                     {
-                        "id": "",
+                        "id": null,
                         "name": "Topo layers",
                         "expanded": true,
                         "layers": [
                             {
-                                "id": "",
+                                "id": null,
                                 "name": "Coastline",
                                 "source": {
                                     "wms_source": "https://maps.bas.ac.uk/arctic/wms",
@@ -141,12 +142,12 @@ magic.modules.creator.Data = function () {
                         ]
                     },
                     {
-                        "id": "",
+                        "id": null,
                         "name": "Grids",
                         "expanded": true,
                         "layers": [
                             {
-                                "id": "",
+                                "id": null,
                                 "name": "Graticule",
                                 "source": {
                                     "wms_source": "https://maps.bas.ac.uk/arctic/wms",
@@ -171,12 +172,12 @@ magic.modules.creator.Data = function () {
                 "gazetteers": ["sg"],                
                 "layers": [
                     {
-                        "id": "",
+                        "id": null,
                         "name": "Base layers",
                         "expanded": true,
                         "layers": [
                             {
-                                "id": "",
+                                "id": null,
                                 "name": "Hillshade and bathymetry",
                                 "source": {
                                     "wms_source": "https://maps.bas.ac.uk/southgeorgia/wms",
@@ -189,12 +190,12 @@ magic.modules.creator.Data = function () {
                         ]
                     },
                     {
-                        "id": "",
+                        "id": null,
                         "name": "Topo layers",
                         "expanded": true,
                         "layers": [
                             {
-                                "id": "",
+                                "id": null,
                                 "name": "Coastline",
                                 "source": {
                                     "wms_source": "https://maps.bas.ac.uk/southgeorgia/wms",
@@ -209,7 +210,7 @@ magic.modules.creator.Data = function () {
         },
         /* Template for a new layer */
         BLANK_MAP_NEW_LAYER: {            
-            "id": "",
+            "id": null,
             "name": "New layer",
             "source": {
                 "wms_source": "http://localhost:8080/geoserver/wms"
@@ -217,7 +218,7 @@ magic.modules.creator.Data = function () {
         },
         /* Template for a new group */
         BLANK_MAP_NEW_GROUP: {
-            "id": "",
+            "id": null,
             "name": "New layer group",
             "layers": [                
             ]

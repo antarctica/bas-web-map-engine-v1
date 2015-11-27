@@ -23,6 +23,8 @@ magic.modules.creator.Common = function () {
             }});
             /* Tooltips */
             $('[data-toggle="tooltip"]').tooltip();
+            /* For dynamic tooltips - http://stackoverflow.com/questions/9958825/how-do-i-bind-twitter-bootstrap-tooltips-to-dynamically-created-elements */
+            $("body").tooltip({ selector: '[data-toggle="tooltip"]'});
             /* Initialise tabs */
             this.map_context = new magic.classes.creator.MapContext();
             this.layer_dictionary = new magic.classes.creator.LayerDictionary();
@@ -46,6 +48,15 @@ magic.modules.creator.Common = function () {
             }, this));    
         },
         /**
+         * Populate data context from changed tab forms
+         * @param {object} data
+         */
+        saveContext: function(data) {
+            $.each(this.tabs, $.proxy(function(idx, tab) {
+                tab.loadContext(data);
+            }, this));    
+        },
+        /**
          * Populate a select list from given array of option objects
          * @param {Element} select
          * @param {Array} optArr
@@ -59,7 +70,7 @@ magic.modules.creator.Common = function () {
                 var opt = $("<option>", {value: optObj[valAttr]});
                 opt.text(optObj[txtAttr]);            
                 select.append(opt);
-                if (optObj[valAttr] == defval) {
+                if (defval && optObj[valAttr] == defval) {
                     selOpt = opt;
                 }
             });
@@ -68,107 +79,44 @@ magic.modules.creator.Common = function () {
             }
         },
         /**
-         * Populate the named form with data, recursively if necessary
-         * Example:
-         * form name = t2-layer-form
-         * form inputs (simplified) = [t2-layer-id, t2-layer-name, t2-layer-source-is_base]
-         * data = {id: <id>, name: <name>, source: {is_base: true}}
-         * Naming convention for inputs indicates the level at which the data can be found i.e. source->is_base
-         * @param {string} formName
+         * Populate a form with the specified fields from the data object
+         * Form input names/ids should be derivable from <prefix>-<field>
+         * @param {Array} fields
          * @param {object} data
+         * @param {string} prefix
          */
-        dictToForm: function(formName, data) {
-            //console.log("dictToForm start with " + formName);
-            var inputs = $("#" + formName + " :input");
-            var prefix = formName.replace("form", "");
-            $.each(inputs, function(idx, fi) {
-                var fiEl = $(fi);
-                var fiName = fiEl.attr("name");
-                //console.log("Input name is " + fiName);
-                if (fiName && fiName.indexOf("_") != 0) {
-                    /* A named whose name does NOT start with _ will have an equivalent in the data object */
-                    var baseName = fiName.replace(prefix, "");
-                    var path = baseName.split("-");
-                    //console.log(baseName);
-                    //console.dir(path);
-                    var target = data;
-                    for (var i = 0; i < path.length-1; i++) {
-                        if (target[path[i]]) {
-                            target = target[path[i]];
-                        } else {
-                            target = null;
-                            break;
-                        }
-                    }
-                    //console.dir(target);
-                    if (fiEl.attr("type") == "checkbox" || fiEl.attr("type") == "radio") {
-                        /* Set the "checked" property */
-                        fiEl.prop("checked", target == null ? false : (target[path[path.length-1]] ? true : false));
-                    } else {
-                        /* Simple case */
-                        fiEl.val(target == null ? null : target[path[path.length-1]]);
-                    }
+        dictToForm: function(fields, data, prefix) {           
+            $.each(fields, function(idx, f) {
+                var input = $("#" + prefix + "-" + f);                
+                if (input.attr("type") == "checkbox" || input.attr("type") == "radio") {
+                    /* Set the "checked" property */
+                    input.prop("checked", !data ? false : (data[f] === true ? true : false));
+                } else {
+                    /* Simple case */
+                    input.val(!data ? null : data[f]);
                 }
             });
-            //console.log("dictToForm end");
         },
         /**
-         * Populate the data object with values from the given form, recursively if necessary
-         * Example:
-         * form name = t2-layer-form
-         * form inputs (simplified) = [t2-layer-id, t2-layer-name, t2-layer-source-is_base]
-         * data = {id: <id>, name: <name>, source: {is_base: true}}
-         * Naming convention for inputs indicates the level at which the data can be found i.e. source->is_base
-         * @param {string} formName
+         * Populate the data object with values from the given form
+         * Form input names/ids should be derivable from <prefix>-<field>
+         * @param {Array} fields
          * @param {object} data
+         * @param {string} prefix
          */
-        formToDict: function(formName, data) {       
-            var inputs = $("#" + formName + " :input");
-            var prefix = formName.replace("form", "");
-            $.each(inputs, function(idx, fi) {
-                var fiEl = $(fi);
-                if (fiEl.attr("name")) {
-                    /* A named attribute will usually have an equivalent in data */
-                    var baseName = fiEl.attr("name").replace(prefix, "");
-                    var path = baseName.split("-");
-                    var target = data;
-                    for (var i = 0; i < path.length-1; i++) {
-                        if (target[path[i]]) {
-                            target = target[path[i]];
-                        } else {
-                            target = null;
-                            break;
-                        }
-                    }
-                    if (target != null) {
-                        var value = target[path[path.length-1]];
-                        if (fiEl.attr("type") == "checkbox" || fiEl.attr("type") == "radio") {
-                            /* Set the "checked" property */
-                            fiEl.prop("checked", value);
-                        } else {
-                            /* Simple case */
-                            fiEl.val(value);
-                        }
-                    }
-                }
-            });            
-            
-            
-            var inputs = $("#" + formName + " :input");
-            var prefix = formName.replace("form", "");
-            $.each(inputs, function(idx, fi) {
-                var fiEl = $(fi);
-                if (fiEl.attr("name")) {
-                    var schemaName = fiEl.attr("name").replace(prefix, "");
-                    if (fiEl.attr("type") == "checkbox" || fiEl.attr("type") == "radio") {
-                        /* Read the "checked" property */
-                        data[schemaName] = fiEl.prop("checked");
+        formToDict: function(fields, data, prefix) {
+            if (data) {
+                $.each(fields, function(idx, f) {
+                    var input = $("#" + prefix + "-" + f);                
+                    if (input.attr("type") == "checkbox" || input.attr("type") == "radio") {
+                        /* Set the "checked" property */
+                        data[f] = input.prop("checked") ? true : false;
                     } else {
                         /* Simple case */
-                        data[schemaName] = fiEl.val();
+                        data[f] = input.val();
                     }
-                }
-            });            
+                });
+            }
         }
 
     });

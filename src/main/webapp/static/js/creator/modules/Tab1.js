@@ -3,6 +3,9 @@
 magic.modules.creator.Tab1 = function () {
 
     return({
+        
+        form_fields: ["id", "name", "title", "description", "version", "contact_email"],
+        
         init: function () {
             /* Creator method radio button change handler */
             $("input[name$='action-rb']").change($.proxy(function (evt) {
@@ -26,24 +29,22 @@ magic.modules.creator.Tab1 = function () {
                 var sel = $(evt.currentTarget);
                 var action = sel.attr("id").split("-").pop();
                 var mapid = sel.val();
-                magic.modules.creator.Common.map_context.fetchMap(action, mapid, $.proxy(magic.modules.creator.Common.loadContext, magic.modules.creator.Common));
+                magic.modules.creator.Common.map_context.load(action, mapid, $.proxy(magic.modules.creator.Common.loadContext, magic.modules.creator.Common));
             });
         },
         /**
          * Populate tab form from data
          * @param {object} context
          */
-        loadContext: function (context) {
-            //magic.modules.creator.Common.dictToForm("t1-form", context);
-            //TODO
+        loadContext: function (context) {            
+            magic.modules.creator.Common.dictToForm(this.form_fields, context, "t1");            
         },
         /**
          * Populate data from tab form
          * @param {object} context
          */
         saveContext: function (context) {
-            //magic.modules.creator.Common.dictToForm("t1-form", context);
-            //TODO
+            magic.modules.creator.Common.formToDict(this.form_fields, context, "t1");
         },
         /**
          * Load the given drop-down with the the list of maps the current user can perform the action on
