@@ -9,12 +9,99 @@
             <h3>Map controls</h3>            
         </div>
         <form id="t3-form" class="form-horizontal">
+            <input type="hidden" name="t3-controls" value="zoom_world"></input>
+            <input type="hidden" name="t3-controls" value="zoom_in"></input>
+            <input type="hidden" name="t3-controls" value="zoom_out"></input>
+            <input type="hidden" name="t3-controls" value="box_zoom"></input>						
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Select which controls and features are required</h3>
+                    <h3 class="panel-title">Select which map controls should be added to the map area</h3>
                 </div>
                 <div class="panel-body">
-                    TODO
+                    <div class="alert alert-info">
+                        Note that controls for zooming in/out, to maximum map extent and by dragging a box are added as standard
+                    </div>
+                    <div class="col-sm-12 form-inline">
+                        <label class="checkbox-inline">
+                            <input type="checkbox" name="t3-controls" value="full_screen"
+                                   data-toggle="tooltip" data-placement="top" title="Enable map viewing in browser full-screen mode"></input>
+                            Full-screen viewer
+                        </label>
+                        <label class="checkbox-inline">
+                            <input type="checkbox" name="t3-controls" value="rotation"
+                                   data-toggle="tooltip" data-placement="top" title="Enable map rotation by shift and drag"></input>
+                            Interactive map rotation
+                        </label>
+                        <label class="checkbox-inline">
+                            <input type="checkbox" name="t3-controls" value="graticule"
+                                   data-toggle="tooltip" data-placement="top" title="Enable automatic graticule (South Georgia only)"></input>
+                            Automatic graticule
+                        </label>      
+                        <label class="checkbox-inline">
+                            <input type="checkbox" name="t3-controls" value="overview_map"
+                                   data-toggle="tooltip" data-placement="top" title="Enable an inset overview map"></input>
+                            Overview map
+                        </label>      
+                    </div>
+                </div>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Select which pop-up features should be added the top menu-bar</h3>
+                </div>
+                <div class="panel-body">                    
+                    <div class="col-sm-12 form-inline">
+                        <label class="checkbox-inline">
+                            <input type="checkbox" name="t3-controls" value="geosearch"
+                                   data-toggle="tooltip" data-placement="top" title="Add the ability to search gazetteer(s) of place-names for this area"></input>
+                            Geosearch tool
+                        </label>
+                        <label class="checkbox-inline">
+                            <input type="checkbox" name="t3-controls" value="download"
+                                   data-toggle="tooltip" data-placement="top" title="Enable download of underlying data"></input>
+                            Data download tool
+                        </label>
+                        <label class="checkbox-inline">
+                            <input type="checkbox" name="t3-controls" value="measurement"
+                                   data-toggle="tooltip" data-placement="top" title="Enable measurement of distances, areas and elevations (if a DEM layer is included)"></input>
+                            Measurement tool
+                        </label>      
+                        <label class="checkbox-inline">
+                            <input type="checkbox" name="t3-controls" value="feature_info"
+                                   data-toggle="tooltip" data-placement="top" title="Enable pop-ups of attributes on clicked features"></input>
+                            Pop-up tool
+                        </label>      
+                    </div>
+                </div>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Select map security features</h3>
+                </div>
+                <!-- TO DO -->
+                <div class="panel-body">                    
+                    <div class="col-sm-12 form-inline">
+                        <label class="checkbox-inline">
+                            <input type="checkbox" name="t3-controls" value="geosearch"
+                                   data-toggle="tooltip" data-placement="top" title="Add the ability to search gazetteer(s) of place-names for this area"></input>
+                            Geosearch tool
+                        </label>
+                        <label class="checkbox-inline">
+                            <input type="checkbox" name="t3-controls" value="download"
+                                   data-toggle="tooltip" data-placement="top" title="Enable download of underlying data"></input>
+                            Data download tool
+                        </label>
+                        <label class="checkbox-inline">
+                            <input type="checkbox" name="t3-controls" value="measurement"
+                                   data-toggle="tooltip" data-placement="top" title="Enable measurement of distances, areas and elevations (if a DEM layer is included)"></input>
+                            Measurement tool
+                        </label>      
+                        <label class="checkbox-inline">
+                            <input type="checkbox" name="t3-controls" value="feature_info"
+                                   data-toggle="tooltip" data-placement="top" title="Enable pop-ups of attributes on clicked features"></input>
+                            Pop-up tool
+                        </label>      
+                    </div>
                 </div>
             </div>
         </form>

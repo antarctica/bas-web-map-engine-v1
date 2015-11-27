@@ -30,7 +30,7 @@ magic.modules.creator.Data = function () {
                 "min_zoom": 0,
                 "max_zoom": 13,
                 "resolutions": [11200, 5600, 2800, 1400, 560, 280, 140, 16, 28, 14, 5.6, 2.8, 1.4, 0.56],
-                "controls": ["zoom_world", "zoom_in", "zoom_out", "box_zoom", "full_screen", "overview_map"],
+                "controls": ["zoom_world", "zoom_in", "zoom_out", "box_zoom"],
                 "gazetteers": ["cga"],              
                 "layers": [
                     {
@@ -103,7 +103,7 @@ magic.modules.creator.Data = function () {
                 "min_zoom": 0,
                 "max_zoom": 6,
                 "resolutions": [11200, 5600, 2800, 1400, 560, 280, 140],
-                "controls": ["zoom_world", "zoom_in", "zoom_out", "box_zoom", "full_screen", "overview_map"],
+                "controls": ["zoom_world", "zoom_in", "zoom_out", "box_zoom"],
                 "gazetteers": ["arctic"],
                 "layers": [
                     {
@@ -168,7 +168,7 @@ magic.modules.creator.Data = function () {
                 "min_zoom": 0,
                 "max_zoom": 14,
                 "resolutions": [3360, 1680, 840, 420, 210, 105, 42, 21, 10.5, 4.2, 2.1, 1.2, 0.56, 0.28, 0.14],
-                "controls": ["zoom_world", "zoom_in", "zoom_out", "box_zoom", "full_screen", "overview_map"],
+                "controls": ["zoom_world", "zoom_in", "zoom_out", "box_zoom"],
                 "gazetteers": ["sg"],                
                 "layers": [
                     {

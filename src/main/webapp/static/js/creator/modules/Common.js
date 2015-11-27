@@ -53,7 +53,7 @@ magic.modules.creator.Common = function () {
          */
         saveContext: function(data) {
             $.each(this.tabs, $.proxy(function(idx, tab) {
-                tab.loadContext(data);
+                tab.saveContext(data);
             }, this));    
         },
         /**

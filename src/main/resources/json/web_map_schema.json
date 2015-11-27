@@ -159,13 +159,10 @@
 							"full_screen",
 							"rotation",
 							"graticule",
-							"aircraft_positions",
-							"ship_positions",
-							"geosearch",
-							"overview_map",
+                            "overview_map",							
+							"geosearch",							
 							"download_data",
-							"measure_height",
-							"measure_distance_area",
+							"measurement",
 							"feature-info"
 						]
 					}
