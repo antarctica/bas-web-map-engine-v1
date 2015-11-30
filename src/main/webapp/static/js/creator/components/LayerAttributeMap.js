@@ -6,13 +6,7 @@ magic.classes.creator.LayerAttributeMap = function(div) {
     this.div = div;
     
     /* Attribute dictionary */
-    this.attribute_dictionary = [];
-    
-    /* WMS URL */
-    this.wms = null;
-    
-    /* Feature type */
-    this.feature = null;
+    this.attribute_dictionary = [];        
     
     this.div.html("");
             
@@ -33,15 +27,15 @@ magic.classes.creator.LayerAttributeMap.prototype.loadContext = function(context
  * @param {object} context
  */
 magic.classes.creator.LayerAttributeMap.prototype.wmsLoadContext = function(context) {
-    this.wms = context.source.wms_source;
-    this.feature = context.source.feature_name; 
-    if (this.wms && this.feature) {
+    var wms = context.source.wms_source;
+    var feature = context.source.feature_name; 
+    if (wms && feature) {
         if ($.isArray(this.attribute_dictionary) && this.attribute_dictionary.length > 0) {
             /* Already fetched */
             this.div.html(this.toForm(context.attribute_map));
         } else {
             /* Get the feature type attributes from DescribeFeatureType */
-            $.get(this.wms.replace("wms", "wfs") + "?request=DescribeFeatureType&typename=" + this.feature, $.proxy(function(response) {                        
+            $.get(wms.replace("wms", "wfs") + "?request=DescribeFeatureType&typename=" + feature, $.proxy(function(response) {                        
                 var elts = $(response).find("sequence").find("element");
                 $.each(elts, $.proxy(function(idx, elt) {
                     var attrs = {};
@@ -54,8 +48,7 @@ magic.classes.creator.LayerAttributeMap.prototype.wmsLoadContext = function(cont
             }, this));
         }
     } else {
-        this.div.html("");
-        this.div.hide();
+        this.div.html('<div class="alert alert-warning">No WMS or feature type name defined</div>');
     }
 };
 

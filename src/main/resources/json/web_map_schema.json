@@ -1,5 +1,82 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
+    "definitions": {
+        "vector_style": {
+            "description": "Style for vector layers",
+            "type": "object",
+            "properties": {
+                "graphic": {
+                    "description": "Graphic marker specification",
+                    "type": "object",
+                    "properties": {
+                        "marker": {
+                            "description": "Type of graphic",
+                            "type": "string",
+                            "enum": [
+                                "circle",
+                                "triangle",
+                                "square",
+                                "pentagon",
+                                "hexagon",
+                                "star"
+                            ]
+                        },
+                        "radius": {
+                            "description": "Radius of graphic in pixels",
+                            "type": "number",
+                            "minimum": 3,
+                            "maximum": 20
+                        }					
+                    }
+                },
+                "stroke": {
+                    "description": "Outline specification",
+                    "type": "object",
+                    "properties": {
+                        "width": {
+                            "description": "Outline width",
+                            "type": "number",
+                            "minimum": 0.1,
+                            "maximum": 3
+                        },
+                        "color": {
+                            "description": "Outline colour",
+                            "type": "string",
+                            "pattern": "#[0-9A-Fa-f]{6}"                            
+                        },
+                        "style": {
+                            "description": "Outline style", 
+                            "type": "string",
+                            "enum": ["dotted", "dashed", "solid"]
+                        },
+                        "opacity": {
+                            "description": "Outline opacity",
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                        }
+                    }
+                },
+                "fill": {
+                    "description": "Fill specification",
+                    "type": "object",
+                    "properties": {                        
+                        "color": {
+                            "description": "Fill colour",
+                            "type": "string",
+                            "pattern": "#[0-9A-Fa-f]{6}"                            
+                        },                       
+                        "opacity": {
+                            "description": "Fill opacity",
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                        }
+                    }
+                }
+            }
+        }
+    },
     "title": "Web map specification",
     "type": "object",
     "properties": {
@@ -281,8 +358,9 @@
                                                         "pattern": "^[a-zA-Z0-9_:]+$"
                                                     },
                                                     "style_definition": {
-                                                        "description": "Definition of a vector style to use (JSON string TO DO)",
-                                                        "type": "string"
+                                                        "description": "Definition of a vector style to use",
+                                                        "type": "string",
+                                                        "$ref": "#/definitions/vector_style"
                                                     }
                                                 },
                                                 "required": ["geojson_source"]
@@ -298,8 +376,9 @@
                                                         "format": "uri"
                                                     },
                                                     "style_definition": {
-                                                        "description": "Definition of a vector style to use (JSON string TO DO)",
-                                                        "type": "string"
+                                                        "description": "Definition of a vector style to use",
+                                                        "type": "string",
+                                                        "$ref": "#/definitions/vector_style"
                                                     }
                                                 },
                                                 "required": ["gpx_source"]
@@ -315,8 +394,9 @@
                                                         "format": "uri"
                                                     },
                                                     "style_definition": {
-                                                        "description": "Definition of a vector style to use (JSON string TO DO)",
-                                                        "type": "string"
+                                                        "description": "Definition of a vector style to use",
+                                                        "type": "string",
+                                                        "$ref": "#/definitions/vector_style"
                                                     }
                                                 },
                                                 "required": ["kml_source"]
