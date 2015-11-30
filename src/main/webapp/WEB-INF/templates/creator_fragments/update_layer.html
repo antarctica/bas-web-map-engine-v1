@@ -11,7 +11,7 @@
                 <label for="t2-layer-name" class="col-sm-3 control-label">Layer name</label>
                 <div class="col-sm-9">
                     <input type="text" class="form-control" id="t2-layer-name" name="t2-layer-name" placeholder="Layer name" 
-                           data-toggle="tooltip" data-placement="left" title="Letters, numbers and _ allowed" required="required">                                   
+                           data-toggle="tooltip" data-placement="left" title="Letters, numbers and _ allowed" pattern="^[A-Za-z0-9_ ]+$" required="required">                                   
                     </input>
                 </div>
             </div>
@@ -28,7 +28,17 @@
             </div>
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <a class="btn btn-default"  style="width:100%" data-toggle="collapse" href="#t2-layer-app-props-div">Edit appearance properties</a>
+                    <a class="btn btn-default"  style="width:100%" data-toggle="collapse" href="#t2-layer-style-props-div">Edit symbology</a>
+                </div>            
+                <div class="panel-collapse collapse" id="t2-layer-style-props-div">
+                    <div class="panel-body">
+                        <div id="t2-style-div" th:include="creator_fragments/layer_styler :: layout"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <a class="btn btn-default"  style="width:100%" data-toggle="collapse" href="#t2-layer-app-props-div">Edit zoom-level visibility and transparency</a>
                 </div>            
                 <div class="panel-collapse collapse" id="t2-layer-app-props-div">
                     <div class="panel-body">

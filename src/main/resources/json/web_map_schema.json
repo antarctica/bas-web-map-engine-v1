@@ -263,7 +263,7 @@
                                                         "type": "boolean"
                                                     }
                                                 },
-                                                "required": ["wms", "feature_name"]
+                                                "required": ["wms_source", "feature_name"]
                                             },
                                             {
                                                 "id": "geojson",

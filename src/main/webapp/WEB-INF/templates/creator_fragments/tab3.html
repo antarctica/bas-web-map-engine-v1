@@ -76,32 +76,29 @@
             </div>
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Select map security features</h3>
+                    <h3 class="panel-title">Security features</h3>
                 </div>
-                <!-- TO DO -->
                 <div class="panel-body">                    
-                    <div class="col-sm-12 form-inline">
-                        <label class="checkbox-inline">
-                            <input type="checkbox" name="t3-controls" value="geosearch"
-                                   data-toggle="tooltip" data-placement="top" title="Add the ability to search gazetteer(s) of place-names for this area"></input>
-                            Geosearch tool
-                        </label>
-                        <label class="checkbox-inline">
-                            <input type="checkbox" name="t3-controls" value="download"
-                                   data-toggle="tooltip" data-placement="top" title="Enable download of underlying data"></input>
-                            Data download tool
-                        </label>
-                        <label class="checkbox-inline">
-                            <input type="checkbox" name="t3-controls" value="measurement"
-                                   data-toggle="tooltip" data-placement="top" title="Enable measurement of distances, areas and elevations (if a DEM layer is included)"></input>
-                            Measurement tool
-                        </label>      
-                        <label class="checkbox-inline">
-                            <input type="checkbox" name="t3-controls" value="feature_info"
-                                   data-toggle="tooltip" data-placement="top" title="Enable pop-ups of attributes on clicked features"></input>
-                            Pop-up tool
-                        </label>      
+                    <div class="form-group">
+                        <label for="t3-security-usage" class="col-sm-2 control-label">Map use</label>
+                        <div class="col-sm-10">
+                            <select class="form-control map-creator-control-lg" id="t3-security-usage" name="t3-security-usage">
+                                <option value="public">is public</option>
+                                <option value="login">requires login</option>
+                                <option value="owner">is restricted to me only</option>
+                            </select>
+                        </div>
                     </div>
+                    <div class="form-group">
+                        <label for="t3-security-download" class="col-sm-2 control-label">Downloads</label>
+                        <div class="col-sm-10">
+                            <select class="form-control map-creator-control-lg" id="t3-security-usage" name="t3-security-usage">
+                                <option value="public">are public</option>
+                                <option value="login">require login</option>
+                                <option value="">are not required</option>
+                            </select>
+                        </div>
+                    </div>                    
                 </div>
             </div>
         </form>

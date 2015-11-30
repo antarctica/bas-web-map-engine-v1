@@ -5,18 +5,43 @@
         <title></title>
     </head>    
     <body th:fragment="layout">
-        <div class="panel-body">
-            <form id="t2-layer-wms-form" class="form-horizontal">
-                <input type="hidden" id="t2-layer-wms-id" name="t2-layer-wms-id"></input>
-                <div class="form-group">
-                    <label for="t2-layer-wms-name" class="col-sm-2 control-label">Layer name</label>
-                    <div class="col-sm-10">
-                        <input type="text" class="form-control map-creator-control" id="t2-layer-wms-name" name="t2-layer-wms-name" placeholder="Layer name" 
-                               data-toggle="tooltip" data-placement="right" title="Letters, numbers and _ allowed" required="required">                                   
-                        </input>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <a class="btn btn-default" style="width:100%" data-toggle="collapse" href="#t2-layer-geojson-props-div">Edit GeoJSON properties</a>
+            </div>
+            <div class="panel-collapse collapse in" id="t2-layer-geojson-props-div">
+                <div class="panel-body">
+                    <!-- geojson_source, feature_name, style_definition -->
+                    <input type="hidden" name="t2-layer-geojson-style_definition" id="t2-layer-geojson-style_definition"></input>
+                    <div class="form-group">
+                        <label for="t2-layer-geojson-geojson_source" class="col-sm-3 control-label">GeoJSON source</label>
+                        <div class="col-sm-9">
+                            <input type="url" class="form-control map-creator-control-sm" id="t2-layer-geojson-geojson_source" name="t2-layer-geojson-geojson_source" 
+                                   placeholder="URL of GeoJSON source" required="required"
+                                   data-toggle="tooltip" data-placement="left" title="Source URL for GeoJSON e.g. WFS feed, API output etc">                                   
+                            </input>
+                        </div>
                     </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label" for="t2-layer-geojson-feature_name">
+                            Feature
+                        </label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control map-creator-control-sm" id="t2-layer-geojson-feature_name" name="t2-layer-geojson-feature_name"
+                                    data-toggle="tooltip" data-placement="left" title="Feature name (if from WFS feed)" pattern="^[a-zA-Z0-9_:]+$">
+                            </input>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="t2-layer-legend_graphic" class="col-sm-3 control-label">Legend image</label>
+                        <div class="col-sm-9">
+                            <input type="url" class="form-control map-creator-control-sm" id="t2-layer-legend_graphic" name="t2-layer-legend_graphic" placeholder="URL of legend image if required" 
+                                   data-toggle="tooltip" data-placement="left" title="Custom URL for a legend image, defaults to using WMS with above feature name">                                   
+                            </input>
+                        </div>
+                    </div>                    
                 </div>
-            </form>
-        </div>
+            </div>
+        </div>  
     </body>
 </html>
