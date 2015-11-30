@@ -67,7 +67,7 @@ magic.classes.creator.LayerUpdater.prototype.loadContext = function(context) {
     var activeTab = this.getActiveTab();
     
     /* Style definition sub-tab */
-    this.style_definition = new magic.classes.creator.LayerStyler();
+    this.style_definition = new magic.classes.creator.LayerStyler(this.prefix);
     
     /* Attribute map sub-tab */
     this.attribute_map = new magic.classes.creator.LayerAttributeMap($("#" + this.prefix + "-attributes-div"));
@@ -76,7 +76,9 @@ magic.classes.creator.LayerUpdater.prototype.loadContext = function(context) {
     magic.modules.creator.Common.dictToForm(this.form_fields, this.data, this.prefix);
     if ($.isFunction(this[activeTab + "LoadContext"])) {
         this[activeTab + "LoadContext"]();
-    }        
+    }
+    this.attribute_map.loadContext(this.data.source, activeTab); 
+    this.style_definition.loadContext(this.data.source, activeTab);
 };
 
 /**
@@ -93,7 +95,6 @@ magic.classes.creator.LayerUpdater.prototype.wmsLoadContext = function() {
     magic.modules.creator.Common.dictToForm(this.source_form_fields["wms"], this.data.source, this.prefix + "-wms"); 
     this.populateWmsSourceSelector(sourceSelect, this.data.source.wms_source);
     this.populateWmsDataSources(this.data.source.wms_source);   
-    this.attributeMap.loadContext(this.data.source, "wms");    
 };
 
 /**
@@ -102,8 +103,6 @@ magic.classes.creator.LayerUpdater.prototype.wmsLoadContext = function() {
  */
 magic.classes.creator.LayerUpdater.prototype.geojsonLoadContext = function() {    
     magic.modules.creator.Common.dictToForm(this.source_form_fields["geojson"], this.data.source, this.prefix + "-geojson");
-    this.attributeMap.loadContext(this.data.source, "geojson"); 
-    this.style_definition.loadContext(this.data.source, "geojson");
 };
 
 /**
@@ -112,8 +111,6 @@ magic.classes.creator.LayerUpdater.prototype.geojsonLoadContext = function() {
  */
 magic.classes.creator.LayerUpdater.prototype.gpxLoadContext = function() {    
     magic.modules.creator.Common.dictToForm(this.source_form_fields["gpx"], this.data.source, this.prefix + "-gpx");
-    this.attributeMap.loadContext(this.data.source, "gpx"); 
-    this.style_definition.loadContext(this.data.source, "gpx");
 };
 
 /**
@@ -121,9 +118,7 @@ magic.classes.creator.LayerUpdater.prototype.gpxLoadContext = function() {
  * @param {object} context
  */
 magic.classes.creator.LayerUpdater.prototype.kmlLoadContext = function() {    
-    magic.modules.creator.Common.dictToForm(this.source_form_fields["kml"], this.data.source, this.prefix + "-kml");
-    this.attributeMap.loadContext(this.data.source, "kml"); 
-    this.style_definition.loadContext(this.data.source, "kml");
+    magic.modules.creator.Common.dictToForm(this.source_form_fields["kml"], this.data.source, this.prefix + "-kml");    
 };
 
 /**
