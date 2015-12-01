@@ -20,7 +20,28 @@ magic.modules.creator.Common = function () {
                     var current = index + 1;
                     var percent = (current / total) * 100;
                     $("#rootwizard").find(".progress-bar").css({width: percent + "%"});
-            }});
+                    if (index == total-1) {
+                        $("ul.pager li.finish").removeClass("hidden");
+                    } else {
+                        $("ul.pager li.finish").addClass("hidden");
+                    }
+                },
+                onNext: $.proxy(function (tab, navigation, index) {
+                    var total = navigation.find("li").length;
+                    if ($.isFunction(this.tabs[index-1].saveContext)) {
+                        this.tabs[index-1].saveContext();
+                    }
+                    if (index == total-1) {
+                        $("ul.pager li.finish").removeClass("hidden");
+                    } else {
+                        $("ul.pager li.finish").addClass("hidden");
+                    }
+                }, this),
+                onFinish: $.proxy(function (tab, navigation, index) {
+                    var total = navigation.find("li").length;
+                    //TODO
+                }, this)
+            });
             /* Tooltips */
             $('[data-toggle="tooltip"]').tooltip();
             /* For dynamic tooltips - http://stackoverflow.com/questions/9958825/how-do-i-bind-twitter-bootstrap-tooltips-to-dynamically-created-elements */
@@ -81,21 +102,23 @@ magic.modules.creator.Common = function () {
         /**
          * Populate a form with the specified fields from the data object
          * Form input names/ids should be derivable from <prefix>-<field>
-         * @param {Array} fields
+         * @param {Array} fields array of objects of form {"field": <name>, "default": <defaultvalue>}
          * @param {object} data
          * @param {string} prefix
          */
-        dictToForm: function(fields, data, prefix) {           
-            $.each(fields, function(idx, f) {
-                var input = $("#" + prefix + "-" + f);                
+        dictToForm: function(fields, data, prefix) { 
+            $.each(fields, function(idx, fo) {
+                var name = fo["field"];
+                var defval = fo["default"];
+                var input = $("#" + prefix + "-" + name);                
                 if (input.attr("type") == "checkbox" || input.attr("type") == "radio") {
                     /* Set the "checked" property */
-                    input.prop("checked", !data ? false : (data[f] === true ? true : false));
+                    input.prop("checked", !data ? defval : (name in data ? (data[name] === true ? true : false) : defval));
                 } else {
                     /* Simple case */
-                    input.val(!data ? null : data[f]);
+                    input.val(!data ? defval : (name in data ? data[name] : defval));
                 }
-            });
+            });            
         },
         /**
          * Populate the data object with values from the given form
@@ -106,14 +129,15 @@ magic.modules.creator.Common = function () {
          */
         formToDict: function(fields, data, prefix) {
             if (data) {
-                $.each(fields, function(idx, f) {
-                    var input = $("#" + prefix + "-" + f);                
+                $.each(fields, function(idx, fo) {
+                    var name = fo["field"];
+                    var input = $("#" + prefix + "-" + name);                
                     if (input.attr("type") == "checkbox" || input.attr("type") == "radio") {
                         /* Set the "checked" property */
-                        data[f] = input.prop("checked") ? true : false;
+                        data[name] = input.prop("checked") ? true : false;
                     } else {
                         /* Simple case */
-                        data[f] = input.val();
+                        data[name] = input.val();
                     }
                 });
             }

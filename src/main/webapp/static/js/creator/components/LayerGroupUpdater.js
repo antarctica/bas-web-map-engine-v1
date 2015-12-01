@@ -6,7 +6,11 @@ magic.classes.creator.LayerGroupUpdater = function(prefix) {
     this.prefix = prefix;
     
     /* Field names */
-    this.form_fields = ["id", "name", "expanded"];   
+    this.form_fields = [
+        {"field": "id", "default": ""},
+        {"field": "name", "default": ""},
+        {"field": "expanded", "default": false}
+    ];   
     
     /* Context object */
     this.data = null;
@@ -44,8 +48,8 @@ magic.classes.creator.LayerGroupUpdater.prototype.loadContext = function(context
     /* Layer group data object */
     this.data = context;
      
-    var btnDeleteGroup = $("#" + this.prefix + "-delete");
-    btnDeleteGroup.prop("disabled", $("#" + this.data.id).find("ul").find("li").length > 0);
+    /* Disable delete button if the group has any sub-layers or groups */
+    $("#" + this.prefix + "-delete").prop("disabled", $("#" + this.data.id).find("ul").find("li").length > 0);
     
     /* Populate form snippet from data */
     magic.modules.creator.Common.dictToForm(this.form_fields, this.data, this.prefix);            

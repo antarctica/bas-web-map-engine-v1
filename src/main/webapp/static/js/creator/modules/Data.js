@@ -232,7 +232,7 @@ magic.modules.creator.Data = function () {
                 },
                 {
                     "name": "Operations GIS",
-                    "value": "http:/rolgis.nerc-bas.ac.uk:8080/geoserver/wms"
+                    "value": "http://rolgis.nerc-bas.ac.uk:8080/geoserver/wms"
                 },
                 {
                     "name": "CCAMLR GIS",

@@ -7,30 +7,12 @@ magic.modules.creator.Tab1 = function () {
         prefix: "t1",
         
         form_fields: [
-            {
-                "field": "id",
-                "default": ""
-            },
-            {
-                "field": "name",
-                "default": "new_map"
-            },
-            {
-                "field": "title", 
-                "default": "New blank map"
-            },
-            {
-                "field": "description",
-                "default": "Longer description of the purpose of the map goes here"
-            },
-            {
-                "field": "version",
-                "default": "1.0"
-            },
-            {
-                "field": "contact_email",
-                "default": "mapowner@bas.ac.uk"
-            }
+            {"field": "id", "default": ""},
+            {"field": "name","default": "new_map"},
+            {"field": "title", "default": "New blank map"},
+            {"field": "description", "default": "Longer description of the purpose of the map goes here"},
+            {"field": "version", "default": "1.0"},
+            {"field": "contact_email", "default": "mapowner@bas.ac.uk"}
         ],
                 
         init: function () {
@@ -64,7 +46,6 @@ magic.modules.creator.Tab1 = function () {
          * @param {object} context
          */
         loadContext: function (context) {        
-            // TO DO
             magic.modules.creator.Common.dictToForm(this.form_fields, context, "t1");            
         },
         /**

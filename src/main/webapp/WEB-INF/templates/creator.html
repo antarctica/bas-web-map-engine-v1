@@ -23,7 +23,7 @@
             <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
             <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
         <![endif]-->
-        <script src="/static/js/ol.min.js"></script>
+        <script src="/static/js/debug/ol.debug.js"></script>
         <script src="/static/js/ellipsoid/ellipsoid.js"></script>
         <script src="/static/js/jquery.js"></script>
         <script src="/static/js/vector.js"></script>
@@ -42,6 +42,7 @@
         <script src="/static/js/creator/components/LayerGroupUpdater.js"></script>
         <script src="/static/js/creator/components/LayerUpdater.js"></script>
         <script src="/static/js/creator/components/LayerAttributeMap.js"></script>
+        <script src="/static/js/creator/components/LayerStyler.js"></script>
         <script src="/static/js/modules/Common.js"></script>
         <script src="/static/js/creator/modules/Data.js"></script>
         <script src="/static/js/creator/modules/Common.js"></script>
@@ -64,19 +65,19 @@
                             <span class="icon-bar"></span>
                             <span class="icon-bar"></span>
                         </button>
-                        <a class="navbar-brand" href="#">Map Creation Wizard</a>
+                        <a class="navbar-brand" href="javascript:void(0)">MAGIC Web Map Creation Wizard</a>
                     </div>
                     <!-- Collect the nav links, forms, and other content for toggling -->
                     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                         <ul class="nav navbar-left top-nav">
                             <li>
-                                <a href="#">About</a>
+                                <a href="javascript:void(0)">About</a>
                             </li>
                             <li>
-                                <a href="#">Services</a>
+                                <a href="javascript:void(0)">Services</a>
                             </li>
                             <li>
-                                <a href="#">Contact</a>
+                                <a href="javascript:void(0)">Contact</a>
                             </li>
                         </ul>
                         <ul class="nav navbar-right top-nav">
@@ -103,7 +104,7 @@
                                         <li><a href="#tab1" data-toggle="tab">Start</a></li>
                                         <li><a href="#tab2" data-toggle="tab">Map layers</a></li>
                                         <li><a href="#tab3" data-toggle="tab">Map controls</a></li>
-                                        <li><a href="#tab4" data-toggle="tab">Finish</a></li>                                    
+                                        <li><a href="#tab4" data-toggle="tab">Map appearance</a></li>                                    
                                     </ul>
                                 </div>
                             </div>
@@ -125,10 +126,9 @@
                                 <div class="progress-bar" role="progressbar"></div>
                             </div>
                             <ul class="pager wizard">
-                                <li class="previous first" style="display:none;"><a href="#">First</a></li>
-                                <li class="previous"><a href="#">Previous</a></li>
-                                <li class="next last" style="display:none;"><a href="#">Last</a></li>
-                                <li class="next"><a href="#">Next</a></li>
+                                <li class="previous"><a href="javascript:void(0)">Previous</a></li>
+                                <li class="next"><a href="javascript:void(0)">Next</a></li>
+                                <li class="finish hidden"><a href="javascript:void(0)">Finish</a></li>
                             </ul>
                         </div>
                     </div>

@@ -10,14 +10,39 @@ magic.classes.creator.LayerUpdater = function(prefix) {
     this.attribute_map = null;
     
     /* Common form inputs */
-    this.form_fields = ["id", "name", "legend_graphic", "min_scale", "max_scale", "opacity", "is_visible", "is_interactive", "is_filterable"]
+    this.form_fields = [
+        {"field": "id", "default": ""}, 
+        {"field": "name", "default": ""}, 
+        {"field": "legend_graphic", "default": ""}, 
+        {"field": "min_scale", "default": null}, 
+        {"field": "max_scale", "default": null}, 
+        {"field": "opacity", "default": 1.0}, 
+        {"field": "is_visible", "default": false}, 
+        {"field": "is_interactive", "default": false}, 
+        {"field": "is_filterable", "default": false}
+    ];
     
     /* Form inputs, per tab */
     this.source_form_fields = {
-        "wms": ["wms_source", "feature_name", "style_name", "is_base", "is_singletile", "is_dem", "is_time_dependent"],
-        "geojson": ["geojson_source", "feature_name", "style_definition"],
-        "gpx": ["gpx_source", "style_definition"],
-        "kml": ["kml_source", "style_definition"]                
+        "wms": [
+            {"field": "wms_source", "default": ""}, 
+            {"field": "feature_name", "default": ""}, 
+            {"field": "style_name", "default": ""}, 
+            {"field": "is_base", "default": false}, 
+            {"field": "is_singletile", "default": false}, 
+            {"field": "is_dem", "default": false}, 
+            {"field": "is_time_dependent", "default": false}
+        ],
+        "geojson": [
+            {"field": "geojson_source", "default": ""},
+            {"field": "feature_name", "default": ""}
+        ],
+        "gpx": [
+            {"field": "gpx_source", "default": ""}
+        ],
+        "kml": [
+            {"field": "kml_source", "default": ""}
+        ]                
     };    
     
     /* Layer group data object */
@@ -37,6 +62,7 @@ magic.classes.creator.LayerUpdater = function(prefix) {
             /* Update the tree button caption as we have updated the name */
             $("#" + this.data.id).find("button").html(this.data.name);
             $("[id$='-update-panel']").fadeOut("slow");
+            console.dir(this.data);
         }
     }, this));
      
@@ -64,7 +90,7 @@ magic.classes.creator.LayerUpdater.prototype.loadContext = function(context) {
     
     this.data = context;
    
-    var activeTab = this.getActiveTab();
+    var activeTab = this.getActiveTab(context.source);
     
     /* Style definition sub-tab */
     this.style_definition = new magic.classes.creator.LayerStyler(this.prefix);
@@ -74,11 +100,13 @@ magic.classes.creator.LayerUpdater.prototype.loadContext = function(context) {
             
     /* Common non-source specific fields */
     magic.modules.creator.Common.dictToForm(this.form_fields, this.data, this.prefix);
-    if ($.isFunction(this[activeTab + "LoadContext"])) {
-        this[activeTab + "LoadContext"]();
-    }
-    this.attribute_map.loadContext(this.data.source, activeTab); 
-    this.style_definition.loadContext(this.data.source, activeTab);
+    if (activeTab == "wms") {
+        this.wmsLoadContext();
+    } else {
+        magic.modules.creator.Common.dictToForm(this.source_form_fields[activeTab], this.data.source, this.prefix + "-" + activeTab);
+    }   
+    this.attribute_map.loadContext(this.data, activeTab); 
+    this.style_definition.loadContext(this.data.source.style_definition);
 };
 
 /**
@@ -98,71 +126,20 @@ magic.classes.creator.LayerUpdater.prototype.wmsLoadContext = function() {
 };
 
 /**
- * Populate GeoJSON form with saved or new data
- * @param {object} context
- */
-magic.classes.creator.LayerUpdater.prototype.geojsonLoadContext = function() {    
-    magic.modules.creator.Common.dictToForm(this.source_form_fields["geojson"], this.data.source, this.prefix + "-geojson");
-};
-
-/**
- * Populate GPX form with saved or new data
- * @param {object} context
- */
-magic.classes.creator.LayerUpdater.prototype.gpxLoadContext = function() {    
-    magic.modules.creator.Common.dictToForm(this.source_form_fields["gpx"], this.data.source, this.prefix + "-gpx");
-};
-
-/**
- * Populate KML form with saved or new data
- * @param {object} context
- */
-magic.classes.creator.LayerUpdater.prototype.kmlLoadContext = function() {    
-    magic.modules.creator.Common.dictToForm(this.source_form_fields["kml"], this.data.source, this.prefix + "-kml");    
-};
-
-/**
  * Populate data object with changed form inputs
  */
 magic.classes.creator.LayerUpdater.prototype.saveContext = function() {    
     /* Common non-source specific fields */
     magic.modules.creator.Common.formToDict(this.form_fields, this.data, this.prefix);
-    var activeTab = this.getActiveTab();
-    if ($.isFunction(this[activeTab + "SaveContext"])) {
-        this[activeTab + "SaveContext"]();
-    }            
-};
-
-/**
- * Populate WMS data source object with changed form inputs
- */
-magic.classes.creator.LayerUpdater.prototype.wmsSaveContext = function() {
-    magic.modules.creator.Common.formToDict(this.source_form_fields["wms"], this.data.source, this.prefix + "-wms");
-    this.attribute_map.saveContext(this.data, "wms");
-    console.log(this.data);
-};
-
-/**
- * Populate GeoJSON data source object with changed form inputs
- */
-magic.classes.creator.LayerUpdater.prototype.geojsonSaveContext = function() {    
-    magic.modules.creator.Common.dictToForm(this.source_form_fields["geojson"], this.data.source, this.prefix + "-geojson"); 
-    this.attribute_map.saveContext(this.data, "wms");
-};
-
-/**
- * Populate GPX data source object with changed form inputs
- */
-magic.classes.creator.LayerUpdater.prototype.gpxSaveContext = function() {    
-    magic.modules.creator.Common.dictToForm(this.source_form_fields["gpx"], this.data.source, this.prefix + "-gpx");    
-    this.style_definition.saveContext(this.data.source);
-};
-
-/**
- * Populate KML data source object with changed form inputs
- */
-magic.classes.creator.LayerUpdater.prototype.kmlSaveContext = function() {    
-    magic.modules.creator.Common.dictToForm(this.source_form_fields["kml"], this.data.source, this.prefix + "-kml");    
+    var activeTab = this.getActiveTab(this.data.source);
+    magic.modules.creator.Common.formToDict(this.source_form_fields[activeTab], this.data.source, this.prefix + "-" + activeTab);   
+    this.attribute_map.saveContext(this.data, activeTab);
+    if (activeTab != "wms") {
+        if (!("style_definition" in this.data.source)) {
+            this.data.source.style_definition = {};
+        }
+        this.style_definition.saveContext(this.data.source.style_definition);
+    }
 };
 
 /**
@@ -190,20 +167,23 @@ magic.classes.creator.LayerUpdater.prototype.populateWmsDataSources = function(w
     }            
 };
 
-magic.classes.creator.LayerUpdater.prototype.populateAttributeDiv = function(show, div, sourceType) {
-    if (show) {
-        div.show();
-        this.attribute_map.loadContext(this.data, sourceType, div);
-    } else {
-        div.hide();
-    }
-};
-
-magic.classes.creator.LayerUpdater.prototype.getActiveTab = function() {
-    var activeTab = "wms";
-    var div = $("div[id^='" + this.prefix + "'][role='tabpanel'].active");
-    if (div.length > 0) {
-        activeTab = div.attr("id").replace(this.prefix + "-", "").replace("-tab", "");
+magic.classes.creator.LayerUpdater.prototype.getActiveTab = function(source) {
+    var activeTab = null;
+    $.each($("a[role='tab'][href^='#" + this.prefix + "']"), $.proxy(function(i, a) {
+        var tabName = $(a).attr("href").replace("#" + this.prefix + "-", "").replace("-tab", "");
+        //TODO
+        console.log(source[tabName + "_source"]);
+        if (source[tabName + "_source"].indexOf("http://") == 0) {
+            $(a).tab("show");
+            activeTab = tabName;
+            console.log(activeTab);
+            return(false)
+        }        
+        return(true);
+    }, this));
+    if (activeTab == null) {
+        $("a[href='#" + this.prefix + "-wms-tab']").tab("show");
+        activeTab = "wms";
     }
     return(activeTab);
 };
@@ -240,6 +220,9 @@ magic.classes.creator.LayerUpdater.prototype.populateWmsFeatureSelector = functi
     var fopts = magic.runtime.creator.catalogues[wmsUrl];
     if (fopts) {
         magic.modules.creator.Common.populateSelect(select, fopts, "value", "name", defval);
+        select.off("change").on("change", $.proxy(function(evt) {
+            this.attribute_map.ogcUpdate(wmsUrl, $(evt.currentTarget).val(), this.data["attribute_map"]);
+        }, this));
     } else {
         bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">No feature types found for ' + wmsUrl + '</div>');
     }

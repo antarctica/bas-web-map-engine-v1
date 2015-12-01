@@ -5,9 +5,9 @@ magic.classes.creator.LayerAttributeMap = function(div) {
     /* Div for the attribute form */
     this.div = div;
     
-    /* Attribute dictionary */
-    this.attribute_dictionary = [];        
-    
+    /* Attribute dictionary for WMS layers */
+    this.wms_attribute_dictionary = {};        
+      
     this.div.html("");
             
 };
@@ -17,8 +17,10 @@ magic.classes.creator.LayerAttributeMap = function(div) {
  * @param {object} context
  */
 magic.classes.creator.LayerAttributeMap.prototype.loadContext = function(context, sourceType) {
-    if ($.isFunction(this[sourceType + "LoadContext"])) {
-        this[sourceType + "LoadContext"](context);
+    if (sourceType == "wms") {
+        this.wmsLoadContext(context);
+    } else {
+        this.vectorLoadContext(context, sourceType);
     }    
 };
 
@@ -26,15 +28,66 @@ magic.classes.creator.LayerAttributeMap.prototype.loadContext = function(context
  * Load attribute map for WMS source
  * @param {object} context
  */
-magic.classes.creator.LayerAttributeMap.prototype.wmsLoadContext = function(context) {
-    var wms = context.source.wms_source;
-    var feature = context.source.feature_name; 
+magic.classes.creator.LayerAttributeMap.prototype.wmsLoadContext = function(context) {      
+    this.ogcUpdate(context.source.wms_source, context.source.feature_name, context.attribute_map);
+};
+
+/**
+ * Load attribute map for vector source
+ * @param {object} context
+ */
+magic.classes.creator.LayerAttributeMap.prototype.vectorLoadContext = function(context, sourceType) { 
+    var source = null, feature = null, format = null;
+    if (sourceType == "geojson") {
+        source = context.source.geojson_source;
+        feature = context.source.feature_name;
+        if (source.indexOf("/wfs") > 0 && feature) {
+            /* WFS */
+            this.ogcUpdate(source, feature, context.attribute_map);
+            return;
+        } else {
+            /* GeoJSON e.g. from API */
+            format = new ol.format.GeoJSON();
+        }
+    } else if (sourceType == "gpx") {
+        /* GPX file */
+        source = context.source.gpx_source;
+        format = new ol.format.GPX({readExtensions: function(){}});        
+    } else if (sourceType == "kml") {
+        /* KML file */
+        source = context.source.kml_source;
+        format = new ol.format.KML({}); 
+    }
+    if (source && format) {
+        var jqXhr = $.ajax({
+            url: source,
+            method: "GET",
+            dataType: "text"
+        });
+        jqXhr.done(function(data) {
+            console.dir(format.readFeature(data));
+        });
+        jqXhr.fail(function(xhr, status) {
+            this.div.html('<div class="alert alert-warning">Failed to read features from ' + source + '</div>');
+        });
+    }    
+};
+
+
+
+/**
+ * Update attribute map for WMS source and feature type
+ * @param {object} context
+ */
+magic.classes.creator.LayerAttributeMap.prototype.ogcUpdate = function(wms, feature, attrMap) {
     if (wms && feature) {
-        if ($.isArray(this.attribute_dictionary) && this.attribute_dictionary.length > 0) {
+        if (wms in this.wms_attribute_dictionary && feature in this.wms_attribute_dictionary[wms] && $.isArray(this.wms_attribute_dictionary[wms][feature])) {
             /* Already fetched */
-            this.div.html(this.toForm(context.attribute_map));
+            this.div.html(this.toForm(attrMap, this.wms_attribute_dictionary[wms][feature]));
         } else {
             /* Get the feature type attributes from DescribeFeatureType */
+            this.wms_attribute_dictionary[wms] = {};
+            this.wms_attribute_dictionary[wms][feature] = [];
             $.get(wms.replace("wms", "wfs") + "?request=DescribeFeatureType&typename=" + feature, $.proxy(function(response) {                        
                 var elts = $(response).find("sequence").find("element");
                 $.each(elts, $.proxy(function(idx, elt) {
@@ -42,9 +95,9 @@ magic.classes.creator.LayerAttributeMap.prototype.wmsLoadContext = function(cont
                     $.each(elt.attributes, function(i, a) {
                         attrs[a.name] = a.value;
                     });
-                    this.attribute_dictionary.push(attrs);
+                    this.wms_attribute_dictionary[wms][feature].push(attrs);
                 }, this));
-                this.div.html(this.toForm(context.attribute_map));
+                this.div.html(this.toForm(attrMap, this.wms_attribute_dictionary[wms][feature]));
             }, this));
         }
     } else {
@@ -67,9 +120,9 @@ magic.classes.creator.LayerAttributeMap.prototype.saveContext = function(context
  * @param {object} context
  */        
 magic.classes.creator.LayerAttributeMap.prototype.wmsSaveContext = function(context, sourceType) {
-    if ($.isArray(this.attribute_dictionary) && this.attribute_dictionary.length > 0) {
+    if ($.isArray(this.wms_attribute_dictionary) && this.wms_attribute_dictionary.length > 0) {
         var newMap = [];
-        var nAttrs = this.attribute_dictionary.length;
+        var nAttrs = this.wms_attribute_dictionary.length;
         var fields = ["name", "type", "nillable", "filter", "alias", "displayed", "filterable", "unique_values"];
         for (var i = 0; i < nAttrs; i++) {
             var o = {};
@@ -92,11 +145,12 @@ magic.classes.creator.LayerAttributeMap.prototype.wmsSaveContext = function(cont
 /**
  * Create form HTML for the attribute map
  * @param {object} attrMap
+ * @param {Array} attrDict
  * @returns {String}
  */
-magic.classes.creator.LayerAttributeMap.prototype.toForm = function(attrMap) {
+magic.classes.creator.LayerAttributeMap.prototype.toForm = function(attrMap, attrDict) {
     var html = '';
-    if ($.isArray(this.attribute_dictionary) && this.attribute_dictionary.length > 0) {
+    if (attrDict.length > 0) {
         /* Some attributes - first compile a dictionary of what we already have */
         if (!attrMap) {
             attrMap = [];
@@ -114,7 +168,7 @@ magic.classes.creator.LayerAttributeMap.prototype.toForm = function(attrMap) {
         html += '<th>Filter</th>';
         html += '<th>Values</th>';
         html += '</tr>';
-        $.each(this.attribute_dictionary, $.proxy(function(idx, entry) {
+        $.each(attrDict, $.proxy(function(idx, entry) {
             html += '<input type="hidden" id="_amap_name_' + idx + '" value="' + entry.name + '"></input>';
             html += '<input type="hidden" id="_amap_type_' + idx + '" value="' + entry.type + '"></input>';
             html += '<input type="hidden" id="_amap_nillable_' + idx + '" value="' + entry.nillable + '"></input>';
@@ -132,7 +186,7 @@ magic.classes.creator.LayerAttributeMap.prototype.toForm = function(attrMap) {
                 html += '<tr>';
                 html += '<td>' + entry.name + '</td>';
                 html += '<td>' + entry.type.replace("xsd:", "") + '</td>';
-                html += '<td><input type="text" id="_amap_alias_' + idx + '" value="' + alias + '" ' + 
+                html += '<td><input type="text" id="_amap_alias_' + idx + '" value="' + alias + '" style="width:90px !important" ' + 
                         'data-toggle="tooltip" data-placement="top" title="Human-friendly name to display in pop-ups"></input></td>';
                 html += '<td><input type="checkbox" id="_amap_displayed_' + idx + '" value="display"' + (display ? ' checked' : '') + ' ' +
                         'data-toggle="tooltip" data-placement="top" title="Display attribute value in pop-ups"></input></td>';
