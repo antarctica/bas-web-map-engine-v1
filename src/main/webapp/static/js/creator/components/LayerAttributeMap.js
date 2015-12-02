@@ -6,7 +6,7 @@ magic.classes.creator.LayerAttributeMap = function(div) {
     this.div = div;
     
     /* Attribute dictionary for WMS layers */
-    this.wms_attribute_dictionary = {};        
+    this.attribute_dictionary = {};        
       
     this.div.html("");
             
@@ -18,18 +18,10 @@ magic.classes.creator.LayerAttributeMap = function(div) {
  */
 magic.classes.creator.LayerAttributeMap.prototype.loadContext = function(context, sourceType) {
     if (sourceType == "wms") {
-        this.wmsLoadContext(context);
+        this.ogcLoadContext(context);
     } else {
         this.vectorLoadContext(context, sourceType);
     }    
-};
-
-/**
- * Load attribute map for WMS source
- * @param {object} context
- */
-magic.classes.creator.LayerAttributeMap.prototype.wmsLoadContext = function(context) {      
-    this.ogcLoadContext(context.source.wms_source, context.source.feature_name, context.attribute_map);
 };
 
 /**
@@ -37,62 +29,69 @@ magic.classes.creator.LayerAttributeMap.prototype.wmsLoadContext = function(cont
  * @param {object} context
  */
 magic.classes.creator.LayerAttributeMap.prototype.vectorLoadContext = function(context, sourceType) { 
-    var source = null, feature = null, format = null;
-    if (sourceType == "geojson") {
-        source = context.source.geojson_source;
-        feature = context.source.feature_name;
-        if (source.indexOf("/wfs") > 0 && feature) {
-            /* WFS */
-            this.ogcLoadContext(source, feature, context.attribute_map);
-            return;
-        } else {
-            /* GeoJSON e.g. from API */
-            format = new ol.format.GeoJSON();
-        }
-    } else if (sourceType == "gpx") {
-        /* GPX file */
-        source = context.source.gpx_source;
-        format = new ol.format.GPX({readExtensions: function(){}});        
-    } else if (sourceType == "kml") {
-        /* KML file */
-        source = context.source.kml_source;
-        format = new ol.format.KML({}); 
-    }
-    if (source && format) {
-        var jqXhr = $.ajax({
-            url: source,
-            method: "GET",
-            dataType: "text"
-        });
-        jqXhr.done($.proxy(function(data) {
-            var testFeat = format.readFeature(data);
-            if (testFeat) {
-                var attrKeys = testFeat.getKeys();
-                if ($.isArray(attrKeys) && attrKeys.length > 0) {
-                    var allowedKeys = $.grep(attrKeys, function(elt) {return(elt.indexOf("geom") == 0 || elt.indexOf("extension") == 0)}, true);
-                    var attrDict = [];
-                    $.each(allowedKeys, $.proxy(function(idx, akey) {
-                        var value = testFeat.get(akey);
-                        attrDict.push({
-                            "name": akey,
-                            "type": $.isNumeric(value) ? "decimal" : "string",
-                            "nillable": true,
-                            "filter": "",
-                            "alias": "",
-                            "displayed": true,
-                            "filterable": false,
-                            "unique_values": false
-                        });                        
-                    }, this));
-                    this.div.html(this.toForm(context.attribute_map, attrDict));
-                }
+    if ($.isArray(this.attribute_dictionary[context.id])) {
+        /* Already fetched the attributes */
+        this.div.html(this.toForm(context.attribute_map, this.attribute_dictionary[context.id]));
+    } else {
+        /* Need to read a sample feature to get attribute schema */
+        var source = null, feature = null, format = null;
+        if (sourceType == "geojson") {
+            source = context.source.geojson_source;
+            feature = context.source.feature_name;
+            if (source.indexOf("/wfs") > 0 && feature) {
+                /* WFS */
+                this.ogcLoadContext(source, feature, context.attribute_map);
+                return;
             } else {
-                this.div.html('<div class="alert alert-warning">Failed to parse test feature from ' + source + '</div>');
+                /* GeoJSON e.g. from API */
+                format = new ol.format.GeoJSON();
             }
-        }, this));
-        jqXhr.fail(function(xhr, status) {
-            this.div.html('<div class="alert alert-warning">Failed to read features from ' + source + '</div>');
-        });
+        } else if (sourceType == "gpx") {
+            /* GPX file */
+            source = context.source.gpx_source;
+            format = new ol.format.GPX({readExtensions: function(){}});        
+        } else if (sourceType == "kml") {
+            /* KML file */
+            source = context.source.kml_source;
+            format = new ol.format.KML({}); 
+        }
+        if (source && format) {
+            var jqXhr = $.ajax({
+                url: source,
+                method: "GET",
+                dataType: "text"
+            });
+            jqXhr.done($.proxy(function(data) {
+                var testFeat = format.readFeature(data);
+                if (testFeat) {
+                    var attrKeys = testFeat.getKeys();
+                    if ($.isArray(attrKeys) && attrKeys.length > 0) {
+                        var allowedKeys = $.grep(attrKeys, function(elt) {return(elt.indexOf("geom") == 0 || elt.indexOf("extension") == 0)}, true);
+                        var attrDict = [];
+                        $.each(allowedKeys, $.proxy(function(idx, akey) {
+                            var value = testFeat.get(akey);
+                            attrDict.push({
+                                "name": akey,
+                                "type": $.isNumeric(value) ? "decimal" : "string",
+                                "nillable": true,
+                                "filter": "",
+                                "alias": "",
+                                "displayed": true,
+                                "filterable": false,
+                                "unique_values": false
+                            });                        
+                        }, this));
+                        this.attribute_dictionary[context.id] = attrDict;
+                        this.div.html(this.toForm(context.attribute_map, attrDict));
+                    }
+                } else {
+                    this.div.html('<div class="alert alert-warning">Failed to parse test feature from ' + source + '</div>');
+                }
+            }, this));
+            jqXhr.fail(function(xhr, status) {
+                this.div.html('<div class="alert alert-warning">Failed to read features from ' + source + '</div>');
+            });
+        }
     }    
 };
 
@@ -100,15 +99,18 @@ magic.classes.creator.LayerAttributeMap.prototype.vectorLoadContext = function(c
  * Update attribute map for WMS source and feature type
  * @param {object} context
  */
-magic.classes.creator.LayerAttributeMap.prototype.ogcLoadContext = function(wms, feature, attrMap) {
-    if (wms && feature) {
-        if (wms in this.wms_attribute_dictionary && feature in this.wms_attribute_dictionary[wms] && $.isArray(this.wms_attribute_dictionary[wms][feature])) {
+magic.classes.creator.LayerAttributeMap.prototype.ogcLoadContext = function(context) {
+    var wms = context.source.wms_source;
+    var feature = context.source.feature_name;
+    var id = context.id;
+    var attrMap = context.attribute_map;
+    if (wms && feature && id) {
+        if ($.isArray(this.attribute_dictionary[id])) {
             /* Already fetched */
-            this.div.html(this.toForm(attrMap, this.wms_attribute_dictionary[wms][feature]));
+            this.div.html(this.toForm(attrMap, this.attribute_dictionary[id]));
         } else {
             /* Get the feature type attributes from DescribeFeatureType */
-            this.wms_attribute_dictionary[wms] = {};
-            this.wms_attribute_dictionary[wms][feature] = [];
+            this.attribute_dictionary[id] = [];
             $.get(wms.replace("wms", "wfs") + "?request=DescribeFeatureType&typename=" + feature, $.proxy(function(response) {                        
                 var elts = $(response).find("sequence").find("element");
                 $.each(elts, $.proxy(function(idx, elt) {
@@ -116,9 +118,9 @@ magic.classes.creator.LayerAttributeMap.prototype.ogcLoadContext = function(wms,
                     $.each(elt.attributes, function(i, a) {
                         attrs[a.name] = a.value;
                     });
-                    this.wms_attribute_dictionary[wms][feature].push(attrs);
+                    this.attribute_dictionary[id].push(attrs);
                 }, this));
-                this.div.html(this.toForm(attrMap, this.wms_attribute_dictionary[wms][feature]));
+                this.div.html(this.toForm(attrMap, this.attribute_dictionary[id]));
             }, this));
         }
     } else {
@@ -130,20 +132,10 @@ magic.classes.creator.LayerAttributeMap.prototype.ogcLoadContext = function(wms,
  * Save attribute map
  * @param {object} context
  */
-magic.classes.creator.LayerAttributeMap.prototype.saveContext = function(context, sourceType) {
-    if ($.isFunction(this[sourceType + "SaveContext"])) {
-        this[sourceType + "SaveContext"](context);
-    }
-};
-        
-/**
- * Save attribute map for WMS source
- * @param {object} context
- */        
-magic.classes.creator.LayerAttributeMap.prototype.wmsSaveContext = function(context, sourceType) {
-    if ($.isArray(this.wms_attribute_dictionary) && this.wms_attribute_dictionary.length > 0) {
+magic.classes.creator.LayerAttributeMap.prototype.saveContext = function(context) {
+    if ($.isArray(this.attribute_dictionary[context.id])) {
         var newMap = [];
-        var nAttrs = this.wms_attribute_dictionary.length;
+        var nAttrs = this.attribute_dictionary[context.id].length;
         var fields = ["name", "type", "nillable", "filter", "alias", "displayed", "filterable", "unique_values"];
         for (var i = 0; i < nAttrs; i++) {
             var o = {};
@@ -161,7 +153,7 @@ magic.classes.creator.LayerAttributeMap.prototype.wmsSaveContext = function(cont
         }
         context.attribute_map = newMap;
     }        
-};        
+};
 
 /**
  * Create form HTML for the attribute map

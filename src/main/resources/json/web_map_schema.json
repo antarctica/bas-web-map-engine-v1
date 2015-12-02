@@ -494,8 +494,15 @@
 				"projection", "center", "zoom", "resolutions"
 			]
 		},
-        "is_public": {
-            "type": "boolean"
+        "allowed_usage": {
+            "description": "Who is allowed to use this map",
+            "type": "string",
+            "enum": ["public", "login", "owner"]
+        },
+        "allowed_download": {
+            "description": "Who is allowed to download underlying data from this map",
+            "type": "string",
+            "enum": ["public", "login", "nobody"]
         },
 		"required": [
 			"name", "description", "owner_name", "owner_email"

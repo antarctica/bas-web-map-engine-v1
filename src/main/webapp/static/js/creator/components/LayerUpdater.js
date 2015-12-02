@@ -62,7 +62,6 @@ magic.classes.creator.LayerUpdater = function(prefix) {
             /* Update the tree button caption as we have updated the name */
             $("#" + this.data.id).find("button").html(this.data.name);
             $("[id$='-update-panel']").fadeOut("slow");
-            console.dir(this.data);
         }
     }, this));
      
@@ -145,31 +144,6 @@ magic.classes.creator.LayerUpdater.prototype.saveContext = function() {
 };
 
 /**
- * Populate the feature type selector from given WMS
- * @param {string} wmsUrl
- */
-magic.classes.creator.LayerUpdater.prototype.populateWmsDataSources = function(wmsUrl) {
-    var featSelect = $("select[name='" + this.prefix + "-wms-feature_name']");
-    if (!magic.runtime.creator.catalogues[wmsUrl]) {
-        var parser = new ol.format.WMSCapabilities();
-        var jqXhr = $.get(wmsUrl + "?request=GetCapabilities", $.proxy(function(response) {
-            var capsJson = $.parseJSON(JSON.stringify(parser.read(response)));
-            if (capsJson) {
-                magic.runtime.creator.catalogues[wmsUrl] = this.extractFeatureTypes(capsJson);
-                this.populateWmsFeatureSelector(wmsUrl, featSelect, this.data.source.feature_name);
-            } else {
-                bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to parse capabilities for WMS ' + wmsUrl + '</div>');
-            }
-        }, this)).fail(function() {
-            bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to read capabilities for WMS ' + wmsUrl + '</div>');
-            featSelect.find("option").remove();
-        });                    
-    } else {
-        this.populateWmsFeatureSelector(wmsUrl, featSelect, this.data.source.feature_name);
-    }            
-};
-
-/**
  * Find out which source data tab is currently active
  * @returns {string}
  */
@@ -221,6 +195,31 @@ magic.classes.creator.LayerUpdater.prototype.extractFeatureTypes = function(getC
         bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Malformed GetCapabilities response received from remote WMS</div>');
     }
     return(ftypes);
+};
+
+/**
+ * Populate the feature type selector from given WMS
+ * @param {string} wmsUrl
+ */
+magic.classes.creator.LayerUpdater.prototype.populateWmsDataSources = function(wmsUrl) {
+    var featSelect = $("select[name='" + this.prefix + "-wms-feature_name']");
+    if (!magic.runtime.creator.catalogues[wmsUrl]) {
+        var parser = new ol.format.WMSCapabilities();
+        var jqXhr = $.get(wmsUrl + "?request=GetCapabilities", $.proxy(function(response) {
+            var capsJson = $.parseJSON(JSON.stringify(parser.read(response)));
+            if (capsJson) {
+                magic.runtime.creator.catalogues[wmsUrl] = this.extractFeatureTypes(capsJson);
+                this.populateWmsFeatureSelector(wmsUrl, featSelect, this.data.source.feature_name);
+            } else {
+                bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to parse capabilities for WMS ' + wmsUrl + '</div>');
+            }
+        }, this)).fail(function() {
+            bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to read capabilities for WMS ' + wmsUrl + '</div>');
+            featSelect.find("option").remove();
+        });                    
+    } else {
+        this.populateWmsFeatureSelector(wmsUrl, featSelect, this.data.source.feature_name);
+    }            
 };
 
 /**

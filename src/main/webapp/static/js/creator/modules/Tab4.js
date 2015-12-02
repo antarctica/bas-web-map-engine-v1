@@ -8,8 +8,10 @@ magic.modules.creator.Tab4 = function () {
        },
        loadContext: function(data) {
            
+       },
+       saveContext: function(data) {
+           
        }
-
 
     });
 

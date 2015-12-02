@@ -21,6 +21,9 @@ magic.modules.creator.Tab3 = function () {
                     }
                 });     
             }
+            /* Security inputs */
+            $("select[name='t3-allowed_usage']").val(context.allowed_usage);
+            $("select[name='t3-allowed_download']").val(context.allowed_download);
         },
         /**
         * Load data object from form inputs
@@ -28,7 +31,7 @@ magic.modules.creator.Tab3 = function () {
         */
         saveContext: function(context) {
             var controls = [];
-            var formControls = $("#t3-form :input");
+            var formControls = $("input[name='t3-controls']");
             if ($.isArray(formControls)) {
                 $.each(formControls, function(idx, f) {
                     if (f.attr("type") != "checkbox" || (f.attr("type") == "checkbox" && f.prop("checked") === true)) {
@@ -36,7 +39,10 @@ magic.modules.creator.Tab3 = function () {
                     }
                 });
                 context.data.controls = controls;
-            }            
+            }
+            /* Security inputs */
+            context.allowed_usage = $("select[name='t3-allowed_usage']").val();
+            context.allowed_download = $("select[name='t3-allowed_download']").val();
         }
 
     });

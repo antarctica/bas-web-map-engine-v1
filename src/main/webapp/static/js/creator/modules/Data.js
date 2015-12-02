@@ -18,7 +18,9 @@ magic.modules.creator.Data = function () {
             "modified_date": null,
             "owner_name": null,
             "owner_email": "owner@example.com",
-            "metadata_url": null
+            "metadata_url": null,
+            "allowed_usage": "public",
+            "allowed_download": "public"
         },
         /* Per-region blank map initialisation data */
         BLANK_MAP_DATA: {

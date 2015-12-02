@@ -20,12 +20,16 @@ magic.classes.creator.MapContext.prototype.load = function(action, id, callback)
     }    
 };
 
+magic.classes.creator.MapContext.prototype.getContext = function() {
+    return(this.context);
+};
+
 magic.classes.creator.MapContext.prototype.getLayers = function() {
     var layers = [];
     if (this.context.data && $.isArray(this.context.data.layers)) {
         layers = this.context.data.layers;
     }
-    return(layers)
+    return(layers);
 };
 
 magic.classes.creator.MapContext.prototype.getProjection = function() {
@@ -33,7 +37,7 @@ magic.classes.creator.MapContext.prototype.getProjection = function() {
     if (this.context.data) {
         proj = this.context.data.projection;
     }
-    return(proj)
+    return(proj);
 };
 
 /**

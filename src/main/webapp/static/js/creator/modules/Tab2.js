@@ -4,6 +4,20 @@ magic.modules.creator.Tab2 = function () {
 
     return({
         
+        /* Group opener configuration, to allow dynamic insertion of elements without re-init of the tree */
+        opener_css: {
+            "display": "inline-block",
+            "width": "18px",
+            "height": "18px",
+            "float": "left",
+            "margin-left": "-35px",
+            "margin-right": "5px",
+            "background-position": "center center",
+            "background-repeat": "no-repeat"
+        },
+        open_img: magic.config.paths.baseurl + "/static/images/sortable_lists/open.png",
+        close_img: magic.config.paths.baseurl + "/static/images/sortable_lists/close.png",
+        
         /* Sub-tab for layer update */
         layer_updater: null,
 
@@ -53,6 +67,15 @@ magic.modules.creator.Tab2 = function () {
                 }                               
             }
         },
+        saveContext: function(context) {
+            var groupActive = $("#t2-group-div").hasClass("group-form-active");
+            var layerActive = $("#t2-layer-div").hasClass("layer-form-active");
+            if (layerActive) {
+                this.layer_updater.saveContext();
+            } else if (groupActive) {
+                this.group_updater.saveContext();
+            }
+        },
         /**
          * Click handler for buttons in layer tree
          * @param {jQuery.Event} evt
@@ -66,14 +89,14 @@ magic.modules.creator.Tab2 = function () {
             if (isGroup) {
                 /* Group form snippet */
                 $("#t2-update-panel-title").html("Layer group : " + dictEntry.name);
-                $("#t2-group-div").show();
-                $("#t2-layer-div").hide();
+                $("#t2-group-div").show().addClass("group-form-active");
+                $("#t2-layer-div").hide().removeClass("layer-form-active");
                 this.group_updater.loadContext(dictEntry);                
             } else {
                 /* Layer form snippet */
                 $("#t2-update-panel-title").html("Data layer : " + dictEntry.name);
-                $("#t2-group-div").hide();
-                $("#t2-layer-div").show();
+                $("#t2-group-div").hide().removeClass("group-form-active");
+                $("#t2-layer-div").show().addClass("layer-form-active");
                 this.layer_updater.loadContext(dictEntry);                
             }
         },
@@ -86,28 +109,19 @@ magic.modules.creator.Tab2 = function () {
             layerTree.sortableLists({
                 placeholderCss: {"background-color": "#fcf8e3", "border": "2px dashed #fce04e"},
                 hintCss: {"background-color": "#dff0d8", "border": "2px dashed #5cb85c"},
-                isAllowed:this.allowedDragHandler,
+                isAllowed: this.allowedDragHandler,
                 listSelector: "ul",
                 listsClass: "list-group",                    
                 insertZone: 50,
                 opener: {
                     active: true,
-                    close: "/static/images/sortable_lists/close.png",
-                    open: "/static/images/sortable_lists/open.png",                        
-                    openerCss: {
-                        "display": "inline-block",
-                        "width": "18px",
-                        "height": "18px",
-                        "float": "left",
-                        "margin-left": "-35px",
-                        "margin-right": "5px",
-                        "background-position": "center center",
-                        "background-repeat": "no-repeat"
-                    }
+                    close: this.close_img,
+                    open: this.open_img,                        
+                    openerCss: this.opener_css
                 },
                 ignoreClass: "layer-name-button"
             });
-        },
+        },        
         /**
          * Drag sortable element handler - implements logic to decide whether a given drag is allowed
          * @param {element} elt
@@ -158,15 +172,35 @@ magic.modules.creator.Tab2 = function () {
          */
         groupLiHtml: function(id, name) {
             var li = $(
-                '<li class="list-group-item list-group-item-heading" id="' + id + '">' + 
+                '<li class="list-group-item list-group-item-heading sortableListsClosed" id="' + id + '">' + 
+                    '<span class="sortableListsOpener"></span>' +
                     '<div>' +                       
-                        '<button type="button" class="btn btn-info btn-sm layer-name-button" data-toggle="tooltip" data-placement="right" title="Click to update layer group data">' + 
+                        '<button type="button" class="btn btn-info btn-sm layer-name-button" data-toggle="tooltip" data-placement="top" title="Click to update layer group data">' + 
                             name + 
                         '</button>' + 
                     '</div>' + 
-                    '<ul class="list-group"></ul>' + 
+                    '<ul class="list-group" style="display:none"></ul>' + 
                 '</li>'
-            );           
+            );
+            /* Unfortunately the sortable lists plugin doesn't allow dynamic addition of items to the tree, just d-n-d re-ordering of existing ones
+             * Hence we have copied some of the event handlers here to allow open/close of dynamically added layer groups */
+            li.children("span")
+                .css($.extend({"background-image": "url('" + this.open_img + "')"}, this.opener_css))
+                .on("mousedown", $.proxy(function(evt) {                    
+					if (li.hasClass("sortableListsClosed")) {
+                        $(evt.currentTarget).css({"background-image": "url('" + this.close_img + "')"});
+                        li.removeClass("sortableListsClosed").addClass("sortableListsOpen");
+                        li.children("ul, ol").css("display", "block");
+                        li.children("div").children(".sortableListsOpener").first().css("background-image", "url('" + this.close_img + "')");
+                    }
+					else { 
+                        $(evt.currentTarget).css({"background-image": "url('" + this.open_img + "')"});
+                        li.removeClass("sortableListsOpen").addClass("sortableListsClosed");
+                        li.children("ul, ol").css("display", "none");
+                        li.children("div").children(".sortableListsOpener").first().css("background-image", "url('" + this.open_img + "')");
+                    }
+					return(false);
+            }, this));
             return(li);
         },
         /**
@@ -179,7 +213,7 @@ magic.modules.creator.Tab2 = function () {
             var li = $(
                 '<li class="list-group-item list-group-item-info" id="' + id + '">' + 
                     '<div>' + 
-                        '<button type="button" class="btn btn-info btn-sm layer-name-button" data-toggle="tooltip" data-placement="right" title="Click to update layer data">' + 
+                        '<button type="button" class="btn btn-info btn-sm layer-name-button" data-toggle="tooltip" data-placement="top" title="Click to update layer data">' + 
                             name + 
                         '</button>' + 
                     '</div>' +     
