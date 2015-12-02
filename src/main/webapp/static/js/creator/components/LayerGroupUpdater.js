@@ -27,7 +27,7 @@ magic.classes.creator.LayerGroupUpdater = function(prefix) {
             /* Update dictionary entry */
             this.saveContext();
             /* Update the tree button caption as we have updated the name */
-            $("#" + this.data.id).find("button").html(this.data.name);
+            $("#" + this.data.id).find("button").first().html(this.data.name);
             $("[id$='-update-panel']").fadeOut("slow");
         }
     }, this));

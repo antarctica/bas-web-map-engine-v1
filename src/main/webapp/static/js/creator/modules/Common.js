@@ -137,7 +137,12 @@ magic.modules.creator.Common = function () {
                         data[name] = input.prop("checked") ? true : false;
                     } else {
                         /* Simple case */
-                        data[name] = input.val();
+                        var value = input.val();
+                        if (input.attr("required") && !value) {
+                            data[name] = fo["default"];
+                        } else {
+                            data[name] = value;
+                        }
                     }
                 });
             }

@@ -43,7 +43,8 @@ magic.classes.creator.LayerStyler.prototype.loadContext = function(style) {
  * @param {object} style
  */
 magic.classes.creator.LayerStyler.prototype.saveContext = function(style) {
-    for (var key in this.style_form_fields) {        
-        magic.modules.creator.Common.formToDict(this.style_form_fields, style, this.prefix + "-" + key);
+    for (var key in this.style_form_fields) {
+        style[key] = {};
+        magic.modules.creator.Common.formToDict(this.style_form_fields[key], style[key], this.prefix + "-" + key);
     }
 };

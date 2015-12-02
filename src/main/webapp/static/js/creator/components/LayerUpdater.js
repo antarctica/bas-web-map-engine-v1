@@ -90,7 +90,7 @@ magic.classes.creator.LayerUpdater.prototype.loadContext = function(context) {
     
     this.data = context;
    
-    var activeTab = this.getActiveTab(context.source);
+    var activeTab = this.setActiveSourceTab(context.source);
     
     /* Style definition sub-tab */
     this.style_definition = new magic.classes.creator.LayerStyler(this.prefix);
@@ -131,8 +131,10 @@ magic.classes.creator.LayerUpdater.prototype.wmsLoadContext = function() {
 magic.classes.creator.LayerUpdater.prototype.saveContext = function() {    
     /* Common non-source specific fields */
     magic.modules.creator.Common.formToDict(this.form_fields, this.data, this.prefix);
-    var activeTab = this.getActiveTab(this.data.source);
-    magic.modules.creator.Common.formToDict(this.source_form_fields[activeTab], this.data.source, this.prefix + "-" + activeTab);   
+    var activeTab = this.getActiveSourceTab();
+    /* Delete currently specified source data pending replacement with new */
+    this.data.source = {};
+    magic.modules.creator.Common.formToDict(this.source_form_fields[activeTab], this.data.source, this.prefix + "-" + activeTab);
     this.attribute_map.saveContext(this.data, activeTab);
     if (activeTab != "wms") {
         if (!("style_definition" in this.data.source)) {
@@ -167,16 +169,28 @@ magic.classes.creator.LayerUpdater.prototype.populateWmsDataSources = function(w
     }            
 };
 
-magic.classes.creator.LayerUpdater.prototype.getActiveTab = function(source) {
+/**
+ * Find out which source data tab is currently active
+ * @returns {string}
+ */
+magic.classes.creator.LayerUpdater.prototype.getActiveSourceTab = function() {
+    var tab = $("div.active[id^='t2-layer'][role='tabpanel']");
+    var tabName = tab.attr("id").replace(this.prefix + "-", "").replace("-tab", "");
+    return(tabName);
+};
+
+/**
+ * Set the currently active source tab
+ * @param {object} source
+ * @returns {string}
+ */
+magic.classes.creator.LayerUpdater.prototype.setActiveSourceTab = function(source) {    
     var activeTab = null;
     $.each($("a[role='tab'][href^='#" + this.prefix + "']"), $.proxy(function(i, a) {
         var tabName = $(a).attr("href").replace("#" + this.prefix + "-", "").replace("-tab", "");
-        //TODO
-        console.log(source[tabName + "_source"]);
-        if (source[tabName + "_source"].indexOf("http://") == 0) {
+        if (source[tabName + "_source"] && source[tabName + "_source"].indexOf("http://") == 0) {
             $(a).tab("show");
             activeTab = tabName;
-            console.log(activeTab);
             return(false)
         }        
         return(true);

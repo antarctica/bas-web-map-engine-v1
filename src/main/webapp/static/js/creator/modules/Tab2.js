@@ -159,7 +159,7 @@ magic.modules.creator.Tab2 = function () {
         groupLiHtml: function(id, name) {
             var li = $(
                 '<li class="list-group-item list-group-item-heading" id="' + id + '">' + 
-                    '<div>' + 
+                    '<div>' +                       
                         '<button type="button" class="btn btn-info btn-sm layer-name-button" data-toggle="tooltip" data-placement="right" title="Click to update layer group data">' + 
                             name + 
                         '</button>' + 

@@ -2,7 +2,7 @@
 
 magic.classes.creator.LayerAttributeMap = function(div) {
     
-    /* Div for the attribute form */
+    /* Div for the attribute form (jQuery element) */
     this.div = div;
     
     /* Attribute dictionary for WMS layers */
@@ -29,7 +29,7 @@ magic.classes.creator.LayerAttributeMap.prototype.loadContext = function(context
  * @param {object} context
  */
 magic.classes.creator.LayerAttributeMap.prototype.wmsLoadContext = function(context) {      
-    this.ogcUpdate(context.source.wms_source, context.source.feature_name, context.attribute_map);
+    this.ogcLoadContext(context.source.wms_source, context.source.feature_name, context.attribute_map);
 };
 
 /**
@@ -43,7 +43,7 @@ magic.classes.creator.LayerAttributeMap.prototype.vectorLoadContext = function(c
         feature = context.source.feature_name;
         if (source.indexOf("/wfs") > 0 && feature) {
             /* WFS */
-            this.ogcUpdate(source, feature, context.attribute_map);
+            this.ogcLoadContext(source, feature, context.attribute_map);
             return;
         } else {
             /* GeoJSON e.g. from API */
@@ -64,22 +64,43 @@ magic.classes.creator.LayerAttributeMap.prototype.vectorLoadContext = function(c
             method: "GET",
             dataType: "text"
         });
-        jqXhr.done(function(data) {
-            console.dir(format.readFeature(data));
-        });
+        jqXhr.done($.proxy(function(data) {
+            var testFeat = format.readFeature(data);
+            if (testFeat) {
+                var attrKeys = testFeat.getKeys();
+                if ($.isArray(attrKeys) && attrKeys.length > 0) {
+                    var allowedKeys = $.grep(attrKeys, function(elt) {return(elt.indexOf("geom") == 0 || elt.indexOf("extension") == 0)}, true);
+                    var attrDict = [];
+                    $.each(allowedKeys, $.proxy(function(idx, akey) {
+                        var value = testFeat.get(akey);
+                        attrDict.push({
+                            "name": akey,
+                            "type": $.isNumeric(value) ? "decimal" : "string",
+                            "nillable": true,
+                            "filter": "",
+                            "alias": "",
+                            "displayed": true,
+                            "filterable": false,
+                            "unique_values": false
+                        });                        
+                    }, this));
+                    this.div.html(this.toForm(context.attribute_map, attrDict));
+                }
+            } else {
+                this.div.html('<div class="alert alert-warning">Failed to parse test feature from ' + source + '</div>');
+            }
+        }, this));
         jqXhr.fail(function(xhr, status) {
             this.div.html('<div class="alert alert-warning">Failed to read features from ' + source + '</div>');
         });
     }    
 };
 
-
-
 /**
  * Update attribute map for WMS source and feature type
  * @param {object} context
  */
-magic.classes.creator.LayerAttributeMap.prototype.ogcUpdate = function(wms, feature, attrMap) {
+magic.classes.creator.LayerAttributeMap.prototype.ogcLoadContext = function(wms, feature, attrMap) {
     if (wms && feature) {
         if (wms in this.wms_attribute_dictionary && feature in this.wms_attribute_dictionary[wms] && $.isArray(this.wms_attribute_dictionary[wms][feature])) {
             /* Already fetched */
@@ -193,7 +214,7 @@ magic.classes.creator.LayerAttributeMap.prototype.toForm = function(attrMap, att
                 html += '<td><input type="checkbox" id="_amap_filterable_' + idx + '" value="filter"' + (filter ? ' checked' : '') + ' ' +
                         'data-toggle="tooltip" data-placement="top" title="Allow filtering data on this attribute"></input></td>';
                 html += '<td><input type="checkbox" id="_amap_unique_values_' + idx + '" value="unique"' + (unique ? ' checked' : '') + ' ' + 
-                        'data-toggle="tooltip" data-placement="top" title="Display unique values of attribute when filtering"></input></td>';
+                        'data-toggle="tooltip" data-placement="top" title="Display unique values of attribute when filtering (WMS/WFS only)"></input></td>';
                 html += '</tr>';
             }
         }, this));
