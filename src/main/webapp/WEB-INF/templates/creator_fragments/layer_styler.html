@@ -8,9 +8,9 @@
         <div class="alert alert-info">
             Note that symbology entered here is <strong>ignored</strong> for WMS layers - these will use styles defined by the WMS
         </div>
-        <div class="panel panel-default">
+        <div class="panel panel-default" id="t2-layer-style-graphic">
             <div class="panel-heading">
-                <h3 class="panel-title">Select graphic type</h3>
+                <h3 class="panel-title">Select graphic type (point layers only)</h3>
             </div>
             <div class="panel-body">                    
                 <div class="form-group">
@@ -43,9 +43,9 @@
                 </div>                            
             </div>
         </div>
-        <div class="panel panel-default">
+        <div class="panel panel-default" id="t2-layer-style-stroke">
             <div class="panel-heading">
-                <h3 class="panel-title">Graphic outline properties</h3>
+                <h3 class="panel-title">Outline (stroke) properties (all geometry types)</h3>
             </div>
             <div class="panel-body">                                    
                 <div class="form-group">
@@ -89,15 +89,16 @@
                                 data-toggle="tooltip" data-placement="left" title="Type of line" required="required"> 
                             <option value="solid">Solid</option>
                             <option value="dotted">Dotted</option>
-                            <option value="dashed">Dashed</option>                            
+                            <option value="dashed">Dashed</option>
+                            <option value="dotted-dashed">Dash/dot</option>
                         </select>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="panel panel-default">
+        <div class="panel panel-default" id="t2-layer-style-fill">
             <div class="panel-heading">
-                <h3 class="panel-title">Graphic fill properties</h3>
+                <h3 class="panel-title">Interior (fill) properties (all geometry types)</h3>
             </div>
             <div class="panel-body">                                                    
                 <div class="form-group">

@@ -36,7 +36,16 @@ magic.modules.creator.Common = function () {
                     } else {
                         $("ul.pager li.finish").addClass("hidden");
                     }
-                }, this)                
+                }, this),
+                onBack: $.proxy(function (tab, navigation, index) {
+                    if ($.isFunction(this.tabs[index+1].saveContext)) {
+                        this.tabs[index+1].saveContext(this.map_context.getContext());
+                    }                   
+                }, this),
+                onTabClick: function(tab, navigation, index) {
+                    /* Clicking on a random tab is not allowed */
+                    return(false);
+                }
             });
             /* For some reason the onFinish event published doesn't work... David 02/12/2015 */
             $("#rootwizard .finish").click($.proxy(function (tab, navigation, index) {
@@ -76,32 +85,35 @@ magic.modules.creator.Common = function () {
             $.each(this.tabs, $.proxy(function(idx, tab) {
                 tab.saveContext(data);
             }, this));   
-            var layerHierarchy = $("ul.layertree").sortableListsToHierarchy();
-            console.dir(layerHierarchy);
-            this.sortLayers(layerHierarchy);            
+            var layerHierarchy = $("ul.layertree").sortableListsToHierarchy();           
+            var layerTree = [];           
+            this.sortLayers(layerTree, layerHierarchy);
+            // TODO - insert constructed layer tree into map context before validation
+            console.log(this.map_context.getContext());
+            /* Now validate it against the JSON schema */
+            $.getJSON(magic.config.paths.baseurl + "/static/js/json/web_map_schema.json", $.proxy(function(schema) {
+                console.log("Validation result: " + tv4.validate(this.map_context.getContext(), schema));
+                console.log("Errors were: " + JSON.stringify(tv4.error, null, 4));
+            }, this));            
         },
         /** 
          * Do the re-ordering of layers from the sortable list
+         * @param {Array} tree
          * @param {Array} hierarchy
          */
-        sortLayers: function(hierarchy) { 
-            // Create new object - too hard this way! TODO
+        sortLayers: function(tree, hierarchy) {           
             for (var i = 0; i < hierarchy.length; i++) {
                 var node = hierarchy[i];
                 if (node.children.length > 0) {
                     /* Is a group node */
-                    delete node.order;
-                    delete node.value;
-                    $.extend(true, node, this.layer_dictionary.get(node.id));
-                    this.sortLayers(node.children);
+                    this.layer_dictionary.get(node.id).layers = [];
+                    this.sortLayers(this.layer_dictionary.get(node.id).layers, node.children);
+                    tree.push(this.layer_dictionary.get(node.id));
                 } else {
                     /* Is a layer (i.e. leaf) node */
-                    delete node.order;
-                    delete node.value;
-                    delete node.children;                    
-                    $.extend(true, node, this.layer_dictionary.get(node.id));                    
+                    tree.push(this.layer_dictionary.get(node.id));
                 }
-            }            
+            }  
         },
         /**
          * Populate a select list from given array of option objects

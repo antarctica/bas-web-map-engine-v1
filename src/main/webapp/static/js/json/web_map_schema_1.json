@@ -402,7 +402,12 @@
                                                 "required": ["kml_source"]
                                             }
                                         ]                                        
-                                    },																		
+                                    },
+                                    "geom_type": {
+                                        "description": "Type of layer geometry (point|layer|polygon|raster|unknown",
+                                        "type": "string",
+                                        "enum": ["point", "line", "polygon", "raster", "unknown"]
+                                    },
 									"legend_graphic": {
 										"description": "URL feed serving legend graphic information (different from wms if cascading, and allows non-WMS feeds)",
 										"type": "string",

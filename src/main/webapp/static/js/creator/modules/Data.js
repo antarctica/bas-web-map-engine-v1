@@ -16,9 +16,9 @@ magic.modules.creator.Data = function () {
             "repository": null,
             "creation_date": null,
             "modified_date": null,
-            "owner_name": null,
+            "owner_name": "",
             "owner_email": "owner@example.com",
-            "metadata_url": null,
+            "metadata_url": "",
             "allowed_usage": "public",
             "allowed_download": "public"
         },

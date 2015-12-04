@@ -5,8 +5,11 @@ magic.classes.creator.LayerAttributeMap = function(div) {
     /* Div for the attribute form (jQuery element) */
     this.div = div;
     
-    /* Attribute dictionary for WMS layers */
-    this.attribute_dictionary = {};        
+    /* Attribute dictionary for layers */
+    this.attribute_dictionary = {};      
+    
+    /* Type dictionary for layers */
+    this.type_dictionary = {};
       
     this.div.html("");
             
@@ -66,7 +69,9 @@ magic.classes.creator.LayerAttributeMap.prototype.vectorLoadContext = function(c
                 if (testFeat) {
                     var attrKeys = testFeat.getKeys();
                     if ($.isArray(attrKeys) && attrKeys.length > 0) {
-                        var allowedKeys = $.grep(attrKeys, function(elt) {return(elt.indexOf("geom") == 0 || elt.indexOf("extension") == 0)}, true);
+                        var allowedKeys = $.grep(attrKeys, function(elt) {
+                            return(elt.indexOf("geom") == 0 || elt.indexOf("extension") == 0);
+                        }, true);
                         var attrDict = [];
                         $.each(allowedKeys, $.proxy(function(idx, akey) {
                             var value = testFeat.get(akey);
@@ -82,14 +87,15 @@ magic.classes.creator.LayerAttributeMap.prototype.vectorLoadContext = function(c
                             });                        
                         }, this));
                         this.attribute_dictionary[context.id] = attrDict;
-                        this.div.html(this.toForm(context.attribute_map, attrDict));
+                        this.type_dictionary[context.id] = this.featureGeomType(testFeat);
+                        this.div.html(this.toForm(context.id, context.attribute_map, attrDict));
                     }
                 } else {
-                    this.div.html('<div class="alert alert-warning">Failed to parse test feature from ' + source + '</div>');
+                    this.div.html('<div class="alert alert-warning" style="margin-bottom:0">Failed to parse test feature from ' + source + '</div>');
                 }
             }, this));
             jqXhr.fail(function(xhr, status) {
-                this.div.html('<div class="alert alert-warning">Failed to read features from ' + source + '</div>');
+                this.div.html('<div class="alert alert-warning" style="margin-bottom:0">Failed to read features from ' + source + '</div>');
             });
         }
     }    
@@ -107,24 +113,30 @@ magic.classes.creator.LayerAttributeMap.prototype.ogcLoadContext = function(cont
     if (wms && feature && id) {
         if ($.isArray(this.attribute_dictionary[id])) {
             /* Already fetched */
-            this.div.html(this.toForm(attrMap, this.attribute_dictionary[id]));
+            this.div.html(this.toForm(id, attrMap, this.attribute_dictionary[id]));
         } else {
             /* Get the feature type attributes from DescribeFeatureType */
             this.attribute_dictionary[id] = [];
+            this.type_dictionary[id] = null;
             $.get(wms.replace("wms", "wfs") + "?request=DescribeFeatureType&typename=" + feature, $.proxy(function(response) {                        
                 var elts = $(response).find("sequence").find("element");
+                var geomType = "unknown";
                 $.each(elts, $.proxy(function(idx, elt) {
                     var attrs = {};
-                    $.each(elt.attributes, function(i, a) {
+                    $.each(elt.attributes, $.proxy(function(i, a) {                        
+                        if (a.value.indexOf("gml:") == 0) {                           
+                            geomType = this.computeOgcGeomType(a.value);
+                        }
                         attrs[a.name] = a.value;
-                    });
-                    this.attribute_dictionary[id].push(attrs);
+                    }, this));
+                    this.attribute_dictionary[id].push(attrs);                    
                 }, this));
-                this.div.html(this.toForm(attrMap, this.attribute_dictionary[id]));
+                this.type_dictionary[id] = geomType;
+                this.div.html(this.toForm(id, attrMap, this.attribute_dictionary[id]));
             }, this));
         }
     } else {
-        this.div.html('<div class="alert alert-warning">No WMS or feature type name defined</div>');
+        this.div.html('<div class="alert alert-warning" style="margin-bottom:0">No WMS or feature type name defined</div>');
     }
 };
 
@@ -138,18 +150,22 @@ magic.classes.creator.LayerAttributeMap.prototype.saveContext = function(context
         var nAttrs = this.attribute_dictionary[context.id].length;
         var fields = ["name", "type", "nillable", "filter", "alias", "displayed", "filterable", "unique_values"];
         for (var i = 0; i < nAttrs; i++) {
-            var o = {};
-            for (var j = 0; j < fields.length; j++) {
-                var fEl = $("#_amap_" + fields[j] + "_" + i);
-                if (fEl.length > 0) {
-                    if (fEl.attr("type") == "checkbox") {
-                        o[fields[j]] = fEl.prop("checked") === true ? true : false;
-                    } else {
-                        o[fields[j]] = fEl.val();
+            var attrData = this.attribute_dictionary[context.id][i];
+            if (attrData.type.indexOf("gml:") != 0) {
+                /* Exclude the geometry attribute */
+                var o = {};
+                for (var j = 0; j < fields.length; j++) {
+                    var fEl = $("#_amap_" + fields[j] + "_" + i);
+                    if (fEl.length > 0) {
+                        if (fEl.attr("type") == "checkbox") {
+                            o[fields[j]] = fEl.prop("checked") === true ? true : false;
+                        } else {
+                            o[fields[j]] = fEl.val();
+                        }
                     }
                 }
+                newMap.push(o);
             }
-            newMap.push(o);
         }
         context.attribute_map = newMap;
     }        
@@ -157,12 +173,14 @@ magic.classes.creator.LayerAttributeMap.prototype.saveContext = function(context
 
 /**
  * Create form HTML for the attribute map
+ * @param {string} id
  * @param {object} attrMap
  * @param {Array} attrDict
  * @returns {String}
  */
-magic.classes.creator.LayerAttributeMap.prototype.toForm = function(attrMap, attrDict) {
+magic.classes.creator.LayerAttributeMap.prototype.toForm = function(id, attrMap, attrDict) {
     var html = '';
+    $("button.geometry-type-indicator").html(this.type_dictionary[id]);
     if (attrDict.length > 0) {
         /* Some attributes - first compile a dictionary of what we already have */
         if (!attrMap) {
@@ -172,7 +190,7 @@ magic.classes.creator.LayerAttributeMap.prototype.toForm = function(attrMap, att
         $.each(attrMap, function(mi, me) {
             existingMap[me.name] = me;
         });
-        html = '<table class="table table-condensed table-striped table-hover table-responsive">';
+        html += '<table class="table table-condensed table-striped table-hover table-responsive">';
         html += '<tr>';
         html += '<th>Name</th>';
         html += '<th>Type</th>';
@@ -186,7 +204,7 @@ magic.classes.creator.LayerAttributeMap.prototype.toForm = function(attrMap, att
             html += '<input type="hidden" id="_amap_type_' + idx + '" value="' + entry.type + '"></input>';
             html += '<input type="hidden" id="_amap_nillable_' + idx + '" value="' + entry.nillable + '"></input>';
             html += '<input type="hidden" id="_amap_filter_' + idx + '" value=""></input>';
-            if (entry.type.indexOf("gml") != 0) {
+            if (entry.type.indexOf("gml:") != 0) {
                 /* This is not the geometry field */
                 var exo = existingMap[entry.name];
                 var alias = "", display = false, filter = false, unique = false;
@@ -210,9 +228,47 @@ magic.classes.creator.LayerAttributeMap.prototype.toForm = function(attrMap, att
                 html += '</tr>';
             }
         }, this));
-        html += '</table>';
+        html += '</table>';        
     } else {
-        html = '<div class="alert alert-danger">No suitable attributes found</div>';
+        html = '<div class="alert alert-danger" style="margin-bottom:0">No suitable attributes found</div>';
     }
     return(html);
+};
+
+/**
+ * GML type to simple type (point|line|polygon)
+ * @param {String} gmlType
+ * @returns {String}
+ */
+magic.classes.creator.LayerAttributeMap.prototype.computeOgcGeomType = function(gmlType) {
+    gmlType = gmlType.toLowerCase();
+    if (gmlType.indexOf("point") >= 0) {
+        return("point");
+    } else if (gmlType.indexOf("line") >= 0 || gmlType.indexOf("curve") >= 0) {
+        return("line");
+    } else if (gmlType.indexOf("polygon") >= 0) {
+        return("polygon");
+    } else {
+        return("unknown");
+    }
+};
+
+/**
+ * Feature geometry type to simple type (point|line|polygon)
+ * @param {object} feat
+ * @returns {String}
+ */
+magic.classes.creator.LayerAttributeMap.prototype.featureGeomType = function(feat) {
+    var type = "unknown";
+    var g = feat.getGeometry();
+    if (g) {
+        if (g instanceof ol.geom.Point || g instanceof ol.geom.MultiPoint) {
+            type = "point";
+        } else if (g instanceof ol.geom.LineString || g instanceof ol.geom.MultiLineString || g instanceof ol.geom.LinearRing) {
+            type = "line";
+        } else if (g instanceof ol.geom.Polygon || g instanceof ol.geom.MultiPolygon) {
+            type = "polygon";
+        }
+    }
+    return(type);
 };

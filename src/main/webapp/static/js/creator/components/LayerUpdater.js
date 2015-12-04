@@ -13,7 +13,8 @@ magic.classes.creator.LayerUpdater = function(prefix) {
     this.form_fields = [
         {"field": "id", "default": ""}, 
         {"field": "name", "default": ""}, 
-        {"field": "legend_graphic", "default": ""}, 
+        {"field": "legend_graphic", "default": ""},
+        {"field": "geom_type", "default": "unknown"},
         {"field": "min_scale", "default": null}, 
         {"field": "max_scale", "default": null}, 
         {"field": "opacity", "default": 1.0}, 
@@ -73,11 +74,17 @@ magic.classes.creator.LayerUpdater = function(prefix) {
         }
     }, this));
     /* Layer source tab change handler */
-    $("a[href^='" + this.prefix + "'][data-toggle='tab']").on("shown.bs.tab", $.proxy(function(evt) {
+    $("a[href^='#" + this.prefix + "'][data-toggle='tab']").on("shown.bs.tab", $.proxy(function(evt) {
         var sourceType = evt.target.innerHTML.toLowerCase();
         if ($.isFunction(this[sourceType + "LoadContext"])) {
             this[sourceType + "LoadContext"]();
-        } 
+        }
+        var symbologyPanel = $("#" + this.prefix + "-symbology-panel");
+        if (sourceType == "wms") {
+            symbologyPanel.hide();
+        } else {
+            symbologyPanel.show();
+        }
     }, this));
 };
 
@@ -128,7 +135,7 @@ magic.classes.creator.LayerUpdater.prototype.wmsLoadContext = function() {
  * Populate data object with changed form inputs
  */
 magic.classes.creator.LayerUpdater.prototype.saveContext = function() {    
-    /* Common non-source specific fields */
+    /* Common non-source specific fields */    
     magic.modules.creator.Common.formToDict(this.form_fields, this.data, this.prefix);
     var activeTab = this.getActiveSourceTab();
     /* Delete currently specified source data pending replacement with new */
@@ -160,11 +167,17 @@ magic.classes.creator.LayerUpdater.prototype.getActiveSourceTab = function() {
  */
 magic.classes.creator.LayerUpdater.prototype.setActiveSourceTab = function(source) {    
     var activeTab = null;
+    var symbologyPanel = $("#" + this.prefix + "-symbology-panel");  
     $.each($("a[role='tab'][href^='#" + this.prefix + "']"), $.proxy(function(i, a) {
         var tabName = $(a).attr("href").replace("#" + this.prefix + "-", "").replace("-tab", "");
         if (source[tabName + "_source"] && source[tabName + "_source"].indexOf("http://") == 0) {
             $(a).tab("show");
             activeTab = tabName;
+            if (tabName == "wms") {
+                symbologyPanel.hide();
+            } else {
+                symbologyPanel.show();
+            }
             return(false)
         }        
         return(true);
@@ -172,7 +185,8 @@ magic.classes.creator.LayerUpdater.prototype.setActiveSourceTab = function(sourc
     if (activeTab == null) {
         $("a[href='#" + this.prefix + "-wms-tab']").tab("show");
         activeTab = "wms";
-    }
+        symbologyPanel.hide();
+    }    
     return(activeTab);
 };
 

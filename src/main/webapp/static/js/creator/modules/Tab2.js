@@ -38,9 +38,9 @@ magic.modules.creator.Tab2 = function () {
                 /* Translate the layer data into a sortable list */
                 $("#t2-update-panel").hide();    
                 var layerTree = $("ul.layertree");
-                layerTree.empty();
+                layerTree.empty();               
                 this.processLayers(context.data.layers, layerTree);                
-                this.initSortableList(layerTree);    
+                this.initSortableList(layerTree);                 
                 /* Assign the layer edit button handlers */
                 $(".layer-name-button").click($.proxy(this.layerTreeButtonHandler, this));
                 /* Add new layer button handler */
@@ -52,6 +52,7 @@ magic.modules.creator.Tab2 = function () {
                         var newLi = this.layerLiHtml(id, magic.modules.creator.Common.layer_dictionary.get(id)["name"]);
                         layerTree.append(newLi);
                         newLi.find("button").click($.proxy(this.layerTreeButtonHandler, this));
+                        $("button.geometry-type-indicator").html("unknown");
                     }, this));
                 }
                 /* Add new layer group button handler */
@@ -151,8 +152,8 @@ magic.modules.creator.Tab2 = function () {
          */
         processLayers: function(layers, parent) {
             for (var i = 0; i < layers.length; i++) {
-                var id = magic.modules.creator.Common.layer_dictionary.put(layers[i]);
-                if (layers[i].layers) {
+                var id = magic.modules.creator.Common.layer_dictionary.put(layers[i]);                
+                if ($.isArray(layers[i].layers) && layers[i].layers.length > 0) {
                     /* A layer group */
                     var groupEl = this.groupLiHtml(id, layers[i].name);
                     parent.append(groupEl);

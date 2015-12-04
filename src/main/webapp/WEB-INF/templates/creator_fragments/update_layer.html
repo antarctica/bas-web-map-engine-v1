@@ -7,12 +7,19 @@
     <body th:fragment="layout">
         <form id="t2-layer-form" class="form-horizontal">
             <input type="hidden" id="t2-layer-id" name="t2-layer-id"></input>
+            <input type="hidden" id="t2-layer-geom_type" name="t2-layer-geom_type"></input>
             <div class="form-group">
                 <label for="t2-layer-name" class="col-sm-3 control-label">Layer name</label>
                 <div class="col-sm-9">
                     <input type="text" class="form-control" id="t2-layer-name" name="t2-layer-name" placeholder="Layer name" 
                            data-toggle="tooltip" data-placement="left" title="Letters, numbers and _ allowed" pattern="^[A-Za-z0-9_ ]+$" required="required">                                   
                     </input>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">Geometry type</label>
+                <div class="col-sm-9">
+                    <button class="btn btn-info geometry-type-indicator">Unknown</button>
                 </div>
             </div>
             <div class="form-group">
@@ -34,7 +41,7 @@
                     </input>
                 </div>
             </div>              
-            <div class="panel panel-default">
+            <div class="panel panel-default" id="t2-layer-symbology-panel">
                 <div class="panel-heading">
                     <a class="btn btn-default"  style="width:100%" data-toggle="collapse" href="#t2-layer-style-props-div">Edit symbology</a>
                 </div>            
