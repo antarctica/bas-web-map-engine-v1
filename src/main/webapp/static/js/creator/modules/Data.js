@@ -26,6 +26,7 @@ magic.modules.creator.Data = function () {
         BLANK_MAP_DATA: {
             "antarctic": {
                 "projection": "EPSG:3031",
+                "proj_extent": [-5000000,-5000000,5000000,5000000],
                 "center": [0, 0],
                 "zoom": 0,
                 "rotation": 0,
@@ -99,6 +100,7 @@ magic.modules.creator.Data = function () {
             },
             "arctic": {
                 "projection": "EPSG:3995",
+                "proj_extent": [-4000000,-4000000,4000000,4000000],
                 "center": [0, 0],
                 "zoom": 0,
                 "rotation": 0,
@@ -164,6 +166,7 @@ magic.modules.creator.Data = function () {
             },
             "southgeorgia": {
                 "projection": "EPSG:3762",
+                "proj_extent": [-929362.849,-1243855.108,1349814.294,556833.528],
                 "center": [-1000.0, 61900.0],
                 "zoom": 4,
                 "rotation": 0,

@@ -32,6 +32,13 @@ magic.classes.creator.MapContext.prototype.getLayers = function() {
     return(layers);
 };
 
+magic.classes.creator.MapContext.prototype.setLayers = function(layers) {
+    if (this.context.data) {
+        this.context.data.layers = layers;
+    }
+};
+
+
 magic.classes.creator.MapContext.prototype.getProjection = function() {
     var proj = null;
     if (this.context.data) {

@@ -88,6 +88,7 @@ magic.classes.creator.LayerAttributeMap.prototype.vectorLoadContext = function(c
                         }, this));
                         this.attribute_dictionary[context.id] = attrDict;
                         this.type_dictionary[context.id] = this.featureGeomType(testFeat);
+                        console.log("Set type to " + this.type_dictionary[context.id]);
                         this.div.html(this.toForm(context.id, context.attribute_map, attrDict));
                     }
                 } else {
@@ -126,6 +127,7 @@ magic.classes.creator.LayerAttributeMap.prototype.ogcLoadContext = function(cont
                     $.each(elt.attributes, $.proxy(function(i, a) {                        
                         if (a.value.indexOf("gml:") == 0) {                           
                             geomType = this.computeOgcGeomType(a.value);
+                            this.type_dictionary[context.id] = geomType;
                         }
                         attrs[a.name] = a.value;
                     }, this));
@@ -168,6 +170,7 @@ magic.classes.creator.LayerAttributeMap.prototype.saveContext = function(context
             }
         }
         context.attribute_map = newMap;
+        context.geom_type = this.type_dictionary[context.id];
     }        
 };
 

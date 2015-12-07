@@ -15,8 +15,8 @@ magic.classes.creator.LayerUpdater = function(prefix) {
         {"field": "name", "default": ""}, 
         {"field": "legend_graphic", "default": ""},
         {"field": "geom_type", "default": "unknown"},
-        {"field": "min_scale", "default": null}, 
-        {"field": "max_scale", "default": null}, 
+        {"field": "min_scale", "default": 1000}, 
+        {"field": "max_scale", "default": 100000000}, 
         {"field": "opacity", "default": 1.0}, 
         {"field": "is_visible", "default": false}, 
         {"field": "is_interactive", "default": false}, 
@@ -147,7 +147,7 @@ magic.classes.creator.LayerUpdater.prototype.saveContext = function() {
             this.data.source.style_definition = {};
         }
         this.style_definition.saveContext(this.data.source.style_definition);
-    }
+    }    
 };
 
 /**

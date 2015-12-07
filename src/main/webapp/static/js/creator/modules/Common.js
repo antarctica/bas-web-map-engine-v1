@@ -88,7 +88,7 @@ magic.modules.creator.Common = function () {
             var layerHierarchy = $("ul.layertree").sortableListsToHierarchy();           
             var layerTree = [];           
             this.sortLayers(layerTree, layerHierarchy);
-            // TODO - insert constructed layer tree into map context before validation
+            this.map_context.setLayers(layerTree);
             console.log(this.map_context.getContext());
             /* Now validate it against the JSON schema */
             $.getJSON(magic.config.paths.baseurl + "/static/js/json/web_map_schema.json", $.proxy(function(schema) {
@@ -169,19 +169,26 @@ magic.modules.creator.Common = function () {
             if (data) {
                 $.each(fields, function(idx, fo) {
                     var name = fo["field"];
-                    var input = $("#" + prefix + "-" + name);                
-                    if (input.attr("type") == "checkbox" || input.attr("type") == "radio") {
-                        /* Set the "checked" property */
-                        data[name] = input.prop("checked") ? true : false;
-                    } else {
-                        /* Simple case */
-                        var value = input.val();
-                        if (input.attr("required") && !value) {
-                            data[name] = fo["default"];
-                        } else {
-                            data[name] = value;
-                        }
-                    }
+                    var input = $("#" + prefix + "-" + name);                    
+                    switch(input.attr("type")) {
+                        case "checkbox":
+                        case "radio":
+                            /* Set the "checked" property */
+                            data[name] = input.prop("checked") ? true : false;
+                            break;                       
+                        default:
+                            var value = input.val();
+                            if (input.attr("type") == "number" && $.isNumeric(value)) {
+                                /* Make sure numeric values are numbers not strings or will fail schema validation */
+                                value = Math.floor(value) == value ? parseInt(value) : parseFloat(value);
+                            }
+                            if (input.attr("required") && value == "") {
+                                data[name] = fo["default"];
+                            } else {
+                                data[name] = value;
+                            }
+                            break;                       
+                    }                    
                 });
             }
         }

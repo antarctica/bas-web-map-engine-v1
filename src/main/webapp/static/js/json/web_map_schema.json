@@ -184,6 +184,15 @@
 					"type": "string",
 					"pattern": "^EPSG:\\d{4,6}$"
 				},
+                "proj_extent": {
+					"description": "Extent of projection in projected coordinates",
+					"type": "array",
+					"items": {
+						"type": "number"
+					},
+					"minItems": 4,
+					"maxItems": 4
+				},
 				"center": {
 					"description": "Centre of map in projected coordinates",
 					"type": "array",
@@ -447,44 +456,45 @@
 										"items": {
 											"type": "object",
 											"properties": {
-												"attr_name": {
+												"name": {
 													"description": "Attribute name",
 													"type": "string"													
 												},
-                                                "attr_type": {
+                                                "type": {
 													"description": "Type of attribute",
 													"type": "string",
 													"enum": [
 														"string", "double", "int", "boolean", "date", "time"
 													]													
 												},
-                                                "attr_displayed": {
+                                                "displayed": {
 													"description": "Whether attribute is displayed in a pop-up",
 													"type": "boolean"
 												},	
-												"attr_nillable": {
-													"description": "Whether attribute can be null",
-													"type": "boolean"
+												"nillable": {
+													"description": "Whether attribute can be null (comes through a hidden field not a checkbox, hence string type)",
+													"type": "string",
+                                                    "enum": ["true", "false"]
 												},
-                                                "attr_filterable": {
+                                                "filterable": {
 													"description": "Whether attribute can be filtered according to its values",
 													"type": "boolean"
 												},																								
-												"attr_alias": {
+												"alias": {
 													"description": "Human-friendly alias for this attribute name",
 													"type": "string"
 												},
-												"attr_unique_values": {
+												"unique_values": {
 													"description": "Whether to present unique values of attr in a drop-down",
 													"type": "boolean"
 												},
-                                                "attr_filter": {
+                                                "filter": {
 													"description": "(Run-time) CQL filter on this layer attribute",
 													"type": "string"
 												}
 											},
 											"required": [
-												"attr_name", "attr_nillable", "attr_type"
+												"name", "type"
 											]
 										}
 									}
