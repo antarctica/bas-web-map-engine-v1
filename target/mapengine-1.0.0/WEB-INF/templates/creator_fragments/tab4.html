@@ -4,21 +4,38 @@
     <head>
         <title></title>
     </head>    
-    <body th:fragment="layout">
+    <body th:fragment="layout">        
         <div class="well well-sm">
             <h3>Map appearance</h3>            
         </div>
         <form id="t4-form" class="form-horizontal">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Select default, minimum and maximum zooms and map centre</h3>
+                    <h3 class="panel-title">Select desired map centre and default zoom level</h3>
                 </div>
                 <div class="panel-body">
                     <div class="col-lg-6">
-                        
+                        <div id="t4-map" style="width:100%;height:400px">                            
+                        </div>
                     </div>
-                    <div id="t4-map" class="col-lg-6">
-                        
+                    <div class="col-lg-6">
+                        <div class="alert alert-info">
+                            <p>Use the map to pan/zoom to the closest possible view extent to that desired for the final map.  Click and drag will pan the map, shift-click and drag will 
+                                zoom to the dragged box, mousewheel zooms in and out.  If you require a rotated view, enter the desired rotation below.</p>
+                            <p>Click &quot;Finish&quot; to save the map data and show the final result (opens in a new tab).</p>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-5 control-label" for="t4-rotation">
+                                Map rotation (degrees)
+                            </label>
+                            <div class="col-sm-7">
+                                <input type="number" class="form-control map-creator-control-sm" id="t4-rotation" name="t4-rotation" 
+                                       placeholder="Map rotation" 
+                                       min="-180" max="180" step="1"
+                                       data-toggle="tooltip" data-placement="left" title="Clockwise rotation of map in degrees, -180 &lt;= rotation &lt;= 180">                                   
+                                </input>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

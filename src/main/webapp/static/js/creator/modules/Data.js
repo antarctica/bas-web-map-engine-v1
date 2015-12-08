@@ -32,7 +32,7 @@ magic.modules.creator.Data = function () {
                 "rotation": 0,
                 "min_zoom": 0,
                 "max_zoom": 13,
-                "resolutions": [11200, 5600, 2800, 1400, 560, 280, 140, 16, 28, 14, 5.6, 2.8, 1.4, 0.56],
+                "resolutions": [11200, 5600, 2800, 1400, 560, 280, 140, 56, 28, 14, 5.6, 2.8, 1.4, 0.56],
                 "controls": ["zoom_world", "zoom_in", "zoom_out", "box_zoom"],
                 "gazetteers": ["cga"],              
                 "layers": [

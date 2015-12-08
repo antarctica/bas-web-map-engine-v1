@@ -1,4 +1,4 @@
-/* Map Creator tab1 logic */
+/* Map Creator tab2 logic */
 
 magic.modules.creator.Tab2 = function () {
 

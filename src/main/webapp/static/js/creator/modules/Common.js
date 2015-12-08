@@ -15,23 +15,25 @@ magic.modules.creator.Common = function () {
         init: function () {
             /* Initialise wizard progress bar */
             $("#rootwizard").bootstrapWizard({
-                onTabShow: function (tab, navigation, index) {
+                onTabShow: $.proxy(function (tab, navigation, index) {
                     var total = navigation.find("li").length;
                     var current = index + 1;
                     var percent = (current / total) * 100;
                     $("#rootwizard").find(".progress-bar").css({width: percent + "%"});
                     if (index == total-1) {
+                        /* Need to load the map into the final tab */
+                        this.tabs[index].loadMap(this.map_context.getContext());
                         $("ul.pager li.finish").removeClass("hidden");
                     } else {
                         $("ul.pager li.finish").addClass("hidden");
                     }
-                },
+                }, this),
                 onNext: $.proxy(function (tab, navigation, index) {
                     var total = navigation.find("li").length;
                     if ($.isFunction(this.tabs[index-1].saveContext)) {
                         this.tabs[index-1].saveContext(this.map_context.getContext());
                     }
-                    if (index == total-1) {
+                    if (index == total-1) {                        
                         $("ul.pager li.finish").removeClass("hidden");
                     } else {
                         $("ul.pager li.finish").addClass("hidden");

@@ -1,4 +1,4 @@
-/* Map Creator tab1 logic */
+/* Map Creator tab4 logic */
 
 magic.modules.creator.Tab4 = function () {
 
@@ -8,18 +8,26 @@ magic.modules.creator.Tab4 = function () {
                 
         init: function() {           
         },
-        loadContext: function(context) {
+        loadContext: function(context) {                                    
+        },
+        saveContext: function(context) {
+            context.data.center = this.map.getView().getCenter();
+            var rotation = $("#t4-rotation").val();
+            context.data.rotation = !$.isNumeric(rotation) ? 0.0 : rotation;
+            context.data.zoom = this.map.getView().getZoom();
+        },
+        loadMap: function(context) {
             
-            var proj = ol.proj.get(context.projection);
-            proj.setExtent(context.proj_extent);
-            proj.setWorldExtent(context.proj_extent);
+            var proj = ol.proj.get(context.data.projection);
+            proj.setExtent(context.data.proj_extent);
+            proj.setWorldExtent(context.data.proj_extent);
             
             var view = new ol.View({
-                center: context.center,
-                maxResolution: context.resolutions[0],
-                resolutions: context.resolutions,
-                rotation: context.rotation,
-                zoom: context.zoom,
+                center: context.data.center,
+                maxResolution: context.data.resolutions[0],
+                resolutions: context.data.resolutions,
+                rotation: context.data.rotation,
+                zoom: context.data.zoom,
                 projection: proj
             });
             
@@ -34,23 +42,22 @@ magic.modules.creator.Tab4 = function () {
                     "WORKSPACE": "add"
                 },
                 tileGrid: new ol.tilegrid.TileGrid({
-                    resolutions: context.resolutions,
+                    resolutions: context.data.resolutions,
                     origin: proj.getExtent().slice(0, 2)
                 }),
                 projection: proj
             });                     
-            var layer = new ol.layer.Tile({
-                name: "t4-map-coast-layer",
-                visible: true,
-                opacity: 1.0,
-                source: wmsSource
-            });        
             
             this.map = new ol.Map({
                 renderer: "canvas",
                 loadTilesWhileAnimating: true,
                 loadTilesWhileInteracting: true,
-                layers: [layer],
+                layers: [new ol.layer.Tile({
+                    name: "t4-map-coast-layer",
+                    visible: true,
+                    opacity: 1.0,
+                    source: wmsSource
+                })],
                 controls: [
                     new ol.control.ScaleLine({minWidth: 100, className: "custom-scale-line-top", units: "metric"}),
                     new ol.control.ScaleLine({minWidth: 100, className: "custom-scale-line-bottom", units: "imperial"}),
@@ -66,9 +73,6 @@ magic.modules.creator.Tab4 = function () {
                 target: "t4-map",
                 view: view
             });
-        },
-        saveContext: function(context) {
-
         }
 
     });

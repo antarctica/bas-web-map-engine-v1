@@ -222,9 +222,9 @@ public class MapController {
     }
     
     /**
-     * Save a new map view whose data is POST-ed (use PUT for updating)
+     * Update a map view whose data is PUT
      * @param String id
-     * @param String payload   
+     * @param MapData md   
      * @throws Exception
      */
     @RequestMapping(value = "/maps/update/{id}", method = RequestMethod.PUT, produces = "application/json; charset=utf-8", headers = {"Content-type=application/json"})
@@ -290,7 +290,7 @@ public class MapController {
     /*---------------------------------------------------------------- Delete map data ----------------------------------------------------------------*/
     
     /**
-     * Save a new map view whose data is POST-ed (use PUT for updating)
+     * Delete a map view
      * @param String id
      * @param String payload   
      * @throws Exception
