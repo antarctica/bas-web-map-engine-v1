@@ -233,35 +233,38 @@ magic.modules.creator.Data = function () {
             "EPSG:3031": [
                 {
                     "name": "Antarctic Digital Database",
-                    "value": "https://maps.bas.ac.uk/antarctic/wms"
+                    "wms": "https://maps.bas.ac.uk/antarctic/wms",
+                    "coast": ["add:antarctic_coastline", "add:sub_antarctic_coastline"]
                 },
                 {
                     "name": "Operations GIS",
-                    "value": "http://rolgis.nerc-bas.ac.uk:8080/geoserver/wms"
+                    "wms": "http://rolgis.nerc-bas.ac.uk:8080/geoserver/wms"
                 },
                 {
                     "name": "CCAMLR GIS",
-                    "value": "https://gis.ccamlr.org/geoserver/wms"
+                    "wms": "https://gis.ccamlr.org/geoserver/wms"
                 },
                 {
                     "name": "Antarctic Peninsula Information Portal",
-                    "value": "http://bslbatgis.nerc-bas.ac.uk:8080/geoserver/wms"
+                    "wms": "http://bslbatgis.nerc-bas.ac.uk:8080/geoserver/wms"
                 },
                 {
                     "name": "Polar View",
-                    "value": "http://geos.polarview.aq/geoserver/wms"
+                    "wms": "http://geos.polarview.aq/geoserver/wms"
                 }
             ],
             "EPSG:3995": [
                 {
                     "name": "NERC Arctic Office Map",
-                    "value": "https://maps.bas.ac.uk/arctic/wms"
+                    "wms": "https://maps.bas.ac.uk/arctic/wms",
+                    "coast": ["arctic:arctic_coastline"]
                 }
             ],
             "EPSG:3762": [
                 {
                     "name": "South Georgia GIS",
-                    "value": "https://maps.bas.ac.uk/southgeorgia/wms"
+                    "wms": "https://maps.bas.ac.uk/southgeorgia/wms",
+                    "coast": ["sggis:sg_coastline"]
                 }
             ]
         },
@@ -269,7 +272,7 @@ magic.modules.creator.Data = function () {
         DEFAULT_GEOSERVER_WMS: {
             "name": "Local Geoserver WMS",
             "value": "http://localhost:8080/geoserver/wms"
-        }
+        }        
 
     });
 

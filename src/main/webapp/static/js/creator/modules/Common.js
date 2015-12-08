@@ -20,7 +20,7 @@ magic.modules.creator.Common = function () {
                     var current = index + 1;
                     var percent = (current / total) * 100;
                     $("#rootwizard").find(".progress-bar").css({width: percent + "%"});
-                    if (index == total-1) {
+                    if (index >= total-1) {
                         /* Need to load the map into the final tab */
                         this.tabs[index].loadMap(this.map_context.getContext());
                         $("ul.pager li.finish").removeClass("hidden");
@@ -33,7 +33,7 @@ magic.modules.creator.Common = function () {
                     if ($.isFunction(this.tabs[index-1].saveContext)) {
                         this.tabs[index-1].saveContext(this.map_context.getContext());
                     }
-                    if (index == total-1) {                        
+                    if (index >= total-1) {                        
                         $("ul.pager li.finish").removeClass("hidden");
                     } else {
                         $("ul.pager li.finish").addClass("hidden");
@@ -91,11 +91,46 @@ magic.modules.creator.Common = function () {
             var layerTree = [];           
             this.sortLayers(layerTree, layerHierarchy);
             this.map_context.setLayers(layerTree);
-            console.log(this.map_context.getContext());
-            /* Now validate it against the JSON schema */
+            var finalContext = this.map_context.getContext();
+            var existingId = this.map_context.getMapId();
+            console.log(finalContext);
+            /* Now validate the assembled map context against the JSON schema in /static/js/json/web_map_schema.json
+             * https://github.com/geraintluff/tv4 is the validator used */            
             $.getJSON(magic.config.paths.baseurl + "/static/js/json/web_map_schema.json", $.proxy(function(schema) {
-                console.log("Validation result: " + tv4.validate(this.map_context.getContext(), schema));
-                console.log("Errors were: " + JSON.stringify(tv4.error, null, 4));
+                var validationResult = tv4.validate(finalContext, schema);
+                var csrfHeaderVal = $("meta[name='_csrf']").attr("content");
+                if (validationResult) {
+                    /* Success - save the map and take the user to the map view */
+                    var jqXhr = $.ajax({
+                        url: magic.config.paths.baseurl + "/maps/" + (existingId != "" ? "update/" + existingId : "save"),
+                        method: (existingId != "" ? "PUT" : "POST"),
+                        dataType: "json",
+                        data: JSON.stringify(finalContext),
+                        headers: {
+                            "Accept": "application/json",
+                            "Content-Type": "application/json",
+                            "X-CSRF-TOKEN": csrfHeaderVal
+                        }
+                    });
+                    jqXhr.done(function(response) {
+                        console.log(response);
+                    });
+                    jqXhr.fail(function(xhr, status) {
+                        console.log(status);
+                        bootbox.alert('<div class="alert alert-warning" style="margin-bottom:0">Failed to save the map ' + status + '</div>');
+                    });
+                } else {
+                    /* Failed to validate the data against the schema - complain */
+                    var validationErrors = JSON.stringify(tv4.error, null, 4);
+                    console.log("Errors were: " + validationErrors);
+                    bootbox.alert(
+                        '<div class="alert alert-danger" style="margin-top:10px">' + 
+                            '<p>Failed to validate your map data against the web map schema</p>' + 
+                            '<p>Detailed explanation of the failure below:</p>' + 
+                            '<p>' + validationErrors + '</p>' + 
+                        '</div>'
+                    );
+                }                
             }, this));            
         },
         /** 

@@ -32,10 +32,11 @@ magic.modules.creator.Tab3 = function () {
         saveContext: function(context) {
             var controls = [];
             var formControls = $("input[name='t3-controls']");
-            if ($.isArray(formControls)) {
+            if (formControls.length > 0) {
                 $.each(formControls, function(idx, f) {
-                    if (f.attr("type") != "checkbox" || (f.attr("type") == "checkbox" && f.prop("checked") === true)) {
-                        controls.push(f.val());
+                    var fe = $(f);
+                    if (fe.attr("type") != "checkbox" || (fe.attr("type") == "checkbox" && fe.prop("checked") === true)) {
+                        controls.push(fe.val());
                     }
                 });
                 context.data.controls = controls;

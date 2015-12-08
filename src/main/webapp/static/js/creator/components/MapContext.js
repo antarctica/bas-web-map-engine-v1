@@ -2,7 +2,11 @@
 
 magic.classes.creator.MapContext = function() {
     
+    /* The complete map context object */
     this.context = {};
+           
+    /* Id of existing map if relevant */
+    this.id = "";
         
 };
 
@@ -10,11 +14,13 @@ magic.classes.creator.MapContext.prototype.load = function(action, id, callback)
     if (action == "new") {
         /* New blank map context */
         this.context = $.extend(true, {}, magic.modules.creator.Data.BLANK_MAP_CORE, {"data": magic.modules.creator.Data.BLANK_MAP_DATA[id]});
+        this.id = "";
         callback(this.context);
     } else {
         /* Clone or edit implies a fetch of map with id */
         $.getJSON(magic.config.paths.baseurl + "/maps/id/" + id, $.proxy(function (data) {
             this.context = data;
+            this.id = action == "edit" ? id : "";
             callback(data);
         }, this));
     }    
@@ -22,6 +28,10 @@ magic.classes.creator.MapContext.prototype.load = function(action, id, callback)
 
 magic.classes.creator.MapContext.prototype.getContext = function() {
     return(this.context);
+};
+
+magic.classes.creator.MapContext.prototype.getMapId = function() {
+    return(this.id);
 };
 
 magic.classes.creator.MapContext.prototype.getLayers = function() {

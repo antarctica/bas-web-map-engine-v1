@@ -239,12 +239,12 @@
 							"geosearch",							
 							"download_data",
 							"measurement",
-							"feature-info"
+							"feature_info"
 						]
 					}
 				},
 				"gazetteers": {
-					"description": "Array of gazetteer codes for geosearch",
+					"description": "Array of gazetteer codes for geosearch (only CGA, Arctic and South Georgia used in v1)",
 					"type": "array",
 					"items": {
 						"type": "string",

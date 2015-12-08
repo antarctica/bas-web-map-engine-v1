@@ -88,7 +88,6 @@ magic.classes.creator.LayerAttributeMap.prototype.vectorLoadContext = function(c
                         }, this));
                         this.attribute_dictionary[context.id] = attrDict;
                         this.type_dictionary[context.id] = this.featureGeomType(testFeat);
-                        console.log("Set type to " + this.type_dictionary[context.id]);
                         this.div.html(this.toForm(context.id, context.attribute_map, attrDict));
                     }
                 } else {
@@ -111,32 +110,27 @@ magic.classes.creator.LayerAttributeMap.prototype.ogcLoadContext = function(cont
     var feature = context.source.feature_name;
     var id = context.id;
     var attrMap = context.attribute_map;
-    if (wms && feature && id) {
-        if ($.isArray(this.attribute_dictionary[id])) {
-            /* Already fetched */
-            this.div.html(this.toForm(id, attrMap, this.attribute_dictionary[id]));
-        } else {
-            /* Get the feature type attributes from DescribeFeatureType */
-            this.attribute_dictionary[id] = [];
-            this.type_dictionary[id] = null;
-            $.get(wms.replace("wms", "wfs") + "?request=DescribeFeatureType&typename=" + feature, $.proxy(function(response) {                        
-                var elts = $(response).find("sequence").find("element");
-                var geomType = "unknown";
-                $.each(elts, $.proxy(function(idx, elt) {
-                    var attrs = {};
-                    $.each(elt.attributes, $.proxy(function(i, a) {                        
-                        if (a.value.indexOf("gml:") == 0) {                           
-                            geomType = this.computeOgcGeomType(a.value);
-                            this.type_dictionary[context.id] = geomType;
-                        }
-                        attrs[a.name] = a.value;
-                    }, this));
-                    this.attribute_dictionary[id].push(attrs);                    
+    if (wms && feature && id) {        
+        /* Get the feature type attributes from DescribeFeatureType */
+        this.attribute_dictionary[id] = [];
+        this.type_dictionary[id] = null;
+        $.get(wms.replace("wms", "wfs") + "?request=DescribeFeatureType&typename=" + feature, $.proxy(function(response) {                        
+            var elts = $(response).find("sequence").find("element");
+            var geomType = "unknown";
+            $.each(elts, $.proxy(function(idx, elt) {
+                var attrs = {};
+                $.each(elt.attributes, $.proxy(function(i, a) {                        
+                    if (a.value.indexOf("gml:") == 0) {                           
+                        geomType = this.computeOgcGeomType(a.value);
+                        this.type_dictionary[context.id] = geomType;
+                    }
+                    attrs[a.name] = a.value;
                 }, this));
-                this.type_dictionary[id] = geomType;
-                this.div.html(this.toForm(id, attrMap, this.attribute_dictionary[id]));
+                this.attribute_dictionary[id].push(attrs);                    
             }, this));
-        }
+            this.type_dictionary[id] = geomType;
+            this.div.html(this.toForm(id, attrMap, this.attribute_dictionary[id]));
+        }, this));
     } else {
         this.div.html('<div class="alert alert-warning" style="margin-bottom:0">No WMS or feature type name defined</div>');
     }
@@ -183,7 +177,7 @@ magic.classes.creator.LayerAttributeMap.prototype.saveContext = function(context
  */
 magic.classes.creator.LayerAttributeMap.prototype.toForm = function(id, attrMap, attrDict) {
     var html = '';
-    $("button.geometry-type-indicator").html(this.type_dictionary[id]);
+    $(".geometry-type-indicator").html(this.type_dictionary[id]);
     if (attrDict.length > 0) {
         /* Some attributes - first compile a dictionary of what we already have */
         if (!attrMap) {
