@@ -7,10 +7,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import it.geosolutions.geoserver.rest.HTTPUtils;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.HashMap;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -29,15 +26,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import uk.ac.antarctica.mapengine.exception.RamaddaConnectionException;
-import uk.ac.antarctica.mapengine.external.StaticImageService;
-import uk.ac.antarctica.mapengine.external.StaticImageServiceRegistry;
 import uk.ac.antarctica.mapengine.util.RamaddaUtils;
 
 @Controller
 public class ProxyController {
-
-    @Autowired
-    private StaticImageServiceRegistry staticImageServiceRegistry;
 
     /* Only these servers can be proxied */
     private static final String[] ALLOWED_SERVERS = new String[]{
@@ -279,35 +271,6 @@ public class ProxyController {
             content = xmlExceptionReport("400", "Proxy of this server is not allowed " + url);
         }
         IOUtils.write(content, response.getOutputStream());
-    }
-    
-    /**
-     * Proxy for serving images from local SAN - returns a 1x1 PNG image in the case of not found
-     * @param HttpServletRequest request
-     * @param String url
-     * @return String
-     * @throws ServletException
-     * @throws IOException
-     */
-    @RequestMapping(value = "/proxy/static", method = RequestMethod.GET, produces = {"image/png"})
-    public void staticImageProxy(HttpServletRequest request, HttpServletResponse response, 
-        @RequestParam(value = "service", required = true) String service,
-        @RequestParam(value = "t", required = false) String t) throws ServletException, IOException {   
-        
-        String path1x1 = request.getSession().getServletContext().getRealPath("/static/images/1x1.png");
-        HashMap<String,StaticImageService> r = staticImageServiceRegistry.getRegistry();
-        
-        response.setContentType("image/png");
-        if (r.containsKey(service)) {
-            File img = r.get(service).serveImage(t);
-            if (img != null) {
-                IOUtils.copy(new FileInputStream(img), response.getOutputStream());
-            } else {
-                IOUtils.copy(new FileInputStream(path1x1), response.getOutputStream());
-            }
-        } else {
-            IOUtils.copy(new FileInputStream(path1x1), response.getOutputStream());
-        }
     }
     
     /**

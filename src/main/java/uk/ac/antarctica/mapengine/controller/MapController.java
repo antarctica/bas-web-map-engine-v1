@@ -90,8 +90,8 @@ public class MapController {
         String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
         if (username != null) {            
             try {
-                String where = "owner=?" + (action.equals("clone") ? " OR owner IS NULL" : "");
-                List<Map<String, Object>> userMapData = magicDataTpl.queryForList("SELECT name, title FROM " +  MAPDEFS + " WHERE " + where + " ORDER BY title", username);
+                String where = "owner_name=?" + (action.equals("clone") ? " OR owner_name IS NULL" : "");
+                List<Map<String, Object>> userMapData = magicDataTpl.queryForList("SELECT id, title FROM " +  MAPDEFS + " WHERE " + where + " ORDER BY title", username);
                 if (userMapData != null && !userMapData.isEmpty()) {
                     JsonArray views = mapper.toJsonTree(userMapData).getAsJsonArray();
                     ret = packageResults(HttpStatus.OK, views.toString(), null);
@@ -147,17 +147,16 @@ public class MapController {
     private ResponseEntity<String> mapDataBy(HttpServletRequest request, String attr, String value) {
         ResponseEntity<String> ret = null;
         String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
-        if (username != null) {
-            try {
-                Map<String, Object> userMapData = magicDataTpl.queryForMap("SELECT * FROM " +  MAPDEFS + " WHERE " + attr + "=? AND (owner=? OR owner IS NULL)", username, value);
-                ret = packageResults(HttpStatus.OK, mapper.toJsonTree(userMapData).toString(), null);
-            } catch (IncorrectResultSizeDataAccessException irsdae) {
-                ret = packageResults(HttpStatus.BAD_REQUEST, null, "Expected one row only, error was: " + irsdae.getMessage());
-            } catch (DataAccessException dae) {
-                ret = packageResults(HttpStatus.BAD_REQUEST, null, "Error occurred, message was: " + dae.getMessage());
-            }
-        } else {
-            ret = packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to perform this action");
+        try {
+            Map<String, Object> userMapData = magicDataTpl.queryForMap("SELECT * FROM " +  MAPDEFS + " WHERE " + attr + "=? AND " + 
+                "(allowed_usage='public' OR allowed_usage='login' OR (allowed_usage='owner' AND owner_name=?))",
+                value, username
+            );
+            ret = packageResults(HttpStatus.OK, mapper.toJsonTree(userMapData).toString(), null);
+        } catch (IncorrectResultSizeDataAccessException irsdae) {
+            ret = packageResults(HttpStatus.UNAUTHORIZED, null, "No maps found that you are allowed to access");
+        } catch (DataAccessException dae) {
+            ret = packageResults(HttpStatus.BAD_REQUEST, null, "Error occurred, message was: " + dae.getMessage());
         }
         return(ret);
     }
@@ -277,7 +276,8 @@ public class MapController {
                         jo.get("metadata_url").getAsString(),
                         dataObject,
                         jo.get("allowed_usage").getAsString(),
-                        jo.get("allowed_download").getAsString()                        
+                        jo.get("allowed_download").getAsString(),
+                        id
                     });
                     ret = packageResults(HttpStatus.OK, null, "Successfully updated");
                 } catch(DataAccessException dae) {

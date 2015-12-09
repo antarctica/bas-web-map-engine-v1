@@ -1,5 +1,3 @@
-C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\controller\ApplicationConfigController.java
-C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\external\StaticImageServiceRegistry.java
 C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\config\RamaddaAuthenticationProvider.java
 C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\Application.java
 C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\controller\ProxyController.java
@@ -8,13 +6,10 @@ C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\exception\RamaddaConn
 C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\controller\PingController.java
 C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\config\ApplicationSecurity.java
 C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\exception\RamaddaAuthenticationException.java
-C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\controller\LoginController.java
 C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\util\ActivityLogger.java
-C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\external\StaticImageService.java
+C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\controller\LoginController.java
 C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\config\CustomServletContextListener.java
 C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\util\RamaddaUtils.java
 C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\controller\MapController.java
 C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\controller\UserPreferencesController.java
-C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\controller\UserViewsController.java
-C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\external\PvanSicImageService.java
 C:\apps\mapengine\src\main\java\uk\ac\antarctica\mapengine\controller\HomeController.java

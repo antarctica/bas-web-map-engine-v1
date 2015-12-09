@@ -161,6 +161,7 @@ magic.modules.creator.Common = function () {
          */
         populateSelect: function(select, optArr, valAttr, txtAttr, defval) {
             var selOpt = null;
+            select.append($("<option>", {value: "", text: "Please select"}));
             $.each(optArr, function(idx, optObj) {
                 var opt = $("<option>", {value: optObj[valAttr]});
                 opt.text(optObj[txtAttr]);            

@@ -23,10 +23,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class UserPreferencesController {
     
-    private static final String PREFS_TABLE = "preferences";
+    private static final String PREFS = "webmap.preferences";
     
     @Autowired
-    private JdbcTemplate userDataTpl;
+    private JdbcTemplate magicDataTpl;
     
     /* JSON mapper */
     private final Gson mapper = new Gson();
@@ -49,7 +49,8 @@ public class UserPreferencesController {
         } else {
             /* Get set from db */
             try {
-                String jsonRow = userDataTpl.queryForObject("SELECT row_to_json(" + PREFS_TABLE + ") FROM " + PREFS_TABLE + " WHERE username=?", String.class, userName);
+                String table = PREFS.substring(PREFS.indexOf(".")+1);
+                String jsonRow = magicDataTpl.queryForObject("SELECT row_to_json(" + table + ") FROM " + PREFS + " WHERE username=?", String.class, userName);
                 ret = packageResults(HttpStatus.OK, jsonRow, "");
             } catch(IncorrectResultSizeDataAccessException irsdae) {
                 ret = packageResults(HttpStatus.BAD_REQUEST, null, irsdae.getMessage());
@@ -79,9 +80,9 @@ public class UserPreferencesController {
             /* Save to db */
             try {
                 try {
-                    int id = userDataTpl.queryForObject("SELECT id FROM " + PREFS_TABLE + " WHERE username=?", new Object[]{userName}, Integer.class); 
+                    int id = magicDataTpl.queryForObject("SELECT id FROM " + PREFS + " WHERE username=?", new Object[]{userName}, Integer.class); 
                     /* Update existing record */
-                    userDataTpl.update("UPDATE " + PREFS_TABLE + " SET distance=?, area=?, elevation=?, coordinates=?, dates=? WHERE id=?",
+                    magicDataTpl.update("UPDATE " + PREFS + " SET distance=?, area=?, elevation=?, coordinates=?, dates=? WHERE id=?",
                         new Object[] {                            
                             prefs.getDistance(),
                             prefs.getArea(),
@@ -94,7 +95,7 @@ public class UserPreferencesController {
                     ret = packageResults(HttpStatus.OK, null, "Updated successfully");
                 } catch(IncorrectResultSizeDataAccessException irsdae) {
                     /* Insert new record */
-                    userDataTpl.update("INSERT INTO " + PREFS_TABLE + " (distance, area, elevation, coordinates, dates) VALUES(?,?,?,?,?)",
+                    magicDataTpl.update("INSERT INTO " + PREFS + " (distance, area, elevation, coordinates, dates) VALUES(?,?,?,?,?)",
                         new Object[]{
                             prefs.getDistance(),
                             prefs.getArea(),

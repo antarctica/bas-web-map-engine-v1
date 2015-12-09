@@ -17,183 +17,122 @@ import uk.ac.antarctica.mapengine.util.ActivityLogger;
 
 @Controller
 public class HomeController {
-
+    
     /**
-     * Render application-specific home page     
+     * Render home page    
      * @param HttpServletRequest request,
-     * @param String app
+     * @param String map
      * @param ModelMap model
      * @return
      * @throws ServletException
      * @throws IOException
      */
-    @RequestMapping(value = "/home/{app}", method = RequestMethod.GET)
-    public String appHome(HttpServletRequest request, @PathVariable("app") String app, ModelMap model) throws ServletException, IOException {    
-        return(setHomeParameters(request, app, false, model));        
+    @RequestMapping(value = "/home", method = RequestMethod.GET)
+    public String home(HttpServletRequest request) throws ServletException, IOException {
+        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "MAGIC Web Mapping Home requested by anonymous");
+        return("home");        
     }
     
     /**
-     * Render application-specific home page (debug version)    
+     * Render home page (authorised)     
      * @param HttpServletRequest request,
-     * @param String app
+     * @param String map
      * @param ModelMap model
      * @return
      * @throws ServletException
      * @throws IOException
      */
-    @RequestMapping(value = "/debug/{app}", method = RequestMethod.GET)
-    public String appHomeDebug(HttpServletRequest request, @PathVariable("app") String app, ModelMap model) throws ServletException, IOException {      
-        return(setHomeParameters(request, app, true, model)); 
+    @RequestMapping(value = "/auth/home", method = RequestMethod.GET)
+    public String authHome(HttpServletRequest request) throws ServletException, IOException {   
+        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "MAGIC Web Mapping Home requested by " + getUserName(request));
+        return("home");        
     }
-    
+        
     /**
-     * Set common session and model attributes for apps
-     * @param HttpServletRequest request
-     * @param String app
-     * @param boolean debug
+     * Render user-defined public map     
+     * @param HttpServletRequest request,
+     * @param String map
      * @param ModelMap model
-     * @return String
+     * @return
+     * @throws ServletException
+     * @throws IOException
      */
-    private String setHomeParameters(HttpServletRequest request, String app, boolean debug, ModelMap model) {
-        request.getSession().setAttribute("app", app);
-        model.addAttribute("app", app);
-        model.addAttribute("debug", debug);
-        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Home page for " + app + " requested, debug = " + debug);
+    @RequestMapping(value = "/home/{map}", method = RequestMethod.GET)
+    public String mapHome(HttpServletRequest request, @PathVariable("map") String map, ModelMap model) throws ServletException, IOException {    
+        request.getSession().setAttribute("map", map);
+        model.addAttribute("map", map);
+        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Public map " + map + " requested by anonymous");
         return("map");
     }
     
     /**
-     * Render Operations GIS home page
+     * Render user-defined public map (debug)  
      * @param HttpServletRequest request,
+     * @param String map
      * @param ModelMap model
      * @return
      * @throws ServletException
      * @throws IOException
      */
-    @RequestMapping(value = "/opsgis", method = RequestMethod.GET)
-    public String opsgis(HttpServletRequest request, ModelMap model) throws ServletException, IOException {
-        return(setOpsgisParameters(request, null, null, false, model));
+    @RequestMapping(value = "/homed/{map}", method = RequestMethod.GET)
+    public String mapHomeDebug(HttpServletRequest request, @PathVariable("map") String map, ModelMap model) throws ServletException, IOException {    
+        request.getSession().setAttribute("map", map);
+        model.addAttribute("map", map);
+        model.addAttribute("debug", true);
+        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Public map " + map + " (debug) requested by " + getUserName(request));
+        return("map");
     }
     
     /**
-     * Render Operations GIS home page with a particular user map
+     * Render user-defined restricted map     
      * @param HttpServletRequest request,
-     * @param String usermap
+     * @param String map
      * @param ModelMap model
      * @return
      * @throws ServletException
      * @throws IOException
      */
-    @RequestMapping(value = "/opsgis/{usermap}", method = RequestMethod.GET)
-    public String opsgisUsermap(HttpServletRequest request, @PathVariable("usermap") String usermap, ModelMap model) throws ServletException, IOException {      
-        return(setOpsgisParameters(request, usermap, null, false, model));
-    }
-    
-    /**
-     * Render Operations GIS home page with a particular user map and a user-defined view
-     * @param HttpServletRequest request,
-     * @param String usermap
-     * @param String viewname
-     * @param ModelMap model
-     * @return
-     * @throws ServletException
-     * @throws IOException
-     */
-    @RequestMapping(value = "/opsgis/{usermap}/{viewname}", method = RequestMethod.GET)
-    public String opsgisUsermap(HttpServletRequest request, @PathVariable("usermap") String usermap, @PathVariable("viewname") String viewname, ModelMap model) throws ServletException, IOException {      
-        return(setOpsgisParameters(request, usermap, viewname, false, model));
-    }
-    
-    /**
-     * Render Operations GIS home page (debug version)    
-     * @param HttpServletRequest request,
-     * @param ModelMap model
-     * @return
-     * @throws ServletException
-     * @throws IOException
-     */
-    @RequestMapping(value = "/opsgisd", method = RequestMethod.GET)
-    public String opsgisDebug(HttpServletRequest request, ModelMap model) throws ServletException, IOException {      
-        return(setOpsgisParameters(request, null, null, true, model));
-    }
-    
-    /**
-     * Render Operations GIS home page with a particular user map
-     * @param HttpServletRequest request,
-     * @param String usermap
-     * @param ModelMap model
-     * @return
-     * @throws ServletException
-     * @throws IOException
-     */
-    @RequestMapping(value = "/opsgisd/{usermap}", method = RequestMethod.GET)
-    public String opsgisdUsermap(HttpServletRequest request, @PathVariable("usermap") String usermap, ModelMap model) throws ServletException, IOException {      
-        return(setOpsgisParameters(request, usermap, null, true, model));
-    }
-    
-    /**
-     * Render Operations GIS home page with a particular user map and user-defined view
-     * @param HttpServletRequest request,
-     * @param String usermap
-     * @param String viewname
-     * @param ModelMap model
-     * @return
-     * @throws ServletException
-     * @throws IOException
-     */
-    @RequestMapping(value = "/opsgisd/{usermap}/{viewname}", method = RequestMethod.GET)
-    public String opsgisdUsermap(HttpServletRequest request, @PathVariable("usermap") String usermap, @PathVariable("viewname") String viewname, ModelMap model) throws ServletException, IOException {      
-        return(setOpsgisParameters(request, usermap, viewname, true, model));
-    }
-    
-    /**
-     * Set common session and model attributes for OpsGIS
-     * @param HttpServletRequest request
-     * @param String usermap
-     * @param String viewname
-     * @param boolean debug
-     * @param ModelMap model
-     * @return String
-     */
-    private String setOpsgisParameters(HttpServletRequest request, String usermap, String viewname, boolean debug, ModelMap model) {
-        request.getSession().setAttribute("app", "opsgis");        
-        model.addAttribute("app", "opsgis");
-        model.addAttribute("usermap", usermap);
-        model.addAttribute("viewname", viewname);
+    @RequestMapping(value = "/auth/{map}", method = RequestMethod.GET)
+    public String authMapHome(HttpServletRequest request, @PathVariable("map") String map, ModelMap model) throws ServletException, IOException {    
+        request.getSession().setAttribute("map", map);
+        model.addAttribute("map", map);
         model.addAttribute("username", getUserName(request));
-        model.addAttribute("debug", debug);
-        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Ops GIS home page requested, usermap = " + usermap + ", debug = " + debug);
+        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Restricted map " + map + " requested by " + getUserName(request));
         return("map");
     }
-                    
+    
+    /**
+     * Render user-defined restricted map (debug)   
+     * @param HttpServletRequest request,
+     * @param String map
+     * @param ModelMap model
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/authd/{map}", method = RequestMethod.GET)
+    public String authMapHomeDebug(HttpServletRequest request, @PathVariable("map") String map, ModelMap model) throws ServletException, IOException {    
+        request.getSession().setAttribute("map", map);
+        model.addAttribute("map", map);
+        model.addAttribute("username", getUserName(request));
+        model.addAttribute("debug", true);
+        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Restricted map " + map + " (debug) requested by " + getUserName(request));
+        return("map");
+    }
+    
     /**
      * Render map creator home page     
      * @param HttpServletRequest request,
-     * @param ModelMap model
      * @return
      * @throws ServletException
      * @throws IOException
      */
     @RequestMapping(value = "/creator", method = RequestMethod.GET)
-    public String creatorNewMap(HttpServletRequest request, ModelMap model) throws ServletException, IOException {
+    public String creator(HttpServletRequest request) throws ServletException, IOException {
+        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "MAGIC Web Map Creator requested by " + getUserName(request));
         return("creator");
     }
-    
-    /**
-     * Render map creator home page, prepopulated with data for a particular map   
-     * @param HttpServletRequest request,
-     * @param String app
-     * @param ModelMap model
-     * @return
-     * @throws ServletException
-     * @throws IOException
-     */
-    @RequestMapping(value = "/creator/{app}", method = RequestMethod.GET)
-    public String creatorEditMap(HttpServletRequest request, @PathVariable("app") String app, ModelMap model) throws ServletException, IOException {
-        request.getSession().setAttribute("app", app);
-        return("creator");
-    }
-    
+ 
     /**
      * Get user name
      * @param HttpServletRequest request

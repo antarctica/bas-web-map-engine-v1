@@ -30,20 +30,18 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
             .authorizeRequests()
-            .antMatchers("/*.ico", "/static/**", "/home/**", "/debug/**", "/appconfig/**", "/ping", "/proxy/api", "/proxy/gs/gfi", "/proxy/gs/dft", "/proxy/repo", "/proxy/static").permitAll()
-            .antMatchers("/creator", "/opsgis/**", "/opsgisd/**", "/proxy/aircraft", "/proxy/gs/rest", "/proxy/gs/login", "/mapview/**", "/prefs/**")
+            .antMatchers("/*.ico", "/static/**", "/appconfig/**", "/ping", "/home/**", "/maps/**", "/prefs").permitAll()
+            .antMatchers("/creator", "/homed/**", "/auth/**", "/authd/**")
             .fullyAuthenticated()
             .and()
             .formLogin()
             .loginPage("/login")
-            .defaultSuccessUrl("/opsgis")
+            .defaultSuccessUrl("/auth/home")
             .permitAll()
             .and()
             .logout()
-            //.logoutSuccessUrl("/home/add")
-            .permitAll();
-            /* Loses the CSRF token and causes an error */
-            //.invalidateHttpSession(true);
+            .logoutSuccessUrl("/home")
+            .permitAll();          
     }
 
     @Override

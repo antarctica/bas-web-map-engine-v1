@@ -16,7 +16,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import uk.ac.antarctica.mapengine.external.StaticImageServiceRegistry;
 
 @EnableScheduling
 @SpringBootApplication
@@ -57,14 +56,7 @@ public class Application extends SpringBootServletInitializer {
     public JdbcTemplate magicDataTpl() {
         return (new JdbcTemplate(magicDataSource()));
     }      
-    
-    @Bean
-    public StaticImageServiceRegistry staticImageServiceRegistry() {
-        StaticImageServiceRegistry r = new StaticImageServiceRegistry();
-        r.register(env.getProperty("static.services"));
-        return (r);
-    }
-
+  
     @Bean
     public HttpSessionListener httpSessionListener() {
         return(new SessionListener());

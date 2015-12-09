@@ -18,10 +18,11 @@ magic.classes.creator.MapContext.prototype.load = function(action, id, callback)
         callback(this.context);
     } else {
         /* Clone or edit implies a fetch of map with id */
-        $.getJSON(magic.config.paths.baseurl + "/maps/id/" + id, $.proxy(function (data) {
-            this.context = data;
+        $.getJSON(magic.config.paths.baseurl + "/maps/id/" + id, $.proxy(function (response) {
+            this.context = $.extend({}, response);
+            this.context.data = JSON.parse(response.data.value);
             this.id = action == "edit" ? id : "";
-            callback(data);
+            callback(this.context);
         }, this));
     }    
 };

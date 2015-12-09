@@ -25,7 +25,7 @@ magic.modules.creator.Tab1 = function () {
                         var select = $("#t1-" + elt);
                         select.prop("disabled", false);
                         if (elt == "edit" || elt == "clone") {
-                            this.loadMapOptions(select, elt)
+                            this.loadMapOptions(select, "", elt)
                         }
                     } else {
                         /* Has been unchecked */
@@ -65,7 +65,7 @@ magic.modules.creator.Tab1 = function () {
             select.find("option").remove();
             /* Service returns [{name: <name>, title: <title>},...] */
             $.getJSON(magic.config.paths.baseurl + "/maps/dropdown/" + action, function (data) {
-                magic.modules.creator.Common.populateSelect(select, data, "name", "title", defval);
+                magic.modules.creator.Common.populateSelect(select, data, "id", "title", defval);
             });
         }
 

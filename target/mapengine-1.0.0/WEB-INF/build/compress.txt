@@ -2,6 +2,7 @@ css/ol.css
 css/bootstrap.min.css
 css/nouislider.min.css
 css/prettify.css
+css/nav.css
 css/map.css
 css/font-awesome.min.css
 css/whhg-reduced.min.css

@@ -161,7 +161,7 @@ magic.classes.ControlButtonRibbon.prototype.createControlButton = function(name,
  * Zoom world extent
  */
 magic.classes.ControlButtonRibbon.prototype.zoomToMaxExtent = function() {
-    magic.runtime.map.getView().setResolution(magic.runtime.resolutions[0]);
+    magic.runtime.map.getView().setZoom(0);// TODO
     magic.runtime.map.getView().setCenter(magic.runtime.center);
 };
 

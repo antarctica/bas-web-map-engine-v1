@@ -82,7 +82,7 @@
     "properties": {
         "id": {
 			"description": "Unique map identifier (UUID)",
-			"oneOf": [
+			"anyOf": [
                 {
                     "type": "string",
                     "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
@@ -120,7 +120,7 @@
 		},
 		"repository": {
 			"description": "URL of accompanying data repository in Ramadda",
-            "oneOf": [
+            "anyOf": [
                 {
                     "type": "string",
                     "format": "uri"
@@ -132,7 +132,7 @@
 		},
 		"creation_date": {
 			"description": "ISO date of map creation",
-            "oneOf": [
+            "anyOf": [
                 {
                     "type": "string",
                     "format": "date-time"
@@ -144,7 +144,7 @@
 		},
 		"modified_date": {
 			"description": "ISO date of last map modification",
-			"oneOf": [
+			"anyOf": [
                 {
                     "type": "string",
                     "format": "date-time"
@@ -165,7 +165,7 @@
 		},
 		"metadata_url": {
 			"description": "Metadata URL",
-            "oneOf": [
+            "anyOf": [
                 {
                     "type": "string",
                     "format": "uri"

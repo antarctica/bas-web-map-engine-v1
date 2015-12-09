@@ -11,7 +11,7 @@ magic.classes.HeightMeasureButton = function(name) {
     }
     
     /* Internal */   
-    this.demLayers = magic.runtime.dems;
+    this.demLayers = this.getDemlayers();
     
     this.heightPopup = new ol.Overlay({element: hPopDiv[0]});
     magic.runtime.map.addOverlay(this.heightPopup);
@@ -164,6 +164,25 @@ magic.classes.HeightMeasureButton.prototype.getDemValue = function(json) {
         }
     }
     return(dem);
+};
+
+/**
+ * Get DEM layers
+ * @returns {Array<ol.Layer>}
+ */
+magic.classes.HeightMeasureButton.prototype.getDemLayers = function() {
+    var dems = [];
+    if (magic.runtime.map) {
+        magic.runtime.map.getLayers().forEach(function (layer) {
+            var md = layer.get("metadata");
+            if (md) {
+                if (md.source.is_dem === true) {
+                    dems.push(layer);
+                }
+            }
+        });
+    }
+    return(dems);
 };
 
 /**

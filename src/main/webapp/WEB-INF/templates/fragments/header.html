@@ -23,9 +23,7 @@
         <script src="/static/buildjs/alljs.js"></script>        
         <script th:inline="javascript">
             /*<![CDATA[*/
-            magic.runtime.app = [[${app}]];
-            magic.runtime.usermap = [[${usermap}]];
-            magic.runtime.viewname = [[${viewname}]];
+            magic.runtime.mapname = [[${map}]];          
             magic.runtime.username = [[${username}]];
             /*]]>*/
         </script>
@@ -33,19 +31,25 @@
 
             $(document).ready(function () {
                 var payloadRequest = $.ajax({
-                    url: magic.config.paths.baseurl + "/appconfig/" + magic.runtime.app + 
-                        (magic.runtime.usermap ? "/" + magic.runtime.usermap : "/default") + 
-                        (magic.runtime.viewname ? "/" + magic.runtime.viewname : ""),
+                    url: magic.config.paths.baseurl + "/maps/name/" + magic.runtime.mapname,
                     method: "GET",
                     dataType: "json"
+                }), prefsRequest = payloadRequest.then(function(payload) {                                        
+                    magic.runtime.map_context = $.extend({}, payload);
+                    magic.runtime.map_context.data = JSON.parse(payload.data.value);
+                    return($.ajax({
+                        url: magic.config.paths.baseurl + "/prefs",
+                        method: "GET",
+                        dataType: "json"
+                    }));
                 });
-                payloadRequest.done(function(payload) {
-                    magic.runtime.appcontainer = new magic.classes.AppContainer(payload);
+                
+                prefsRequest.done(function(prefs) {                    
+                    magic.runtime.preferences = prefs;
                 });
-                payloadRequest.fail(function(xhr, status) {
-                    alert("Failed to get config payload for application " + magic.runtime.app + ", error was " + status);
+                prefsRequest.fail(function(xhr, status) {
+                    bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to get payload and preferences for map ' + magic.runtime.mapname + '</div>');
                 });
-
             });
 
         </script>
@@ -67,6 +71,7 @@
         <link href="/static/css/bootstrap.min.css" rel="stylesheet"></link>
         <link href="/static/css/nouislider.min.css" rel="stylesheet"></link>
         <link href="/static/css/prettify.css" rel="stylesheet"></link>
+        <link href="/static/css/nav.css" rel="stylesheet"></link>
         <link href="/static/css/map.css" rel="stylesheet"></link>
         <link href="/static/css/font-awesome.min.css" rel="stylesheet" type="text/css"></link>
         <link href="/static/css/whhg-reduced.min.css" rel="stylesheet" type="text/css"></link>
@@ -118,29 +123,33 @@
         <script src="/static/js/components/bas/StaticTimeSeriesPlayer.js"></script>
         <script th:inline="javascript">
             /*<![CDATA[*/
-            magic.runtime.app = [[${app}]];
-            magic.runtime.usermap = [[${usermap}]];
-            magic.runtime.viewname = [[${viewname}]];
+            magic.runtime.mapname = [[${map}]];          
             magic.runtime.username = [[${username}]];
-                    /*]]>*/
+            /*]]>*/
         </script>
         <script type="text/javascript">
 
-                    $(document).ready(function () {
+            $(document).ready(function () {
                 var payloadRequest = $.ajax({
-                    url: magic.config.paths.baseurl + "/appconfig/" + magic.runtime.app + 
-                        (magic.runtime.usermap ? "/" + magic.runtime.usermap : "/default") + 
-                        (magic.runtime.viewname ? "/" + magic.runtime.viewname : ""),
+                    url: magic.config.paths.baseurl + "/maps/name/" + magic.runtime.mapname,
                     method: "GET",
                     dataType: "json"
+                }), prefsRequest = payloadRequest.then(function(payload) {
+                    magic.runtime.map_context = $.extend({}, payload);
+                    magic.runtime.map_context.data = JSON.parse(payload.data.value);
+                    return($.ajax({
+                        url: magic.config.paths.baseurl + "/prefs",
+                        method: "GET",
+                        dataType: "json"
+                    }));
                 });
-                payloadRequest.done(function (payload) {
-                    magic.runtime.appcontainer = new magic.classes.AppContainer(payload);
+                
+                prefsRequest.done(function(prefs) {
+                    magic.runtime.user_prefs = prefs;
                 });
-                payloadRequest.fail(function (xhr, status) {
-                    alert("Failed to get config payload for application " + magic.runtime.app + ", error was " + status);
+                prefsRequest.fail(function(xhr, status) {
+                    bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to get payload and preferences for map ' + magic.runtime.mapname + '</div>');
                 });
-
             });
 
         </script>

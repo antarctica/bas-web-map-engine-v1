@@ -1,40 +1,42 @@
 /* Top level mapping application container wrapper, receives the application data payload */
 
-magic.classes.AppContainer = function (payload) {
-
-    this.payload = payload;
-
+magic.classes.AppContainer = function () {
+    
+    /**
+     * Application payload is in:
+     * 
+     * magic.runtime.map_context
+     * 
+     * User preferences in:
+     * 
+     * magic.runtime.user_prefs
+     */ 
+    
+    /* Set container sizes */
     this.fitMapToViewport();
-
-    /* Set up view */
-    var viewData = payload.view;
-    magic.runtime.projection = ol.proj.get(viewData.projection);
-    magic.runtime.projection.setExtent(viewData.proj_extent);
-    magic.runtime.projection.setWorldExtent(viewData.proj_extent);
-    magic.runtime.resolutions = viewData.resolutions;
-    magic.runtime.center = viewData.center;
-    magic.runtime.rotation = viewData.rotation ? magic.modules.Common.toRadians(viewData.rotation) : 0.0;
-    magic.runtime.view = new ol.View({
-        center: viewData.center,
-        maxResolution: viewData.resolutions[0],
-        resolutions: viewData.resolutions,
-        rotation: magic.runtime.rotation,
-        zoom: viewData.zoom,
-        projection: magic.runtime.projection
-    });
-
+    
+    /* Initialise map view */
+    magic.runtime.view = this.initView();
+    // TO DO - need to save view defaults
+    
     /* Set up layer tree */
     magic.runtime.userlayers = [];
-    magic.runtime.repository = payload.sources.repository;
-    magic.runtime.layertree = new magic.classes.LayerTree("layer-tree", payload.tree, payload.sources);
-
-    /* Set up OL map */
-    var dd = new ol.interaction.DragAndDrop({
-        formatConstructors: [
-            ol.format.GPX,
-            ol.format.KML
-        ]
+    magic.runtime.repository = magic.runtime.map_context.repository;
+    magic.runtime.layertree = new magic.classes.LayerTree("layer-tree");
+    
+    /* User unit preferences */
+    magic.runtime.preferences = new magic.classes.UserPreferences({
+        target: "unit-prefs",
+        username: magic.runtime.username,
+        preferences: magic.runtime.user_prefs
     });
+
+    /* Set up drag and drop interaction for quick visualisation of GPX and KML files */
+    var dd = new ol.interaction.DragAndDrop({
+        formatConstructors: [ol.format.GPX, ol.format.KML]
+    });
+    
+    /* Set up OL map */
     magic.runtime.map = new ol.Map({
         renderer: "canvas",
         loadTilesWhileAnimating: true,
@@ -47,7 +49,10 @@ magic.classes.AppContainer = function (payload) {
                 projection: "EPSG:4326",
                 className: "custom-mouse-position",
                 coordinateFormat: function (xy) {
-                    return("Lon : " + xy[0].toFixed(2) + ", lat : " + xy[1].toFixed(2));
+                    return(
+                        "Lon : " + magic.runtime.preferences.applyPref("coordinates", xy[0].toFixed(2), "lon") + ", " + 
+                        "lat : " + magic.runtime.preferences.applyPref("coordinates", xy[1].toFixed(2), "lat")
+                    );
                 }
             })
         ],
@@ -59,9 +64,8 @@ magic.classes.AppContainer = function (payload) {
     /* List of interactive map tools, to ensure only one can listen to map clicks/pointer moves at any one time */
     magic.runtime.map_interaction_tools = [];
 
-    /* Control button ribbon */
-    magic.runtime.dems = payload.sources.dem_layers;
-    magic.runtime.controls = new magic.classes.ControlButtonRibbon(payload.view.controls);
+    /* Control button ribbon */    
+    magic.runtime.controls = new magic.classes.ControlButtonRibbon(magic.runtime.map_context.data.controls);
     magic.runtime.controls.init();
 
     /* Create a popup overlay and add handler to show it on clicking a feature */
@@ -206,6 +210,25 @@ magic.classes.AppContainer = function (payload) {
             });
         }
     });
+};
+
+/**
+ * Set up view
+ * @return {ol.View} 
+ */
+magic.classes.AppContainer.prototype.initView = function() {
+    var viewData = magic.runtime.map_context.data;
+    var proj = ol.proj.get(viewData.projection);
+    proj.setExtent(viewData.proj_extent);
+    proj.setWorldExtent(viewData.proj_extent);
+    return(new ol.View({
+        center: viewData.center,
+        maxResolution: viewData.resolutions[0],
+        resolutions: viewData.resolutions,
+        rotation: viewData.rotation ? magic.modules.Common.toRadians(viewData.rotation) : 0.0,
+        zoom: viewData.zoom,
+        projection: proj
+    }));
 };
 
 /**
