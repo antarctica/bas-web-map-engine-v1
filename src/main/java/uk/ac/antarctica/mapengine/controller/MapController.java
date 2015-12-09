@@ -5,7 +5,9 @@ package uk.ac.antarctica.mapengine.controller;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
@@ -13,22 +15,14 @@ import java.util.Map;
 import java.util.UUID;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
 import org.geotools.ows.ServiceException;
-import org.hibernate.validator.constraints.Email;
-import org.hibernate.validator.constraints.NotEmpty;
-import org.hibernate.validator.constraints.URL;
+import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.validation.Errors;
-import org.springframework.validation.Validator;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -51,8 +45,7 @@ public class MapController {
     private final Gson mapper = new Gson();
 
     @InitBinder
-    protected void initBinder(WebDataBinder binder) {
-        binder.setValidator(new MapDataValidator());
+    protected void initBinder(WebDataBinder binder) {        
     }
     
     /*---------------------------------------------------------------- Dropdown populators ----------------------------------------------------------------*/
@@ -176,40 +169,42 @@ public class MapController {
      * @param String payload   
      * @throws Exception
      */
-    @RequestMapping(value = "/maps/save", method = RequestMethod.POST, produces = "application/json; charset=utf-8", headers = {"Content-type=application/json"})
+    @RequestMapping(value = "/maps/save", method = RequestMethod.POST)
     public ResponseEntity<String> saveMap(HttpServletRequest request,
-        @RequestBody @Valid MapData md) throws Exception {
-        ResponseEntity<String> ret;
-        String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
+        @RequestBody String payload) throws Exception {
+        ResponseEntity<String> ret = null;
+        String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;        
         if (username != null) {
-            /* Default the non-completed fields */
-            Date now = new Date();
-            md.setId(UUID.randomUUID().toString());
-            md.setVersion("1.0");
-            md.setLogo("bas.png");      /* Eventually will allow user upload of this file, possibly via Ramadda */
-            md.setFavicon("bas.ico");   /* Ditto */
-            md.setCreation_date(now);
-            md.setModified_date(now);
-            md.setOwner_name(username);
-            /* Assemble INSERT query */
-            try {
-                String sql = "INSERT INTO " + MAPDEFS + " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            /* Logged in user */
+            JsonElement je = new JsonParser().parse(payload);
+            JsonObject jo = je.getAsJsonObject();                       
+            /* Assemble INSERT query (UNIQUE constraint will weed out duplicate names) */
+            try {                
+                Date now = new Date();
+                /* A bit of "cargo-cult" programming from https://github.com/denishpatel/java/blob/master/PgJSONExample.java - what a palaver! */
+                PGobject dataObject = new PGobject();
+                dataObject.setType("json");
+                dataObject.setValue(jo.get("data").toString());
+                String sql = "INSERT INTO " + MAPDEFS + " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
                 magicDataTpl.update(sql, new Object[] {
-                    md.getId(),
-                    md.getName(),
-                    md.getTitle(),
-                    md.getDescription(),
-                    md.getVersion(),
-                    md.getLogo(),
-                    md.getFavicon(),
-                    md.getRepository(),
-                    md.getCreation_date(),
-                    md.getModified_date(),
-                    md.getOwner_name(),
-                    md.getOwner_email(),
-                    md.getMetadata_url(),
-                    md.getData(),
-                    md.isIs_public()
+                    UUID.randomUUID().toString(),
+                    jo.get("name").getAsString(),
+                    jo.get("title").getAsString(),
+                    jo.get("description").getAsString(),
+                    jo.get("version").getAsString(),
+                    /* The following properties are not currently modifiable through the GUI */
+                    "bas.png",
+                    "bas.ico",
+                    "http://localhost:8080/repository",
+                    /* End of non-modifiable properties */
+                    now,
+                    now,
+                    username,
+                    jo.get("owner_email").getAsString(),
+                    jo.get("metadata_url").getAsString(),
+                    dataObject,
+                    jo.get("allowed_usage").getAsString(),
+                    jo.get("allowed_download").getAsString()
                 });
                 ret = packageResults(HttpStatus.OK, null, "Successfully saved");
             } catch(DataAccessException dae) {
@@ -224,14 +219,14 @@ public class MapController {
     /**
      * Update a map view whose data is PUT
      * @param String id
-     * @param MapData md   
+     * @param String payload   
      * @throws Exception
      */
-    @RequestMapping(value = "/maps/update/{id}", method = RequestMethod.PUT, produces = "application/json; charset=utf-8", headers = {"Content-type=application/json"})
+    @RequestMapping(value = "/maps/update/{id}", method = RequestMethod.PUT)
     public ResponseEntity<String> updateMap(HttpServletRequest request,
         @PathVariable("id") String id,
-        @RequestBody @Valid MapData md) throws Exception {
-        ResponseEntity<String> ret;
+        @RequestBody String payload) throws Exception {
+        ResponseEntity<String> ret = null;
         String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
         if (username != null) {
             /* Check logged in user is the owner of the map */
@@ -244,9 +239,14 @@ public class MapController {
                 ret = packageResults(HttpStatus.UNAUTHORIZED, null, "You are not the owner of record with id " + id);
             } else {
                 /* Default the non-completed fields */
-                Date now = new Date();                
-                md.setModified_date(now);
-                /* Assemble UPDATE query */
+                JsonElement je = new JsonParser().parse(payload);
+                JsonObject jo = je.getAsJsonObject();                       
+                Date now = new Date(); 
+                /* A bit of "cargo-cult" programming from https://github.com/denishpatel/java/blob/master/PgJSONExample.java - what a palaver! */
+                PGobject dataObject = new PGobject();
+                dataObject.setType("json");
+                dataObject.setValue(jo.get("data").toString());
+                /* Assemble UPDATE query (UNIQUE constraint will weed out duplicate names) */
                 try {
                     String sql = "UPDATE " + MAPDEFS + " SET " + 
                         "name=?, " + 
@@ -260,27 +260,30 @@ public class MapController {
                         "owner_email=?, " + 
                         "metadata_url=?, " + 
                         "data=?, " + 
-                        "is_public=? WHERE id=?";
+                        "allowed_usage=?, " +
+                        "allowed_download=? WHERE id=?";
                     magicDataTpl.update(sql, new Object[] {
-                        md.getName(),
-                        md.getTitle(),
-                        md.getDescription(),
-                        md.getVersion(),
-                        md.getLogo(),
-                        md.getFavicon(),
-                        md.getRepository(),
-                        md.getModified_date(),
-                        md.getOwner_email(),
-                        md.getMetadata_url(),
-                        md.getData(),
-                        md.isIs_public(),
-                        md.getId()
+                        jo.get("name").getAsString(),
+                        jo.get("title").getAsString(),
+                        jo.get("description").getAsString(),
+                        jo.get("version").getAsString(),
+                        /* The following properties are not currently modifiable through the GUI */
+                        "bas.png",
+                        "bas.ico",
+                        "http://localhost:8080/repository",
+                        /* End of non-modifiable properties */
+                        now,
+                        jo.get("owner_email").getAsString(),
+                        jo.get("metadata_url").getAsString(),
+                        dataObject,
+                        jo.get("allowed_usage").getAsString(),
+                        jo.get("allowed_download").getAsString()                        
                     });
                     ret = packageResults(HttpStatus.OK, null, "Successfully updated");
                 } catch(DataAccessException dae) {
                     ret = packageResults(HttpStatus.BAD_REQUEST, null, "Error updating data, message was: " + dae.getMessage());
                 }
-            }
+           }
         } else {
             ret = packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to perform this action");
         }        
@@ -363,192 +366,6 @@ public class MapController {
             ret = new ResponseEntity<>(jo.toString(), status);
         }
         return (ret);
-    }
-
-    public class MapData {
-
-        private String id = null;
-        @NotEmpty
-        @Size(min = 3, max = 50, message = "Name should be between 3 and 50 characters long")
-        @Pattern(regexp = "[a-z0-9_]+", message = "Name should only contain lowercase letters, numbers or _")
-        private String name = null; 
-        @NotEmpty
-        @Size(min = 3, max = 100, message = "Title should be between 3 and 100 characters long")
-        private String title = null;
-        @NotEmpty
-        private String description = null;
-        @Size(min = 3, max = 20, message = "Version should be between 3 and 20 characters long")
-        private String version = "1.0";
-        @Size(min = 0, max = 255, message = "Logo path should be between 0 and 255 characters long")
-        private String logo = "bas.png";
-        @Size(min = 0, max = 255, message = "Favicon path should be between 0 and 255 characters long")
-        private String favicon = "bas.ico";
-        @URL
-        @Size(min = 0, max = 255, message = "Repository URL should be between 0 and 255 characters long")
-        private String repository = "http://localhost/respository";
-        @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
-        private Date creation_date = null;
-        @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
-        private Date modified_date = null;
-        @Size(min = 3, max = 50, message = "Owner name should be between 3 and 50 characters long")
-        private String owner_name = null;
-        @NotEmpty @Email
-        @Size(min = 6, max = 150, message = "Owner email should be between 6 and 150 characters long")
-        private String owner_email = null;
-        @URL
-        @Size(min = 0, max = 255, message = "Metadata URL should be between 0 and 255 characters long")
-        private String metadata_url = null;
-        private boolean is_public = false;
-        private String data = null;                
-
-        public MapData() {
-        }
-
-        public String getId() {
-            return id;
-        }
-
-        public void setId(String id) {
-            this.id = id;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public String getTitle() {
-            return title;
-        }
-
-        public void setTitle(String title) {
-            this.title = title;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public void setDescription(String description) {
-            this.description = description;
-        }
-
-        public String getVersion() {
-            return version;
-        }
-
-        public void setVersion(String version) {
-            this.version = version;
-        }
-
-        public String getLogo() {
-            return logo;
-        }
-
-        public void setLogo(String logo) {
-            this.logo = logo;
-        }
-
-        public String getFavicon() {
-            return favicon;
-        }
-
-        public void setFavicon(String favicon) {
-            this.favicon = favicon;
-        }
-
-        public String getRepository() {
-            return repository;
-        }
-
-        public void setRepository(String repository) {
-            this.repository = repository;
-        }
-
-        public Date getCreation_date() {
-            return creation_date;
-        }
-
-        public void setCreation_date(Date creation_date) {
-            this.creation_date = creation_date;
-        }
-
-        public Date getModified_date() {
-            return modified_date;
-        }
-
-        public void setModified_date(Date modified_date) {
-            this.modified_date = modified_date;
-        }
-
-        public String getOwner_name() {
-            return owner_name;
-        }
-
-        public void setOwner_name(String owner_name) {
-            this.owner_name = owner_name;
-        }
-
-        public String getOwner_email() {
-            return owner_email;
-        }
-
-        public void setOwner_email(String owner_email) {
-            this.owner_email = owner_email;
-        }
-
-        public String getMetadata_url() {
-            return metadata_url;
-        }
-
-        public void setMetadata_url(String metadata_url) {
-            this.metadata_url = metadata_url;
-        }
-
-        public boolean isIs_public() {
-            return is_public;
-        }
-
-        public void setIs_public(boolean is_public) {
-            this.is_public = is_public;
-        }
-
-        public String getData() {
-            return data;
-        }
-
-        public void setData(String data) {
-            this.data = data;
-        }
-                
-    }
-
-    public class MapDataValidator implements Validator {
-
-        @Override
-        public boolean supports(Class<?> clazz) {
-            return MapData.class.equals(clazz);
-        }
-
-        @Override
-        public void validate(Object target, Errors e) {
-
-            MapData md = (MapData) target;
-                      
-            /* Check name is unique */
-            try {
-                int nameCount = magicDataTpl.queryForObject("SELECT count(name) FROM " + MAPDEFS + " WHERE name=?", new Object[]{md.getName()}, Integer.class);
-                if (nameCount > 0) {
-                    e.rejectValue("name", "invalid", "Name " + md.getName() + " is already taken");
-                }
-            } catch(Exception ex) {
-                e.rejectValue("name", "invalid", "Name " + md.getName() + " could not be checked for uniqueness (error was : " + ex.getMessage() + ")");
-            }
-                      
-        }
-    }
+    }    
 
 }

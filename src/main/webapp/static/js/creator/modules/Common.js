@@ -104,10 +104,9 @@ magic.modules.creator.Common = function () {
                     var jqXhr = $.ajax({
                         url: magic.config.paths.baseurl + "/maps/" + (existingId != "" ? "update/" + existingId : "save"),
                         method: (existingId != "" ? "PUT" : "POST"),
-                        dataType: "json",
+                        processData: false,
                         data: JSON.stringify(finalContext),
                         headers: {
-                            "Accept": "application/json",
                             "Content-Type": "application/json",
                             "X-CSRF-TOKEN": csrfHeaderVal
                         }
