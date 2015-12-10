@@ -142,10 +142,10 @@ magic.modules.Common = function () {
             var style = magic.modules.Common.default_styles[geomType];
             if (style) {
                 var styling = {};
-                if (geomType == "Point" || geomType == "MultiPoint") {
+                if (geomType.toLowerCase().indexOf("point") >= 0) {
                     /* Create image */
                     styling.image = this.getPointImageStyle(paletteEntry)                 
-                } else if (geomType == "LineString" || geomType == "MultiLineString") {
+                } else if (geomType.toLowerCase().indexOf("linestring") >= 0) {
                     styling.stroke = new ol.style.Stroke({
                         color: this.rgbToDec(this.color_palette[paletteEntry]),
                         width: style.width || 1
@@ -241,6 +241,29 @@ magic.modules.Common = function () {
                         width: 1
                     })
                 }));
+            }
+        },
+        /**
+         * Populate a select list from given array of option objects
+         * @param {Element} select
+         * @param {Array} optArr
+         * @param {string} valAttr
+         * @param {string} txtAttr
+         * @param {string} defval
+         */
+        populateSelect: function(select, optArr, valAttr, txtAttr, defval) {
+            var selOpt = null;
+            select.append($("<option>", {value: "", text: "Please select"}));
+            $.each(optArr, function(idx, optObj) {
+                var opt = $("<option>", {value: optObj[valAttr]});
+                opt.text(optObj[txtAttr]);            
+                select.append(opt);
+                if (defval && optObj[valAttr] == defval) {
+                    selOpt = opt;
+                }
+            });
+            if (selOpt != null) {
+                selOpt.prop("selected", "selected");
             }
         },
         /**

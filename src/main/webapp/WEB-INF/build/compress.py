@@ -10,21 +10,25 @@ yuicompressor = os.path.abspath("./yuicompressor/build/yuicompressor-2.4.8.jar")
 
 buildjs = os.path.abspath("../../static/buildjs")
 print "Write bundled js to " + buildjs
+alljs = os.path.join(buildjs, "alljs.js")
 if not os.path.exists(buildjs):
     os.makedirs(buildjs)
 else:
-    os.remove(os.path.join(buildjs, "alljs.js"))
+    if os.path.exists(alljs):
+        os.remove(alljs)
 buildcss = os.path.abspath("../../static/buildcss")
 print "Write bundled css to " + buildcss
+allcss = os.path.join(buildcss, "allcss.css")
 if not os.path.exists(buildcss):
     os.makedirs(buildcss)
 else:
-    os.remove(os.path.join(buildcss, "allcss.css"));
-concjs = open(os.path.join(buildjs, "alljs.js"), "a")
-conccss = open(os.path.join(buildcss, "allcss.css"), "a")
+    if os.path.exists(allcss):
+        os.remove(allcss);
+concjs = open(alljs, "a")
+conccss = open(allcss, "a")
 
 # Files to completely ignore i.e. no minify or concatenate
-ignorejs = ["bootstrap-treeview.js", "ol.debug.js"]
+ignorejs = ["bootstrap-treeview.js", "ol.debug.js", "jquery-sortable-lists.min.js", "jquery.bootstrap.wizard.min.js", "tv4.min.js"]
 ignorecss = []
 # Files to add to the js bundle but don't do any further minification (anything .min.js will automatically be skipped)
 skipminjs = ["jquery.js", "prettify.js", "proj4.js"]

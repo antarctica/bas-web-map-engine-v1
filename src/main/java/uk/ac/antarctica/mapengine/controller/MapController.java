@@ -51,7 +51,7 @@ public class MapController {
     /*---------------------------------------------------------------- Dropdown populators ----------------------------------------------------------------*/
 
     /**
-     * Get {id: <uuid>, name: <name>} for all maps the logged in user can edit (default action)
+     * Get {id: <uuid>, name: <name>} for all maps the logged in user can view (default action)
      * @param HttpServletRequest request,    
      * @return
      * @throws ServletException
@@ -61,7 +61,7 @@ public class MapController {
     @ResponseBody
     public ResponseEntity<String> mapViews(HttpServletRequest request)
         throws ServletException, IOException, ServiceException {
-        return(mapDropdownData(request, "edit"));
+        return(mapDropdownData(request, "view"));
     }
     
     /**
@@ -82,26 +82,36 @@ public class MapController {
     /**
      * Get {id: <uuid>, name: <name>} dropdown populator for a particular action
      * @param HttpServletRequest request
-     * @param String action edit|clone
+     * @param String action view|clone|edit
      * @return ResponseEntity<String>
      */
     private ResponseEntity<String> mapDropdownData(HttpServletRequest request, String action) {
         ResponseEntity<String> ret = null;
         String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
-        if (username != null) {            
-            try {
-                String where = "owner_name=?" + (action.equals("clone") ? " OR owner_name IS NULL" : "");
-                List<Map<String, Object>> userMapData = magicDataTpl.queryForList("SELECT id, title FROM " +  MAPDEFS + " WHERE " + where + " ORDER BY title", username);
-                if (userMapData != null && !userMapData.isEmpty()) {
-                    JsonArray views = mapper.toJsonTree(userMapData).getAsJsonArray();
-                    ret = packageResults(HttpStatus.OK, views.toString(), null);
-                }
-            } catch (Exception ex) {
-                ret = packageResults(HttpStatus.BAD_REQUEST, null, "Error occurred: " + ex.getMessage());
+        List<Map<String, Object>> userMapData = null;
+        if (action.equals("edit")) {
+            /* Users can edit only maps they own */
+            if (username == null) {
+                ret = packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to perform this action");
+            } else {
+                userMapData = magicDataTpl.queryForList("SELECT id, title FROM " +  MAPDEFS + " WHERE owner_name=? ORDER BY title", username);
+            }
+        } else if (action.equals("clone") || action.equals("view")) {
+            if (username == null) {
+                /* Guests can clone or view public maps */
+                userMapData = magicDataTpl.queryForList("SELECT id, title FROM " +  MAPDEFS + " WHERE allowed_usage='public' ORDER BY title", username);
+            } else {
+                /* Logged in users can clone public, restricted maps and ones they own */
+                String where = "allowed_usage='public' OR allowed_usage='login' OR (allowed_usage='owner' AND owner_name=?)";
+                userMapData = magicDataTpl.queryForList("SELECT id, title FROM " +  MAPDEFS + " WHERE " + where + " ORDER BY title", username);
             }
         } else {
-            ret = packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to perform this action");
+            ret = packageResults(HttpStatus.BAD_REQUEST, null, "Unrecognised action " + action);
         }
+        if (userMapData != null && !userMapData.isEmpty()) {
+            JsonArray views = mapper.toJsonTree(userMapData).getAsJsonArray();
+            ret = packageResults(HttpStatus.OK, views.toString(), null);
+        }        
         return(ret);
     }
     
@@ -148,10 +158,15 @@ public class MapController {
         ResponseEntity<String> ret = null;
         String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
         try {
-            Map<String, Object> userMapData = magicDataTpl.queryForMap("SELECT * FROM " +  MAPDEFS + " WHERE " + attr + "=? AND " + 
-                "(allowed_usage='public' OR allowed_usage='login' OR (allowed_usage='owner' AND owner_name=?))",
-                value, username
-            );
+            String where = "";
+            Map<String, Object> userMapData = null;
+            if (username == null) {
+                where = "allowed_usage='public'";
+                userMapData = magicDataTpl.queryForMap("SELECT * FROM " +  MAPDEFS + " WHERE " + attr + "=? AND " + where, value);
+            } else {
+                where = "(allowed_usage='public' OR allowed_usage='login' OR (allowed_usage='owner' AND owner_name=?))";
+                userMapData = magicDataTpl.queryForMap("SELECT * FROM " +  MAPDEFS + " WHERE " + attr + "=? AND " + where, value, username);
+            }
             ret = packageResults(HttpStatus.OK, mapper.toJsonTree(userMapData).toString(), null);
         } catch (IncorrectResultSizeDataAccessException irsdae) {
             ret = packageResults(HttpStatus.UNAUTHORIZED, null, "No maps found that you are allowed to access");

@@ -150,30 +150,7 @@ magic.modules.creator.Common = function () {
                     tree.push(this.layer_dictionary.get(node.id));
                 }
             }  
-        },
-        /**
-         * Populate a select list from given array of option objects
-         * @param {Element} select
-         * @param {Array} optArr
-         * @param {string} valAttr
-         * @param {string} txtAttr
-         * @param {string} defval
-         */
-        populateSelect: function(select, optArr, valAttr, txtAttr, defval) {
-            var selOpt = null;
-            select.append($("<option>", {value: "", text: "Please select"}));
-            $.each(optArr, function(idx, optObj) {
-                var opt = $("<option>", {value: optObj[valAttr]});
-                opt.text(optObj[txtAttr]);            
-                select.append(opt);
-                if (defval && optObj[valAttr] == defval) {
-                    selOpt = opt;
-                }
-            });
-            if (selOpt != null) {
-                selOpt.prop("selected", "selected");
-            }
-        },
+        },        
         /**
          * Populate a form with the specified fields from the data object
          * Form input names/ids should be derivable from <prefix>-<field>

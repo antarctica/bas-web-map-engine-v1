@@ -275,6 +275,10 @@
 										"description": "Whether layer group starts out expanded or not",
 										"type": "boolean"										
 									},
+                                    "base": {
+										"description": "If this is a base layer group (layer tree will enable radio button selection)",
+										"type": "boolean"										
+									},
 									"layers": {
 										"type": "array",
 										"$ref": "layer_array"

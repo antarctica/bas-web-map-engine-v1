@@ -15,9 +15,8 @@ magic.classes.AppContainer = function () {
     /* Set container sizes */
     this.fitMapToViewport();
     
-    /* Initialise map view */
-    magic.runtime.view = this.initView();
-    // TO DO - need to save view defaults
+    /* Initialise map view (returns the initialisation values for the view) */
+    magic.runtime.viewdata = this.initView();
     
     /* Set up layer tree */
     magic.runtime.userlayers = [];
@@ -25,16 +24,13 @@ magic.classes.AppContainer = function () {
     magic.runtime.layertree = new magic.classes.LayerTree("layer-tree");
     
     /* User unit preferences */
-    magic.runtime.preferences = new magic.classes.UserPreferences({
-        target: "unit-prefs",
-        username: magic.runtime.username,
-        preferences: magic.runtime.user_prefs
-    });
+    magic.runtime.preferences = new magic.classes.UserPreferences({target: "unit-prefs", preferences: magic.runtime.user_prefs});
+    
+    /* Map switcher */
+    magic.runtime.mapswitcher = new magic.classes.MapSwitcher({target: "map-switcher"});
 
     /* Set up drag and drop interaction for quick visualisation of GPX and KML files */
-    var dd = new ol.interaction.DragAndDrop({
-        formatConstructors: [ol.format.GPX, ol.format.KML]
-    });
+    var dd = new ol.interaction.DragAndDrop({formatConstructors: [ol.format.GPX, ol.format.KML]});
     
     /* Set up OL map */
     magic.runtime.map = new ol.Map({
@@ -62,79 +58,69 @@ magic.classes.AppContainer = function () {
     });
 
     /* List of interactive map tools, to ensure only one can listen to map clicks/pointer moves at any one time */
-    magic.runtime.map_interaction_tools = [];
+    //magic.runtime.map_interaction_tools = [];
 
     /* Control button ribbon */    
-    magic.runtime.controls = new magic.classes.ControlButtonRibbon(magic.runtime.map_context.data.controls);
-    magic.runtime.controls.init();
+    //magic.runtime.controls = new magic.classes.ControlButtonRibbon(magic.runtime.map_context.data.controls);
 
     /* Create a popup overlay and add handler to show it on clicking a feature */
-    magic.runtime.featureinfo = new magic.classes.FeaturePopup({namePrefix: payload.sources.name_prefix});
+    //magic.runtime.featureinfo = new magic.classes.FeaturePopup();
 
     /* Create an attribution modal for legend/metadata */
-    magic.runtime.attribution = new magic.classes.AttributionModal({target: "attribution-modal", wms: payload.sources.wms});
+    //magic.runtime.attribution = new magic.classes.AttributionModal({target: "attribution-modal", wms: payload.sources.wms});
 
     /* Create WGS84 inset map with single OSM layer */
-    magic.runtime.inset = new magic.classes.InsetMap({wms: payload.sources.wms, ws: payload.sources.workspace});
+    //magic.runtime.inset = new magic.classes.InsetMap({wms: payload.sources.wms, ws: payload.sources.workspace});
 
-    if ($.inArray("geosearch", payload.view.controls) != -1 && payload.sources.gazetteers) {
-        /* Activate geosearch */
-        magic.runtime.map_interaction_tools.push(new magic.classes.Geosearch({
-            gazetteers: payload.sources.gazetteers.split(","),
-            target: "geosearch-tool"
-        }));
-    } else {
-        /* Hide the geosearch button */
-        $("#geosearch-tool").closest("li").hide();
-    }
-
-    if ($.inArray("measurement", payload.view.controls) != -1) {
-        /* Activate measuring tool */
-        magic.runtime.map_interaction_tools.push(new magic.classes.Measurement({
-            target: "measure-tool"
-        }));
-    } else {
-        /* Hide the measure tool button */
-        $("#measure-tool").closest("li").hide();
-    }
-
-    if ($.inArray("overview", payload.view.controls) != -1) {
-        /* Activate overview map tool */
-        magic.runtime.overview = new magic.classes.OverviewMap({
-            target: "overview-map-tool"
-        });
-        magic.runtime.overview.setEnabledStatus();
-    } else {
-        /* Hide the overview map button */
-        $("#overview-map-tool").closest("li").hide();
-    }
-    
-    if ($.inArray("repository", payload.view.controls) != -1 && magic.runtime.repository) {
-        /* Activate repository tool */        
-        $("#repo-tool").closest("li").show();
-        $("#repo-tool").on("click", function(evt) {
-            evt.stopPropagation();
-            var repoUrl = magic.runtime.repository;            
-            window.open(repoUrl, "_blank");
-        });
-    } else {
-        /* Hide the download button */
-        $("#repo-tool").closest("li").hide();
-    }
+//    if ($.inArray("geosearch", payload.view.controls) != -1 && payload.sources.gazetteers) {
+//        /* Activate geosearch */
+//        magic.runtime.map_interaction_tools.push(new magic.classes.Geosearch({
+//            gazetteers: payload.sources.gazetteers.split(","),
+//            target: "geosearch-tool"
+//        }));
+//    } else {
+//        /* Hide the geosearch button */
+//        $("#geosearch-tool").closest("li").hide();
+//    }
+//
+//    if ($.inArray("measurement", payload.view.controls) != -1) {
+//        /* Activate measuring tool */
+//        magic.runtime.map_interaction_tools.push(new magic.classes.Measurement({
+//            target: "measure-tool"
+//        }));
+//    } else {
+//        /* Hide the measure tool button */
+//        $("#measure-tool").closest("li").hide();
+//    }
+//
+//    if ($.inArray("overview", payload.view.controls) != -1) {
+//        /* Activate overview map tool */
+//        magic.runtime.overview = new magic.classes.OverviewMap({
+//            target: "overview-map-tool"
+//        });
+//        magic.runtime.overview.setEnabledStatus();
+//    } else {
+//        /* Hide the overview map button */
+//        $("#overview-map-tool").closest("li").hide();
+//    }
+//    
+//    if ($.inArray("repository", payload.view.controls) != -1 && magic.runtime.repository) {
+//        /* Activate repository tool */        
+//        $("#repo-tool").closest("li").show();
+//        $("#repo-tool").on("click", function(evt) {
+//            evt.stopPropagation();
+//            var repoUrl = magic.runtime.repository;            
+//            window.open(repoUrl, "_blank");
+//        });
+//    } else {
+//        /* Hide the download button */
+//        $("#repo-tool").closest("li").hide();
+//    }
 
     /* Profile/preferences */
     if (!magic.runtime.username) {
         $("#user-menu").hide();
-    }
-    magic.runtime.preferences = new magic.classes.UserPreferences({
-        target: "unit-prefs",
-        username: magic.runtime.username,
-        preferences: payload.prefs
-    });
-    magic.runtime.savedviews = new magic.classes.SavedMapViews({
-        target: "saved-map-views",
-        username: magic.runtime.username
-    });
+    }    
 
     /* Updates height of map when window resizes */
     $(window).on("resize", $.proxy(function () {
@@ -180,12 +166,7 @@ magic.classes.AppContainer = function () {
     }, this));
 
     /* Display application metadata */
-    $("#apptitle").text(payload.sources.title);
-    $(document).attr("title", payload.sources.title);
-    $("#applogo").attr("src", "/static/images/" + payload.sources.logo);
-    $("#appurl").attr("href", payload.sources.url);
-    $("link[rel='icon']").attr("href", "/" + payload.sources.favicon);
-    $("link[rel='shortcut icon']").attr("href", "/" + payload.sources.favicon);
+    this.initMapMetadata();
 
     /* Logout behaviour */
     if (magic.runtime.username) {
@@ -213,22 +194,37 @@ magic.classes.AppContainer = function () {
 };
 
 /**
+ * Set the top level map metadata
+ */
+magic.classes.AppContainer.prototype.initMapMetadata = function() {
+    var context = magic.runtime.map_context;
+    $("#apptitle").text(context.title);
+    $(document).attr("title", context.title);
+    $("#applogo").attr("src", "/static/images/" + context.logo);
+    $("#appurl").attr("href", context.metadata_url);
+    $("link[rel='icon']").attr("href", "/" + context.favicon);
+    $("link[rel='shortcut icon']").attr("href", "/" + context.favicon);
+};
+
+/**
  * Set up view
- * @return {ol.View} 
+ * @return {object} 
  */
 magic.classes.AppContainer.prototype.initView = function() {
     var viewData = magic.runtime.map_context.data;
     var proj = ol.proj.get(viewData.projection);
     proj.setExtent(viewData.proj_extent);
     proj.setWorldExtent(viewData.proj_extent);
-    return(new ol.View({
+    var viewDefaults = {
         center: viewData.center,
         maxResolution: viewData.resolutions[0],
         resolutions: viewData.resolutions,
         rotation: viewData.rotation ? magic.modules.Common.toRadians(viewData.rotation) : 0.0,
         zoom: viewData.zoom,
         projection: proj
-    }));
+    };
+    magic.runtime.view = new ol.View(viewDefaults);
+    return(viewDefaults);
 };
 
 /**

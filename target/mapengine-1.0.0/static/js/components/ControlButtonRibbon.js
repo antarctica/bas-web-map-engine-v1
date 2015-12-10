@@ -23,12 +23,7 @@ magic.classes.ControlButtonRibbon = function(config) {
     /* Initialise tooltips and popovers */
     $("body").tooltip({selector: "[data-toggle=tooltip]", container: "body"});
     $("#map-container").popover({selector: "[data-toggle=popover]", container: "#map"});
-};
-
-/**
- * Initialisation of the control buttons 
- */
-magic.classes.ControlButtonRibbon.prototype.init = function() {
+    
     $.each(this.buttons, $.proxy(function(bidx, bname) {                
         switch(bname) {
             case "zoom-to-max-extent":
@@ -67,27 +62,10 @@ magic.classes.ControlButtonRibbon.prototype.init = function() {
             case "graticule":
                 /* Show graticule */                                
                 this.appendControlButton(new magic.classes.GraticuleButton("graticule", this).getButton()); 
-                break;
-                
-            case "aircraft":
-                /* Show aircraft positions */                                
-                this.appendControlButton(new magic.classes.AircraftPositionButton("aircraft", this).getButton()); 
-                break;
-                
-            case "ships":
-                /* Show ship positions */                                
-                this.appendControlButton(new magic.classes.ShipPositionButton("ships", this).getButton()); 
-                break;
-                
-            case "height-measure":
-                /* Measure the height at a point (toggle button) */
-                var hm = new magic.classes.HeightMeasureButton("height-measure");
-                this.appendControlButton(hm.getButton());
-                magic.runtime.map_interaction_tools.push(hm);
-                break;
+                break;                           
                 
             case "feature-info":
-                /* Measure the height at a point (toggle button) */
+                /* Get feature info at point */
                 var fi = new magic.classes.FeatureInfoButton("feature-info");
                 this.appendControlButton(fi.getButton()); 
                 magic.runtime.map_interaction_tools.push(fi);
@@ -161,8 +139,8 @@ magic.classes.ControlButtonRibbon.prototype.createControlButton = function(name,
  * Zoom world extent
  */
 magic.classes.ControlButtonRibbon.prototype.zoomToMaxExtent = function() {
-    magic.runtime.map.getView().setZoom(0);// TODO
-    magic.runtime.map.getView().setCenter(magic.runtime.center);
+    magic.runtime.map.getView().setZoom(magic.runtime.viewdata.resolutions[0]);
+    magic.runtime.map.getView().setCenter(magic.runtime.viewdata.center);
 };
 
 /**

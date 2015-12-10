@@ -1,45 +1,53 @@
 /* Layer tree */
 
-magic.classes.LayerTree = function(target, treedata, sourceData) {
-    
-    this.target = target;
-    this.treedata = treedata;
-    this.sourcedata = sourceData;
-    
-    this.baseLayers = [];
-    this.overlayLayers = [];
+magic.classes.LayerTree = function (target) {
+
+    this.target = target || "layer-tree";
+
+    this.treedata = magic.runtime.map_context.data.layers || [];
+
+    /* Dictionary mapping from a node UUID to an OL layer */
     this.nodeLayerTranslation = {};
-    
-    this.collapsed = false;
-    
+
+    /* Dictionary of layers by source type, for stacking purposes */
+    this.layersBySource = {
+        "base": [],
+        "wms": [],
+        "geojson": [],
+        "gpx": [],
+        "kml": []
+    };
+
     this.initTree(this.treedata, $("#" + this.target), 0);
-    
+
+    this.collapsed = false;
+
     var expanderLocation = $("#" + this.target).find("div.panel-heading:first");
     if (expanderLocation) {
         expanderLocation.append('<span data-toggle="tooltip" data-placement="bottom" title="Collapse layer tree" class="layer-tree-collapse fa fa-angle-double-left hidden-xs"></span>');
     }
-    
+
     /* Collapse layer tree handler */
-    $("span.layer-tree-collapse").on("click", $.proxy(function(evt) {
-        evt.stopPropagation(); 
-        this.setCollapsed(true);        
+    $("span.layer-tree-collapse").on("click", $.proxy(function (evt) {
+        evt.stopPropagation();
+        this.setCollapsed(true);
     }, this));
-    
+
     /* Expand layer tree handler */
-    $("button.layer-tree-expand").on("click", $.proxy(function(evt) {
+    $("button.layer-tree-expand").on("click", $.proxy(function (evt) {
         evt.stopPropagation();
         this.setCollapsed(false);
-    }, this));        
-    
+    }, this));
+
     /* Assign layer visibility handlers */
-    $("input.layer-vis-selector").change($.proxy(function(evt) {
-        var id = evt.currentTarget.id;    
+    $("input.layer-vis-selector").change($.proxy(function (evt) {
+        var id = evt.currentTarget.id;
         var nodeid = this.getNodeId(id);
         var layer = this.nodeLayerTranslation[nodeid];
         if (id.indexOf("base-layer-rb") != -1) {
-            /* Base layer visibility change */           
+            /* Base layer visibility change */
             var isRaster = this.isRasterLayer(layer), exIsRaster = false;
-            $.each(this.baseLayers, $.proxy(function(bli, bl) {
+            $.each(this.baseLayers, $.proxy(function (bli, bl) {
                 if (bl.getVisible() && this.isRasterLayer(bl)) {
                     exIsRaster = true;
                 }
@@ -48,7 +56,7 @@ magic.classes.LayerTree = function(target, treedata, sourceData) {
             if (isRaster != exIsRaster) {
                 /* Toggle coastline layers if a raster backdrop is turned on or off */
                 var coastVis = !isRaster;
-                $.each(this.overlayLayers, $.proxy(function(oli, olyr) {
+                $.each(this.overlayLayers, $.proxy(function (oli, olyr) {
                     if (olyr.get("name").toLowerCase().indexOf("coastline") != -1) {
                         olyr.setVisible(coastVis);
                     }
@@ -60,15 +68,15 @@ magic.classes.LayerTree = function(target, treedata, sourceData) {
                 layer: layer
             });
         } else {
-            /* Overlay layer visibility change */            
+            /* Overlay layer visibility change */
             layer.setVisible(evt.currentTarget.checked);
         }
     }, this));
-    
+
     /* Assign layer group visibility handlers */
-    $("input.layer-vis-group-selector").change($.proxy(function(evt) {
+    $("input.layer-vis-group-selector").change($.proxy(function (evt) {
         var checked = evt.currentTarget.checked;
-        $(evt.currentTarget).parent().next().find("li").each($.proxy(function(idx, elt) {
+        $(evt.currentTarget).parent().next().find("li").each($.proxy(function (idx, elt) {
             var nodeid = this.getNodeId(elt.id);
             var lyr = this.nodeLayerTranslation[nodeid];
             if (lyr) {
@@ -76,19 +84,19 @@ magic.classes.LayerTree = function(target, treedata, sourceData) {
                 $("#layer-cb-" + nodeid).prop("checked", checked);
             } else {
                 $("#group-cb-" + nodeid).prop("checked", checked);
-            }            
-        }, this));       
+            }
+        }, this));
     }, this));
-    
+
     /* The get layer info buttons */
-    $("span[id^='layer-info-']").on("click", $.proxy(function(evt) {
+    $("span[id^='layer-info-']").on("click", $.proxy(function (evt) {
         var id = evt.currentTarget.id;
-        var nodeid = this.getNodeId(id);       
+        var nodeid = this.getNodeId(id);
         magic.runtime.attribution.show(this.nodeLayerTranslation[nodeid]);
-    }, this));            
-    
-    /* Layer dropdown handlers */           
-    $("a.layer-tool").click($.proxy(function(evt) {
+    }, this));
+
+    /* Layer dropdown handlers */
+    $("a.layer-tool").click($.proxy(function (evt) {
         var id = evt.currentTarget.id;
         var nodeid = this.getNodeId(id);
         new magic.classes.LayerTreeOptionsMenu({
@@ -96,46 +104,34 @@ magic.classes.LayerTree = function(target, treedata, sourceData) {
             layer: this.nodeLayerTranslation[nodeid]
         });
     }, this));
-    
+
     /* Change tooltip for collapsible panels */
-    $("div[id^='layer-group-panel-']").on("shown.bs.collapse", $.proxy(function(evt) {
+    $("div[id^='layer-group-panel-']").on("shown.bs.collapse", $.proxy(function (evt) {
         var tgt = $(evt.currentTarget);
         var tt = (tgt.hasClass("in") ? "Collapse" : "Expand") + " this group";
         tgt.parent().first().find("span.panel-title").attr("data-original-title", tt).tooltip("fixTitle");
         evt.stopPropagation();
     }, this));
-    
+
     /* Change tooltip for collapsible panels */
-    $("div[id^='layer-group-panel-']").on("hidden.bs.collapse", $.proxy(function(evt) {
+    $("div[id^='layer-group-panel-']").on("hidden.bs.collapse", $.proxy(function (evt) {
         var tgt = $(evt.currentTarget);
         var tt = (tgt.hasClass("in") ? "Collapse" : "Expand") + " this group";
         tgt.parent().first().find("span.panel-title").attr("data-original-title", tt).tooltip("fixTitle");
         evt.stopPropagation();
     }, this));
-        
+
 };
 
-magic.classes.LayerTree.prototype.getTarget = function() {
+magic.classes.LayerTree.prototype.getTarget = function () {
     return(this.target);
 };
 
-magic.classes.LayerTree.prototype.getLayers = function() {
-    return(this.baseLayers.concat(this.overlayLayers));
-};
-
-magic.classes.LayerTree.prototype.getBaseLayers = function() {
-    return(this.baseLayers);
-};
-
-magic.classes.LayerTree.prototype.getOverlayLayers = function() {
-    return(this.overlayLayers);
-};
-
-magic.classes.LayerTree.prototype.getCollapsed = function() {
+magic.classes.LayerTree.prototype.getCollapsed = function () {
     return(this.collapsed);
 };
 
-magic.classes.LayerTree.prototype.setCollapsed = function(collapsed) {
+magic.classes.LayerTree.prototype.setCollapsed = function (collapsed) {
     if (collapsed) {
         $("#" + this.target).hide({
             complete: magic.runtime.appcontainer.fitMapToViewport
@@ -149,331 +145,170 @@ magic.classes.LayerTree.prototype.setCollapsed = function(collapsed) {
 };
 
 /**
- * Return true if supplied layer is a raster
- * @returns {boolean}
- */
-magic.classes.LayerTree.prototype.isRasterLayer = function(layer) {
-    var raster = false;
-    if (layer) {
-        var md = layer.get("metadata");
-        if (md) {
-            var kw = md.keywords;
-            raster = $.isArray(kw) && $.inArray("raster", kw) != -1;
-        }
-    }
-    return(raster);
-};
-
-/**
  * Insert per-node properties and styling into layer tree structure, as well as creating OL layers where needed
  * @param {array} nodes
  * @param {jQuery,Object} element
  * @param {int} depth
  */
-magic.classes.LayerTree.prototype.initTree = function(nodes, element, depth) {
+magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
     $.each(nodes, $.proxy(function (i, nd) {
-        var indent = 8*depth;
-        if ($.isArray(nd.nodes)) {
+        var indent = 12 * depth;
+        if ($.isArray(nd.layers)) {
             /* Style a group */
-            var expClass = " in", title = "Collapse this group", allCb = "";
-            if (!nd.state || nd.state.expanded === false) {
-                expClass = "";
-                title = "Expand this group";
-            }
-            if (nd.radio) {                
-                allCb = '<span style="margin:5px"></span>'; /* Spacer */
-            } else {
-                allCb = '<input class="layer-vis-group-selector" id="group-cb-' + nd.nodeid + '" type="checkbox" />';
-            }
+            var title = (nd.expanded ? "Collapse" : "Expand") + " this group";
+            var hbg = depth == 0 ? "bg-primary" : (depth == 1 ? "bg-info" : "");
             element.append(
-                ((element.length > 0 && element[0].tagName.toLowerCase() == "ul") ? '<li class="list-group-item layer-list-group-group" id="layer-item-' + nd.nodeid + '">' : "") + 
-                '<div class="panel panel-default layer-group-panel">' + 
-                    '<div class="panel-heading layer-group-heading-' + depth + '" id="layer-group-heading-' + nd.nodeid + '">' + 
-                        '<span style="display:inline-block;width:' + indent + 'px"></span>' +
-                        '<span class="icon-layers"></span>' +
-                         allCb +
-                        '<span class="panel-title layer-group-panel-title" data-toggle="tooltip" data-placement="right" title="' + title + '">' + 
-                            '<a class="layer-group-tool" role="button" data-toggle="collapse" href="#layer-group-panel-' + nd.nodeid + '">' + 
-                                '<span style="font-weight:bold">' + nd.text + '</span>' + 
-                            '</a>' + 
-                        '</span>' + 
-                    '</div>' + 
-                    '<div id="layer-group-panel-' + nd.nodeid + '" class="panel-collapse collapse' + expClass + '">' + 
-                        '<div class="panel-body" style="padding:0px">' + 
-                            '<ul class="list-group layer-list-group" id="layer-group-' + nd.nodeid + '">' + 
-                            '</ul>' + 
-                        '</div>' + 
-                    '</div>' + 
-                '</div>' + 
-                ((element.length > 0 && element[0].tagName.toLowerCase() == "ul") ? '</li>' : "")
-            );             
-            this.initTree(nd.nodes, $("#layer-group-" + nd.nodeid), depth+1);
+                    ((element.length > 0 && element[0].tagName.toLowerCase() == "ul") ? '<li class="list-group-item layer-list-group-group" id="layer-item-' + nd.id + '">' : "") +
+                    '<div class="panel panel-default">' +
+                    '<div class="panel-heading ' + hbg + '" id="layer-group-heading-' + nd.id + '">' +
+                    '<span style="display:inline-block;width:' + indent + 'px"></span>' +
+                    '<span class="icon-layers"></span>' +
+                    (nd.base ? '<span style="margin:5px"></span>' : '<input class="layer-vis-group-selector" id="group-cb-' + nd.id + '" type="checkbox" />') +
+                    '<span class="panel-title layer-group-panel-title" data-toggle="tooltip" data-placement="right" title="' + title + '">' +
+                    '<a class="layer-group-tool" role="button" data-toggle="collapse" href="#layer-group-panel-' + nd.id + '">' +
+                    '<span style="font-weight:bold">' + nd.text + '</span>' +
+                    '</a>' +
+                    '</span>' +
+                    '</div>' +
+                    '<div id="layer-group-panel-' + nd.id + '" class="panel-collapse collapse' + (nd.expanded ? " in" : "") + '">' +
+                    '<div class="panel-body" style="padding:0px">' +
+                    '<ul class="list-group layer-list-group" id="layer-group-' + nd.id + '">' +
+                    '</ul>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>' +
+                    ((element.length > 0 && element[0].tagName.toLowerCase() == "ul") ? '</li>' : "")
+                    );
+            this.initTree(nd.nodes, $("#layer-group-" + nd.id), depth + 1);
         } else {
             /* Style a data node */
             var cb;
-            var checkState = false, clickState = false, singleTileState = false, timeSeries = false;
-            if (nd.state) {
-                checkState = nd.state.checked === true;
-                clickState = nd.state.clickable === true;
-                singleTileState = nd.state.singletile === true;
-                timeSeries = nd.state.timeseries === true;
-            }           
-            if (nd.props.radio) {
-                cb = '<input class="layer-vis-selector" name="base-layers-rb" id="base-layer-rb-' + nd.nodeid + '" type="radio" ' + (checkState ? "checked" : "") + '/>';
+            var isWms = nd.source.wms_source;
+            var isSingleTile = isWms ? nd.source.wms_source.is_singletile : false;
+            var isBase = isWms ? nd.source.wms_source.is_base : false;
+            var isInteractive = nd.is_interactive;
+            if (isBase) {
+                cb = '<input class="layer-vis-selector" name="base-layers-rb" id="base-layer-rb-' + nd.id + '" type="radio" ' + (nd.is_visible ? "checked" : "") + '/>';
             } else {
-                cb = '<input class="layer-vis-selector" id="layer-cb-' + nd.nodeid + '" type="checkbox" ' + (checkState ? "checked" : "") + '/>';
+                cb = '<input class="layer-vis-selector" id="layer-cb-' + nd.id + '" type="checkbox" ' + (nd.is_visible ? "checked" : "") + '/>';
             }
-            var name = nd.text, /* Save name as we may insert ellipsis into name text for presentation purposes */
-                ellipsisName = magic.modules.Common.ellipsis(nd.text, 25),
-                infoTitle = "Get layer legend/metadata",
-                nameSpan = ellipsisName;
+            var name = nd.name, /* Save name as we may insert ellipsis into name text for presentation purposes */
+                    ellipsisName = magic.modules.Common.ellipsis(nd.text, 30),
+                    infoTitle = "Get layer legend/metadata",
+                    nameSpan = ellipsisName;
             if (name != ellipsisName) {
                 /* Tooltip to give the full version of any shortened name */
                 nameSpan = '<span data-toggle="tooltip" data-placement="top" title="' + name + '">' + ellipsisName + '</span>';
             }
             element.append(
-                '<li class="list-group-item layer-list-group-item" id="layer-item-' + nd.nodeid + '">' +                    
+                    '<li class="list-group-item layer-list-group-item" id="layer-item-' + nd.id + '">' +
                     '<span style="float:left">' +
-                        '<span style="display:inline-block;width:' + indent + 'px"></span>' +
-                        '<span id="layer-info-' + nd.nodeid + '" ' + 
-                            'class="fa fa-info-circle' + (clickState ? ' clickable' : ' non-clickable') + '" ' + 
-                            'data-toggle="tooltip" data-placement="right" data-html="true" ' + 
-                            'title="' + (clickState ? infoTitle + "<br />Click on map features for info" : infoTitle) + '" ' + 
-                            'style="cursor:pointer">' + 
-                        '</span>' + 
-                        cb + 
-                        '<span id="layer-filter-badge-' + nd.nodeid + '" class="badge filter-badge hidden" data-toggle="tooltip" data-placement="right" title="">filter</span>' + 
-                        nameSpan + 
-                    '</span>' + 
-                    '<span style="float:right">' + 
-                        '<a class="layer-tool" id="layer-opts-' + nd.nodeid + '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' + 
-                            '<span class="fa fa-bars"></span><b class="caret"></b>' + 
-                        '</a>' + 
-                        '<ul id="layer-opts-dm-' + nd.nodeid + '" aria-labelled-by="layer-opts-' + nd.nodeid + '" class="dropdown-menu dropdown-menu-right">' +                             
-                        '</ul>' + 
+                    '<span style="display:inline-block;width:' + indent + 'px"></span>' +
+                    '<span id="layer-info-' + nd.id + '" ' +
+                    'class="fa fa-info-circle' + (isInteractive ? ' clickable' : ' non-clickable') + '" ' +
+                    'data-toggle="tooltip" data-placement="right" data-html="true" ' +
+                    'title="' + (isInteractive ? infoTitle + "<br />Click on map features for info" : infoTitle) + '" ' +
+                    'style="cursor:pointer">' +
                     '</span>' +
-                '</li>'
-            );
-            /* Layer filtering */            
-            if (nd.props) {
-                /* Create a data layer */
-                var layer = null;
-                if (nd.state["staticservice"]) {
-                    /* Static image layer */
-                    layer = new ol.layer.Image({
-                        name: name,
-                        visible: false,
-                        source: new ol.source.ImageStatic({
-                            url: magic.config.paths.baseurl + "/proxy/static?service=" + nd.state["staticservice"],
-                            projection: magic.runtime.projection,
-                            imageExtent: nd.props.bboxsrs
-                        }),
-                        metadata: $.extend({}, nd.props, {
-                            nodeid: nd.nodeid,
-                            staticservice: nd.state["staticservice"],
-                            times: nd.state["times"],
-                            wmsfeed: "none",
-                            bboxwgs84: nd.props.bbox,
-                            metadataurl: null,
-                            srs: magic.runtime.projection.getCode(),
-                            checkstate: false,
-                            timeseries: true,
-                            filterable: false,
-                            filter: null,
-                            attrs: null
-                        })
-                    });
-                } else if (!$.isNumeric(nd.nodeid) && magic.runtime.repository) {
-                    /* Vector GPX or KML layer */
-                    var format = null;
-                    if (nd.props.type == "geo_kml") {
-                        format = new ol.format.KML();
-                    } else if (nd.props.type == "geo_gpx") {
-                        format = new ol.format.GPX();
-                    }
-                    var url = magic.runtime.repository.replace("/show/", "/get/") + "?entryid=" + nd.nodeid;
-                    var source = new ol.source.Vector({
-                        format: format,
-                        url: magic.config.paths.baseurl + "/proxy/repo?url=" + encodeURIComponent(url)
-                    });
-                    var layerNo = magic.runtime.userlayers.length;
-                    layer = new ol.layer.Vector({
-                        name: name,
-                        source: source,
-                        updateWhileAnimating: true,
-                        updateWhileInteracting: true,
-                        visible: false,
-                        style: $.proxy(function(feat) {
-                            var geomType = feat.getGeometry().getType();    
-                            var paletteEntry = this.layerNo % magic.modules.Common.color_palette.length;
-                            var label = null;
-                            $.each(feat.getProperties(), function(key, value) {
-                                if (magic.modules.Common.isNameLike(key)) {
-                                    label = value;
-                                    return(false);
-                                }
-                            });
-                            return(magic.modules.Common.fetchStyle(geomType, paletteEntry, label));       
-                        }, {layerNo: layerNo}),
-                        metadata: $.extend({}, nd.props, {
-                            nodeid: nd.nodeid,
-                            "abstract": this.getUserLayerAbstract(nd.props),
-                            wmsfeed: this.getUserLayerDownloadUrl(nd.props),
-                            bboxwgs84: nd.props.bbox,
-                            metadataurl: this.getUserLayerMetadataUrl(nd.props),
-                            srs: "EPSG:4326",
-                            checkstate: false,
-                            clickable: true,
-                            timeseries: false,
-                            filterable: false,
-                            filter: null,
-                            attrs: null
-                        })
-                    });
-                    magic.runtime.userlayers.push(layer);
-                } else if (singleTileState) {
+                    cb +
+                    '<span id="layer-filter-badge-' + nd.id + '" class="badge filter-badge hidden" data-toggle="tooltip" data-placement="right" title="">filter</span>' +
+                    nameSpan +
+                    '</span>' +
+                    '<span style="float:right">' +
+                    '<a class="layer-tool" id="layer-opts-' + nd.id + '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
+                    '<span class="fa fa-bars"></span><b class="caret"></b>' +
+                    '</a>' +
+                    '<ul id="layer-opts-dm-' + nd.id + '" aria-labelled-by="layer-opts-' + nd.id + '" class="dropdown-menu dropdown-menu-right">' +
+                    '</ul>' +
+                    '</span>' +
+                    '</li>'
+                    );
+            /* Create a data layer */
+            var layer = null;
+            var proj = magic.runtime.map.getView().getProjection();
+            if (isWms) {
+                if (isSingleTile) {
                     /* Render point layers with a single tile for labelling free of tile boundary effects */
                     var wmsSource = new ol.source.ImageWMS(({
-                        /* TODO: revisit for WebGL - may need crossOrigin = true here */
-                        url: this.sourcedata.wms,
-                        params: {"LAYERS": nd.props.name},
-                        projection: magic.runtime.projection
+                        url: nd.source.wms_source,
+                        params: {"LAYERS": nd.source.feature_name},
+                        projection: proj
                     }));
                     layer = new ol.layer.Image({
                         name: name,
-                        visible: checkState,
-                        opacity: 1.0,
-                        metadata: $.extend({}, nd.props, {
-                            nodeid: nd.nodeid, 
-                            srs: wmsSource.getProjection().getCode(),
-                            checkstate: checkState,
-                            clickable: clickState,
-                            timeseries: timeSeries,
-                            filterable: clickState,
-                            filter: null,
-                            attrs: null
-                        }),
-                        source: wmsSource 
-                    });      
+                        visible: nd.is_visible,
+                        opacity: nd.opacity || 1.0,
+                        metadata: nd,
+                        source: wmsSource
+                    });
                 } else {
                     /* Non-point layer, or layer not keyworded with point tag */
-                    var wmsVersion = (nd.props.cascaded && nd.props.cascaded > 0) ? "1.1.1" : "1.3.0";
-                    var opacity = 0.8;
-                    if (nd.props.radio || ($.isArray(nd.props.keywords) && $.inArray("raster", nd.props.keywords) != -1)) {
-                        /* Rasters will be opaque */
-                        opacity = 1.0
-                    }                    
+                    var wmsVersion = "1.3.0";
                     var wmsSource = new ol.source.TileWMS({
-                        url: this.sourcedata.wms,
+                        url: nd.source.wms_source,
                         params: {
-                            "LAYERS": nd.props.name, 
-                            "CRS": magic.runtime.projection.getCode(),
-                            "SRS": magic.runtime.projection.getCode(),
+                            "LAYERS": nd.source.feature_name,
+                            "CRS": proj.getCode(),
+                            "SRS": proj.getCode(),
                             "VERSION": wmsVersion,
-                            "TILED": true, 
-                            "WORKSPACE": this.sourcedata.workspace
+                            "TILED": true
                         },
                         tileGrid: new ol.tilegrid.TileGrid({
-                            resolutions: magic.runtime.resolutions,
-                            origin: magic.runtime.projection.getExtent().slice(0, 2)
+                            resolutions: magic.runtime.viewdata.resolutions,
+                            origin: proj.getExtent().slice(0, 2)
                         }),
-                        projection: magic.runtime.projection
-                    });                     
+                        projection: proj
+                    });
                     layer = new ol.layer.Tile({
                         name: name,
-                        visible: checkState,
-                        opacity: opacity,
-                        metadata: $.extend({}, nd.props, {
-                            nodeid: nd.nodeid,
-                            srs: wmsSource.getProjection().getCode(),
-                            checkstate: checkState,
-                            clickable: clickState,
-                            timeseries: timeSeries,
-                            filterable: clickState,
-                            filter: null,
-                            attrs: null
-                        }),
+                        visible: nd.is_visible,
+                        opacity: nd.opacity || 1.0,
+                        metadata: nd,
                         source: wmsSource
-                    });        
-                }            
-                if (nd.props.radio) {
-                    /* Base layer */
-                    this.baseLayers.push(layer);
-                } else {
-                    /* Overlay layer */
-                    this.overlayLayers.push(layer);
+                    });
                 }
-                nd.layer = layer;
-                this.nodeLayerTranslation[nd.nodeid] = layer;
+                this.layersBySource[isBase ? "base" : "wms"].push(layer);
+            } else if (nd.source.geojson_source) {
+                /* GeosJSON layer */
+                this.layersBySource["geojson"].push(layer);
+            } else if (nd.source.gpx_source) {
+                /* GPX layer */
+                layer = new ol.layer.Image({
+                    source: new ol.source.ImageVector({
+                        source: new ol.source.Vector({
+                            format: new ol.format.GPX({readExtensions: false}),
+                            url: nd.source.gpx_source
+                        }),
+                        style: this.getVectorStyle(nd.source.style_definition) 
+                    })
+                });
+                this.layersBySource["gpx"].push(layer);
+            } else if (nd.source.kml_source) {
+                /* KML source */
+                this.layersBySource["kml"].push(layer);
             }
+            nd.layer = layer;
+            this.nodeLayerTranslation[nd.id] = layer;
         }
-    }, this));    
+    }, this));
 };
 
-/**
- * Translate an element id to a node id
- * @returns {string}
- */
-magic.classes.LayerTree.prototype.getNodeId = function(eltId) {
-    var nodeid = null;
-    if (eltId.length > 36) {
-        /* A Ramadda-style node id - fixed length of 36 characters */
-        nodeid = eltId.substr(eltId.length - 36);
-    } else {
-        /* Node id is number after last '-' */
-        nodeid = eltId.substring(eltId.lastIndexOf("-")+1);
-    }
-    return(nodeid);
-};
-
-/**
- * Construct an abstract for a user layer
- * @returns {string}
- */
-magic.classes.LayerTree.prototype.getUserLayerAbstract = function(props) {
-    var theAbstract = "";
-    if (props) {
-        var lines = [];
-        var triggers = ["description", "filename", "filesize", "typeName", "createDate", "creator"];
-        var labels = ["", "Uploaded file: ", "File size: ", "File type: ", "Created on: ", "Creator: "];
-        $.each(triggers, function(idx, t) {
-            if (props[t]) {
-                var value = t == "filesize" ? magic.modules.Common.fileSize(props[t]) : props[t];
-                lines.push(labels[idx] + value);
-            }
-        });
-        theAbstract = lines.join("<br />");
-    }
-    return(theAbstract);
-};
-
-/**
- * Construct a metadata URL for a user layer
- * @returns {Object}
- */
-magic.classes.LayerTree.prototype.getUserLayerMetadataUrl = function(props) {
-    var mdUrl = {};
-    if (props && $.isArray(props.services) && props.services.length > 0) {
-        mdUrl = {url: props.services[0].url};
-    }
-    return(mdUrl);
-};
-
-/**
- * Construct a download URL for the underlying file of a user layer
- * @returns {string}
- */
-magic.classes.LayerTree.prototype.getUserLayerDownloadUrl = function(props) {
-    var dldUrl = "";
-    if (props && $.isArray(props.services) && props.services.length > 0) {
-        var getUrl = props.services[0].url;
-        if (getUrl) {
-            dldUrl = getUrl.replace("/entry/show", "/entry/get");
-            var ampPos = dldUrl.indexOf("&");
-            if (ampPos != -1) {
-                dldUrl = dldUrl.substring(0, ampPos);
-            }
+magic.classes.LayerTree.prototype.getVectorStyle = function(styleDef) {
+    var defaultStyle =  new ol.style.Style({
+        fill: new ol.style.Fill({
+            color: "rgba(255, 0, 0, 0.6)"
+        }),
+        stroke: new ol.style.Stroke({
+            color: "rgba(255, 0, 0, 1.0)",
+            width: 1
+        })
+    });
+    if (styleDef) {
+        if (styleDef.fill) {
+            // TODO
+        }
+        if (styleDef.stroke) {
+            
         }
     }
-    return(dldUrl);
 };

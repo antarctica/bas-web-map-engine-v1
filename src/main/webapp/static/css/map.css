@@ -121,9 +121,9 @@ img.applogo {
     .side-nav {
         position: fixed;
         top: 51px;
-        left: 310px;
-        width: 310px;
-        margin-left: -310px;
+        left: 350px;
+        width: 350px;
+        margin-left: -350px;
         border: none;
         border-radius: 0;
         overflow-y: auto;
@@ -162,7 +162,7 @@ img.applogo {
 
 #map-container {
     position: absolute;
-    left: 300px;
+    left: 350px;
     top: 50px;
     width: 100%;
     background-color: #ffffff;
@@ -208,30 +208,6 @@ div.layer-group-panel {
     border-radius: 0px;
     margin-bottom: 0px;
     border-bottom: 0px;
-}
-
-div.layer-group-heading-0 {    
-    background-color: #dddddd !important;
-    border-color: #c0c0c0 !important;
-    border: 1px solid #c0c0c0 !important;
-}
-
-div.layer-group-heading-1 {    
-    background-color: #eeeeee !important;
-    border-color: #c0c0c0 !important;
-    border: 1px solid #c0c0c0 !important;
-}
-
-div.layer-group-heading-2 {    
-    background-color: #f8f8f8 !important;
-    border-color: #c0c0c0 !important;
-    border: 1px solid #c0c0c0 !important;
-}
-
-div.layer-group-heading-3 {    
-    background-color: #ffffff !important;
-    border-color: #c0c0c0 !important;
-    border: 1px solid #c0c0c0 !important;
 }
 
 span.layer-group-panel-title {

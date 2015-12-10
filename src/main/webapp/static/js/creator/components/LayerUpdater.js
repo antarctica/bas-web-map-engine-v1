@@ -246,7 +246,7 @@ magic.classes.creator.LayerUpdater.prototype.populateWmsFeatureSelector = functi
     select.find("option").remove();   
     var fopts = magic.runtime.creator.catalogues[wmsUrl];
     if (fopts) {
-        magic.modules.creator.Common.populateSelect(select, fopts, "value", "name", defval);
+        magic.modules.Common.populateSelect(select, fopts, "value", "name", defval);
         select.off("change").on("change", $.proxy(function(evt) {
             this.attribute_map.ogcUpdate(wmsUrl, $(evt.currentTarget).val(), this.data["attribute_map"]);
         }, this));
@@ -266,7 +266,7 @@ magic.classes.creator.LayerUpdater.prototype.populateWmsSourceSelector = functio
     if (proj) {
         var eps = magic.modules.creator.Data.WMS_ENDPOINTS[proj].slice(0);
         eps.unshift(magic.modules.creator.Data.DEFAULT_GEOSERVER_WMS);
-        magic.modules.creator.Common.populateSelect(select, eps, "value", "name", defval);
+        magic.modules.Common.populateSelect(select, eps, "value", "name", defval);
     } else {
         bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">No projection defined for map</div>');
     }   

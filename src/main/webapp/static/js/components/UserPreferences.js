@@ -6,10 +6,7 @@ magic.classes.UserPreferences = function(options) {
     
     /* id of menu link that activates profile change form */
     this.target = options.target || "unit-prefs";
-    
-    /* User name */
-    this.username = options.username;
-    
+      
     /* Preference set */
     this.preferences = options.preferences || {
         distance: "km",
@@ -123,16 +120,12 @@ magic.classes.UserPreferences = function(options) {
                 $.each(["distance", "area", "elevation", "coordinates", "dates"], $.proxy(function(idx, elt) {
                     formdata[elt] = $("#" + this.target + "-" + elt).val();
                 }, this));
-                var csrfHeaderVal = $("meta[name='_csrf']").attr("content");
                 $.ajax({
                     url: magic.config.paths.baseurl + "/prefs", 
                     data: JSON.stringify(formdata), 
                     method: "POST",
                     dataType: "json",
-                    contentType: "application/json",
-                    headers: {
-                        "X-CSRF-TOKEN": csrfHeaderVal
-                    },
+                    contentType: "application/json",                    
                     success: $.proxy(function(data) {
                         magic.modules.Common.buttonClickFeedback(this.target, data.status < 400, data.detail);                        
                     }, this)

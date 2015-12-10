@@ -9,7 +9,8 @@ magic.classes.creator.LayerGroupUpdater = function(prefix) {
     this.form_fields = [
         {"field": "id", "default": ""},
         {"field": "name", "default": ""},
-        {"field": "expanded", "default": false}
+        {"field": "expanded", "default": false},
+        {"field": "base", "default": false}
     ];   
     
     /* Context object */

@@ -19,8 +19,8 @@
         <!--[if lt IE 9]>
             <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
             <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
-        <![endif]-->
-        <script src="/static/buildjs/alljs.js"></script>        
+        <![endif]-->       
+        <script src="/static/buildjs/alljs.js"></script>
         <script th:inline="javascript">
             /*<![CDATA[*/
             magic.runtime.mapname = [[${map}]];          
@@ -34,9 +34,11 @@
                     url: magic.config.paths.baseurl + "/maps/name/" + magic.runtime.mapname,
                     method: "GET",
                     dataType: "json"
-                }), prefsRequest = payloadRequest.then(function(payload) {                                        
+                }), 
+                prefsRequest = payloadRequest.then(function(payload) {                                        
                     magic.runtime.map_context = $.extend({}, payload);
                     magic.runtime.map_context.data = JSON.parse(payload.data.value);
+                    console.log(magic.runtime.map_context);
                     return($.ajax({
                         url: magic.config.paths.baseurl + "/prefs",
                         method: "GET",
@@ -93,6 +95,7 @@
         <script src="/static/js/bootstrap.min.js"></script>
         <script src="/static/js/typeahead.bundle.min.js"></script>
         <script src="/static/js/nouislider.min.js"></script>
+        <script src="/static/js/bootbox.min.js"></script>
         <script src="/static/js/prettify.js"></script>
         <script src="/static/js/components/init.js"></script>
         <script src="/static/js/modules/Common.js"></script>
@@ -117,7 +120,7 @@
         <script src="/static/js/components/LayerTreeOptionsMenu.js"></script>
         <script src="/static/js/components/LayerFilter.js"></script>
         <script src="/static/js/components/UserPreferences.js"></script>
-        <script src="/static/js/components/SavedMapViews.js"></script>
+        <script src="/static/js/components/MapSwitcher.js"></script>
         <script src="/static/js/components/bas/AircraftPositionButton.js"></script>
         <script src="/static/js/components/bas/ShipPositionButton.js"></script>
         <script src="/static/js/components/bas/StaticTimeSeriesPlayer.js"></script>
@@ -134,7 +137,8 @@
                     url: magic.config.paths.baseurl + "/maps/name/" + magic.runtime.mapname,
                     method: "GET",
                     dataType: "json"
-                }), prefsRequest = payloadRequest.then(function(payload) {
+                }), 
+                prefsRequest = payloadRequest.then(function(payload) {                                        
                     magic.runtime.map_context = $.extend({}, payload);
                     magic.runtime.map_context.data = JSON.parse(payload.data.value);
                     return($.ajax({
@@ -144,8 +148,8 @@
                     }));
                 });
                 
-                prefsRequest.done(function(prefs) {
-                    magic.runtime.user_prefs = prefs;
+                prefsRequest.done(function(prefs) {                    
+                    magic.runtime.preferences = prefs;
                 });
                 prefsRequest.fail(function(xhr, status) {
                     bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to get payload and preferences for map ' + magic.runtime.mapname + '</div>');

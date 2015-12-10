@@ -38,8 +38,9 @@ magic.modules.creator.Data = function () {
                 "layers": [
                     {
                         "id": null,
-                        "name": "Base layers",
+                        "name": "Base layers",                        
                         "expanded": true,
+                        "base": true,
                         "layers": [
                             {
                                 "id": null,
@@ -114,6 +115,7 @@ magic.modules.creator.Data = function () {
                         "id": null,
                         "name": "Base layers",
                         "expanded": true,
+                        "base": true,
                         "layers": [
                             {
                                 "id": null,
@@ -180,6 +182,7 @@ magic.modules.creator.Data = function () {
                         "id": null,
                         "name": "Base layers",
                         "expanded": true,
+                        "base": true,
                         "layers": [
                             {
                                 "id": null,
@@ -207,6 +210,38 @@ magic.modules.creator.Data = function () {
                                     "feature_name": "sggis:sg_coastline"
                                 },   
                                 "is_visible": true
+                            }
+                        ]
+                    }
+                ]
+            },
+            "midlatitudes": {
+                "projection": "EPSG:4326",
+                "proj_extent": [-180.0, -90.0, 180.0, 90.0],
+                "center": [0, 0],
+                "zoom": 0,
+                "rotation": 0,
+                "min_zoom": 1,
+                "max_zoom": 10,
+                "resolutions": [],
+                "controls": ["zoom_world", "zoom_in", "zoom_out", "box_zoom"],
+                "gazetteers": [],                
+                "layers": [
+                    {
+                        "id": null,
+                        "name": "Base layers",
+                        "expanded": true,
+                        "base": true,
+                        "layers": [
+                            {
+                                "id": null,
+                                "name": "OpenStreetMap",
+                                "source": {
+                                    "wms_source": "osm",
+                                    "feature_name": "osm",
+                                    "is_base": true
+                                },                                   
+                                "is_visible": true                                
                             }
                         ]
                     }
