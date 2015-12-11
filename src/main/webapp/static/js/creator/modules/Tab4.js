@@ -87,6 +87,9 @@ magic.modules.creator.Tab4 = function () {
                     view: view
                 });
             }
+        },
+        validate: function() {
+            return(true);
         }
 
     });

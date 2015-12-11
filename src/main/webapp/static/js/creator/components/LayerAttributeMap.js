@@ -144,7 +144,7 @@ magic.classes.creator.LayerAttributeMap.prototype.saveContext = function(context
     if ($.isArray(this.attribute_dictionary[context.id])) {
         var newMap = [];
         var nAttrs = this.attribute_dictionary[context.id].length;
-        var fields = ["name", "type", "nillable", "filter", "alias", "displayed", "filterable", "unique_values"];
+        var fields = ["name", "type", "nillable", "filter", "alias", "label", "displayed", "filterable", "unique_values"];
         for (var i = 0; i < nAttrs; i++) {
             var attrData = this.attribute_dictionary[context.id][i];
             if (attrData.type.indexOf("gml:") != 0) {
@@ -192,6 +192,7 @@ magic.classes.creator.LayerAttributeMap.prototype.toForm = function(id, attrMap,
         html += '<th>Name</th>';
         html += '<th>Type</th>';
         html += '<th>Alias</th>';
+        html += '<th>Label</th>';
         html += '<th>Visible</th>';
         html += '<th>Filter</th>';
         html += '<th>Values</th>';
@@ -204,9 +205,10 @@ magic.classes.creator.LayerAttributeMap.prototype.toForm = function(id, attrMap,
             if (entry.type.indexOf("gml:") != 0) {
                 /* This is not the geometry field */
                 var exo = existingMap[entry.name];
-                var alias = "", display = false, filter = false, unique = false;
+                var alias = "", label = false, display = false, filter = false, unique = false;
                 if (exo) {
                     alias = exo.alias;
+                    label = exo.label;
                     display = exo.displayed === true ? true : false;
                     filter = exo.filterable === true ? true : false;
                     unique = exo.unique_values === true ? true : false;
@@ -216,6 +218,8 @@ magic.classes.creator.LayerAttributeMap.prototype.toForm = function(id, attrMap,
                 html += '<td>' + entry.type.replace("xsd:", "") + '</td>';
                 html += '<td><input type="text" id="_amap_alias_' + idx + '" value="' + alias + '" style="width:90px !important" ' + 
                         'data-toggle="tooltip" data-placement="top" title="Human-friendly name to display in pop-ups"></input></td>';
+                html += '<td><input type="checkbox" id="_amap_label_' + idx + '" value="label"' + (label ? ' checked' : '') + ' ' +
+                        'data-toggle="tooltip" data-placement="top" title="Display attribute value as a feature label on map"></input></td>';
                 html += '<td><input type="checkbox" id="_amap_displayed_' + idx + '" value="display"' + (display ? ' checked' : '') + ' ' +
                         'data-toggle="tooltip" data-placement="top" title="Display attribute value in pop-ups"></input></td>';
                 html += '<td><input type="checkbox" id="_amap_filterable_' + idx + '" value="filter"' + (filter ? ' checked' : '') + ' ' +

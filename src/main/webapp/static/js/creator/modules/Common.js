@@ -30,19 +30,29 @@ magic.modules.creator.Common = function () {
                 }, this),
                 onNext: $.proxy(function (tab, navigation, index) {
                     var total = navigation.find("li").length;
-                    if ($.isFunction(this.tabs[index-1].saveContext)) {
-                        this.tabs[index-1].saveContext(this.map_context.getContext());
-                    }
-                    if (index >= total-1) {                        
-                        $("ul.pager li.finish").removeClass("hidden");
+                    if (this.tabs[index-1].validate()) {
+                        if ($.isFunction(this.tabs[index-1].saveContext)) {
+                            this.tabs[index-1].saveContext(this.map_context.getContext());
+                        }
+                        if (index >= total-1) {                        
+                            $("ul.pager li.finish").removeClass("hidden");
+                        } else {
+                            $("ul.pager li.finish").addClass("hidden");
+                        }
+                        return(true);
                     } else {
-                        $("ul.pager li.finish").addClass("hidden");
+                        return(false);
                     }
                 }, this),
                 onBack: $.proxy(function (tab, navigation, index) {
-                    if ($.isFunction(this.tabs[index+1].saveContext)) {
-                        this.tabs[index+1].saveContext(this.map_context.getContext());
-                    }                   
+                    if (this.tabs[index-1].validate()) {
+                        if ($.isFunction(this.tabs[index+1].saveContext)) {
+                            this.tabs[index+1].saveContext(this.map_context.getContext());
+                        }  
+                        return(true);
+                    } else {
+                        return(false);
+                    }
                 }, this),
                 onTabClick: function(tab, navigation, index) {
                     /* Clicking on a random tab is not allowed */

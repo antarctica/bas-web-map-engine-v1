@@ -26,37 +26,37 @@ magic.classes.ControlButtonRibbon = function(config) {
     
     $.each(this.buttons, $.proxy(function(bidx, bname) {                
         switch(bname) {
-            case "zoom-to-max-extent":
+            case "zoom_world":
                 /* Zoom world */
-                this.createControlButton("zoom-to-max-extent", "glyphicon glyphicon-globe", bidx, "Maximum map extent")
+                this.createControlButton("zoom-world", "glyphicon glyphicon-globe", bidx, "Maximum map extent")
                 .on("click", this.zoomToMaxExtent);                         
                 break;
                 
-            case "zoom-in":
+            case "zoom_in":
                 /* Zoom in */
                 this.createControlButton("zoom-in", "fa fa-search-plus", bidx, "Zoom map in")
                 .on("click", {delta: 1}, this.zoomByDelta);                        
                 break;
                 
-            case "zoom-out":
+            case "zoom_out":
                 /* Zoom out */
                 this.createControlButton("zoom-out", "fa fa-search-minus", bidx, "Zoom map out")
                     .on("click", {delta: -1}, this.zoomByDelta);                        
                 break;   
             
-            case "drag-zoom":
+            case "box_zoom":
                 /* Drag a box to zoom in */
-                this.appendControlButton(new magic.classes.DragZoomButton("drag-zoom", this).getButton());
+                this.appendControlButton(new magic.classes.DragZoomButton("box-zoom", this).getButton());
                 break;
                 
-            case "full-screen":
+            case "full_screen":
                 /* Full screen map view */
                 this.appendControlButton(new magic.classes.FullScreenButton("full-screen", this).getButton());                
                 break;
                 
-            case "reset-rotation":
+            case "rotation":
                 /* Reset the rotation of the map */                                
-                this.appendControlButton(new magic.classes.ResetRotationButton("reset-rotation", this).getButton()); 
+                this.appendControlButton(new magic.classes.ResetRotationButton("rotation", this).getButton()); 
                 break;
                 
             case "graticule":
@@ -64,7 +64,7 @@ magic.classes.ControlButtonRibbon = function(config) {
                 this.appendControlButton(new magic.classes.GraticuleButton("graticule", this).getButton()); 
                 break;                           
                 
-            case "feature-info":
+            case "feature_info":
                 /* Get feature info at point */
                 var fi = new magic.classes.FeatureInfoButton("feature-info");
                 this.appendControlButton(fi.getButton()); 
@@ -139,7 +139,7 @@ magic.classes.ControlButtonRibbon.prototype.createControlButton = function(name,
  * Zoom world extent
  */
 magic.classes.ControlButtonRibbon.prototype.zoomToMaxExtent = function() {
-    magic.runtime.map.getView().setZoom(magic.runtime.viewdata.resolutions[0]);
+    magic.runtime.map.getView().setResolution(magic.runtime.viewdata.resolutions[0]);
     magic.runtime.map.getView().setCenter(magic.runtime.viewdata.center);
 };
 

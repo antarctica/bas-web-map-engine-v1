@@ -48,6 +48,7 @@
                 
                 prefsRequest.done(function(prefs) {                    
                     magic.runtime.preferences = prefs;
+                    magic.runtime.appcontainer = new magic.classes.AppContainer();
                 });
                 prefsRequest.fail(function(xhr, status) {
                     bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to get payload and preferences for map ' + magic.runtime.mapname + '</div>');
@@ -97,11 +98,10 @@
         <script src="/static/js/nouislider.min.js"></script>
         <script src="/static/js/bootbox.min.js"></script>
         <script src="/static/js/prettify.js"></script>
-        <script src="/static/js/components/init.js"></script>
+        <script src="/static/js/init.js"></script>
         <script src="/static/js/modules/Common.js"></script>
         <script src="/static/js/modules/GeoUtils.js"></script>
         <script src="/static/js/components/AppContainer.js"></script>
-        <script src="/static/js/components/Validation.js"></script>
         <script src="/static/js/components/LayerTree.js"></script>
         <script src="/static/js/components/ControlButtonRibbon.js"></script>
         <script src="/static/js/components/DragZoomButton.js"></script>
@@ -150,6 +150,7 @@
                 
                 prefsRequest.done(function(prefs) {                    
                     magic.runtime.preferences = prefs;
+                    magic.runtime.appcontainer = new magic.classes.AppContainer();
                 });
                 prefsRequest.fail(function(xhr, status) {
                     bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to get payload and preferences for map ' + magic.runtime.mapname + '</div>');

@@ -75,6 +75,7 @@ magic.modules.Common = function () {
          * @returns {string}
          */
         rgbToDec: function(rgb, opacity) {
+            rgb = rgb || "#000000";
             opacity = opacity || 1.0;
             rgb = eval("0x" + rgb.replace(/#/, ""));
             var components = {

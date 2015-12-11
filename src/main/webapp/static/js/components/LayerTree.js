@@ -4,7 +4,7 @@ magic.classes.LayerTree = function (target) {
 
     this.target = target || "layer-tree";
 
-    this.treedata = magic.runtime.map_context.data.layers || [];
+    this.treedata = magic.runtime.mapdata.layers || [];
 
     /* Dictionary mapping from a node UUID to an OL layer */
     this.nodeLayerTranslation = {};
@@ -127,6 +127,20 @@ magic.classes.LayerTree.prototype.getTarget = function () {
     return(this.target);
 };
 
+magic.classes.LayerTree.prototype.getLayers = function () {
+    return(
+        this.layersBySource["base"].concat(
+            this.layersBySource["wms"],
+            this.layersBySource["geojson"],            
+            this.layersBySource["gpx"],
+            this.layersBySource["kml"]                                        
+    ));        
+};
+
+magic.classes.LayerTree.prototype.getNodeId = function (targetId) {
+    return(targetId.substring(targetId.length-36));
+};
+
 magic.classes.LayerTree.prototype.getCollapsed = function () {
     return(this.collapsed);
 };
@@ -156,17 +170,18 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
         if ($.isArray(nd.layers)) {
             /* Style a group */
             var title = (nd.expanded ? "Collapse" : "Expand") + " this group";
-            var hbg = depth == 0 ? "bg-primary" : (depth == 1 ? "bg-info" : "");
+            var hbg = depth == 0 ? "panel-primary" : (depth == 1 ? "panel-info" : "");
+            var topMargin = i == 0 ? "margin-top:5px" : "";
             element.append(
                     ((element.length > 0 && element[0].tagName.toLowerCase() == "ul") ? '<li class="list-group-item layer-list-group-group" id="layer-item-' + nd.id + '">' : "") +
-                    '<div class="panel panel-default">' +
-                    '<div class="panel-heading ' + hbg + '" id="layer-group-heading-' + nd.id + '">' +
+                    '<div class="panel ' + hbg + ' center-block" style="width:96%;margin-bottom:5px;' + topMargin + '">' +
+                    '<div class="panel-heading" id="layer-group-heading-' + nd.id + '">' +
                     '<span style="display:inline-block;width:' + indent + 'px"></span>' +
                     '<span class="icon-layers"></span>' +
                     (nd.base ? '<span style="margin:5px"></span>' : '<input class="layer-vis-group-selector" id="group-cb-' + nd.id + '" type="checkbox" />') +
                     '<span class="panel-title layer-group-panel-title" data-toggle="tooltip" data-placement="right" title="' + title + '">' +
                     '<a class="layer-group-tool" role="button" data-toggle="collapse" href="#layer-group-panel-' + nd.id + '">' +
-                    '<span style="font-weight:bold">' + nd.text + '</span>' +
+                    '<span style="font-weight:bold">' + nd.name + '</span>' +
                     '</a>' +
                     '</span>' +
                     '</div>' +
@@ -179,7 +194,7 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                     '</div>' +
                     ((element.length > 0 && element[0].tagName.toLowerCase() == "ul") ? '</li>' : "")
                     );
-            this.initTree(nd.nodes, $("#layer-group-" + nd.id), depth + 1);
+            this.initTree(nd.layers, $("#layer-group-" + nd.id), depth + 1);
         } else {
             /* Style a data node */
             var cb;
@@ -193,7 +208,7 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                 cb = '<input class="layer-vis-selector" id="layer-cb-' + nd.id + '" type="checkbox" ' + (nd.is_visible ? "checked" : "") + '/>';
             }
             var name = nd.name, /* Save name as we may insert ellipsis into name text for presentation purposes */
-                    ellipsisName = magic.modules.Common.ellipsis(nd.text, 30),
+                    ellipsisName = magic.modules.Common.ellipsis(nd.name, 30),
                     infoTitle = "Get layer legend/metadata",
                     nameSpan = ellipsisName;
             if (name != ellipsisName) {
@@ -225,7 +240,7 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                     );
             /* Create a data layer */
             var layer = null;
-            var proj = magic.runtime.map.getView().getProjection();
+            var proj = magic.runtime.viewdata.projection;
             if (isWms) {
                 if (isSingleTile) {
                     /* Render point layers with a single tile for labelling free of tile boundary effects */
@@ -270,21 +285,67 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                 this.layersBySource[isBase ? "base" : "wms"].push(layer);
             } else if (nd.source.geojson_source) {
                 /* GeosJSON layer */
+                if (nd.source.geojson_source.feature_name) {
+                    /* WFS */
+                    layer = new ol.layer.Vector({
+                        name: nd.name,
+                        visible: nd.is_visible,
+                        source: new ol.source.ImageVector({
+                            source: new ol.source.Vector({
+                                format: new ol.format.WFS({                                   
+                                    // TODO
+                                }),
+                                url: nd.source.geojson_source
+                            }),
+                            style: this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map)) 
+                        }),
+                        metadata: nd
+                    });
+                } else {
+                    /* Some other GeoJSON feed */
+                    layer = new ol.layer.Image({
+                        name: nd.name,
+                        visible: nd.is_visible,
+                        metadata: nd,
+                        source: new ol.source.ImageVector({
+                            source: new ol.source.Vector({
+                                format: new ol.format.GeoJSON(),                                
+                                url: nd.source.geojson_source
+                            })
+                        }),
+                        style: this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map)) 
+                    });
+                }
                 this.layersBySource["geojson"].push(layer);
             } else if (nd.source.gpx_source) {
                 /* GPX layer */
                 layer = new ol.layer.Image({
+                    name: nd.name,
+                    visible: nd.is_visible,
+                    metadata: nd,    
                     source: new ol.source.ImageVector({
                         source: new ol.source.Vector({
-                            format: new ol.format.GPX({readExtensions: false}),
+                            format: new ol.format.GPX(),
                             url: nd.source.gpx_source
                         }),
-                        style: this.getVectorStyle(nd.source.style_definition) 
-                    })
+                        style: this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map))
+                    })                    
                 });
                 this.layersBySource["gpx"].push(layer);
             } else if (nd.source.kml_source) {
                 /* KML source */
+                layer = new ol.layer.Image({
+                    name: nd.name,
+                    visible: nd.is_visible,
+                    metadata: nd,
+                    source: new ol.source.ImageVector({
+                        source: new ol.source.Vector({
+                            format: new ol.format.KML(),
+                            url: nd.source.kml_source
+                        }),
+                        style: this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map))
+                    })
+                });
                 this.layersBySource["kml"].push(layer);
             }
             nd.layer = layer;
@@ -293,22 +354,131 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
     }, this));
 };
 
-magic.classes.LayerTree.prototype.getVectorStyle = function(styleDef) {
-    var defaultStyle =  new ol.style.Style({
-        fill: new ol.style.Fill({
-            color: "rgba(255, 0, 0, 0.6)"
-        }),
-        stroke: new ol.style.Stroke({
-            color: "rgba(255, 0, 0, 1.0)",
-            width: 1
-        })
-    });
-    if (styleDef) {
-        if (styleDef.fill) {
-            // TODO
-        }
-        if (styleDef.stroke) {
-            
-        }
+/**
+ * Figures out which (if any) field in the attribute map is designed to be the feature label
+ * @param {Array} attrMap
+ * @returns {undefined}
+ */
+magic.classes.LayerTree.prototype.getLabelField = function(attrMap) {
+    var labelField = null;
+    if ($.isArray(attrMap)) {
+        $.each(attrMap, function(idx, attr) {
+            if (attr.label === true) {
+                labelField = attr.name;
+                return(false);
+            }
+        });
     }
+    return(labelField);
+};
+
+/**
+ * Translate style definition object to OL style
+ * @param {object} styleDef
+ * @param {string} labelField
+ * @returns {ol.style}
+ */
+magic.classes.LayerTree.prototype.getVectorStyle = function(styleDef, labelField) {
+    return(function(feature, resolution) {
+        var style = null;
+        var defaultFill =  {color: "rgba(255, 0, 0, 0.6)"};
+        var defaultStroke = {color: "rgba(255, 0, 0, 1.0)", width: 1};   
+        var fill, stroke, graphic;
+        if (styleDef) {
+            if (styleDef.fill) {
+                fill = new ol.style.Fill({
+                    color: magic.modules.Common.rgbToDec(styleDef.fill.color, styleDef.fill.opacity)
+                });
+            } else {
+                fill = $.extend({}, defaultFill);
+            }
+            if (styleDef.stroke) {
+                var lineStyle = styleDef.stroke.style == "dashed" ? [3, 3] : (styleDef.stroke.style == "dotted" ? [1, 1] : undefined);
+                stroke = new ol.style.Stroke({
+                    color: magic.modules.Common.rgbToDec(styleDef.stroke.color, styleDef.stroke.opacity),
+                    lineDash: lineStyle,
+                    width: styleDef.stroke.width || 1
+                });
+            } else {
+                stroke = $.extend({}, defaultStroke);
+            }
+            if (styleDef.graphic) {
+                if (styleDef.graphic.marker == "circle") {
+                    graphic = new ol.style.Circle({
+                        radius: styleDef.graphic.radius || 5,
+                        fill: fill,
+                        stroke: stroke
+                    });
+                } else if (styleDef.graphic.marker == "star") {
+                    var r1 = styleDef.graphic.radius || 7;
+                    var r2 = (r1 < 7 ? 2 : r1-5);
+                    graphic = new ol.style.RegularShape({
+                        radius1: r1,
+                        radius2: r2,
+                        points: 5,
+                        fill: fill,
+                        stroke: stroke
+                    });
+                } else {
+                    var points;
+                    switch(styleDef.graphic,marker) {
+                        case "triangle": points = 3; break;
+                        case "pentagon": points = 5; break;
+                        case "hexagon": points = 6; break;
+                        default: points = 4; break;                                    
+                    }
+                    graphic = new ol.style.RegularShape({
+                        radius: styleDef.graphic.radius || 5,
+                        points: points,
+                        fill: fill,
+                        stroke: stroke
+                    });
+                }
+            } else {
+                graphic = new ol.style.Circle({
+                    radius: 5, 
+                    fill: fill,
+                    stroke: stroke
+                });
+            }
+            var text = null;
+            if (labelField) {
+                var textColor = stroke.getColor();
+                textColor[3] = 1.0; /* Opaque text */
+                text = new ol.style.Text({
+                    font: "Arial",
+                    scale: 1.2,
+                    offsetX: 10,
+                    text: feature.get(labelField),
+                    textAlign: "left",
+                    fill: new ol.style.Fill({
+                        color: textColor
+                    }),
+                    stroke: new ol.style.Stroke({
+                        color: "#ffffff",
+                        width: 1
+                    })
+                });
+                style = new ol.style.Style({
+                    image: graphic,                    
+                    text: text
+                });
+            } else {
+                style = new ol.style.Style({
+                    image: graphic
+                });
+            }
+        } else {
+            /* Default style */
+            style = new ol.style.Style({
+                image: new ol.style.Circle({
+                    radius: 5, 
+                    fill: $.extend({}, defaultFill),
+                    stroke: $.extend({}, defaultStroke)
+                })
+            });
+        }
+        console.log(style);
+        return([style]);
+    });
 };

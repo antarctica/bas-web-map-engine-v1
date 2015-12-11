@@ -20,6 +20,7 @@ magic.classes.AppContainer = function () {
     
     /* Set up layer tree */
     magic.runtime.userlayers = [];
+    magic.runtime.mapdata = magic.runtime.map_context.data;
     magic.runtime.repository = magic.runtime.map_context.repository;
     magic.runtime.layertree = new magic.classes.LayerTree("layer-tree");
     
@@ -58,10 +59,10 @@ magic.classes.AppContainer = function () {
     });
 
     /* List of interactive map tools, to ensure only one can listen to map clicks/pointer moves at any one time */
-    //magic.runtime.map_interaction_tools = [];
+    magic.runtime.map_interaction_tools = [];
 
     /* Control button ribbon */    
-    //magic.runtime.controls = new magic.classes.ControlButtonRibbon(magic.runtime.map_context.data.controls);
+    magic.runtime.controls = new magic.classes.ControlButtonRibbon(magic.runtime.mapdata.controls);
 
     /* Create a popup overlay and add handler to show it on clicking a feature */
     //magic.runtime.featureinfo = new magic.classes.FeaturePopup();
@@ -72,16 +73,16 @@ magic.classes.AppContainer = function () {
     /* Create WGS84 inset map with single OSM layer */
     //magic.runtime.inset = new magic.classes.InsetMap({wms: payload.sources.wms, ws: payload.sources.workspace});
 
-//    if ($.inArray("geosearch", payload.view.controls) != -1 && payload.sources.gazetteers) {
-//        /* Activate geosearch */
-//        magic.runtime.map_interaction_tools.push(new magic.classes.Geosearch({
-//            gazetteers: payload.sources.gazetteers.split(","),
-//            target: "geosearch-tool"
-//        }));
-//    } else {
-//        /* Hide the geosearch button */
-//        $("#geosearch-tool").closest("li").hide();
-//    }
+    if ($.inArray("geosearch", magic.runtime.mapdata.controls) != -1 && $.isArray(magic.runtime.mapdata.gazetteers) && magic.runtime.mapdata.gazetteers.length > 0) {
+        /* Activate geosearch */
+        magic.runtime.map_interaction_tools.push(new magic.classes.Geosearch({
+            gazetteers: magic.runtime.mapdata.gazetteers,
+            target: "geosearch-tool"
+        }));
+    } else {
+        /* Hide the geosearch button */
+        $("#geosearch-tool").closest("li").hide();
+    }
 //
 //    if ($.inArray("measurement", payload.view.controls) != -1) {
 //        /* Activate measuring tool */
@@ -136,34 +137,34 @@ magic.classes.AppContainer = function () {
     }, this);
 
     /* Allow drag and drop of user GPS and KML layers */    
-    dd.on("addfeatures", $.proxy(function(evt) {
-        var md = {}, layerName = "";
-        if (evt.file) {
-            /* Can get layer information from the dropped file */
-            md = $.extend({}, evt.file);
-            layerName = this.layerNameFromFileName(evt.file.name);
-        } else {
-            /* Some defaults */
-            var uname = !magic.runtime.username ? "guest" : magic.runtime.username;
-            layerName = uname + "_userlayer_" + (magic.runtime.userlayers.length+1);
-        }
-        var vectorSource = new ol.source.Vector({
-            features: evt.features
-        });
-        $.each(evt.features, $.proxy(function(idx, feat) {
-            feat.setStyle(this.constructStyle(feat))
-        }, this));        
-        var layer = new ol.layer.Image({
-            name: layerName,
-            metadata: md,
-            source: new ol.source.ImageVector({
-                source: vectorSource
-            })
-        });
-        magic.runtime.map.addLayer(layer);        
-        magic.runtime.map.getView().fit(vectorSource.getExtent(), magic.runtime.map.getSize());
-        magic.runtime.userlayers.push(layer);
-    }, this));
+//    dd.on("addfeatures", $.proxy(function(evt) {
+//        var md = {}, layerName = "";
+//        if (evt.file) {
+//            /* Can get layer information from the dropped file */
+//            md = $.extend({}, evt.file);
+//            layerName = this.layerNameFromFileName(evt.file.name);
+//        } else {
+//            /* Some defaults */
+//            var uname = !magic.runtime.username ? "guest" : magic.runtime.username;
+//            layerName = uname + "_userlayer_" + (magic.runtime.userlayers.length+1);
+//        }
+//        var vectorSource = new ol.source.Vector({
+//            features: evt.features
+//        });
+//        $.each(evt.features, $.proxy(function(idx, feat) {
+//            feat.setStyle(this.constructStyle(feat))
+//        }, this));        
+//        var layer = new ol.layer.Image({
+//            name: layerName,
+//            metadata: md,
+//            source: new ol.source.ImageVector({
+//                source: vectorSource
+//            })
+//        });
+//        magic.runtime.map.addLayer(layer);        
+//        magic.runtime.map.getView().fit(vectorSource.getExtent(), magic.runtime.map.getSize());
+//        magic.runtime.userlayers.push(layer);
+//    }, this));
 
     /* Display application metadata */
     this.initMapMetadata();
@@ -177,20 +178,20 @@ magic.classes.AppContainer = function () {
     }
 
     /* Listen for controls being activated */
-    $(document).on("mapinteractionactivated", function (evt, tool) {
-        if (evt) {
-            $.each(magic.runtime.map_interaction_tools, function (mti, mt) {
-                if (tool != mt) {
-                    if ($.isFunction(mt.deactivate)) {
-                        mt.deactivate();
-                    }
-                    if ($.isFunction(mt.getTarget)) {
-                        mt.getTarget().popover("hide");
-                    }
-                }
-            });
-        }
-    });
+//    $(document).on("mapinteractionactivated", function (evt, tool) {
+//        if (evt) {
+//            $.each(magic.runtime.map_interaction_tools, function (mti, mt) {
+//                if (tool != mt) {
+//                    if ($.isFunction(mt.deactivate)) {
+//                        mt.deactivate();
+//                    }
+//                    if ($.isFunction(mt.getTarget)) {
+//                        mt.getTarget().popover("hide");
+//                    }
+//                }
+//            });
+//        }
+//    });
 };
 
 /**

@@ -41,6 +41,30 @@ magic.modules.creator.Tab1 = function () {
                 magic.modules.creator.Common.map_context.load(action, mapid, $.proxy(magic.modules.creator.Common.loadContext, magic.modules.creator.Common));
             });
         },
+        validate: function() {
+            /* Make sure a map source selection has been made */
+            var checkRb = $("input[type='radio'][name='_t1-action-rb']:checked");
+            if (!checkRb) {
+                return(false);
+            }
+            if ($("#t1-" + checkRb.val()) == "") {
+                return(false);
+            }
+            /* Check form inputs */
+            var ok = $("#t1-form")[0].checkValidity();
+            /* Indicate invalid fields */
+            $.each($("#t1-form").find("input[required='required'],textarea[required='required']"), function(idx, ri) {
+                var riEl = $(ri);
+                var fg = riEl.closest("div.form-group");
+                var vState = riEl.prop("validity");
+                if (vState.valid) {
+                    fg.removeClass("has-error").addClass("has-success");
+                } else {
+                    fg.removeClass("has-success").addClass("has-error");
+                }
+            });
+            return(ok);
+        },
         /**
          * Populate tab form from data
          * @param {object} context

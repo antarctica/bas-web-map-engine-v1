@@ -459,6 +459,10 @@
 														"string", "double", "int", "boolean", "date", "time"
 													]													
 												},
+                                                "label": {
+													"description": "Display this attribute value as a map feature label",
+													"type": "boolean"
+												},	
                                                 "displayed": {
 													"description": "Whether attribute is displayed in a pop-up",
 													"type": "boolean"

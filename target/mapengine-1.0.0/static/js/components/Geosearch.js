@@ -16,7 +16,7 @@ magic.classes.Geosearch = function(options) {
     
     /* Get data about gazetteers, keyed by name */
     this.gazetteerData = {};
-    $.getJSON(magic.config.paths.baseurl + "/proxy/api?url=https://api.bas.ac.uk/locations/v1/gazetteer", $.proxy(function(payload) {
+    $.getJSON("https://api.bas.ac.uk/locations/v1/gazetteer", $.proxy(function(payload) {   //TODO - enable CORS on batgis server
         $.map(payload, $.proxy(function(gd) {
             this.gazetteerData[gd.gazetteer] = gd;
         }, this));
@@ -30,9 +30,7 @@ magic.classes.Geosearch = function(options) {
     this.layer = new ol.layer.Vector({
         name: "_" + this.id,
         visible: true,
-        source: new ol.source.Vector({
-            features: []
-        }),                    
+        source: new ol.source.Vector({features: []}),                    
         style: this.resultStyle
     });
     magic.runtime.map.addLayer(this.layer);
@@ -45,28 +43,7 @@ magic.classes.Geosearch = function(options) {
     
     /* Current place-name search object */
     this.currentPlacenameSearch = null;
-    
-    /* Validation rules for the lon/lat search */
-    this.validation = new magic.classes.Validation({
-        rules: [
-            {
-                field: this.id + "-lon",
-                type: "longitude",
-                allowBlank: false
-            },
-            {
-                field: this.id + "-lat",
-                type: "latitude",
-                allowBlank: false
-            },
-            {
-                field: this.id + "-label",
-                type: "required",
-                allowBlank: false
-            }
-        ]          
-    });
-            
+        
     this.template = 
         '<div class="popover geosearch-popover" role="popover">' + 
             '<div class="arrow"></div>' +
@@ -91,7 +68,8 @@ magic.classes.Geosearch = function(options) {
                     '<div id="' + this.id + '-placename" role="tabpanel" class="tab-pane active">' + 
                         '<div class="form-group form-group-sm col-sm-12">' + 
                             '<div class="input-group">' + 
-                                '<input id="' + this.id + '-ta" class="form-control typeahead border-lh-round" type="text" placeholder="Search for place-name" />' + 
+                                '<input id="' + this.id + '-ta" class="form-control typeahead border-lh-round" type="text" placeholder="Search for place-name" ' + 
+                                'required="required" autofocus="true"></input>' + 
                                 '<span class="input-group-btn">' +
                                     '<button id="' + this.id + '-placename-go" class="btn btn-default btn-sm" type="button" ' + 
                                         'data-toggle="tooltip" data-placement="right" title="Search gazetteer">' + 
@@ -105,16 +83,17 @@ magic.classes.Geosearch = function(options) {
                     '<div id="' + this.id + '-position" role="tabpanel" class="tab-pane">' + 
                         '<div class="form-group form-group-sm col-sm-12">' + 
                             '<input id="' + this.id + '-lon" class="form-control" type="text" placeholder="Longitude" ' + 
-                                'data-toggle="tooltip" data-placement="right" title="Examples: -65.5  65 30 00W (dms)  W65 30.00 (ddm)"/>' + 
+                                'data-toggle="tooltip" data-placement="right" title="Examples: -65.5, 65 30 00W (dms), W65 30.00 (ddm)" ' + 
+                                'required="required" autofocus="true"></input>' + 
                         '</div>' + 
                         '<div class="form-group form-group-sm col-sm-12">' +
                             '<input id="' + this.id + '-lat" class="form-control" type="text" placeholder="Latitude" ' + 
-                                'data-toggle="tooltip" data-placement="right" title="Examples: -60.25  60 15 00S (dms)  S60 15.00 (ddm)" />' + 
+                                'data-toggle="tooltip" data-placement="right" title="Examples: -60.25, 60 15 00S (dms), S60 15.00 (ddm)" required="required"></input>' + 
                         '</div>' + 
                         '<div class="form-group form-group-sm col-sm-12" style="margin-bottom:5px">' +
                             '<div class="input-group">' + 
                                 '<input id="' + this.id + '-label" class="form-control" type="text" placeholder="Label" ' + 
-                                    'data-toggle="tooltip" data-placement="right" title="Type a label for the point" />' + 
+                                    'data-toggle="tooltip" data-placement="right" title="Type a label for the point"></input>' + 
                                 '<span class="input-group-btn">' +
                                     '<button id="' + this.id + '-position-go" class="btn btn-default btn-sm" type="button" ' + 
                                         'data-toggle="tooltip" data-placement="right" title="Show position">' + 
@@ -169,17 +148,7 @@ magic.classes.Geosearch.prototype.activate = function() {
         
     magic.runtime.map.on("singleclick", this.featureAtPixelHandler, this);
     
-    this.layer.setVisible(true);
-
-    /* Set handlers for selecting between coordinate and place-name search */
-    $("a[href='#" + this.id + "-placename']").on("shown.bs.tab", $.proxy(function() {
-        $("#" + this.id + "-ta").focus();
-    }, this));
-    $("a[href='#" + this.id + "-position']").on("shown.bs.tab", $.proxy(function() {
-        $("#" + this.id + "-lon").focus();  
-        /* Assign all blur handlers for validation */
-        this.validation.init($("#" + this.id + "-position"));
-    }, this));       
+    this.layer.setVisible(true);   
 
     $("#" + this.id + "-ta").typeahead({minLength: 4, highlight: true}, this.getSources())
         .on("typeahead:autocompleted", $.proxy(this.selectHandler, this))
@@ -191,7 +160,7 @@ magic.classes.Geosearch.prototype.activate = function() {
                     var feat = this.searchSuggestions[name].feature;                        
                     if (!feat) {
                         /* Create the feature */
-                        var trCoord = ol.proj.transform([this.searchSuggestions[name].lon, this.searchSuggestions[name].lat], "EPSG:4326", magic.runtime.projection);
+                        var trCoord = ol.proj.transform([this.searchSuggestions[name].lon, this.searchSuggestions[name].lat], "EPSG:4326", magic.runtime.viewdata.projection);
                         feat = new ol.Feature({
                             geometry: new ol.geom.Point(trCoord),
                             suggestion: true
@@ -212,10 +181,7 @@ magic.classes.Geosearch.prototype.activate = function() {
 
     $("#" + this.id + "-placename-go").click($.proxy(this.placenameSearchHandler, this));
     $("#" + this.id + "-position-go").click($.proxy(this.positionSearchHandler, this));
-
-    /* Initial focus */
-    $("#" + this.id + "-ta").focus();
-
+   
     /* Attribution link */
     $("a.gaz-attribution").click($.proxy(function(evt) {
         var attribArea = $("#" + this.id + "-attribution-text");
@@ -249,7 +215,7 @@ magic.classes.Geosearch.prototype.getSources = function() {
     var sources = $.map(this.gazetteers, $.proxy(function(gaz) {
         return({
             source: function(query, syncResults, asyncResults) {
-                $.getJSON(magic.config.paths.baseurl + "/proxy/api?url=https://api.bas.ac.uk/locations/v1/gazetteer/" + gaz + "/" + query + "/brief", asyncResults);
+                $.getJSON("https://api.bas.ac.uk/locations/v1/gazetteer/" + gaz + "/" + query + "/brief", asyncResults);
             },
             name: gaz,
             display: $.proxy(function(value) {
@@ -328,7 +294,7 @@ magic.classes.Geosearch.prototype.placenameSearchHandler = function(evt) {
     var gazName = this.currentPlacenameSearch["__gaz_name"];        
     if (exIdx < 0) {
         /* Fetch data */
-        $.getJSON(magic.config.paths.baseurl + "/proxy/api?url=https://api.bas.ac.uk/locations/v1/placename/" + gazName + "/" + this.currentPlacenameSearch["id"], $.proxy(function(jsonData) {
+        $.getJSON("https://api.bas.ac.uk/locations/v1/placename/" + gazName + "/" + this.currentPlacenameSearch["id"], $.proxy(function(jsonData) {
             delete jsonData["suggestion"];
             var attrs = $.extend({
                 geometry: new ol.geom.Point([jsonData.x, jsonData.y]), 
@@ -340,7 +306,7 @@ magic.classes.Geosearch.prototype.placenameSearchHandler = function(evt) {
             feat.setStyle(this.resultStyle);
             this.layer.getSource().addFeature(feat);
             if ($("#" + this.id + "-tmt").prop("checked")) {
-                this.flyMeThere(feat);//                
+                this.flyMeThere(feat);            
             }
             this.placenameSearches.push(this.currentPlacenameSearch);
         }, this));
@@ -365,8 +331,8 @@ magic.classes.Geosearch.prototype.flyMeThere = function(feature) {
                 duration: duration,
                 source: magic.runtime.map.getView().getCenter()
             }),
-            zoom = magic.runtime.map ? magic.runtime.map.getView().getZoom() : magic.runtime.view.zoom,
-            bounceRes = zoom <= 3 ? magic.runtime.resolutions[0] : magic.runtime.resolutions[zoom-4],
+            zoom = magic.runtime.map ? magic.runtime.map.getView().getZoom() : magic.runtime.viewdata.zoom,
+            bounceRes = zoom <= 3 ? magic.runtime.viewdata.resolutions[0] : magic.runtime.viewdata.resolutions[zoom-4],
             bounce = ol.animation.bounce({
                 duration: duration,
                 resolution: bounceRes
@@ -383,24 +349,31 @@ magic.classes.Geosearch.prototype.flyMeThere = function(feature) {
 magic.classes.Geosearch.prototype.positionSearchHandler = function(evt) {
     
     this.searchInit();
-                  
-    if (this.validation.validateAll()) {
-        /* Co-ordinates checked out ok */
-        var lon = $("#" + this.id + "-lon").prop("value"),
-            lat = $("#" + this.id + "-lat").prop("value"),
-            label = $("#" + this.id + "-label").prop("value"),
-            position = new ol.geom.Point([lon, lat]);
-        position.transform("EPSG:4326", magic.runtime.projection);
+              
+    var lon = $("#" + this.id + "-lon"),
+        lat = $("#" + this.id + "-lat"),
+        label = $("#" + this.id + "-label"),
+        lonFg = lon.closest("div.form-group"),
+        latFg = lat.closest("div.form-group");
+    if (magic.modules.GeoUtils.validCoordinate(lon.val(), false, false) && magic.modules.GeoUtils.validCoordinate(lat.val(), true, false)) {
+        /* Co-ordinates check out */
+        var position = new ol.geom.Point([lon.val(), lat.val()]);
+        position.transform("EPSG:4326", magic.runtime.viewdata.projection);
         var feat = new ol.Feature({
             geometry: position, 
-            lon: lon, 
-            lat: lat, 
-            name: label,
+            lon: lon.val(), 
+            lat: lat.val(), 
+            name: label.val(),
             "__title": "Geosearch location"
         });
         this.layer.getSource().addFeature(feat);
         this.flyMeThere(feat);
-    }
+        lonFg.removeClass("has-error").addClass("has-success");
+        latFg.removeClass("has-error").addClass("has-success");
+    } else {
+        lonFg.removeClass("has-success").addClass("has-error");
+        latFg.removeClass("has-success").addClass("has-error");
+    }    
 };
 
 /**
@@ -469,5 +442,5 @@ magic.classes.Geosearch.prototype.featureAtPixelHandler = function(evt) {
     }, this, function(candidate) {
         return(candidate.getVisible() && candidate.get("name") == "_" + this.id);
     }, this);
-    magic.runtime.featureinfo.show(evt.coordinate, fprops);         
+    //magic.runtime.featureinfo.show(evt.coordinate, fprops);          TODO
 };

@@ -44,6 +44,9 @@ magic.modules.creator.Tab3 = function () {
             /* Security inputs */
             context.allowed_usage = $("select[name='t3-allowed_usage']").val();
             context.allowed_download = $("select[name='t3-allowed_download']").val();
+        },
+        validate: function() {
+            return(true);
         }
 
     });

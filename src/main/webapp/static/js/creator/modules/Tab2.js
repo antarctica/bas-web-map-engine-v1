@@ -77,6 +77,9 @@ magic.modules.creator.Tab2 = function () {
                 this.group_updater.saveContext();
             }
         },
+        validate: function() {
+            return(true);
+        },
         /**
          * Click handler for buttons in layer tree
          * @param {jQuery.Event} evt

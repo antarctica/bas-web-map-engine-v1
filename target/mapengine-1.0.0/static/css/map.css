@@ -236,7 +236,6 @@ input.layer-vis-selector, input.layer-vis-group-selector {
 
 a.layer-tool {
     float: right;
-    color: #202020;
 }
 
 a.layer-tool:hover {
@@ -245,7 +244,7 @@ a.layer-tool:hover {
 }
 
 a.layer-group-tool {
-    color: #202020;
+    color: inherit;
     text-decoration: none;
 }
 
