@@ -6,6 +6,8 @@ magic.classes.Measurement = function(options) {
     this.id = options.id || "measure-tool";
     
     this.target = $("#" + options.target);
+    
+    this.active = false;
 
     /**
      * Properties for the distance and area measuring tools 
@@ -229,6 +231,10 @@ magic.classes.Measurement.prototype.getTemplate = function() {
     return(this.template);
 };
 
+magic.classes.Measurement.prototype.isActive = function() {
+    return(this.active);
+};
+
 /**
  * Handle the "go" button click to start a measurement sketch according to current action
  */
@@ -236,6 +242,8 @@ magic.classes.Measurement.prototype.activate = function() {
     
     /* Trigger mapinteractionactivated event */
     $(document).trigger("mapinteractionactivated", [this]);  
+    
+    this.active = true;
 
     /* Record measuring operation in progress */
     this.measuring = true;
@@ -287,6 +295,8 @@ magic.classes.Measurement.prototype.activate = function() {
  * Handle stopping the measurement operation
  */
 magic.classes.Measurement.prototype.deactivate = function() {
+    
+    this.active = false;
 
     /* Record no measuring in progress */
     this.measuring = false;

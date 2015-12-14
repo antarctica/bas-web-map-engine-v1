@@ -1,54 +1,29 @@
 /* Get information about features */
 
-magic.classes.FeatureInfoButton = function(name) {
+magic.classes.FeatureInfoTool = function(name) {
 
     /* API property */
     this.name = name;
 
     /* Internal properties */
-    this.active = false;
-
-    this.inactiveTitle = "Get information about map features";
-    this.activeTitle = "Click to exit feature info mode";
-
-    this.btn = $("<button>", {
-        "id": "btn-" + this.name,
-        "class": "btn btn-default",
-        "data-toggle": "tooltip",
-        "data-placement": "bottom",
-        "title": this.inactiveTitle,
-        "html": '<span class="fa fa-info-circle"></span>'
-    });
-    this.btn.on("click", $.proxy(function () {
-        if (this.isActive()) {
-            this.deactivate();
-        } else {
-            this.activate();
-        }
-    }, this));
+    this.active = false;   
 
 };
 
-magic.classes.FeatureInfoButton.prototype.getButton = function () {
-    return(this.btn);
-};
-
-magic.classes.FeatureInfoButton.prototype.isActive = function () {
+magic.classes.FeatureInfoTool.prototype.isActive = function () {
     return(this.active);
 };
 
 /**
  * Activate the control
  */
-magic.classes.FeatureInfoButton.prototype.activate = function () {
+magic.classes.FeatureInfoTool.prototype.activate = function () {
     
     /* Trigger mapinteractionactivated event */
     $(document).trigger("mapinteractionactivated", this);  
     
     this.active = true;   
-    this.btn.addClass("active");
-    this.btn.attr("data-original-title", this.activeTitle).tooltip("fixTitle");
-    /* Add map click handler (NOTE: assumes first base layer is a DEM) */
+    
     $("#map-container").css("cursor", "help");
     magic.runtime.map.on("singleclick", this.queryFeatures, this);
 };
@@ -56,10 +31,8 @@ magic.classes.FeatureInfoButton.prototype.activate = function () {
 /**
  * Deactivate the control
  */
-magic.classes.FeatureInfoButton.prototype.deactivate = function () {
-    this.active = false;    
-    this.btn.removeClass("active");
-    this.btn.attr("data-original-title", this.inactiveTitle).tooltip("fixTitle");
+magic.classes.FeatureInfoTool.prototype.deactivate = function () {
+    this.active = false;        
     /* Remove map click handler */
     magic.runtime.featureinfo.hide();
     $("#map-container").css("cursor", "default");
@@ -70,13 +43,13 @@ magic.classes.FeatureInfoButton.prototype.deactivate = function () {
  * Send a GetFeatureInfo request to all point layers
  * @param {jQuery.Event} evt
  */
-magic.classes.FeatureInfoButton.prototype.queryFeatures = function(evt) {    
-    var gfiLayer = null, gfiParams = [];
+magic.classes.FeatureInfoTool.prototype.queryFeatures = function(evt) {    
+    var gfiLayer = null, gfiParams = [];// TODO - array of ajax calls
     magic.runtime.map.getLayers().forEach(function(layer) {
-        /* Weed out the clickable (interactive) layers, eliminating user GPX/KML layers */
+        /* Find the WMS interactive layers */
         if (layer.getVisible() === true) {
             var md = layer.get("metadata");
-            if (md && md["clickable"] === true && !(md.type == "geo_kml" || md.type == "geo_gpx")) {
+            if (md && md.source.wms_source && md.is_interactive === true) {
                 if (!gfiLayer) {
                     gfiLayer = layer;
                 }
@@ -124,7 +97,7 @@ magic.classes.FeatureInfoButton.prototype.queryFeatures = function(evt) {
  * Get all vector features at the given pixel (e.g. from Geosearch or user GPX/KML layers)
  * @param {ol.coordinate} px pixel coordinate
  */
-magic.classes.FeatureInfoButton.prototype.featuresAtPixel = function(px) {
+magic.classes.FeatureInfoTool.prototype.featuresAtPixel = function(px) {
     var fprops = [];
     magic.runtime.map.forEachFeatureAtPixel(px, function(feature, layer) {
         if (layer != null) {
@@ -136,7 +109,7 @@ magic.classes.FeatureInfoButton.prototype.featuresAtPixel = function(px) {
                     if (f.getGeometry()) {
                         var exProps = f.getProperties();
                         fprops.push($.extend({}, exProps, {
-                            "__geomtype": f.getGeometry().getType().toLowerCase(),
+                            "__geomtype": exProps["__title"] || layer.get("metadata")["geom_type"],
                             "__title": exProps["__title"] || layer.get("name")
                         }));
                     }                    
@@ -145,12 +118,14 @@ magic.classes.FeatureInfoButton.prototype.featuresAtPixel = function(px) {
                 if (feature.getGeometry()) {
                     var exProps = feature.getProperties();
                     fprops.push($.extend({}, exProps, {
-                        "__geomtype": feature.getGeometry().getType().toLowerCase(),
+                        "__geomtype": exProps["__title"] || layer.get("metadata")["geom_type"],
                         "__title": exProps["__title"] || layer.get("name")
                     }));
                 }          
             }
         }
+    }, this, function(candidate) {
+        return(candidate.getVisible() && candidate.get("metadata") && candidate.get("metadata")["is_interactive"] === true);
     }, this);
     return(fprops);
 };

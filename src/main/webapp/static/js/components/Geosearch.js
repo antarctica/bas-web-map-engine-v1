@@ -14,6 +14,8 @@ magic.classes.Geosearch = function(options) {
     
     /* Internal properties */
     
+    this.active = false;
+    
     /* Get data about gazetteers, keyed by name */
     this.gazetteerData = {};
     $.getJSON("https://api.bas.ac.uk/locations/v1/gazetteer", $.proxy(function(payload) {
@@ -141,13 +143,17 @@ magic.classes.Geosearch.prototype.getTemplate = function() {
     return(this.template);
 };
 
+magic.classes.Geosearch.prototype.isActive = function() {
+    return(this.active);
+};
+
 magic.classes.Geosearch.prototype.activate = function() {
             
     /* Trigger mapinteractionactivated event */
-    $(document).trigger("mapinteractionactivated", [this]);        
-        
-    magic.runtime.map.on("singleclick", this.featureAtPixelHandler, this);
+    $(document).trigger("mapinteractionactivated", [this]);   
     
+    this.active = true;
+           
     this.layer.setVisible(true);   
 
     $("#" + this.id + "-ta").typeahead({minLength: 4, highlight: true}, this.getSources())
@@ -203,7 +209,7 @@ magic.classes.Geosearch.prototype.activate = function() {
 };
 
 magic.classes.Geosearch.prototype.deactivate = function() {
-    magic.runtime.map.un("singleclick", this.featureAtPixelHandler, this);
+    this.active = false;
     this.layer.setVisible(false);
 };
 
@@ -303,6 +309,7 @@ magic.classes.Geosearch.prototype.placenameSearchHandler = function(evt) {
                 geometry: new ol.geom.Point([jsonData.x, jsonData.y]), 
                 name: this.currentPlacenameSearch.placename,
                 "__gaz_name": gazName,
+                "__geomtype": "point",
                 "__title": "Geosearch location"
             }, jsonData); 
             var feat = new ol.Feature(attrs);
@@ -367,6 +374,7 @@ magic.classes.Geosearch.prototype.positionSearchHandler = function(evt) {
             lon: lon.val(), 
             lat: lat.val(), 
             name: label.val(),
+            "__geomtype": "point",
             "__title": "Geosearch location"
         });
         this.layer.getSource().addFeature(feat);
@@ -413,37 +421,4 @@ magic.classes.Geosearch.prototype.getIconStyle = function(opacity, icon) {
             src: magic.config.paths.baseurl + "/static/images/" + icon + ".png"
         })
     }));
-};
-
-/**
- * Handler to show popups for clicks on geosearch result pins
- * @param {jQuery.Event} evt
- */
-magic.classes.Geosearch.prototype.featureAtPixelHandler = function(evt) {
-    var fprops = [];
-    magic.runtime.map.forEachFeatureAtPixel(evt.pixel, function(feature, layer) {
-        if (layer != null) {
-            /* This is not a feature overlay i.e. an artefact of presentation not real data */
-            var clusterMembers = feature.get("features");
-            if (clusterMembers && $.isArray(clusterMembers)) {
-                /* Unpack cluster features */
-                $.each(clusterMembers, function(fi, f) {
-                    if (f.getGeometry()) {
-                        fprops.push($.extend({}, f.getProperties(), {
-                            "__geomtype": f.getGeometry().getType().toLowerCase()
-                        }));
-                    }                    
-                });
-            } else {
-                if (feature.getGeometry()) {
-                    fprops.push($.extend({}, feature.getProperties(), {
-                        "__geomtype": feature.getGeometry().getType().toLowerCase()
-                    }));
-                }          
-            }
-        }
-    }, this, function(candidate) {
-        return(candidate.getVisible() && candidate.get("name") == "_" + this.id);
-    }, this);
-    //magic.runtime.featureinfo.show(evt.coordinate, fprops);          TODO
 };

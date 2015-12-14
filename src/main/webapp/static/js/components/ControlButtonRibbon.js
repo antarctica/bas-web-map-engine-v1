@@ -62,14 +62,7 @@ magic.classes.ControlButtonRibbon = function(config) {
             case "graticule":
                 /* Show graticule */                                
                 this.appendControlButton(new magic.classes.GraticuleButton("graticule", this).getButton()); 
-                break;                           
-                
-            case "feature_info":
-                /* Get feature info at point */
-                var fi = new magic.classes.FeatureInfoButton("feature-info");
-                this.appendControlButton(fi.getButton()); 
-                magic.runtime.map_interaction_tools.push(fi);
-                break;
+                break;                                                     
                 
             default:
                 break;
