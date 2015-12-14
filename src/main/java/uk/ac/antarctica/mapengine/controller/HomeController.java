@@ -31,22 +31,7 @@ public class HomeController {
     public String home(HttpServletRequest request) throws ServletException, IOException {
         ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "MAGIC Web Mapping Home requested by anonymous");
         return("home");        
-    }
-    
-    /**
-     * Render home page (authorised)     
-     * @param HttpServletRequest request,
-     * @param String map
-     * @param ModelMap model
-     * @return
-     * @throws ServletException
-     * @throws IOException
-     */
-    @RequestMapping(value = "/auth/home", method = RequestMethod.GET)
-    public String authHome(HttpServletRequest request) throws ServletException, IOException {   
-        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "MAGIC Web Mapping Home requested by " + getUserName(request));
-        return("home");        
-    }
+    }        
         
     /**
      * Render user-defined public map     
@@ -82,44 +67,7 @@ public class HomeController {
         ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Public map " + map + " (debug) requested by " + getUserName(request));
         return("map");
     }
-    
-    /**
-     * Render user-defined restricted map     
-     * @param HttpServletRequest request,
-     * @param String map
-     * @param ModelMap model
-     * @return
-     * @throws ServletException
-     * @throws IOException
-     */
-    @RequestMapping(value = "/auth/{map}", method = RequestMethod.GET)
-    public String authMapHome(HttpServletRequest request, @PathVariable("map") String map, ModelMap model) throws ServletException, IOException {    
-        request.getSession().setAttribute("map", map);
-        model.addAttribute("map", map);
-        model.addAttribute("username", getUserName(request));
-        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Restricted map " + map + " requested by " + getUserName(request));
-        return("map");
-    }
-    
-    /**
-     * Render user-defined restricted map (debug)   
-     * @param HttpServletRequest request,
-     * @param String map
-     * @param ModelMap model
-     * @return
-     * @throws ServletException
-     * @throws IOException
-     */
-    @RequestMapping(value = "/authd/{map}", method = RequestMethod.GET)
-    public String authMapHomeDebug(HttpServletRequest request, @PathVariable("map") String map, ModelMap model) throws ServletException, IOException {    
-        request.getSession().setAttribute("map", map);
-        model.addAttribute("map", map);
-        model.addAttribute("username", getUserName(request));
-        model.addAttribute("debug", true);
-        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Restricted map " + map + " (debug) requested by " + getUserName(request));
-        return("map");
-    }
-    
+        
     /**
      * Render map creator home page     
      * @param HttpServletRequest request,

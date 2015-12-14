@@ -31,7 +31,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
         http
             .authorizeRequests()
             .antMatchers("/*.ico", "/static/**", "/appconfig/**", "/ping", "/home/**", "/maps/**", "/prefs").permitAll()
-            .antMatchers("/creator", "/homed/**", "/auth/**", "/authd/**")
+            .antMatchers("/creator", "/homed/**")
             .fullyAuthenticated()
             .and()
             .formLogin()

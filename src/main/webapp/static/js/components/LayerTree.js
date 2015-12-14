@@ -137,6 +137,14 @@ magic.classes.LayerTree.prototype.getLayers = function () {
     ));        
 };
 
+magic.classes.LayerTree.prototype.getBaseLayers = function () {
+    return(this.layersBySource["base"]);        
+};
+
+magic.classes.LayerTree.prototype.getWmsOverlayLayers = function () {
+    return(this.layersBySource["wms"]);        
+};
+
 magic.classes.LayerTree.prototype.getNodeId = function (targetId) {
     return(targetId.substring(targetId.length-36));
 };
@@ -198,10 +206,10 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
         } else {
             /* Style a data node */
             var cb;
-            var isWms = nd.source.wms_source;
-            var isSingleTile = isWms ? nd.source.wms_source.is_singletile : false;
-            var isBase = isWms ? nd.source.wms_source.is_base : false;
-            var isInteractive = nd.is_interactive;
+            var isWms = "wms_source" in nd.source;
+            var isSingleTile = isWms ? nd.source.is_singletile === true : false;
+            var isBase = isWms ? nd.source.is_base === true : false;
+            var isInteractive = nd.is_interactive === true;
             if (isBase) {
                 cb = '<input class="layer-vis-selector" name="base-layers-rb" id="base-layer-rb-' + nd.id + '" type="radio" ' + (nd.is_visible ? "checked" : "") + '/>';
             } else {
@@ -263,6 +271,7 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                         url: nd.source.wms_source,
                         params: {
                             "LAYERS": nd.source.feature_name,
+                            "TRANSPARENT": true,
                             "CRS": proj.getCode(),
                             "SRS": proj.getCode(),
                             "VERSION": wmsVersion,
@@ -478,7 +487,6 @@ magic.classes.LayerTree.prototype.getVectorStyle = function(styleDef, labelField
                 })
             });
         }
-        console.log(style);
         return([style]);
     });
 };

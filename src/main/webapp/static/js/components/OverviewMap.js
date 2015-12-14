@@ -19,7 +19,7 @@ magic.classes.OverviewMap = function(options) {
         '</div>';
     this.target.popover({
         template: this.template,
-        title: '<span>Overview map<button type="button" class="close">&times;</button></span>',
+        title: '<span><big><strong>Overview map</strong><big><button type="button" class="close">&times;</button></span>',
         container: "body",
         html: true,
         content: "Overview map"
@@ -47,11 +47,13 @@ magic.classes.OverviewMap.prototype.initControl = function() {
     this.control = new ol.control.OverviewMap({
         target: poContent[0],
         collapsed: false,
-        className: "ol-overviewmap custom-overview-map",
-        layers: this.getOverviewLayers()
+        className: "ol-overviewmap custom-overview-map",        
+        layers: this.getOverviewLayers(),
+        view: magic.runtime.view
     });        
     magic.runtime.map.addControl(this.control);
     $("button[title='Overview map']").addClass("hidden");
+    this.control.render();
 };
 
 magic.classes.OverviewMap.prototype.getTarget = function() {
@@ -77,14 +79,15 @@ magic.classes.OverviewMap.prototype.getOverviewLayers = function() {
             }
         }, this));
         if (oLayers.length > 0) {
-            if (!magic.runtime.layertree.isRasterLayer(oLayers[0])) {
-                $.each(magic.runtime.layertree.getOverlayLayers(), $.proxy(function(oi, olyr) {
-                    if (olyr.get("name").toLowerCase().indexOf("coastline") != -1) {
-                        /* Coastline */
+            $.each(magic.runtime.layertree.getWmsOverlayLayers(), $.proxy(function(oi, olyr) {
+                var md = olyr.get("metadata");
+                if (md.source && md.source.wms_source) {  
+                    var featName = md.source.feature_name;
+                    if (featName.indexOf("coastline") >= 0) {
                         oLayers.push(olyr);
                     }
-                }, this));
-            }
+                }
+            }, this));
         }
     } else {
         /* No layer tree => assume base layer is first */
@@ -100,7 +103,7 @@ magic.classes.OverviewMap.prototype.getOverviewLayers = function() {
 magic.classes.OverviewMap.prototype.setEnabledStatus = function() {
     var enable = false;
     if (magic.runtime.map) {
-        enable = magic.runtime.map.getView().getResolution() <= 2000.0;
+        enable = magic.runtime.map.getView().getResolution() <= 200.0;
     }
     if (!enable) {        
         this.target.popover("hide");

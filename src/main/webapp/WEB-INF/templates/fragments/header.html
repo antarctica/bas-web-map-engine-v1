@@ -38,7 +38,6 @@
                 prefsRequest = payloadRequest.then(function(payload) {                                        
                     magic.runtime.map_context = $.extend({}, payload);
                     magic.runtime.map_context.data = JSON.parse(payload.data.value);
-                    console.log(magic.runtime.map_context);
                     return($.ajax({
                         url: magic.config.paths.baseurl + "/prefs",
                         method: "GET",
@@ -107,7 +106,6 @@
         <script src="/static/js/components/DragZoomButton.js"></script>
         <script src="/static/js/components/FullScreenButton.js"></script>
         <script src="/static/js/components/ResetRotationButton.js"></script>
-        <script src="/static/js/components/HeightMeasureButton.js"></script>
         <script src="/static/js/components/GraticuleButton.js"></script>
         <script src="/static/js/components/FeaturePopup.js"></script>
         <script src="/static/js/components/FeatureInfoButton.js"></script>
@@ -141,6 +139,7 @@
                 prefsRequest = payloadRequest.then(function(payload) {                                        
                     magic.runtime.map_context = $.extend({}, payload);
                     magic.runtime.map_context.data = JSON.parse(payload.data.value);
+                    console.log(magic.runtime.map_context.data);
                     return($.ajax({
                         url: magic.config.paths.baseurl + "/prefs",
                         method: "GET",

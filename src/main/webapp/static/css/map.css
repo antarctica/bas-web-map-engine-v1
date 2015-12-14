@@ -457,7 +457,7 @@ td.metadata {
 
 /* Geosearch search styles */
 div.geosearch-tabs {
-    margin-top: 15px;
+    padding: 15px 15px 0px 15px;
 }
 
 div.geosearch-tmt {
@@ -465,7 +465,7 @@ div.geosearch-tmt {
 }
 
 div.geosearch-popover-content {
-    width: 275px;
+    width: 280px;
 }
 
 p.suggestion {
@@ -540,12 +540,11 @@ a.gaz-attribution:hover {
 
 /* Measure tool styles */
 div.measurement-popover-content {
-    width: 275px;
+    width: 280px;
 }
 
 div.measure-tabs {
-    width: 100%;
-    margin-top: 15px;
+    padding: 15px 15px 0px 15px;
 }
 
 div.measure-true {

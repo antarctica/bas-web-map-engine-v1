@@ -16,8 +16,8 @@ magic.classes.Geosearch = function(options) {
     
     /* Get data about gazetteers, keyed by name */
     this.gazetteerData = {};
-    $.getJSON("https://api.bas.ac.uk/locations/v1/gazetteer", $.proxy(function(payload) {   //TODO - enable CORS on batgis server
-        $.map(payload, $.proxy(function(gd) {
+    $.getJSON("https://api.bas.ac.uk/locations/v1/gazetteer", $.proxy(function(payload) {
+        $.map(payload.data, $.proxy(function(gd) {
             this.gazetteerData[gd.gazetteer] = gd;
         }, this));
     }, this));
@@ -45,7 +45,7 @@ magic.classes.Geosearch = function(options) {
     this.currentPlacenameSearch = null;
         
     this.template = 
-        '<div class="popover geosearch-popover" role="popover">' + 
+        '<div class="popover popover-auto-width geosearch-popover" role="popover">' + 
             '<div class="arrow"></div>' +
             '<h3 class="popover-title"></h3>' + 
             '<div class="popover-content geosearch-popover-content"></div>' + 
@@ -54,19 +54,19 @@ magic.classes.Geosearch = function(options) {
         '<div id="' + this.id + '-content">' +
             '<form class="form-horizontal" role="form">' +
                 '<div role="tabpanel">' + 
-                    '<ul class="nav nav-pills" role="tablist">' + 
+                    '<ul class="nav nav-tabs" role="tablist">' + 
                         '<li role="presentation" class="active">' + 
                             '<a role="tab" data-toggle="tab" href="#' + this.id + '-placename" aria-controls="' + this.id + '-placename">Place-name</a>' + 
                         '</li>' + 
                         '<li role="presentation">' + 
-                            '<a role="tab" data-toggle="tab" href="#' + this.id + '-position" aria-controls="' + this.id + '-position">Position</a>' + 
+                            '<a role="tab" data-toggle="tab" href="#' + this.id + '-position" aria-controls="' + this.id + '-position">Lat/long</a>' + 
                         '</li>' + 
                     '</ul>' + 
                 '</div>' + 
                 '<div class="tab-content geosearch-tabs">' +
                     /*================================ Place-name search form fields ================================*/
                     '<div id="' + this.id + '-placename" role="tabpanel" class="tab-pane active">' + 
-                        '<div class="form-group form-group-sm col-sm-12">' + 
+                        '<div class="form-group form-group-sm">' + 
                             '<div class="input-group">' + 
                                 '<input id="' + this.id + '-ta" class="form-control typeahead border-lh-round" type="text" placeholder="Search for place-name" ' + 
                                 'required="required" autofocus="true"></input>' + 
@@ -81,16 +81,16 @@ magic.classes.Geosearch = function(options) {
                     '</div>' +
                     /*================================ Position search form fields ================================*/
                     '<div id="' + this.id + '-position" role="tabpanel" class="tab-pane">' + 
-                        '<div class="form-group form-group-sm col-sm-12">' + 
+                        '<div class="form-group form-group-sm">' + 
                             '<input id="' + this.id + '-lon" class="form-control" type="text" placeholder="Longitude" ' + 
                                 'data-toggle="tooltip" data-placement="right" title="Examples: -65.5, 65 30 00W (dms), W65 30.00 (ddm)" ' + 
                                 'required="required" autofocus="true"></input>' + 
                         '</div>' + 
-                        '<div class="form-group form-group-sm col-sm-12">' +
+                        '<div class="form-group form-group-sm">' +
                             '<input id="' + this.id + '-lat" class="form-control" type="text" placeholder="Latitude" ' + 
                                 'data-toggle="tooltip" data-placement="right" title="Examples: -60.25, 60 15 00S (dms), S60 15.00 (ddm)" required="required"></input>' + 
                         '</div>' + 
-                        '<div class="form-group form-group-sm col-sm-12" style="margin-bottom:5px">' +
+                        '<div class="form-group form-group-sm">' +
                             '<div class="input-group">' + 
                                 '<input id="' + this.id + '-label" class="form-control" type="text" placeholder="Label" ' + 
                                     'data-toggle="tooltip" data-placement="right" title="Type a label for the point"></input>' + 
@@ -104,7 +104,7 @@ magic.classes.Geosearch = function(options) {
                         '</div>' +             
                     '</div>' +
                     /*================================ Take me there checkbox ================================*/
-                    '<div class="form-group form-group-sm col-sm-12">' + 
+                    '<div class="form-group form-group-sm">' + 
                         '<div class="checkbox geosearch-tmt" style="float:left">' + 
                             '<label>' + 
                                 '<input id="' + this.id + '-tmt" type="checkbox" checked ' + 
@@ -117,14 +117,14 @@ magic.classes.Geosearch = function(options) {
                             '</a>' +                               
                         '</div>' + 
                     '</div>' + 
-                    '<div id="' + this.id + '-attribution-text" class="col-sm-12 well hidden">' + 
+                    '<div id="' + this.id + '-attribution-text" class="alert alert-info hidden">' + 
                     '</div>' +
                 '</div>' + 
             '</form>' + 
         '</div>';             
     this.target.popover({
         template: this.template,
-        title: '<span>Search by<button type="button" class="close">&times;</button></span>',
+        title: '<span><big><strong>Search by</strong></big><button type="button" class="close">&times;</button></span>',
         container: "body",
         html: true,            
         content: this.content
@@ -215,7 +215,9 @@ magic.classes.Geosearch.prototype.getSources = function() {
     var sources = $.map(this.gazetteers, $.proxy(function(gaz) {
         return({
             source: function(query, syncResults, asyncResults) {
-                $.getJSON("https://api.bas.ac.uk/locations/v1/gazetteer/" + gaz + "/" + query + "/brief", asyncResults);
+                $.getJSON("https://api.bas.ac.uk/locations/v1/gazetteer/" + gaz + "/" + query + "/brief", function(json) {
+                    asyncResults(json.data);
+                });
             },
             name: gaz,
             display: $.proxy(function(value) {
@@ -294,7 +296,8 @@ magic.classes.Geosearch.prototype.placenameSearchHandler = function(evt) {
     var gazName = this.currentPlacenameSearch["__gaz_name"];        
     if (exIdx < 0) {
         /* Fetch data */
-        $.getJSON("https://api.bas.ac.uk/locations/v1/placename/" + gazName + "/" + this.currentPlacenameSearch["id"], $.proxy(function(jsonData) {
+        $.getJSON("https://api.bas.ac.uk/locations/v1/placename/" + gazName + "/" + this.currentPlacenameSearch["id"], $.proxy(function(json) {
+            var jsonData = json.data;
             delete jsonData["suggestion"];
             var attrs = $.extend({
                 geometry: new ol.geom.Point([jsonData.x, jsonData.y]), 
@@ -368,8 +371,8 @@ magic.classes.Geosearch.prototype.positionSearchHandler = function(evt) {
         });
         this.layer.getSource().addFeature(feat);
         this.flyMeThere(feat);
-        lonFg.removeClass("has-error").addClass("has-success");
-        latFg.removeClass("has-error").addClass("has-success");
+        lonFg.removeClass("has-error");
+        latFg.removeClass("has-error");
     } else {
         lonFg.removeClass("has-success").addClass("has-error");
         latFg.removeClass("has-success").addClass("has-error");

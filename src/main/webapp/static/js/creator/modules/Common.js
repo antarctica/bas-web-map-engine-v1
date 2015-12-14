@@ -103,7 +103,6 @@ magic.modules.creator.Common = function () {
             this.map_context.setLayers(layerTree);
             var finalContext = this.map_context.getContext();
             var existingId = this.map_context.getMapId();
-            console.log(finalContext);
             /* Now validate the assembled map context against the JSON schema in /static/js/json/web_map_schema.json
              * https://github.com/geraintluff/tv4 is the validator used */            
             $.getJSON(magic.config.paths.baseurl + "/static/js/json/web_map_schema.json", $.proxy(function(schema) {
@@ -122,16 +121,14 @@ magic.modules.creator.Common = function () {
                         }
                     });
                     jqXhr.done(function(response) {
-                        console.log(response);
+                        //TODO
                     });
                     jqXhr.fail(function(xhr, status) {
-                        console.log(status);
                         bootbox.alert('<div class="alert alert-warning" style="margin-bottom:0">Failed to save the map ' + status + '</div>');
                     });
                 } else {
                     /* Failed to validate the data against the schema - complain */
                     var validationErrors = JSON.stringify(tv4.error, null, 4);
-                    console.log("Errors were: " + validationErrors);
                     bootbox.alert(
                         '<div class="alert alert-danger" style="margin-top:10px">' + 
                             '<p>Failed to validate your map data against the web map schema</p>' + 

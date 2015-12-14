@@ -83,28 +83,28 @@ magic.classes.AppContainer = function () {
         /* Hide the geosearch button */
         $("#geosearch-tool").closest("li").hide();
     }
-//
-//    if ($.inArray("measurement", payload.view.controls) != -1) {
-//        /* Activate measuring tool */
-//        magic.runtime.map_interaction_tools.push(new magic.classes.Measurement({
-//            target: "measure-tool"
-//        }));
-//    } else {
-//        /* Hide the measure tool button */
-//        $("#measure-tool").closest("li").hide();
-//    }
-//
-//    if ($.inArray("overview", payload.view.controls) != -1) {
-//        /* Activate overview map tool */
-//        magic.runtime.overview = new magic.classes.OverviewMap({
-//            target: "overview-map-tool"
-//        });
-//        magic.runtime.overview.setEnabledStatus();
-//    } else {
-//        /* Hide the overview map button */
-//        $("#overview-map-tool").closest("li").hide();
-//    }
-//    
+
+    if ($.inArray("measurement", magic.runtime.mapdata.controls) != -1) {
+        /* Activate measuring tool */
+        magic.runtime.map_interaction_tools.push(new magic.classes.Measurement({
+            target: "measure-tool"
+        }));
+    } else {
+        /* Hide the measure tool button */
+        $("#measure-tool").closest("li").hide();
+    }
+
+    if ($.inArray("overview_map", magic.runtime.mapdata.controls) != -1) {
+        /* Activate overview map tool */
+        magic.runtime.overview = new magic.classes.OverviewMap({
+            target: "overview-map-tool"
+        });
+        magic.runtime.overview.setEnabledStatus();
+    } else {
+        /* Hide the overview map button */
+        $("#overview-map-tool").closest("li").hide();
+    }
+    
 //    if ($.inArray("repository", payload.view.controls) != -1 && magic.runtime.repository) {
 //        /* Activate repository tool */        
 //        $("#repo-tool").closest("li").show();
