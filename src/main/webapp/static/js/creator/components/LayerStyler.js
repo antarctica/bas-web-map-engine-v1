@@ -33,7 +33,7 @@ magic.classes.creator.LayerStyler.prototype.loadContext = function(style) {
             if (!style[key]) {
                 style[key] = {};
             }
-            magic.modules.creator.Common.dictToForm(this.style_form_fields, style, this.prefix + "-" + key);
+            magic.modules.creator.Common.dictToForm(this.style_form_fields[key], style[key], this.prefix + "-" + key);
         }
     }
 };

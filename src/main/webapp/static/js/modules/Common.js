@@ -3,6 +3,54 @@
 magic.modules.Common = function () {
 
     return({
+        /* Possible WMS endpoints for each projection */
+        WMS_ENDPOINTS: {
+            "EPSG:3031": [
+                {
+                    "name": "Antarctic Digital Database",
+                    "wms": "https://maps.bas.ac.uk/antarctic/wms",
+                    "coast": ["add:antarctic_coastline", "add:sub_antarctic_coastline"]
+                },
+                {
+                    "name": "Operations GIS",
+                    "wms": "http://rolgis.nerc-bas.ac.uk:8080/geoserver/wms"
+                },
+                {
+                    "name": "CCAMLR GIS",
+                    "wms": "https://gis.ccamlr.org/geoserver/wms"
+                },
+                {
+                    "name": "Antarctic Peninsula Information Portal",
+                    "wms": "http://bslbatgis.nerc-bas.ac.uk:8080/geoserver/wms"
+                },
+                {
+                    "name": "Polar View",
+                    "wms": "http://geos.polarview.aq/geoserver/wms"
+                }
+            ],
+            "EPSG:3995": [
+                {
+                    "name": "NERC Arctic Office Map",
+                    "wms": "https://maps.bas.ac.uk/arctic/wms",
+                    "coast": ["arctic:arctic_coastline"]
+                }
+            ],
+            "EPSG:3762": [
+                {
+                    "name": "South Georgia GIS",
+                    "wms": "https://maps.bas.ac.uk/southgeorgia/wms",
+                    "coast": ["sggis:sg_coastline"]
+                }
+            ]
+        },
+        PROXY_ENDPOINTS: {
+            "https://gis.ccamlr.org/geoserver/wms": true
+        },
+        /* Default local Geoserver endpoint */
+        DEFAULT_GEOSERVER_WMS: {
+            "name": "Local Geoserver WMS",
+            "value": "http://localhost:8080/geoserver/wms"
+        },               
         /* Taken from OL2 Util.js */
         inches_per_unit: {
             "inches": 1.0,

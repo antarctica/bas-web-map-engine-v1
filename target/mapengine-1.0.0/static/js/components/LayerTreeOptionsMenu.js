@@ -18,9 +18,7 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
         '<li>' + 
             '<a href="Javascript:void(0)" id="opc-' + this.nodeid + '">Change layer transparency</a>' + 
             '<div class="hidden" id="wrapper-opc-' + this.nodeid + '">' + 
-                '<div class="icon-roundrectangle slider-purpose" data-toggle="tooltip" data-placement="top" title="Layer opaque"></div>' + 
-                '<div class="noUi-extended layer-webgl-property-slider" id="opc-slider-' + this.nodeid + '"></div>' + 
-                '<div class="icon-pattern slider-purpose" data-toggle="tooltip" data-placement="top" title="Layer transparent"></div>' + 
+                '<input id="opc-slider-' + this.nodeid + '" data-slider-id="" data-slider-min="0" data-slider-max="1" data-slider-step="0.1" data-slider-value="1">' + 
             '</div>' + 
         '</li>' + 
         '<li>' + 
@@ -51,6 +49,7 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
     if (this.layer.getVisible()) {
         /* Layer is visible on the map */
         $("#ztl-" + this.nodeid).off("click").on("click", $.proxy(function(evt) {
+            // TODO - GetCapabilities is the only way... */
             var extent = this.extentFromMetadata();
             if (extent) {    
                 magic.runtime.map.getView().fit(extent, magic.runtime.map.getSize());
@@ -130,20 +129,13 @@ magic.classes.LayerTreeOptionsMenu.prototype.addWebglSliderHandler = function(id
                     case "brt": startValue = layer.getBrightness(); break;
                     case "ctr": startValue = layer.getContrast(); break;        
                 }
-                var wgps = wrapper.children("div.layer-webgl-property-slider").first();
-                if (!wgps[0].noUiSlider) {
-                    noUiSlider.create(wgps[0], {
-                        start: startValue,
-                        connect: "lower",
-                        step: step,
-                        range: {
-                            "min": minVal,
-                            "max": maxVal
-                        }
-                    });
-                }
-                wgps[0].noUiSlider.on("slide", function(evt) {
-                    var newVal = evt[0];
+                $("#" + idbase + "-slider-" + this.nodeid).slider({
+                    value: startValue,
+                    formatter: function(value) {
+                        return("Current value: " + value);
+                    }
+                }).on("slide", function(evt) {
+                    var newVal = evt.value;
                     switch(idbase) {
                         case "opc": layer.setOpacity(newVal); break;
                         case "brt": layer.setBrightness(newVal); break;

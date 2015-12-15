@@ -430,7 +430,7 @@ magic.classes.LayerTree.prototype.getVectorStyle = function(styleDef, labelField
                     });
                 } else {
                     var points;
-                    switch(styleDef.graphic,marker) {
+                    switch(styleDef.graphic.marker) {
                         case "triangle": points = 3; break;
                         case "pentagon": points = 5; break;
                         case "hexagon": points = 6; break;

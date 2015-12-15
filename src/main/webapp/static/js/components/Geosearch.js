@@ -30,10 +30,34 @@ magic.classes.Geosearch = function(options) {
     
     /* Corresponding layer */
     this.layer = new ol.layer.Vector({
-        name: "_" + this.id,
+        name: "Geosearch location",
         visible: true,
         source: new ol.source.Vector({features: []}),                    
-        style: this.resultStyle
+        style: this.resultStyle,
+        metadata: {
+            "geom_type": "point",
+            "is_interactive": true,
+            "attribute_map": [
+                {
+                    "name": "name",
+                    "displayed": true,
+                    "alias": "Name",
+                    "type": "xsd:string"
+                },
+                {
+                    "name": "lon",
+                    "displayed": true,
+                    "alias": "Longitude",
+                    "type": "xsd:decimal"
+                },
+                {
+                    "name": "lat",
+                    "displayed": true,
+                    "alias": "Latitude",
+                    "type": "xsd:decimal"
+                }
+            ]
+        }
     });
     magic.runtime.map.addLayer(this.layer);
             
@@ -147,10 +171,16 @@ magic.classes.Geosearch.prototype.isActive = function() {
     return(this.active);
 };
 
-magic.classes.Geosearch.prototype.activate = function() {
+/**
+ * Activate the geosearch control
+ * @param {boolean} quiet whether to fire event
+ */
+magic.classes.Geosearch.prototype.activate = function(quiet) {
             
-    /* Trigger mapinteractionactivated event */
-    $(document).trigger("mapinteractionactivated", [this]);   
+    if (!quiet) {
+        /* Trigger mapinteractionactivated event */
+        $(document).trigger("mapinteractionactivated", [this]);   
+    }
     
     this.active = true;
            
@@ -208,9 +238,17 @@ magic.classes.Geosearch.prototype.activate = function() {
     }, this));     
 };
 
-magic.classes.Geosearch.prototype.deactivate = function() {
+/**
+ * Activate the geosearch control
+ * @param {boolean} quiet whether to fire event
+ */
+magic.classes.Geosearch.prototype.deactivate = function(quiet) {
     this.active = false;
     this.layer.setVisible(false);
+    if (!quiet) {
+        /* Trigger mapinteractiondeactivated event */
+        $(document).trigger("mapinteractiondeactivated", [this]);  
+    }
 };
 
 /**
@@ -308,9 +346,7 @@ magic.classes.Geosearch.prototype.placenameSearchHandler = function(evt) {
             var attrs = $.extend({
                 geometry: new ol.geom.Point([jsonData.x, jsonData.y]), 
                 name: this.currentPlacenameSearch.placename,
-                "__gaz_name": gazName,
-                "__geomtype": "point",
-                "__title": "Geosearch location"
+                "__gaz_name": gazName
             }, jsonData); 
             var feat = new ol.Feature(attrs);
             feat.setStyle(this.resultStyle);
@@ -373,9 +409,7 @@ magic.classes.Geosearch.prototype.positionSearchHandler = function(evt) {
             geometry: position, 
             lon: lon.val(), 
             lat: lat.val(), 
-            name: label.val(),
-            "__geomtype": "point",
-            "__title": "Geosearch location"
+            name: label.val()
         });
         this.layer.getSource().addFeature(feat);
         this.flyMeThere(feat);

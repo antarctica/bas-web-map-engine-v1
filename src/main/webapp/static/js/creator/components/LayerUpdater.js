@@ -219,12 +219,20 @@ magic.classes.creator.LayerUpdater.prototype.populateWmsDataSources = function(w
     var featSelect = $("select[name='" + this.prefix + "-wms-feature_name']");
     if (!magic.runtime.creator.catalogues[wmsUrl]) {
         var parser = new ol.format.WMSCapabilities();
-        var jqXhr = $.get(wmsUrl + "?request=GetCapabilities", $.proxy(function(response) {
-            var capsJson = $.parseJSON(JSON.stringify(parser.read(response)));
-            if (capsJson) {
-                magic.runtime.creator.catalogues[wmsUrl] = this.extractFeatureTypes(capsJson);
-                this.populateWmsFeatureSelector(wmsUrl, featSelect, this.data.source.feature_name);
-            } else {
+        var url = wmsUrl + "?request=GetCapabilities";
+        if (magic.modules.Common.PROXY_ENDPOINTS[wmsUrl]) {
+            url = magic.config.paths.baseurl + "/proxy?url=" + url;
+        }
+        var jqXhr = $.get(url, $.proxy(function(response) {
+            try {
+                var capsJson = $.parseJSON(JSON.stringify(parser.read(response)));
+                if (capsJson) {
+                    magic.runtime.creator.catalogues[wmsUrl] = this.extractFeatureTypes(capsJson);
+                    this.populateWmsFeatureSelector(wmsUrl, featSelect, this.data.source.feature_name);
+                } else {
+                    bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to parse capabilities for WMS ' + wmsUrl + '</div>');
+                }
+            } catch(e) {
                 bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to parse capabilities for WMS ' + wmsUrl + '</div>');
             }
         }, this)).fail(function() {
@@ -245,13 +253,20 @@ magic.classes.creator.LayerUpdater.prototype.populateWmsDataSources = function(w
 magic.classes.creator.LayerUpdater.prototype.populateWmsFeatureSelector = function(wmsUrl, select, defval) {
     select.find("option").remove();   
     var fopts = magic.runtime.creator.catalogues[wmsUrl];
-    if (fopts) {
+    if (fopts && fopts.length > 0) {
         magic.modules.Common.populateSelect(select, fopts, "value", "name", defval);
         select.off("change").on("change", $.proxy(function(evt) {
             this.attribute_map.ogcUpdate(wmsUrl, $(evt.currentTarget).val(), this.data["attribute_map"]);
         }, this));
     } else {
         bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">No feature types found for ' + wmsUrl + '</div>');
+        /* Cobble together a dummy select including just the feature type, otherwise this gets overwritten with empty in the eventual data payload! */
+        magic.modules.Common.populateSelect(select, [
+            {
+                name: defval,
+                value: defval
+            }
+        ], "value", "name", defval);
     }
 };
 
@@ -264,9 +279,9 @@ magic.classes.creator.LayerUpdater.prototype.populateWmsSourceSelector = functio
     select.find("option").remove();
     var proj = magic.modules.creator.Common.map_context.getProjection();
     if (proj) {
-        var eps = magic.modules.creator.Data.WMS_ENDPOINTS[proj].slice(0);
-        eps.unshift(magic.modules.creator.Data.DEFAULT_GEOSERVER_WMS);
-        magic.modules.Common.populateSelect(select, eps, "value", "name", defval);
+        var eps = magic.modules.Common.WMS_ENDPOINTS[proj].slice(0);
+        eps.unshift(magic.modules.Common.DEFAULT_GEOSERVER_WMS);
+        magic.modules.Common.populateSelect(select, eps, "wms", "name", defval);
     } else {
         bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">No projection defined for map</div>');
     }   

@@ -3,6 +3,9 @@
 magic.classes.FeaturePopup = function(options) {
     
     /* API */
+    if (!options) {
+        options = {};
+    }
     
     /* List of features to render attributes of */
     this.featureCollection = options.features || [];    
@@ -46,7 +49,7 @@ magic.classes.FeaturePopup = function(options) {
                     '<div class="modal-content">' + 
                         '<div class="modal-header">' + 
                             '<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>' + 
-                            '<h4 class="modal-title" id="' + this.continuation + '-title">Full attribute set</h4>' + 
+                            '<h4 class="modal-title" id="' + this.continuation + '-title">Raw attribute set (user preferences not applied)</h4>' + 
                         '</div>' + 
                         '<div id="' + this.continuation + '-content" class="modal-body">' + 
                             'Loading attributes...' + 
@@ -126,7 +129,8 @@ magic.classes.FeaturePopup.prototype.hide = function() {
 magic.classes.FeaturePopup.prototype.title = function() {
     var content = "";
     $.each(this.featureCollection, $.proxy(function(i, feat) {
-        content += '<span class="feature-popup-title-cont ' + (i > 0 ? "hidden" : "show") + '">' + feat["__title"] +
+        var name = feat.layer.get("name");
+        content += '<span class="feature-popup-title-cont ' + (i > 0 ? "hidden" : "show") + '">' + magic.modules.Common.ellipsis(name, 20) +
                    '<button type="button" style="float:right" class="close">&times;</button></span>';      
     }, this));    
     return(content);
@@ -139,28 +143,30 @@ magic.classes.FeaturePopup.prototype.title = function() {
  */
 magic.classes.FeaturePopup.prototype.basicMarkup = function() {    
     var content = "";
-    var basicSchema = ["name", "lon", "lat", "date"];
+    //var basicSchema = ["name", "lon", "lat", "date"];
     $.each(this.featureCollection, $.proxy(function(i, feat) {
-        var attrdata = this.prepareAttributeData(feat);
+        console.log(feat);
         content += '<div class="feature-popup-table-cont ' + (i > 0 ? "hidden" : "show") + '">';
         content += '<table class="table table-striped table-condensed feature-popup-table">';
-        var nDisplayed = 0;
-        $.each(basicSchema, $.proxy(function(idx, elt) {
-            var coreKey = attrdata.core[elt];
-            if (coreKey) {
-                nDisplayed++;
-                var coreVal = attrdata.attrs[coreKey];
-                if (coreVal) {
-                    if ($.isNumeric(coreVal)) {
-                        content += '<tr><td>' + magic.modules.Common.initCap(coreKey) + '</td><td align="right">' + coreVal + '</td></tr>';
-                    } else {
-                        content += '<tr><td>' + magic.modules.Common.initCap(coreKey) + '</td><td>' + magic.modules.Common.linkify(coreVal) + '</td></tr>';
-                    }   
-                }
+        var nDisplayed = 0, nAttrs = -1;
+        if (feat.layer) {            
+            var md = feat.layer.get("metadata");
+            if (md && $.isArray(md.attribute_map)) {
+                nAttrs = md.attribute_map.length;
+                $.each(md.attribute_map, $.proxy(function(idx, attrdata) {
+                    if (attrdata.displayed === true) {
+                        var nameStr = attrdata.alias || attrdata.name;
+                        if (attrdata.type == "xsd:string") {
+                            content += '<tr><td>' + nameStr + '</td><td>' + magic.modules.Common.linkify(feat[attrdata.name]) + '</td></tr>';
+                        } else {                            
+                            content += '<tr><td>' + nameStr + '</td><td align="right">' + this.attributeValue(attrdata.name, feat[attrdata.name]) + '</td></tr>';
+                        }
+                        nDisplayed++;
+                    }
+                }, this));
             }
-        }, this));
-        var totalKeys = magic.modules.Common.objectLength(attrdata.attrs);
-        if (totalKeys > nDisplayed) {
+        }
+        if (nAttrs == -1 || nAttrs > nDisplayed) {
             content += '<tr><td colspan="2" align="center"><button type="button" id="' + this.popupId + '-full-attr-set-' + i + '" class="btn btn-primary btn-xs">Full attribute set</button></td></tr>';
         }
         content += '</table>';
@@ -222,14 +228,16 @@ magic.classes.FeaturePopup.prototype.selectFeature = function() {
         var fidx = parseInt(btnId.substring(btnId.lastIndexOf("-")+1));
         if (!isNaN(fidx) && fidx < this.featureCollection.length) {
             /* Got an index into the current feature collection */
-            var attrdata = this.prepareAttributeData(this.featureCollection[fidx]);
+            var attrdata = this.featureCollection[fidx];
             var keys = [];
-            for (var k in attrdata.attrs) {
-                keys.push(k);
+            for (var k in attrdata) {
+                if (k != "layer" && k != "bbox" && k != "geometry") {
+                    keys.push(k);
+                }
             }
             var content = '<table class="table table-striped table-condensed feature-popup-table">';
             $.each(keys.sort(), function(idx, key) {
-                var value = attrdata.attrs[key];
+                var value = attrdata[key];
                 if (value) {
                     if ($.isNumeric(value)) {                        
                         content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td align="right">' + value + '</td></tr>';
@@ -304,95 +312,23 @@ magic.classes.FeaturePopup.prototype.fixPopoverPosition = function() {
 };
 
 /**
- * Scan data object to isolate name, lon, lat values if possible
- * @param {Object} attrs feature attributes
+ * Apply preferences (using some guesswork) to an attribute whose key and value are supplied
+ * @param {string} key
+ * @param {string} value
+ * @returns {string}
  */
-magic.classes.FeaturePopup.prototype.prepareAttributeData = function(attrs) {
-    var coreAttrs = {
-        name: null,
-        lon: null,
-        lat: null,
-        date: null
-    }, fullAttrs = {}; 
-    var geomType = attrs["__geomtype"];
-    if (geomType && geomType != "unknown") {
-        /* Sieve the attributes according to type, and cull unimportant ones */
-        var sieve = {
-            ints: [],
-            floats: [],
-            dates: [],
-            strings: []
-        };
-        $.each(attrs, $.proxy(function(key, value) {
-            if (!this.isCullable(key)) {
-                if ($.isNumeric(value)) {
-                    if (Math.floor(value) == value) {
-                        sieve.ints.push(key);
-                    } else {
-                        sieve.floats.push(key);
-                    }
-                } else if (!isNaN(Date.parse(value))) {
-                    sieve.dates.push(key);
-                } else {
-                    sieve.strings.push(key);
-                }            
-            }
-        }, this));
-        /* Now have a sieve of attributes sorted by type */
-        $.each(sieve.ints, $.proxy(function(idx, key) {        
-            fullAttrs[key] = parseInt(attrs[key]);               
-        }, this));
-        $.each(sieve.floats, $.proxy(function(idx, key) {
-            if (geomType == "point" && magic.modules.Common.isLongitudeLike(key)) {
-                fullAttrs[key] = magic.runtime.preferences.applyPref("coordinates", parseFloat(attrs[key]).toFixed(4), "lon");
-                if (coreAttrs.lon == null) {
-                    coreAttrs.lon = key;
-                }
-            } else if (geomType == "point" && magic.modules.Common.isLatitudeLike(key)) {
-                fullAttrs[key] = magic.runtime.preferences.applyPref("coordinates", parseFloat(attrs[key]).toFixed(4), "lat");
-                if (coreAttrs.lat == null) {
-                    coreAttrs.lat = key;
-                }
-            } else {
-                fullAttrs[key] = parseFloat(attrs[key]).toFixed(2);
-            }       
-        }, this));
-        $.each(sieve.dates, $.proxy(function(idx, key) {
-            fullAttrs[key] = magic.runtime.preferences.applyPref("dates", attrs[key]);
-            if (magic.modules.Common.isDatetimeLike(key) && coreAttrs.date == null) {
-                coreAttrs.date = key;
-            }        
-        }, this));
-        $.each(sieve.strings, $.proxy(function(idx, key) {
-            fullAttrs[key] = attrs[key];
-            if (magic.modules.Common.isNameLike(key) && attrs[key] && new RegExp("^[A-Za-z0-9 -_]+$").test(attrs[key]) && coreAttrs.name == null) {
-                coreAttrs.name = key;
-            }        
-        }, this));
-        if (coreAttrs.name == null) {
-            /* Name will be the first string value */
-            coreAttrs.name = sieve.strings[0];
-        }   
-    }
-    return({
-        attrs: fullAttrs,   /* Processed key/value pairs */
-        core: coreAttrs     /* Keys for the core attributes */
-    });
-};
-
-/**
- * Is this an important attribute or one that can be ignored?
- * @param {string} attrKey
- * @returns {Boolean}
- */
-magic.classes.FeaturePopup.prototype.isCullable = function(attrKey) {
-    var cull = ["^id$", "^gid$", "^bbox$", "^geom.*$", "^__.*$", "^bounded.*$"];
-    attrKey = attrKey.toLowerCase();
-    for (var i = 0; i < cull.length; i++) {
-        var patt = new RegExp(cull[i]);
-        if (patt.test(attrKey)) {
-            return(true);
+magic.classes.FeaturePopup.prototype.attributeValue = function(key, value) {
+    var newValue = "";
+    if (value != null && value != "" && value != undefined) {
+        if (magic.modules.Common.isLongitudeLike(key)) {
+            newValue = magic.runtime.preferences.applyPref("coordinates", parseFloat(value).toFixed(4), "lon");
+        } else if (magic.modules.Common.isLatitudeLike(key)) {
+            newValue = magic.runtime.preferences.applyPref("coordinates", parseFloat(value).toFixed(4), "lat");
+        } else if (magic.modules.Common.isDatetimeLike(key)) {
+            newValue = magic.runtime.preferences.applyPref("dates", value);
+        } else {
+            newValue = value;
         }
     }
-    return(false);
+    return(newValue);
 };

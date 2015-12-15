@@ -65,6 +65,8 @@ magic.classes.AppContainer = function () {
     magic.runtime.controls = new magic.classes.ControlButtonRibbon(magic.runtime.mapdata.controls);
 
     /* Create a popup overlay and add handler to show it on clicking a feature */
+    magic.runtime.featureinfotool = new magic.classes.FeatureInfoTool();
+    magic.runtime.featureinfotool.activate();
     //magic.runtime.featureinfo = new magic.classes.FeaturePopup();
 
     /* Create an attribution modal for legend/metadata */
@@ -73,32 +75,30 @@ magic.classes.AppContainer = function () {
     /* Create WGS84 inset map with single OSM layer */
     //magic.runtime.inset = new magic.classes.InsetMap({wms: payload.sources.wms, ws: payload.sources.workspace});
 
+    magic.runtime.geosearch = null;
     if ($.inArray("geosearch", magic.runtime.mapdata.controls) != -1 && $.isArray(magic.runtime.mapdata.gazetteers) && magic.runtime.mapdata.gazetteers.length > 0) {
         /* Activate geosearch */
-        magic.runtime.map_interaction_tools.push(new magic.classes.Geosearch({
-            gazetteers: magic.runtime.mapdata.gazetteers,
-            target: "geosearch-tool"
-        }));
+        magic.runtime.geosearch = new magic.classes.Geosearch({gazetteers: magic.runtime.mapdata.gazetteers, target: "geosearch-tool"});
+        magic.runtime.map_interaction_tools.push(magic.runtime.geosearch);
     } else {
         /* Hide the geosearch button */
         $("#geosearch-tool").closest("li").hide();
     }
 
+    magic.runtime.measurement = null;
     if ($.inArray("measurement", magic.runtime.mapdata.controls) != -1) {
         /* Activate measuring tool */
-        magic.runtime.map_interaction_tools.push(new magic.classes.Measurement({
-            target: "measure-tool"
-        }));
+        magic.runtime.measurement = new magic.classes.Measurement({target: "measure-tool"});
+        magic.runtime.map_interaction_tools.push(magic.runtime.measurement);
     } else {
         /* Hide the measure tool button */
         $("#measure-tool").closest("li").hide();
     }
 
+    magic.runtime.overview = null;
     if ($.inArray("overview_map", magic.runtime.mapdata.controls) != -1) {
         /* Activate overview map tool */
-        magic.runtime.overview = new magic.classes.OverviewMap({
-            target: "overview-map-tool"
-        });
+        magic.runtime.overview = new magic.classes.OverviewMap({target: "overview-map-tool"});
         magic.runtime.overview.setEnabledStatus();
     } else {
         /* Hide the overview map button */
@@ -177,21 +177,41 @@ magic.classes.AppContainer = function () {
         });
     }
 
-    /* Listen for controls being activated */
-//    $(document).on("mapinteractionactivated", function (evt, tool) {
-//        if (evt) {
-//            $.each(magic.runtime.map_interaction_tools, function (mti, mt) {
-//                if (tool != mt) {
-//                    if ($.isFunction(mt.deactivate)) {
-//                        mt.deactivate();
-//                    }
-//                    if ($.isFunction(mt.getTarget)) {
-//                        mt.getTarget().popover("hide");
-//                    }
-//                }
-//            });
-//        }
-//    });
+    /* Listen for controls being activated/deactivated */
+    $(document).on("mapinteractionactivated", function (evt, tool) {
+        if (evt) {
+            $.each(magic.runtime.map_interaction_tools, function (mti, mt) {
+                if (tool != mt) {
+                    /* Deactivate tool and remove popover if required */
+                    if ($.isFunction(mt.deactivate)) {
+                        mt.deactivate(true);
+                    }
+                    if ($.isFunction(mt.getTarget)) {
+                        mt.getTarget().popover("hide");
+                    }
+                }
+            });
+            if (tool != magic.runtime.measurement) {
+                /* Allow clicking on features (gets in the way bigtime when measuring!) */
+                magic.runtime.featureinfotool.activate();
+            } else {
+                magic.runtime.featureinfotool.deactivate();
+            }
+        }
+    });
+    $(document).on("mapinteractiondeactivated", function (evt, tool) {
+        if (evt) {
+            var nActive = 0;
+            $.each(magic.runtime.map_interaction_tools, function (mti, mt) {
+                if ($.isFunction(mt.isActive) && mt.isActive()) {
+                    nActive++;
+                }
+            });
+            if (nActive == 0) {
+                magic.runtime.featureinfotool.activate();
+            }
+        }
+    });
 };
 
 /**

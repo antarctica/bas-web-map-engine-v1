@@ -237,11 +237,14 @@ magic.classes.Measurement.prototype.isActive = function() {
 
 /**
  * Handle the "go" button click to start a measurement sketch according to current action
+ * @param {boolean} quiet whether to fire event
  */
-magic.classes.Measurement.prototype.activate = function() {
+magic.classes.Measurement.prototype.activate = function(quiet) {
     
-    /* Trigger mapinteractionactivated event */
-    $(document).trigger("mapinteractionactivated", [this]);  
+    if (!quiet) {
+        /* Trigger mapinteractionactivated event */
+        $(document).trigger("mapinteractionactivated", [this]);  
+    }
     
     this.active = true;
 
@@ -293,8 +296,9 @@ magic.classes.Measurement.prototype.activate = function() {
 
 /**
  * Handle stopping the measurement operation
+ * @param {boolean} quiet whether to fire event
  */
-magic.classes.Measurement.prototype.deactivate = function() {
+magic.classes.Measurement.prototype.deactivate = function(quiet) {
     
     this.active = false;
 
@@ -329,6 +333,11 @@ magic.classes.Measurement.prototype.deactivate = function() {
         $(element).popover("destroy");
         magic.runtime.map.un("singleclick", this.queryElevation, this);
         magic.runtime.map.un("moveend", $.proxy(this.destroyPopup, this));
+    }
+    
+    if (!quiet) {
+        /* Trigger mapinteractiondeactivated event */
+        $(document).trigger("mapinteractiondeactivated", [this]);  
     }
 };
 
@@ -451,6 +460,7 @@ magic.classes.Measurement.prototype.queryElevation = function(evt) {
         var demFeats = $.map(this.demLayers, function(l, idx) {
             return(l.get("metadata").source.feature_name);
         });
+        /* TODO - may need a proxy in some cases */
         var url = this.demLayers[0].getSource().getGetFeatureInfoUrl(
             evt.coordinate, viewResolution, magic.runtime.view.getProjection().getCode(),
             {

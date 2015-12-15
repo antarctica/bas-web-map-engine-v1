@@ -114,7 +114,11 @@ magic.classes.creator.LayerAttributeMap.prototype.ogcLoadContext = function(cont
         /* Get the feature type attributes from DescribeFeatureType */
         this.attribute_dictionary[id] = [];
         this.type_dictionary[id] = null;
-        $.get(wms.replace("wms", "wfs") + "?request=DescribeFeatureType&typename=" + feature, $.proxy(function(response) {                        
+        var url = wms.replace("wms", "wfs") + "?request=DescribeFeatureType&typename=" + feature;
+        if (magic.modules.Common.PROXY_ENDPOINTS[wms] === true) {
+            url = magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(url);
+        }
+        $.get(url, $.proxy(function(response) {                        
             var elts = $(response).find("sequence").find("element");
             var geomType = "unknown";
             $.each(elts, $.proxy(function(idx, elt) {
