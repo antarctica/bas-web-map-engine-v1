@@ -174,7 +174,6 @@ magic.classes.LayerTree.prototype.setCollapsed = function (collapsed) {
  */
 magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
     $.each(nodes, $.proxy(function (i, nd) {
-        var indent = 12 * depth;
         if ($.isArray(nd.layers)) {
             /* Style a group */
             var title = (nd.expanded ? "Collapse" : "Expand") + " this group";
@@ -184,7 +183,6 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                     ((element.length > 0 && element[0].tagName.toLowerCase() == "ul") ? '<li class="list-group-item layer-list-group-group" id="layer-item-' + nd.id + '">' : "") +
                     '<div class="panel ' + hbg + ' center-block" style="width:96%;margin-bottom:5px;' + topMargin + '">' +
                     '<div class="panel-heading" id="layer-group-heading-' + nd.id + '">' +
-                    '<span style="display:inline-block;width:' + indent + 'px"></span>' +
                     '<span class="icon-layers"></span>' +
                     (nd.base ? '<span style="margin:5px"></span>' : '<input class="layer-vis-group-selector" id="group-cb-' + nd.id + '" type="checkbox" />') +
                     '<span class="panel-title layer-group-panel-title" data-toggle="tooltip" data-placement="right" title="' + title + '">' +
@@ -226,7 +224,6 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
             element.append(
                     '<li class="list-group-item layer-list-group-item" id="layer-item-' + nd.id + '">' +
                     '<span style="float:left">' +
-                    '<span style="display:inline-block;width:' + indent + 'px"></span>' +
                     '<span id="layer-info-' + nd.id + '" ' +
                     'class="fa fa-info-circle' + (isInteractive ? ' clickable' : ' non-clickable') + '" ' +
                     'data-toggle="tooltip" data-placement="right" data-html="true" ' +
@@ -294,20 +291,37 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                 this.layersBySource[isBase ? "base" : "wms"].push(layer);
             } else if (nd.source.geojson_source) {
                 /* GeosJSON layer */
-                if (nd.source.geojson_source.feature_name) {
+                if (nd.source.feature_name) {
                     /* WFS */
+                    var format = new ol.format.GeoJSON();
+                    var vectorSource = new ol.source.Vector({
+                        format: format,
+                        loader: function(extent, resolution, projection) {
+                            var url = nd.source.geojson_source + "?service=wfs&request=getfeature&outputFormat=application/json&" + 
+                                "typename=" + nd.source.feature_name + "&" + 
+                                "srsname=" + projection.getCode() + "&";
+                            if (magic.runtime.filters[nd.name]) {
+                                url += "cql_filter=" + magic.runtime.filters[nd.name] + " AND BBOX(geom," + extent.join(",") + ")";
+                            } else {
+                                url += "bbox=" + extent.join(",");
+                            }     
+                            if (magic.modules.Common.PROXY_ENDPOINTS[url] === true) {
+                                url = magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(url);
+                            }
+                            $.ajax({
+                                url: url,
+                                method: "GET"
+                            }).done(function(response) {
+                                vectorSource.addFeatures(format.readFeatures(response));
+                            });
+                        },                        
+                        projection: magic.runtime.view.getProjection()
+                    });
                     layer = new ol.layer.Vector({
                         name: nd.name,
                         visible: nd.is_visible,
-                        source: new ol.source.ImageVector({
-                            source: new ol.source.Vector({
-                                format: new ol.format.WFS({                                   
-                                    // TODO
-                                }),
-                                url: nd.source.geojson_source
-                            }),
-                            style: this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map)) 
-                        }),
+                        source: vectorSource,
+                        style: this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map)) ,
                         metadata: nd
                     });
                 } else {

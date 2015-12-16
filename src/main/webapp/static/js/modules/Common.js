@@ -44,7 +44,8 @@ magic.modules.Common = function () {
             ]
         },
         PROXY_ENDPOINTS: {
-            "https://gis.ccamlr.org/geoserver/wms": true
+            "https://gis.ccamlr.org/geoserver/wms": true,
+            "https://gis.ccamlr.org/geoserver/wfs": true
         },
         /* Default local Geoserver endpoint */
         DEFAULT_GEOSERVER_WMS: {
@@ -179,6 +180,12 @@ magic.modules.Common = function () {
             $.when(effect()).done(function() {
                 btnGo.show();                            
             });                        
+        },
+        flagInputError: function(inputEl) {
+             var fg = inputEl.closest("div.form-group");
+             if (fg) {
+                 fg.removeClass("has-success").addClass("has-error");
+             }
         },
         /**
          * Put together a suitable style for an uploaded layer, distinct from the rest

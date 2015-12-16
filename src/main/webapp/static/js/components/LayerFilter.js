@@ -197,81 +197,173 @@ magic.classes.LayerFilter.prototype.setFilterOptions = function(changed, to) {
  * Construct an ECQL filter from the inputs and apply to layer
  */
 magic.classes.LayerFilter.prototype.applyFilter = function() {
+    
+    /* Reset the errors */
+    $("div.layer-filter-panel").find("div.form-group").removeClass("has-error");
+    
+    var inputComparison = $("#ftr-comparison-type-" + this.nodeid);
+    var selectOpStr = $("#ftr-op-str-" + this.nodeid);
+    var inputValStr = $("#ftr-val-str-" + this.nodeid);
+    var selectOpNum = $("#ftr-op-num-" + this.nodeid);
+    var inputValNum1 = $("#ftr-val-num1-" + this.nodeid);
+    var inputValNum2 = $("#ftr-val-num2-" + this.nodeid);
+    
     var ecql = null;          
     /* Construct a new ECQL filter based on form inputs */
     var fattr = $("#ftr-attr-" + this.nodeid).val();
-    var comparisonType = $("#ftr-comparison-type-" + this.nodeid).val();
+    var comparisonType = inputComparison.val();
     var fop = null, fval1 = null, fval2 = null, rules = [];
-    var filterString = "";
+    var filterString = null;
+    /* Validate the inputs */
     if (comparisonType == "string") {
-        fop = $("#ftr-op-str-" + this.nodeid).val();
-        fval1 = $("#ftr-val-str-" + this.nodeid).val();
-        rules.push({
-            field: "ftr-val-str-" + this.nodeid,
-            type: "required",
-            allowBlank: false
-        });
-        filterString = fattr + " " + fop + " '" + fval1;
+        fop = selectOpStr.val();
+        fval1 = inputValStr.val();       
+        if (fval1 != null && fval1 != "") {
+            filterString = fattr + " " + fop + " '" + fval1;
+        } else {
+            magic.modules.Common.flagInputError(inputValStr);
+        }        
     } else {
-        fop = $("#ftr-op-num-" + this.nodeid).val();
-        fval1 = $("#ftr-val-num1-" + this.nodeid).val();
-        rules.push({
-            field: "ftr-val-num1-" + this.nodeid,
-            type: "required",
-            allowBlank: false
-        });
-        filterString = fattr + " " + fop + " " + fval1;
-        if (fop == "between") {
-            fval2 = $("#ftr-val-num2-" + this.nodeid).val();
-            rules.push({
-                field: "ftr-val-num2-" + this.nodeid,
-                type: "required",
-                allowBlank: false
-            });
-            filterString += " and " + fval2;
-        }
+        fop = selectOpNum.val();
+        fval1 = inputValNum1.val();
+        if (fval1 != null && fval1 != "") {
+            filterString = fattr + " " + fop + " '" + fval1;
+            if (fop == "between") {
+                fval2 = inputValNum2.val();
+                if (fval2 != null && fval2 != "") {
+                    filterString += " and " + fval2;
+                } else {
+                    filterString = null;
+                    magic.modules.Common.flagInputError(inputValNum2);
+                }                
+            }
+        } else {
+            magic.modules.Common.flagInputError(inputValNum1);
+        }                
     } 
-    /* Validation rules for the lon/lat search */
-    var validation = new magic.classes.Validation({rules: rules});
-    if (validation.validateAll()) {
+    if (filterString) {
+        
+        /* Save filter */
+        magic.runtime.filters[this.layer.get("name")] = filterString;
+        
         /* Inputs ok */
         this.attr = fattr;
         this.comparison = comparisonType;
         this.op = fop;
         this.val1 = fval1;
-        this.val2 = fval2;      
-        if (comparisonType == "string") {
-            ecql = fattr + " " + fop + " '" + fval1 + (fop == "ilike" ? "%'" : "'");
-        } else {           
-            ecql = fattr + " " + fop + " " + fval1 + (fop == "between" ? " and " + fval2 : "");            
+        this.val2 = fval2; 
+        
+        var sourceMd = this.layer.get("metadata").source;
+        if (sourceMd.wms_source) {
+            /* Straightforward WMS layer */
+            if (comparisonType == "string") {
+                ecql = fattr + " " + fop + " '" + fval1 + (fop == "ilike" ? "%'" : "'");
+            } else {           
+                ecql = fattr + " " + fop + " " + fval1 + (fop == "between" ? " and " + fval2 : "");            
+            }
+            this.layer.getSource().updateParams($.extend({}, 
+                this.layer.getSource().getParams(), 
+                {"cql_filter": ecql}
+            ));
+        } else if (sourceMd.geojson_source) {
+            if (sourceMd.feature_name) {
+                /* WFS source */                
+                // TODO
+            } else {
+                /* Other GeoJSON */
+                this.filterVectorSource(this.layer.getSource().getSource());
+            }
+        } else {
+            /* GPX/KML */
+            this.filterVectorSource(this.layer.getSource().getSource());
         }
-        this.layer.getSource().updateParams($.extend({}, 
-            this.layer.getSource().getParams(), 
-            {"cql_filter": ecql}
-        ));
         $("#ftr-btn-reset-" + this.nodeid).removeClass("disabled");
         /* Show filter badge */
         $("#layer-filter-badge-" + this.nodeid).removeClass("hidden").addClass("show").attr("data-original-title", filterString).tooltip("fixTitle");        
+        /* Reset the errors */
+        $("div.layer-filter-panel").find("div.form-group").removeClass("has-error");        
     }
 };
 
 /**
  * Reset a layer filter
  */
-magic.classes.LayerFilter.prototype.resetFilter = function() {    
+magic.classes.LayerFilter.prototype.resetFilter = function() { 
+    
+    /* Reset filter */
+    magic.runtime.filters[this.layer.get("name")] = null;
+    
     /* Reset current filter on layer */    
     this.attr = null;
     this.comparison = null;
     this.op = null;
     this.val1 = null;
     this.val2 = null;
-    this.layer.getSource().updateParams($.extend({}, 
-        this.layer.getSource().getParams(),
-        {"cql_filter": null}
-    ));
+    
+    var sourceMd = this.layer.get("metadata").source;
+    if (sourceMd.wms_source) {
+        /* Straightforward WMS layer */
+        this.layer.getSource().updateParams($.extend({}, 
+            this.layer.getSource().getParams(),
+            {"cql_filter": null}
+        ));
+    } else if (sourceMd.geojson_source) {
+        if (sourceMd.feature_name) {
+            /* WFS source */                
+            this.layer.getSource().getSource().clear();
+        } else {
+            /* Other GeoJSON */
+            this.layer.getSource().getSource().clear();
+        }
+    } else {
+        /* GPX/KML */
+        this.layer.getSource().getSource().clear(); /* Why this resets the filter and doesn't clear the layer is beyond me - must be an OL bug! */
+    }    
     $("#ftr-btn-reset-" + this.nodeid).addClass("disabled");    
     /* Hide filter badge */
     $("#layer-filter-badge-" + this.nodeid).removeClass("show").addClass("hidden");
+    
 };
 
-
+/**
+ * Reload a vector layer, applying the current filter
+ * @param {ol.source.Vector} source
+ * @param {string} url
+ * @param {ol.format} format
+ */
+magic.classes.LayerFilter.prototype.filterVectorSource = function(source, url, format) {            
+    $.each(source.getFeatures(), $.proxy(function(idx, feat) {
+        var addIt = false;
+        if (this.attr != null) {
+            var attrVal = feat.get(this.attr);                
+            switch(this.op) {
+                case "ilike":
+                    addIt = attrVal.toLowerCase().indexOf(this.val1.toLowerCase()) == 0;
+                    break;
+                case "=":
+                    addIt = attrVal == this.val1;
+                    break;
+                case ">":
+                    addIt = attrVal > this.val1;
+                    break;
+                case "<":
+                    addIt = attrVal < this.val1;
+                    break;
+                case ">=":
+                    addIt = attrVal >= this.val1;
+                    break;
+                case "<=":
+                    addIt = attrVal <= this.val1;
+                    break;
+                case "between":
+                    addIt = attrVal >= this.val1 && attrVal <= this.val2;
+                    break;
+                default: 
+                    break;                        
+            }
+        }
+        if (!addIt) {
+            source.removeFeature(feat);
+        }
+    }, this));        
+};

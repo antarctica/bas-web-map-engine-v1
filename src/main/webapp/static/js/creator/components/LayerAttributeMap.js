@@ -79,7 +79,6 @@ magic.classes.creator.LayerAttributeMap.prototype.vectorLoadContext = function(c
                                 "name": akey,
                                 "type": $.isNumeric(value) ? "decimal" : "string",
                                 "nillable": true,
-                                "filter": "",
                                 "alias": "",
                                 "displayed": true,
                                 "filterable": false,
@@ -148,7 +147,7 @@ magic.classes.creator.LayerAttributeMap.prototype.saveContext = function(context
     if ($.isArray(this.attribute_dictionary[context.id])) {
         var newMap = [];
         var nAttrs = this.attribute_dictionary[context.id].length;
-        var fields = ["name", "type", "nillable", "filter", "alias", "label", "displayed", "filterable", "unique_values"];
+        var fields = ["name", "type", "nillable", "alias", "label", "displayed", "filterable", "unique_values"];
         for (var i = 0; i < nAttrs; i++) {
             var attrData = this.attribute_dictionary[context.id][i];
             if (attrData.type.indexOf("gml:") != 0) {
@@ -205,7 +204,6 @@ magic.classes.creator.LayerAttributeMap.prototype.toForm = function(id, attrMap,
             html += '<input type="hidden" id="_amap_name_' + idx + '" value="' + entry.name + '"></input>';
             html += '<input type="hidden" id="_amap_type_' + idx + '" value="' + entry.type + '"></input>';
             html += '<input type="hidden" id="_amap_nillable_' + idx + '" value="' + entry.nillable + '"></input>';
-            html += '<input type="hidden" id="_amap_filter_' + idx + '" value=""></input>';
             if (entry.type.indexOf("gml:") != 0) {
                 /* This is not the geometry field */
                 var exo = existingMap[entry.name];

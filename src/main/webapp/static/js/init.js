@@ -29,8 +29,9 @@ var magic = {
         creator: {
             catalogues: {}
         }, 
-        capabilities: {
-            
+        capabilities: {            
+        },
+        filters: {            
         },
         pingSession: function() {
             $.get(magic.config.paths.baseurl + "/ping");

@@ -481,12 +481,8 @@
 													"type": "string"
 												},
 												"unique_values": {
-													"description": "Whether to present unique values of attr in a drop-down",
+													"description": "Whether to present unique values of attr in a drop-down (not implemented in v1)",
 													"type": "boolean"
-												},
-                                                "filter": {
-													"description": "(Run-time) CQL filter on this layer attribute",
-													"type": "string"
 												}
 											},
 											"required": [

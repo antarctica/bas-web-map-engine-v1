@@ -170,7 +170,7 @@ magic.classes.creator.LayerUpdater.prototype.setActiveSourceTab = function(sourc
     var symbologyPanel = $("#" + this.prefix + "-symbology-panel");  
     $.each($("a[role='tab'][href^='#" + this.prefix + "']"), $.proxy(function(i, a) {
         var tabName = $(a).attr("href").replace("#" + this.prefix + "-", "").replace("-tab", "");
-        if (source[tabName + "_source"] && source[tabName + "_source"].indexOf("http://") == 0) {
+        if (source[tabName + "_source"] && source[tabName + "_source"].indexOf("http") == 0) {
             $(a).tab("show");
             activeTab = tabName;
             if (tabName == "wms") {
