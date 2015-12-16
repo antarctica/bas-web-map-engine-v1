@@ -242,7 +242,8 @@ magic.classes.AppContainer.prototype.initView = function() {
         resolutions: viewData.resolutions,
         rotation: viewData.rotation ? magic.modules.Common.toRadians(viewData.rotation) : 0.0,
         zoom: viewData.zoom,
-        projection: proj
+        projection: proj,
+        proj_extent: viewData.proj_extent
     };
     magic.runtime.view = new ol.View(viewDefaults);
     return(viewDefaults);

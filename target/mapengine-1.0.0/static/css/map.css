@@ -605,27 +605,9 @@ ul.layer-options-dd-menu {
     width: 240px;
 }
 
-div.layer-webgl-property-slider {
-    float: left;
-    width: 180px;
-    margin: 5px;
-}
-
-div.slider-purpose {
-    float: left;
-    width: 20px;
-    font-size: 16px;
-    padding: 4px;
-}
-
-.noUi-horizontal.noUi-extended {
-    padding-right: 32px;
-}
-.noUi-horizontal.noUi-extended .noUi-handle {
-    left: -1px;
-}
-.noUi-horizontal.noUi-extended .noUi-origin  {
-    right: -32px;
+.layer-options-slider {
+    padding-left: 15px;
+    padding-right: 15px;
 }
 
 /* Set popover max width */

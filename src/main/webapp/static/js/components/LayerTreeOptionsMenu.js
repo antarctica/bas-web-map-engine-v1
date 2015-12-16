@@ -17,8 +17,8 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
         '</li>' + 
         '<li>' + 
             '<a href="Javascript:void(0)" id="opc-' + this.nodeid + '">Change layer transparency</a>' + 
-            '<div class="hidden" id="wrapper-opc-' + this.nodeid + '">' + 
-                '<input id="opc-slider-' + this.nodeid + '" data-slider-id="" data-slider-min="0" data-slider-max="1" data-slider-step="0.1" data-slider-value="1">' + 
+            '<div class="layer-options-slider hidden" id="wrapper-opc-' + this.nodeid + '" style="">' + 
+                '<input id="opc-slider-' + this.nodeid + '" data-slider-id="opc-slider-' + this.nodeid + '" data-slider-min="0" data-slider-max="1" data-slider-step="0.1" data-slider-value="1">' + 
             '</div>' + 
         '</li>' + 
         '<li>' + 
@@ -29,32 +29,24 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
 /* Awaiting a more effective WebGL implementation in OL3 - David 22/07/15 */        
 //        '<li>' + 
 //            '<a href="Javascript:void(0)" id="brt-' + this.nodeid + '">Change layer brightness</a>' + 
-//            '<div class="hidden" id="wrapper-brt-' + this.nodeid + '">' + 
-//                '<div class="icon-brightness slider-purpose" data-toggle="tooltip" data-placement="top" title="Layer brightness none"></div>' + 
-//                '<div class="noUi-extended layer-webgl-property-slider" id="brt-slider-' + this.nodeid + '"></div>' + 
-//                '<div class="icon-brightnessfull slider-purpose" data-toggle="tooltip" data-placement="top" title="Layer brightness full"></div>' +
+//            '<div class="layer-options-slider hidden" id="wrapper-brt-' + this.nodeid + '" style="">' + 
+//                '<input id="brt-slider-' + this.nodeid + '" data-slider-id="brt-slider-' + this.nodeid + '" data-slider-min="-1" data-slider-max="1" data-slider-step="0.2" data-slider-value="0">' + 
 //            '</div>' + 
 //        '</li>' + 
 //        '<li>' + 
 //            '<a href="Javascript:void(0)" id="ctr-' + this.nodeid + '">Change layer contrast</a>' + 
-//            '<div class="hidden" id="wrapper-ctr-' + this.nodeid + '">' + 
-//                '<div class="fa fa-circle-o slider-purpose" data-toggle="tooltip" data-placement="top" title="Layer contrast none"></div>' + 
-//                '<div class="noUi-extended layer-webgl-property-slider" id="ctr-slider-' + this.nodeid + '"></div>' + 
-//                '<div class="fa fa-circle slider-purpose" data-toggle="tooltip" data-placement="top" title="Layer contrast full"></div>' + 
-//            '</div>' + 
+//            '<div class="layer-options-slider hidden" id="wrapper-ctr-' + this.nodeid + '" style="">' + 
+//                '<input id="ctr-slider-' + this.nodeid + '" data-slider-id="ctr-slider-' + this.nodeid + '" data-slider-min="0" data-slider-max="10" data-slider-step="1" data-slider-value="5">' + 
+//            '</div>' +
 //        '</li>'  
     );
     /* Handlers */
     /* Zoom to layer extent */
     if (this.layer.getVisible()) {
         /* Layer is visible on the map */
-        $("#ztl-" + this.nodeid).off("click").on("click", $.proxy(function(evt) {
-            // TODO - GetCapabilities is the only way... */
-            var extent = this.extentFromMetadata();
-            if (extent) {    
-                magic.runtime.map.getView().fit(extent, magic.runtime.map.getSize());
-            }
-        }, this));
+        $("#ztl-" + this.nodeid).off("click").on("click", $.proxy(this.getExtent, this, [this.layer, function(layer, extent) {
+            magic.runtime.map.getView().fit(extent, magic.runtime.map.getSize());
+        }]));
     } else {
         /* Layer invisible, so option is unavailable */
         $("#ztl-" + this.nodeid).parent().addClass("disabled");
@@ -81,30 +73,30 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
     /* Contrast control */
     //this.addWebglSliderHandler("ctr", 0.0, 10.0, 1.0);
     /* Time series moview player */
-    if (this.layer.get("metadata")["timeseries"] === false || !this.layer.getVisible()) {
-        /* Hide time series player for layer where it isn't possible */
-        $("#tss-" + this.nodeid).parent().addClass("disabled");
-    } else {
-        $("#tss-" + this.nodeid).off("click").on("click", $.proxy(function(evt) {
-            evt.stopPropagation();
-            var staticService = this.layer.get("metadata")["staticservice"];
-            if (staticService) {
-                new magic.classes.StaticTimeSeriesPlayer({               
-                    target: $(evt.currentTarget).next("div"),
-                    nodeid: this.nodeid,
-                    service: staticService,
-                    extent: this.layer.get("metadata")["bboxsrs"],
-                    layer: this.layer             
-                });      
-            } else {
-                new magic.classes.MosaicTimeSeriesPlayer({               
-                    target: $(evt.currentTarget).next("div"),
-                    nodeid: this.nodeid,
-                    layer: this.layer             
-                });                  
-            }
-        }, this));
-    }
+//    if (this.layer.get("metadata")["timeseries"] === false || !this.layer.getVisible()) {
+//        /* Hide time series player for layer where it isn't possible */
+//        $("#tss-" + this.nodeid).parent().addClass("disabled");
+//    } else {
+//        $("#tss-" + this.nodeid).off("click").on("click", $.proxy(function(evt) {
+//            evt.stopPropagation();
+//            var staticService = this.layer.get("metadata")["staticservice"];
+//            if (staticService) {
+//                new magic.classes.StaticTimeSeriesPlayer({               
+//                    target: $(evt.currentTarget).next("div"),
+//                    nodeid: this.nodeid,
+//                    service: staticService,
+//                    extent: this.layer.get("metadata")["bboxsrs"],
+//                    layer: this.layer             
+//                });      
+//            } else {
+//                new magic.classes.MosaicTimeSeriesPlayer({               
+//                    target: $(evt.currentTarget).next("div"),
+//                    nodeid: this.nodeid,
+//                    layer: this.layer             
+//                });                  
+//            }
+//        }, this));
+//    }
 };
 
 /**
@@ -152,21 +144,102 @@ magic.classes.LayerTreeOptionsMenu.prototype.addWebglSliderHandler = function(id
 };
 
 /**
- * Extract a layer extent in the map SRS from layer metadata, if available
- * @returns {ol.extent|Array}
+ * Extract feature types from GetCapabilities response
+ * @param {object} getCaps
+ * @returns {Array}
  */
-magic.classes.LayerTreeOptionsMenu.prototype.extentFromMetadata = function() {
-    var extent = null;
-    var md = this.layer.get("metadata");
-    if (md) {
-        if (md.bboxsrs) {
-            extent = md.bboxsrs;
-        } else if (md.bboxwgs84) {
-            extent = magic.modules.GeoUtils.extentFromWgs84Extent(md.bboxwgs84);
-        } else if (md.bbox) {
-            /* GPX or KML layer */
-            extent = magic.modules.GeoUtils.extentFromWgs84Extent(md.bbox);
+magic.classes.LayerTreeOptionsMenu.prototype.extractFeatureTypes = function(getCaps) {
+    var ftypes = null;
+    if ("Capability" in getCaps && "Layer" in getCaps.Capability && "Layer" in getCaps.Capability.Layer && $.isArray(getCaps.Capability.Layer.Layer)) {
+        var layers = getCaps.Capability.Layer.Layer;
+        ftypes = {};
+        $.each(layers, function(idx, layer) {
+            //console.log(layer);
+            ftypes[layer.Name] = layer;
+        });
+    }
+    return(ftypes);
+};
+
+/**
+ * Get the bounding box in the SRS
+ * @param {string} featureName
+ * @param {object} caps
+ * @returns {Array}
+ */
+magic.classes.LayerTreeOptionsMenu.prototype.bboxOfLayer = function(featureName, caps) {
+    var bbox = null;
+    if (caps[featureName]) {
+        var md = caps[featureName];
+        if ($.isArray(md["BoundingBox"]) && md["BoundingBox"].length > 0) {
+            bbox = md["BoundingBox"][0]["extent"];
+        } else if ($.isArray(md["EX_GeographicBoundingBox"]) && md["EX_GeographicBoundingBox"].length == 4) {
+            bbox = magic.modules.GeoUtils.extentFromWgs84Extent(md["EX_GeographicBoundingBox"]);
+        } else {
+            bbox = magic.runtime.viewdata.proj_extent;
         }
-    }    
-    return(extent);
+    } else {
+        bbox = magic.runtime.viewdata.proj_extent;
+    }
+    return(bbox);
+};
+
+/**
+ * Extract a layer extent in the map SRS
+ * @param {Array} args layer, callback(layer, extent)
+ */
+magic.classes.LayerTreeOptionsMenu.prototype.getExtent = function(args) {
+    var layer = args[0];
+    var callback = args[1];
+    var md = layer.get("metadata");
+    if (md) {
+        if (md.source && md.source.wms_source) {
+            /* WMS layer extent needs to come from GetCapabilities */
+            var wmsUrl = md.source.wms_source;
+            if (magic.runtime.capabilities[wmsUrl]) {
+                
+            } else {
+                var parser = new ol.format.WMSCapabilities();
+                var url = wmsUrl + "?request=GetCapabilities";
+                if (magic.modules.Common.PROXY_ENDPOINTS[wmsUrl]) {
+                    url = magic.config.paths.baseurl + "/proxy?url=" + url;
+                }
+                var jqXhr = $.get(url, $.proxy(function(response) {
+                    try {
+                        var capsJson = $.parseJSON(JSON.stringify(parser.read(response)));
+                        if (capsJson) {
+                            var ftypes = this.extractFeatureTypes(capsJson);
+                            if (ftypes != null) {
+                                magic.runtime.capabilities[wmsUrl] = ftypes;
+                                callback(layer, this.bboxOfLayer(md.source.feature_name, magic.runtime.capabilities[wmsUrl]));
+                            } else {
+                                callback(layer, magic.runtime.viewdata.proj_extent);
+                            }                            
+                        } else {
+                            callback(layer, magic.runtime.viewdata.proj_extent);
+                        }
+                    } catch(e) {
+                        callback(layer, magic.runtime.viewdata.proj_extent);
+                    }
+                }, this)).fail(function() {
+                    callback(layer, magic.runtime.viewdata.proj_extent);
+                });
+            }
+        } else {
+            /* Vector layers have an extent enquiry method */
+            if ($.isFunction(layer.getSource().getExtent)) {
+                callback(layer, layer.getSource().getExtent());
+            } else {
+                /* Check a further level of source wrapping for ImageVector layers */
+                if (layer.getSource().getSource() && $.isFunction(layer.getSource().getSource().getExtent)) {
+                    callback(layer, layer.getSource().getSource().getExtent());
+                } else {
+                    callback(layer, magic.runtime.viewdata.proj_extent);
+                }
+            }
+        }
+    } else {
+        /* Default to projection extent */
+        callback(layer, magic.runtime.viewdata.proj_extent);
+    }   
 };
