@@ -197,11 +197,11 @@ img.applogo {
 }
 
 .clickable {    
-    color: #ff0000;
+    color: #c9302c;
 }
 
 .non-clickable {
-    color: #000000;
+    color: #303030;
 }
 
 div.layer-group-panel {
@@ -254,7 +254,7 @@ a.layer-group-tool:hover {
 
 span.filter-badge {
     float: left !important;
-    background-color: #ff0000;
+    background-color: #c9302c;
     color: #ffffff;
     margin-right: 5px;
 }
@@ -663,13 +663,6 @@ a.layer-group-tool {
 
 a.layer-group-tool:hover {
     text-decoration: underline;
-}
-
-span.filter-badge {
-    float: left !important;
-    background-color: #ff0000;
-    color: #ffffff;
-    margin-right: 5px;
 }
 
 a.download-file-tool:hover {

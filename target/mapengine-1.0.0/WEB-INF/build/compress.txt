@@ -1,6 +1,6 @@
 css/ol.css
 css/bootstrap.min.css
-css/nouislider.min.css
+css/bootstrap-slider.min.css
 css/prettify.css
 css/nav.css
 css/map.css
@@ -11,12 +11,10 @@ js/ellipsoid/ellipsoid.js
 js/jquery.js
 js/vector.js
 js/proj4.js
-js/proj4defs/3031.js
-js/proj4defs/3762.js
-js/proj4defs/3995.js
+js/proj4defs
 js/bootstrap.min.js
 js/typeahead.bundle.min.js
-js/nouislider.min.js
+js/bootstrap-slider.min.js
 js/bootbox.min.js
 js/prettify.js
 js/init.js

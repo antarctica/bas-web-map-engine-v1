@@ -52,10 +52,8 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
         $("#ztl-" + this.nodeid).parent().addClass("disabled");
     }
     /* Filter layer */
-    if (this.layer.get("metadata")["filterable"] === false || !this.layer.getVisible()) {
-        /* Hide filter link for layer where it isn't possible */
-        $("#ftr-" + this.nodeid).parent().addClass("disabled");
-    } else {
+    var md = this.layer.get("metadata");
+    if (this.layer.getVisible() && md.is_filterable === true && $.isArray(md.attribute_map)) {
         $("#ftr-" + this.nodeid).off("click").on("click", $.proxy(function(evt) {
             evt.stopPropagation();
             new magic.classes.LayerFilter({               
@@ -64,6 +62,9 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
                 layer: this.layer
             });                       
         }, this));
+    } else {
+        /* Hide filter link for layer where it isn't possible */
+        $("#ftr-" + this.nodeid).parent().addClass("disabled");        
     }
     /* Transparency control */
     this.addWebglSliderHandler("opc", 0.0, 1.0, 0.1);
