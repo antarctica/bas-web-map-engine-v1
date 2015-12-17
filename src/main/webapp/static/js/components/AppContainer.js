@@ -67,10 +67,9 @@ magic.classes.AppContainer = function () {
     /* Create a popup overlay and add handler to show it on clicking a feature */
     magic.runtime.featureinfotool = new magic.classes.FeatureInfoTool();
     magic.runtime.featureinfotool.activate();
-    //magic.runtime.featureinfo = new magic.classes.FeaturePopup();
 
     /* Create an attribution modal for legend/metadata */
-    //magic.runtime.attribution = new magic.classes.AttributionModal({target: "attribution-modal", wms: payload.sources.wms});
+    magic.runtime.attribution = new magic.classes.AttributionModal({target: "attribution-modal"});
 
     /* Create WGS84 inset map with single OSM layer */
     //magic.runtime.inset = new magic.classes.InsetMap({wms: payload.sources.wms, ws: payload.sources.workspace});

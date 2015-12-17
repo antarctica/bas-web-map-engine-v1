@@ -29,7 +29,7 @@ public class HomeController {
      */
     @RequestMapping(value = "/home", method = RequestMethod.GET)
     public String home(HttpServletRequest request) throws ServletException, IOException {
-        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "MAGIC Web Mapping Home requested by anonymous");
+        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "MAGIC Web Mapping Home requested by " + getUserName(request));
         return("home");        
     }        
         
@@ -45,8 +45,10 @@ public class HomeController {
     @RequestMapping(value = "/home/{map}", method = RequestMethod.GET)
     public String mapHome(HttpServletRequest request, @PathVariable("map") String map, ModelMap model) throws ServletException, IOException {    
         request.getSession().setAttribute("map", map);
+        String username = getUserName(request);
         model.addAttribute("map", map);
-        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Public map " + map + " requested by anonymous");
+        model.addAttribute("username", username);
+        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Public map " + map + " requested by " + username);
         return("map");
     }
     
@@ -62,9 +64,11 @@ public class HomeController {
     @RequestMapping(value = "/homed/{map}", method = RequestMethod.GET)
     public String mapHomeDebug(HttpServletRequest request, @PathVariable("map") String map, ModelMap model) throws ServletException, IOException {    
         request.getSession().setAttribute("map", map);
+        String username = getUserName(request);
         model.addAttribute("map", map);
+        model.addAttribute("username", username);
         model.addAttribute("debug", true);
-        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Public map " + map + " (debug) requested by " + getUserName(request));
+        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Public map " + map + " (debug) requested by " + username);
         return("map");
     }
         
@@ -91,7 +95,7 @@ public class HomeController {
         if (p != null) {
             return(p.getName());
         }
-        return(null);
+        return("guest");
     }
 
 }

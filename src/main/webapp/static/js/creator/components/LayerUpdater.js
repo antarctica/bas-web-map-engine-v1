@@ -51,11 +51,7 @@ magic.classes.creator.LayerUpdater = function(prefix) {
        
     /* Add update layer group button handler */    
     var btnUpdateLayer = $("#" + this.prefix + "-save");
-    btnUpdateLayer.prop("disabled", true);     
-    $("[id^='" + this.prefix + "']").filter(":input").on("change keyup", function() {
-        /* Update button enabled when anything in the form changes */
-        btnUpdateLayer.prop("disabled", false);
-    });                                
+    btnUpdateLayer.prop("disabled", true);                                     
     btnUpdateLayer.click($.proxy(function(evt) {
         if (this.data) {
             /* Update dictionary entry */
@@ -113,6 +109,12 @@ magic.classes.creator.LayerUpdater.prototype.loadContext = function(context) {
     }   
     this.attribute_map.loadContext(this.data, activeTab); 
     this.style_definition.loadContext(this.data.source.style_definition);
+    
+    var btnUpdateLayer = $("#" + this.prefix + "-save");
+    $("[id^='" + this.prefix + "']").filter(":input").on("change keyup", function() {
+        /* Update button enabled when anything in the form changes */
+        btnUpdateLayer.prop("disabled", false);
+    });    
 };
 
 /**
@@ -220,7 +222,7 @@ magic.classes.creator.LayerUpdater.prototype.populateWmsDataSources = function(w
     if (!magic.runtime.creator.catalogues[wmsUrl]) {
         var parser = new ol.format.WMSCapabilities();
         var url = wmsUrl + "?request=GetCapabilities";
-        if (magic.modules.Common.PROXY_ENDPOINTS[wmsUrl]) {
+        if (magic.modules.Common.proxy_endpoints[wmsUrl]) {
             url = magic.config.paths.baseurl + "/proxy?url=" + url;
         }
         var jqXhr = $.get(url, $.proxy(function(response) {
@@ -279,8 +281,8 @@ magic.classes.creator.LayerUpdater.prototype.populateWmsSourceSelector = functio
     select.find("option").remove();
     var proj = magic.modules.creator.Common.map_context.getProjection();
     if (proj) {
-        var eps = magic.modules.Common.WMS_ENDPOINTS[proj].slice(0);
-        eps.unshift(magic.modules.Common.DEFAULT_GEOSERVER_WMS);
+        var eps = magic.modules.Common.wms_endpoints[proj].slice(0);
+        eps.unshift(magic.modules.Common.default_geoserver_wms);
         magic.modules.Common.populateSelect(select, eps, "wms", "name", defval);
     } else {
         bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">No projection defined for map</div>');

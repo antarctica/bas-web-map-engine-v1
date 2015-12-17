@@ -40,8 +40,8 @@ magic.modules.creator.Tab4 = function () {
                     projection: proj
                 });
                 
-                var wms = magic.modules.Common.WMS_ENDPOINTS[context.data.projection][0]["wms"];
-                var coasts = magic.modules.Common.WMS_ENDPOINTS[context.data.projection][0]["coast"];
+                var wms = magic.modules.Common.wms_endpoints[context.data.projection][0]["wms"];
+                var coasts = magic.modules.Common.wms_endpoints[context.data.projection][0]["coast"];
                 var layers = [];
                 $.each(coasts, function(idx, cl) {
                     var wmsSource = new ol.source.TileWMS({

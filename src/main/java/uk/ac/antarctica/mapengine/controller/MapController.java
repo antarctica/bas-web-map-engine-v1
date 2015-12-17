@@ -94,16 +94,16 @@ public class MapController {
             if (username == null) {
                 ret = packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to perform this action");
             } else {
-                userMapData = magicDataTpl.queryForList("SELECT id, title FROM " +  MAPDEFS + " WHERE owner_name=? ORDER BY title", username);
+                userMapData = magicDataTpl.queryForList("SELECT name, title FROM " +  MAPDEFS + " WHERE owner_name=? ORDER BY title", username);
             }
         } else if (action.equals("clone") || action.equals("view")) {
             if (username == null) {
                 /* Guests can clone or view public maps */
-                userMapData = magicDataTpl.queryForList("SELECT id, title FROM " +  MAPDEFS + " WHERE allowed_usage='public' ORDER BY title", username);
+                userMapData = magicDataTpl.queryForList("SELECT name, title FROM " +  MAPDEFS + " WHERE allowed_usage='public' ORDER BY title", username);
             } else {
                 /* Logged in users can clone public, restricted maps and ones they own */
                 String where = "allowed_usage='public' OR allowed_usage='login' OR (allowed_usage='owner' AND owner_name=?)";
-                userMapData = magicDataTpl.queryForList("SELECT id, title FROM " +  MAPDEFS + " WHERE " + where + " ORDER BY title", username);
+                userMapData = magicDataTpl.queryForList("SELECT name, title FROM " +  MAPDEFS + " WHERE " + where + " ORDER BY title", username);
             }
         } else {
             ret = packageResults(HttpStatus.BAD_REQUEST, null, "Unrecognised action " + action);

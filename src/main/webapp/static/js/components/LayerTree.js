@@ -103,15 +103,7 @@ magic.classes.LayerTree = function (target) {
             nodeid: nodeid,
             layer: this.nodeLayerTranslation[nodeid]
         });
-    }, this));
-
-    /* Change tooltip for collapsible panels */
-    $("div[id^='layer-group-panel-']").on("shown.bs.collapse", $.proxy(function (evt) {
-        var tgt = $(evt.currentTarget);
-        var tt = (tgt.hasClass("in") ? "Collapse" : "Expand") + " this group";
-        tgt.parent().first().find("span.panel-title").attr("data-original-title", tt).tooltip("fixTitle");
-        evt.stopPropagation();
-    }, this));
+    }, this));   
 
     /* Change tooltip for collapsible panels */
     $("div[id^='layer-group-panel-']").on("hidden.bs.collapse", $.proxy(function (evt) {
@@ -305,7 +297,7 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                             } else {
                                 url += "bbox=" + extent.join(",");
                             }     
-                            if (magic.modules.Common.PROXY_ENDPOINTS[url] === true) {
+                            if (magic.modules.Common.proxy_endpoints[url] === true) {
                                 url = magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(url);
                             }
                             $.ajax({

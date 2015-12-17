@@ -114,7 +114,7 @@ magic.classes.creator.LayerAttributeMap.prototype.ogcLoadContext = function(cont
         this.attribute_dictionary[id] = [];
         this.type_dictionary[id] = null;
         var url = wms.replace("wms", "wfs") + "?request=DescribeFeatureType&typename=" + feature;
-        if (magic.modules.Common.PROXY_ENDPOINTS[wms] === true) {
+        if (magic.modules.Common.proxy_endpoints[wms] === true) {
             url = magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(url);
         }
         $.get(url, $.proxy(function(response) {                        

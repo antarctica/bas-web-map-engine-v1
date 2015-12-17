@@ -62,55 +62,59 @@ magic.classes.UserPreferences = function(options) {
         if (contentDiv) {  
             contentDiv.toggleClass("hidden");
             contentDiv.html(
-                '<form class="form-horizontal" style="width: 300px; margin-top: 10px">' +
-                    '<div class="form-group form-group-sm col-sm-12">' +
-                        '<label class="col-sm-4" for="' + this.target + '-distance">Length</label>' + 
-                        '<div class="col-sm-8">' + 
-                            '<select id="' + this.target + '-distance" class="form-control">' +
-                                this.getOptions(this.distance_units, this.preferences.distance) + 
-                            '</select>' +                            
-                        '</div>' + 
-                    '</div>' +
-                    '<div class="form-group form-group-sm col-sm-12">' +
-                        '<label class="col-sm-4" for="' + this.target + '-area">Area</label>' +
-                        '<div class="col-sm-8">' + 
-                            '<select id="' + this.target + '-area" class="form-control">' +
-                                this.getOptions(this.area_units, this.preferences.area) +                                                       
-                            '</select>' + 
-                        '</div>' + 
-                    '</div>' +
-                    '<div class="form-group form-group-sm col-sm-12">' +
-                        '<label class="col-sm-4" for="' + this.target + '-elevation">Height</label>' + 
-                        '<div class="col-sm-8">' + 
-                            '<select id="' + this.target + '-elevation" class="form-control">' +
-                                this.getOptions(this.elevation_units, this.preferences.elevation) +                                                       
-                            '</select>' +    
-                        '</div>' + 
-                    '</div>' +
-                    '<div class="form-group form-group-sm col-sm-12">' +
-                        '<label class="col-sm-4" for="' + this.target + '-coordinates">Coords</label>' + 
-                        '<div class="col-sm-8">' + 
-                            '<select id="' + this.target + '-coordinates" class="form-control">' +
-                                this.getOptions(this.coordinate_formats, this.preferences.coordinates) +                                                       
-                            '</select>' + 
-                        '</div>' + 
-                    '</div>' +
-                    '<div class="form-group form-group-sm col-sm-12">' +
-                        '<label class="col-sm-4" for="' + this.target + '-dates">Dates</label>' + 
-                        '<div class="col-sm-8">' + 
-                            '<select id="' + this.target + '-dates" class="form-control">' +
-                                this.getOptions(this.date_formats, this.preferences.dates) +                                                       
-                            '</select>' +
-                        '</div>' + 
-                    '</div>' +
-                    '<div class="form-group form-group-sm col-sm-12" style="padding-left:30px">' +
-                        magic.modules.Common.buttonFeedbackSet(this.target, "Set preferences") +                         
-                        '<button id="' + this.target + '-cancel" class="btn btn-default btn-sm" type="button" ' + 
-                            'data-toggle="tooltip" data-placement="right" title="Cancel">' + 
-                            '<span class="fa fa-times-circle"></span>' + 
-                        '</button>' +                        
-                    '</div>' +                     
-                '</form>'
+                '<div class="panel panel-default">' +
+                    '<div class="panel-body user-preferences-panel">' + 
+                        '<form class="form-horizontal" style="width: 300px; margin-top: 10px">' +
+                            '<div class="form-group form-group-sm col-sm-12">' +
+                                '<label class="col-sm-4" for="' + this.target + '-distance">Length</label>' + 
+                                '<div class="col-sm-8">' + 
+                                    '<select id="' + this.target + '-distance" class="form-control">' +
+                                        this.getOptions(this.distance_units, this.preferences.distance) + 
+                                    '</select>' +                            
+                                '</div>' + 
+                            '</div>' +
+                            '<div class="form-group form-group-sm col-sm-12">' +
+                                '<label class="col-sm-4" for="' + this.target + '-area">Area</label>' +
+                                '<div class="col-sm-8">' + 
+                                    '<select id="' + this.target + '-area" class="form-control">' +
+                                        this.getOptions(this.area_units, this.preferences.area) +                                                       
+                                    '</select>' + 
+                                '</div>' + 
+                            '</div>' +
+                            '<div class="form-group form-group-sm col-sm-12">' +
+                                '<label class="col-sm-4" for="' + this.target + '-elevation">Height</label>' + 
+                                '<div class="col-sm-8">' + 
+                                    '<select id="' + this.target + '-elevation" class="form-control">' +
+                                        this.getOptions(this.elevation_units, this.preferences.elevation) +                                                       
+                                    '</select>' +    
+                                '</div>' + 
+                            '</div>' +
+                            '<div class="form-group form-group-sm col-sm-12">' +
+                                '<label class="col-sm-4" for="' + this.target + '-coordinates">Coords</label>' + 
+                                '<div class="col-sm-8">' + 
+                                    '<select id="' + this.target + '-coordinates" class="form-control">' +
+                                        this.getOptions(this.coordinate_formats, this.preferences.coordinates) +                                                       
+                                    '</select>' + 
+                                '</div>' + 
+                            '</div>' +
+                            '<div class="form-group form-group-sm col-sm-12">' +
+                                '<label class="col-sm-4" for="' + this.target + '-dates">Dates</label>' + 
+                                '<div class="col-sm-8">' + 
+                                    '<select id="' + this.target + '-dates" class="form-control">' +
+                                        this.getOptions(this.date_formats, this.preferences.dates) +                                                       
+                                    '</select>' +
+                                '</div>' + 
+                            '</div>' +
+                            '<div class="form-group form-group-sm col-sm-12" style="padding-left:30px">' +
+                                magic.modules.Common.buttonFeedbackSet(this.target, "Set preferences") +                         
+                                '<button id="' + this.target + '-cancel" class="btn btn-default btn-danger" type="button" ' + 
+                                    'data-toggle="tooltip" data-placement="right" title="Cancel">' + 
+                                    '<span class="fa fa-times-circle"></span>' + 
+                                '</button>' +                        
+                            '</div>' +                     
+                        '</form>' + 
+                    '</div>' + 
+                '</div>'
             );            
             /* Allow clicking on the inputs without the dropdown going away */
             contentDiv.children("form").click(function(evt2) {evt2.stopPropagation()});

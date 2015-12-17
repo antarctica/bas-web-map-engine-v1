@@ -10,14 +10,14 @@ magic.classes.AttributionModal = function(options) {
     this.layer = null;
     this.caption = "";
     this.metadataRecord = [
-        {name: "abstract", caption: "Abstract", type: "text"},
-        {name: "srs", caption: "Projection", type: "projection"},
-        {name: "wmsfeed", caption: "OGC WMS", type: "wms"},
-        {name: "keywords", caption: "Keywords", type: "stringarray", join: "<br />"},
-        {name: "bboxsrs", caption: "Bounds (SRS)", type: "bbox", dp: 2},
-        {name: "bboxwgs84", caption: "Bounds (WGS84)", type: "bbox", dp: 2},
-        {name: "attribution", caption: "Attribution", type: "attribution"},
-        {name: "metadataurl", caption: "Metadata URL", type: "metadataurl"}        
+        {name: "abstract", caption: "Abstract", type: "long_text"},
+        {name: "srs", caption: "Projection", type: "text"},
+        {name: "wmsfeed", caption: "OGC WMS", type: "text"},
+        {name: "keywords", caption: "Keywords", type: "text"},
+        {name: "bboxsrs", caption: "Bounds (SRS)", type: "text"},
+        {name: "bboxwgs84", caption: "Bounds (WGS84)", type: "text"},
+        {name: "attribution", caption: "Attribution", type: "text"},
+        {name: "metadataurl", caption: "Metadata URL", type: "text"}        
     ];
     var attributionMarkup = $("#attribution-modal");
     if (attributionMarkup.length == 0) {
@@ -32,7 +32,7 @@ magic.classes.AttributionModal = function(options) {
                         '</div>' + 
                         '<div class="modal-body attribution-content">' + 
                             '<div role="tabpanel">' + 
-                                '<ul class="nav nav-pills" role="tablist">' + 
+                                '<ul class="nav nav-tabs" role="tablist">' + 
                                     '<li role="presentation" class="active">' + 
                                         '<a role="tab" data-toggle="tab" href="#attribution-legend" aria-controls="attribution-legend">Legend</a>' + 
                                     '</li>' + 
@@ -59,16 +59,16 @@ magic.classes.AttributionModal = function(options) {
         );
     };
     $("#" + this.target).on("shown.bs.modal", $.proxy(function() {
-        $("#attribution-legend").html(this.legendMarkup());  
+        this.legendMarkup();  
         $('a[href="#attribution-legend"]').tab("show");
     }, this));
     $('a[href="#attribution-legend"]').on("shown.bs.tab", $.proxy(function(evt) {
         /* Legend */
-        $("#attribution-legend").html(this.legendMarkup());        
+        this.legendMarkup();        
     }, this));
     $('a[href="#attribution-metadata"]').on("shown.bs.tab", $.proxy(function(evt) {
         /* Metadata */            
-        $("#attribution-metadata").html(this.metadataMarkup());        
+        this.metadataMarkup();        
     }, this));   
 };
 
@@ -84,105 +84,208 @@ magic.classes.AttributionModal.prototype.show = function(layer) {
 
 /**
  * Create the legend markup
- * @return {string} content
  */
 magic.classes.AttributionModal.prototype.legendMarkup = function() {
     var content = '<div class="attribution-legend-content">';
     if (this.layer) {
         var md = this.layer.get("metadata");
-        if (md && "legendurl" in md) {
-            var opts = "&legend_options=fontName:Lucida Sans Regular;fontAntiAliasing:true;fontColor:0xffffff;fontSize:6;bgColor:0x272b30;dpi:180";
-            content += 
-                '<div style="width:100%;background-color:#272b30">' + 
-                    '<img style="padding:10px;background-color:#272b30" src="' + md.legendurl + opts + '" alt="legend" />' + 
-                '</div>';               
-        } else if (md && md.staticservice) {
-            /* Assume there will be a PNG image of the legend required in static/images/legends/<service>.png */
-            content += 
-                '<div style="width:100%;background-color:#272b30">' + 
-                    '<img style="padding:10px;background-color:#272b30" src="' + magic.config.paths.baseurl + '/static/images/legends/' + md.staticservice + '.png" alt="legend" />' + 
-                '</div>';        
+        if (md) {
+            var legendUrl = null;
+            if (md.legend_graphic)  {
+                legendUrl = md.legend_graphic;
+            } else if (md.source.wms_source || (md.source.geojson_source && md.source.feature_name)) {
+                 var wmsUrl;
+                 if (md.source.geojson_source) {
+                     wmsUrl = md.source.geojson_source.replace("wfs", "wms");
+                 } else {
+                     wmsUrl = md.source.wms_source;
+                 }
+                 legendUrl = wmsUrl + 
+                     "?service=WMS&request=GetLegendGraphic&format=image/png&width=20&height=20&layer=" + md.source.feature_name + 
+                     "&legend_options=fontName:Lucida Sans Regular;fontAntiAliasing:true;fontColor:0xffffff;fontSize:6;bgColor:0x272b30;dpi:180";
+            }
+            if (legendUrl != null) {
+                 content += 
+                    '<div style="width:100%;background-color:#272b30">' + 
+                        '<img style="padding:10px;background-color:#272b30" src="' + legendUrl + '" alt="legend" />' + 
+                    '</div>';  
+            } else {
+                content += '<div class="attribution-title">Vector legends not yet implemented!</div>';
+            }
         } else {
             content += '<div class="attribution-title">No legend available</div>';
-        }
+        }        
     } else {
         content += '<div class="attribution-title">No layer specified</div>';
     }
     content += '</div>';
-    return(content);
+    $("#attribution-legend").html(content);
 };
 
 /**
  * Create the metadata markup
+ */
+magic.classes.AttributionModal.prototype.metadataMarkup = function() {
+    var md = this.layer.get("metadata");
+    if (md.source.wms_source || (md.source.geojson_source && md.source.feature_name)) {
+        /* WMS source, or GeoJSON WFS */
+        var wmsUrl;
+        if (md.source.geojson_source) {
+            wmsUrl = md.source.geojson_source.replace("wfs", "wms");
+        } else {
+            wmsUrl = md.source.wms_source;
+        }
+        magic.modules.Common.getCapabilities(wmsUrl, $.proxy(this.populateRecordWms, this), md.source.feature_name);        
+    } else {
+        /* Vector source */
+        var sourceUrl = null;
+        if (md.source.geojson_source) {
+            sourceUrl = md.source.geojson_source;            
+        } else if (md.source.gpx_source) {
+            sourceUrl = md.source.gpx_source;            
+        } else if (md.source.kml_source) {
+            sourceUrl = md.source.kml_source;            
+        }
+        if (sourceUrl != null && sourceUrl.match(/entryid=[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$/)) {
+            /* Ramadda repository URL */
+            var mdUrl = sourceUrl.replace("/get/", "/show/") + "&output=json";
+            $.getJSON(mdUrl, $.proxy(this.populateRecordRamadda, this));
+        }
+    }
+};
+
+/**
+ * Populate a WMS metadata record from the capabilities
+ * @param {Object} getCaps GetCapabilities document
+ * @param {string} featureName
+ */
+magic.classes.AttributionModal.prototype.populateRecordRamadda = function(data) {
+    var rec = {};
+    var json = data[0];
+    if (json) {        
+        /* Read abstract */
+        var abstract = [];
+        $.each(["name", "description", "typeName", "createDate", "filename", "filesize"], function(idx, fld) {
+            if (json[fld]) {
+                abstract.push(fld + " : " + json[fld]);
+            }
+        });
+        rec["abstract"] = abstract.join("<br />");
+        /* Read SRS */
+        rec["srs"] = magic.modules.GeoUtils.formatProjection("EPSG:4326");                
+        /* Read keywords */
+        rec["keywords"] = json["type"];        
+        /* Read WGS84 bounding box */
+        rec["bboxwgs84"] = magic.modules.GeoUtils.formatBbox(json["bbox"], 1);        
+        /* Read metadata URLs */
+        if ($.isArray(json["services"])) {            
+            var links = [];
+            $.each(json["services"], function(mui, murl) {
+                links.push('<a href="' + murl["url"] + '" target="_blank">[external resource]</a>');
+            });
+            rec["metadataurl"] = links.join("<br />");
+        }
+    } else {
+        rec = null;
+    }
+    this.tabulate(rec);
+};
+
+/**
+ * Populate a WMS metadata record from the capabilities
+ * @param {Object} getCaps GetCapabilities document
+ * @param {string} featureName
+ */
+magic.classes.AttributionModal.prototype.populateRecordWms = function(getCaps, featureName) {
+    var rec = {};
+    if (getCaps && getCaps[featureName]) {
+        var proj = magic.runtime.viewdata.projection.getCode();
+        var caps = getCaps[featureName];
+        /* Read abstract */
+        rec["abstract"] = caps["Abstract"] || "";
+        /* Read SRS */
+        rec["srs"] = magic.modules.GeoUtils.formatProjection("EPSG:4326");
+        if ($.isArray(caps["CRS"])) {        
+            for (var i = 0; i < caps["CRS"].length; i++) {
+                if (caps["CRS"][i] == proj) {
+                    rec["srs"] = magic.modules.GeoUtils.formatProjection(caps["CRS"][i]);
+                    break;
+                }
+            }
+        }
+        /* Read WMS feed */
+        var wmsSource = this.layer.get("metadata")["source"]["wms_source"];
+        rec["wms"] = wmsSource + "?" + 
+            "SERVICE=WMS&" + 
+            "VERSION=1.3.0&" + 
+            "REQUEST=GetMap&" + 
+            "FORMAT=image/png&" + 
+            "TRANSPARENT=true&" + 
+            "LAYERS=" + featureName + "&" + 
+            "CRS=" + proj + "&" + 
+            "SRS=" + proj + "&" + 
+            "TILED=true&" + 
+            "WIDTH=1000&" + 
+            "HEIGHT=1000&" + 
+            "STYLES=&" + 
+            "BBOX=" + magic.runtime.viewdata.proj_extent.join(",");
+        /* Read keywords */
+        rec["keywords"] = caps["KeywordList"] ? caps["KeywordList"].join("<br />") : "";
+        /* Read SRS bounding box */
+        if ($.isArray(caps["BoundingBox"])) {
+            $.each(caps["BoundingBox"], function(idx, bb) {
+                if (bb.crs == magic.runtime.viewdata.projection.getCode()) {
+                    rec["bboxsrs"] = magic.modules.GeoUtils.formatBbox(bb.extent, 0);
+                    return(false);
+                }
+            }); 
+        }
+        /* Read WGS84 bounding box */
+        if ($.isArray(caps["EX_GeographicBoundingBox"])) {
+            rec["bboxwgs84"] = magic.modules.GeoUtils.formatBbox(caps["EX_GeographicBoundingBox"], 0);
+        }
+        /* Read attribution */
+        if (caps["Attribution"]) {
+            var value = caps["Attribution"];
+            if ("source" in value && "url" in value) {
+                rec["attribution"] = '<a href="' + value.url + '">' + value.source + '</a>';
+            }
+        }
+        /* Read metadata URLs */
+        if (caps["MetadataURL"]) {
+            var value = caps["MetadataURL"];    
+            if (!$.isArray(value)) {    
+                value = [value];
+            }
+            var links = [];
+            $.each(value, function(mui, murl) {
+                links.push('<a href="' + murl["OnlineResource"] + '" target="_blank">[external resource]</a>');
+            });
+            rec["metadataurl"] = links.join("<br />");
+        }
+    } else {
+        rec = null;
+    }
+    this.tabulate(rec);
+};
+    
+/**
+ * Tabulate the metadata record
+ * @param {object} rec
  * @return {string} content
  */
-magic.classes.AttributionModal.prototype.metadataMarkup = function() {    
+magic.classes.AttributionModal.prototype.tabulate = function(rec) {    
     var content = '<table id="attribution-metadata-content" class="table table-striped table-condensed metadata-table show">';
-    var md = this.layer.get("metadata");
-    if (md) {
+    if (rec != null) {
         $.each(this.metadataRecord, $.proxy(function(mi, mf) {
-            var value = md[mf.name];
-            if (value || mf.type == "wms") {
-                /* Format attribute according to record schema */
-                var value = md[mf.name];
-                switch(mf.type) {
-                    case "text":
-                        content += '<tr><td colspan="2" class="metadata" style="background-color: inherit">' + mf.caption + '<div>' + magic.modules.Common.linkify(value) + '</div></td></tr>';
-                        break;
-                    case "projection": 
-                        content += '<tr><td>' + mf.caption + '</td><td class="metadata">' + magic.modules.GeoUtils.formatProjection(value) + '</td></tr>';
-                        break;
-                    case "stringarray":
-                        content += '<tr><td valign="top">' + mf.caption + '</td><td class="metadata">' + value.join(mf.join) + '</td></tr>';
-                        break;
-                    case "bbox":
-                        content += '<tr><td valign="top">' + mf.caption + '</td><td class="metadata">' + magic.modules.GeoUtils.formatBbox(value, mf.dp) + '</td></tr>';
-                        break;
-                    case "metadataurl":
-                        if (!$.isArray(value)) {
-                            value = [value];
-                        }
-                        var links = [];
-                        $.each(value, function(mui, murl) {
-                            links.push('<a href="' + murl.url + '" target="_blank">[external resource]</a>');
-                        });
-                        content += '<tr><td valign="top">' + mf.caption + '</td><td class="metadata">' + links.join("<br />") + '</td></tr>';
-                        break;
-                    case "attribution":
-                        if ("source" in value && "url" in value) {
-                            content += '<tr><td valign="top">' + mf.caption + '</td><td class="metadata"><a href="' + value.url + '">' + value.source + '</a></td></tr>';
-                        }
-                        break;
-                    case "wms":
-                        if (value) {
-                            if (value != "none") {
-                                var icon = "";
-                                if (md.icon) {
-                                    icon = '<img src="' + md.icon + '" alt="' + (md.typeName || "unknown") + '" />'
-                                }
-                                content += '<tr><td valign="top">' + icon + '&nbsp;Repository</td><td class="metadata"><a href="' + value + '" target="_blank">[download file]</a></td></tr>';
-                            }
-                        } else {
-                            var proj = magic.runtime.projection.getCode();
-                            var getMap = this.wms + "?" + 
-                                "SERVICE=WMS&" + 
-                                "VERSION=1.3.0&" + 
-                                "REQUEST=GetMap&" + 
-                                "FORMAT=image/png&" + 
-                                "TRANSPARENT=true&" + 
-                                "LAYERS=" + md.name + "&" + 
-                                "CRS=" + proj + "&" + 
-                                "SRS=" + proj + "&" + 
-                                "TILED=true&" + 
-                                "WIDTH=1000&" + 
-                                "HEIGHT=1000&" + 
-                                "STYLES=&" + 
-                                "BBOX=" + magic.runtime.projection.getExtent().join(",");
-                            content += '<tr><td valign="top">' + mf.caption + '</td><td class="metadata"><a href="' + getMap + '" target="_blank">[external resource]</a></td></tr>';
-                        }
-                        break;
-                    default:                         
-                        break;
+            var value = rec[mf.name];
+            if (value != null && value != undefined && value != "") {
+                /* Format table row */
+                var heading = '<strong>' + mf.caption + '</strong>';
+                if (mf.type == "long_text") {
+                    content += '<tr><td colspan="2" class="metadata" style="background-color: inherit">' + heading + '<div>' + magic.modules.Common.linkify(value) + '</div></td></tr>';
+                } else {
+                    content += '<tr><td valign="top" style="width:120px">' + heading + '</td><td class="metadata" style="width:270px">' + value + '</td></tr>';
                 }                
             }
         }, this));
@@ -190,5 +293,5 @@ magic.classes.AttributionModal.prototype.metadataMarkup = function() {
         content = '<tr><td colspan="2">No metadata available</td></tr>';
     }
     content += '</table>';
-    return(content);
+    $("#attribution-metadata").html(content);
 };

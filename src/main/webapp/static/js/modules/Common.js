@@ -4,7 +4,7 @@ magic.modules.Common = function () {
 
     return({
         /* Possible WMS endpoints for each projection */
-        WMS_ENDPOINTS: {
+        wms_endpoints: {
             "EPSG:3031": [
                 {
                     "name": "Antarctic Digital Database",
@@ -43,12 +43,12 @@ magic.modules.Common = function () {
                 }
             ]
         },
-        PROXY_ENDPOINTS: {
+        proxy_endpoints: {
             "https://gis.ccamlr.org/geoserver/wms": true,
             "https://gis.ccamlr.org/geoserver/wfs": true
         },
         /* Default local Geoserver endpoint */
-        DEFAULT_GEOSERVER_WMS: {
+        default_geoserver_wms: {
             "name": "Local Geoserver WMS",
             "value": "http://localhost:8080/geoserver/wms"
         },               
@@ -142,15 +142,15 @@ magic.modules.Common = function () {
          */
         buttonFeedbackSet: function(btnBaseId, msg) {
             return(
-                '<button id="' + btnBaseId + '-go" class="btn btn-default btn-sm" type="button" ' + 
+                '<button id="' + btnBaseId + '-go" class="btn btn-primary" type="button" ' + 
                     'data-toggle="tooltip" data-placement="top" title="' + msg + '">' + 
-                    '<span class="fa fa-arrow-circle-right"></span>' + 
+                    '<span class="fa fa-floppy-o"></span>' + 
                 '</button>' +
-                '<button id="' + btnBaseId + '-fb-ok" class="btn btn-default btn-sm" style="display:none" type="button" ' + 
+                '<button id="' + btnBaseId + '-fb-ok" class="btn btn-success" style="display:none" type="button" ' + 
                     'data-toggle="tooltip" data-placement="top" title="Ok">' + 
                     '<span class="glyphicon glyphicon-ok post-ok"></span>' + 
                 '</button>' +
-                '<button id="' + btnBaseId + '-fb-error" class="btn btn-default btn-sm" style="display:none" type="button" ' + 
+                '<button id="' + btnBaseId + '-fb-error" class="btn btn-danger" style="display:none" type="button" ' + 
                     'data-toggle="tooltip" data-placement="top" title="Error">' + 
                     '<span class="glyphicon glyphicon-remove post-error"></span>' + 
                 '</button>'
@@ -299,6 +299,50 @@ magic.modules.Common = function () {
                 }));
             }
         },
+        /**
+         * Retrieve a WMS GetCapabilities document for the URL, calling the given callback with the supplied arguments
+         * @param {string} url
+         * @param {Function} callback
+         * @param {string} typename
+         */
+        getCapabilities: function(url, callback, typename) {
+            if (magic.runtime.capabilities[url]) {
+                callback(magic.runtime.capabilities[url], typename);
+            } else {
+                var parser = new ol.format.WMSCapabilities();
+                var wmsUrl = url + "?request=GetCapabilities";
+                if (magic.modules.Common.proxy_endpoints[url]) {
+                    wmsUrl = magic.config.paths.baseurl + "/proxy?url=" + wmsUrl;
+                }
+                var jqXhr = $.get(wmsUrl, $.proxy(function(response) {
+                    try {
+                        var capsJson = $.parseJSON(JSON.stringify(parser.read(response)));
+                        if (capsJson) {
+                            var ftypes = null;
+                            if ("Capability" in capsJson && "Layer" in capsJson.Capability && "Layer" in capsJson.Capability.Layer && $.isArray(capsJson.Capability.Layer.Layer)) {
+                                var layers = capsJson.Capability.Layer.Layer;
+                                ftypes = {};
+                                $.each(layers, function(idx, layer) {
+                                    ftypes[layer.Name] = layer;
+                                });
+                            }
+                            if (ftypes != null) {
+                                magic.runtime.capabilities[url] = ftypes;
+                                callback(magic.runtime.capabilities[url], typename);
+                            } else {
+                                callback(null, typename);
+                            }                            
+                        } else {
+                            callback(null, typename);
+                        }
+                    } catch(e) {
+                        alert(e);
+                    }
+                }, this)).fail(function() {
+                    callback(null, typename);
+                });
+            }
+        },        
         /**
          * Populate a select list from given array of option objects
          * @param {Element} select
