@@ -87,6 +87,7 @@
     "ol.interaction.defaults",
     "ol.interaction.DragRotateAndZoom",
     "ol.interaction.DragRotateAndZoom#*",
+    "ol.interaction.DragBox",
     "ol.interaction.DragZoom",
     "ol.interaction.DragZoom#*",
     "ol.interaction.Draw",

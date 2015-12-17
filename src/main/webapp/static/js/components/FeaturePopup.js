@@ -35,7 +35,7 @@ magic.classes.FeaturePopup = function(options) {
         );
     }    
     this.popup = new ol.Overlay({
-        element: $("#" + this.popupId),
+        element: $("#" + this.popupId)[0],
         positioning: "center-center"
     });
     this.map.addOverlay(this.popup);
