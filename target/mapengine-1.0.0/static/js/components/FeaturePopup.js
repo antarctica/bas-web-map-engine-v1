@@ -145,7 +145,6 @@ magic.classes.FeaturePopup.prototype.basicMarkup = function() {
     var content = "";
     //var basicSchema = ["name", "lon", "lat", "date"];
     $.each(this.featureCollection, $.proxy(function(i, feat) {
-        console.log(feat);
         content += '<div class="feature-popup-table-cont ' + (i > 0 ? "hidden" : "show") + '">';
         content += '<table class="table table-striped table-condensed feature-popup-table">';
         var nDisplayed = 0, nAttrs = -1;

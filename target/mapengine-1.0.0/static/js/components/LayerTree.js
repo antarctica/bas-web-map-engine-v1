@@ -355,7 +355,7 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                     metadata: nd,
                     source: new ol.source.ImageVector({
                         source: new ol.source.Vector({
-                            format: new ol.format.KML(),
+                            format: new ol.format.KML({showPointNames: false}),
                             url: nd.source.kml_source
                         }),
                         style: this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map))

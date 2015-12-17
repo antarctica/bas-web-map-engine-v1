@@ -164,13 +164,13 @@ magic.classes.AttributionModal.prototype.populateRecordRamadda = function(data) 
     var json = data[0];
     if (json) {        
         /* Read abstract */
-        var abstract = [];
+        var abstractBits = [];
         $.each(["name", "description", "typeName", "createDate", "filename", "filesize"], function(idx, fld) {
             if (json[fld]) {
-                abstract.push(fld + " : " + json[fld]);
+                abstractBits.push(fld + " : " + json[fld]);
             }
         });
-        rec["abstract"] = abstract.join("<br />");
+        rec["abstract"] = abstractBits.join("<br />");
         /* Read SRS */
         rec["srs"] = magic.modules.GeoUtils.formatProjection("EPSG:4326");                
         /* Read keywords */

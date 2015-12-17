@@ -232,25 +232,25 @@ public class MapController {
     
     /**
      * Update a map view whose data is PUT
-     * @param String id
+     * @param String name
      * @param String payload   
      * @throws Exception
      */
-    @RequestMapping(value = "/maps/update/{id}", method = RequestMethod.PUT)
+    @RequestMapping(value = "/maps/update/{name}", method = RequestMethod.PUT)
     public ResponseEntity<String> updateMap(HttpServletRequest request,
-        @PathVariable("id") String id,
+        @PathVariable("name") String name,
         @RequestBody String payload) throws Exception {
         ResponseEntity<String> ret = null;
         String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
         if (username != null) {
             /* Check logged in user is the owner of the map */
-            String owner = recordOwner(id);
+            String owner = recordOwner(name);
             if (owner == null) {
                 /* Unable to determine if owner */
-                ret = packageResults(HttpStatus.UNAUTHORIZED, null, "Failed to determine if you are the owner of record with id " + id);
+                ret = packageResults(HttpStatus.UNAUTHORIZED, null, "Failed to determine if you are the owner of record with name " + name);
             } else if (!owner.equals(username)) {
                 /* Not the owner */
-                ret = packageResults(HttpStatus.UNAUTHORIZED, null, "You are not the owner of record with id " + id);
+                ret = packageResults(HttpStatus.UNAUTHORIZED, null, "You are not the owner of record with name " + name);
             } else {
                 /* Default the non-completed fields */
                 JsonElement je = new JsonParser().parse(payload);
@@ -275,7 +275,7 @@ public class MapController {
                         "metadata_url=?, " + 
                         "data=?, " + 
                         "allowed_usage=?, " +
-                        "allowed_download=? WHERE id=?";
+                        "allowed_download=? WHERE name=?";
                     magicDataTpl.update(sql, new Object[] {
                         jo.get("name").getAsString(),
                         jo.get("title").getAsString(),
@@ -292,7 +292,7 @@ public class MapController {
                         dataObject,
                         jo.get("allowed_usage").getAsString(),
                         jo.get("allowed_download").getAsString(),
-                        id
+                        name
                     });
                     ret = packageResults(HttpStatus.OK, null, "Successfully updated");
                 } catch(DataAccessException dae) {
@@ -309,28 +309,27 @@ public class MapController {
     
     /**
      * Delete a map view
-     * @param String id
-     * @param String payload   
+     * @param String name
      * @throws Exception
      */
-    @RequestMapping(value = "/maps/delete/{id}", method = RequestMethod.DELETE, produces = "application/json; charset=utf-8", headers = {"Content-type=application/json"})
+    @RequestMapping(value = "/maps/delete/{name}", method = RequestMethod.DELETE, produces = "application/json; charset=utf-8", headers = {"Content-type=application/json"})
     public ResponseEntity<String> deleteMap(HttpServletRequest request,
-        @PathVariable("id") String id) throws Exception {
+        @PathVariable("name") String name) throws Exception {
         ResponseEntity<String> ret;
         String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
         if (username != null) {
             /* Check logged in user is the owner of the map */
-            String owner = recordOwner(id);
+            String owner = recordOwner(name);
             if (owner == null) {
                 /* Unable to determine if owner */
-                ret = packageResults(HttpStatus.UNAUTHORIZED, null, "Failed to determine if you are the owner of record with id " + id);
+                ret = packageResults(HttpStatus.UNAUTHORIZED, null, "Failed to determine if you are the owner of record with id " + name);
             } else if (!owner.equals(username)) {
                 /* Not the owner */
-                ret = packageResults(HttpStatus.UNAUTHORIZED, null, "You are not the owner of record with id " + id);
+                ret = packageResults(HttpStatus.UNAUTHORIZED, null, "You are not the owner of record with name " + name);
             } else {
                 /* Do deletion */                
                 try {
-                    magicDataTpl.update("DELETE FROM " + MAPDEFS + " WHERE id=?", new Object[]{id});                        
+                    magicDataTpl.update("DELETE FROM " + MAPDEFS + " WHERE name=?", new Object[]{name});                        
                     ret = packageResults(HttpStatus.OK, null, "Successfully deleted");
                 } catch(DataAccessException dae) {
                     ret = packageResults(HttpStatus.BAD_REQUEST, null, "Error deleting data, message was: " + dae.getMessage());
@@ -343,14 +342,14 @@ public class MapController {
     }
     
     /**
-     * Get the owner of the record with given id
-     * @param String recordId
+     * Get the owner of the record with given name
+     * @param String recordName
      * @return String
      */
-    private String recordOwner(String recordId) {
+    private String recordOwner(String recordName) {
         String owner = null;
         try {
-            owner = magicDataTpl.queryForObject("SELECT owner_name FROM " + MAPDEFS + " WHERE id=?", new Object[]{recordId}, String.class);              
+            owner = magicDataTpl.queryForObject("SELECT owner_name FROM " + MAPDEFS + " WHERE name=?", new Object[]{recordName}, String.class);              
         } catch(DataAccessException dae) {                
         }
         return(owner);

@@ -37,8 +37,8 @@ magic.modules.creator.Tab1 = function () {
             $("select.map-select").change(function (evt) {
                 var sel = $(evt.currentTarget);
                 var action = sel.attr("id").split("-").pop();
-                var mapid = sel.val();
-                magic.modules.creator.Common.map_context.load(action, mapid, $.proxy(magic.modules.creator.Common.loadContext, magic.modules.creator.Common));
+                var mapname = sel.val();
+                magic.modules.creator.Common.map_context.load(action, mapname, $.proxy(magic.modules.creator.Common.loadContext, magic.modules.creator.Common));
             });
         },
         validate: function() {
@@ -89,7 +89,7 @@ magic.modules.creator.Tab1 = function () {
             select.find("option").remove();
             /* Service returns [{name: <name>, title: <title>},...] */
             $.getJSON(magic.config.paths.baseurl + "/maps/dropdown/" + action, function (data) {
-                magic.modules.Common.populateSelect(select, data, "id", "title", defval);
+                magic.modules.Common.populateSelect(select, data, "name", "title", defval);
             });
         }
 

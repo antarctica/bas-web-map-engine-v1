@@ -102,7 +102,8 @@ magic.modules.creator.Common = function () {
             this.sortLayers(layerTree, layerHierarchy);
             this.map_context.setLayers(layerTree);
             var finalContext = this.map_context.getContext();
-            var existingId = this.map_context.getMapId();
+            var existingId = this.map_context.getMapId();// TODO
+            var name = this.map_context.getMapName();
             /* Now validate the assembled map context against the JSON schema in /static/js/json/web_map_schema.json
              * https://github.com/geraintluff/tv4 is the validator used */            
             $.getJSON(magic.config.paths.baseurl + "/static/js/json/web_map_schema.json", $.proxy(function(schema) {
@@ -111,7 +112,7 @@ magic.modules.creator.Common = function () {
                 if (validationResult) {
                     /* Success - save the map and take the user to the map view */
                     var jqXhr = $.ajax({
-                        url: magic.config.paths.baseurl + "/maps/" + (existingId != "" ? "update/" + existingId : "save"),
+                        url: magic.config.paths.baseurl + "/maps/" + (existingId != "" ? "update/" + name : "save"),
                         method: (existingId != "" ? "PUT" : "POST"),
                         processData: false,
                         data: JSON.stringify(finalContext),
@@ -121,7 +122,8 @@ magic.modules.creator.Common = function () {
                         }
                     });
                     jqXhr.done(function(response) {
-                        //TODO
+                        /* Load up the finished map into a new tab */
+                        window.open(magic.config.paths.baseurl + "/home/" + name, "_blank");
                     });
                     jqXhr.fail(function(xhr, status) {
                         bootbox.alert('<div class="alert alert-warning" style="margin-bottom:0">Failed to save the map ' + status + '</div>');

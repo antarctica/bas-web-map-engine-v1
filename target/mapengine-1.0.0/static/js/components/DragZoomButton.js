@@ -9,11 +9,8 @@ magic.classes.DragZoomButton = function(name, ribbon) {
     this.activeTitle = "Click to stop box drag mode";
         
     this.dragZoomInteraction = new ol.interaction.DragZoom({
+        /* Note: style is done by ol-dragzoom - see https://github.com/openlayers/ol3/releases/ v3.11.0 */
         condition: ol.events.condition.always
-// Note: 17/12/2015 David - API has changed (again!) to use a css class name - how on earth I supply css to mirror the style below is beyond me  
-//        style: new ol.style.Style({
-//            stroke: new ol.style.Stroke({color: "rgba(255, 0, 0, 1.0)", lineDash: [6, 6], width: 2})
-//        })
     });
     this.dragZoomInteraction.setActive(false);
     magic.runtime.map.addInteraction(this.dragZoomInteraction);

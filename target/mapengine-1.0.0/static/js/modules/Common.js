@@ -172,7 +172,7 @@ magic.modules.Common = function () {
             /* See https://api.jquery.com/promise/ for queuing up animations like this */
             if (success) {                            
                 btnFbOk.attr("data-original-title", msg).tooltip("fixTitle");
-                effect = function(){return(btnFbOk.fadeIn(300).delay(600).fadeOut(300))};                                                      
+                effect = function(){return(btnFbOk.fadeIn(300).delay(1200).fadeOut(300))};                                                      
             } else {
                 btnFbError.attr("data-original-title", msg).tooltip("fixTitle");
                 effect = function(){return(btnFbError.fadeIn(600).delay(1200).fadeOut(600))};

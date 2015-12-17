@@ -10,18 +10,18 @@ magic.classes.creator.MapContext = function() {
         
 };
 
-magic.classes.creator.MapContext.prototype.load = function(action, id, callback) {
+magic.classes.creator.MapContext.prototype.load = function(action, name, callback) {
     if (action == "new") {
         /* New blank map context */
-        this.context = $.extend(true, {}, magic.modules.creator.Data.BLANK_MAP_CORE, {"data": magic.modules.creator.Data.BLANK_MAP_DATA[id]});
+        this.context = $.extend(true, {}, magic.modules.creator.Data.BLANK_MAP_CORE, {"data": magic.modules.creator.Data.BLANK_MAP_DATA[name]});
         this.id = "";
         callback(this.context);
     } else {
         /* Clone or edit implies a fetch of map with id */
-        $.getJSON(magic.config.paths.baseurl + "/maps/id/" + id, $.proxy(function (response) {
+        $.getJSON(magic.config.paths.baseurl + "/maps/name/" + name, $.proxy(function (response) {
             this.context = $.extend({}, response);
             this.context.data = JSON.parse(response.data.value);
-            this.id = action == "edit" ? id : "";
+            this.id = action == "edit" ? name : "";
             callback(this.context);
         }, this));
     }    
@@ -33,6 +33,10 @@ magic.classes.creator.MapContext.prototype.getContext = function() {
 
 magic.classes.creator.MapContext.prototype.getMapId = function() {
     return(this.id);
+};
+
+magic.classes.creator.MapContext.prototype.getMapName = function() {
+    return(this.context.name);
 };
 
 magic.classes.creator.MapContext.prototype.getLayers = function() {

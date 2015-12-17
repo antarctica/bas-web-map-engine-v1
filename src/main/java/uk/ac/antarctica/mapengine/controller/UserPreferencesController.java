@@ -38,7 +38,7 @@ public class UserPreferencesController {
      * @throws ServletException
      * @throws IOException
      */
-    @RequestMapping(value = "/prefs", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
+    @RequestMapping(value = "/prefs/get", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
     @ResponseBody
     public ResponseEntity<String> getPrefs(HttpServletRequest request) throws ServletException, IOException {
         ResponseEntity<String> ret;
@@ -68,7 +68,7 @@ public class UserPreferencesController {
      * @throws ServletException
      * @throws IOException
      */
-    @RequestMapping(value = "/prefs", method = RequestMethod.POST, produces = "application/json; charset=utf-8", headers = {"Content-type=application/json"})
+    @RequestMapping(value = "/prefs/set", method = RequestMethod.POST, produces = "application/json; charset=utf-8", headers = {"Content-type=application/json"})
     @ResponseBody
     public ResponseEntity<String> setPrefs(HttpServletRequest request, @RequestBody PreferenceSet prefs) throws ServletException, IOException {
         ResponseEntity<String> ret;

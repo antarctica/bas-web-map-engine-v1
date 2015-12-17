@@ -708,3 +708,9 @@ button.mosaic-player {
     margin-left: 10px;
     margin-top: 6px;
 }
+
+/* Drag-zoom box */
+.ol-dragzoom {
+  border: 3px dashed rgba(255,0,0,1.0);
+  background-color: rgba(255,255,255,0.4);
+}

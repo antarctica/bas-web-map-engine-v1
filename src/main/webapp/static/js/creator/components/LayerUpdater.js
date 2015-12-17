@@ -258,7 +258,7 @@ magic.classes.creator.LayerUpdater.prototype.populateWmsFeatureSelector = functi
     if (fopts && fopts.length > 0) {
         magic.modules.Common.populateSelect(select, fopts, "value", "name", defval);
         select.off("change").on("change", $.proxy(function(evt) {
-            this.attribute_map.ogcUpdate(wmsUrl, $(evt.currentTarget).val(), this.data["attribute_map"]);
+            this.attribute_map.ogcLoadContext(wmsUrl, $(evt.currentTarget).val(), this.data["attribute_map"]);
         }, this));
     } else {
         bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">No feature types found for ' + wmsUrl + '</div>');

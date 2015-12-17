@@ -30,8 +30,8 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
             .authorizeRequests()
-            .antMatchers("/*.ico", "/static/**", "/appconfig/**", "/ping", "/home/**", "/maps/**", "/prefs").permitAll()
-            .antMatchers("/creator", "/homed/**")
+            .antMatchers("/*.ico", "/static/**", "/appconfig/**", "/ping", "/home/**", "/maps/**", "/prefs/get").permitAll()
+            .antMatchers("/creator", "/creatord", "/homed/**", "/prefs/set")
             .fullyAuthenticated()
             .and()
             .formLogin()

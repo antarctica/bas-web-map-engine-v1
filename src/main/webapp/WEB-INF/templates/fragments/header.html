@@ -39,7 +39,7 @@
                     magic.runtime.map_context = $.extend({}, payload);
                     magic.runtime.map_context.data = JSON.parse(payload.data.value);
                     return($.ajax({
-                        url: magic.config.paths.baseurl + "/prefs",
+                        url: magic.config.paths.baseurl + "/prefs/get",
                         method: "GET",
                         dataType: "json"
                     }));
@@ -139,9 +139,8 @@
                 prefsRequest = payloadRequest.then(function(payload) {                                        
                     magic.runtime.map_context = $.extend({}, payload);
                     magic.runtime.map_context.data = JSON.parse(payload.data.value);
-                    console.log(magic.runtime.map_context.data);
                     return($.ajax({
-                        url: magic.config.paths.baseurl + "/prefs",
+                        url: magic.config.paths.baseurl + "/prefs/get",
                         method: "GET",
                         dataType: "json"
                     }));

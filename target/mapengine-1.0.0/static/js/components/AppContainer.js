@@ -25,7 +25,7 @@ magic.classes.AppContainer = function () {
     magic.runtime.layertree = new magic.classes.LayerTree("layer-tree");
     
     /* User unit preferences */
-    magic.runtime.preferences = new magic.classes.UserPreferences({target: "unit-prefs", preferences: magic.runtime.user_prefs});
+    magic.runtime.preferences = new magic.classes.UserPreferences({target: "unit-prefs", preferences: magic.runtime.preferences});
     
     /* Map switcher */
     magic.runtime.mapswitcher = new magic.classes.MapSwitcher({target: "map-switcher"});

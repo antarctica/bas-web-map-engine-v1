@@ -56,7 +56,7 @@ magic.classes.creator.LayerAttributeMap.prototype.vectorLoadContext = function(c
         } else if (sourceType == "kml") {
             /* KML file */
             source = context.source.kml_source;
-            format = new ol.format.KML({}); 
+            format = new ol.format.KML({showPointNames: false}); 
         }
         if (source && format) {
             var jqXhr = $.ajax({
@@ -117,6 +117,7 @@ magic.classes.creator.LayerAttributeMap.prototype.ogcLoadContext = function(cont
         if (magic.modules.Common.proxy_endpoints[wms] === true) {
             url = magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(url);
         }
+        // TODO fails to pick up all attributes
         $.get(url, $.proxy(function(response) {                        
             var elts = $(response).find("sequence").find("element");
             var geomType = "unknown";

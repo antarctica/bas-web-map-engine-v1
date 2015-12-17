@@ -523,7 +523,7 @@ magic.classes.Measurement.prototype.getDemLayers = function() {
     if (magic.runtime.map) {
         magic.runtime.map.getLayers().forEach(function (layer) {
             var md = layer.get("metadata");
-            if (md) {
+            if (md && md.source) {
                 if (md.source.is_dem === true) {
                     dems.push(layer);
                 }

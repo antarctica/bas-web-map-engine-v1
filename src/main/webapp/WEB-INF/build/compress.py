@@ -10,22 +10,8 @@ yuicompressor = os.path.abspath("./yuicompressor/build/yuicompressor-2.4.8.jar")
 
 buildjs = os.path.abspath("../../static/buildjs")
 print "Write bundled js to " + buildjs
-alljs = os.path.join(buildjs, "alljs.js")
-if not os.path.exists(buildjs):
-    os.makedirs(buildjs)
-else:
-    if os.path.exists(alljs):
-        os.remove(alljs)
 buildcss = os.path.abspath("../../static/buildcss")
 print "Write bundled css to " + buildcss
-allcss = os.path.join(buildcss, "allcss.css")
-if not os.path.exists(buildcss):
-    os.makedirs(buildcss)
-else:
-    if os.path.exists(allcss):
-        os.remove(allcss);
-concjs = open(alljs, "a")
-conccss = open(allcss, "a")
 
 # Files to completely ignore i.e. no minify or concatenate
 ignorejs = ["bootstrap-treeview.js", "ol.debug.js", "jquery-sortable-lists.min.js", "jquery.bootstrap.wizard.min.js", "tv4.min.js"]
@@ -35,7 +21,7 @@ skipminjs = ["jquery.js", "prettify.js", "proj4.js"]
 # As above for css
 skipmincss = []
 
-def fconcat(root, file):
+def fconcat(root, file, concjs, conccss):
     if (file not in ignorejs and file not in ignorecss):
         if (root):
             fpath = os.path.join(root, file)
@@ -62,17 +48,38 @@ def fconcat(root, file):
 def main():
     print "*** Starting"    
     try:
-        tocompress = open("compress.txt")
+        if (len(sys.argv) > 1):
+            modifier = "_" + sys.argv[1]
+        else:
+            modifier = ""
+        tocompress = open("compress" + modifier + ".txt")
+        
+        alljs = os.path.join(buildjs, "alljs" + modifier + ".js")
+        if not os.path.exists(buildjs):
+            os.makedirs(buildjs)
+        else:
+            if os.path.exists(alljs):
+                os.remove(alljs)
+
+        allcss = os.path.join(buildcss, "allcss" + modifier + ".css")
+        if not os.path.exists(buildcss):
+            os.makedirs(buildcss)
+        else:
+            if os.path.exists(allcss):
+                os.remove(allcss);
+        concjs = open(alljs, "a")
+        conccss = open(allcss, "a")
+        
         for line in iter(tocompress):            
             path = os.path.abspath("../../static/" + line.rstrip("\r\n"))
             if (path.endswith(".js")):
-                fconcat("", path)
+                fconcat("", path, concjs, conccss)
             elif (path.endswith(".css")):
-                fconcat("", path)
+                fconcat("", path, concjs, conccss)
             else:
                 for root, dirs, files in os.walk(path):
                     for file in files:
-                        fconcat(root, file)                        
+                        fconcat(root, file, concjs, conccss)                        
         tocompress.close()
     except:
         print "Exception ", sys.exc_info()[0]

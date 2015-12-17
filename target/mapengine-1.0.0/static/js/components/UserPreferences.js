@@ -124,14 +124,19 @@ magic.classes.UserPreferences = function(options) {
                 $.each(["distance", "area", "elevation", "coordinates", "dates"], $.proxy(function(idx, elt) {
                     formdata[elt] = $("#" + this.target + "-" + elt).val();
                 }, this));
+                var csrfHeaderVal = $("meta[name='_csrf']").attr("content");               
                 $.ajax({
-                    url: magic.config.paths.baseurl + "/prefs", 
+                    url: magic.config.paths.baseurl + "/prefs/set", 
                     data: JSON.stringify(formdata), 
                     method: "POST",
                     dataType: "json",
-                    contentType: "application/json",                    
+                    contentType: "application/json",
+                    headers: {
+                        "X-CSRF-TOKEN": csrfHeaderVal
+                    },
                     success: $.proxy(function(data) {
-                        magic.modules.Common.buttonClickFeedback(this.target, data.status < 400, data.detail);                        
+                        magic.modules.Common.buttonClickFeedback(this.target, data.status < 400, data.detail);
+                        this.preferences = $.extend({}, this.preferences, formdata);
                     }, this)
                 });
             }, this));

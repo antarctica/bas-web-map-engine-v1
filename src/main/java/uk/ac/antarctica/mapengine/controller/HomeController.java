@@ -80,8 +80,22 @@ public class HomeController {
      * @throws IOException
      */
     @RequestMapping(value = "/creator", method = RequestMethod.GET)
-    public String creator(HttpServletRequest request) throws ServletException, IOException {
+    public String creator(HttpServletRequest request, ModelMap model) throws ServletException, IOException {
         ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "MAGIC Web Map Creator requested by " + getUserName(request));
+        return("creator");
+    }
+    
+    /**
+     * Render map creator home page (debug)    
+     * @param HttpServletRequest request,
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/creatord", method = RequestMethod.GET)
+    public String creatorDebug(HttpServletRequest request, ModelMap model) throws ServletException, IOException {
+        model.addAttribute("debug", true);
+        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "MAGIC Web Map Creator (debug) requested by " + getUserName(request));
         return("creator");
     }
  

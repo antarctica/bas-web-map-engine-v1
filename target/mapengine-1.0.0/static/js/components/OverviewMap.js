@@ -49,11 +49,12 @@ magic.classes.OverviewMap.prototype.initControl = function() {
         collapsed: false,
         className: "ol-overviewmap custom-overview-map",        
         layers: this.getOverviewLayers(),
-        view: magic.runtime.view
+        view: new ol.View({
+            projection: "EPSG:3031"
+        })
     });        
     magic.runtime.map.addControl(this.control);
     $("button[title='Overview map']").addClass("hidden");
-    this.control.render();
 };
 
 magic.classes.OverviewMap.prototype.getTarget = function() {
@@ -103,7 +104,7 @@ magic.classes.OverviewMap.prototype.getOverviewLayers = function() {
 magic.classes.OverviewMap.prototype.setEnabledStatus = function() {
     var enable = false;
     if (magic.runtime.map) {
-        enable = magic.runtime.map.getView().getResolution() <= 200.0;
+        enable = magic.runtime.map.getView().getResolution() <= 1000.0;
     }
     if (!enable) {        
         this.target.popover("hide");
