@@ -113,11 +113,11 @@ magic.classes.creator.LayerAttributeMap.prototype.ogcLoadContext = function(cont
         /* Get the feature type attributes from DescribeFeatureType */
         this.attribute_dictionary[id] = [];
         this.type_dictionary[id] = null;
-        var url = wms.replace("wms", "wfs") + "?request=DescribeFeatureType&typename=" + feature;
+        /* Note: version set to 1.0.0 here as certain attributes do NOT get picked up by later versions - is a Geoserver bug */
+        var url = wms.replace("wms", "wfs") + "?version=1.0.0&request=DescribeFeatureType&typename=" + feature;
         if (magic.modules.Common.proxy_endpoints[wms] === true) {
             url = magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(url);
-        }
-        // TODO fails to pick up all attributes
+        }        
         $.get(url, $.proxy(function(response) {                        
             var elts = $(response).find("sequence").find("element");
             var geomType = "unknown";
