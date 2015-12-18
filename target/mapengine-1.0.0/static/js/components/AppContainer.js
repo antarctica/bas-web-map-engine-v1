@@ -117,11 +117,6 @@ magic.classes.AppContainer = function () {
 //        $("#repo-tool").closest("li").hide();
 //    }
 
-    /* Profile/preferences */
-    if (!magic.runtime.username) {
-        $("#user-menu").hide();
-    }    
-
     /* Updates height of map when window resizes */
     $(window).on("resize", $.proxy(function () {
         this.fitMapToViewport();
@@ -136,46 +131,36 @@ magic.classes.AppContainer = function () {
     }, this);
 
     /* Allow drag and drop of user GPS and KML layers */    
-//    dd.on("addfeatures", $.proxy(function(evt) {
-//        var md = {}, layerName = "";
-//        if (evt.file) {
-//            /* Can get layer information from the dropped file */
-//            md = $.extend({}, evt.file);
-//            layerName = this.layerNameFromFileName(evt.file.name);
-//        } else {
-//            /* Some defaults */
-//            var uname = !magic.runtime.username ? "guest" : magic.runtime.username;
-//            layerName = uname + "_userlayer_" + (magic.runtime.userlayers.length+1);
-//        }
-//        var vectorSource = new ol.source.Vector({
-//            features: evt.features
-//        });
-//        $.each(evt.features, $.proxy(function(idx, feat) {
-//            feat.setStyle(this.constructStyle(feat))
-//        }, this));        
-//        var layer = new ol.layer.Image({
-//            name: layerName,
-//            metadata: md,
-//            source: new ol.source.ImageVector({
-//                source: vectorSource
-//            })
-//        });
-//        magic.runtime.map.addLayer(layer);        
-//        magic.runtime.map.getView().fit(vectorSource.getExtent(), magic.runtime.map.getSize());
-//        magic.runtime.userlayers.push(layer);
-//    }, this));
+    dd.on("addfeatures", $.proxy(function(evt) {
+        var vectorSource = new ol.source.Vector({
+            features: evt.features
+        });
+        $.each(evt.features, $.proxy(function(idx, feat) {
+            feat.setStyle(this.constructStyle(feat))
+        }, this));        
+        var layer = new ol.layer.Image({
+            name: "_user_layer_" + magic.runtime.userlayers.length,
+            source: new ol.source.ImageVector({
+                source: vectorSource
+            })
+        });
+        magic.runtime.map.addLayer(layer);        
+        magic.runtime.map.getView().fit(vectorSource.getExtent(), magic.runtime.map.getSize());
+        magic.runtime.userlayers.push(layer);
+    }, this));
 
     /* Display application metadata */
     this.initMapMetadata();
 
     /* Logout behaviour */
-    if (magic.runtime.username) {
-        $("#log-out-user").click(function (evt) {
+    var lo = $("#log-out-user");
+    if (lo.length > 0) {
+        lo.click(function (evt) {
             evt.preventDefault();
             $("#logout-form").submit();
         });
     }
-
+    
     /* Listen for controls being activated/deactivated */
     $(document).on("mapinteractionactivated", function (evt, tool) {
         if (evt) {
@@ -283,20 +268,6 @@ magic.classes.AppContainer.prototype.getLayerByName = function(layerName) {
         }
     });
     return(theLayer);
-};
-
-/**
- * Get a suitable layer name for an uploaded layer from the filename
- * @param {string} fileName
- * @returns {string}
- */
-magic.classes.AppContainer.prototype.layerNameFromFileName = function(fileName) {
-    if (fileName) {
-        return(fileName.replace(/\./g, " "));
-    } else {
-        var uname = !magic.runtime.username ? "guest" : magic.runtime.username;;
-        return(uname + "_userlayer_" + (magic.runtime.userlayers.length+1));
-    }
 };
 
 /**

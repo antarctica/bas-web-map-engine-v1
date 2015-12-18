@@ -51,7 +51,6 @@ magic.classes.creator.LayerUpdater = function(prefix) {
        
     /* Add update layer group button handler */    
     var btnUpdateLayer = $("#" + this.prefix + "-save");
-    btnUpdateLayer.prop("disabled", true);                                     
     btnUpdateLayer.click($.proxy(function(evt) {
         if (this.data) {
             /* Update dictionary entry */
@@ -108,13 +107,7 @@ magic.classes.creator.LayerUpdater.prototype.loadContext = function(context) {
         magic.modules.creator.Common.dictToForm(this.source_form_fields[activeTab], this.data.source, this.prefix + "-" + activeTab);
     }   
     this.attribute_map.loadContext(this.data, activeTab); 
-    this.style_definition.loadContext(this.data.source.style_definition);
-    
-    var btnUpdateLayer = $("#" + this.prefix + "-save");
-    $("[id^='" + this.prefix + "']").filter(":input").on("change keyup", function() {
-        /* Update button enabled when anything in the form changes */
-        btnUpdateLayer.prop("disabled", false);
-    });    
+    this.style_definition.loadContext(this.data.source.style_definition);    
 };
 
 /**

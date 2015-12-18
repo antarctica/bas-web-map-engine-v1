@@ -102,7 +102,7 @@ magic.modules.creator.Common = function () {
             this.sortLayers(layerTree, layerHierarchy);
             this.map_context.setLayers(layerTree);
             var finalContext = this.map_context.getContext();
-            var existingId = this.map_context.getMapId();// TODO
+            var existingId = this.map_context.getMapId();
             var name = this.map_context.getMapName();
             /* Now validate the assembled map context against the JSON schema in /static/js/json/web_map_schema.json
              * https://github.com/geraintluff/tv4 is the validator used */            
@@ -112,7 +112,7 @@ magic.modules.creator.Common = function () {
                 if (validationResult) {
                     /* Success - save the map and take the user to the map view */
                     var jqXhr = $.ajax({
-                        url: magic.config.paths.baseurl + "/maps/" + (existingId != "" ? "update/" + name : "save"),
+                        url: magic.config.paths.baseurl + "/maps/" + (existingId != "" ? "update/" + existingId : "save"),
                         method: (existingId != "" ? "PUT" : "POST"),
                         processData: false,
                         data: JSON.stringify(finalContext),

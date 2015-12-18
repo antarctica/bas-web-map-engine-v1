@@ -2,6 +2,7 @@ uk\ac\antarctica\mapengine\controller\UserPreferencesController.class
 uk\ac\antarctica\mapengine\controller\LoginController.class
 uk\ac\antarctica\mapengine\controller\PingController.class
 uk\ac\antarctica\mapengine\util\ActivityLogger.class
+uk\ac\antarctica\mapengine\Application$CustomLoginSuccessHandler.class
 uk\ac\antarctica\mapengine\controller\UserPreferencesController$PreferenceSet.class
 uk\ac\antarctica\mapengine\util\RamaddaUtils.class
 uk\ac\antarctica\mapengine\controller\MapController.class

@@ -22,7 +22,8 @@
             <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
         <![endif]-->
         <script src="/static/js/jquery.js"></script>        
-        <script src="/static/js/bootstrap.min.js"></script>        
+        <script src="/static/js/bootstrap.min.js"></script>
+        <script src="/static/js/init.js"></script>
     </head>
 
     <body>
@@ -32,14 +33,79 @@
                 <div class="well well-sm">
                     <h3>Welcome to the MAGIC Web Mapping Centre</h3>            
                 </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Select an action</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div th:switch="${#httpServletRequest.remoteUser}">
+                            <div th:case="null">
+                                <div class="alert alert-info">
+                                    You are not currently logged in.  The list of maps below is therefore, restricted to those available for public viewing, and creating a new map will
+                                    require you to authenticate.  BAS users can do so with their SOUTH/Photo Database passwords.  Other users will be advised of their credentials.
+                                </div>
+                                <form>
+                                    <div class="form-group">
+                                        <label for="select-map">
+                                            Select a map
+                                        </label>                                
+                                        <select class="form-control" id="select-map">                                                      
+                                        </select>
+                                    </div>
+                                    <button id="select-map-go" type="button" class="btn btn-primary">Load map</button>
+                                    <button id="login-map" type="button" class="btn btn-primary">Log in to create/update maps</button>
+                                </form>
+                            </div>
+                            <div th:case="*">
+                                <div class="alert alert-info">
+                                    You are currently logged in as <span th:text="${#httpServletRequest.remoteUser}"></span>.  Select a map to view below.
+                                </div>
+                                <form>
+                                    <div class="form-group">
+                                        <label for="select-map">
+                                            Select a map
+                                        </label>                                
+                                        <select class="form-control" id="select-map">                                                      
+                                        </select>
+                                    </div>
+                                    <button id="select-map-go" type="button" class="btn btn-primary">Load map</button>
+                                    <button id="create-map" type="button" class="btn btn-primary">Create/update a map</button>                                    
+                                </form>
+                            </div>
+                        </div>                        
+                    </div>
+                </div>    
             </div>
         </div>
         <!-- /#wrapper -->
         <script type="text/javascript">
-
-            
+            /*<![CDATA[*/
+            $(document).ready(function () {
+                /* Logout behaviour */                
+                $("#log-out-user").click(function (evt) {
+                    evt.preventDefault();
+                    $("#logout-form").submit();
+                });
+                $("#select-map-go").click(function () {
+                    window.open(magic.config.paths.baseurl + "/home/" + $("#select-map").val(), "_blank");
+                });
+                $("#create-map").click(function () {
+                    window.open(magic.config.paths.baseurl + "/creator", "_blank");
+                });
+                $("#login-map").click(function () {
+                    window.open(magic.config.paths.baseurl + "/login", "_self");
+                });
+                $.getJSON(magic.config.paths.baseurl + "/maps/dropdown", function(data) {
+                    var select = $("#select-map");
+                    $.each(data, function(idx, mo) {
+                        var opt = $("<option>", {value: mo["name"]});
+                        opt.text(mo["title"]);
+                        select.append(opt);
+                    });
+                });
+            });
+            /*]]>*/
         </script>
-
+        <form id="logout-form" method="POST" th:action="@{/logout}"></form>
     </body>
-
 </html>

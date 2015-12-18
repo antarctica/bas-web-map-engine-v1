@@ -21,7 +21,7 @@ magic.classes.creator.MapContext.prototype.load = function(action, name, callbac
         $.getJSON(magic.config.paths.baseurl + "/maps/name/" + name, $.proxy(function (response) {
             this.context = $.extend({}, response);
             this.context.data = JSON.parse(response.data.value);
-            this.id = action == "edit" ? name : "";
+            this.id = action == "edit" ? this.context.id : "";
             callback(this.context);
         }, this));
     }    

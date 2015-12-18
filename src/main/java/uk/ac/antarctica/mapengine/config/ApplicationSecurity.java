@@ -6,12 +6,15 @@ package uk.ac.antarctica.mapengine.config;
 import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.servlet.configuration.EnableWebMvcSecurity;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 
 @Configuration
 @EnableWebMvcSecurity
@@ -26,6 +29,13 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
     @Autowired
     private LdapContextSource contextSource;
 
+    @Bean
+    public AuthenticationSuccessHandler successHandler() {
+        SimpleUrlAuthenticationSuccessHandler handler = new SimpleUrlAuthenticationSuccessHandler();
+        handler.setUseReferer(true);
+        return handler;
+    }
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
@@ -36,12 +46,13 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
             .and()
             .formLogin()
             .loginPage("/login")
-            .defaultSuccessUrl("/auth/home")
+            .successHandler(successHandler())
+            //.defaultSuccessUrl("/auth/home")
             .permitAll()
             .and()
             .logout()
             .logoutSuccessUrl("/home")
-            .permitAll();          
+            .permitAll();
     }
 
     @Override
@@ -51,8 +62,8 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
             .ldapAuthentication()
             .userDnPatterns("uid={0},ou=People")
             .groupSearchBase(null)
-            .contextSource(this.contextSource); 
+            .contextSource(this.contextSource);
         auth.authenticationProvider(new RamaddaAuthenticationProvider());
     }
-    
+
 }

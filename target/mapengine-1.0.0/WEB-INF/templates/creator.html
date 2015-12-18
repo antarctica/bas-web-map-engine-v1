@@ -54,9 +54,19 @@
         <script type="text/javascript">
 
             $(document).ready(function () {
+                /* Logout behaviour */
+                var lo = $("#log-out-user");
+                if (lo.length > 0) {
+                    lo.click(function (evt) {
+                        evt.preventDefault();
+                        $("#logout-form").submit();
+                    });
+                }
                 magic.modules.creator.Common.init();                
             });
 
         </script>
+        <form id="logout-form" method="POST" th:action="@{/logout}">
+        </form>
     </body>
 </html>
