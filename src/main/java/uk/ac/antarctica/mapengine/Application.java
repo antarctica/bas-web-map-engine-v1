@@ -73,7 +73,7 @@ public class Application extends SpringBootServletInitializer {
     @Bean
     public AuthenticationSuccessHandler successHandler() {
         return (new CustomLoginSuccessHandler("/home"));
-    }
+    }        
 
     /* See http://stackoverflow.com/questions/14573654/spring-security-redirect-to-previous-page-after-succesful-login */
     public class CustomLoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
@@ -87,7 +87,7 @@ public class Application extends SpringBootServletInitializer {
             HttpSession session = request.getSession();
             if (session != null) {
                 String redirectUrl = (String) session.getAttribute("url_prior_login");
-                if (redirectUrl != null) {                    
+                if (redirectUrl != null) {
                     session.removeAttribute("url_prior_login");
                     getRedirectStrategy().sendRedirect(request, response, redirectUrl);
                 } else {
@@ -111,6 +111,6 @@ public class Application extends SpringBootServletInitializer {
         public void sessionDestroyed(HttpSessionEvent event) {
             System.out.println("==== Session destroyed ====");
         }
-    }
+    }   
 
 }

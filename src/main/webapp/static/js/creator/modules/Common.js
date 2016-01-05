@@ -109,6 +109,7 @@ magic.modules.creator.Common = function () {
             $.getJSON(magic.config.paths.baseurl + "/static/js/json/web_map_schema.json", $.proxy(function(schema) {
                 var validationResult = tv4.validate(finalContext, schema);
                 var csrfHeaderVal = $("meta[name='_csrf']").attr("content");
+                var csrfHeader = $("meta[name='_csrf_header']").attr("content");
                 if (validationResult) {
                     /* Success - save the map and take the user to the map view */
                     var jqXhr = $.ajax({
@@ -117,8 +118,10 @@ magic.modules.creator.Common = function () {
                         processData: false,
                         data: JSON.stringify(finalContext),
                         headers: {
-                            "Content-Type": "application/json",
-                            "X-CSRF-TOKEN": csrfHeaderVal
+                            "Content-Type": "application/json"
+                        },
+                        beforeSend: function(xhr) {
+                            xhr.setRequestHeader(csrfHeader, csrfHeaderVal)
                         }
                     });
                     jqXhr.done(function(response) {

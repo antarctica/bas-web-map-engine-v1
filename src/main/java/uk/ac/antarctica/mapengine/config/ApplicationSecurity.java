@@ -34,14 +34,14 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
         SimpleUrlAuthenticationSuccessHandler handler = new SimpleUrlAuthenticationSuccessHandler();
         handler.setUseReferer(true);
         return handler;
-    }
+    }       
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
             .authorizeRequests()
-            .antMatchers("/*.ico", "/static/**", "/appconfig/**", "/ping", "/home/**", "/maps/**", "/prefs/get").permitAll()
-            .antMatchers("/creator", "/creatord", "/homed/**", "/prefs/set")
+            .antMatchers("/*.ico", "/static/**", "/appconfig/**", "/ping", "/home/**", "/maps/dropdown/**", "/maps/name/**", "/maps/id/**", "/prefs/get").permitAll()
+            .antMatchers("/creator", "/creatord", "/homed/**", "/prefs/set", "/maps/save", "/maps/update/**", "/maps/delete/**")
             .fullyAuthenticated()
             .and()
             .formLogin()

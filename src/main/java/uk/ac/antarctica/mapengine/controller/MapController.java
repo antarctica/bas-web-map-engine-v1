@@ -183,7 +183,7 @@ public class MapController {
      * @param String payload   
      * @throws Exception
      */
-    @RequestMapping(value = "/maps/save", method = RequestMethod.POST)
+    @RequestMapping(value = "/maps/save", method = RequestMethod.POST, headers = {"Content-type=application/json"})
     public ResponseEntity<String> saveMap(HttpServletRequest request,
         @RequestBody String payload) throws Exception {
         ResponseEntity<String> ret = null;
@@ -236,7 +236,7 @@ public class MapController {
      * @param String payload   
      * @throws Exception
      */
-    @RequestMapping(value = "/maps/update/{id}", method = RequestMethod.PUT)
+    @RequestMapping(value = "/maps/update/{id}", method = RequestMethod.PUT, headers = {"Content-type=application/json"})
     public ResponseEntity<String> updateMap(HttpServletRequest request,
         @PathVariable("id") String id,
         @RequestBody String payload) throws Exception {
@@ -312,7 +312,7 @@ public class MapController {
      * @param String id
      * @throws Exception
      */
-    @RequestMapping(value = "/maps/delete/{name}", method = RequestMethod.DELETE, produces = "application/json; charset=utf-8", headers = {"Content-type=application/json"})
+    @RequestMapping(value = "/maps/delete/{id}", method = RequestMethod.DELETE, produces = "application/json; charset=utf-8", headers = {"Content-type=application/json"})
     public ResponseEntity<String> deleteMap(HttpServletRequest request,
         @PathVariable("id") String id) throws Exception {
         ResponseEntity<String> ret;
@@ -341,6 +341,12 @@ public class MapController {
         return (ret);
     }
     
+    @RequestMapping(value = "/error", method = RequestMethod.GET)
+	public ResponseEntity<String> accessDenied(HttpServletRequest request) {
+        System.out.println("***** FORBIDDEN!!!! *****");
+        return(packageResults(HttpStatus.FORBIDDEN, null, "Expressly forbidden"));
+	}
+        
     /**
      * Get the owner of the record with given name
      * @param String id

@@ -29,7 +29,7 @@ public class HomeController {
      */
     @RequestMapping(value = "/home", method = RequestMethod.GET)
     public String home(HttpServletRequest request) throws ServletException, IOException {
-        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "MAGIC Web Mapping Home requested by " + getUserName(request));
+        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "MAGIC Web Mapping Home requested");
         return("home");        
     }        
         
@@ -48,7 +48,7 @@ public class HomeController {
         String username = getUserName(request);
         model.addAttribute("map", map);
         model.addAttribute("username", username);
-        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Public map " + map + " requested by " + username);
+        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Public map " + map + " requested");
         return("map");
     }
     
@@ -68,7 +68,7 @@ public class HomeController {
         model.addAttribute("map", map);
         model.addAttribute("username", username);
         model.addAttribute("debug", true);
-        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Public map " + map + " (debug) requested by " + username);
+        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Public map " + map + " (debug) requested");
         return("map");
     }
         
@@ -81,7 +81,7 @@ public class HomeController {
      */
     @RequestMapping(value = "/creator", method = RequestMethod.GET)
     public String creator(HttpServletRequest request, ModelMap model) throws ServletException, IOException {
-        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "MAGIC Web Map Creator requested by " + getUserName(request));
+        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "MAGIC Web Map Creator requested");
         return("creator");
     }
     
@@ -95,7 +95,7 @@ public class HomeController {
     @RequestMapping(value = "/creatord", method = RequestMethod.GET)
     public String creatorDebug(HttpServletRequest request, ModelMap model) throws ServletException, IOException {
         model.addAttribute("debug", true);
-        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "MAGIC Web Map Creator (debug) requested by " + getUserName(request));
+        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "MAGIC Web Map Creator (debug) requested");
         return("creator");
     }
  
