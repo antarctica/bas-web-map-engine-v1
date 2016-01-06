@@ -220,7 +220,7 @@
 					"items": {
 						"type": "number"
 					},
-					"minItems": 2
+					"minItems": 0
 				},
 				"controls": {
 					"description": "Array of names of controls for the map",

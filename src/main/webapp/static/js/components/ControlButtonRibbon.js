@@ -132,7 +132,14 @@ magic.classes.ControlButtonRibbon.prototype.createControlButton = function(name,
  * Zoom world extent
  */
 magic.classes.ControlButtonRibbon.prototype.zoomToMaxExtent = function() {
-    magic.runtime.map.getView().setResolution(magic.runtime.viewdata.resolutions[0]);
+    /* Unclear what the action of this button should be - currently set to restore the initial view, more appropriate for zoomed-in maps 
+     * David 06/01/2016 */
+//    if (magic.runtime.viewdata.resolutions) {
+//        magic.runtime.map.getView().setResolution(magic.runtime.viewdata.resolutions[0]);
+//    } else {
+//        magic.runtime.map.getView().setZoom(magic.runtime.viewdata.minZoom);
+//    }
+    magic.runtime.map.getView().setZoom(magic.runtime.viewdata.zoom);
     magic.runtime.map.getView().setCenter(magic.runtime.viewdata.center);
 };
 

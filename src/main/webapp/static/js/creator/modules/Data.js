@@ -216,8 +216,8 @@ magic.modules.creator.Data = function () {
                 ]
             },
             "midlatitudes": {
-                "projection": "EPSG:4326",
-                "proj_extent": [-180.0, -90.0, 180.0, 90.0],
+                "projection": "EPSG:3857",  /* Spherical Mercator as per OSM/Google */
+                "proj_extent": [-20026376.39, -20048966.10, 20026376.39, 20048966.10],
                 "center": [0, 0],
                 "zoom": 0,
                 "rotation": 0,
@@ -253,15 +253,14 @@ magic.modules.creator.Data = function () {
             "id": null,
             "name": "New layer",
             "source": {
-                "wms_source": "http://localhost:8080/geoserver/wms"
+                "wms_source": magic.config.paths.baseurl + "/geoserver/wms"
             }
         },
         /* Template for a new group */
         BLANK_MAP_NEW_GROUP: {
             "id": null,
             "name": "New layer group",
-            "layers": [                
-            ]
+            "layers": []
         }        
 
     });

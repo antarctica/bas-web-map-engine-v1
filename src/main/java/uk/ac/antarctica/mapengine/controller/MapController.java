@@ -236,7 +236,7 @@ public class MapController {
      * @param String payload   
      * @throws Exception
      */
-    @RequestMapping(value = "/maps/update/{id}", method = RequestMethod.PUT, headers = {"Content-type=application/json"})
+    @RequestMapping(value = "/maps/update/{id}", method = RequestMethod.POST, headers = {"Content-type=application/json"})
     public ResponseEntity<String> updateMap(HttpServletRequest request,
         @PathVariable("id") String id,
         @RequestBody String payload) throws Exception {
@@ -339,13 +339,7 @@ public class MapController {
             ret = packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to perform this action");
         }        
         return (ret);
-    }
-    
-    @RequestMapping(value = "/error", method = RequestMethod.GET)
-	public ResponseEntity<String> accessDenied(HttpServletRequest request) {
-        System.out.println("***** FORBIDDEN!!!! *****");
-        return(packageResults(HttpStatus.FORBIDDEN, null, "Expressly forbidden"));
-	}
+    }      
         
     /**
      * Get the owner of the record with given name

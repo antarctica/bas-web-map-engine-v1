@@ -41,6 +41,13 @@ magic.modules.Common = function () {
                     "wms": "https://maps.bas.ac.uk/southgeorgia/wms",
                     "coast": ["sggis:sg_coastline"]
                 }
+            ],
+            "EPSG:3857": [
+                {
+                    "name": "OpenStreetMap",
+                    "wms": "osm",
+                    "coast": "osm"
+                }
             ]
         },
         proxy_endpoints: {
@@ -50,7 +57,7 @@ magic.modules.Common = function () {
         /* Default local Geoserver endpoint */
         default_geoserver_wms: {
             "name": "Local Geoserver WMS",
-            "value": "http://localhost:8080/geoserver/wms"
+            "wms": magic.config.paths.baseurl + "/geoserver/wms"
         },               
         /* Taken from OL2 Util.js */
         inches_per_unit: {
@@ -342,7 +349,46 @@ magic.modules.Common = function () {
                     callback(null, typename);
                 });
             }
-        },        
+        },
+        /**
+         * Get a suitable mid-latitudes coast layer (OSM, except if in a low bandwidth location, in which case default to Natural Earth)
+         * @returns {ol.layer}
+         */
+        midLatitudeCoastLayer: function() {
+            var lowBandwidthHosts = [
+                "rothera.nerc-bas.ac.uk",
+                "halley.nerc-bas.ac.uk",
+                "jcr.nerc-bas.ac.uk",
+                "es.nerc-bas.ac.uk"
+            ];
+            var hostname = window.location.hostname;
+            var isLowBandwidth = false;
+            $.each(lowBandwidthHosts, function(idx, lbh) {
+                if (hostname.indexOf(lbh) != -1) {
+                    isLowBandwidth = true;
+                    return(false);
+                }
+                return(true);
+            });
+            if (isLowBandwidth) {
+                /* Low bandwidth location - fallback to locally-hosted Natural Earth data */
+                var wmsSource = new ol.source.TileWMS({
+                    url: this.wms,
+                    params: {
+                        "LAYERS": "natearth_world_10m_land", 
+                        "CRS": "EPSG:4326",
+                        "SRS": "EPSG:4326",
+                        "VERSION": "1.3.0",
+                        "WORKSPACE": this.ws
+                    },            
+                    projection: "EPSG:4326"
+                });                     
+                return(new ol.layer.Tile({source: wmsSource}));        
+            } else {
+                /* Any other higher bandwidth location - use OSM */
+                return(new ol.layer.Tile({source: new ol.source.OSM()}));
+            }
+        },
         /**
          * Populate a select list from given array of option objects
          * @param {Element} select

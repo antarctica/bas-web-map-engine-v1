@@ -6,28 +6,7 @@ magic.classes.InsetMap = function(options) {
       
     this.target = options.target || $("button.inset-map-expand");
     
-    this.wms = options.wms;
-    this.ws = options.ws;
-    
-    var backdropLayer = null;
-    if (this.wms != null && window.location.hostname.indexOf("rolgis.rothera.nerc-bas.ac.uk") != -1) {
-        /* Rothera location - fallback to Natural Earth */
-        var wmsSource = new ol.source.TileWMS({
-            url: this.wms,
-            params: {
-                "LAYERS": "natearth_world_10m_land", 
-                "CRS": "EPSG:4326",
-                "SRS": "EPSG:4326",
-                "VERSION": "1.3.0",
-                "WORKSPACE": this.ws
-            },            
-            projection: "EPSG:4326"
-        });                     
-        backdropLayer = new ol.layer.Tile({source: wmsSource});        
-    } else {
-        /* Any other higher bandwidth location - use OSM */
-        backdropLayer = new ol.layer.Tile({source: new ol.source.OSM()});
-    }
+    var backdropLayer = magic.modules.Common.midLatitudeCoastLayer();
   
     /* Set up OL map */
     this.map = new ol.Map({

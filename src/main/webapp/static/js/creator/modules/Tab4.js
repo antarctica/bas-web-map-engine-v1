@@ -30,41 +30,55 @@ magic.modules.creator.Tab4 = function () {
                 var proj = ol.proj.get(context.data.projection);
                 proj.setExtent(context.data.proj_extent);
                 proj.setWorldExtent(context.data.proj_extent);
-
-                var view = new ol.View({
-                    center: context.data.center,
-                    maxResolution: context.data.resolutions[0],
-                    resolutions: context.data.resolutions,
-                    rotation: context.data.rotation,
-                    zoom: context.data.zoom,
-                    projection: proj
-                });
-                
-                var wms = magic.modules.Common.wms_endpoints[context.data.projection][0]["wms"];
-                var coasts = magic.modules.Common.wms_endpoints[context.data.projection][0]["coast"];
+               
+                var view = null;
                 var layers = [];
-                $.each(coasts, function(idx, cl) {
-                    var wmsSource = new ol.source.TileWMS({
-                        url: wms,
-                        params: {
-                            "LAYERS": cl, 
-                            "CRS": proj.getCode(),
-                            "SRS": proj.getCode(),
-                            "VERSION": "1.3.0",
-                            "TILED": true
-                        },
-                        tileGrid: new ol.tilegrid.TileGrid({
-                            resolutions: context.data.resolutions,
-                            origin: proj.getExtent().slice(0, 2)
-                        }),
+                var wms = magic.modules.Common.wms_endpoints[context.data.projection][0]["wms"];
+                if (wms == "osm") {
+                    /* OpenStreetMap is used for mid-latitude maps */
+                    layers.push(magic.modules.Common.midLatitudeCoastLayer());
+                    view = new ol.View({                        
+                        center: context.data.center,
+                        minZoom: 1,
+                        maxZoom: 20,
+                        rotation: context.data.rotation,
+                        zoom: context.data.zoom,
                         projection: proj
                     });
-                    layers.push(new ol.layer.Tile({
-                        visible: true,
-                        opacity: 1.0,
-                        source: wmsSource
-                    }));
-                });                
+                } else {
+                    /* Other WMS */
+                    var coasts = magic.modules.Common.wms_endpoints[context.data.projection][0]["coast"];                    
+                    $.each(coasts, function(idx, cl) {
+                        var wmsSource = new ol.source.TileWMS({
+                            url: wms,
+                            params: {
+                                "LAYERS": cl, 
+                                "CRS": proj.getCode(),
+                                "SRS": proj.getCode(),
+                                "VERSION": "1.3.0",
+                                "TILED": true
+                            },
+                            tileGrid: new ol.tilegrid.TileGrid({
+                                resolutions: context.data.resolutions,
+                                origin: proj.getExtent().slice(0, 2)
+                            }),
+                            projection: proj
+                        });
+                        layers.push(new ol.layer.Tile({
+                            visible: true,
+                            opacity: 1.0,
+                            source: wmsSource
+                        }));
+                    });
+                    view = new ol.View({
+                        center: context.data.center,
+                        maxResolution: context.data.resolutions[0],
+                        resolutions: context.data.resolutions,
+                        rotation: context.data.rotation,
+                        zoom: context.data.zoom,
+                        projection: proj
+                    });
+                }
 
                 this.map = new ol.Map({
                     renderer: "canvas",

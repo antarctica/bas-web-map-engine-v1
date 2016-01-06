@@ -52,7 +52,7 @@ magic.modules.creator.Tab2 = function () {
                         var newLi = this.layerLiHtml(id, magic.modules.creator.Common.layer_dictionary.get(id)["name"]);
                         layerTree.append(newLi);
                         newLi.find("button").click($.proxy(this.layerTreeButtonHandler, this));
-                        $("button.geometry-type-indicator").html("unknown");
+                        //$("button.geometry-type-indicator").html("unknown");
                     }, this));
                 }
                 /* Add new layer group button handler */

@@ -220,15 +220,21 @@ magic.classes.AppContainer.prototype.initView = function() {
     var proj = ol.proj.get(viewData.projection);
     proj.setExtent(viewData.proj_extent);
     proj.setWorldExtent(viewData.proj_extent);
-    var viewDefaults = {
-        center: viewData.center,
-        maxResolution: viewData.resolutions[0],
-        resolutions: viewData.resolutions,
+    var coreViewDefaults = {
+        center: viewData.center,        
         rotation: viewData.rotation ? magic.modules.Common.toRadians(viewData.rotation) : 0.0,
         zoom: viewData.zoom,
         projection: proj,
         proj_extent: viewData.proj_extent
     };
+    var viewDefaults;
+    if (viewData.projection == "EPSG:3857") {
+        /* Spherical Mercator (OSM/Google) */
+        viewDefaults = $.extend(coreViewDefaults, {minZoom: 1, maxZoom: 20});
+    } else {
+        /* Other projection */
+        viewDefaults = $.extend(coreViewDefaults, {maxResolution: viewData.resolutions[0], resolutions: viewData.resolutions});
+    }    
     magic.runtime.view = new ol.View(viewDefaults);
     return(viewDefaults);
 };

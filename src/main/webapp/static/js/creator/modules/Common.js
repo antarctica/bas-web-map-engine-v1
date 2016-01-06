@@ -114,7 +114,11 @@ magic.modules.creator.Common = function () {
                     /* Success - save the map and take the user to the map view */
                     var jqXhr = $.ajax({
                         url: magic.config.paths.baseurl + "/maps/" + (existingId != "" ? "update/" + existingId : "save"),
-                        method: (existingId != "" ? "PUT" : "POST"),
+                        /* The PUT verb should be used here for updates as per REST-ful interfaces, however there seems to be a Tomcat bug on
+                         * bslmagg (the live server) which causes a 403 forbidden error.  I have ascertained it is nothing to do with CSRF tokens
+                         * The PUT operation works on Tomcat 8.0.15 locally - David 07/01/16 
+                         */
+                        method: "POST", //(existingId != "" ? "PUT" : "POST"),
                         processData: false,
                         data: JSON.stringify(finalContext),
                         headers: {

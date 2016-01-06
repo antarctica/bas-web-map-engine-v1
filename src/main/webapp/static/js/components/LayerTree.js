@@ -46,22 +46,9 @@ magic.classes.LayerTree = function (target) {
         var layer = this.nodeLayerTranslation[nodeid];
         if (id.indexOf("base-layer-rb") != -1) {
             /* Base layer visibility change */
-            var isRaster = this.isRasterLayer(layer), exIsRaster = false;
-            $.each(this.baseLayers, $.proxy(function (bli, bl) {
-                if (bl.getVisible() && this.isRasterLayer(bl)) {
-                    exIsRaster = true;
-                }
-                bl.setVisible(bl.get("metadata")["nodeid"] == nodeid);
-            }, this));
-            if (isRaster != exIsRaster) {
-                /* Toggle coastline layers if a raster backdrop is turned on or off */
-                var coastVis = !isRaster;
-                $.each(this.overlayLayers, $.proxy(function (oli, olyr) {
-                    if (olyr.get("name").toLowerCase().indexOf("coastline") != -1) {
-                        olyr.setVisible(coastVis);
-                    }
-                }, this));
-            }
+            $.each(this.layersBySource["base"], $.proxy(function (bli, bl) {                
+                bl.setVisible(bl.get("metadata")["id"] == nodeid);
+            }, this));            
             /* Trigger baselayerchanged event */
             $.event.trigger({
                 type: "baselayerchanged",
@@ -239,7 +226,10 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
             var layer = null;
             var proj = magic.runtime.viewdata.projection;
             if (isWms) {
-                if (isSingleTile) {
+                if (nd.source.wms_source == "osm") {
+                    /* OpenStreetMap layer */
+                    layer = magic.modules.Common.midLatitudeCoastLayer();
+                } else if (isSingleTile) {
                     /* Render point layers with a single tile for labelling free of tile boundary effects */
                     var wmsSource = new ol.source.ImageWMS(({
                         url: nd.source.wms_source,
@@ -254,7 +244,7 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                         source: wmsSource
                     });
                 } else {
-                    /* Non-point layer, or layer not keyworded with point tag */
+                    /* Non-point layer */
                     var wmsVersion = "1.3.0";
                     var wmsSource = new ol.source.TileWMS({
                         url: nd.source.wms_source,

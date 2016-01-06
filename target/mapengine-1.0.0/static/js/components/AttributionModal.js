@@ -127,30 +127,34 @@ magic.classes.AttributionModal.prototype.legendMarkup = function() {
  */
 magic.classes.AttributionModal.prototype.metadataMarkup = function() {
     var md = this.layer.get("metadata");
-    if (md.source.wms_source || (md.source.geojson_source && md.source.feature_name)) {
-        /* WMS source, or GeoJSON WFS */
-        var wmsUrl;
-        if (md.source.geojson_source) {
-            wmsUrl = md.source.geojson_source.replace("wfs", "wms");
+    if (md) {
+        if (md.source.wms_source || (md.source.geojson_source && md.source.feature_name)) {
+            /* WMS source, or GeoJSON WFS */
+            var wmsUrl;
+            if (md.source.geojson_source) {
+                wmsUrl = md.source.geojson_source.replace("wfs", "wms");
+            } else {
+                wmsUrl = md.source.wms_source;
+            }
+            magic.modules.Common.getCapabilities(wmsUrl, $.proxy(this.populateRecordWms, this), md.source.feature_name);        
         } else {
-            wmsUrl = md.source.wms_source;
+            /* Vector source */
+            var sourceUrl = null;
+            if (md.source.geojson_source) {
+                sourceUrl = md.source.geojson_source;            
+            } else if (md.source.gpx_source) {
+                sourceUrl = md.source.gpx_source;            
+            } else if (md.source.kml_source) {
+                sourceUrl = md.source.kml_source;            
+            }
+            if (sourceUrl != null && sourceUrl.match(/entryid=[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$/)) {
+                /* Ramadda repository URL */
+                var mdUrl = sourceUrl.replace("/get/", "/show/") + "&output=json";
+                $.getJSON(mdUrl, $.proxy(this.populateRecordRamadda, this));
+            }
         }
-        magic.modules.Common.getCapabilities(wmsUrl, $.proxy(this.populateRecordWms, this), md.source.feature_name);        
     } else {
-        /* Vector source */
-        var sourceUrl = null;
-        if (md.source.geojson_source) {
-            sourceUrl = md.source.geojson_source;            
-        } else if (md.source.gpx_source) {
-            sourceUrl = md.source.gpx_source;            
-        } else if (md.source.kml_source) {
-            sourceUrl = md.source.kml_source;            
-        }
-        if (sourceUrl != null && sourceUrl.match(/entryid=[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$/)) {
-            /* Ramadda repository URL */
-            var mdUrl = sourceUrl.replace("/get/", "/show/") + "&output=json";
-            $.getJSON(mdUrl, $.proxy(this.populateRecordRamadda, this));
-        }
+        $("#attribution-metadata").html("No metadata available");
     }
 };
 
