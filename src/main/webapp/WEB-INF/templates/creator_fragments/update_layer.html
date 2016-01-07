@@ -15,13 +15,7 @@
                            data-toggle="tooltip" data-placement="left" title="Letters, numbers and _ allowed" pattern="^[A-Za-z0-9_ ]+$" required="required">                                   
                     </input>
                 </div>
-            </div>
-            <div class="form-group">
-                <label class="col-sm-3 control-label">Geometry type</label>
-                <div class="col-sm-9">
-                    <div class="btn btn-info geometry-type-indicator">Unknown</div>
-                </div>
-            </div>
+            </div>           
             <div class="form-group">
                 <div class="col-sm-offset-3 col-sm-9">
                     <div class="checkbox">
@@ -106,7 +100,13 @@
                         </div>
                         <!-- is_interactive, is_filterable, attribute_map -->
                         <div class="form-group">
-                            <div class="col-sm-offset-3 col-sm-9">
+                            <label class="col-sm-3 control-label">Geometry type</label>
+                            <div class="col-sm-9">
+                                <div class="btn btn-info geometry-type-indicator" data-toggle="tooltip" data-placement="left" title="May display as unknown if layer is a composite group or a raster">Unknown</div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
                                 <div class="checkbox">
                                     <label>
                                         <input type="checkbox" id="t2-layer-is_interactive" name="t2-layer-is_interactive" value="interactive"
@@ -117,7 +117,7 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <div class="col-sm-offset-3 col-sm-9">
+                            <div class="col-sm-12">
                                 <div class="checkbox">
                                     <label>
                                         <input type="checkbox" id="t2-layer-is_filterable" name="t2-layer-is_filterable" value="filterable"
@@ -126,7 +126,7 @@
                                     </label>
                                 </div>
                             </div>
-                        </div>
+                        </div>                        
                         <div class="panel panel-default" id="t2-layer-attributes-div">
                             <div class="panel-body">
                             </div>

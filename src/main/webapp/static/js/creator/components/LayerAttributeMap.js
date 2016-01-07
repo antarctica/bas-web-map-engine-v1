@@ -196,10 +196,10 @@ magic.classes.creator.LayerAttributeMap.prototype.toForm = function(id, attrMap,
         html += '<th>Name</th>';
         html += '<th>Type</th>';
         html += '<th>Alias</th>';
-        html += '<th>Label</th>';
-        html += '<th>Visible</th>';
-        html += '<th>Filter</th>';
-        html += '<th>Values</th>';
+        html += '<th width="46">Label</th>';
+        html += '<th width="46">Vis</th>';
+        html += '<th width="46">Filter</th>';
+        html += '<th width="46">Uniq</th>';
         html += '</tr>';
         $.each(attrDict, $.proxy(function(idx, entry) {
             html += '<input type="hidden" id="_amap_name_' + idx + '" value="' + entry.name + '"></input>';

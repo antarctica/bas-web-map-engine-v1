@@ -93,10 +93,13 @@ magic.classes.LayerTree = function (target) {
     }, this));   
 
     /* Change tooltip for collapsible panels */
-    $("div[id^='layer-group-panel-']").on("hidden.bs.collapse", $.proxy(function (evt) {
-        var tgt = $(evt.currentTarget);
-        var tt = (tgt.hasClass("in") ? "Collapse" : "Expand") + " this group";
-        tgt.parent().first().find("span.panel-title").attr("data-original-title", tt).tooltip("fixTitle");
+    $("div[id^='layer-group-panel-']")
+    .on("shown.bs.collapse", $.proxy(function (evt) {       
+        $(evt.currentTarget).parent().first().find("span.panel-title").attr("data-original-title", "Collapse this group").tooltip("fixTitle");
+        evt.stopPropagation();
+    }, this))
+    .on("hidden.bs.collapse", $.proxy(function (evt) {        
+        $(evt.currentTarget).parent().first().find("span.panel-title").attr("data-original-title", "Expand this group").tooltip("fixTitle");
         evt.stopPropagation();
     }, this));
 
@@ -161,21 +164,21 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
             element.append(
                     ((element.length > 0 && element[0].tagName.toLowerCase() == "ul") ? '<li class="list-group-item layer-list-group-group" id="layer-item-' + nd.id + '">' : "") +
                     '<div class="panel ' + hbg + ' center-block" style="width:96%;margin-bottom:5px;' + topMargin + '">' +
-                    '<div class="panel-heading" id="layer-group-heading-' + nd.id + '">' +
-                    '<span class="icon-layers"></span>' +
-                    (nd.base ? '<span style="margin:5px"></span>' : '<input class="layer-vis-group-selector" id="group-cb-' + nd.id + '" type="checkbox" />') +
-                    '<span class="panel-title layer-group-panel-title" data-toggle="tooltip" data-placement="right" title="' + title + '">' +
-                    '<a class="layer-group-tool" role="button" data-toggle="collapse" href="#layer-group-panel-' + nd.id + '">' +
-                    '<span style="font-weight:bold">' + nd.name + '</span>' +
-                    '</a>' +
-                    '</span>' +
-                    '</div>' +
-                    '<div id="layer-group-panel-' + nd.id + '" class="panel-collapse collapse' + (nd.expanded ? " in" : "") + '">' +
-                    '<div class="panel-body" style="padding:0px">' +
-                    '<ul class="list-group layer-list-group" id="layer-group-' + nd.id + '">' +
-                    '</ul>' +
-                    '</div>' +
-                    '</div>' +
+                        '<div class="panel-heading" id="layer-group-heading-' + nd.id + '">' +
+                            '<span class="icon-layers"></span>' +
+                            (nd.base ? '<span style="margin:5px"></span>' : '<input class="layer-vis-group-selector" id="group-cb-' + nd.id + '" type="checkbox" />') +
+                            '<span class="panel-title layer-group-panel-title" data-toggle="tooltip" data-placement="right" title="' + title + '">' +
+                                '<a class="layer-group-tool" role="button" data-toggle="collapse" href="#layer-group-panel-' + nd.id + '">' +
+                                    '<span style="font-weight:bold">' + nd.name + '</span>' +
+                                '</a>' +
+                            '</span>' +
+                        '</div>' +
+                        '<div id="layer-group-panel-' + nd.id + '" class="panel-collapse collapse' + (nd.expanded ? " in" : "") + '">' +
+                            '<div class="panel-body" style="padding:0px">' +
+                                '<ul class="list-group layer-list-group" id="layer-group-' + nd.id + '">' +
+                                '</ul>' +
+                            '</div>' +
+                        '</div>' +
                     '</div>' +
                     ((element.length > 0 && element[0].tagName.toLowerCase() == "ul") ? '</li>' : "")
                     );
@@ -202,24 +205,24 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
             }
             element.append(
                     '<li class="list-group-item layer-list-group-item" id="layer-item-' + nd.id + '">' +
-                    '<span style="float:left">' +
-                    '<span id="layer-info-' + nd.id + '" ' +
-                    'class="fa fa-info-circle' + (isInteractive ? ' clickable' : ' non-clickable') + '" ' +
-                    'data-toggle="tooltip" data-placement="right" data-html="true" ' +
-                    'title="' + (isInteractive ? infoTitle + "<br />Click on map features for info" : infoTitle) + '" ' +
-                    'style="cursor:pointer">' +
-                    '</span>' +
-                    cb +
-                    '<span id="layer-filter-badge-' + nd.id + '" class="badge filter-badge hidden" data-toggle="tooltip" data-placement="right" title="">filter</span>' +
-                    nameSpan +
-                    '</span>' +
-                    '<span style="float:right">' +
-                    '<a class="layer-tool" id="layer-opts-' + nd.id + '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
-                    '<span class="fa fa-bars"></span><b class="caret"></b>' +
-                    '</a>' +
-                    '<ul id="layer-opts-dm-' + nd.id + '" aria-labelled-by="layer-opts-' + nd.id + '" class="dropdown-menu dropdown-menu-right">' +
-                    '</ul>' +
-                    '</span>' +
+                        '<span style="float:left">' +
+                            '<span id="layer-info-' + nd.id + '" ' +
+                            'class="fa fa-info-circle' + (isInteractive ? ' clickable' : ' non-clickable') + '" ' +
+                            'data-toggle="tooltip" data-placement="right" data-html="true" ' +
+                            'title="' + (isInteractive ? infoTitle + "<br />Click on map features for info" : infoTitle) + '" ' +
+                            'style="cursor:pointer">' +
+                            '</span>' +
+                            cb +
+                            '<span id="layer-filter-badge-' + nd.id + '" class="badge filter-badge hidden" data-toggle="tooltip" data-placement="right" title="">filter</span>' +
+                            nameSpan +
+                        '</span>' +
+                        '<span style="float:right">' +
+                            '<a class="layer-tool" id="layer-opts-' + nd.id + '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
+                                '<span class="fa fa-bars"></span><b class="caret"></b>' +
+                            '</a>' +
+                            '<ul id="layer-opts-dm-' + nd.id + '" aria-labelled-by="layer-opts-' + nd.id + '" class="dropdown-menu dropdown-menu-right">' +
+                            '</ul>' +
+                        '</span>' +
                     '</li>'
                     );
             /* Create a data layer */

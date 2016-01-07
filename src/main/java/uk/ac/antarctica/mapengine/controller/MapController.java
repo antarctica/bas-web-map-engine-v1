@@ -231,7 +231,7 @@ public class MapController {
     }
     
     /**
-     * Update a map view whose data is PUT
+     * Update a map view whose data is PUT (Note: uses POST as PUT is broken in Tomcat 8)
      * @param String id
      * @param String payload   
      * @throws Exception
@@ -308,38 +308,72 @@ public class MapController {
     /*---------------------------------------------------------------- Delete map data ----------------------------------------------------------------*/
     
     /**
-     * Delete a map view
+     * Delete a map view by id
      * @param String id
      * @throws Exception
      */
-    @RequestMapping(value = "/maps/delete/{id}", method = RequestMethod.DELETE, produces = "application/json; charset=utf-8", headers = {"Content-type=application/json"})
+    @RequestMapping(value = "/maps/delete/{id}", method = RequestMethod.DELETE, produces = "application/json; charset=utf-8")
     public ResponseEntity<String> deleteMap(HttpServletRequest request,
         @PathVariable("id") String id) throws Exception {
+        return(deleteById(request, id));
+    }      
+    
+    /**
+     * Delete a map view by name
+     * @param String name
+     * @throws Exception
+     */
+    @RequestMapping(value = "/maps/deletebyname/{name}", method = RequestMethod.DELETE, produces = "application/json; charset=utf-8")
+    public ResponseEntity<String> deleteMapByName(HttpServletRequest request,
+        @PathVariable("name") String name) throws Exception {
+        return(deleteById(request, idFromName(name)));
+    }      
+    
+    /**
+     * Method to do deletion of a map by UUID
+     * @param HttpServletRequest request
+     * @param String id
+     * @return ResponseEntity<String>
+     */
+    private ResponseEntity<String> deleteById(HttpServletRequest request, String id) {
         ResponseEntity<String> ret;
-        String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
-        if (username != null) {
-            /* Check logged in user is the owner of the map */
-            String owner = recordOwner(id);
-            if (owner == null) {
-                /* Unable to determine if owner */
-                ret = packageResults(HttpStatus.UNAUTHORIZED, null, "Failed to determine if you are the owner of record with id " + id);
-            } else if (!owner.equals(username)) {
-                /* Not the owner */
-                ret = packageResults(HttpStatus.UNAUTHORIZED, null, "You are not the owner of record with name " + id);
-            } else {
-                /* Do deletion */                
-                try {
-                    magicDataTpl.update("DELETE FROM " + MAPDEFS + " WHERE id=?", new Object[]{id});                        
-                    ret = packageResults(HttpStatus.OK, null, "Successfully deleted");
-                } catch(DataAccessException dae) {
-                    ret = packageResults(HttpStatus.BAD_REQUEST, null, "Error deleting data, message was: " + dae.getMessage());
+        if (id != null) {
+            String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
+            if (username != null) {
+                /* Check logged in user is the owner of the map */
+                String owner = recordOwner(id);
+                if (owner == null) {
+                    /* Unable to determine if owner */
+                    ret = packageResults(HttpStatus.UNAUTHORIZED, null, "Failed to determine if you are the owner of record with id " + id);
+                } else if (!owner.equals(username)) {
+                    /* Not the owner */
+                    ret = packageResults(HttpStatus.UNAUTHORIZED, null, "You are not the owner of record with name " + id);
+                } else {
+                    /* Do deletion */                
+                    try {
+                        magicDataTpl.update("DELETE FROM " + MAPDEFS + " WHERE id=?", new Object[]{id});                        
+                        ret = packageResults(HttpStatus.OK, null, "Successfully deleted");
+                    } catch(DataAccessException dae) {
+                        ret = packageResults(HttpStatus.BAD_REQUEST, null, "Error deleting data, message was: " + dae.getMessage());
+                    }
                 }
+            } else {
+                ret = packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to perform this action");
             }
         } else {
-            ret = packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to perform this action");
-        }        
+            ret = packageResults(HttpStatus.BAD_REQUEST, null, "Supplied with a null id - name to id translation has failed");
+        }
         return (ret);
-    }      
+    }
+    
+    private String idFromName(String name) {
+        String id = null;
+        try {
+            id = magicDataTpl.queryForObject("SELECT id FROM " + MAPDEFS + " WHERE name=?", new Object[]{name}, String.class);              
+        } catch(DataAccessException dae) {                
+        }
+        return(id);
+    }
         
     /**
      * Get the owner of the record with given name

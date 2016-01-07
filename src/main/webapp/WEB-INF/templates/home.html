@@ -6,7 +6,10 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge"></meta>
         <meta name="viewport" content="width=device-width, initial-scale=1"></meta>
         <meta name="description" content="MAGIC Web Mapping Home"></meta>
-        <meta name="author" content="David Herbert, British Antarctic Survey"></meta>        
+        <meta name="author" content="David Herbert, British Antarctic Survey"></meta>  
+        <meta name="_csrf" th:content="${_csrf.token}"/>
+        <!-- default header name is X-CSRF-TOKEN -->
+        <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
         <link rel="icon" type="image/vnd.microsoft.icon" href="/bas.ico"></link>
         <link rel="shortcut icon" type="image/vnd.microsoft.icon" href="/bas.ico"></link>
         <title>MAGIC Web Mapping Home</title>
@@ -23,6 +26,7 @@
         <![endif]-->
         <script src="/static/js/jquery.js"></script>        
         <script src="/static/js/bootstrap.min.js"></script>
+        <script src="/static/js/bootbox.min.js"></script>
         <script src="/static/js/init.js"></script>
     </head>
 
@@ -53,7 +57,7 @@
                                         </select>
                                     </div>
                                     <button id="select-map-go" type="button" class="btn btn-primary">Load map</button>
-                                    <button id="login-map" type="button" class="btn btn-primary">Log in to create/update maps</button>
+                                    <button id="create-map" type="button" class="btn btn-primary">Log in to create/update maps</button>
                                 </form>
                             </div>
                             <div th:case="*">
@@ -69,7 +73,8 @@
                                         </select>
                                     </div>
                                     <button id="select-map-go" type="button" class="btn btn-primary">Load map</button>
-                                    <button id="create-map" type="button" class="btn btn-primary">Create/update a map</button>                                    
+                                    <button id="create-map" type="button" class="btn btn-primary">Create/update a map</button> 
+                                    <button id="delete-map" type="button" class="btn btn-danger">Delete a map</button> 
                                 </form>
                             </div>
                         </div>                        
@@ -80,8 +85,21 @@
         <!-- /#wrapper -->
         <script type="text/javascript">
             /*<![CDATA[*/
+
+            function populateMapList() {
+                var select = $("#select-map");
+                select.html("");
+                $.getJSON(magic.config.paths.baseurl + "/maps/dropdown", function (data) {                    
+                    $.each(data, function (idx, mo) {
+                        var opt = $("<option>", {value: mo["name"]});
+                        opt.text(mo["title"]);
+                        select.append(opt);
+                    });
+                });
+            }
+
             $(document).ready(function () {
-                /* Logout behaviour */                
+                /* Logout behaviour */
                 $("#log-out-user").click(function (evt) {
                     evt.preventDefault();
                     $("#logout-form").submit();
@@ -90,19 +108,36 @@
                     window.open(magic.config.paths.baseurl + "/home/" + $("#select-map").val(), "_blank");
                 });
                 $("#create-map").click(function () {
-                    window.open(magic.config.paths.baseurl + "/creator", "_blank");
+                    window.location = magic.config.paths.baseurl + "/creator";
                 });
-                $("#login-map").click(function () {
-                    window.open(magic.config.paths.baseurl + "/login", "_self");
-                });
-                $.getJSON(magic.config.paths.baseurl + "/maps/dropdown", function(data) {
-                    var select = $("#select-map");
-                    $.each(data, function(idx, mo) {
-                        var opt = $("<option>", {value: mo["name"]});
-                        opt.text(mo["title"]);
-                        select.append(opt);
+                $("#delete-map").click(function () {
+                    var mapName = $("#select-map").val();
+                    var mapText = $("#select-map option:selected").text();
+                    bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">Are you sure you want to delete ' + mapText + '</div>', function (result) {
+                        if (result) {
+                            /* Do the deletion */
+                            var jqxhr = $.ajax({
+                                url: magic.config.paths.baseurl + "/maps/deletebyname/" + mapName,
+                                method: "DELETE",
+                                beforeSend: function(xhr) {
+                                    var csrfHeaderVal = $("meta[name='_csrf']").attr("content");
+                                    var csrfHeader = $("meta[name='_csrf_header']").attr("content");
+                                    xhr.setRequestHeader(csrfHeader, csrfHeaderVal)
+                                }
+                            })
+                            .done(function () {
+                                populateMapList();
+                            })
+                            .fail(function () {
+                                bootbox.alert("Failed to delete map " + mapText);
+                            });                            
+                            bootbox.hideAll();
+                        } else {
+                            bootbox.hideAll();
+                        }
                     });
                 });
+                populateMapList();
             });
             /*]]>*/
         </script>
