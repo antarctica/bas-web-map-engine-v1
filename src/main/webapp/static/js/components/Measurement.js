@@ -458,50 +458,65 @@ magic.classes.Measurement.prototype.queryElevation = function(evt) {
     if ($.isArray(this.demLayers) && this.demLayers.length > 0) {        
         var viewResolution = magic.runtime.view.getResolution();
         var demFeats = $.map(this.demLayers, function(l, idx) {
-            return(l.get("metadata").source.feature_name);
+            if (l.getVisible()) {
+                return(l.get("metadata").source.feature_name);
+            }
         });
-        /* TODO - may need a proxy in some cases */
-        var url = this.demLayers[0].getSource().getGetFeatureInfoUrl(
-            evt.coordinate, viewResolution, magic.runtime.view.getProjection().getCode(),
-            {
-                "LAYERS": demFeats.join(","),
-                "QUERY_LAYERS": demFeats.join(","),
-                "INFO_FORMAT": "application/json",
-                "FEATURE_COUNT": this.demLayers.length
-            });
-        if (url) {
-            var ll = ol.proj.transform(evt.coordinate, magic.runtime.view.getProjection().getCode(), "EPSG:4326");
-            var element = this.heightPopup.getElement();
-            $(element).popover("destroy");
+        if (demFeats.length > 0) {
+            /* TODO - may need a proxy in some cases */
+            var url = this.demLayers[0].getSource().getGetFeatureInfoUrl(
+                evt.coordinate, viewResolution, magic.runtime.view.getProjection().getCode(),
+                {
+                    "LAYERS": demFeats.join(","),
+                    "QUERY_LAYERS": demFeats.join(","),
+                    "INFO_FORMAT": "application/json",
+                    "FEATURE_COUNT": this.demLayers.length
+                });
+            if (url) {
+                var ll = ol.proj.transform(evt.coordinate, magic.runtime.view.getProjection().getCode(), "EPSG:4326");
+                var element = this.heightPopup.getElement();
+                $(element).popover("destroy");
+                this.heightPopup.setPosition(evt.coordinate);
+                $.ajax({
+                    url: url,
+                    method: "GET"
+                })
+                .done($.proxy(function(data) {
+                    /* Expect a feature collection with one feature containing a properties object */
+                    var lon = magic.runtime.preferences.applyPref("coordinates", parseFloat(ll[0]).toFixed(2), "lon");
+                    var lat = magic.runtime.preferences.applyPref("coordinates", parseFloat(ll[1]).toFixed(2), "lat");
+                    var units = $("#" + this.id + "-elevation-units").val();
+                    $(element).popover({
+                        "container": "body",
+                        "placement": "top",
+                        "animation": false,
+                        "html": true,
+                        "content": this.getDemValue(data, units) + " at (" + lon + ", " + lat + ")"
+                    }); 
+                    $(element).popover("show");
+                }, this))
+                .fail($.proxy(function(xhr, status) {
+                    $(element).popover({
+                        "container": "body",
+                        "placement": "top",
+                        "animation": false,
+                        "html": true,
+                        "content": "Failed to get height"
+                    }); 
+                    $(element).popover("show");
+                }, this));
+            }
+        } else {
+            /* Inform user that a DEM layer needs to be visible */
             this.heightPopup.setPosition(evt.coordinate);
-            $.ajax({
-                url: url,
-                method: "GET"
-            })
-            .done($.proxy(function(data) {
-                /* Expect a feature collection with one feature containing a properties object */
-                var lon = magic.runtime.preferences.applyPref("coordinates", parseFloat(ll[0]).toFixed(2), "lon");
-                var lat = magic.runtime.preferences.applyPref("coordinates", parseFloat(ll[1]).toFixed(2), "lat");
-                var units = $("#" + this.id + "-elevation-units").val();
-                $(element).popover({
-                    "container": "body",
-                    "placement": "top",
-                    "animation": false,
-                    "html": true,
-                    "content": this.getDemValue(data, units) + " at (" + lon + ", " + lat + ")"
-                }); 
-                $(element).popover("show");
-            }, this))
-            .fail($.proxy(function(xhr, status) {
-                $(element).popover({
-                    "container": "body",
-                    "placement": "top",
-                    "animation": false,
-                    "html": true,
-                    "content": "Failed to get height"
-                }); 
-                $(element).popover("show");
-            }, this));
+            $(element).popover({
+                "container": "body",
+                "placement": "top",
+                "animation": false,
+                "html": true,
+                "content": "No DEM layers are turned on"
+            }); 
+            $(element).popover("show");
         }
     }
 };

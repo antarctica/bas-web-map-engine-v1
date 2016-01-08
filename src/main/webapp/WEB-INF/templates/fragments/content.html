@@ -43,7 +43,7 @@
                         </a>       
                     </li>
                 </ul>                                
-                <ul class="nav navbar-right top-nav" th:switch="${#httpServletRequest.remoteUser}">
+                <ul class="nav navbar-right top-nav hidden" th:switch="${#httpServletRequest.remoteUser}">
                     <li id="user-menu" class="dropdown" th:case="null">
                         <!-- Guest menu -->
                         <a href="Javascript:void(0)" class="dropdown-toggle" data-toggle="dropdown">

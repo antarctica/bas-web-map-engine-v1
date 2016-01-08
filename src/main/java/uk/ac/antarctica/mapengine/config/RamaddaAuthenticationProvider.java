@@ -17,8 +17,12 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 public class RamaddaAuthenticationProvider implements AuthenticationProvider {
+       
+    private String loginUrl;
     
-    private static final String RAMADDA_LOGIN = "http://rolgis.nerc-bas.ac.uk/repository/user/login";
+    public RamaddaAuthenticationProvider(String loginUrl) {
+        this.loginUrl = loginUrl;
+    }
     
     @Override
     public Authentication authenticate(Authentication authentication) 
@@ -27,7 +31,7 @@ public class RamaddaAuthenticationProvider implements AuthenticationProvider {
         String password = authentication.getCredentials().toString();
         try {
             /* Use the credentials to try to authenticate against local Ramadda installation */
-            String loginUrl = RAMADDA_LOGIN + "?output=xml&user.password=" + password + "&user.id=" + name;
+            String loginUrl = this.loginUrl + "?output=xml&user.password=" + password + "&user.id=" + name;
             HttpResponse response = Request.Get(loginUrl)
                 .connectTimeout(60000)
                 .socketTimeout(60000)
@@ -39,7 +43,7 @@ public class RamaddaAuthenticationProvider implements AuthenticationProvider {
                 /* Returned HTML content differs from simple XML listed in the published API http://geoport.whoi.edu/repository/userguide/developer/publishapi.html
                  * Compromise here is to check for the absence of the login form in the returned HTML - I think the problem is something to do with the 
                  * 302 redirect code from the raw URL */
-                if (!content.contains("form  method=\"post\"  action=\"" + RAMADDA_LOGIN + "\"")) {
+                if (!content.contains("form  method=\"post\"  action=\"" + this.loginUrl + "\"")) {
                     Header[] scHeader = response.getHeaders("Set-Cookie");
                     if (scHeader.length > 0) {
                         String hval = scHeader[0].getValue();
@@ -65,5 +69,13 @@ public class RamaddaAuthenticationProvider implements AuthenticationProvider {
     public boolean supports(Class<?> authentication) {
         return authentication.equals(UsernamePasswordAuthenticationToken.class);
     }
+
+    public String getLoginUrl() {
+        return loginUrl;
+    }
+
+    public void seLogintUrl(String loginUrl) {
+        this.loginUrl = loginUrl;
+    }        
     
 }

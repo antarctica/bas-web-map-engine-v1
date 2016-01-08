@@ -53,7 +53,7 @@ magic.modules.creator.Tab1 = function () {
             /* Check form inputs */
             var ok = $("#t1-form")[0].checkValidity();
             /* Indicate invalid fields */
-            $.each($("#t1-form").find("input[required='required'],textarea[required='required']"), function(idx, ri) {
+            $.each($("#t1-form").find("input[required='required'],textarea[required='required'],input[type='url']"), function(idx, ri) {
                 var riEl = $(ri);
                 var fg = riEl.closest("div.form-group");
                 var vState = riEl.prop("validity");

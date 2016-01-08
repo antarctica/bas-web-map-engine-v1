@@ -71,9 +71,7 @@ magic.classes.AppContainer = function () {
     /* Create an attribution modal for legend/metadata */
     magic.runtime.attribution = new magic.classes.AttributionModal({target: "attribution-modal"});
 
-    /* Create WGS84 inset map with single OSM layer */
-    //magic.runtime.inset = new magic.classes.InsetMap({wms: payload.sources.wms, ws: payload.sources.workspace});
-
+    /* Geosearch tool */
     magic.runtime.geosearch = null;
     if ($.inArray("geosearch", magic.runtime.mapdata.controls) != -1 && $.isArray(magic.runtime.mapdata.gazetteers) && magic.runtime.mapdata.gazetteers.length > 0) {
         /* Activate geosearch */
@@ -84,6 +82,7 @@ magic.classes.AppContainer = function () {
         $("#geosearch-tool").closest("li").hide();
     }
 
+    /* Measurement tool */
     magic.runtime.measurement = null;
     if ($.inArray("measurement", magic.runtime.mapdata.controls) != -1) {
         /* Activate measuring tool */
@@ -94,6 +93,7 @@ magic.classes.AppContainer = function () {
         $("#measure-tool").closest("li").hide();
     }
 
+    /* Overview map tool */
     magic.runtime.overview = null;
     if ($.inArray("overview_map", magic.runtime.mapdata.controls) != -1) {
         /* Activate overview map tool */
@@ -104,18 +104,19 @@ magic.classes.AppContainer = function () {
         $("#overview-map-tool").closest("li").hide();
     }
     
-//    if ($.inArray("repository", payload.view.controls) != -1 && magic.runtime.repository) {
-//        /* Activate repository tool */        
-//        $("#repo-tool").closest("li").show();
-//        $("#repo-tool").on("click", function(evt) {
-//            evt.stopPropagation();
-//            var repoUrl = magic.runtime.repository;            
-//            window.open(repoUrl, "_blank");
-//        });
-//    } else {
-//        /* Hide the download button */
-//        $("#repo-tool").closest("li").hide();
-//    }
+    /* Data download from repository tool */
+    if (magic.runtime.map_context.allowed_download != "nobody" && magic.runtime.repository) {
+        /* Activate repository tool */        
+        $("#repo-tool").closest("li").show();
+        $("#repo-tool").on("click", function(evt) {
+            evt.stopPropagation();
+            var repoUrl = magic.runtime.repository;            
+            window.open(repoUrl, "_blank");
+        });
+    } else {
+        /* Hide the download button */
+        $("#repo-tool").closest("li").hide();
+    }
 
     /* Updates height of map when window resizes */
     $(window).on("resize", $.proxy(function () {
@@ -152,13 +153,20 @@ magic.classes.AppContainer = function () {
     /* Display application metadata */
     this.initMapMetadata();
 
-    /* Logout behaviour */
-    var lo = $("#log-out-user");
-    if (lo.length > 0) {
-        lo.click(function (evt) {
-            evt.preventDefault();
-            $("#logout-form").submit();
-        });
+    /* Security considerations (display the login/preferences menu, or not)
+     * NOTE: even if anyone should manage to display the login menu they won't be able to do anything as all actions are barred server side, 
+     * and the login database is LDAP or Ramadda     
+     */
+    if (magic.runtime.map_context.allowed_usage != "public" || magic.runtime.map_context.allowed_download == "login") {
+        $("ul.navbar-right").show();
+        /* Activate logout menu */
+        var lo = $("#log-out-user");
+        if (lo.length > 0) {
+            lo.click(function (evt) {
+                evt.preventDefault();
+                $("#logout-form").submit();
+            });
+        }
     }
     
     /* Listen for controls being activated/deactivated */
@@ -205,10 +213,10 @@ magic.classes.AppContainer.prototype.initMapMetadata = function() {
     var context = magic.runtime.map_context;
     $("#apptitle").text(context.title);
     $(document).attr("title", context.title);
-    $("#applogo").attr("src", "/static/images/" + context.logo);
+    $("#applogo").attr("src", context.logo || magic.config.paths.baseurl + "/static/images/bas.png");
     $("#appurl").attr("href", context.metadata_url);
-    $("link[rel='icon']").attr("href", "/" + context.favicon);
-    $("link[rel='shortcut icon']").attr("href", "/" + context.favicon);
+    $("link[rel='icon']").attr("href", magic.config.paths.baseurl + "/" + context.favicon);
+    $("link[rel='shortcut icon']").attr("href", magic.config.paths.baseurl + "/" + context.favicon);
 };
 
 /**

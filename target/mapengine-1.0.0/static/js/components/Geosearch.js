@@ -378,7 +378,7 @@ magic.classes.Geosearch.prototype.flyMeThere = function(feature) {
                 source: magic.runtime.map.getView().getCenter()
             }),
             zoom = magic.runtime.map ? magic.runtime.map.getView().getZoom() : magic.runtime.viewdata.zoom,
-            bounceRes = zoom <= 3 ? magic.runtime.viewdata.resolutions[0] : magic.runtime.viewdata.resolutions[zoom-4],
+            bounceRes = zoom <= 3 ? magic.runtime.viewdata.resolutions[0] : magic.runtime.viewdata.resolutions[zoom-3],
             bounce = ol.animation.bounce({
                 duration: duration,
                 resolution: bounceRes
