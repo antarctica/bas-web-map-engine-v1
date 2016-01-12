@@ -11,6 +11,7 @@ magic.modules.creator.Tab1 = function () {
             {"field": "name","default": "new_map"},
             {"field": "title", "default": "New blank map"},
             {"field": "description", "default": "Longer description of the purpose of the map goes here"},
+            {"field": "logo", "default": "http://"},
             {"field": "version", "default": "1.0"},
             {"field": "owner_email", "default": "mapowner@bas.ac.uk"}
         ],
@@ -38,6 +39,7 @@ magic.modules.creator.Tab1 = function () {
                 var sel = $(evt.currentTarget);
                 var action = sel.attr("id").split("-").pop();
                 var mapname = sel.val();
+                magic.modules.creator.Common.resetFormIndicators();
                 magic.modules.creator.Common.map_context.load(action, mapname, $.proxy(magic.modules.creator.Common.loadContext, magic.modules.creator.Common));
             });
         },

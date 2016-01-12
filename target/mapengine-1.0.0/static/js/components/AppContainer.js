@@ -105,7 +105,7 @@ magic.classes.AppContainer = function () {
     }
     
     /* Data download from repository tool */
-    if (magic.runtime.map_context.allowed_download != "nobody" && magic.runtime.repository) {
+    if ($.inArray("download_data", magic.runtime.mapdata.controls) != -1 && magic.runtime.map_context.allowed_download != "nobody" && magic.runtime.repository) {
         /* Activate repository tool */        
         $("#repo-tool").closest("li").show();
         $("#repo-tool").on("click", function(evt) {

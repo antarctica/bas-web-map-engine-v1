@@ -11,7 +11,7 @@ magic.modules.creator.Data = function () {
             "title": "New blank map",
             "description": "Longer description of the purpose of the map goes here",
             "version": "1.0",
-            "logo": "bas.png",
+            "logo": "",
             "favicon": "bas.ico",
             "repository": null,
             "creation_date": null,

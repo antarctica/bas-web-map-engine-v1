@@ -52,11 +52,12 @@ magic.classes.creator.LayerUpdater = function(prefix) {
     /* Add update layer group button handler */    
     var btnUpdateLayer = $("#" + this.prefix + "-save");
     btnUpdateLayer.click($.proxy(function(evt) {
-        if (this.data) {
+        if (this.data && this.validate()) {
             /* Update dictionary entry */
             this.saveContext();
             /* Update the tree button caption as we have updated the name */
             $("#" + this.data.id).find("button").html(this.data.name);
+            magic.modules.creator.Common.resetFormIndicators();
             $("[id$='-update-panel']").fadeOut("slow");
         }
     }, this));
@@ -143,6 +144,38 @@ magic.classes.creator.LayerUpdater.prototype.saveContext = function() {
         }
         this.style_definition.saveContext(this.data.source.style_definition);
     }    
+};
+
+/**
+ * Validate form inputs
+ */
+magic.classes.creator.LayerUpdater.prototype.validate = function() {    
+    var ok = true;
+    $("#t2-layer-form")[0].checkValidity();
+    var checks = ["name", "min_scale", "max_scale", "opacity"];
+    $.each(checks, function(idx, chk) {
+        var input = $("#t2-layer-" + chk);
+        var vState = input.prop("validity");
+        var fg = input.closest("div.form-group");
+        if (vState.valid) {
+            fg.removeClass("has-error").addClass("has-success");
+        } else {
+            ok = false;
+            fg.removeClass("has-success").addClass("has-error");
+        }
+    });    
+    if (ok) {
+        /* Check max/min scale inputs */
+        var minInput = $("#t2-layer-min_scale");
+        var maxInput = $("#t2-layer-max_scale");       
+        if (minInput.val() >= maxInput.val()) {
+            maxInput.closest("div.form-group").removeClass("has-success").addClass("has-error");
+            ok = false;
+        } else {
+            maxInput.closest("div.form-group").removeClass("has-error").addClass("has-success");
+        }
+    }
+    return(ok);
 };
 
 /**

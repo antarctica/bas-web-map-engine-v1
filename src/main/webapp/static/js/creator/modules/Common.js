@@ -107,11 +107,12 @@ magic.modules.creator.Common = function () {
             /* Now validate the assembled map context against the JSON schema in /static/js/json/web_map_schema.json
              * https://github.com/geraintluff/tv4 is the validator used */            
             $.getJSON(magic.config.paths.baseurl + "/static/js/json/web_map_schema.json", $.proxy(function(schema) {
+                //console.log(finalContext);
                 var validationResult = tv4.validate(finalContext, schema);
                 var csrfHeaderVal = $("meta[name='_csrf']").attr("content");
                 var csrfHeader = $("meta[name='_csrf_header']").attr("content");
                 if (validationResult) {
-                    /* Success - save the map and take the user to the map view */
+                    /* Success - save the map and take the user to the map view */                    
                     var jqXhr = $.ajax({
                         url: magic.config.paths.baseurl + "/maps/" + (existingId != "" ? "update/" + existingId : "save"),
                         /* The PUT verb should be used here for updates as per REST-ful interfaces, however there seems to be a Tomcat bug on
@@ -221,7 +222,14 @@ magic.modules.creator.Common = function () {
                     }                    
                 });
             }
-        }
+        },
+        /**
+         * Remove all success/error indications on form inputs
+         */
+        resetFormIndicators: function() {
+            /* Reset any error/success indicators on form elements */
+            $("div.form-group").removeClass("has-error").removeClass("has-success");
+        }        
 
     });
 

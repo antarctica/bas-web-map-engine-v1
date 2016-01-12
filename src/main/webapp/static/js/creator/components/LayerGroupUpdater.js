@@ -24,12 +24,13 @@ magic.classes.creator.LayerGroupUpdater = function(prefix) {
         btnUpdateGroup.prop("disabled", false);
     });                                
     btnUpdateGroup.click($.proxy(function(evt) {
-        if (this.data) {
+        if (this.data && this.validate()) {
             /* Update dictionary entry */
             this.saveContext();
             /* Update the tree button caption as we have updated the name */
             $("#" + this.data.id).find("button").first().html(this.data.name);
-            $("[id$='-update-panel']").fadeOut("slow");
+            magic.modules.creator.Common.resetFormIndicators();
+            $("[id$='-update-panel']").fadeOut("slow");            
         }
     }, this));
      
@@ -58,6 +59,25 @@ magic.classes.creator.LayerGroupUpdater.prototype.loadContext = function(context
 
 magic.classes.creator.LayerGroupUpdater.prototype.saveContext = function() {
     magic.modules.creator.Common.formToDict(this.form_fields, this.data, this.prefix);           
+};
+
+/**
+ * Validate form inputs
+ */
+magic.classes.creator.LayerGroupUpdater.prototype.validate = function() {    
+    var ok = $("#t2-group-form")[0].checkValidity();
+    /* Indicate invalid fields */
+    $.each($("#t2-group-form").find("input"), function(idx, ri) {
+        var riEl = $(ri);
+        var fg = riEl.closest("div.form-group");
+        var vState = riEl.prop("validity");
+        if (vState.valid) {
+            fg.removeClass("has-error").addClass("has-success");
+        } else {
+            fg.removeClass("has-success").addClass("has-error");
+        }
+    });
+    return(ok);
 };
 
 /**

@@ -209,7 +209,7 @@ public class MapController {
                     jo.get("logo").getAsString(),
                     /* The following properties are not currently modifiable through the GUI */
                     "bas.ico",
-                    "/repository",
+                    jo.get("repository").getAsString(),
                     /* End of non-modifiable properties */
                     now,
                     now,
@@ -284,7 +284,7 @@ public class MapController {
                         jo.get("logo").getAsString(),
                         /* The following properties are not currently modifiable through the GUI */
                         "bas.ico",
-                        "/repository",
+                        jo.get("repository").getAsString(),
                         /* End of non-modifiable properties */
                         now,
                         jo.get("owner_email").getAsString(),
