@@ -12,6 +12,7 @@ magic.modules.creator.Tab1 = function () {
             {"field": "title", "default": "New blank map"},
             {"field": "description", "default": "Longer description of the purpose of the map goes here"},
             {"field": "logo", "default": "http://"},
+            {"field": "metadata_url", "default": "http://"},
             {"field": "version", "default": "1.0"},
             {"field": "owner_email", "default": "mapowner@bas.ac.uk"}
         ],
