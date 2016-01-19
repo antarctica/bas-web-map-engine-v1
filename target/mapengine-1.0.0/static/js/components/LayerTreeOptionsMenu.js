@@ -20,12 +20,12 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
             '<div class="layer-options-slider hidden" id="wrapper-opc-' + this.nodeid + '" style="">' + 
                 '<input id="opc-slider-' + this.nodeid + '" data-slider-id="opc-slider-' + this.nodeid + '" data-slider-min="0" data-slider-max="1" data-slider-step="0.1" data-slider-value="1">' + 
             '</div>' + 
-        '</li>' + 
-        '<li>' + 
-            '<a href="Javascript:void(0)" id="tss-' + this.nodeid + '">View time series</a>' +
-            '<div class="hidden" id="wrapper-tss-' + this.nodeid + '">' +                                    
-            '</div>' + 
-        '</li>'
+        '</li>' 
+//        '<li>' + 
+//            '<a href="Javascript:void(0)" id="tss-' + this.nodeid + '">View time series</a>' +
+//            '<div class="hidden" id="wrapper-tss-' + this.nodeid + '">' +                                    
+//            '</div>' + 
+//        '</li>'
 /* Awaiting a more effective WebGL implementation in OL3 - David 22/07/15 */        
 //        '<li>' + 
 //            '<a href="Javascript:void(0)" id="brt-' + this.nodeid + '">Change layer brightness</a>' + 

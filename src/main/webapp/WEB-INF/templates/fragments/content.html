@@ -98,14 +98,58 @@
         <button class="layer-tree-expand btn btn-default hidden-xs" data-toggle="tooltip" data-placement="right" title="Expand layer tree">
             <span class="icon-layers"></span>
         </button>
-        
+
         <button class="inset-map-expand btn btn-default hidden" data-toggle="popover" data-placement="left" data-html="true" title="Inset map">
             <span class="fa fa-map"></span>
         </button>
-       
+
         <div id="height-popup" title="Elevation"></div>
-        
+
         <form id="logout-form" method="POST" th:action="@{/logout}">
         </form>
+
+        <div id="announcement-modal" class="modal fade">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="alert-info modal-header">
+                        <h4 class="modal-title">The ADD has changed!</h4>
+                    </div>
+                    <div class="modal-body">
+                        <h3>Antarctic Digital Database updates January 2016</h3>
+                        <ul>
+                            <li style="padding-bottom:10px">
+                                There have been significant changes to the ice coastline and rock outcrop data across all of Antarctica (December 2015), as well as
+                                major corrections to the coastline and rock outcrop on the South Orkney Islands
+                            </li>
+                            <li style="padding-bottom:10px">
+                                The ADD is now <strong>completely open data</strong>, available free of charge for all uses.  There is no longer any requirement to register
+                                to use the site, or to download data
+                            </li>
+                            <li style="padding-bottom:10px">
+                                The map viewer has been revamped and has a more modern look and feel 
+                            </li>
+                            <li>
+                                The download facility has been significantly simplified; the previous ability to clip data and resample rasters was very little
+                                used and has been withdrawn
+                            </li>
+                        </ul>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" id="announcement-dismiss" value="yes"
+                                               data-toggle="tooltip" data-placement="right" title="Tick if you don't want to see this alert again">                                
+                                        </input> Don't show this alert any more
+                                    </label>
+                                </div>
+                            </div>
+                        </div> 
+                    </div>
+                    <div class="modal-footer">
+                        <button id="announcement-close" type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </body>
 </html>

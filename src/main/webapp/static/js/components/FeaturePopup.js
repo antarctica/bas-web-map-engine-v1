@@ -49,7 +49,7 @@ magic.classes.FeaturePopup = function(options) {
                     '<div class="modal-content">' + 
                         '<div class="modal-header">' + 
                             '<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>' + 
-                            '<h4 class="modal-title" id="' + this.continuation + '-title">Raw attribute set (user preferences not applied)</h4>' + 
+                            '<h4 class="modal-title" id="' + this.continuation + '-title">Raw attribute set (unformatted)</h4>' + 
                         '</div>' + 
                         '<div id="' + this.continuation + '-content" class="modal-body">' + 
                             'Loading attributes...' + 

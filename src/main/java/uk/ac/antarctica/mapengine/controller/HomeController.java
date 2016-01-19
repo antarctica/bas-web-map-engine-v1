@@ -19,6 +19,20 @@ import uk.ac.antarctica.mapengine.util.ActivityLogger;
 public class HomeController {
     
     /**
+     * Render top level page (this may need to be changed for different servers)   
+     * @param HttpServletRequest request,
+     * @param String map
+     * @param ModelMap model
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/", method = RequestMethod.GET)
+    public String topLevel(HttpServletRequest request) throws ServletException, IOException {
+        return "redirect:/home/add7";
+    }        
+    
+    /**
      * Render home page    
      * @param HttpServletRequest request,
      * @param String map

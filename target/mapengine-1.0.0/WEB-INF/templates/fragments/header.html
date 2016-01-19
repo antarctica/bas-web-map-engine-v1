@@ -28,8 +28,8 @@
             /*]]>*/
         </script>
         <script type="text/javascript">
-
-            $(document).ready(function () {
+            /* <![CDATA[*/
+            function fetchPayload() {
                 var payloadRequest = $.ajax({
                     url: magic.config.paths.baseurl + "/maps/name/" + magic.runtime.mapname,
                     method: "GET",
@@ -52,8 +52,24 @@
                 prefsRequest.fail(function(xhr, status) {
                     bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to get payload and preferences for map ' + magic.runtime.mapname + '</div>');
                 });
-            });
+            }
 
+            $(document).ready(function () {
+                var announceModal = $("#announcement-modal");
+                if (announceModal.length > 0 && getCookie("announcement_seen") == "") {
+                    if (window.location.indexOf("/home/add7") != -1) {
+                        $("#announcement-close").on("click", function(evt) {
+                            if ($("#announcement-dismiss").prop("checked")) {
+                                setCookie("announcement_seen", "yes", 1000);
+                            }
+                            announceModal.modal("hide");
+                        });
+                        announceModal.modal("show");
+                    }
+                }
+                fetchPayload();
+            });
+            /*]]>*/
         </script>
     </head>
     <head th:fragment="debug_layout">
@@ -84,6 +100,7 @@
             <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
             <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
         <![endif]-->
+        <script src="/static/js/cookie.min.js"></script>
         <script src="/static/js/ol.min.js"></script>
         <script src="/static/js/ellipsoid/ellipsoid.js"></script>
         <script src="/static/js/jquery.js"></script>
@@ -129,8 +146,8 @@
             /*]]>*/
         </script>
         <script type="text/javascript">
-
-            $(document).ready(function () {
+            /* <![CDATA[*/
+            function fetchPayload() {
                 var payloadRequest = $.ajax({
                     url: magic.config.paths.baseurl + "/maps/name/" + magic.runtime.mapname,
                     method: "GET",
@@ -153,8 +170,24 @@
                 prefsRequest.fail(function(xhr, status) {
                     bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to get payload and preferences for map ' + magic.runtime.mapname + '</div>');
                 });
-            });
+            }
 
+            $(document).ready(function () {
+                var announceModal = $("#announcement-modal");
+                if (announceModal.length > 0 && getCookie("announcement_seen") == "") {
+                    if (window.location.indexOf("/home/add7") != -1) {
+                        $("#announcement-close").on("click", function(evt) {
+                            if ($("#announcement-dismiss").prop("checked")) {
+                                setCookie("announcement_seen", "yes", 1000);
+                            }
+                            announceModal.modal("hide");
+                        });
+                        announceModal.modal("show");
+                    }
+                }
+                fetchPayload();
+            });
+            /*]]>*/
         </script>
     </head>
     <body>        
