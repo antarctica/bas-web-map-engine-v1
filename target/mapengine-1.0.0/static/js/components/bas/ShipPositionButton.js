@@ -118,7 +118,7 @@ magic.classes.ShipPositionButton.prototype.getData = function() {
             /* Format is as https://github.com/felnne/bas-api-documentation/blob/master/marine-api/v1/documentation/resources/vessel.md */           
             if ($.isArray(data)) {
                 var inFeats = [], outFeats = [];
-                var projExtent = magic.modules.GeoUtils.projectionLatLonExtent(magic.runtime.projection.getCode());                         
+                var projExtent = magic.modules.GeoUtils.projectionLatLonExtent(magic.runtime.viewdata.projection.getCode());                         
                 $.each(data, function(idx, elt) {
                     var attrs = {
                         callsign: elt.callsign,
@@ -134,7 +134,7 @@ magic.classes.ShipPositionButton.prototype.getData = function() {
                     var geom = new ol.geom.Point([attrs.lon, attrs.lat]);
                     var inside = geom.intersectsExtent(projExtent);
                     if (inside) {
-                        geom.transform("EPSG:4326", magic.runtime.projection);                        
+                        geom.transform("EPSG:4326", magic.runtime.viewdata.projection);                        
                     } else {
                         geom.transform("EPSG:4326", "EPSG:3857");
                     }

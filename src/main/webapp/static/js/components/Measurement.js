@@ -382,9 +382,9 @@ magic.classes.Measurement.prototype.geodesicLength = function() {
     var geodesicLength = 0.0;
     var coords = this.sketch.getGeometry().getCoordinates();
     if (coords.length > 1) {
-        var c0wgs84 = ol.proj.transform(coords[0], magic.runtime.projection, "EPSG:4326");
+        var c0wgs84 = ol.proj.transform(coords[0], magic.runtime.viewdata.projection, "EPSG:4326");
         for (var i = 1; i < coords.length - 1; i++) {
-            var c1wgs84 = ol.proj.transform(coords[i], magic.runtime.projection, "EPSG:4326");
+            var c1wgs84 = ol.proj.transform(coords[i], magic.runtime.viewdata.projection, "EPSG:4326");
             geodesicLength += magic.modules.GeoUtils.WGS84.vincentyDistance(c0wgs84, c1wgs84);
             c0wgs84 = c1wgs84;
         }
@@ -406,8 +406,8 @@ magic.classes.Measurement.prototype.geodesicArea = function() {
         var p0 = ringCoords[0];
         ringCoords.push(p0);
         for (var i = 0; i < ringCoords.length - 1; i++) {
-            var p1 = ol.proj.transform(ringCoords[i], magic.runtime.projection, "EPSG:4326");
-            var p2 = ol.proj.transform(ringCoords[i + 1], magic.runtime.projection, "EPSG:4326")
+            var p1 = ol.proj.transform(ringCoords[i], magic.runtime.viewdata.projection, "EPSG:4326");
+            var p2 = ol.proj.transform(ringCoords[i + 1], magic.runtime.viewdata.projection, "EPSG:4326")
             /* From OpenLayers 2.13.1 Geometry/LinearRing.js */
             geodesicArea += magic.modules.Common.toRadians(p2[0] - p1[0]) *
                 (2 + Math.sin(magic.modules.Common.toRadians(p1[1])) + Math.sin(magic.modules.Common.toRadians(p2[1])));

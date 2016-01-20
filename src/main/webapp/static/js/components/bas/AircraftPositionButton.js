@@ -119,7 +119,7 @@ magic.classes.AircraftPositionButton.prototype.getData = function() {
             }
             var feats = this.geoJson.readFeatures(data);
             var inFeats = [], outFeats = [];
-            var projExtent = magic.modules.GeoUtils.projectionLatLonExtent(magic.runtime.projection.getCode());
+            var projExtent = magic.modules.GeoUtils.projectionLatLonExtent(magic.runtime.viewdata.projection.getCode());
             $.each(feats, $.proxy(function(idx, f) {
                 var props = $.extend({}, f.getProperties(), {
                     "__title": "Aircraft position"
@@ -128,7 +128,7 @@ magic.classes.AircraftPositionButton.prototype.getData = function() {
                 var fclone = f.clone();
                 fclone.setProperties(props);
                 if (f.getGeometry().intersectsExtent(projExtent)) {                            
-                    fclone.getGeometry().transform("EPSG:4326", magic.runtime.projection);
+                    fclone.getGeometry().transform("EPSG:4326", magic.runtime.viewdata.projection);
                     var style = new ol.style.Style({
                         image: new ol.style.Icon({
                             rotateWithView: true,

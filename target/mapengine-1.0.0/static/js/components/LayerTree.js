@@ -269,6 +269,8 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                         name: name,
                         visible: nd.is_visible,
                         opacity: nd.opacity || 1.0,
+                        minResolution: magic.modules.GeoUtils.getResolutionFromScale(nd.min_scale),
+                        maxResolution: magic.modules.GeoUtils.getResolutionFromScale(nd.max_scale),
                         metadata: nd,
                         source: wmsSource
                     });

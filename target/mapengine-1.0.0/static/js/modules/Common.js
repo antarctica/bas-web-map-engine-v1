@@ -520,21 +520,26 @@ magic.modules.Common = function () {
             if (!value) {
                 return("");
             }
+            
+            if (typeof value == "string") {
 
-            /* http://, https://, ftp:// */
-            var urlPattern = /\b(?:https?|ftp):\/\/[a-z0-9-+&@#\/%?=~_|!:,.;]*[a-z0-9-+&@#\/%=~_|]/gim;
+                /* http://, https://, ftp:// */
+                var urlPattern = /\b(?:https?|ftp):\/\/[a-z0-9-+&@#\/%?=~_|!:,.;]*[a-z0-9-+&@#\/%=~_|]/gim;
 
-            /* www. sans http:// or https:// */
-            var pseudoUrlPattern = /(^|[^\/])(www\.[\S]+(\b|$))/gim;
+                /* www. sans http:// or https:// */
+                var pseudoUrlPattern = /(^|[^\/])(www\.[\S]+(\b|$))/gim;
 
-            /* Email addresses */
-            var emailAddressPattern = /\w+@[a-zA-Z_]+?(?:\.[a-zA-Z]{2,6})+/gim;
+                /* Email addresses */
+                var emailAddressPattern = /\w+@[a-zA-Z_]+?(?:\.[a-zA-Z]{2,6})+/gim;
 
-            return(value
-                    .replace(urlPattern, '<a href="$&" title="$&" target="_blank">[external resource]</a>')
-                    .replace(pseudoUrlPattern, '$1<a href="http://$2" target="_blank">$2</a>')
-                    .replace(emailAddressPattern, '<a href="mailto:$&">$&</a>')
-                    );
+                return(value
+                        .replace(urlPattern, '<a href="$&" title="$&" target="_blank">[external resource]</a>')
+                        .replace(pseudoUrlPattern, '$1<a href="http://$2" target="_blank">$2</a>')
+                        .replace(emailAddressPattern, '<a href="mailto:$&">$&</a>')
+                        );
+            } else {
+                return(value);
+            }
         },
         /**
          * Break long string every 'size' characters with a <br />
