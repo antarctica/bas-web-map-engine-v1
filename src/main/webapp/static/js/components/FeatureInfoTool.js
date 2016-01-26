@@ -61,8 +61,7 @@ magic.classes.FeatureInfoTool.prototype.queryFeatures = function(evt) {
                         "LAYERS": md.source.feature_name,
                         "QUERY_LAYERS": md.source.feature_name,
                         "INFO_FORMAT": "application/json", 
-                        "FEATURE_COUNT": 10,
-                        "BUFFER": 10
+                        "FEATURE_COUNT": 10
                     }
                 );
                 if (magic.modules.Common.proxy_endpoints[md.source.wms_source] === true) {
