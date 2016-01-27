@@ -10,6 +10,7 @@ magic.classes.LayerFilter = function(options) {
     this.layer = options.layer;
     
     this.attribute_map = this.layer.get("metadata").attribute_map;
+    /* End of API */
     
     /* Internal */
     this.attr = null;
