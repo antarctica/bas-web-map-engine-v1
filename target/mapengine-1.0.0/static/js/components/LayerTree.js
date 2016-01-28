@@ -228,6 +228,15 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
             /* Create a data layer */
             var layer = null;
             var proj = magic.runtime.viewdata.projection;
+            /* Get min/max resolution */
+            var minRes = magic.runtime.viewdata.resolutions[0];
+            var maxRes = magic.runtime.viewdata.resolutions[magic.runtime.viewdata.resolutions.length-1];
+            if ($.isNumeric(nd.minScale)) {
+                minRes = magic.modules.GeoUtils.getResolutionFromScale(nd.min_scale);
+            }
+            if ($.isNumeric(nd.maxScale)) {
+                maxRes = magic.modules.GeoUtils.getResolutionFromScale(nd.max_scale);
+            }
             if (isWms) {
                 if (nd.source.wms_source == "osm") {
                     /* OpenStreetMap layer */
@@ -244,7 +253,9 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                         visible: nd.is_visible,
                         opacity: nd.opacity || 1.0,
                         metadata: nd,
-                        source: wmsSource
+                        source: wmsSource,
+                        minResolution: minRes,
+                        maxResolution: maxRes
                     });
                 } else {
                     /* Non-point layer */
@@ -269,8 +280,8 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                         name: name,
                         visible: nd.is_visible,
                         opacity: nd.opacity || 1.0,
-                        minResolution: magic.modules.GeoUtils.getResolutionFromScale(nd.min_scale),
-                        maxResolution: magic.modules.GeoUtils.getResolutionFromScale(nd.max_scale),
+                        minResolution: minRes,
+                        maxResolution: maxRes,
                         metadata: nd,
                         source: wmsSource
                     });
@@ -309,7 +320,9 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                         visible: nd.is_visible,
                         source: vectorSource,
                         style: this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map)) ,
-                        metadata: nd
+                        metadata: nd,
+                        minResolution: minRes,
+                        maxResolution: maxRes
                     });
                 } else {
                     /* Some other GeoJSON feed */
@@ -323,7 +336,9 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                                 url: nd.source.geojson_source
                             })
                         }),
-                        style: this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map)) 
+                        style: this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map)),
+                        minResolution: minRes,
+                        maxResolution: maxRes
                     });
                 }
                 this.layersBySource["geojson"].push(layer);
@@ -339,7 +354,9 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                             url: nd.source.gpx_source
                         }),
                         style: this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map))
-                    })                    
+                    }),
+                    minResolution: minRes,
+                    maxResolution: maxRes
                 });
                 this.layersBySource["gpx"].push(layer);
             } else if (nd.source.kml_source) {
@@ -354,7 +371,9 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                             url: nd.source.kml_source
                         }),
                         style: this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map))
-                    })
+                    }),
+                    minResolution: minRes,
+                    maxResolution: maxRes
                 });
                 this.layersBySource["kml"].push(layer);
             }

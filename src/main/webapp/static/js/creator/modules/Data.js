@@ -174,7 +174,7 @@ magic.modules.creator.Data = function () {
                 "rotation": 0,
                 "min_zoom": 0,
                 "max_zoom": 14,
-                "resolutions": [3360, 1680, 840, 420, 210, 105, 42, 21, 10.5, 4.2, 2.1, 1.2, 0.56, 0.28, 0.14],
+                "resolutions": [3360, 1680, 840, 420, 210, 105, 42, 21, 10.5, 4.2, 2.1, 1.12, 0.56, 0.28, 0.14],
                 "controls": ["zoom_world", "zoom_in", "zoom_out", "box_zoom"],
                 "gazetteers": ["sg"],                
                 "layers": [

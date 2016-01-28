@@ -70,6 +70,38 @@ magic.modules.creator.Tab4 = function () {
                             source: wmsSource
                         }));
                     });
+                    var controls = [
+                        new ol.control.ScaleLine({minWidth: 100, className: "custom-scale-line-top", units: "metric"}),
+                        new ol.control.ScaleLine({minWidth: 100, className: "custom-scale-line-bottom", units: "imperial"}),
+                        new ol.control.MousePosition({
+                            projection: "EPSG:4326",
+                            className: "custom-mouse-position",
+                            coordinateFormat: function (xy) {
+                                return("Lon : " + xy[0].toFixed(2) + ", lat : " + xy[1].toFixed(2));
+                            }
+                        })
+                    ];
+                    var graticule = magic.modules.Common.wms_endpoints[context.data.projection][0]["graticule"];
+                    if (graticule) {
+                        if (graticule == "ol") {
+                            /* Use the native OL graticule control */
+                            controls.push(new ol.Graticule({
+                                maxLines: 100
+                            }));
+                        } else {
+                            /* Use prepared data for Polar Stereographic as OL control does not work */
+                            var wmsSource = new ol.source.ImageWMS(({
+                                url: wms,
+                                params: {"LAYERS": graticule},
+                                projection: proj
+                            }));
+                            layers.push(new ol.layer.Image({
+                                visible: true,
+                                opacity: 1.0,
+                                source: wmsSource
+                            }));
+                        }
+                    }
                     view = new ol.View({
                         center: context.data.center,
                         maxResolution: context.data.resolutions[0],
@@ -85,17 +117,7 @@ magic.modules.creator.Tab4 = function () {
                     loadTilesWhileAnimating: true,
                     loadTilesWhileInteracting: true,
                     layers: layers,
-                    controls: [
-                        new ol.control.ScaleLine({minWidth: 100, className: "custom-scale-line-top", units: "metric"}),
-                        new ol.control.ScaleLine({minWidth: 100, className: "custom-scale-line-bottom", units: "imperial"}),
-                        new ol.control.MousePosition({
-                            projection: "EPSG:4326",
-                            className: "custom-mouse-position",
-                            coordinateFormat: function (xy) {
-                                return("Lon : " + xy[0].toFixed(2) + ", lat : " + xy[1].toFixed(2));
-                            }
-                        })
-                    ],
+                    controls: controls,
                     interactions: ol.interaction.defaults(),
                     target: "t4-map",
                     view: view

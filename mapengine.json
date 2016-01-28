@@ -86,6 +86,7 @@
     "ol.control.MousePosition",
     "ol.control.ZoomSlider",
     "ol.control.OverviewMap",
+    "ol.control.Graticule",
     "ol.interaction.defaults",
     "ol.interaction.DragRotateAndZoom",
     "ol.interaction.DragRotateAndZoom#*",
