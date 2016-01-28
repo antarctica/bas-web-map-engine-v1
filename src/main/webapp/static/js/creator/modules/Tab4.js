@@ -85,8 +85,11 @@ magic.modules.creator.Tab4 = function () {
                     var graticule = magic.modules.Common.wms_endpoints[context.data.projection][0]["graticule"];
                     if (graticule) {
                         if (graticule == "ol") {
-                            /* Use the native OL graticule control */
-                            olGrat = new ol.Graticule({maxLines: 100});
+                            /* Use the native OL graticule control - hangs badly in Chrome 28/01/2016 - obviously buggy */
+//                            olGrat = new ol.Graticule({
+//                                projection: proj,
+//                                maxLines: 10
+//                            });
                         } else {
                             /* Use prepared data for Polar Stereographic as OL control does not work */
                             var wmsSource = new ol.source.ImageWMS(({

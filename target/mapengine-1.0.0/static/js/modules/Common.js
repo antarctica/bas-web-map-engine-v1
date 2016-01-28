@@ -10,7 +10,7 @@ magic.modules.Common = function () {
                     "name": "Antarctic Digital Database",
                     "wms": "https://maps.bas.ac.uk/antarctic/wms",
                     "coast": ["add:antarctic_coastline", "add:sub_antarctic_coastline"],
-                    "graticule": ["add:antarctic_graticule"]
+                    "graticule": "add:antarctic_graticule"
                 },
                 {
                     "name": "Operations GIS",
@@ -34,7 +34,7 @@ magic.modules.Common = function () {
                     "name": "NERC Arctic Office Map",
                     "wms": "https://maps.bas.ac.uk/arctic/wms",
                     "coast": ["arctic:arctic_coastline"],
-                    "graticule": ["arctic:arctic_graticule"]
+                    "graticule": "arctic:arctic_graticule"
                 }
             ],
             "EPSG:3762": [
@@ -42,7 +42,7 @@ magic.modules.Common = function () {
                     "name": "South Georgia GIS",
                     "wms": "https://maps.bas.ac.uk/southgeorgia/wms",
                     "coast": ["sggis:sg_coastline"],
-                    "graticule": ["ol"]
+                    "graticule": "ol"
                 }
             ],
             "EPSG:3857": [

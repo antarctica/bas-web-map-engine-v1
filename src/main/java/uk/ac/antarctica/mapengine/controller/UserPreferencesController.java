@@ -53,9 +53,9 @@ public class UserPreferencesController {
                 String jsonRow = magicDataTpl.queryForObject("SELECT row_to_json(" + table + ") FROM " + PREFS + " WHERE username=?", String.class, userName);
                 ret = packageResults(HttpStatus.OK, jsonRow, "");
             } catch(IncorrectResultSizeDataAccessException irsdae) {
-                ret = packageResults(HttpStatus.BAD_REQUEST, null, irsdae.getMessage());
+                ret = packageResults(HttpStatus.OK, defaultPreferenceSet(), "");
             } catch(DataAccessException dae) {
-                ret = packageResults(HttpStatus.BAD_REQUEST, null, dae.getMessage());
+                ret = packageResults(HttpStatus.OK, defaultPreferenceSet(), "");
             }
         }
         return (ret);

@@ -24,6 +24,7 @@ magic.modules.creator.Tab3 = function () {
             /* Security inputs */
             $("select[name='t3-allowed_usage']").val(context.allowed_usage);
             $("select[name='t3-allowed_download']").val(context.allowed_download);
+            $("select[name='t3-allowed_edit']").val(context.allowed_edit);
             $("input[name='t3-repository']").val(context.repository);
         },
         /**
@@ -45,6 +46,7 @@ magic.modules.creator.Tab3 = function () {
             /* Security inputs */
             context.allowed_usage = $("select[name='t3-allowed_usage']").val();
             context.allowed_download = $("select[name='t3-allowed_download']").val();
+            context.allowed_edit = $("select[name='t3-allowed_edit']").val();
             context.repository = $("input[name='t3-repository']").val();
         },
         validate: function() {

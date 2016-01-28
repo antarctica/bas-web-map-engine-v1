@@ -43,6 +43,12 @@ magic.modules.creator.Tab1 = function () {
                 magic.modules.creator.Common.resetFormIndicators();
                 magic.modules.creator.Common.map_context.load(action, mapname, $.proxy(magic.modules.creator.Common.loadContext, magic.modules.creator.Common));
             });
+            /* load up a map if required */
+            if (window.location.search && window.location.search.match(/\?name=[a-z0-9_]+$/)) {
+                /* Named map */
+                // TODO
+                $("#t1-edit").val(window.location.search.substring(6));
+            }
         },
         validate: function() {
             /* Make sure a map source selection has been made */

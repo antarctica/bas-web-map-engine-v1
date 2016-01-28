@@ -94,7 +94,7 @@ public class MapController {
             if (username == null) {
                 ret = packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to perform this action");
             } else {
-                userMapData = magicDataTpl.queryForList("SELECT name, title FROM " +  MAPDEFS + " WHERE owner_name=? ORDER BY title", username);
+                userMapData = magicDataTpl.queryForList("SELECT name, title FROM " +  MAPDEFS + " WHERE owner_name=? OR allowed_edit='login' ORDER BY title", username);
             }
         } else if (action.equals("clone") || action.equals("view")) {
             if (username == null) {
@@ -199,7 +199,7 @@ public class MapController {
                 PGobject dataObject = new PGobject();
                 dataObject.setType("json");
                 dataObject.setValue(jo.get("data").toString());
-                String sql = "INSERT INTO " + MAPDEFS + " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                String sql = "INSERT INTO " + MAPDEFS + " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
                 magicDataTpl.update(sql, new Object[] {
                     UUID.randomUUID().toString(),
                     jo.get("name").getAsString(),
@@ -218,7 +218,8 @@ public class MapController {
                     jo.get("metadata_url").getAsString(),
                     dataObject,
                     jo.get("allowed_usage").getAsString(),
-                    jo.get("allowed_download").getAsString()
+                    jo.get("allowed_download").getAsString(),
+                    jo.get("allowed_edit").getAsString()
                 });
                 ret = packageResults(HttpStatus.OK, null, "Successfully saved");
             } catch(DataAccessException dae) {
@@ -244,13 +245,9 @@ public class MapController {
         String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
         if (username != null) {
             /* Check logged in user is the owner of the map */
-            String owner = recordOwner(id);
-            if (owner == null) {
-                /* Unable to determine if owner */
-                ret = packageResults(HttpStatus.UNAUTHORIZED, null, "Failed to determine if you are the owner of record with name " + id);
-            } else if (!owner.equals(username)) {
-                /* Not the owner */
-                ret = packageResults(HttpStatus.UNAUTHORIZED, null, "You are not the owner of record with name " + id);
+            if (canWrite(username, id)) {                
+                /* Does not have write permission */
+                ret = packageResults(HttpStatus.UNAUTHORIZED, null, "You do not have permission to edit record with name " + id);
             } else {
                 /* Default the non-completed fields */
                 JsonElement je = new JsonParser().parse(payload);
@@ -275,7 +272,8 @@ public class MapController {
                         "metadata_url=?, " + 
                         "data=?, " + 
                         "allowed_usage=?, " +
-                        "allowed_download=? WHERE id=?";
+                        "allowed_download=?, " +
+                        "allowed_edit=? WHERE id=?";
                     magicDataTpl.update(sql, new Object[] {
                         jo.get("name").getAsString(),
                         jo.get("title").getAsString(),
@@ -292,6 +290,7 @@ public class MapController {
                         dataObject,
                         jo.get("allowed_usage").getAsString(),
                         jo.get("allowed_download").getAsString(),
+                        jo.get("allowed_edit").getAsString(),
                         id
                     });
                     ret = packageResults(HttpStatus.OK, null, "Successfully updated");
@@ -373,6 +372,24 @@ public class MapController {
         } catch(DataAccessException dae) {                
         }
         return(id);
+    }
+    
+    /**
+     * Can the current user write data to map with supplied id?
+     * @param String username
+     * @param String id
+     * @return boolean
+     */
+    private boolean canWrite(String username, String id) {
+        int recs = 0;
+        try {
+            recs = magicDataTpl.queryForObject("SELECT owner_name FROM " + MAPDEFS + " WHERE id=? AND (owner_name=? OR allowed_edit='login')", 
+                new Object[]{id, username},
+                Integer.class
+            );              
+        } catch(DataAccessException dae) {                
+        }
+        return(recs == 1);
     }
         
     /**

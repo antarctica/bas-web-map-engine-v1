@@ -508,6 +508,11 @@
             "type": "string",
             "enum": ["public", "login", "owner"]
         },
+        "allowed_edit": {
+            "description": "Who is allowed to edit this map",
+            "type": "string",
+            "enum": ["login", "owner"]
+        },
         "allowed_download": {
             "description": "Who is allowed to download underlying data from this map",
             "type": "string",

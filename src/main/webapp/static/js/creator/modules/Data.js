@@ -20,6 +20,7 @@ magic.modules.creator.Data = function () {
             "owner_email": "owner@example.com",
             "metadata_url": "",
             "allowed_usage": "public",
+            "allowed_edit": "owner",
             "allowed_download": "public"
         },
         /* Per-region blank map initialisation data */
