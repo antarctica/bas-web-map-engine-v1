@@ -87,6 +87,7 @@
     "ol.control.ZoomSlider",
     "ol.control.OverviewMap",
     "ol.Graticule",
+    "ol.Graticule#*",
     "ol.interaction.defaults",
     "ol.interaction.DragRotateAndZoom",
     "ol.interaction.DragRotateAndZoom#*",

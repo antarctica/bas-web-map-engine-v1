@@ -81,13 +81,12 @@ magic.modules.creator.Tab4 = function () {
                             }
                         })
                     ];
+                    var olGrat = null;
                     var graticule = magic.modules.Common.wms_endpoints[context.data.projection][0]["graticule"];
                     if (graticule) {
                         if (graticule == "ol") {
                             /* Use the native OL graticule control */
-                            controls.push(new ol.Graticule({
-                                maxLines: 100
-                            }));
+                            olGrat = new ol.Graticule({maxLines: 100});
                         } else {
                             /* Use prepared data for Polar Stereographic as OL control does not work */
                             var wmsSource = new ol.source.ImageWMS(({
@@ -122,6 +121,9 @@ magic.modules.creator.Tab4 = function () {
                     target: "t4-map",
                     view: view
                 });
+                if (olGrat != null) {
+                    olGrat.setMap(this.map);
+                }
             }
         },
         validate: function() {

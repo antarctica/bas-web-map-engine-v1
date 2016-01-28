@@ -228,15 +228,16 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
             /* Create a data layer */
             var layer = null;
             var proj = magic.runtime.viewdata.projection;
-            /* Get min/max resolution */
-            var minRes = magic.runtime.viewdata.resolutions[0];
-            var maxRes = magic.runtime.viewdata.resolutions[magic.runtime.viewdata.resolutions.length-1];
+            /* Get min/max resolution */            
+            var minRes = magic.runtime.viewdata.resolutions[magic.runtime.viewdata.resolutions.length-1];
+            var maxRes = magic.runtime.viewdata.resolutions[0]+1;   /* Note: OL applies this one exclusively, whereas minRes is inclusive - duh! */  
             if ($.isNumeric(nd.minScale)) {
                 minRes = magic.modules.GeoUtils.getResolutionFromScale(nd.min_scale);
             }
             if ($.isNumeric(nd.maxScale)) {
                 maxRes = magic.modules.GeoUtils.getResolutionFromScale(nd.max_scale);
             }
+            console.log(minRes + ", " + maxRes);
             if (isWms) {
                 if (nd.source.wms_source == "osm") {
                     /* OpenStreetMap layer */
