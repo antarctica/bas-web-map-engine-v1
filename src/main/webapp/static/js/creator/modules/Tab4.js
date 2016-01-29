@@ -12,9 +12,9 @@ magic.modules.creator.Tab4 = function () {
         },
         saveContext: function(context) {
             context.data.center = this.map.getView().getCenter();
-            var rotation = $("#t4-rotation").val();
-            context.data.rotation = !$.isNumeric(rotation) ? 0.0 : rotation;
-            context.data.zoom = this.map.getView().getZoom();
+            var rotation = parseFloat($("#t4-rotation").val());
+            context.data.rotation = isNaN(rotation) ? 0.0 : rotation;
+            context.data.zoom = this.map.getView().getZoom();            
         },
         loadMap: function(context) {
             var resetMap = false;
@@ -32,6 +32,14 @@ magic.modules.creator.Tab4 = function () {
                 proj.setWorldExtent(context.data.proj_extent);
                
                 var view = null;
+                /* Sort out the rotation (saved in degrees - OL needs radians */
+                var rotation = parseFloat(context.data.rotation);
+                if (isNaN(rotation)) {
+                    rotation = 0.0;
+                } else {
+                    rotation = Math.PI*rotation/180.0;
+                }
+                $("#t4-rotation").val(context.data.rotation);
                 var layers = [];
                 var wms = magic.modules.Common.wms_endpoints[context.data.projection][0]["wms"];
                 if (wms == "osm") {
@@ -41,7 +49,7 @@ magic.modules.creator.Tab4 = function () {
                         center: context.data.center,
                         minZoom: 1,
                         maxZoom: 20,
-                        rotation: context.data.rotation,
+                        rotation: rotation,
                         zoom: context.data.zoom,
                         projection: proj
                     });
@@ -108,7 +116,7 @@ magic.modules.creator.Tab4 = function () {
                         center: context.data.center,
                         maxResolution: context.data.resolutions[0],
                         resolutions: context.data.resolutions,
-                        rotation: context.data.rotation,
+                        rotation: rotation,
                         zoom: context.data.zoom,
                         projection: proj
                     });
