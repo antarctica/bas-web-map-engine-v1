@@ -19,7 +19,7 @@ magic.modules.creator.Tab1 = function () {
                 
         init: function () {
             /* Creator method radio button change handler */
-            $("input[name$='action-rb']").change($.proxy(function (evt) {
+            $("input[name$='action-rb']").click($.proxy(function (evt) {
                 var rb = $(evt.currentTarget);
                 $.each(["new", "edit", "clone"], $.proxy(function (idx, elt) {
                     if (elt == rb.val()) {
@@ -27,7 +27,21 @@ magic.modules.creator.Tab1 = function () {
                         var select = $("#t1-" + elt);
                         select.prop("disabled", false);
                         if (elt == "edit" || elt == "clone") {
-                            this.loadMapOptions(select, "", elt)
+                            /* load up a map if required */
+                            var defVal = "";
+                            if (elt == "edit") {
+                                var search = window.location.search;
+                                if (search && search.match(/\?name=[a-z0-9_]+$/)) {
+                                    /* Named map */
+                                    defVal = search.substring(6);
+                                }
+                            }
+                            this.loadMapOptions(select, defVal, elt);
+                            if (defVal != "") {
+                                /* Load the context */
+                                magic.modules.creator.Common.resetFormIndicators();
+                                magic.modules.creator.Common.map_context.load("edit", defVal, $.proxy(magic.modules.creator.Common.loadContext, magic.modules.creator.Common));
+                            }
                         }
                     } else {
                         /* Has been unchecked */
@@ -42,12 +56,11 @@ magic.modules.creator.Tab1 = function () {
                 var mapname = sel.val();
                 magic.modules.creator.Common.resetFormIndicators();
                 magic.modules.creator.Common.map_context.load(action, mapname, $.proxy(magic.modules.creator.Common.loadContext, magic.modules.creator.Common));
-            });
-            /* load up a map if required */
-            if (window.location.search && window.location.search.match(/\?name=[a-z0-9_]+$/)) {
-                /* Named map */
-                // TODO
-                $("#t1-edit").val(window.location.search.substring(6));
+            }); 
+            /* If there is a search string, assume a map edit */
+            var search = window.location.search;
+            if (search && search.match(/\?name=[a-z0-9_]+$/)) {
+                $("#t1-edit-rb").trigger("click");                
             }
         },
         validate: function() {
@@ -99,6 +112,9 @@ magic.modules.creator.Tab1 = function () {
             /* Service returns [{name: <name>, title: <title>},...] */
             $.getJSON(magic.config.paths.baseurl + "/maps/dropdown/" + action, function (data) {
                 magic.modules.Common.populateSelect(select, data, "name", "title", defval);
+                if (defval != "") {
+                    
+                }
             });
         }
 

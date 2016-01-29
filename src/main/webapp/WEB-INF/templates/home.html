@@ -56,8 +56,8 @@
                                         <select class="form-control" id="select-map">                                                      
                                         </select>
                                     </div>
-                                    <button id="select-map-go" type="button" class="btn btn-primary">Load map</button>
-                                    <button id="create-map" type="button" class="btn btn-primary">Log in to create/update maps</button>
+                                    <button id="select-map-go" type="button" class="btn btn-primary" data-toggle="tooltip" data-placement="bottom" title="Load the selected map">Load map</button>
+                                    <button id="create-map" type="button" class="btn btn-primary" data-toggle="tooltip" data-placement="bottom" title="Log in to access other services">Log in to create/update maps</button>
                                 </form>
                             </div>
                             <div th:case="*">
@@ -72,9 +72,10 @@
                                         <select class="form-control" id="select-map">                                                      
                                         </select>
                                     </div>
-                                    <button id="select-map-go" type="button" class="btn btn-primary">Load map</button>
-                                    <button id="create-map" type="button" class="btn btn-primary">Create/update a map</button> 
-                                    <button id="delete-map" type="button" class="btn btn-danger">Delete a map</button> 
+                                    <button id="select-map-go" type="button" class="btn btn-primary" data-toggle="tooltip" data-placement="bottom" title="Load the selected map">Load</button>
+                                    <button id="edit-map" type="button" class="btn btn-primary" data-toggle="tooltip" data-placement="bottom" title="Edit the selected map">Update</button>
+                                    <button id="create-map" type="button" class="btn btn-primary" data-toggle="tooltip" data-placement="bottom" title="Create a new map">New map</button> 
+                                    <button id="delete-map" type="button" class="btn btn-danger" data-toggle="tooltip" data-placement="bottom" title="Delete the selected map">Delete</button> 
                                 </form>
                             </div>
                         </div>                        
@@ -99,6 +100,9 @@
             }
 
             $(document).ready(function () {
+                
+                $('[data-toggle="tooltip"]').tooltip({container: 'body'});
+                
                 /* Logout behaviour */
                 $("#log-out-user").click(function (evt) {
                     evt.preventDefault();
@@ -108,6 +112,9 @@
                     window.open(magic.config.paths.baseurl + "/home/" + $("#select-map").val(), "_blank");
                 });
                 $("#create-map").click(function () {
+                    window.location = magic.config.paths.baseurl + "/creator";
+                });
+                $("#edit-map").click(function () {
                     window.location = magic.config.paths.baseurl + "/creator?name=" + $("#select-map").val();
                 });
                 $("#delete-map").click(function () {
