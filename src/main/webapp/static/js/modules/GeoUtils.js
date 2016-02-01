@@ -110,7 +110,7 @@ magic.modules.GeoUtils = function() {
                         var mm = (cpts[1].length == 1 || cpts[1].length == 2) ? parseFloat(cpts[1]) : Number.NaN;
                         var ss = parseFloat(cpts[2].substring(0, cpts[2].length - 1));
                         var hh = cpts[2].substring(cpts[2].length - 1, cpts[2].length).toUpperCase();
-                        if (!isNaN(dd) && !isNaN(mm) && !isNaN(ss) && hh.length == 1 && hh.match(/NESW/)) {
+                        if (!isNaN(dd) && !isNaN(mm) && !isNaN(ss) && hh.length == 1 && hh.match(/N|E|S|W/) != null) {
                             res = dd + mm / 60.0 + ss / 3600.0;
                             if (hh == "S" || hh == "W") {
                                 res *= -1.0;
@@ -122,7 +122,7 @@ magic.modules.GeoUtils = function() {
                         var hh = cpts[0].substring(0, 1).toUpperCase();
                         var dd = cpts[0].substring(1);
                         var mm = parseFloat(cpts[1]);
-                        if (dd.length >= 1 && dd.length <= 3 && !isNaN(parseFloat(dd)) && !isNaN(mm) && hh.length == 1 && hh.match(/NESW/)) {
+                        if (dd.length >= 1 && dd.length <= 3 && !isNaN(parseFloat(dd)) && !isNaN(mm) && hh.length == 1 && hh.match(/N|E|S|W/) != null) {
                             res = parseFloat(dd) + mm / 60;
                             if (hh == "S" || hh == "W") {
                                 res *= -1.0;
@@ -164,7 +164,7 @@ magic.modules.GeoUtils = function() {
          * @return boolean
          */
         validHemisphere: function(h) {
-            return(h.length == 1 && h.match(/NESWnesw/));
+            return(h.length == 1 && h.match(/N|E|S|W|n|e|s|w/));
         },
                           
         /**

@@ -1,0 +1,75 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title></title>
+    </head>
+    <body th:fragment="layout">
+        <!-- Place-name tools panel -->
+        <div class="panel-heading" role="tab">
+            <h3 class="panel-title">
+                <a data-toggle="collapse" data-parent="#accordion" href="#place-names-panel">Place-name tools</a>
+            </h3>
+        </div>
+        <div id="place-names-panel" class="panel-collapse collapse" role="tabpanel">
+            <div class="panel-body">
+                <!-- Co-ordinate conversion -->
+                <div class="alert alert-info">
+                    <strong>Co-ordinate converter</strong> - get a lon, lat in any co-ordinate format.<br />
+                    Supported formats:
+                    <ul>
+                        <li>Decimal degrees e.g. -65.3712</li>
+                        <li>DMS e.g. 65 22 16.05W (<strong>note:</strong> no space between seconds and hemisphere)</li>
+                        <li>DDM e.g. W65 22.267</li>
+                    </ul>
+                </div>
+                <form class="form-inline">
+                    <div class="form-group">
+                        <label for="convert-lon">Longitude</label>
+                        <input type="text" class="form-control" id="convert-lon" placeholder="Dec degrees/DMS/DDM"></input>
+                    </div>
+                    <div class="form-group">
+                        <label for="convert-lat">Latitude</label>
+                        <input type="text" class="form-control" id="convert-lat" placeholder="Dec degrees/DMS/DDM"></input>
+                    </div>
+                    <div class="form-group">
+                        <label for="convert-fmt">Format</label>
+                        <select class="form-control" id="convert-fmt">
+                            <option value="">Please select</option>
+                            <option value="dd">Decimal degrees</option>
+                            <option value="dms">Degrees, minutes seconds</option>
+                            <option value="ddm">Degrees, decimal minutes</option>
+                        </select>
+                    </div>                                   
+                    <button id="convert-go" type="button" class="btn btn-primary">Convert</button>
+                </form>     
+                <div id="convert-fb-ok" class="alert alert-success" style="margin-top:10px"></div>
+                <!-- Place-names API enquiry -->
+                <div class="alert alert-info" style="margin-top:20px">
+                    <strong>Find place-names</strong> in CGA, BAT, SGSSI or Arctic gazetteers using the  
+                    <a href="https://github.com/felnne/bas-api-documentation/blob/master/locations-api/v1/documentation/resources/gazetteer.md"><strong>BAS Locations API</strong></a>
+                </div>
+                <form class="form-inline">
+                    <div class="form-group">
+                        <label for="name-search">Place-name</label>
+                        <input type="text" class="form-control" id="name-search" placeholder="All or part of a place-name"></input>
+                    </div>                                    
+                    <div class="form-group">
+                        <label for="name-gaz">Gazetteer</label>
+                        <select class="form-control" id="name-gaz">
+                            <option value="">Please select</option>
+                            <option value="cga">Composite Gazetteer of Antarctica</option>
+                            <option value="bat">BAT gazetteer</option>
+                            <option value="sgssi">South Georgia Gazetteer</option>
+                            <option value="arctic">Arctic Gazetteer</option>
+                        </select>
+                    </div>                                   
+                    <button id="name-go" type="button" class="btn btn-primary">Search</button>
+                </form>     
+                <div id="name-fb-ok"></div>
+                <!-- Place-names within buffer enquiry -->
+                <!-- TO DO -->
+            </div>
+        </div>
+        <!-- End of place-name tools panel -->   
+    </body>
+</html>

@@ -1,0 +1,13 @@
+css/ol.css
+css/bootstrap.min.css
+css/nav.css
+css/font-awesome.min.css
+js/jquery.js
+js/bootstrap.min.js
+js/ol.min.js
+js/ellipsoid/ellipsoid.js
+js/init.js
+js/modules/Common.js
+js/modules/GeoUtils.js
+js/console/components/WebMapPanel.js
+js/console/components/PlaceNamesPanel.js

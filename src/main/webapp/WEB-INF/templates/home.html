@@ -1,174 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-
-        <meta charset="utf-8"></meta>
-        <meta http-equiv="X-UA-Compatible" content="IE=edge"></meta>
-        <meta name="viewport" content="width=device-width, initial-scale=1"></meta>
-        <meta name="description" content="MAGIC Web Mapping Home"></meta>
-        <meta name="author" content="David Herbert, British Antarctic Survey"></meta>  
-        <meta name="_csrf" th:content="${_csrf.token}"/>
-        <!-- default header name is X-CSRF-TOKEN -->
-        <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
-        <link rel="icon" type="image/vnd.microsoft.icon" href="/bas.ico"></link>
-        <link rel="shortcut icon" type="image/vnd.microsoft.icon" href="/bas.ico"></link>
-        <title>MAGIC Web Console Home</title>
-
-        <link href="/static/css/bootstrap.min.css" rel="stylesheet"></link>
-        <link href="/static/css/nav.css" rel="stylesheet"></link>
-        <link href="/static/css/font-awesome.min.css" rel="stylesheet" type="text/css"></link>
-
-        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-        <!--[if lt IE 9]>
-            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
-        <![endif]-->
-        <script src="/static/js/jquery.js"></script>        
-        <script src="/static/js/bootstrap.min.js"></script>
-        <script src="/static/js/bootbox.min.js"></script>
-        <script src="/static/js/init.js"></script>
-        <script src="/static/js/modules/GeoUtils.js"></script>
+    <head th:include="console_fragments/header :: ${debug} ? 'debug_layout' : 'layout'">       
     </head>
-
     <body>
         <div id="wrapper">
             <div th:include="fragments/nav :: layout(strap='MAGIC Web Console Home')"></div>
-            <div class="container">
-                <div class="well well-sm">
-                    <h3>Welcome to the MAGIC Web Console</h3>            
-                </div>
+            <div class="container">                
                 <div class="panel-group" id="accordion" role="tablist">
-                    <!-- Web maps panel -->
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <h3 class="panel-title">
-                                <a data-toggle="collapse" data-parent="#accordion" href="#web-map-panel">Current web maps</a>
-                            </h3>
-                        </div>
-                        <div id="web-map-panel" class="panel-collapse collapse in" role="tabpanel">
-                            <div class="panel-body">
-                                <div th:switch="${#httpServletRequest.remoteUser}">
-                                    <div th:case="null">
-                                        <div class="alert alert-info">
-                                            You are not currently logged in.  The list of maps below is therefore, restricted to those available for public viewing, and creating a new map will
-                                            require you to authenticate.  BAS users can do so with their SOUTH/Photo Database passwords.  Other users will be advised of their credentials.
-                                        </div>
-                                        <form>
-                                            <div class="form-group">
-                                                <label for="select-map">
-                                                    Select a map
-                                                </label>                                
-                                                <select class="form-control" id="select-map">                                                      
-                                                </select>
-                                            </div>
-                                            <button id="select-map-go" type="button" class="btn btn-primary" data-toggle="tooltip" data-placement="bottom" title="Load the selected map">Load map</button>
-                                            <button id="create-map" type="button" class="btn btn-primary" data-toggle="tooltip" data-placement="bottom" title="Log in to access other services">Log in to create/update maps</button>
-                                        </form>
-                                    </div>
-                                    <div th:case="*">
-                                        <div class="alert alert-info">
-                                            You are currently logged in as <span th:text="${#httpServletRequest.remoteUser}"></span>.  Select a map to view below.
-                                        </div>
-                                        <form>
-                                            <div class="form-group">
-                                                <label for="select-map">
-                                                    Select a map
-                                                </label>                                
-                                                <select class="form-control" id="select-map">                                                      
-                                                </select>
-                                            </div>
-                                            <button id="select-map-go" type="button" class="btn btn-primary" data-toggle="tooltip" data-placement="bottom" title="Load the selected map">Load</button>
-                                            <button id="edit-map" type="button" class="btn btn-primary" data-toggle="tooltip" data-placement="bottom" title="Edit the selected map">Update</button>
-                                            <button id="create-map" type="button" class="btn btn-primary" data-toggle="tooltip" data-placement="bottom" title="Create a new map">New map</button> 
-                                            <button id="delete-map" type="button" class="btn btn-danger" data-toggle="tooltip" data-placement="bottom" title="Delete the selected map">Delete</button> 
-                                        </form>
-                                    </div>
-                                </div>                        
-                            </div>
-                        </div>
-                    </div>
-                    <!-- End of web maps panel -->
-                    <!-- Place-name tools panel -->
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <h3 class="panel-title">
-                                <a data-toggle="collapse" data-parent="#accordion" href="#place-names-panel">Place-name tools</a>
-                            </h3>
-                        </div>
-                        <div id="place-names-panel" class="panel-collapse collapse" role="tabpanel">
-                            <div class="panel-body">
-                                <!-- Co-ordinate conversion -->
-                                <div class="alert alert-info">
-                                    <strong>Co-ordinate converter</strong> - get a lon, lat in any co-ordinate format
-                                </div>
-                                <form class="form-inline">
-                                    <div class="form-group">
-                                        <label for="convert-lon">Longitude</label>
-                                        <input type="text" class="form-control" id="convert-lon" placeholder="Dec degrees/DMS/DDM"></input>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="convert-lat">Latitude</label>
-                                        <input type="text" class="form-control" id="convert-lat" placeholder="Dec degrees/DMS/DDM"></input>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="convert-fmt">Format</label>
-                                        <select class="form-control" id="convert-fmt">
-                                            <option value="">Please select</option>
-                                            <option value="dd">Decimal degrees</option>
-                                            <option value="dms">Degrees, minutes seconds</option>
-                                            <option value="ddm">Degrees, decimal minutes</option>
-                                        </select>
-                                    </div>                                   
-                                    <button id="convert-go" type="button" class="btn btn-primary">Convert</button>
-                                </form>     
-                                <div id="convert-fb-ok" class="alert alert-success hidden"></div>
-                                <div id="convert-fb-fail" class="alert alert-danger hidden">Invalid co-ordinates</div>
-                                <!-- Place-names API enquiry -->
-                                <div class="alert alert-info" style="margin-top:20px">
-                                    <strong>Find place-names</strong> in CGA, BAT, SGSSI or Arctic gazetteers
-                                </div>
-                                <form class="form-inline">
-                                    <div class="form-group">
-                                        <label for="name-search">Place-name</label>
-                                        <input type="text" class="form-control" id="name-search" placeholder="All or part of a place-name"></input>
-                                    </div>                                    
-                                    <div class="form-group">
-                                        <label for="name-gaz">Gazetteer</label>
-                                        <select class="form-control" id="name-gaz">
-                                            <option value="">Please select</option>
-                                            <option value="cga">Composite Gazetteer of Antarctica</option>
-                                            <option value="bat">BAT gazetteer</option>
-                                            <option value="sgssi">South Georgia Gazetteer</option>
-                                            <option value="arctic">Arctic Gazetteer</option>
-                                        </select>
-                                    </div>                                   
-                                    <button id="name-go" type="button" class="btn btn-primary">Search</button>
-                                </form>     
-                                <div id="name-fb-ok" class="alert alert-success hidden"></div>
-                                <div id="name-fb-fail" class="alert alert-danger hidden"></div>
-                            </div>
-                        </div>
-                    </div> 
-                    <!-- End of place-name tools panel -->                                        
+                    <div class="panel panel-default" th:include="console_fragments/web_map_panel :: layout"></div>
+                    <div class="panel panel-default" th:include="console_fragments/place_names_panel :: layout"></div>                           
                 </div>
             </div>
         </div>
-        <!-- /#wrapper -->
         <script type="text/javascript">
-            /*<![CDATA[*/
-
-            function populateMapList() {
-                var select = $("#select-map");
-                select.html("");
-                $.getJSON(magic.config.paths.baseurl + "/maps/dropdown", function (data) {
-                    $.each(data, function (idx, mo) {
-                        var opt = $("<option>", {value: mo["name"]});
-                        opt.text(mo["title"]);
-                        select.append(opt);
-                    });
-                });
-            }
 
             $(document).ready(function () {
 
@@ -179,80 +23,14 @@
                     evt.preventDefault();
                     $("#logout-form").submit();
                 });
-                $("#select-map-go").click(function () {
-                    window.open(magic.config.paths.baseurl + "/home/" + $("#select-map").val(), "_blank");
-                });
-                $("#create-map").click(function () {
-                    window.location = magic.config.paths.baseurl + "/creator";
-                });
-                $("#edit-map").click(function () {
-                    window.location = magic.config.paths.baseurl + "/creator?name=" + $("#select-map").val();
-                });
-                $("#delete-map").click(function () {
-                    var mapName = $("#select-map").val();
-                    var mapText = $("#select-map option:selected").text();
-                    bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">Are you sure you want to delete ' + mapText + '</div>', function (result) {
-                        if (result) {
-                            /* Do the deletion */
-                            var jqxhr = $.ajax({
-                                url: magic.config.paths.baseurl + "/maps/deletebyname/" + mapName,
-                                method: "DELETE",
-                                beforeSend: function (xhr) {
-                                    var csrfHeaderVal = $("meta[name='_csrf']").attr("content");
-                                    var csrfHeader = $("meta[name='_csrf_header']").attr("content");
-                                    xhr.setRequestHeader(csrfHeader, csrfHeaderVal)
-                                }
-                            })
-                            .done(function () {
-                                populateMapList();
-                            })
-                            .fail(function () {
-                                bootbox.alert("Failed to delete map " + mapText);
-                            });
-                            bootbox.hideAll();
-                        } else {
-                            bootbox.hideAll();
-                        }
-                    });
-                });
-                populateMapList();
                 
-                /* Co-ordinate conversion */
-                $("#convert-go").click(function() {
-                    $("div[id^='convert-fb']").hide();
-                    var lon = $("#convert-lon").val();
-                    var lat = $("#convert-lat").val();
-                    var fmt = $("#convert-fmt").val();
-                    var londd = magic.modules.GeoUtils.toDecDegrees(lon);
-                    var latdd = magic.modules.GeoUtils.toDecDegrees(lat);
-                    if (fmt != "" && !isNaN(londd) && !isNaN(latdd)) {
-                        /* Got the go-ahead */
-                        var lonfmt = magic.modules.GeoUtils.formatCoordinate(londd, fmt, "lon");
-                        var latfmt = magic.modules.GeoUtils.formatCoordinate(latdd, fmt, "lat");
-                        $("#convert-fb-ok").html(lonfmt + " " + latfmt);
-                    } else {
-                        /* Co-ordinates make no sense */
-                        $("#convert-fb-fail").show();
-                    }
-                });
-                
-                /* Place-name search */
-                $("#name-go").click(function() {
-                    $("div[id^='name-fb']").hide();
-                    var name = $("#name-search").val();
-                    var gaz = $("#name-gaz").val();
-                    if (name && name.length >= 4 && gaz != "") {
-                        $.getJSON("https://api.bas.ac.uk/locations/v1/gazetteer/" + gaz + "/" + name + "/full", function(data) {
-                            console.log(data);
-                        });
-                    } else {
-                        /* Inputs no good */
-                        $("#name-fb-fail").html("Bad search").show();
-                    }
-                });
+                magic.runtime.webmap_panel = new magic.classes.console.WebMapPanel();
+                magic.runtime.placenames_panel = new magic.classes.console.PlaceNamesPanel();
+                                
             });
-            /*]]>*/
-        </script>
+            
+        </script>  
+        <!-- /#wrapper -->        
         <form id="logout-form" method="POST" th:action="@{/logout}"></form>
     </body>
 </html>

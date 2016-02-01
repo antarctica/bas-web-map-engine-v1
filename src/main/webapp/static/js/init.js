@@ -21,7 +21,8 @@ var magic = {
     
     /* Instantiable classes */
     classes: {
-        creator: {}
+        creator: {},
+        console: {}
     },
     
     /* Runtime objects */

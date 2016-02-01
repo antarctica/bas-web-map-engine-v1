@@ -46,6 +46,23 @@ public class HomeController {
         ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "MAGIC Web Mapping Home requested");
         return("home");        
     }        
+    
+    /**
+     * Render home page (debug)    
+     * @param HttpServletRequest request,
+     * @param ModelMap model
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/homed", method = RequestMethod.GET)
+    public String homeDebug(HttpServletRequest request, ModelMap model) throws ServletException, IOException {        
+        String username = getUserName(request);
+        model.addAttribute("username", username);
+        model.addAttribute("debug", true);
+        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "MAGIC Web Mapping Home (debug) requested");
+        return("home");        
+    }        
         
     /**
      * Render user-defined public map     

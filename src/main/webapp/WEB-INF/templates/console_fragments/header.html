@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head th:fragment="layout">
+        <meta charset="utf-8"></meta>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge"></meta>
+        <meta name="viewport" content="width=device-width, initial-scale=1"></meta>
+        <meta name="description" content="Map creation wizard"></meta>
+        <meta name="author" content="David Herbert, British Antarctic Survey"></meta>
+        <meta name="_csrf" th:content="${_csrf.token}"/>
+        <!-- default header name is X-CSRF-TOKEN -->
+        <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+        <link rel="icon" type="image/vnd.microsoft.icon" href="/bas.ico"></link>
+        <link rel="shortcut icon" type="image/vnd.microsoft.icon" href="/bas.ico"></link>
+        <title>MAGIC Web Map Creator</title>
+        <link href="/static/buildcss/allcss_console.css" rel="stylesheet"></link>        
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->       
+        <script src="/static/buildjs/alljs_console.js"></script>             
+    </head>
+    <head th:fragment="debug_layout">
+        <meta charset="utf-8"></meta>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge"></meta>
+        <meta name="viewport" content="width=device-width, initial-scale=1"></meta>
+        <meta name="description" content="MAGIC Web Mapping Home"></meta>
+        <meta name="author" content="David Herbert, British Antarctic Survey"></meta>  
+        <meta name="_csrf" th:content="${_csrf.token}"/>
+        <!-- default header name is X-CSRF-TOKEN -->
+        <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+        <link rel="icon" type="image/vnd.microsoft.icon" href="/bas.ico"></link>
+        <link rel="shortcut icon" type="image/vnd.microsoft.icon" href="/bas.ico"></link>
+        <title>MAGIC Web Console Home</title>
+
+        <link href="/static/css/ol.css" rel="stylesheet"></link>
+        <link href="/static/css/bootstrap.min.css" rel="stylesheet"></link>
+        <link href="/static/css/nav.css" rel="stylesheet"></link>
+        <link href="/static/css/font-awesome.min.css" rel="stylesheet" type="text/css"></link>
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+        <script src="/static/js/jquery.js"></script>        
+        <script src="/static/js/bootstrap.min.js"></script>
+        <script src="/static/js/bootbox.min.js"></script>
+        <script src="/static/js/ol.min.js"></script>
+        <script src="/static/js/ellipsoid/ellipsoid.js"></script>
+        <script src="/static/js/init.js"></script>
+        <script src="/static/js/modules/Common.js"></script>
+        <script src="/static/js/modules/GeoUtils.js"></script>
+        <script src="/static/js/console/components/WebMapPanel.js"></script>
+        <script src="/static/js/console/components/PlaceNamesPanel.js"></script>        
+    </head>
+</html>
