@@ -62,7 +62,17 @@ magic.classes.ControlButtonRibbon = function(config) {
             case "graticule":
                 /* Show graticule */                                
                 this.appendControlButton(new magic.classes.GraticuleButton("graticule", this).getButton()); 
-                break;                                                     
+                break;       
+            
+            case "aircraft":
+                /* Positions of BAS aircraft */                                
+                this.appendControlButton(new magic.classes.AircraftPositionButton("aircraft-position", this).getButton()); 
+                break;
+                
+            case "ships":
+                /* Positions of BAS ships */                                
+                this.appendControlButton(new magic.classes.ShipPositionButton("ship-position", this).getButton()); 
+                break;       
                 
             default:
                 break;

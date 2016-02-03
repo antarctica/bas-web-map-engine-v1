@@ -14,7 +14,7 @@ magic.modules.Common = function () {
                 },
                 {
                     "name": "Operations GIS",
-                    "wms": "http://rolgis.nerc-bas.ac.uk:8080/geoserver/wms"
+                    "wms": "http://rolgis.nerc-bas.ac.uk/geoserver/opsgis/wms"
                 },
                 {
                     "name": "CCAMLR GIS",
@@ -376,13 +376,13 @@ magic.modules.Common = function () {
             if (isLowBandwidth) {
                 /* Low bandwidth location - fallback to locally-hosted Natural Earth data */
                 var wmsSource = new ol.source.TileWMS({
-                    url: this.wms,
+                    url: this.default_geoserver_wms.wms,
                     params: {
                         "LAYERS": "natearth_world_10m_land", 
                         "CRS": "EPSG:4326",
                         "SRS": "EPSG:4326",
                         "VERSION": "1.3.0",
-                        "WORKSPACE": this.ws
+                        "WORKSPACE": "opsgis"   /* NB: needs to be made a parameter somewhere */
                     },            
                     projection: "EPSG:4326"
                 });                     

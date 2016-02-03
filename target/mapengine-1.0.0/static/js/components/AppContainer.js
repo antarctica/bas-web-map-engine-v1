@@ -70,6 +70,9 @@ magic.classes.AppContainer = function () {
 
     /* Create an attribution modal for legend/metadata */
     magic.runtime.attribution = new magic.classes.AttributionModal({target: "attribution-modal"});
+    
+    /* Create WGS84 inset map with single OSM layer */
+    magic.runtime.inset = new magic.classes.InsetMap({});
 
     /* Geosearch tool */
     magic.runtime.geosearch = null;

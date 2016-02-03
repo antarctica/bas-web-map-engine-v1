@@ -1,4 +1,4 @@
-/* Get positions of all ships through the API */
+/* Get positions of all ships through the Marine API */
 
 magic.classes.ShipPositionButton = function (name, ribbon) {
 
@@ -18,6 +18,15 @@ magic.classes.ShipPositionButton = function (name, ribbon) {
     this.geoJson = null;
     this.layer = null;
     this.insetLayer = null;
+    
+    this.attribute_map = [
+        {name: "callsign", alias: "Call sign", displayed: true},
+        {name: "name", alias: "Name", displayed: true},
+        {name: "lon", alias: "Longitude", displayed: true},
+        {name: "lat", alias: "Latitude", displayed: true},
+        {name: "timestamp", alias: "Date", displayed: true},
+        {name: "code", alias: "Vessel code", displayed: false} /* To force pop-up to offer "full attribute set" */        
+    ];
         
     this.btn = $('<button>', {
         "id": "btn-" + this.name,
@@ -60,11 +69,15 @@ magic.classes.ShipPositionButton.prototype.activate = function () {
     var fetch = false;
     if (!this.layer) {
         this.layer = new ol.layer.Vector({
-            name: "_bas_ship_locations",
+            name: "BAS ships",
             visible: true,
             source: new ol.source.Vector({
                 features: []
-            })
+            }),
+            metadata: {
+                is_interactive: true,
+                attribute_map: this.attribute_map
+            }
         });
         magic.runtime.map.addLayer(this.layer);
         fetch = true;
@@ -73,11 +86,15 @@ magic.classes.ShipPositionButton.prototype.activate = function () {
     }    
     if (!this.insetLayer) {
         this.insetLayer = new ol.layer.Vector({
-            name: "_bas_ship_locations_inset",
+            name: "BAS ships_inset",
             visible: true,
             source: new ol.source.Vector({
                 features: []
-            })
+            }),
+            metadata: {
+                is_interactive: true,
+                attribute_map: this.attribute_map
+            }
         });
         if (magic.runtime.inset) {
             magic.runtime.inset.addLayer(this.insetLayer);
@@ -112,10 +129,11 @@ magic.classes.ShipPositionButton.prototype.getData = function() {
     /* Aircraft positional API */
     var shipApi = "https://api.bas.ac.uk/marine/v1/vessels/position/";        
     $.ajax({
-        url: magic.config.paths.baseurl + "/proxy/api?url=" + encodeURIComponent(shipApi),
+        url: shipApi,
         method: "GET",
-        success: $.proxy(function(data) {
+        success: $.proxy(function(response) {
             /* Format is as https://github.com/felnne/bas-api-documentation/blob/master/marine-api/v1/documentation/resources/vessel.md */           
+            var data = response.data;
             if ($.isArray(data)) {
                 var inFeats = [], outFeats = [];
                 var projExtent = magic.modules.GeoUtils.projectionLatLonExtent(magic.runtime.viewdata.projection.getCode());                         
@@ -127,8 +145,7 @@ magic.classes.ShipPositionButton.prototype.getData = function() {
                         code: elt.vessel.vessel_code,
                         lon: elt.latest_position.longitude,
                         lat: elt.latest_position.latitude,
-                        timestamp: elt.latest_position.datetime,
-                        "__title" : "Ship position"
+                        timestamp: elt.latest_position.datetime
                     };
                     var feat = new ol.Feature(attrs)
                     var geom = new ol.geom.Point([attrs.lon, attrs.lat]);
@@ -165,7 +182,7 @@ magic.classes.ShipPositionButton.prototype.getData = function() {
                     }                                        
                 });                                
             } else {
-                alert("Failed to make sense of returned data from marine API");
+                bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to make sense of returned data from marine API</div>');
             }                        
             if (inFeats.length > 0 && this.layer) {
                 this.layer.getSource().clear();
@@ -184,9 +201,9 @@ magic.classes.ShipPositionButton.prototype.getData = function() {
         }, this),
         error: function(jqXhr, status, msg) {
             if (status && msg) {
-                alert("Error: " + status + " " + msg + " getting vessel positions - potential network outage?");
+                bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Error: ' + status + ' ' + msg + ' getting vessel positions - potential network outage?</div>');
             } else {
-                alert("Failed to get ship positional data - potential network outage?");
+                bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to get ship positional data - potential network outage?</div>');                
             }      
         }
     });        

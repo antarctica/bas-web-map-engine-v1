@@ -240,7 +240,7 @@ magic.classes.FeaturePopup.prototype.selectFeature = function() {
                 if (value) {
                     if ($.isNumeric(value)) {                        
                         content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td align="right">' + value + '</td></tr>';
-                    } else {                        
+                    } else if (key.toLowerCase().indexOf("geom") == -1) {                        
                         content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td>' + magic.modules.Common.linkify(value) + '</td></tr>';
                     }
                 }

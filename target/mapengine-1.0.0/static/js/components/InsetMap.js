@@ -24,7 +24,6 @@ magic.classes.InsetMap = function(options) {
             })
         ],
         interactions: ol.interaction.defaults(),
-        target: "inset-map",
         view: new ol.View({
             center: [0,0],
             minZoom: 1,
@@ -47,10 +46,9 @@ magic.classes.InsetMap = function(options) {
         title: '<span>Mid-latitudes map<button type="button" class="close">&times;</button></span>',
         container: "body",
         html: true,
-        content: "Mid-latitudes inset"
+        content: ""
     })
     .on("shown.bs.popover", $.proxy(function() {
-        $("#inset-map").html("");
         this.map.setTarget("inset-map");
         /* Create a popup overlay and add handler to show it on clicking a feature */
         this.featureinfo = new magic.classes.FeaturePopup({
@@ -118,19 +116,19 @@ magic.classes.InsetMap.prototype.featureAtPixelHandler = function(evt) {
                 /* Unpack cluster features */
                 $.each(clusterMembers, function(fi, f) {
                     if (f.getGeometry()) {
-                        fprops.push($.extend({}, f.getProperties(), {
-                            "__geomtype": f.getGeometry().getType().toLowerCase()
-                        }));
+                        var exProps = f.getProperties();
+                        fprops.push($.extend({}, exProps, {"layer": layer}));                           
                     }                    
                 });
             } else {
                 if (feature.getGeometry()) {
-                    fprops.push($.extend({}, feature.getProperties(), {
-                        "__geomtype": feature.getGeometry().getType().toLowerCase()
-                    }));
+                    var exProps = feature.getProperties();
+                    fprops.push($.extend({}, exProps, {"layer": layer}));
                 }          
             }
         }
+    }, this, function(candidate) {
+        return(candidate.getVisible() && candidate.get("metadata") && candidate.get("metadata")["is_interactive"] === true);
     }, this);
     this.featureinfo.show(evt.coordinate, fprops);         
 };

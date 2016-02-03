@@ -48,7 +48,7 @@ magic.classes.FeatureInfoTool.prototype.queryFeatures = function(evt) {
     var fprops = this.featuresAtPixel(px);
         
     var deferreds = [];
-     magic.runtime.map.getLayers().forEach(function(layer) {
+    magic.runtime.map.getLayers().forEach(function(layer) {
         /* Find the WMS interactive layers */
         if (layer.getVisible() === true) {
             var md = layer.get("metadata");

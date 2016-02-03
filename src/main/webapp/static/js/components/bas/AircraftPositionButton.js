@@ -18,6 +18,14 @@ magic.classes.AircraftPositionButton = function (name, ribbon) {
     this.geoJson = null;
     this.layer = null;
     this.insetLayer = null;
+    
+    this.attribute_map = [
+        {name: "callsign", alias: "Call sign", displayed: true},
+        {name: "checktimestamp", alias: "Date", displayed: true},
+        {name: "longitude", alias: "Longitude", displayed: true},
+        {name: "latitude", alias: "Latitude", displayed: true},
+        {name: "speed", alias: "Speed", displayed: false} /* To force pop-up to offer "full attribute set" */
+    ];
         
     this.btn = $('<button>', {
         "id": "btn-" + this.name,
@@ -58,11 +66,15 @@ magic.classes.AircraftPositionButton.prototype.activate = function () {
     var fetch = false;
     if (!this.layer) {
         this.layer = new ol.layer.Vector({
-            name: "_bas_aircraft_locations",
+            name: "BAS aircraft",
             visible: true,
             source: new ol.source.Vector({
                 features: []
-            })
+            }),
+            metadata: {
+                is_interactive: true,
+                attribute_map: this.attribute_map
+            }
         });
         magic.runtime.map.addLayer(this.layer);
         fetch = true;
@@ -71,11 +83,15 @@ magic.classes.AircraftPositionButton.prototype.activate = function () {
     }   
     if (!this.insetLayer) {
         this.insetLayer = new ol.layer.Vector({
-            name: "_bas_aircraft_locations_inset",
+            name: "BAS aircraft_inset ",
             visible: true,
             source: new ol.source.Vector({
                 features: []
-            })
+            }),
+            metadata: {
+                is_interactive: true,
+                attribute_map: this.attribute_map
+            }
         });
         if (magic.runtime.inset) {
             magic.runtime.inset.addLayer(this.insetLayer);
@@ -111,7 +127,8 @@ magic.classes.AircraftPositionButton.prototype.deactivate = function () {
 magic.classes.AircraftPositionButton.prototype.getData = function() {
     /* Aircraft positional API */
     $.ajax({
-        url: magic.config.paths.baseurl + "/proxy/aircraft",
+        /* Might be nice to get this listed as part of the maps.bas.ac.uk stable... */
+        url: "http://add.antarctica.ac.uk/geoserver/assets/wfs?service=wfs&request=getfeature&version=2.0.0&typeNames=assets:latest_aircraft_positions&outputFormat=json",
         method: "GET",
         success: $.proxy(function(data) {
             if (!this.geoJson) {
@@ -121,9 +138,7 @@ magic.classes.AircraftPositionButton.prototype.getData = function() {
             var inFeats = [], outFeats = [];
             var projExtent = magic.modules.GeoUtils.projectionLatLonExtent(magic.runtime.viewdata.projection.getCode());
             $.each(feats, $.proxy(function(idx, f) {
-                var props = $.extend({}, f.getProperties(), {
-                    "__title": "Aircraft position"
-                });
+                var props = $.extend({}, f.getProperties());
                 var colour = props.speed > 5 ? "green" : "red";                        
                 var fclone = f.clone();
                 fclone.setProperties(props);
@@ -195,9 +210,9 @@ magic.classes.AircraftPositionButton.prototype.getData = function() {
         }, this),
         error: function(jqXhr, status, msg) {
             if (status && msg) {
-                alert("Error: " + status + " " + msg + " getting aircraft positions - potential network outage?");
+                bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Error: ' + status + ' ' + msg + ' getting aircraft positions - potential network outage?</div>');
             } else {
-                alert("Failed to get aircraft positional data - potential network outage?");
+                bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to get aircraft positional data - potential network outage?</div>');
             }      
         }
     });

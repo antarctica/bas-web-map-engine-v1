@@ -239,7 +239,9 @@
 							"geosearch",							
 							"download_data",
 							"measurement",
-							"feature_info"
+							"feature_info",
+                            "aircraft",
+                            "ships"
 						]
 					}
 				},

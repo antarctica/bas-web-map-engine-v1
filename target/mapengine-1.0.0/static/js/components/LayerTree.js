@@ -237,7 +237,6 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
             if ($.isNumeric(nd.maxScale)) {
                 maxRes = magic.modules.GeoUtils.getResolutionFromScale(nd.max_scale);
             }
-            console.log(minRes + ", " + maxRes);
             if (isWms) {
                 if (nd.source.wms_source == "osm") {
                     /* OpenStreetMap layer */

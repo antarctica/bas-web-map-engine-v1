@@ -50,7 +50,7 @@ magic.classes.OverviewMap.prototype.initControl = function() {
         className: "ol-overviewmap custom-overview-map",        
         layers: this.getOverviewLayers(),
         view: new ol.View({
-            projection: "EPSG:3031"
+            projection: magic.runtime.viewdata.projection
         })
     });        
     magic.runtime.map.addControl(this.control);

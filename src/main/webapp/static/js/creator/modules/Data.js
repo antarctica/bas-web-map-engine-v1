@@ -49,8 +49,7 @@ magic.modules.creator.Data = function () {
                                 "source": {
                                     "wms_source": "https://maps.bas.ac.uk/antarctic/wms",
                                     "feature_name": "add:antarctic_hillshade_and_bathymetry",
-                                    "is_base": true,                                    
-                                    "is_dem": true
+                                    "is_base": true
                                 },
                                 "is_visible": true
                             }
