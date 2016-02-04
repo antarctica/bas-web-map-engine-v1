@@ -18,6 +18,10 @@ magic.classes.AircraftPositionButton = function (name, ribbon) {
     this.geoJson = null;
     this.layer = null;
     this.insetLayer = null;
+    this.data = {
+        inside: [],
+        outside: []
+    };
     
     this.attribute_map = [
         {name: "callsign", alias: "Call sign", displayed: true},
@@ -43,6 +47,31 @@ magic.classes.AircraftPositionButton = function (name, ribbon) {
         }
     }, this));                 
     window.setTimeout(this.getData, 600000);
+    $(document).on("insetmapopened", $.proxy(function(evt) {
+        if (magic.runtime.inset) {
+            this.insetLayer = new ol.layer.Vector({
+                name: "BAS aircraft_inset",
+                visible: true,
+                source: new ol.source.Vector({
+                    features: []
+                }),
+                metadata: {
+                    is_interactive: true,
+                    attribute_map: this.attribute_map
+                }
+            });            
+            magic.runtime.inset.addLayer(this.insetLayer); 
+            if (this.data.outside.length > 0) {
+                var osClones = $.map(this.data.outside, function(f) {
+                    return(f.clone());
+                });                        
+                this.insetLayer.getSource().addFeatures(osClones);
+            }
+        }
+    }, this));
+    $(document).on("insetmapclosed", $.proxy(function(evt) {
+        this.insetLayer = null;
+    }, this));
 };
 
 magic.classes.AircraftPositionButton.prototype.getButton = function () {
@@ -63,7 +92,6 @@ magic.classes.AircraftPositionButton.prototype.activate = function () {
             geometryName: "geom"
         });
     }
-    var fetch = false;
     if (!this.layer) {
         this.layer = new ol.layer.Vector({
             name: "BAS aircraft",
@@ -77,39 +105,15 @@ magic.classes.AircraftPositionButton.prototype.activate = function () {
             }
         });
         magic.runtime.map.addLayer(this.layer);
-        fetch = true;
     } else {
         this.layer.setVisible(true);
-    }   
-    if (!this.insetLayer) {
-        this.insetLayer = new ol.layer.Vector({
-            name: "BAS aircraft_inset ",
-            visible: true,
-            source: new ol.source.Vector({
-                features: []
-            }),
-            metadata: {
-                is_interactive: true,
-                attribute_map: this.attribute_map
-            }
-        });
-        if (magic.runtime.inset) {
-            magic.runtime.inset.addLayer(this.insetLayer);
-            fetch = true;
-        }
-    } else {
+    }  
+    if (this.insetLayer) {
         this.insetLayer.setVisible(true);
-        if (magic.runtime.inset) {
-            magic.runtime.inset.activate();
-        }
-    }    
-    if (fetch) {
-        this.getData();
     }
+    this.getData();
     this.btn.toggleClass("active");
-    this.btn.attr("data-original-title", this.activeTitle).tooltip("fixTitle");
-    $(document).on("insetmapclosed", $.proxy(function(evt) {
-    }, this));
+    this.btn.attr("data-original-title", this.activeTitle).tooltip("fixTitle");   
 };
 
 /**
@@ -118,9 +122,13 @@ magic.classes.AircraftPositionButton.prototype.activate = function () {
 magic.classes.AircraftPositionButton.prototype.deactivate = function () {
     this.active = false;
     this.layer.setVisible(false);
-    this.insetLayer.setVisible(false);
+    if (this.insetLayer) {
+        this.insetLayer.setVisible(false);
+        this.insetLayer.getSource().clear();
+    }
     this.btn.toggleClass("active");
-    this.btn.attr("data-original-title", this.inactiveTitle).tooltip("fixTitle");
+    this.btn.attr("data-original-title", this.inactiveTitle).tooltip("fixTitle");    
+    magic.runtime.inset.deactivate();
 };
     
 
@@ -135,7 +143,6 @@ magic.classes.AircraftPositionButton.prototype.getData = function() {
                 return;
             }
             var feats = this.geoJson.readFeatures(data);
-            var inFeats = [], outFeats = [];
             var projExtent = magic.modules.GeoUtils.projectionLatLonExtent(magic.runtime.viewdata.projection.getCode());
             $.each(feats, $.proxy(function(idx, f) {
                 var props = $.extend({}, f.getProperties());
@@ -166,7 +173,7 @@ magic.classes.AircraftPositionButton.prototype.getData = function() {
                         })
                     });
                     fclone.setStyle(style);
-                    inFeats.push(fclone);
+                    this.data.inside.push(fclone);
                 } else {
                     fclone.getGeometry().transform("EPSG:4326", "EPSG:3857");
                     var style = new ol.style.Style({
@@ -190,23 +197,25 @@ magic.classes.AircraftPositionButton.prototype.getData = function() {
                         })
                     });
                     fclone.setStyle(style);
-                    outFeats.push(fclone);
+                    this.data.outside.push(fclone);
                 }                        
             }, this));
             this.layer.getSource().clear();
-            if (inFeats.length > 0) {
-                this.layer.getSource().addFeatures(inFeats);
+            if (this.data.inside.length > 0) {
+                this.layer.getSource().addFeatures(this.data.inside);
             }
-            if (magic.runtime.inset) {
-                this.insetLayer.getSource().clear();
-                if (outFeats.length > 0) {
-                    this.insetLayer.getSource().addFeatures(outFeats);
+            if (this.data.outside.length > 0) {
+                if (this.insetLayer) {
+                    this.insetLayer.getSource().clear();
+                    var osClones = $.map(this.data.outside, function(f) {
+                        return(f.clone());
+                    });      
+                    this.insetLayer.getSource().addFeatures(osClones); 
+                }
+                if (magic.runtime.inset) {
                     magic.runtime.inset.activate();
-                } else {
-                    /* Can dispense with displaying the inset (if no other layers still have features to show)? */
-                    magic.runtime.inset.deactivate();
-                }                    
-            }
+                }
+            }                  
         }, this),
         error: function(jqXhr, status, msg) {
             if (status && msg) {

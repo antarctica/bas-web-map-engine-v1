@@ -4,14 +4,97 @@ magic.classes.InsetMap = function(options) {
     
     this.id = options.id || "inset-map-tool";
       
-    this.target = options.target || $("button.inset-map-expand");
+    this.target = options.target || $("button.inset-map-expand");  
     
-    var backdropLayer = magic.modules.Common.midLatitudeCoastLayer();
-  
-    /* Set up OL map */
+    this.active = false;
+    
+    this.map = null;
+    this.featureInfo = null;
+        
+    /* Internal */
+    this.template = 
+        '<div class="popover popover-auto-width popover-auto-height inset-map-popover" role="popover">' +
+            '<div class="arrow"></div>' +
+            '<h3 class="popover-title"></h3>' + 
+            '<div id="inset-map" class="popover-content inset-map-popover-content"></div>' +
+        '</div>';
+    this.target.popover({
+        template: this.template,
+        title: '<span>Mid-latitudes map<button type="button" class="close">&times;</button></span>',
+        container: "body",
+        html: true,
+        content: ""
+    })
+    .on("shown.bs.popover", $.proxy(function() {
+        this.initMap();        
+        /* Close button */
+        $(".inset-map-popover").find("button.close").click($.proxy(function() { 
+            this.target.popover("hide");
+        }, this));
+        /* Trigger insetmapopened event */
+        $.event.trigger({type: "insetmapopened"});
+    }, this))
+    .on("hidden.bs.popover", $.proxy(function() {
+        if (this.featureinfo) {
+            /* Remove any pop-up */
+            this.featureinfo.hide();
+        }                
+        this.map = null;
+        this.featureinfo = null;
+        /* Trigger insetmapclosed event */
+        $.event.trigger({type: "insetmapclosed"});
+    }, this));
+};
+
+magic.classes.InsetMap.prototype.getTarget = function() {
+    return(this.target);
+};
+
+magic.classes.InsetMap.prototype.getTemplate = function() {
+    return(this.template);
+};
+
+magic.classes.InsetMap.prototype.addLayer = function(layer) {    
+    this.map.addLayer(layer);
+};
+
+magic.classes.InsetMap.prototype.activate = function() {    
+    if (!this.active) {
+        this.target.removeClass("hidden").addClass("show");
+        this.target.popover("show");
+        this.active = true;
+    }
+};
+
+magic.classes.InsetMap.prototype.deactivate = function() {
+    this.active = false;
+    var nf = 0;
+    var nlayers = 0;
+    this.map.getLayers().forEach(function(lyr, idx, arr) {
+        if ($.isFunction(lyr.getSource().getFeatures)) {
+            /* A vector overlay layer - check number of features */
+            nf += lyr.getSource().getFeatures().length;
+        }    
+        nlayers++;
+    }, this);
+    console.log("map has " + nlayers + " layers");
+    if (nf == 0) {
+        this.target.popover("hide");
+    }
+};
+
+magic.classes.InsetMap.prototype.isActive = function () {
+    return(this.active);
+};
+
+/**
+ * Set up OL map
+ */
+magic.classes.InsetMap.prototype.initMap = function() {
     this.map = new ol.Map({
         renderer: "canvas",
-        layers: [backdropLayer],
+        target: "inset-map",
+        layers: [magic.modules.Common.midLatitudeCoastLayer()],
         controls: [
             new ol.control.ScaleLine({minWidth: 50, className: "custom-scale-line-top", units: "metric"}),
             new ol.control.ScaleLine({minWidth: 50, className: "custom-scale-line-bottom", units: "imperial"}),
@@ -30,76 +113,14 @@ magic.classes.InsetMap = function(options) {
             maxZoom: 10,
             zoom: 1          
         })
-    });
-    
-    this.featureinfo = null;
-        
-    /* Internal */
-    this.template = 
-        '<div class="popover popover-auto-width popover-auto-height inset-map-popover" role="popover">' +
-            '<div class="arrow"></div>' +
-            '<h3 class="popover-title"></h3>' + 
-            '<div id="inset-map" class="popover-content inset-map-popover-content"></div>' +
-        '</div>';
-    this.target.popover({
-        template: this.template,
-        title: '<span>Mid-latitudes map<button type="button" class="close">&times;</button></span>',
-        container: "body",
-        html: true,
-        content: ""
-    })
-    .on("shown.bs.popover", $.proxy(function() {
-        this.map.setTarget("inset-map");
-        /* Create a popup overlay and add handler to show it on clicking a feature */
-        this.featureinfo = new magic.classes.FeaturePopup({
-            popupId: "inset-popup",
-            map: this.map,
-            mapdiv: "inset-map"
-        });   
-        this.map.on("singleclick", this.featureAtPixelHandler, this);
-        /* Close button */
-        $(".inset-map-popover").find("button.close").click($.proxy(function() { 
-            this.target.popover("hide");
-        }, this));
-    }, this))
-    .on("hidden.bs.popover", $.proxy(function() {
-        if (this.featureinfo) {
-            this.featureinfo.hide();
-        }
-        /* Trigger insetmapclosed event */
-        $.event.trigger({type: "insetmapclosed"});
-    }, this));
-};
-
-magic.classes.InsetMap.prototype.getTarget = function() {
-    return(this.target);
-};
-
-magic.classes.InsetMap.prototype.getTemplate = function() {
-    return(this.template);
-};
-
-magic.classes.InsetMap.prototype.addLayer = function(layer) {
-    this.map.addLayer(layer);
-};
-
-magic.classes.InsetMap.prototype.activate = function() {
-    this.target.removeClass("hidden").addClass("show");
-    this.target.popover("show");
-};
-
-magic.classes.InsetMap.prototype.deactivate = function() {
-    var nf = 0;
-    this.map.getLayers().forEach(function(lyr, idx, arr) {
-        var name = lyr.get("name");
-        if (name && name.indexOf("_inset") > 0) {
-            /* A vector overlay layer - check number of features */
-            nf += lyr.getSource().getFeatures().length;
-        }
-    }, this);
-    if (nf == 0) {
-        this.target.popover("hide");
-    }
+    });    
+    /* Create a popup overlay and add handler to show it on clicking a feature */
+    this.featureinfo = new magic.classes.FeaturePopup({
+        popupId: "inset-popup",
+        map: this.map,
+        mapdiv: "inset-map"
+    });   
+    this.map.on("singleclick", this.featureAtPixelHandler, this);
 };
 
 /**

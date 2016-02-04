@@ -38,9 +38,11 @@ magic.classes.LayerFilter = function(options) {
                         '</select>' +                            
                     '</div>' +
                     '<div class="form-group form-group-sm col-sm-12">' +
-                        '<select id="ftr-op-str-' + this.nodeid + '" class="form-control">' +
-                            '<option id="ftr-op-str-like-' + this.nodeid + '" value="ilike">like (case-insensitive)</option>' + 
-                            '<option id="ftr-op-str-eq-' + this.nodeid + '" value="=" selected>equal to (case sensitive)</option>' +                                                       
+                        '<select id="ftr-op-str-' + this.nodeid + '" class="form-control">' +                             
+                            '<option id="ftr-op-str-eq-' + this.nodeid + '" value="eq">equal to (case-insensitive)</option>' +
+                            '<option id="ftr-op-str-sw-' + this.nodeid + '" value="sw">starts with (case-insensitive)</option>' +
+                            '<option id="ftr-op-str-ew-' + this.nodeid + '" value="ew">Ends with (case-insensitive)</option>' +
+                            '<option id="ftr-op-str-ct-' + this.nodeid + '" value="ct">Contains (case-insensitive)</option>' +
                         '</select>' +                            
                     '</div>' +
                     '<div class="form-group form-group-sm col-sm-12" class="hidden">' +
@@ -154,18 +156,35 @@ magic.classes.LayerFilter.prototype.setFilterOptions = function(changed, to) {
         }
     } else if (changed == "init") {
         /* Load existing filter data */
+        this.loadExistingFilter();
         if (this.attr != null) {
             selectAttr.val(this.attr);
         } else {
             selectAttr.selectedIndex = 0;
         }
-        if (this.comparison == null || this.comparison == "string") {
+        if (this.comparison == null || this.comparison == "string") {            
             if (this.op != null) {
-                selectOpStr.val(this.op);
+                if (this.val1 != null) {
+                    /* Value will have % characters to indicate wildcards depending on the operation */
+                    console.log(this.val1);
+                    var startPc = this.val1.indexOf("%") == 0;
+                    var endPc = this.val1.lastIndexOf("%") == this.val1.length-1;
+                    if (startPc && endPc) {
+                        selectOpStr.val("ct"); 
+                    } else if (startPc) {
+                        selectOpStr.val("ew"); 
+                    } else if (endPc) {
+                        selectOpStr.val("sw"); 
+                    } else {
+                        selectOpStr.val("eq"); 
+                    }
+                } else {
+                    selectOpStr.selectedIndex = 0;
+                }
             } else {
                 selectOpStr.selectedIndex = 0;
             }
-            inputValStr.val(this.val1);
+            inputValStr.val(this.val1 ? this.val1.replace(/%/g, "") : "");
             inputComparison.val("string");
             selectOpStr.parent().removeClass("hidden").addClass("show");
             inputValStr.parent().removeClass("hidden").addClass("show");
@@ -194,6 +213,19 @@ magic.classes.LayerFilter.prototype.setFilterOptions = function(changed, to) {
     }        
 };
 
+magic.classes.LayerFilter.prototype.loadExistingFilter = function() {
+    if (this.layer) {
+        var exFilter = magic.runtime.filters[this.layer.get("name")];
+        if (exFilter) {
+            this.attr = exFilter.attr,
+            this.comparison = exFilter.comparison,
+            this.op = exFilter.op,
+            this.val1 = exFilter.val1,
+            this.val2 = exFilter.val2
+        }
+    }
+};
+
 /**
  * Construct an ECQL filter from the inputs and apply to layer
  */
@@ -217,10 +249,24 @@ magic.classes.LayerFilter.prototype.applyFilter = function() {
     var filterString = null;
     /* Validate the inputs */
     if (comparisonType == "string") {
-        fop = selectOpStr.val();
-        fval1 = inputValStr.val();       
+        fop = "ilike";
+        var ciOp = selectOpStr.val();
+        fval1 = inputValStr.val();
         if (fval1 != null && fval1 != "") {
-            filterString = fattr + " " + fop + " '" + fval1;
+            switch(ciOp) {                
+                case "sw":
+                    fval1 = fval1 + "%";
+                    break;
+                case "ew":
+                    fval1 = "%" + fval1;
+                    break;
+                case "ct":
+                    fval1 = "%" + fval1 + "%";
+                    break;
+                default:
+                    break;
+            }
+            filterString = fattr + " " + fop + " '" + fval1 + "'";
         } else {
             magic.modules.Common.flagInputError(inputValStr);
         }        
@@ -228,7 +274,7 @@ magic.classes.LayerFilter.prototype.applyFilter = function() {
         fop = selectOpNum.val();
         fval1 = inputValNum1.val();
         if (fval1 != null && fval1 != "") {
-            filterString = fattr + " " + fop + " '" + fval1;
+            filterString = fattr + " " + fop + " '" + fval1 + "'";
             if (fop == "between") {
                 fval2 = inputValNum2.val();
                 if (fval2 != null && fval2 != "") {
@@ -242,10 +288,7 @@ magic.classes.LayerFilter.prototype.applyFilter = function() {
             magic.modules.Common.flagInputError(inputValNum1);
         }                
     } 
-    if (filterString) {
-        
-        /* Save filter */
-        magic.runtime.filters[this.layer.get("name")] = filterString;
+    if (filterString) {               
         
         /* Inputs ok */
         this.attr = fattr;
@@ -254,11 +297,20 @@ magic.classes.LayerFilter.prototype.applyFilter = function() {
         this.val1 = fval1;
         this.val2 = fval2; 
         
+         /* Save filter */
+        magic.runtime.filters[this.layer.get("name")] = $.extend({}, {
+            attr: this.attr,
+            comparison: this.comparison,
+            op: this.op,
+            val1: this.val1,
+            val2: this.val2
+        });
+        
         var sourceMd = this.layer.get("metadata").source;
         if (sourceMd.wms_source) {
             /* Straightforward WMS layer */
             if (comparisonType == "string") {
-                ecql = fattr + " " + fop + " '" + fval1 + (fop == "ilike" ? "%'" : "'");
+                ecql = filterString;
             } else {           
                 ecql = fattr + " " + fop + " " + fval1 + (fop == "between" ? " and " + fval2 : "");            
             }

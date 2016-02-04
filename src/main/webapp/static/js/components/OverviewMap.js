@@ -104,7 +104,7 @@ magic.classes.OverviewMap.prototype.getOverviewLayers = function() {
 magic.classes.OverviewMap.prototype.setEnabledStatus = function() {
     var enable = false;
     if (magic.runtime.map) {
-        enable = magic.runtime.map.getView().getResolution() <= 1000.0;
+        enable = magic.runtime.map.getView().getResolution() <= 500.0;
     }
     if (!enable) {        
         this.target.popover("hide");

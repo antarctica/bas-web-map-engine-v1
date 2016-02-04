@@ -273,7 +273,7 @@ magic.classes.Geosearch.prototype.getSources = function() {
             }, this),
             limit: 100,
             templates: {
-                notFound: '<p class="suggestion">No results</p>',
+                notFound: '<div class="suggestion-group-header">' + this.gazetteerData[gaz].title + '</div><p class="suggestion">No results</p>',
                 header: '<div class="suggestion-group-header">' + this.gazetteerData[gaz].title + '</div>',
                 suggestion: $.proxy(function(value) {
                     var output = value.placename;
@@ -343,8 +343,9 @@ magic.classes.Geosearch.prototype.placenameSearchHandler = function(evt) {
         $.getJSON("https://api.bas.ac.uk/locations/v1/placename/" + gazName + "/" + this.currentPlacenameSearch["id"], $.proxy(function(json) {
             var jsonData = json.data;
             delete jsonData["suggestion"];
+            var geom = this.computeProjectedGeometry(gazName, jsonData);
             var attrs = $.extend({
-                geometry: new ol.geom.Point([jsonData.x, jsonData.y]), 
+                geometry: geom, 
                 name: this.currentPlacenameSearch.placename,
                 "__gaz_name": gazName
             }, jsonData); 
@@ -364,6 +365,27 @@ magic.classes.Geosearch.prototype.placenameSearchHandler = function(evt) {
             this.flyMeThere(feat);
         }
     }
+};
+
+/**
+ * From a gazetteer return, compute a point at a place in the map projection
+ * @param {string} gaz
+ * @param {object} data
+ * @returns {ol.geom.Point}
+ */
+magic.classes.Geosearch.prototype.computeProjectedGeometry = function(gaz, data) {
+    var pt;
+    if (
+        (gaz == "sgssi" && magic.runtime.viewdata.projection.getCode() == "EPSG:3031") ||
+        (gaz != "sgssi" && magic.runtime.viewdata.projection.getCode() == "EPSG:3762")
+    ) {
+        /* South Georgia gazetteer being used in an Antarctic map context, or Antarctic gazetteer in a South Georgia one - need to reproject coordinates */
+        pt = new ol.geom.Point([data.lon, data.lat]);
+        pt.transform("EPSG:4326", magic.runtime.viewdata.projection.getCode());
+    } else {
+        pt = new ol.geom.Point([data.x, data.y]);
+    }
+    return(pt);
 };
 
 /**

@@ -18,6 +18,10 @@ magic.classes.ShipPositionButton = function (name, ribbon) {
     this.geoJson = null;
     this.layer = null;
     this.insetLayer = null;
+    this.data = {
+        inside: [],
+        outside: []
+    };
     
     this.attribute_map = [
         {name: "callsign", alias: "Call sign", displayed: true},
@@ -44,7 +48,30 @@ magic.classes.ShipPositionButton = function (name, ribbon) {
         }
     }, this));    
     window.setTimeout(this.getData, 300000);
+    $(document).on("insetmapopened", $.proxy(function(evt) {
+        if (magic.runtime.inset) {
+            this.insetLayer = new ol.layer.Vector({
+                name: "BAS ships_inset",
+                visible: true,
+                source: new ol.source.Vector({
+                    features: []
+                }),
+                metadata: {
+                    is_interactive: true,
+                    attribute_map: this.attribute_map
+                }
+            });            
+            magic.runtime.inset.addLayer(this.insetLayer); 
+            if (this.data.outside.length > 0) {
+                var osClones = $.map(this.data.outside, function(f) {
+                    return(f.clone());
+                });                        
+                this.insetLayer.getSource().addFeatures(osClones);
+            }
+        }
+    }, this));
     $(document).on("insetmapclosed", $.proxy(function(evt) {
+        this.insetLayer = null;
     }, this));
 };
 
@@ -66,7 +93,6 @@ magic.classes.ShipPositionButton.prototype.activate = function () {
             geometryName: "geom"
         });
     }
-    var fetch = false;
     if (!this.layer) {
         this.layer = new ol.layer.Vector({
             name: "BAS ships",
@@ -80,37 +106,15 @@ magic.classes.ShipPositionButton.prototype.activate = function () {
             }
         });
         magic.runtime.map.addLayer(this.layer);
-        fetch = true;
     }  else {
         this.layer.setVisible(true);
-    }    
-    if (!this.insetLayer) {
-        this.insetLayer = new ol.layer.Vector({
-            name: "BAS ships_inset",
-            visible: true,
-            source: new ol.source.Vector({
-                features: []
-            }),
-            metadata: {
-                is_interactive: true,
-                attribute_map: this.attribute_map
-            }
-        });
-        if (magic.runtime.inset) {
-            magic.runtime.inset.addLayer(this.insetLayer);
-            fetch = true;
-        }
-    } else {
+    }      
+    if (this.insetLayer) {
         this.insetLayer.setVisible(true);
-        if (magic.runtime.inset) {
-            magic.runtime.inset.activate();
-        }
     }
-    if (fetch) {
-        this.getData();
-    }
+    this.getData();
     this.btn.toggleClass("active");
-    this.btn.attr("data-original-title", this.activeTitle).tooltip("fixTitle");
+    this.btn.attr("data-original-title", this.activeTitle).tooltip("fixTitle");    
 };
 
 /**
@@ -119,9 +123,13 @@ magic.classes.ShipPositionButton.prototype.activate = function () {
 magic.classes.ShipPositionButton.prototype.deactivate = function () {
     this.active = false;
     this.layer.setVisible(false);
-    this.insetLayer.setVisible(false);
+    if (this.insetLayer) {
+        this.insetLayer.setVisible(false);
+        this.insetLayer.getSource().clear();
+    }
     this.btn.toggleClass("active");
-    this.btn.attr("data-original-title", this.inactiveTitle).tooltip("fixTitle");
+    this.btn.attr("data-original-title", this.inactiveTitle).tooltip("fixTitle");    
+    magic.runtime.inset.deactivate();
 };
     
 
@@ -135,9 +143,12 @@ magic.classes.ShipPositionButton.prototype.getData = function() {
             /* Format is as https://github.com/felnne/bas-api-documentation/blob/master/marine-api/v1/documentation/resources/vessel.md */           
             var data = response.data;
             if ($.isArray(data)) {
-                var inFeats = [], outFeats = [];
+                this.data = {
+                    inside: [],
+                    outside: []
+                };                
                 var projExtent = magic.modules.GeoUtils.projectionLatLonExtent(magic.runtime.viewdata.projection.getCode());                         
-                $.each(data, function(idx, elt) {
+                $.each(data, $.proxy(function(idx, elt) {
                     var attrs = {
                         callsign: elt.callsign,
                         name: elt.name,
@@ -176,28 +187,30 @@ magic.classes.ShipPositionButton.prototype.getData = function() {
                         })
                     }));
                     if (inside) {
-                        inFeats.push(feat);
+                        this.data.inside.push(feat);
                     } else {
-                        outFeats.push(feat);
-                    }                                        
-                });                                
+                        this.data.outside.push(feat);
+                    }                      
+                }, this));   
+                this.layer.getSource().clear();
+                if (this.data.inside.length > 0) {
+                    this.layer.getSource().addFeatures(this.data.inside);
+                }
+                if (this.data.outside.length > 0) {
+                    if (this.insetLayer) {
+                        this.insetLayer.getSource().clear();
+                        var osClones = $.map(this.data.outside, function(f) {
+                            return(f.clone());
+                        });      
+                        this.insetLayer.getSource().addFeatures(osClones); 
+                    }
+                    if (magic.runtime.inset) {
+                        magic.runtime.inset.activate();
+                    }
+                }              
             } else {
                 bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to make sense of returned data from marine API</div>');
-            }                        
-            if (inFeats.length > 0 && this.layer) {
-                this.layer.getSource().clear();
-                this.layer.getSource().addFeatures(inFeats);
-            }
-            if (magic.runtime.inset) {                
-                if (outFeats.length > 0 && this.insetLayer) {
-                    this.insetLayer.getSource().clear();
-                    this.insetLayer.getSource().addFeatures(outFeats);
-                    magic.runtime.inset.activate();
-                } else {
-                    /* Can dispense with displaying the inset (if no other layers still have features to show)? */
-                    magic.runtime.inset.deactivate();
-                }                    
-            }
+            }                                    
         }, this),
         error: function(jqXhr, status, msg) {
             if (status && msg) {
