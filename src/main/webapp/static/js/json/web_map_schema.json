@@ -250,7 +250,7 @@
 					"type": "array",
 					"items": {
 						"type": "string",
-						"enum": ["bat", "cga", "arctic", "sg"]
+						"enum": ["bat", "cga", "arctic", "sgssi"]
 					}
 				},				
 				"layers": {
