@@ -273,6 +273,18 @@ magic.classes.creator.LayerUpdater.prototype.populateWmsDataSources = function(w
 };
 
 /**
+ * Populate list with the available styles for this feature
+ * @param {type} wmsUrl
+ * @param {type} select
+ * @param {type} defval
+ */
+magic.classes.creator.LayerUpdater.prototype.populateWmsStyleSelector = function(wmsUrl, select, defval) {
+    if (magic.runtime.creator.catalogues[wmsUrl]) {
+        console.log(magic.runtime.creator.catalogues[wmsUrl]);
+    }
+};
+
+/**
  * Populate the WMS feature type selection drop-down
  * @param {string} wmsUrl
  * @param {Element} select
@@ -284,6 +296,7 @@ magic.classes.creator.LayerUpdater.prototype.populateWmsFeatureSelector = functi
     if (fopts && fopts.length > 0) {
         magic.modules.Common.populateSelect(select, fopts, "value", "name", defval);
         select.off("change").on("change", $.proxy(function(evt) {
+            this.populateWmsStyleSelector();
             this.attribute_map.ogcLoadContext(wmsUrl, $(evt.currentTarget).val(), this.data["attribute_map"]);
         }, this));
     } else {
