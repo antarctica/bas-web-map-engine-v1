@@ -102,13 +102,12 @@ magic.classes.creator.LayerAttributeMap.prototype.vectorLoadContext = function(c
 
 /**
  * Update attribute map for WMS source and feature type
- * @param {object} context
+ * @param {String} wms url
+ * @param {String} feature
+ * @param {Object} attrMap
+ * @param {String} id
  */
-magic.classes.creator.LayerAttributeMap.prototype.ogcLoadContext = function(context) {
-    var wms = context.source.wms_source;
-    var feature = context.source.feature_name;
-    var id = context.id;
-    var attrMap = context.attribute_map;
+magic.classes.creator.LayerAttributeMap.prototype.ogcLoadContext = function(wms, feature, attrMap, id) {    
     if (wms && feature && id) {        
         /* Get the feature type attributes from DescribeFeatureType */
         this.attribute_dictionary[id] = [];
@@ -126,7 +125,7 @@ magic.classes.creator.LayerAttributeMap.prototype.ogcLoadContext = function(cont
                 $.each(elt.attributes, $.proxy(function(i, a) {                        
                     if (a.value.indexOf("gml:") == 0) {                           
                         geomType = this.computeOgcGeomType(a.value);
-                        this.type_dictionary[context.id] = geomType;
+                        this.type_dictionary[id] = geomType;
                     }
                     attrs[a.name] = a.value;
                 }, this));

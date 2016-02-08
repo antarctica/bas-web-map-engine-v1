@@ -15,18 +15,30 @@ magic.modules.Common = function () {
                 {
                     "name": "Operations GIS",
                     "wms": "http://rolgis.nerc-bas.ac.uk/geoserver/opsgis/wms"
+                },                
+                {
+                    "name": "Antarctic Peninsula Information Portal (APIP)",
+                    "wms": "http://bslbatgis.nerc-bas.ac.uk/geoserver/apip/wms"
                 },
                 {
-                    "name": "CCAMLR GIS",
-                    "wms": "https://gis.ccamlr.org/geoserver/wms"
+                    "name": "ASPA CIR and NDVI imagery",
+                    "wms": "http://bslbatgis.nerc-bas.ac.uk/geoserver/iws_aspa/wms"
                 },
                 {
-                    "name": "Antarctic Peninsula Information Portal",
-                    "wms": "http://bslbatgis.nerc-bas.ac.uk:8080/geoserver/wms"
+                    "name": "APC Misc Maps",
+                    "wms": "http://bslbatgis.nerc-bas.ac.uk/geoserver/iws_apc_misc/wms"
+                },
+                {
+                    "name": "Continent-wide mosaics",
+                    "wms": "http://bslmagb.nerc-bas.ac.uk/erdas-iws/ogc/wms/Mosaics?service=WMS&request=getcapabilities"
                 },
                 {
                     "name": "Polar View",
                     "wms": "http://geos.polarview.aq/geoserver/wms"
+                },
+                {
+                    "name": "CCAMLR GIS",
+                    "wms": "https://gis.ccamlr.org/geoserver/wms"
                 }
             ],
             "EPSG:3995": [

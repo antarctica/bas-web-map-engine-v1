@@ -121,6 +121,7 @@ magic.classes.creator.LayerUpdater.prototype.wmsLoadContext = function() {
     sourceSelect.off("change").on("change", $.proxy(function(evt) {
         var selWms = $(evt.currentTarget).val();
         this.populateWmsDataSources(selWms);
+        this.resetStyleSelector($("select[name='" + this.prefix + "-wms-style_name']"));
     }, this));
     magic.modules.creator.Common.dictToForm(this.source_form_fields["wms"], this.data.source, this.prefix + "-wms"); 
     this.populateWmsSourceSelector(sourceSelect, this.data.source.wms_source);
@@ -230,7 +231,8 @@ magic.classes.creator.LayerUpdater.prototype.extractFeatureTypes = function(getC
         $.each(layers, function(idx, layer) {
             ftypes.push({
                 name: layer.Title,
-                value: layer.Name
+                value: layer.Name,
+                styles: layer.Style
             });
         });
     } else {
@@ -276,12 +278,43 @@ magic.classes.creator.LayerUpdater.prototype.populateWmsDataSources = function(w
  * Populate list with the available styles for this feature
  * @param {type} wmsUrl
  * @param {type} select
- * @param {type} defval
+ * @param {type} featName
+ * @param {type} styleName
  */
-magic.classes.creator.LayerUpdater.prototype.populateWmsStyleSelector = function(wmsUrl, select, defval) {
-    if (magic.runtime.creator.catalogues[wmsUrl]) {
-        console.log(magic.runtime.creator.catalogues[wmsUrl]);
+magic.classes.creator.LayerUpdater.prototype.populateWmsStyleSelector = function(wmsUrl, select, featName, styleName) {
+    if ($.isArray(magic.runtime.creator.catalogues[wmsUrl])) {
+        $.each(magic.runtime.creator.catalogues[wmsUrl], $.proxy(function(idx, lyr) {
+            var fnNoWs = featName.split(":").pop();
+            var lvNoWs = lyr.value.split(":").pop();
+            if (lvNoWs == fnNoWs) {
+                select.find("option").remove();
+                if ($.isArray(lyr.styles)) {
+                    /* There's a choice here */
+                    magic.modules.Common.populateSelect(select, lyr.styles, "Name", "Title", styleName || lyr.styles[0].Name);
+                } else {
+                    this.resetStyleSelector(select);                    
+                }
+                return(false);
+            }
+            return(true);
+        }, this));        
+    } else {
+        this.resetStyleSelector(select);
     }
+};
+
+/**
+ * Reset style selection list 
+ * @param {type} select
+ */
+magic.classes.creator.LayerUpdater.prototype.resetStyleSelector = function(select) {
+    select.find("option").remove();
+     magic.modules.Common.populateSelect(select, [
+        {
+            name: "",
+            value: "Default style"
+        }
+    ], "value", "name", "default");    
 };
 
 /**
@@ -296,8 +329,9 @@ magic.classes.creator.LayerUpdater.prototype.populateWmsFeatureSelector = functi
     if (fopts && fopts.length > 0) {
         magic.modules.Common.populateSelect(select, fopts, "value", "name", defval);
         select.off("change").on("change", $.proxy(function(evt) {
-            this.populateWmsStyleSelector();
-            this.attribute_map.ogcLoadContext(wmsUrl, $(evt.currentTarget).val(), this.data["attribute_map"]);
+            var styleSelect = $("select[name='" + this.prefix + "-wms-style_name']");
+            this.populateWmsStyleSelector(wmsUrl, styleSelect, $(evt.currentTarget).val(), this.data.source.style_name);
+            this.attribute_map.ogcLoadContext(wmsUrl, $(evt.currentTarget).val(), this.data["attribute_map"], this.data["id"]);
         }, this));
     } else {
         bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">No feature types found for ' + wmsUrl + '</div>');
