@@ -240,12 +240,15 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
             if (isWms) {
                 if (nd.source.wms_source == "osm") {
                     /* OpenStreetMap layer */
-                    layer = magic.modules.Common.midLatitudeCoastLayer();
+                    layer = magic.modules.Endpoints.getMidLatitudeCoastLayer();
                 } else if (isSingleTile) {
                     /* Render point layers with a single tile for labelling free of tile boundary effects */
                     var wmsSource = new ol.source.ImageWMS(({
                         url: nd.source.wms_source,
-                        params: {"LAYERS": nd.source.feature_name},
+                        params: {
+                            "LAYERS": nd.source.feature_name,
+                            "STYLES": nd.source.style_name ? (nd.source.style_name == "default" ? "" : nd.source.style_name) : ""
+                        },
                         projection: proj
                     }));
                     layer = new ol.layer.Image({
@@ -264,6 +267,7 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                         url: nd.source.wms_source,
                         params: {
                             "LAYERS": nd.source.feature_name,
+                            "STYLES": nd.source.style_name ? (nd.source.style_name == "default" ? "" : nd.source.style_name) : "",
                             "TRANSPARENT": true,
                             "CRS": proj.getCode(),
                             "SRS": proj.getCode(),
@@ -303,7 +307,7 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                             } else {
                                 url += "bbox=" + extent.join(",");
                             }     
-                            if (magic.modules.Common.proxy_endpoints[url] === true) {
+                            if (magic.modules.Endpoints.proxy[url] === true) {
                                 url = magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(url);
                             }
                             $.ajax({

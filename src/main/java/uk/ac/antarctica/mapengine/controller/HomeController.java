@@ -29,7 +29,7 @@ public class HomeController {
      */
     @RequestMapping(value = "/", method = RequestMethod.GET)
     public String topLevel(HttpServletRequest request) throws ServletException, IOException {
-        return "redirect:/home/add7";
+        return "redirect:/home/opsgis";
     }        
     
     /**
@@ -101,7 +101,47 @@ public class HomeController {
         model.addAttribute("debug", true);
         ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Public map " + map + " (debug) requested");
         return("map");
+    }        
+        
+    /**
+     * Render user-defined public map     
+     * @param HttpServletRequest request,
+     * @param String map
+     * @param ModelMap model
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/restricted/{map}", method = RequestMethod.GET)
+    public String mapRestricted(HttpServletRequest request, @PathVariable("map") String map, ModelMap model) throws ServletException, IOException {    
+        request.getSession().setAttribute("map", map);
+        String username = getUserName(request);
+        model.addAttribute("map", map);
+        model.addAttribute("username", username);
+        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Restricted map " + map + " requested");
+        return("map");
     }
+    
+    /**
+     * Render user-defined public map (debug)  
+     * @param HttpServletRequest request,
+     * @param String map
+     * @param ModelMap model
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/restrictedd/{map}", method = RequestMethod.GET)
+    public String mapRestrictedDebug(HttpServletRequest request, @PathVariable("map") String map, ModelMap model) throws ServletException, IOException {    
+        request.getSession().setAttribute("map", map);
+        String username = getUserName(request);
+        model.addAttribute("map", map);
+        model.addAttribute("username", username);
+        model.addAttribute("debug", true);
+        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Restricted map " + map + " (debug) requested");
+        return("map");
+    }
+    
         
     /**
      * Render map creator home page     

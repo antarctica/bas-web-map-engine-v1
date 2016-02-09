@@ -41,10 +41,10 @@ magic.modules.creator.Tab4 = function () {
                 }
                 $("#t4-rotation").val(context.data.rotation);
                 var layers = [];
-                var wms = magic.modules.Common.wms_endpoints[context.data.projection][0]["wms"];
+                var wms = magic.modules.Endpoints.getWmsEndpoints(context.data.projection)[0]["wms"];
                 if (wms == "osm") {
                     /* OpenStreetMap is used for mid-latitude maps */
-                    layers.push(magic.modules.Common.midLatitudeCoastLayer());
+                    layers.push(magic.modules.Endpoints.getMidLatitudeCoastLayer());
                     view = new ol.View({                        
                         center: context.data.center,
                         minZoom: 1,
@@ -55,7 +55,7 @@ magic.modules.creator.Tab4 = function () {
                     });
                 } else {
                     /* Other WMS */
-                    var coasts = magic.modules.Common.wms_endpoints[context.data.projection][0]["coast"];                    
+                    var coasts = magic.modules.Common.Endpoints.getWmsEndpoints(context.data.projection)[0]["coast"];                    
                     $.each(coasts, function(idx, cl) {
                         var wmsSource = new ol.source.TileWMS({
                             url: wms,
@@ -90,7 +90,7 @@ magic.modules.creator.Tab4 = function () {
                         })
                     ];
                     var olGrat = null;
-                    var graticule = magic.modules.Common.wms_endpoints[context.data.projection][0]["graticule"];
+                    var graticule = magic.modules.Endpoints.getWmsEndpoints(context.data.projection)[0]["graticule"];
                     if (graticule) {
                         if (graticule == "ol") {
                             /* Use the native OL graticule control - hangs badly in Chrome 28/01/2016 - obviously buggy */

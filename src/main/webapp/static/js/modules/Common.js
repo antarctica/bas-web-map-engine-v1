@@ -2,78 +2,7 @@
 
 magic.modules.Common = function () {
 
-    return({
-        /* Possible WMS endpoints for each projection */
-        wms_endpoints: {
-            "EPSG:3031": [
-                {
-                    "name": "Antarctic Digital Database",
-                    "wms": "https://maps.bas.ac.uk/antarctic/wms",
-                    "coast": ["add:antarctic_coastline", "add:sub_antarctic_coastline"],
-                    "graticule": "add:antarctic_graticule"
-                },
-                {
-                    "name": "Operations GIS",
-                    "wms": "http://rolgis.nerc-bas.ac.uk/geoserver/opsgis/wms"
-                },                
-                {
-                    "name": "Antarctic Peninsula Information Portal (APIP)",
-                    "wms": "http://bslbatgis.nerc-bas.ac.uk/geoserver/apip/wms"
-                },
-                {
-                    "name": "ASPA CIR and NDVI imagery",
-                    "wms": "http://bslbatgis.nerc-bas.ac.uk/geoserver/iws_aspa/wms"
-                },
-                {
-                    "name": "APC Misc Maps",
-                    "wms": "http://bslbatgis.nerc-bas.ac.uk/geoserver/iws_apc_misc/wms"
-                },
-                {
-                    "name": "Continent-wide mosaics",
-                    "wms": "http://bslmagb.nerc-bas.ac.uk/erdas-iws/ogc/wms/Mosaics?service=WMS&request=getcapabilities"
-                },
-                {
-                    "name": "Polar View",
-                    "wms": "http://geos.polarview.aq/geoserver/wms"
-                },
-                {
-                    "name": "CCAMLR GIS",
-                    "wms": "https://gis.ccamlr.org/geoserver/wms"
-                }
-            ],
-            "EPSG:3995": [
-                {
-                    "name": "NERC Arctic Office Map",
-                    "wms": "https://maps.bas.ac.uk/arctic/wms",
-                    "coast": ["arctic:arctic_coastline"],
-                    "graticule": "arctic:arctic_graticule"
-                }
-            ],
-            "EPSG:3762": [
-                {
-                    "name": "South Georgia GIS",
-                    "wms": "https://maps.bas.ac.uk/southgeorgia/wms",
-                    "coast": ["sggis:sg_coastline"],
-                    "graticule": "ol"
-                }
-            ],
-            "EPSG:3857": [
-                {
-                    "name": "OpenStreetMap",
-                    "wms": "osm",
-                    "coast": "osm"
-                }
-            ]
-        },
-        proxy_endpoints: {
-            "https://gis.ccamlr.org/geoserver/wms": true,
-            "https://gis.ccamlr.org/geoserver/wfs": true
-        },
-        /* Default local Geoserver endpoint */
-        default_geoserver_wms: {
-            "name": "Local Geoserver WMS",
-            "wms": magic.config.paths.baseurl + "/geoserver/wms"
-        },               
+    return({       
         /* Taken from OL2 Util.js */
         inches_per_unit: {
             "inches": 1.0,
@@ -333,7 +262,7 @@ magic.modules.Common = function () {
             } else {
                 var parser = new ol.format.WMSCapabilities();
                 var wmsUrl = url + "?request=GetCapabilities";
-                if (magic.modules.Common.proxy_endpoints[url]) {
+                if (magic.modules.Endpoints.proxy[url]) {
                     wmsUrl = magic.config.paths.baseurl + "/proxy?url=" + wmsUrl;
                 }
                 var jqXhr = $.get(wmsUrl, $.proxy(function(response) {
@@ -364,46 +293,7 @@ magic.modules.Common = function () {
                     callback(null, typename);
                 });
             }
-        },
-        /**
-         * Get a suitable mid-latitudes coast layer (OSM, except if in a low bandwidth location, in which case default to Natural Earth)
-         * @returns {ol.layer}
-         */
-        midLatitudeCoastLayer: function() {
-            var lowBandwidthHosts = [
-                "rothera.nerc-bas.ac.uk",
-                "halley.nerc-bas.ac.uk",
-                "jcr.nerc-bas.ac.uk",
-                "es.nerc-bas.ac.uk"
-            ];
-            var hostname = window.location.hostname;
-            var isLowBandwidth = false;
-            $.each(lowBandwidthHosts, function(idx, lbh) {
-                if (hostname.indexOf(lbh) != -1) {
-                    isLowBandwidth = true;
-                    return(false);
-                }
-                return(true);
-            });
-            if (isLowBandwidth) {
-                /* Low bandwidth location - fallback to locally-hosted Natural Earth data */
-                var wmsSource = new ol.source.TileWMS({
-                    url: this.default_geoserver_wms.wms,
-                    params: {
-                        "LAYERS": "natearth_world_10m_land", 
-                        "CRS": "EPSG:4326",
-                        "SRS": "EPSG:4326",
-                        "VERSION": "1.3.0",
-                        "WORKSPACE": "opsgis"   /* NB: needs to be made a parameter somewhere */
-                    },            
-                    projection: "EPSG:4326"
-                });                     
-                return(new ol.layer.Tile({source: wmsSource}));        
-            } else {
-                /* Any other higher bandwidth location - use OSM */
-                return(new ol.layer.Tile({source: new ol.source.OSM()}));
-            }
-        },
+        },        
         /**
          * Populate a select list from given array of option objects
          * @param {Element} select
@@ -417,7 +307,8 @@ magic.modules.Common = function () {
             select.append($("<option>", {value: "", text: "Please select"}));
             $.each(optArr, function(idx, optObj) {
                 var opt = $("<option>", {value: optObj[valAttr]});
-                opt.text(optObj[txtAttr]);            
+                var text = optObj[txtAttr] || optObj[valAttr];               
+                opt.text(text);            
                 select.append(opt);
                 if (defval && optObj[valAttr] == defval) {
                     selOpt = opt;

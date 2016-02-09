@@ -112,7 +112,7 @@ magic.modules.creator.Common = function () {
                 var csrfHeaderVal = $("meta[name='_csrf']").attr("content");
                 var csrfHeader = $("meta[name='_csrf_header']").attr("content");
                 if (validationResult) {
-                    /* Success - save the map and take the user to the map view */                    
+                    /* Success - save the map and take the user to the map view */ 
                     var jqXhr = $.ajax({
                         url: magic.config.paths.baseurl + "/maps/" + (existingId != "" ? "update/" + existingId : "save"),
                         /* The PUT verb should be used here for updates as per REST-ful interfaces, however there seems to be a Tomcat bug on

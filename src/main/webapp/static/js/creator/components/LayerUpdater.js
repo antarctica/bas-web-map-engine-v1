@@ -250,7 +250,7 @@ magic.classes.creator.LayerUpdater.prototype.populateWmsDataSources = function(w
     if (!magic.runtime.creator.catalogues[wmsUrl]) {
         var parser = new ol.format.WMSCapabilities();
         var url = wmsUrl + "?request=GetCapabilities";
-        if (magic.modules.Common.proxy_endpoints[wmsUrl]) {
+        if (magic.modules.Endpoints.proxy[wmsUrl]) {
             url = magic.config.paths.baseurl + "/proxy?url=" + url;
         }
         var jqXhr = $.get(url, $.proxy(function(response) {
@@ -311,8 +311,8 @@ magic.classes.creator.LayerUpdater.prototype.resetStyleSelector = function(selec
     select.find("option").remove();
      magic.modules.Common.populateSelect(select, [
         {
-            name: "",
-            value: "Default style"
+            name: "Default style",
+            value: ""
         }
     ], "value", "name", "default");    
 };
@@ -354,8 +354,8 @@ magic.classes.creator.LayerUpdater.prototype.populateWmsSourceSelector = functio
     select.find("option").remove();
     var proj = magic.modules.creator.Common.map_context.getProjection();
     if (proj) {
-        var eps = magic.modules.Common.wms_endpoints[proj].slice(0);
-        eps.unshift(magic.modules.Common.default_geoserver_wms);
+        var eps = magic.modules.Endpoints.getWmsEndpoints(proj).slice(0);
+        eps.unshift(magic.modules.Endpoints.default_wms);
         magic.modules.Common.populateSelect(select, eps, "wms", "name", defval);
     } else {
         bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">No projection defined for map</div>');

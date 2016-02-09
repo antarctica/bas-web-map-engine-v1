@@ -94,7 +94,7 @@ magic.classes.InsetMap.prototype.initMap = function() {
     this.map = new ol.Map({
         renderer: "canvas",
         target: "inset-map",
-        layers: [magic.modules.Common.midLatitudeCoastLayer()],
+        layers: [magic.modules.Endpoints.getMidLatitudeCoastLayer()],
         controls: [
             new ol.control.ScaleLine({minWidth: 50, className: "custom-scale-line-top", units: "metric"}),
             new ol.control.ScaleLine({minWidth: 50, className: "custom-scale-line-bottom", units: "imperial"}),

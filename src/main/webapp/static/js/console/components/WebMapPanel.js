@@ -12,10 +12,10 @@ magic.classes.console.WebMapPanel = function () {
     $("#edit-map").click(function () {
         window.location = magic.config.paths.baseurl + "/creator?name=" + $("#select-map").val();
     });
-    $("#delete-map").click(function () {
+    $("#delete-map").click($.proxy(function () {
         var mapName = $("#select-map").val();
         var mapText = $("#select-map option:selected").text();
-        bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">Are you sure you want to delete ' + mapText + '</div>', function (result) {
+        bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">Are you sure you want to delete ' + mapText + '</div>', $.proxy(function (result) {
             if (result) {
                 /* Do the deletion */
                 var jqxhr = $.ajax({
@@ -37,8 +37,8 @@ magic.classes.console.WebMapPanel = function () {
             } else {
                 bootbox.hideAll();
             }
-        });
-    });
+        }, this));
+    }, this));
     this.populateMapList();
 
 };

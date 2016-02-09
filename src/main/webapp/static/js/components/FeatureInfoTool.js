@@ -64,7 +64,7 @@ magic.classes.FeatureInfoTool.prototype.queryFeatures = function(evt) {
                         "FEATURE_COUNT": 10
                     }
                 );
-                if (magic.modules.Common.proxy_endpoints[md.source.wms_source] === true) {
+                if (magic.modules.Endpoints.proxy[md.source.wms_source] === true) {
                     url = magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(url);
                 }
                 if (url) {

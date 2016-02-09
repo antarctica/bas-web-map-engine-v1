@@ -236,7 +236,8 @@ magic.classes.AppContainer.prototype.initView = function() {
         rotation: viewData.rotation ? magic.modules.Common.toRadians(viewData.rotation) : 0.0,
         zoom: viewData.zoom,
         projection: proj,
-        proj_extent: viewData.proj_extent
+        proj_extent: viewData.proj_extent,
+        extent: viewData.proj_extent
     };
     var viewDefaults;
     if (viewData.projection == "EPSG:3857") {
