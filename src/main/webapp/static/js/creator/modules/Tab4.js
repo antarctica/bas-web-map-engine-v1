@@ -55,7 +55,7 @@ magic.modules.creator.Tab4 = function () {
                     });
                 } else {
                     /* Other WMS */
-                    var coasts = magic.modules.Common.Endpoints.getWmsEndpoints(context.data.projection)[0]["coast"];                    
+                    var coasts = magic.modules.Endpoints.getWmsEndpoints(context.data.projection)[0]["coast"];                    
                     $.each(coasts, function(idx, cl) {
                         var wmsSource = new ol.source.TileWMS({
                             url: wms,

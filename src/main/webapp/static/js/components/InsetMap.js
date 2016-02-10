@@ -70,14 +70,15 @@ magic.classes.InsetMap.prototype.deactivate = function() {
     this.active = false;
     var nf = 0;
     var nlayers = 0;
-    this.map.getLayers().forEach(function(lyr, idx, arr) {
-        if ($.isFunction(lyr.getSource().getFeatures)) {
-            /* A vector overlay layer - check number of features */
-            nf += lyr.getSource().getFeatures().length;
-        }    
-        nlayers++;
-    }, this);
-    console.log("map has " + nlayers + " layers");
+    if (this.map) {
+        this.map.getLayers().forEach(function(lyr, idx, arr) {
+            if ($.isFunction(lyr.getSource().getFeatures)) {
+                /* A vector overlay layer - check number of features */
+                nf += lyr.getSource().getFeatures().length;
+            }    
+            nlayers++;
+        }, this);
+    }
     if (nf == 0) {
         this.target.popover("hide");
     }
@@ -111,7 +112,8 @@ magic.classes.InsetMap.prototype.initMap = function() {
             center: [0,0],
             minZoom: 1,
             maxZoom: 10,
-            zoom: 1          
+            zoom: 1,
+            projection: ol.proj.get("EPSG:3857")
         })
     });    
     /* Create a popup overlay and add handler to show it on clicking a feature */

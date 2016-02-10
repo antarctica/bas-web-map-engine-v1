@@ -28,15 +28,15 @@ magic.modules.Endpoints = function () {
             },
             "rolgis.nerc-bas.ac.uk": {
                 "EPSG:3031": [
-                    {"name": "Antarctic Digital Database", "wms": "http://localhost/geoserver/add/wms", "coast": ["add:antarctic_coastline", "add:sub_antarctic_coastline"], "graticule": "add:antarctic_graticule"},
-                    {"name": "Operations GIS", "wms": "http://localhost/geoserver/opsgis/wms"},                              
+                    {"name": "Antarctic Digital Database", "wms": magic.config.paths.baseurl + "/geoserver/add/wms", "coast": ["add:antarctic_coastline", "add:sub_antarctic_coastline"], "graticule": "add:antarctic_graticule"},
+                    {"name": "Operations GIS", "wms": magic.config.paths.baseurl + "/geoserver/opsgis/wms"},                              
                     {"name": "Polar View", "wms": "http://geos.polarview.aq/geoserver/wms"}
                 ],
                 "EPSG:3995": [
-                    {"name": "Arctic Open Data", "wms": "http://localhost/geoserver/arctic/wms", "coast": ["arctic:arctic_coastline"], "graticule": "arctic:arctic_graticule"}
+                    {"name": "Arctic Open Data", "wms": magic.config.paths.baseurl + "/geoserver/arctic/wms", "coast": ["arctic:arctic_coastline"], "graticule": "arctic:arctic_graticule"}
                 ],
                 "EPSG:3762": [
-                    {"name": "South Georgia GIS", "wms": "http://localhost/geoserver/sggis/wms", "coast": ["sggis:sg_coastline"], "graticule": "ol"}
+                    {"name": "South Georgia GIS", "wms":  magic.config.paths.baseurl + "/geoserver/sggis/wms", "coast": ["sggis:sg_coastline"], "graticule": "ol"}
                 ],
                 "EPSG:3857": [
                     {"name": "OpenStreetMap", "wms": "osm", "coast": "osm"}
@@ -44,17 +44,17 @@ magic.modules.Endpoints = function () {
             },
             "rolgis.rothera.nerc-bas.ac.uk": {
                 "EPSG:3031": [
-                    {"name": "Antarctic Digital Database", "wms": "http://localhost/geoserver/add/wms", "coast": ["add:antarctic_coastline", "add:sub_antarctic_coastline"], "graticule": "add:antarctic_graticule"},
-                    {"name": "Operations GIS", "wms": "http://localhost/geoserver/opsgis/wms"}
+                    {"name": "Antarctic Digital Database", "wms": magic.config.paths.baseurl + "/geoserver/add/wms", "coast": ["add:antarctic_coastline", "add:sub_antarctic_coastline"], "graticule": "add:antarctic_graticule"},
+                    {"name": "Operations GIS", "wms":  magic.config.paths.baseurl + "/geoserver/opsgis/wms"}
                 ],
                 "EPSG:3995": [
-                    {"name": "Arctic Open Data", "wms": "http://localhost/geoserver/arctic/wms", "coast": ["arctic:arctic_coastline"], "graticule": "arctic:arctic_graticule"}
+                    {"name": "Arctic Open Data", "wms":  magic.config.paths.baseurl + "/geoserver/arctic/wms", "coast": ["arctic:arctic_coastline"], "graticule": "arctic:arctic_graticule"}
                 ],
                 "EPSG:3762": [
-                    {"name": "South Georgia GIS", "wms": "http://localhost/geoserver/sggis/wms", "coast": ["sggis:sg_coastline"], "graticule": "ol"}
+                    {"name": "South Georgia GIS", "wms":  magic.config.paths.baseurl + "/geoserver/sggis/wms", "coast": ["sggis:sg_coastline"], "graticule": "ol"}
                 ],
                 "EPSG:3857": [
-                    {"name": "Natural Earth Data", "wms": "http://localhost/geoserver/opsgis/wms", "coast": "opsgis:natearth_world_10m_land"}
+                    {"name": "Natural Earth Data", "wms": magic.config.paths.baseurl + "/geoserver/opsgis/wms", "coast": "opsgis:natearth_world_10m_land"}
                 ]
             }
         },        
@@ -73,7 +73,7 @@ magic.modules.Endpoints = function () {
          * @returns {Array}
          */
         getWmsEndpoints: function(projection) {
-            var wms = this.wms(window.location.hostname) || this.wms("default_host");
+            var wms = this.wms[window.location.hostname] || this.wms["default_host"];
             return(wms[projection] || []);
         },
         /**
@@ -81,7 +81,7 @@ magic.modules.Endpoints = function () {
          * @returns {ol.layer}
          */
         getMidLatitudeCoastLayer: function() {            
-            var wms = this.wms(window.location.hostname) || this.wms("default_host");           
+            var wms = this.wms[window.location.hostname] || this.wms["default_host"];           
             if (wms["EPSG:3857"].wms == "osm") {
                 /* OpenStreetMap */
                 return(new ol.layer.Tile({source: new ol.source.OSM()}));
