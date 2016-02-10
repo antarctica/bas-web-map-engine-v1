@@ -82,15 +82,15 @@ magic.modules.Endpoints = function () {
          */
         getMidLatitudeCoastLayer: function() {            
             var wms = this.wms[window.location.hostname] || this.wms["default_host"];           
-            if (wms["EPSG:3857"].wms == "osm") {
+            if (wms["EPSG:3857"][0].wms == "osm") {
                 /* OpenStreetMap */
                 return(new ol.layer.Tile({source: new ol.source.OSM()}));
             } else {
                 /* Use locally-hosted Natural Earth data */
                 var wmsSource = new ol.source.TileWMS({
-                    url: wms["EPSG:3857"].wms,
+                    url: wms["EPSG:3857"][0].wms,
                     params: {
-                        "LAYERS": wms["EPSG:3857"].coast, 
+                        "LAYERS": wms["EPSG:3857"][0].coast, 
                         "CRS": "EPSG:3857",
                         "SRS": "EPSG:3857",
                         "VERSION": "1.3.0",
