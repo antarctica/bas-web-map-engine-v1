@@ -161,7 +161,7 @@ magic.classes.AppContainer = function () {
      * and the login database is LDAP or Ramadda     
      */
     if (magic.runtime.map_context.allowed_usage != "public" || magic.runtime.map_context.allowed_download == "login") {
-        $("ul.navbar-right").show();
+        $("ul.navbar-right").removeClass("hidden").show();
         /* Activate logout menu */
         var lo = $("#log-out-user");
         if (lo.length > 0) {

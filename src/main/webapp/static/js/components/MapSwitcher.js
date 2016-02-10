@@ -52,7 +52,7 @@ magic.classes.MapSwitcher = function(options) {
                 dataType: "json",
                 contentType: "application/json",       
                 success: $.proxy(function(data) {
-                    magic.modules.Common.populateSelect($("#" + this.target + "-view-list"), data, "name", "title");                        
+                    magic.modules.Common.populateSelect($("#" + this.target + "-view-list"), data, "name", "title", true);                        
                 }, this)
             });
             /* Allow clicking on the inputs without the dropdown going away */

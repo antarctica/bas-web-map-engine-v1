@@ -301,10 +301,14 @@ magic.modules.Common = function () {
          * @param {string} valAttr
          * @param {string} txtAttr
          * @param {string} defval
+         * @param {boolean} prependInvite whether to add a "Please select" entry at the beginning
          */
-        populateSelect: function(select, optArr, valAttr, txtAttr, defval) {
+        populateSelect: function(select, optArr, valAttr, txtAttr, defval, prependInvite) {
             var selOpt = null;
-            select.append($("<option>", {value: "", text: "Please select"}));
+            select.find("option").remove();
+            if (prependInvite === true) {
+                select.append($("<option>", {value: "", text: "Please select"}));
+            }
             $.each(optArr, function(idx, optObj) {
                 var opt = $("<option>", {value: optObj[valAttr]});
                 var text = optObj[txtAttr] || optObj[valAttr];               

@@ -117,7 +117,8 @@ magic.modules.creator.Common = function () {
                         url: magic.config.paths.baseurl + "/maps/" + (existingId != "" ? "update/" + existingId : "save"),
                         /* The PUT verb should be used here for updates as per REST-ful interfaces, however there seems to be a Tomcat bug on
                          * bslmagg (the live server) which causes a 403 forbidden error.  I have ascertained it is nothing to do with CSRF tokens
-                         * The PUT operation works on Tomcat 8.0.15 locally - David 07/01/16 
+                         * The PUT operation works on Tomcat 8.0.15 locally - David 07/01/16
+                         * Update 10/02/2016 - probably to do with the init-param "readonly" value being set to true (default) in web.xml 
                          */
                         method: "POST", //(existingId != "" ? "PUT" : "POST"),
                         processData: false,
@@ -131,7 +132,11 @@ magic.modules.creator.Common = function () {
                     });
                     jqXhr.done(function(response) {
                         /* Load up the finished map into a new tab */
-                        window.open(magic.config.paths.baseurl + "/home/" + name, "_blank");
+                        if (finalContext.allowed_usage == "public") {
+                            window.open(magic.config.paths.baseurl + "/home/" + name, "_blank");
+                        } else {
+                            window.open(magic.config.paths.baseurl + "/restricted/" + name, "_blank");
+                        }
                     });
                     jqXhr.fail(function(xhr, status) {
                         bootbox.alert('<div class="alert alert-warning" style="margin-bottom:0">Failed to save the map ' + status + '</div>');
