@@ -40,7 +40,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
             .authorizeRequests()
-            .antMatchers("/*.ico", "/static/**", "/appconfig/**", "/ping", "/home/**", "/maps/dropdown/**", "/maps/name/**", "/maps/id/**", "/prefs/get").permitAll()
+            .antMatchers("/*.ico", "/static/**", "/appconfig/**", "/ping", "/home/**", "/opsgis/**", "/maps/dropdown/**", "/maps/name/**", "/maps/id/**", "/prefs/get").permitAll()
             .antMatchers("/creator", "/creatord", "/restricted/**", "/restrictedd/**", "/homed/**", "/prefs/set", "/maps/save", "/maps/update/**", "/maps/delete/**", "/maps/deletebyname/**")
             .fullyAuthenticated()
             .and()

@@ -69,14 +69,13 @@ magic.classes.creator.LayerUpdater = function(prefix) {
             this.confirmDeleteEntry(this.data.id, "Really delete layer : " + this.data.name + "?");                                                       
         }
     }, this));
+    
     /* Layer source tab change handler */
     $("a[href^='#" + this.prefix + "'][data-toggle='tab']").on("shown.bs.tab", $.proxy(function(evt) {
-        var sourceType = evt.target.innerHTML.toLowerCase();
-        if ($.isFunction(this[sourceType + "LoadContext"])) {
-            this[sourceType + "LoadContext"]();
-        }
+        this.data.source = evt.target.innerHTML.toLowerCase();
+        this.loadContext(this.data);
         var symbologyPanel = $("#" + this.prefix + "-symbology-panel");
-        if (sourceType == "wms") {
+        if (this.data.source == "wms") {
             symbologyPanel.hide();
         } else {
             symbologyPanel.show();
@@ -236,18 +235,9 @@ magic.classes.creator.LayerUpdater.prototype.populateWmsSourceSelector = functio
         var eps = magic.modules.Endpoints.getWmsEndpoints(proj).slice(0);
         eps.unshift(magic.modules.Endpoints.default_wms);
         var currentSource = this.data.source.wms_source;
-        var sourceSelect = $("select[name='" + this.prefix + "-wms-wms_source']");
-        var featureSelect = $("select[name='" + this.prefix + "-wms-feature_name']");
-        var styleSelect = $("select[name='" + this.prefix + "-wms-style_name']");
+        var sourceSelect = $("select[name='" + this.prefix + "-wms-wms_source']");        
         magic.modules.Common.populateSelect(sourceSelect, eps, "wms", "name", currentSource, true);
-        if (currentSource) {
-            /* A WMS service has been selected */
-            this.populateWmsFeatureSelector(currentSource);
-        } else {
-            /* No WMS yet selected - empty the feature and style lists */
-            magic.modules.Common.populateSelect(featureSelect, [], "", "", "", false);
-            magic.modules.Common.populateSelect(styleSelect, [], "", "", "", false);
-        }
+        this.populateWmsFeatureSelector(currentSource);       
         sourceSelect.off("change").on("change", $.proxy(function(evt) {
             /* WMS source selector has changed, update the features available */
             this.populateWmsFeatureSelector($(evt.currentTarget).val());
@@ -265,47 +255,54 @@ magic.classes.creator.LayerUpdater.prototype.populateWmsSourceSelector = functio
  * @param {string} defval
  */
 magic.classes.creator.LayerUpdater.prototype.populateWmsFeatureSelector = function(wmsUrl) {
-    /* Examine GetCapabilities list of features */
-    var fopts = magic.runtime.creator.catalogues[wmsUrl];
-    var currentFeature = this.data.source.feature_name;
     var featureSelect = $("select[name='" + this.prefix + "-wms-feature_name']");
-    if (fopts && fopts.length > 0) {
-        /* Have previously read the GetCapabilities document - read stored feature data into select list */
-        magic.modules.Common.populateSelect(featureSelect, fopts, "value", "name", currentFeature, true);
-        this.populateWmsStyleSelector(wmsUrl, currentFeature);
-        featureSelect.off("change").on("change", $.proxy(function(evt) {
-            this.populateWmsStyleSelector(wmsUrl, null);
-            this.attribute_map.ogcLoadContext(wmsUrl, $(evt.currentTarget).val(), this.data["attribute_map"], this.data["id"]);
-        }, this));
-    } else {
-        /* Read available layer data from the service GetCapabilities document */
-        var parser = new ol.format.WMSCapabilities();
-        var url = wmsUrl + "?request=GetCapabilities";
-        if (magic.modules.Endpoints.proxy[wmsUrl]) {
-            url = magic.config.paths.baseurl + "/proxy?url=" + url;
-        }
-        var jqXhr = $.get(url, $.proxy(function(response) {
-            try {
-                var capsJson = $.parseJSON(JSON.stringify(parser.read(response)));
-                if (capsJson) {
-                    magic.runtime.creator.catalogues[wmsUrl] = this.extractFeatureTypes(capsJson);
-                    magic.modules.Common.populateSelect(featureSelect, magic.runtime.creator.catalogues[wmsUrl], "value", "name", currentFeature, true);
-                    featureSelect.off("change").on("change", $.proxy(function(evt) {
-                        this.populateWmsStyleSelector(wmsUrl, $(evt.currentTarget).val());
-                        this.attribute_map.ogcLoadContext(wmsUrl, $(evt.currentTarget).val(), this.data["attribute_map"], this.data["id"]);
-                    }, this));                   
-                } else {
+    var styleSelect = $("select[name='" + this.prefix + "-wms-style_name']");
+    featureSelect.off("change").on("change", $.proxy(function(evt) {
+        this.populateWmsStyleSelector(wmsUrl, null);
+        this.attribute_map.ogcLoadContext(wmsUrl, $(evt.currentTarget).val(), this.data["attribute_map"], this.data["id"]);
+    }, this));
+    if (wmsUrl) {
+        /* Examine GetCapabilities list of features */
+        var fopts = magic.runtime.creator.catalogues[wmsUrl];
+        var currentFeature = this.data.source.feature_name;        
+        if (fopts && fopts.length > 0) {
+            /* Have previously read the GetCapabilities document - read stored feature data into select list */
+            magic.modules.Common.populateSelect(featureSelect, fopts, "value", "name", currentFeature, true);
+            this.populateWmsStyleSelector(wmsUrl, currentFeature);            
+        } else {
+            /* Read available layer data from the service GetCapabilities document */
+            var parser = new ol.format.WMSCapabilities();
+            var url = wmsUrl + "?request=GetCapabilities";
+            if (magic.modules.Endpoints.proxy[wmsUrl]) {
+                url = magic.config.paths.baseurl + "/proxy?url=" + url;
+            }
+            var jqXhr = $.get(url, $.proxy(function(response) {
+                try {
+                    var capsJson = $.parseJSON(JSON.stringify(parser.read(response)));
+                    if (capsJson) {
+                        magic.runtime.creator.catalogues[wmsUrl] = this.extractFeatureTypes(capsJson);
+                        magic.modules.Common.populateSelect(featureSelect, magic.runtime.creator.catalogues[wmsUrl], "value", "name", currentFeature, true);
+                        this.populateWmsStyleSelector(wmsUrl, currentFeature);                                          
+                    } else {
+                        bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to parse capabilities for WMS ' + wmsUrl + '</div>');
+                        magic.modules.Common.populateSelect(featureSelect, [{name: currentFeature, value: currentFeature}], "value", "name", currentFeature, true);
+                        this.populateWmsStyleSelector(wmsUrl, currentFeature);
+                    }
+                } catch(e) {
                     bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to parse capabilities for WMS ' + wmsUrl + '</div>');
                     magic.modules.Common.populateSelect(featureSelect, [{name: currentFeature, value: currentFeature}], "value", "name", currentFeature, true);
+                    this.populateWmsStyleSelector(wmsUrl, currentFeature);
                 }
-            } catch(e) {
-                bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to parse capabilities for WMS ' + wmsUrl + '</div>');
+            }, this)).fail($.proxy(function() {
+                bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to read capabilities for WMS ' + wmsUrl + '</div>');
                 magic.modules.Common.populateSelect(featureSelect, [{name: currentFeature, value: currentFeature}], "value", "name", currentFeature, true);
-            }
-        }, this)).fail(function() {
-            bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to read capabilities for WMS ' + wmsUrl + '</div>');
-            magic.modules.Common.populateSelect(featureSelect, [{name: currentFeature, value: currentFeature}], "value", "name", currentFeature, true);
-        });                 
+                this.populateWmsStyleSelector(wmsUrl, currentFeature);
+            }, this));
+        } 
+    } else {
+        /* No WMS yet selected - empty the feature and style lists */
+        magic.modules.Common.populateSelect(featureSelect, [], "", "", "", false);
+        magic.modules.Common.populateSelect(styleSelect, [], "", "", "", false);        
     }
 };
 

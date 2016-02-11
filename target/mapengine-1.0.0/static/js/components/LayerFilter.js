@@ -166,7 +166,6 @@ magic.classes.LayerFilter.prototype.setFilterOptions = function(changed, to) {
             if (this.op != null) {
                 if (this.val1 != null) {
                     /* Value will have % characters to indicate wildcards depending on the operation */
-                    console.log(this.val1);
                     var startPc = this.val1.indexOf("%") == 0;
                     var endPc = this.val1.lastIndexOf("%") == this.val1.length-1;
                     if (startPc && endPc) {

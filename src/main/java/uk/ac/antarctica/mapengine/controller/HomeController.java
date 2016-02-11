@@ -29,7 +29,7 @@ public class HomeController {
      */
     @RequestMapping(value = "/", method = RequestMethod.GET)
     public String topLevel(HttpServletRequest request) throws ServletException, IOException {
-        return "redirect:/home/opsgis";
+        return "redirect:/home/add7";
     }        
     
     /**
@@ -169,6 +169,32 @@ public class HomeController {
         ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "MAGIC Web Map Creator (debug) requested");
         return("creator");
     }
+    
+    /* Legacy redirects - URLs which have been given out and will be expected to work, but which aren't convenient to export in the new world  */
+    
+    /**
+     * Ops GIS home
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/opsgis", method = RequestMethod.GET)
+    public String opsgis() throws ServletException, IOException {
+        return "redirect:/restricted/opsgis";
+    }
+    
+    /**
+     * Ops GIS Halley home
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/opsgis/halley", method = RequestMethod.GET)
+    public String opsgisHalley() throws ServletException, IOException {
+        return "redirect:/restricted/halley";
+    }   
+    
+    /* End of legacy redirects */    
  
     /**
      * Get user name

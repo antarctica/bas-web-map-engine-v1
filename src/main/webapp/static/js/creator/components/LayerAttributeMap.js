@@ -20,8 +20,8 @@ magic.classes.creator.LayerAttributeMap = function(div) {
  * @param {object} context
  */
 magic.classes.creator.LayerAttributeMap.prototype.loadContext = function(context, sourceType) {
-    if (sourceType == "wms") {
-        this.ogcLoadContext(context);
+    if (sourceType == "wms") {        
+        this.ogcLoadContext(context.source.wms_source, context.source.feature_name, context.attribute_map, context.id);
     } else {
         this.vectorLoadContext(context, sourceType);
     }    
