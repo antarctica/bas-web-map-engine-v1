@@ -210,17 +210,32 @@ magic.classes.creator.LayerUpdater.prototype.extractFeatureTypes = function(getC
     var ftypes = [];
     if ("Capability" in getCaps && "Layer" in getCaps.Capability && "Layer" in getCaps.Capability.Layer && $.isArray(getCaps.Capability.Layer.Layer)) {
         var layers = getCaps.Capability.Layer.Layer;
-        $.each(layers, function(idx, layer) {
+        this.getFeatures(ftypes, layers);        
+    } else {
+        bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Malformed GetCapabilities response received from remote WMS</div>');
+    }
+    return(ftypes);
+};
+
+/**
+ * Recursive trawl through the GetCapabilities document for named layers
+ * @param {Array} ftypes
+ * @param {Array} layers
+ */
+magic.classes.creator.LayerUpdater.prototype.getFeatures = function(ftypes, layers) {
+    $.each(layers, $.proxy(function(idx, layer) {
+        if ("Name" in layer) {
+            /* Leaf node - a named layer */
             ftypes.push({
                 name: layer.Title,
                 value: layer.Name,
                 styles: layer.Style
             });
-        });
-    } else {
-        bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Malformed GetCapabilities response received from remote WMS</div>');
-    }
-    return(ftypes);
+        } else if ("Layer" in layer && $.isArray(layer["Layer"])) {
+            /* More trawling to do */
+            this.getFeatures(ftypes, layer["Layer"]);
+        }        
+    }, this));
 };
 
 /**
@@ -272,7 +287,7 @@ magic.classes.creator.LayerUpdater.prototype.populateWmsFeatureSelector = functi
         } else {
             /* Read available layer data from the service GetCapabilities document */
             var parser = new ol.format.WMSCapabilities();
-            var url = wmsUrl + "?request=GetCapabilities";
+            var url = wmsUrl + "?request=GetCapabilities&service=wms";
             if (magic.modules.Endpoints.proxy[wmsUrl]) {
                 url = magic.config.paths.baseurl + "/proxy?url=" + url;
             }

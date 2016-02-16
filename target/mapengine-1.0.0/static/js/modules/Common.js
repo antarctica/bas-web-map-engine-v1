@@ -261,7 +261,7 @@ magic.modules.Common = function () {
                 callback(magic.runtime.capabilities[url], typename);
             } else {
                 var parser = new ol.format.WMSCapabilities();
-                var wmsUrl = url + "?request=GetCapabilities";
+                var wmsUrl = url + "?request=GetCapabilities&service=wms";
                 if (magic.modules.Endpoints.proxy[url]) {
                     wmsUrl = magic.config.paths.baseurl + "/proxy?url=" + wmsUrl;
                 }
@@ -273,9 +273,7 @@ magic.modules.Common = function () {
                             if ("Capability" in capsJson && "Layer" in capsJson.Capability && "Layer" in capsJson.Capability.Layer && $.isArray(capsJson.Capability.Layer.Layer)) {
                                 var layers = capsJson.Capability.Layer.Layer;
                                 ftypes = {};
-                                $.each(layers, function(idx, layer) {
-                                    ftypes[layer.Name] = layer;
-                                });
+                                this.getFeatureTypes(ftypes, layers);                                
                             }
                             if (ftypes != null) {
                                 magic.runtime.capabilities[url] = ftypes;
@@ -293,7 +291,23 @@ magic.modules.Common = function () {
                     callback(null, typename);
                 });
             }
-        },        
+        },
+        /**
+         * Helper method for getCapabilities above - recursive trawler through GetCaps document
+         * @param {Object} ftypes
+         * @param {Array} layers
+         */
+        getFeatureTypes: function(ftypes, layers) {
+            $.each(layers, $.proxy(function(idx, layer) {
+                if ("Name" in layer) {
+                    /* Leaf node - a named layer */
+                    ftypes[layer.Name] = layer;
+                } else if ("Layer" in layer && $.isArray(layer["Layer"])) {
+                    /* More trawling to do */
+                    this.getFeatureTypes(ftypes, layer["Layer"]);
+                }        
+            }, this));
+        },
         /**
          * Populate a select list from given array of option objects
          * @param {Element} select
