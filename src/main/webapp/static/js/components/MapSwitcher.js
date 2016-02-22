@@ -61,8 +61,8 @@ magic.classes.MapSwitcher = function(options) {
             $("#" + this.target + "-view-list-go").click($.proxy(function(evt) {
                 /* Load a map */
                 var view = $("#" + this.target + "-view-list").val();
-                var pathBits = window.location.pathname.split("/");
-                window.open(magic.config.paths.baseurl + "/" + pathBits[1] + "/" + view, $("#" + this.target + "-new-tab").prop("checked") ? "_blank" : "_self");                
+                var av = view.split(":");                
+                window.open(magic.config.paths.baseurl + "/" + (av[0] == "public" ? "home" : "restricted") + "/" + av[1], $("#" + this.target + "-new-tab").prop("checked") ? "_blank" : "_self");                
             }, this));
         }
     }, this));

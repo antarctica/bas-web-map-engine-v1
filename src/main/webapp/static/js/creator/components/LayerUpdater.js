@@ -72,10 +72,10 @@ magic.classes.creator.LayerUpdater = function(prefix) {
     
     /* Layer source tab change handler */
     $("a[href^='#" + this.prefix + "'][data-toggle='tab']").on("shown.bs.tab", $.proxy(function(evt) {
-        this.data.source = evt.target.innerHTML.toLowerCase();
-        this.loadContext(this.data);
+        var sourceType = evt.target.innerHTML.toLowerCase();
+        this.loadContext(this.data, sourceType);
         var symbologyPanel = $("#" + this.prefix + "-symbology-panel");
-        if (this.data.source == "wms") {
+        if (sourceType == "wms") {
             symbologyPanel.hide();
         } else {
             symbologyPanel.show();
@@ -86,12 +86,13 @@ magic.classes.creator.LayerUpdater = function(prefix) {
 /**
  * Populate form with saved or new data
  * @param {object} context
+ * @param {string} sourceType
  */
-magic.classes.creator.LayerUpdater.prototype.loadContext = function(context) {
+magic.classes.creator.LayerUpdater.prototype.loadContext = function(context, sourceType) {
     
     this.data = context;
    
-    var activeTab = this.setActiveSourceTab(context.source);
+    var activeTab = this.setActiveSourceTab(context.source, sourceType);
     
     /* Style definition sub-tab */
     this.style_definition = new magic.classes.creator.LayerStyler(this.prefix);
@@ -174,30 +175,42 @@ magic.classes.creator.LayerUpdater.prototype.getActiveSourceTab = function() {
 /**
  * Set the currently active source tab
  * @param {object} source
+ * @param {string} sourceType - if null/undefined => compute and show tab based on data
  * @returns {string}
  */
-magic.classes.creator.LayerUpdater.prototype.setActiveSourceTab = function(source) {    
+magic.classes.creator.LayerUpdater.prototype.setActiveSourceTab = function(source, sourceType) {    
     var activeTab = null;
-    var symbologyPanel = $("#" + this.prefix + "-symbology-panel");  
-    $.each($("a[role='tab'][href^='#" + this.prefix + "']"), $.proxy(function(i, a) {
-        var tabName = $(a).attr("href").replace("#" + this.prefix + "-", "").replace("-tab", "");
-        if (source[tabName + "_source"] && source[tabName + "_source"].indexOf("http") == 0) {
-            $(a).tab("show");
-            activeTab = tabName;
-            if (tabName == "wms") {
-                symbologyPanel.hide();
-            } else {
-                symbologyPanel.show();
-            }
-            return(false)
-        }        
-        return(true);
-    }, this));
-    if (activeTab == null) {
-        $("a[href='#" + this.prefix + "-wms-tab']").tab("show");
-        activeTab = "wms";
-        symbologyPanel.hide();
-    }    
+    var symbologyPanel = $("#" + this.prefix + "-symbology-panel"); 
+    if (sourceType) {
+        /* User has selected and shown the desired tab already */
+        activeTab = sourceType;
+        if (sourceType == "wms") {
+            symbologyPanel.hide();
+        } else {
+            symbologyPanel.show();
+        }
+    } else {
+        /* Compute the tab to show based on the data */
+        $.each($("a[role='tab'][href^='#" + this.prefix + "']"), $.proxy(function(i, a) {
+            var tabName = $(a).attr("href").replace("#" + this.prefix + "-", "").replace("-tab", "");
+            if (source[tabName + "_source"]) {
+                $(a).tab("show");
+                activeTab = tabName;
+                if (tabName == "wms") {
+                    symbologyPanel.hide();
+                } else {
+                    symbologyPanel.show();
+                }
+                return(false)
+            }        
+            return(true);
+        }, this));
+        if (activeTab == null) {
+            $("a[href='#" + this.prefix + "-wms-tab']").tab("show");
+            activeTab = "wms";
+            symbologyPanel.hide();
+        }    
+    }
     return(activeTab);
 };
 

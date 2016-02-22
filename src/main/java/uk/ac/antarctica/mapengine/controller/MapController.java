@@ -65,7 +65,7 @@ public class MapController {
     }
     
     /**
-     * Get {id: <uuid>, name: <name>} for all maps the logged in user can do the specified action (edit|clone)
+     * Get {id: <uuid>, name: <name>} for all maps the logged in user can do the specified action (view|edit|clone|delete)
      * @param HttpServletRequest request,
      * @param String action
      * @return
@@ -89,21 +89,36 @@ public class MapController {
         ResponseEntity<String> ret = null;
         String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
         List<Map<String, Object>> userMapData = null;
-        if (action.equals("edit")) {
-            /* Users can edit only maps they own */
+        if (action.equals("delete")) {
+            /* Users can delete only maps they own */
             if (username == null) {
-                ret = packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to perform this action");
+                ret = packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to delete maps");
+            } else {
+                userMapData = magicDataTpl.queryForList("SELECT name, title FROM " +  MAPDEFS + " WHERE owner_name=? ORDER BY title", username);
+            }
+        } else if (action.equals("edit")) {
+            /* Users can edit maps they own, or those allowed to be edited by logged in users */
+            if (username == null) {
+                ret = packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to edit maps");
             } else {
                 userMapData = magicDataTpl.queryForList("SELECT name, title FROM " +  MAPDEFS + " WHERE owner_name=? OR allowed_edit='login' ORDER BY title", username);
             }
-        } else if (action.equals("clone") || action.equals("view")) {
+        } else if (action.equals("clone")) {
             if (username == null) {
-                /* Guests can clone or view public maps */
-                userMapData = magicDataTpl.queryForList("SELECT name, title FROM " +  MAPDEFS + " WHERE allowed_usage='public' ORDER BY title");
+                ret = packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to clone maps");
             } else {
-                /* Logged in users can clone public, restricted maps and ones they own */
+                /* Logged in users can clone public, login-restricted maps and ones they own */
                 String where = "allowed_usage='public' OR allowed_usage='login' OR (allowed_usage='owner' AND owner_name=?)";
                 userMapData = magicDataTpl.queryForList("SELECT name, title FROM " +  MAPDEFS + " WHERE " + where + " ORDER BY title", username);
+            }
+        } else if (action.equals("view")) {
+            if (username == null) {
+                /* Guests can view public maps */
+                userMapData = magicDataTpl.queryForList("SELECT allowed_usage || ':' || name as name, title FROM " +  MAPDEFS + " WHERE allowed_usage='public' ORDER BY title");
+            } else {
+                /* Logged in users can view public, login-restricted maps and ones they own */
+                String where = "allowed_usage='public' OR allowed_usage='login' OR (allowed_usage='owner' AND owner_name=?)";
+                userMapData = magicDataTpl.queryForList("SELECT allowed_usage || ':' || name as name, title FROM " +  MAPDEFS + " WHERE " + where + " ORDER BY title", username);
             }
         } else {
             ret = packageResults(HttpStatus.BAD_REQUEST, null, "Unrecognised action " + action);
