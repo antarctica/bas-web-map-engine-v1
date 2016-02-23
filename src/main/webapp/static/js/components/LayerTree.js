@@ -365,16 +365,21 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                 this.layersBySource["gpx"].push(layer);
             } else if (nd.source.kml_source) {
                 /* KML source */
+                var kmlStyle = this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map));
                 layer = new ol.layer.Image({
                     name: nd.name,
                     visible: nd.is_visible,
                     metadata: nd,
                     source: new ol.source.ImageVector({
                         source: new ol.source.Vector({
-                            format: new ol.format.KML({showPointNames: false}),
+                            format: new ol.format.KML({
+                                extractStyles: false,
+                                showPointNames: false,
+                                defaultStyle: kmlStyle
+                            }),
                             url: nd.source.kml_source
                         }),
-                        style: this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map))
+                        style: kmlStyle
                     }),
                     minResolution: minRes,
                     maxResolution: maxRes
