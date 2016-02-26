@@ -134,7 +134,7 @@ magic.classes.AppContainer = function () {
         }
     }, this);
 
-    /* Allow drag and drop of user GPS and KML layers */    
+    /* Allow drag and drop of user GPX and KML layers */    
     dd.on("addfeatures", $.proxy(function(evt) {
         var vectorSource = new ol.source.Vector({
             features: evt.features

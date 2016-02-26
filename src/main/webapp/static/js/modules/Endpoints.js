@@ -13,7 +13,8 @@ magic.modules.Endpoints = function () {
                     {"name": "ASPA CIR and NDVI imagery", "wms": "http://bslbatgis.nerc-bas.ac.uk/geoserver/iws_aspa/wms"},
                     {"name": "APC Misc Maps", "wms": "http://bslbatgis.nerc-bas.ac.uk/geoserver/iws_apc_misc/wms"},
                     {"name": "Continent-wide mosaics", "wms": "http://bslmagb.nerc-bas.ac.uk/erdas-iws/ogc/wms/Mosaics"},
-                    {"name": "Scanned maps", "wms": "http://bslmagb.nerc-bas.ac.uk/erdas-iws/ogc/wms/ScannedMaps"},
+                    {"name": "Pan-Antarctic maps", "wms": "http://bslmagb.nerc-bas.ac.uk/erdas-iws/ogc/wms/PanAntarcticMaps"},
+                    {"name": "Scanned maps", "wms": "http://geo.antarctica.ac.uk/geoserver/scanned_maps/wms"},
                     {"name": "Polar View", "wms": "http://geos.polarview.aq/geoserver/wms"},
                     {"name": "CCAMLR GIS", "wms": "https://gis.ccamlr.org/geoserver/wms"}
                 ],

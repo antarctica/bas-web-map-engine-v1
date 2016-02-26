@@ -374,8 +374,7 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                         source: new ol.source.Vector({
                             format: new ol.format.KML({
                                 extractStyles: false,
-                                showPointNames: false,
-                                defaultStyle: kmlStyle
+                                showPointNames: false
                             }),
                             url: nd.source.kml_source
                         }),
