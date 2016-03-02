@@ -10,13 +10,14 @@ magic.modules.Endpoints = function () {
                     {"name": "Antarctic Digital Database", "wms": "https://maps.bas.ac.uk/antarctic/wms", "coast": ["add:antarctic_coastline", "add:sub_antarctic_coastline"], "graticule": "add:antarctic_graticule"},
                     {"name": "Operations GIS", "wms": "http://rolgis.nerc-bas.ac.uk/geoserver/opsgis/wms"},                
                     {"name": "Antarctic Peninsula Information Portal (APIP)", "wms": "http://bslbatgis.nerc-bas.ac.uk/geoserver/apip/wms"},
-                    {"name": "ASPA CIR and NDVI imagery", "wms": "http://bslbatgis.nerc-bas.ac.uk/geoserver/iws_aspa/wms"},
+                    {"name": "ASPA CIR imagery", "wms": "http://bslbatgis.nerc-bas.ac.uk/geoserver/iws_aspa/wms"},
+                    {"name": "ASPA NDVI imagery", "wms": "http://bslbatgis.nerc-bas.ac.uk/geoserver/aspa_ndvi/wms"},
                     {"name": "APC Misc Maps", "wms": "http://bslbatgis.nerc-bas.ac.uk/geoserver/iws_apc_misc/wms"},
                     {"name": "Continent-wide mosaics", "wms": "http://bslmagb.nerc-bas.ac.uk/erdas-iws/ogc/wms/Mosaics"},
                     {"name": "Pan-Antarctic maps", "wms": "http://bslmagb.nerc-bas.ac.uk/erdas-iws/ogc/wms/PanAntarcticMaps"},
                     {"name": "Scanned maps", "wms": "http://geo.antarctica.ac.uk/geoserver/scanned_maps/wms"},
                     {"name": "Polar View", "wms": "http://geos.polarview.aq/geoserver/wms"},
-                    {"name": "CCAMLR GIS", "wms": "https://gis.ccamlr.org/geoserver/wms"}
+                    {"name": "CCAMLR GIS", "wms": "http://geo.antarctica.ac.uk/geoserver/ccamlr_gis/wms"}
                 ],
                 "EPSG:3995": [
                     {"name": "Arctic Open Data", "wms": "https://maps.bas.ac.uk/arctic/wms", "coast": ["arctic:arctic_coastline"], "graticule": "arctic:arctic_graticule"}

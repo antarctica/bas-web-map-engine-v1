@@ -90,19 +90,26 @@ magic.classes.AttributionModal.prototype.legendMarkup = function() {
     if (this.layer) {
         var md = this.layer.get("metadata");
         if (md) {
-            var legendUrl = null;
-            if (md.legend_graphic)  {
+            var legendUrl = null;            
+            if (md.source.wms_source || (md.source.geojson_source && md.source.feature_name)) {
+                var wmsUrl;
+                var isWms = true;
+                if (md.source.geojson_source) {
+                    wmsUrl = md.source.geojson_source.replace("wfs", "wms");
+                } else if (md.legend_graphic) {
+                    wmsUrl = md.legend_graphic;
+                    isWms = md.legend_graphic.indexOf("/wms") != -1;                     
+                } else {
+                    wmsUrl = md.source.wms_source;
+                } 
+                if (isWms) {
+                   legendUrl = wmsUrl + 
+                        "?service=WMS&request=GetLegendGraphic&format=image/png&width=20&height=20&layer=" + md.source.feature_name + 
+                        "&legend_options=fontName:Lucida Sans Regular;fontAntiAliasing:true;fontColor:0xffffff;fontSize:6;bgColor:0x272b30;dpi:180";
+                }
+            } else if (md.legend_graphic) {
+                /* Non-WMS derived legend graphic e.g. a canned image */
                 legendUrl = md.legend_graphic;
-            } else if (md.source.wms_source || (md.source.geojson_source && md.source.feature_name)) {
-                 var wmsUrl;
-                 if (md.source.geojson_source) {
-                     wmsUrl = md.source.geojson_source.replace("wfs", "wms");
-                 } else {
-                     wmsUrl = md.source.wms_source;
-                 }
-                 legendUrl = wmsUrl + 
-                     "?service=WMS&request=GetLegendGraphic&format=image/png&width=20&height=20&layer=" + md.source.feature_name + 
-                     "&legend_options=fontName:Lucida Sans Regular;fontAntiAliasing:true;fontColor:0xffffff;fontSize:6;bgColor:0x272b30;dpi:180";
             }
             if (legendUrl != null) {
                  content += 
