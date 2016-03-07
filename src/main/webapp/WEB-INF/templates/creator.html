@@ -54,6 +54,14 @@
         <script type="text/javascript">
 
             $(document).ready(function () {
+                /* Zap events on the return key (spuriously submits forms in a non-intuitive way) 
+                 * http://stackoverflow.com/questions/895171/prevent-users-from-submitting-form-by-hitting-enter */
+                $(document).keydown(function(evt) {
+                    if (evt.keyCode == 13) {
+                        evt.preventDefault();
+                        return(false);
+                    }
+                });
                 /* Logout behaviour */
                 var lo = $("#log-out-user");
                 if (lo.length > 0) {

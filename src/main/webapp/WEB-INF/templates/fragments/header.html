@@ -50,7 +50,13 @@
                     magic.runtime.appcontainer = new magic.classes.AppContainer();
                 });
                 prefsRequest.fail(function(xhr, status) {
-                    bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to get payload and preferences for map ' + magic.runtime.mapname + '</div>');
+                    var detail = JSON.parse(xhr.responseText)["detail"];
+                    bootbox.alert(
+                        '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                            '<p>Failed to get payload and preferences for map ' + magic.runtime.mapname + ' - details below:</p>' + 
+                            '<p>' + detail + '</p>' + 
+                        '</div>'
+                    );
                 });
             }
 

@@ -316,6 +316,9 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                             }).done(function(response) {
                                 vectorSource.addFeatures(format.readFeatures(response));
                             });
+                            //.fail(function(jqXhr, status, err) {
+                            //TODO
+                            //});
                         },                        
                         projection: magic.runtime.view.getProjection()
                     });

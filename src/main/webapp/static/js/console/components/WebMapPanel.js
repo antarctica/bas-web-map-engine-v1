@@ -36,7 +36,13 @@ magic.classes.console.WebMapPanel = function () {
                     this.populateMapLists();
                 }, this))
                 .fail(function () {
-                    bootbox.alert("Failed to delete map " + mapText);
+                    var detail = JSON.parse(xhr.responseText)["detail"];
+                    bootbox.alert(
+                        '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                            '<p>Failed to delete map ' + mapText + ' - details below:</p>' + 
+                            '<p>' + detail + '</p>' + 
+                        '</div>'
+                    );
                 });
                 bootbox.hideAll();
             } else {

@@ -6,7 +6,14 @@ magic.modules.creator.Tab4 = function () {
         
         map: null,
                 
-        init: function() {           
+        init: function() {
+            $("#t4-rotation-set").click($.proxy(function(evt) {
+                var rotationDeg = $("#t4-rotation").val();
+                if (!isNaN(rotationDeg)) {
+                    var rotationRad = Math.PI*rotationDeg/180.0;
+                    this.map.getView().setRotation(rotationRad);
+                }
+            }, this));
         },
         loadContext: function(context) {                                    
         },

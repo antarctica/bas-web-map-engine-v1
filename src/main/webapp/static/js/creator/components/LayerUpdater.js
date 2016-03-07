@@ -260,16 +260,37 @@ magic.classes.creator.LayerUpdater.prototype.populateWmsSourceSelector = functio
     var proj = magic.modules.creator.Common.map_context.getProjection();
     if (proj) {
         /* Get the WMS endpoints available for this projection on this server platform */
-        var eps = magic.modules.Endpoints.getWmsEndpoints(proj).slice(0);
-        eps.unshift(magic.modules.Endpoints.default_wms);
         var currentSource = this.data.source.wms_source;
-        var sourceSelect = $("select[name='" + this.prefix + "-wms-wms_source']");        
-        magic.modules.Common.populateSelect(sourceSelect, eps, "wms", "name", currentSource, true);
-        this.populateWmsFeatureSelector(currentSource);       
-        sourceSelect.off("change").on("change", $.proxy(function(evt) {
-            /* WMS source selector has changed, update the features available */
-            this.populateWmsFeatureSelector($(evt.currentTarget).val());
-        }, this));
+        var sourceSelect = $("select[name='" + this.prefix + "-wms-wms_source']");       
+        var eps = magic.modules.Endpoints.getWmsEndpoints(proj).slice(0);
+        var restUrl = magic.config.paths.baseurl + "/geoserver/rest/workspaces.json";
+        var jqXhr = $.ajax(magic.config.paths.baseurl + "/proxy/gs/rest?url=" + encodeURIComponent(restUrl))
+            .done($.proxy(function(data) {
+                if (data.workspaces && $.isArray(data.workspaces.workspace)) {
+                    $.each(data.workspaces.workspace, function(idx, ws) {
+                        if ("assets|opsgis|sggis|arctic|add".indexOf(ws.name) == -1) {
+                            eps.unshift({
+                                wms: magic.config.paths.baseurl + "/geoserver/" + ws.name + "/wms",
+                                name: "Local Geoserver " + ws.name + " space"
+                            });
+                        }
+                    });
+                }                         
+                magic.modules.Common.populateSelect(sourceSelect, eps, "wms", "name", currentSource, true);
+                this.populateWmsFeatureSelector(currentSource);       
+                sourceSelect.off("change").on("change", $.proxy(function(evt) {
+                    /* WMS source selector has changed, update the features available */
+                    this.populateWmsFeatureSelector($(evt.currentTarget).val());
+                }, this));
+            }, this))
+            .fail($.proxy(function(jqXhr, status, err) {            
+                magic.modules.Common.populateSelect(sourceSelect, eps, "wms", "name", currentSource, true);
+                this.populateWmsFeatureSelector(currentSource);       
+                sourceSelect.off("change").on("change", $.proxy(function(evt) {
+                    /* WMS source selector has changed, update the features available */
+                    this.populateWmsFeatureSelector($(evt.currentTarget).val());
+                }, this));
+            }, this));        
     } else {
         /* No projection defined - abort */
         bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">No projection defined for map</div>');

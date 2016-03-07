@@ -253,7 +253,7 @@ magic.modules.creator.Data = function () {
             "id": null,
             "name": "New layer",
             "source": {
-                "wms_source": magic.config.paths.baseurl + "/geoserver/wms"
+                "wms_source": ""
             }
         },
         /* Template for a new group */

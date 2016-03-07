@@ -94,7 +94,7 @@ magic.classes.creator.LayerAttributeMap.prototype.vectorLoadContext = function(c
                 }
             }, this));
             jqXhr.fail(function(xhr, status) {
-                this.div.html('<div class="alert alert-warning" style="margin-bottom:0">Failed to read features from ' + source + '</div>');
+                this.div.html('<div class="alert alert-warning" style="margin-bottom:0">Failed to read features from ' + source + '(' + xhr.responseText + ')</div>');
             });
         }
     }    

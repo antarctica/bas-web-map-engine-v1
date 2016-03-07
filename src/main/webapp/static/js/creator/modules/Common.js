@@ -138,8 +138,14 @@ magic.modules.creator.Common = function () {
                             window.open(magic.config.paths.baseurl + "/restricted/" + name, "_blank");
                         }
                     });
-                    jqXhr.fail(function(xhr, status) {
-                        bootbox.alert('<div class="alert alert-warning" style="margin-bottom:0">Failed to save the map ' + status + '</div>');
+                    jqXhr.fail(function(xhr, status, err) {
+                        var detail = JSON.parse(xhr.responseText)["detail"];
+                        bootbox.alert(
+                            '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                                '<p>Failed to save your map - details below:</p>' + 
+                                '<p>' + detail + '</p>' + 
+                            '</div>'
+                        );
                     });
                 } else {
                     /* Failed to validate the data against the schema - complain */

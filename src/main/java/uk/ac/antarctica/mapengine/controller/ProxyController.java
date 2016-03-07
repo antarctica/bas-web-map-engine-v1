@@ -65,11 +65,13 @@ public class ProxyController {
         }
 	}
     
+    /* Note: eventually hive these off to a database table */
     private static final HashMap<String, String[]> REST_CREDS = new HashMap();
     static {
         REST_CREDS.put("http://bslbatgis.nerc-bas.ac.uk", new String[]{"admin", "a44Gs#!!"});
         REST_CREDS.put("http://geos.polarview.aq", new String[]{"polarview", "plrvwweb"});
         REST_CREDS.put("http://rolgis.nerc-bas.ac.uk", new String[]{"admin", "a44Gs#!!"});
+        REST_CREDS.put("http://bslgsdc.nerc-bas.ac.uk", new String[]{"admin", "a44Gs#!!"});
     }
     
     /**

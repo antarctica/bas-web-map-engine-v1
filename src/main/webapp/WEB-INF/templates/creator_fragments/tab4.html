@@ -24,18 +24,25 @@
                                 zoom to the dragged box, mousewheel zooms in and out.  If you require a rotated view, enter the desired rotation below.</p>
                             <p>Click &quot;Finish&quot; to save the map data and show the final result (opens in a new tab).</p>
                         </div>
-                        <div class="form-group">
-                            <label class="col-sm-5 control-label" for="t4-rotation">
-                                Map rotation (degrees)
-                            </label>
-                            <div class="col-sm-7">
-                                <input type="number" class="form-control map-creator-control-sm" id="t4-rotation" name="t4-rotation" 
-                                       placeholder="Map rotation" 
-                                       min="-180" max="180" step="1"
-                                       data-toggle="tooltip" data-placement="left" title="Clockwise rotation of map in degrees, -180 &lt;= rotation &lt;= 180">                                   
-                                </input>
+                    </div>
+                    <div class="col-lg-6">
+                        <form class="form-horizontal">
+                            <div class="form-group">
+                                <label for="t4-rotation" class="col-sm-5 control-label">Map rotation (degrees)</label>
+                                <div class="col-sm-7">
+                                    <input type="number" class="form-control" id="t4-rotation" name="t4-rotation" 
+                                           placeholder="Map rotation" 
+                                           min="-180" max="180" step="1"
+                                           data-toggle="tooltip" data-placement="left" title="Clockwise rotation of map in degrees, -180 &lt;= rotation &lt;= 180">                                   
+                                    </input> 
+                                </div>
                             </div>
-                        </div>
+                            <div class="form-group">
+                                <div class="col-sm-offset-5 col-sm-7">
+                                    <button id="t4-rotation-set" type="button" class="btn btn-primary">Set</button>
+                                </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
