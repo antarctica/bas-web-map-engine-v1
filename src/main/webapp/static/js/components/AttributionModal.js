@@ -166,9 +166,8 @@ magic.classes.AttributionModal.prototype.metadataMarkup = function() {
 };
 
 /**
- * Populate a WMS metadata record from the capabilities
- * @param {Object} getCaps GetCapabilities document
- * @param {string} featureName
+ * Populate a metadata record using Ramadda
+ * @param {Object} data
  */
 magic.classes.AttributionModal.prototype.populateRecordRamadda = function(data) {
     var rec = {};

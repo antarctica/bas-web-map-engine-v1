@@ -436,10 +436,11 @@ magic.modules.Common = function () {
         /**
          * Replace urls in given value by links
          * Courtesy of http://stackoverflow.com/questions/37684/how-to-replace-plain-urls-with-links
-         * @param {type} value
+         * @param {String} value
+         * @param {String} linkText
          * @returns {String}
          */
-        linkify: function (value) {
+        linkify: function (value, linkText) {
 
             if (!value) {
                 return("");
@@ -455,12 +456,20 @@ magic.modules.Common = function () {
 
                 /* Email addresses */
                 var emailAddressPattern = /\w+@[a-zA-Z_]+?(?:\.[a-zA-Z]{2,6})+/gim;
-
-                return(value
+                
+                if (linkText) {
+                    return(value
+                        .replace(urlPattern, '<a href="$&" title="$&" target="_blank">' + linkText + '</a>')
+                        .replace(pseudoUrlPattern, '$1<a href="http://$2" target="_blank">' + linkText + '</a>')
+                        .replace(emailAddressPattern, '<a href="mailto:$&">' + linkText + '</a>')
+                    );
+                } else {
+                    return(value
                         .replace(urlPattern, '<a href="$&" title="$&" target="_blank">[external resource]</a>')
                         .replace(pseudoUrlPattern, '$1<a href="http://$2" target="_blank">$2</a>')
                         .replace(emailAddressPattern, '<a href="mailto:$&">$&</a>')
-                        );
+                    );
+                }   
             } else {
                 return(value);
             }

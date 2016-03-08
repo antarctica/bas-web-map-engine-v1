@@ -156,7 +156,14 @@ magic.classes.FeaturePopup.prototype.basicMarkup = function() {
                     if (attrdata.displayed === true) {
                         var nameStr = attrdata.alias || attrdata.name;
                         if (attrdata.type == "xsd:string") {
-                            content += '<tr><td>' + nameStr + '</td><td>' + magic.modules.Common.linkify(feat[attrdata.name]) + '</td></tr>';
+                            var finalValue = "";
+                            var matches = feat[attrdata.name].match(/^\"[^\"]+\":/);
+                            if (matches != null) {
+                                finalValue = magic.modules.Common.linkify(feat[attrdata.name], matches[0].replace(/\"/g, ""));
+                            } else {
+                                finalValue = magic.modules.Common.linkify(feat[attrdata.name]);
+                            }
+                            content += '<tr><td>' + nameStr + '</td><td>' + finalValue + '</td></tr>';
                         } else {                            
                             content += '<tr><td>' + nameStr + '</td><td align="right">' + this.attributeValue(attrdata.name, feat[attrdata.name]) + '</td></tr>';
                         }
@@ -240,8 +247,16 @@ magic.classes.FeaturePopup.prototype.selectFeature = function() {
                 if (value) {
                     if ($.isNumeric(value)) {                        
                         content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td align="right">' + value + '</td></tr>';
-                    } else if (key.toLowerCase().indexOf("geom") == -1) {                        
-                        content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td>' + magic.modules.Common.linkify(value) + '</td></tr>';
+                    } else if (key.toLowerCase().indexOf("geom") == -1) {
+                        /* Test for Redmine markup-style link with alias of form "<alias>":<url> which should be translated */
+                        var finalValue = "";
+                        var matches = value.match(/^\"[^\"]+\":/);
+                        if (matches != null) {
+                            finalValue = magic.modules.Common.linkify(value, matches[0].replace(/\"/g, ""));
+                        } else {
+                            finalValue = magic.modules.Common.linkify(value);
+                        }
+                        content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td>' + finalValue + '</td></tr>';
                     }
                 }
             });
