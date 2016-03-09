@@ -157,11 +157,14 @@ magic.classes.FeaturePopup.prototype.basicMarkup = function() {
                         var nameStr = attrdata.alias || attrdata.name;
                         if (attrdata.type == "xsd:string") {
                             var finalValue = "";
-                            var matches = feat[attrdata.name].match(/^\"[^\"]+\":/);
-                            if (matches != null) {
-                                finalValue = magic.modules.Common.linkify(feat[attrdata.name], matches[0].replace(/\"/g, ""));
-                            } else {
-                                finalValue = magic.modules.Common.linkify(feat[attrdata.name]);
+                            if (feat[attrdata.name]) {
+                                var quote1 = feat[attrdata.name].indexOf("\"");
+                                var quote2 = feat[attrdata.name].lastIndexOf("\"");
+                                if (quote1 != -1 && quote2 != -1) {
+                                    finalValue = magic.modules.Common.linkify(feat[attrdata.name].substring(quote2+2), feat[attrdata.name].substring(quote1+1, quote2));
+                                } else {
+                                    finalValue = magic.modules.Common.linkify(feat[attrdata.name]);
+                                }                                                    
                             }
                             content += '<tr><td>' + nameStr + '</td><td>' + finalValue + '</td></tr>';
                         } else {                            
@@ -250,11 +253,14 @@ magic.classes.FeaturePopup.prototype.selectFeature = function() {
                     } else if (key.toLowerCase().indexOf("geom") == -1) {
                         /* Test for Redmine markup-style link with alias of form "<alias>":<url> which should be translated */
                         var finalValue = "";
-                        var matches = value.match(/^\"[^\"]+\":/);
-                        if (matches != null) {
-                            finalValue = magic.modules.Common.linkify(value, matches[0].replace(/\"/g, ""));
-                        } else {
-                            finalValue = magic.modules.Common.linkify(value);
+                        if (value) {
+                            var quote1 = value.indexOf("\"");
+                            var quote2 = value.lastIndexOf("\"");
+                            if (quote1 != -1 && quote2 != -1) {
+                                finalValue = magic.modules.Common.linkify(value.substring(quote2+2), value.substring(quote1+1, quote2));
+                            } else {
+                                finalValue = magic.modules.Common.linkify(value);
+                            }     
                         }
                         content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td>' + finalValue + '</td></tr>';
                     }

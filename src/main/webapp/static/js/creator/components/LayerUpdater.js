@@ -263,9 +263,7 @@ magic.classes.creator.LayerUpdater.prototype.populateWmsSourceSelector = functio
         var currentSource = this.data.source.wms_source;
         var sourceSelect = $("select[name='" + this.prefix + "-wms-wms_source']");       
         var eps = magic.modules.Endpoints.getWmsEndpoints(proj).slice(0);
-        var restUrl = magic.config.paths.baseurl + "/geoserver/rest/workspaces.json";
-        // TO DO
-        var jqXhr = $.ajax(magic.config.paths.baseurl + "/proxy/gs/rest?url=" + encodeURIComponent(restUrl))
+        var jqXhr = $.ajax(magic.config.paths.baseurl + "/geoserver/rest/workspaces.json")
             .done($.proxy(function(data) {
                 if (data.workspaces && $.isArray(data.workspaces.workspace)) {
                     $.each(data.workspaces.workspace, function(idx, ws) {
@@ -284,7 +282,8 @@ magic.classes.creator.LayerUpdater.prototype.populateWmsSourceSelector = functio
                     this.populateWmsFeatureSelector($(evt.currentTarget).val());
                 }, this));
             }, this))
-            .fail($.proxy(function(jqXhr, status, err) {            
+            .fail($.proxy(function(jqXhr, status, err) {
+                /* This mode will be frequently used e.g. if the local server isn't Geoserver */
                 magic.modules.Common.populateSelect(sourceSelect, eps, "wms", "name", currentSource, true);
                 this.populateWmsFeatureSelector(currentSource);       
                 sourceSelect.off("change").on("change", $.proxy(function(evt) {

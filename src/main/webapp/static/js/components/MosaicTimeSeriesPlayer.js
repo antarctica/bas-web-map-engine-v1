@@ -24,7 +24,7 @@ magic.classes.MosaicTimeSeriesPlayer = function(options) {
             var params = this.layer.getSource().getParams();
             var fparts = params["LAYERS"].split(":");
             restUrl += ("/" + params["WORKSPACE"] + "/coveragestores/" + fparts[1] + "/coverages/" + fparts[1] + "/index/granules");
-            $.getJSON(magic.config.paths.baseurl + "/proxy/gs/rest?url=" + encodeURIComponent(restUrl), $.proxy(function(data) {
+            $.getJSON(restUrl, $.proxy(function(data) {
                 var feats = data.features;
                 if ($.isArray(feats) && feats.length > 0) {
                     feats.sort(function(a, b) {
