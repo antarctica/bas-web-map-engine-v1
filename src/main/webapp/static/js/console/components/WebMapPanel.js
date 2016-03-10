@@ -9,7 +9,7 @@ magic.classes.console.WebMapPanel = function () {
         window.open(magic.config.paths.baseurl + "/" + (av[0] == "public" ? "home" : "restricted") + "/" + av[1], "_blank");
     });
     $("#login-map-go").click(function () {
-        window.location = magic.config.paths.baseurl + "/login";
+        window.location = magic.config.paths.baseurl + "/restricted";
     });
     $("#create-map-go").click(function () {
         window.location = magic.config.paths.baseurl + "/creator";
@@ -61,32 +61,44 @@ magic.classes.console.WebMapPanel.prototype.populateMapLists = function() {
     /* View selector */
     var select = $("#select-map");
     select.html("");
-    $.getJSON(magic.config.paths.baseurl + "/maps/dropdown/view", function (data) {
-        $.each(data, function (idx, mo) {
-            var opt = $("<option>", {value: mo["name"]});
-            opt.text(mo["title"]);
-            select.append(opt);
+    $.getJSON(magic.config.paths.baseurl + "/maps/dropdown/view")
+        .done(function (data) {
+            $.each(data, function (idx, mo) {
+                var opt = $("<option>", {value: mo["name"]});
+                opt.text(mo["title"]);
+                select.append(opt);
+            });
+        })
+        .fail(function (data) {            
         });
-    });
     /* Edit selector */
     var edit = $("#edit-map");
-    edit.html("");
-    $.getJSON(magic.config.paths.baseurl + "/maps/dropdown/edit", function (data) {
-        $.each(data, function (idx, mo) {
-            var opt = $("<option>", {value: mo["name"]});
-            opt.text(mo["title"]);
-            edit.append(opt);
-        });
-    });
+    if (edit.length > 0) {
+        edit.html("");
+        $.getJSON(magic.config.paths.baseurl + "/maps/dropdown/edit")
+            .done(function (data) {
+                $.each(data, function (idx, mo) {
+                    var opt = $("<option>", {value: mo["name"]});
+                    opt.text(mo["title"]);
+                    edit.append(opt);
+                });
+            })
+            .fail(function(data) {            
+            });
+    }
     /* Delete selector */
     var del = $("#delete-map");
-    del.html("");
-    $.getJSON(magic.config.paths.baseurl + "/maps/dropdown/delete", function (data) {
-        $.each(data, function (idx, mo) {
-            var opt = $("<option>", {value: mo["name"]});
-            opt.text(mo["title"]);
-            del.append(opt);
-        });
-    });
-    
+    if (del.length > 0) {
+        del.html("");
+        $.getJSON(magic.config.paths.baseurl + "/maps/dropdown/delete")
+            .done(function (data) {
+                $.each(data, function (idx, mo) {
+                    var opt = $("<option>", {value: mo["name"]});
+                    opt.text(mo["title"]);
+                    del.append(opt);
+                });
+            })
+            .fail(function(data){            
+            });    
+    }
 };

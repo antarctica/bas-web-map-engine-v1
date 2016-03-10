@@ -17,20 +17,8 @@ public class LoginController {
      */
 	@RequestMapping(value="/login", method = RequestMethod.GET)
 	public String loginForm(HttpServletRequest request) {
-        String referrer = request.getHeader("Referer");
-        request.getSession().setAttribute("url_prior_login", referrer);
 		return("fragments/login");
-	}
-    
-    /**
-     * Output the home page
-     */
-	@RequestMapping(value="/login", method = RequestMethod.POST)
-	public String creatorHome(HttpServletRequest request) {
-        String referrer = request.getHeader("Referer");
-        request.getSession().setAttribute("url_prior_login", referrer);
-		return("creator");
-	}
+	}       
     
     /**
      * Output the home page

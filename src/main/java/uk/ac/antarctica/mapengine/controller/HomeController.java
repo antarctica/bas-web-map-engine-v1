@@ -101,6 +101,21 @@ public class HomeController {
         model.addAttribute("debug", true);
         ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Public map " + map + " (debug) requested");
         return("map");
+    }     
+    
+    /**
+     * Render home page (restricted version)  
+     * @param HttpServletRequest request,
+     * @param String map
+     * @param ModelMap model
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/restricted", method = RequestMethod.GET)
+    public String restricted(HttpServletRequest request) throws ServletException, IOException {
+        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "MAGIC Web Mapping Restricted Home requested");
+        return("home");        
     }        
         
     /**

@@ -126,7 +126,10 @@ public class MapController {
         if (userMapData != null && !userMapData.isEmpty()) {
             JsonArray views = mapper.toJsonTree(userMapData).getAsJsonArray();
             ret = packageResults(HttpStatus.OK, views.toString(), null);
-        }        
+        } else if (ret == null) {
+            /* No data is fine - simply return empty results array */
+            ret = packageResults(HttpStatus.OK, new JsonArray().getAsString(), null);
+        }
         return(ret);
     }
     
