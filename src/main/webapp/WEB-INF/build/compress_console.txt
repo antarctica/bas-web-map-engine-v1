@@ -6,7 +6,6 @@ js/jquery.js
 js/bootstrap.min.js
 js/bootbox.min.js
 js/ol.min.js
-js/ellipsoid/ellipsoid.js
 js/init.js
 js/modules/Common.js
 js/modules/Endpoints.js

@@ -36,6 +36,8 @@
     "ol.source.Cluster#*", 
     "ol.Feature",
     "ol.Feature#*",
+    "ol.Sphere",
+    "ol.Sphere#*",
     "ol.Overlay",
     "ol.Overlay#setPosition",
     "ol.Overlay#setOffset",
@@ -99,7 +101,7 @@
     "ol.interaction.Draw#*",
     "ol.interaction.DragAndDrop",
     "ol.interaction.DragAndDrop#*",
-    "ol.Collection#*",
+    "ol.Collection#*",    
     "ol.proj.METERS_PER_UNIT",
     "ol.coordinate.*"
   ],

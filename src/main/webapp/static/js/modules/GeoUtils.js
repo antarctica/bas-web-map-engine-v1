@@ -11,7 +11,7 @@ magic.modules.GeoUtils = function() {
         N_INTERP: 5,
         
         /* WGS84 ellipsoid */
-        WGS84: new ol.Ellipsoid(6378137, 1 / 298.257223563),
+        WGS84: new ol.Sphere(6378137),
         
         /**
          * Format a lon/lat coordinate according to global preference

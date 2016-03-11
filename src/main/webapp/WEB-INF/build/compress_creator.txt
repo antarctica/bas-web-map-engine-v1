@@ -5,7 +5,6 @@ css/nav.css
 css/creator.css
 css/font-awesome.min.css
 js/ol.min.js
-js/ellipsoid/ellipsoid.js
 js/jquery.js
 js/tv4.min.js
 js/vector.js

@@ -40,8 +40,7 @@ magic.classes.Measurement = function(options) {
     
     /**
      * Properties for the height measuring tools 
-     */
-    
+     */    
     this.demLayers = [];
     
     var hPopDiv = $("#height-popup");
@@ -255,6 +254,7 @@ magic.classes.Measurement.prototype.activate = function(quiet) {
     $("#" + this.id + "-" + this.actionType + "-go span").removeClass("fa-play").addClass("fa-stop");
 
     if (this.actionType == "distance" || this.actionType == "area") {
+        
         /* Add the layer and draw interaction to the map */
         this.layer.setVisible(true);
         this.layer.getSource().clear();
@@ -269,11 +269,12 @@ magic.classes.Measurement.prototype.activate = function(quiet) {
 
         this.createMeasurementtip();
         this.createHelpTooltip();
-
+        
         /* Add start and end handlers for the sketch */
         this.drawInt.on("drawstart",
                 function(evt) {                
-                    this.sketch = evt.feature;                
+                    this.sketch = evt.feature;
+                    this.sketch.getGeometry().on("change", this.sketchChangeHandler, this);
                 }, this);
         this.drawInt.on("drawend",
                 function(evt) {
@@ -287,6 +288,9 @@ magic.classes.Measurement.prototype.activate = function(quiet) {
         /* Add mouse move handler to give a running total in the output */
         magic.runtime.map.un("pointermove", this.pointerMoveHandler, this);
         magic.runtime.map.on("pointermove", this.pointerMoveHandler, this);
+        $(magic.runtime.map.getViewport()).on("mouseout", $.proxy(function() {
+            $(this.helpTooltipElt).addClass("hidden");
+        }, this));
     } else {
         /* Height measure set-up */
         magic.runtime.map.on("singleclick", this.queryElevation, this);
@@ -309,6 +313,7 @@ magic.classes.Measurement.prototype.deactivate = function(quiet) {
     $("#" + this.id + "-" + this.actionType + "-go span").removeClass("fa-stop").addClass("fa-play");
     
     if (this.actionType == "distance" || this.actionType == "area") {
+        
         /* Clear all the measurement indicator overlays */
         $.each(this.measureOverlays, function(mi, mo) {
             magic.runtime.map.removeOverlay(mo);
@@ -342,79 +347,71 @@ magic.classes.Measurement.prototype.deactivate = function(quiet) {
 };
 
 /**
+ * Sketch change handler
+ * @param {Object} evt
+ */
+magic.classes.Measurement.prototype.sketchChangeHandler = function(evt) {
+    var value, fromUnits, toUnits, tooltipCoord;
+    var isGeodesic = $("#" + this.id + "-true").prop("checked");
+    var geom = this.sketch.getGeometry();
+    if (this.actionType == "area") {
+        value = isGeodesic ? this.geodesicArea() : geom.getArea();
+        fromUnits = "m2";
+        toUnits = $("#" + this.id + "-area-units").val();
+        tooltipCoord = geom.getInteriorPoint().getCoordinates();
+    } else {
+        value = isGeodesic ? this.geodesicLength() : geom.getLength();
+        fromUnits = "m";
+        toUnits = $("#" + this.id + "-distance-units").val();
+        tooltipCoord = geom.getLastCoordinate();
+    }
+    $(this.measureTooltipElt).html(magic.modules.Common.unitConverter(value, fromUnits, toUnits));
+    this.measureTooltip.setPosition(tooltipCoord);   
+};
+
+/**
  * Mouse move handler
+ * @param {Object} evt
  */
 magic.classes.Measurement.prototype.pointerMoveHandler = function(evt) {
     if (evt.dragging) {
         return;
-    }
+    }    
     var helpMsg = "Click to start sketching";
-    var tooltipCoord = evt.coordinate;
-    if (this.sketch) {
-        var value, fromUnits, toUnits;
-        var isGeodesic = $("#" + this.id + "-true").prop("checked");
-        var geom = this.sketch.getGeometry();
-        if (this.actionType == "area") {
-            value = isGeodesic ? this.geodesicArea() : geom.getArea();
-            fromUnits = "m2";
-            toUnits = $("#" + this.id + "-area-units").val();
+    if (this.sketch) {       
+        if (this.actionType == "area") {           
             helpMsg = "Click to continue sketching polygon";
-            tooltipCoord = geom.getInteriorPoint().getCoordinates();
-        } else {
-            value = isGeodesic ? this.geodesicLength() : geom.getLength();
-            fromUnits = "m";
-            toUnits = $("#" + this.id + "-distance-units").val();
+        } else {           
             helpMsg = "Click to continue sketching line";
-            tooltipCoord = geom.getLastCoordinate();
-        }
-        $(this.measureTooltipElt).html(magic.modules.Common.unitConverter(value, fromUnits, toUnits));
-        this.measureTooltip.setPosition(tooltipCoord);        
+        }             
     }
     $(this.helpTooltipElt).html(helpMsg);
-    this.helpTooltip.setPosition(evt.coordinate);    
+    this.helpTooltip.setPosition(evt.coordinate);
+    $(this.helpTooltipElt).removeClass("hidden");
 };
 
 /**
- * Compute geodesic length of linestring (probably will be provided by OpenLayers eventually)
+ * Compute geodesic length of linestring
  * @returns {float}
  */
 magic.classes.Measurement.prototype.geodesicLength = function() {
     var geodesicLength = 0.0;
     var coords = this.sketch.getGeometry().getCoordinates();
-    if (coords.length > 1) {
-        var c0wgs84 = ol.proj.transform(coords[0], magic.runtime.viewdata.projection, "EPSG:4326");
-        for (var i = 1; i < coords.length - 1; i++) {
-            var c1wgs84 = ol.proj.transform(coords[i], magic.runtime.viewdata.projection, "EPSG:4326");
-            geodesicLength += magic.modules.GeoUtils.WGS84.vincentyDistance(c0wgs84, c1wgs84);
-            c0wgs84 = c1wgs84;
-        }
-    }
+    for (var i = 0, ii = coords.length - 1; i < ii; ++i) {
+        var c1 = ol.proj.transform(coords[i], magic.runtime.viewdata.projection, 'EPSG:4326');
+        var c2 = ol.proj.transform(coords[i + 1], magic.runtime.viewdata.projection, 'EPSG:4326');
+        geodesicLength += magic.modules.GeoUtils.WGS84.haversineDistance(c1, c2);
+    }    
     return(geodesicLength);
 };
 
 /**
- * Compute geodesic area of polygon (probably will be provided by OpenLayers eventually)
+ * Compute geodesic area of polygon
  * @returns {float}
  */
-magic.classes.Measurement.prototype.geodesicArea = function() {
-    var geodesicArea = 0.0;
-    /* NOTE: special case for measuring - we will never have a polygon with >1 linear rings */
-    var coords = this.sketch.getGeometry().getCoordinates();
-    if (coords.length == 1 && coords[0].length > 2) {
-        var ringCoords = coords[0];
-        /* Close the ring with a copy of the first co-ordinate, otherwise reported intermediate areas are wrong */
-        var p0 = ringCoords[0];
-        ringCoords.push(p0);
-        for (var i = 0; i < ringCoords.length - 1; i++) {
-            var p1 = ol.proj.transform(ringCoords[i], magic.runtime.viewdata.projection, "EPSG:4326");
-            var p2 = ol.proj.transform(ringCoords[i + 1], magic.runtime.viewdata.projection, "EPSG:4326")
-            /* From OpenLayers 2.13.1 Geometry/LinearRing.js */
-            geodesicArea += magic.modules.Common.toRadians(p2[0] - p1[0]) *
-                (2 + Math.sin(magic.modules.Common.toRadians(p1[1])) + Math.sin(magic.modules.Common.toRadians(p2[1])));
-        }
-        geodesicArea = geodesicArea * 6378137.0 * 6378137.0 / 2.0;
-    }
-    return(Math.abs(geodesicArea));
+magic.classes.Measurement.prototype.geodesicArea = function() {    
+    var polyClone = this.sketch.getGeometry().clone().transform(magic.runtime.viewdata.projection, "EPSG:4326");    
+    return(Math.abs(magic.modules.GeoUtils.WGS84.geodesicArea(polyClone.getLinearRing[0].getCoordinates())));
 };
 
 /**
@@ -425,7 +422,7 @@ magic.classes.Measurement.prototype.createHelpTooltip = function() {
         this.helpTooltipElt.parentNode.removeChild(this.helpTooltipElt);
     }
     this.helpTooltipElt = document.createElement("div");
-    $(this.helpTooltipElt).addClass("measure-tool-tooltip");
+    $(this.helpTooltipElt).addClass("measure-tool-tooltip hidden");
     this.helpTooltip = new ol.Overlay({
         element: this.helpTooltipElt,
         offset: [15, 0],
