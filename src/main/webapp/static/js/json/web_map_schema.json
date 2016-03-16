@@ -235,6 +235,7 @@
 							"full_screen",
 							"rotation",
 							"graticule",
+                            "geolocation",
                             "overview_map",							
 							"geosearch",							
 							"download_data",

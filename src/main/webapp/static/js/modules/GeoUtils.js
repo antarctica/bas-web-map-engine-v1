@@ -267,6 +267,19 @@ magic.modules.GeoUtils = function() {
         },
         
         /**
+         * 
+         * @param {ol.Coordinate} coordinate
+         * @param {ol.Extent} extent
+         * @returns {boolean}
+         */
+        withinExtent: function(coordinate, extent) {
+            return(
+                magic.modules.Common.floatInRange(coordinate[0], extent[0], extent[2], this.ANGULAR_TOLERANCE) &&
+                magic.modules.Common.floatInRange(coordinate[1], extent[1], extent[3], this.ANGULAR_TOLERANCE)
+            );
+        },
+        
+        /**
          * Detect if two longitudes representing a segment are equal and coincide with the dateline 
          * (+/- 180 to within tolerance)
          * @param {float} lon0

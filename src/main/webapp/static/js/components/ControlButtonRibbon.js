@@ -63,6 +63,11 @@ magic.classes.ControlButtonRibbon = function(config) {
                 /* Show graticule */                                
                 this.appendControlButton(new magic.classes.GraticuleButton("graticule", this).getButton()); 
                 break;       
+                
+            case "geolocation":
+                /* Show geolocation */                                
+                this.appendControlButton(new magic.classes.GeolocationButton("geolocation", this).getButton()); 
+                break;       
             
             case "aircraft":
                 /* Positions of BAS aircraft */                                
