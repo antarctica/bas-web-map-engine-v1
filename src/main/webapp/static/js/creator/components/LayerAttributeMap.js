@@ -108,32 +108,37 @@ magic.classes.creator.LayerAttributeMap.prototype.vectorLoadContext = function(c
  * @param {String} id
  */
 magic.classes.creator.LayerAttributeMap.prototype.ogcLoadContext = function(wms, feature, attrMap, id) {    
-    if (wms && feature && id) {        
-        /* Get the feature type attributes from DescribeFeatureType */
-        this.attribute_dictionary[id] = [];
-        this.type_dictionary[id] = null;
-        /* Note: version set to 1.0.0 here as certain attributes do NOT get picked up by later versions - is a Geoserver bug */
-        var url = wms.replace("wms", "wfs") + "?version=1.0.0&request=DescribeFeatureType&typename=" + feature;
-        if (magic.modules.Endpoints.proxy[wms] === true) {
-            url = magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(url);
-        }        
-        $.get(url, $.proxy(function(response) {                        
-            var elts = $(response).find("sequence").find("element");
-            var geomType = "unknown";
-            $.each(elts, $.proxy(function(idx, elt) {
-                var attrs = {};
-                $.each(elt.attributes, $.proxy(function(i, a) {                        
-                    if (a.value.indexOf("gml:") == 0) {                           
-                        geomType = this.computeOgcGeomType(a.value);
-                        this.type_dictionary[id] = geomType;
-                    }
-                    attrs[a.name] = a.value;
+    if (wms && feature && id) {    
+        if (wms == "osm") {
+            /* OpenStreetMap */
+            this.div.html('<div class="alert alert-warning" style="margin-bottom:0">No attributes available for OSM layers</div>');
+        } else {
+            /* Get the feature type attributes from DescribeFeatureType */
+            this.attribute_dictionary[id] = [];
+            this.type_dictionary[id] = null;
+            /* Note: version set to 1.0.0 here as certain attributes do NOT get picked up by later versions - is a Geoserver bug */
+            var url = wms.replace("wms", "wfs") + "?version=1.0.0&request=DescribeFeatureType&typename=" + feature;
+            if (magic.modules.Endpoints.proxy[wms] === true) {
+                url = magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(url);
+            }        
+            $.get(url, $.proxy(function(response) {                        
+                var elts = $(response).find("sequence").find("element");
+                var geomType = "unknown";
+                $.each(elts, $.proxy(function(idx, elt) {
+                    var attrs = {};
+                    $.each(elt.attributes, $.proxy(function(i, a) {                        
+                        if (a.value.indexOf("gml:") == 0) {                           
+                            geomType = this.computeOgcGeomType(a.value);
+                            this.type_dictionary[id] = geomType;
+                        }
+                        attrs[a.name] = a.value;
+                    }, this));
+                    this.attribute_dictionary[id].push(attrs);                    
                 }, this));
-                this.attribute_dictionary[id].push(attrs);                    
+                this.type_dictionary[id] = geomType;
+                this.div.html(this.toForm(id, attrMap, this.attribute_dictionary[id]));
             }, this));
-            this.type_dictionary[id] = geomType;
-            this.div.html(this.toForm(id, attrMap, this.attribute_dictionary[id]));
-        }, this));
+        }
     } else {
         this.div.html('<div class="alert alert-warning" style="margin-bottom:0">No WMS or feature type name defined</div>');
     }

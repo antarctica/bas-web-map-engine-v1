@@ -260,7 +260,7 @@ magic.modules.GeoUtils = function() {
                     extent = [-50.0,-65.0,-18.0,-50.0];
                     break;
                 default:
-                    extent = [-180.0, -90.0, 180.0, 90.0];
+                    extent = [-180.0, -85.06, 180.0, 85.06];
                     break;
             }
             return(extent);

@@ -34,10 +34,7 @@ magic.modules.creator.Tab4 = function () {
             if (resetMap || !this.map) {
                 this.map = null;
                 $("#t4-map").children().remove();
-                var proj = ol.proj.get(context.data.projection);
-                proj.setExtent(context.data.proj_extent);
-                proj.setWorldExtent(context.data.proj_extent);
-               
+                var proj = ol.proj.get(context.data.projection);                               
                 var view = null;
                 /* Sort out the rotation (saved in degrees - OL needs radians */
                 var rotation = parseFloat(context.data.rotation);
@@ -62,6 +59,8 @@ magic.modules.creator.Tab4 = function () {
                     });
                 } else {
                     /* Other WMS */
+                    proj.setExtent(context.data.proj_extent);   /* Don't do this for OSM - bizarre ~15km shifts happen! */
+                    proj.setWorldExtent(context.data.proj_extent);
                     var coasts = magic.modules.Endpoints.getWmsEndpoints(context.data.projection)[0]["coast"];                    
                     $.each(coasts, function(idx, cl) {
                         var wmsSource = new ol.source.TileWMS({

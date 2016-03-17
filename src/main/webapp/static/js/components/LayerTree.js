@@ -228,19 +228,23 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
             /* Create a data layer */
             var layer = null;
             var proj = magic.runtime.viewdata.projection;
-            /* Get min/max resolution */            
-            var minRes = magic.runtime.viewdata.resolutions[magic.runtime.viewdata.resolutions.length-1];
-            var maxRes = magic.runtime.viewdata.resolutions[0]+1;   /* Note: OL applies this one exclusively, whereas minRes is inclusive - duh! */  
-            if ($.isNumeric(nd.minScale)) {
-                minRes = magic.modules.GeoUtils.getResolutionFromScale(nd.min_scale);
-            }
-            if ($.isNumeric(nd.maxScale)) {
-                maxRes = magic.modules.GeoUtils.getResolutionFromScale(nd.max_scale);
+            /* Get min/max resolution */  
+            var minRes = null, maxRes = null;
+            if (nd.source.wms_source != "osm") {
+                minRes = magic.runtime.viewdata.resolutions[magic.runtime.viewdata.resolutions.length-1];
+                maxRes = magic.runtime.viewdata.resolutions[0]+1;   /* Note: OL applies this one exclusively, whereas minRes is inclusive - duh! */  
+                if ($.isNumeric(nd.minScale)) {
+                    minRes = magic.modules.GeoUtils.getResolutionFromScale(nd.min_scale);
+                }
+                if ($.isNumeric(nd.maxScale)) {
+                    maxRes = magic.modules.GeoUtils.getResolutionFromScale(nd.max_scale);
+                }
             }
             if (isWms) {
                 if (nd.source.wms_source == "osm") {
                     /* OpenStreetMap layer */
                     layer = magic.modules.Endpoints.getMidLatitudeCoastLayer();
+                    layer.set("metadata", nd);
                 } else if (isSingleTile) {
                     /* Render point layers with a single tile for labelling free of tile boundary effects */
                     var wmsSource = new ol.source.ImageWMS(({

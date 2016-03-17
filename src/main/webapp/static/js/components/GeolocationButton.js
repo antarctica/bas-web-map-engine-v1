@@ -12,9 +12,10 @@ magic.classes.GeolocationButton = function (name, ribbon, map) {
 
     this.inactiveTitle = "Show my location";
     this.activeTitle = "Hide my location";
-    
-    this.trackLayer = null;
-    this.tracFeature = null;        
+     
+    this.marker = null;
+    this.geolocation = null;
+    this.deviceOrientation = null;
 
     this.btn = $('<button>', {
         "id": "btn-" + this.name,
@@ -47,73 +48,87 @@ magic.classes.GeolocationButton.prototype.isActive = function () {
 magic.classes.GeolocationButton.prototype.activate = function () {
     
     this.active = true;
-    
-    var trackStyle = new ol.style.Style({       
-        stroke: new ol.style.Stroke({
-            color: "rgba(0,0,255,1.0)",
-            width: 3,
-            lineCap: "round"
-        })
-    });
-    if (this.trackFeature == null) {
-        this.trackFeature = new ol.Feature({
-            geometry: new ol.geom.LineString([])
+        
+    if (this.marker == null) {
+        this.marker = new ol.Overlay({
+            element: $("#geolocation")[0],
+            positioning: "center-center"
         });
-    }
-    if (this.trackLayer == null) {
-        this.trackLayer = new ol.layer.Vector({
-            source: new ol.source.Vector({
-                features: [this.trackFeature]
-            }),
-            style: trackStyle
+        this.map.addOverlay(this.marker);
+    }   
+    if (this.geolocation == null) {
+        this.geolocation = new ol.Geolocation({
+            tracking: true,
+            trackingOptions: {
+                enableHighAccuracy: true
+            },
+            projection: this.map.getView().getProjection()
         });
+        this.geolocation.on("change:position", this.showLocation, this);
     } else {
-        this.trackLayer.setVisible(true);
+        this.geolocation.setTracking(true);
+        this.showLocation();
     }
-    var geolocation = new ol.Geolocation({
-        tracking: true,
-        projection: "EPSG:4326"
-    });
-    geolocation.on("change:position", $.proxy(function() {
-        var coordinate = geolocation.getPosition();
-        if (magic.modules.GeoUtils.withinExtent(coordinate, magic.modules.GeoUtils.projectionLatLonExtent(this.map.getView().getProjection()))) {
-            this.map.setCenter(coordinate);
-            this.trackFeature.getGeometry().appendCoordinate(coordinate);
-        } else {
-            bootbox.alert(
-                '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                    '<p>Your location is out of range of the map</p>' + 
-                '</div>'
-            );
-        }          
-    }, this));
-    var marker = new ol.Overlay({
-        element: $("#geolocation"),
-        positioning: "center-center"
-    });
-    this.map.addOverlay(marker);
-    marker.bindTo("position", geolocation);
-    var deviceOrientation = new ol.DeviceOrientation({
-        tracking: true
-    });
-    deviceOrientation.on("change:heading", $.proxy(function(evt) {
-        var heading = evt.target.getHeading();
-        this.map.setRotation(-heading);
-    }, this));
-    
+    if (this.deviceOrientation == null) {
+        this.deviceOrientation = new ol.DeviceOrientation({
+            tracking: true
+        });
+        this.deviceOrientation.on("change:heading", this.showHeading, this);
+    } else {
+        this.deviceOrientation.setTracking(true);
+        this.showHeading();
+    }
     this.btn.addClass("active");
-    this.btn.attr("data-original-title", this.activeTitle).tooltip("fixTitle");
+    this.btn.attr("data-original-title", this.activeTitle).tooltip("fixTitle");    
 };
 
 /**
  * Deactivate the control
  */
 magic.classes.GeolocationButton.prototype.deactivate = function () {
-    this.active = false;
-    if (this.trackLayer) {
-        this.trackLayer.setVisible(false);
+    this.active = false;   
+    if (this.marker) {
+        $("#geolocation").addClass("hidden");
     }
+    this.geolocation.setTracking(false);
+    this.deviceOrientation.setTracking(false);
     this.btn.removeClass("active");
     this.btn.attr("data-original-title", this.inactiveTitle).tooltip("fixTitle");
 };
+
+/**
+ * Show a marker at the current location
+ */
+magic.classes.GeolocationButton.prototype.showLocation = function () {
+    var coordinate = this.geolocation.getPosition();
+    if (coordinate) {                
+        var projc = ol.proj.transform(coordinate, this.map.getView().getProjection(), "EPSG:4326");                
+        if (magic.modules.GeoUtils.withinExtent(projc, magic.modules.GeoUtils.projectionLatLonExtent(this.map.getView().getProjection()))) {
+            /* Display the marker and append current location to cumulative track */
+            $("#geolocation").removeClass("hidden");
+            this.marker.setPosition(coordinate);
+            /* Current location on the map - project to map projection and center the map */                                        
+            this.map.getView().setCenter(coordinate);                                 
+            /* Update tooltip */
+            this.btn.attr("data-original-title", this.activeTitle).tooltip("fixTitle");
+        } else {
+            /* Update tooltip to indicate out of range (might be good to change colour too) */
+            this.btn.attr("data-original-title", "Your location is out of range of the map").tooltip("fixTitle");
+        } 
+    }
+};
+
+/**
+ * Show current heading
+ */
+magic.classes.GeolocationButton.prototype.showHeading = function () {
+    var heading = this.deviceOrientation.getHeading()
+    //this.map.getView().setRotation(-rotation);
+    var mElt = $("#geolocation")[0];
+    mElt.style["-webkit-transform"] = "rotate(" + heading + "rad)";
+    mElt.style["transform"] = "rotate(" + heading + "rad)";
+};
+
+
+
     

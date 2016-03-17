@@ -311,42 +311,48 @@ magic.classes.creator.LayerUpdater.prototype.populateWmsFeatureSelector = functi
         this.attribute_map.ogcLoadContext(wmsUrl, $(evt.currentTarget).val(), this.data["attribute_map"], this.data["id"]);
     }, this));
     if (wmsUrl) {
-        /* Examine GetCapabilities list of features */
-        var fopts = magic.runtime.creator.catalogues[wmsUrl];
-        var currentFeature = this.data.source.feature_name;        
-        if (fopts && fopts.length > 0) {
-            /* Have previously read the GetCapabilities document - read stored feature data into select list */
-            magic.modules.Common.populateSelect(featureSelect, fopts, "value", "name", currentFeature, true);
-            this.populateWmsStyleSelector(wmsUrl, currentFeature);            
+        if (wmsUrl == "osm") {
+            /* OpenStreetMap */
+            magic.modules.Common.populateSelect(featureSelect, [{name: currentFeature, value: currentFeature}], "value", "name", currentFeature, true);
+            this.populateWmsStyleSelector(wmsUrl, currentFeature);
         } else {
-            /* Read available layer data from the service GetCapabilities document */
-            var parser = new ol.format.WMSCapabilities();
-            var url = wmsUrl + "?request=GetCapabilities&service=wms";
-            if (magic.modules.Endpoints.proxy[wmsUrl]) {
-                url = magic.config.paths.baseurl + "/proxy?url=" + url;
-            }
-            var jqXhr = $.get(url, $.proxy(function(response) {
-                try {
-                    var capsJson = $.parseJSON(JSON.stringify(parser.read(response)));
-                    if (capsJson) {
-                        magic.runtime.creator.catalogues[wmsUrl] = this.extractFeatureTypes(capsJson);
-                        magic.modules.Common.populateSelect(featureSelect, magic.runtime.creator.catalogues[wmsUrl], "value", "name", currentFeature, true);
-                        this.populateWmsStyleSelector(wmsUrl, currentFeature);                                          
-                    } else {
+            /* Examine GetCapabilities list of features */
+            var fopts = magic.runtime.creator.catalogues[wmsUrl];
+            var currentFeature = this.data.source.feature_name;        
+            if (fopts && fopts.length > 0) {
+                /* Have previously read the GetCapabilities document - read stored feature data into select list */
+                magic.modules.Common.populateSelect(featureSelect, fopts, "value", "name", currentFeature, true);
+                this.populateWmsStyleSelector(wmsUrl, currentFeature);            
+            } else {
+                /* Read available layer data from the service GetCapabilities document */
+                var parser = new ol.format.WMSCapabilities();
+                var url = wmsUrl + "?request=GetCapabilities&service=wms";
+                if (magic.modules.Endpoints.proxy[wmsUrl]) {
+                    url = magic.config.paths.baseurl + "/proxy?url=" + url;
+                }
+                var jqXhr = $.get(url, $.proxy(function(response) {
+                    try {
+                        var capsJson = $.parseJSON(JSON.stringify(parser.read(response)));
+                        if (capsJson) {
+                            magic.runtime.creator.catalogues[wmsUrl] = this.extractFeatureTypes(capsJson);
+                            magic.modules.Common.populateSelect(featureSelect, magic.runtime.creator.catalogues[wmsUrl], "value", "name", currentFeature, true);
+                            this.populateWmsStyleSelector(wmsUrl, currentFeature);                                          
+                        } else {
+                            bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to parse capabilities for WMS ' + wmsUrl + '</div>');
+                            magic.modules.Common.populateSelect(featureSelect, [{name: currentFeature, value: currentFeature}], "value", "name", currentFeature, true);
+                            this.populateWmsStyleSelector(wmsUrl, currentFeature);
+                        }
+                    } catch(e) {
                         bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to parse capabilities for WMS ' + wmsUrl + '</div>');
                         magic.modules.Common.populateSelect(featureSelect, [{name: currentFeature, value: currentFeature}], "value", "name", currentFeature, true);
                         this.populateWmsStyleSelector(wmsUrl, currentFeature);
                     }
-                } catch(e) {
-                    bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to parse capabilities for WMS ' + wmsUrl + '</div>');
+                }, this)).fail($.proxy(function() {                
+                    bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to read capabilities for WMS ' + wmsUrl + '</div>');
                     magic.modules.Common.populateSelect(featureSelect, [{name: currentFeature, value: currentFeature}], "value", "name", currentFeature, true);
                     this.populateWmsStyleSelector(wmsUrl, currentFeature);
-                }
-            }, this)).fail($.proxy(function() {
-                bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to read capabilities for WMS ' + wmsUrl + '</div>');
-                magic.modules.Common.populateSelect(featureSelect, [{name: currentFeature, value: currentFeature}], "value", "name", currentFeature, true);
-                this.populateWmsStyleSelector(wmsUrl, currentFeature);
-            }, this));
+                }, this));
+            }
         } 
     } else {
         /* No WMS yet selected - empty the feature and style lists */

@@ -222,7 +222,7 @@ magic.modules.creator.Data = function () {
                 "zoom": 0,
                 "rotation": 0,
                 "min_zoom": 1,
-                "max_zoom": 10,
+                "max_zoom": 20,
                 "resolutions": [],
                 "controls": ["zoom_world", "zoom_in", "zoom_out", "box_zoom"],
                 "gazetteers": [],                

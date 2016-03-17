@@ -42,16 +42,17 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
     );
     /* Handlers */
     /* Zoom to layer extent */
-    if (this.layer.getVisible()) {
-        /* Layer is visible on the map */
-        $("#ztl-" + this.nodeid).off("click").on("click", $.proxy(this.zoomToExtent, this));
+    var md = this.layer.get("metadata");
+    if (this.layer.getVisible() && !(md && md.source && md.source.wms_source == "osm")) {
+        /* Layer is visible on the map */        
+        $("#ztl-" + this.nodeid).off("click").on("click", $.proxy(this.zoomToExtent, this));        
     } else {
-        /* Layer invisible, so option is unavailable */
+        /* Layer invisible (or OSM), so option is unavailable */
         $("#ztl-" + this.nodeid).parent().addClass("disabled");
     }
     /* Filter layer */
     var md = this.layer.get("metadata");
-    if (this.layer.getVisible() && md.is_filterable === true && $.isArray(md.attribute_map)) {
+    if (this.layer.getVisible() && md && md.is_filterable === true && $.isArray(md.attribute_map)) {
         $("#ftr-" + this.nodeid).off("click").on("click", $.proxy(function(evt) {
             evt.stopPropagation();
             new magic.classes.LayerFilter({               
