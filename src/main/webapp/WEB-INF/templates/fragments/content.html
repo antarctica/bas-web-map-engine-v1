@@ -42,6 +42,11 @@
                             <span class="fa fa-database"></span><span class="hidden-sm"> Get data</span> 
                         </a>       
                     </li>
+                    <li data-toggle="tooltip" data-placement="bottom" title="User feedback">
+                        <a id="feedback-tool" href="JavaScript:void(0)" role="button" data-toggle="popover" data-placement="bottom">
+                            <span class="fa fa-comment"></span><span class="hidden-sm"> User feedback</span> 
+                        </a>       
+                    </li>
                 </ul>                                
                 <ul class="nav navbar-right top-nav hidden" th:switch="${#httpServletRequest.remoteUser}">
                     <li id="user-menu" class="dropdown" th:case="null">

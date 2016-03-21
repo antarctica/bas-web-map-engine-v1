@@ -120,6 +120,16 @@ magic.classes.AppContainer = function () {
         /* Hide the download button */
         $("#repo-tool").closest("li").hide();
     }
+    
+    /* User feedback tool */
+    magic.runtime.feedback = null;
+    if ($.inArray("feedback", magic.runtime.mapdata.controls) != -1) {
+        /* Activate user feedback tool */
+        magic.runtime.feedback = new magic.classes.Feedback({target: "feedback-tool"});
+    } else {
+        /* Hide the user feedback button */
+        $("#feedback-tool").closest("li").hide();
+    }
 
     /* Updates height of map when window resizes */
     $(window).on("resize", $.proxy(function () {
