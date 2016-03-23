@@ -71,8 +71,8 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
             .authorizeRequests()
-            .antMatchers("/*.ico", "/static/**", "/appconfig/**", "/ping", "/home/**", "/maps/dropdown/**", "/maps/name/**", "/maps/id/**", "/prefs/get").permitAll()
-            .antMatchers("/creator", "/creatord", "/opsgis/**", "/restricted/**", "/restrictedd/**", "/homed/**", "/prefs/set", "/maps/save", "/maps/update/**", "/maps/delete/**", "/maps/deletebyname/**")
+            .antMatchers("/*.ico", "/static/**", "/appconfig/**", "/ping", "/home/**", "/homed/**", "/maps/dropdown/**", "/maps/name/**", "/maps/id/**", "/prefs/get").permitAll()
+            .antMatchers("/creator", "/creatord", "/opsgis/**", "/restricted/**", "/restrictedd/**", "/prefs/set", "/maps/save", "/maps/update/**", "/maps/delete/**", "/maps/deletebyname/**")
             .fullyAuthenticated()
             .and()
             .formLogin()

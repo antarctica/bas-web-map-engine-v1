@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import uk.ac.antarctica.mapengine.util.PackagingUtils;
 
 @RestController
 public class MapController {
@@ -92,20 +93,20 @@ public class MapController {
         if (action.equals("delete")) {
             /* Users can delete only maps they own */
             if (username == null) {
-                ret = packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to delete maps");
+                ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to delete maps");
             } else {
                 userMapData = magicDataTpl.queryForList("SELECT name, title FROM " +  MAPDEFS + " WHERE owner_name=? ORDER BY title", username);
             }
         } else if (action.equals("edit")) {
             /* Users can edit maps they own, or those allowed to be edited by logged in users */
             if (username == null) {
-                ret = packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to edit maps");
+                ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to edit maps");
             } else {
                 userMapData = magicDataTpl.queryForList("SELECT name, title FROM " +  MAPDEFS + " WHERE owner_name=? OR allowed_edit='login' ORDER BY title", username);
             }
         } else if (action.equals("clone")) {
             if (username == null) {
-                ret = packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to clone maps");
+                ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to clone maps");
             } else {
                 /* Logged in users can clone public, login-restricted maps and ones they own */
                 String where = "allowed_usage='public' OR allowed_usage='login' OR (allowed_usage='owner' AND owner_name=?)";
@@ -121,14 +122,14 @@ public class MapController {
                 userMapData = magicDataTpl.queryForList("SELECT allowed_usage || ':' || name as name, title FROM " +  MAPDEFS + " WHERE " + where + " ORDER BY title", username);
             }
         } else {
-            ret = packageResults(HttpStatus.BAD_REQUEST, null, "Unrecognised action " + action);
+            ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Unrecognised action " + action);
         }
         if (userMapData != null && !userMapData.isEmpty()) {
             JsonArray views = mapper.toJsonTree(userMapData).getAsJsonArray();
-            ret = packageResults(HttpStatus.OK, views.toString(), null);
+            ret = PackagingUtils.packageResults(HttpStatus.OK, views.toString(), null);
         } else if (ret == null) {
             /* No data is fine - simply return empty results array */
-            ret = packageResults(HttpStatus.OK, new JsonArray().getAsString(), null);
+            ret = PackagingUtils.packageResults(HttpStatus.OK, new JsonArray().getAsString(), null);
         }
         return(ret);
     }
@@ -185,11 +186,11 @@ public class MapController {
                 where = "(allowed_usage='public' OR allowed_usage='login' OR (allowed_usage='owner' AND owner_name=?))";
                 userMapData = magicDataTpl.queryForMap("SELECT * FROM " +  MAPDEFS + " WHERE " + attr + "=? AND " + where, value, username);
             }
-            ret = packageResults(HttpStatus.OK, mapper.toJsonTree(userMapData).toString(), null);
+            ret = PackagingUtils.packageResults(HttpStatus.OK, mapper.toJsonTree(userMapData).toString(), null);
         } catch (IncorrectResultSizeDataAccessException irsdae) {
-            ret = packageResults(HttpStatus.UNAUTHORIZED, null, "No maps found that you are allowed to access");
+            ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "No maps found that you are allowed to access");
         } catch (DataAccessException dae) {
-            ret = packageResults(HttpStatus.BAD_REQUEST, null, "Error occurred, message was: " + dae.getMessage());
+            ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Error occurred, message was: " + dae.getMessage());
         }
         return(ret);
     }
@@ -239,12 +240,12 @@ public class MapController {
                     jo.get("allowed_download").getAsString(),
                     jo.get("allowed_edit").getAsString()
                 });
-                ret = packageResults(HttpStatus.OK, null, "Successfully saved");
+                ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Successfully saved");
             } catch(DataAccessException dae) {
-                ret = packageResults(HttpStatus.BAD_REQUEST, null, "Error saving data, message was: " + dae.getMessage());
+                ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Error saving data, message was: " + dae.getMessage());
             }            
         } else {
-            ret = packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to perform this action");
+            ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to perform this action");
         }        
         return (ret);
     }
@@ -265,7 +266,7 @@ public class MapController {
             /* Check logged in user is the owner of the map */
             if (canWrite(username, id)) {                
                 /* Does not have write permission */
-                ret = packageResults(HttpStatus.UNAUTHORIZED, null, "You do not have permission to edit record with name " + id);
+                ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "You do not have permission to edit record with name " + id);
             } else {
                 /* Default the non-completed fields */
                 JsonElement je = new JsonParser().parse(payload);
@@ -311,13 +312,13 @@ public class MapController {
                         jo.get("allowed_edit").getAsString(),
                         id
                     });
-                    ret = packageResults(HttpStatus.OK, null, "Successfully updated");
+                    ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Successfully updated");
                 } catch(DataAccessException dae) {
-                    ret = packageResults(HttpStatus.BAD_REQUEST, null, "Error updating data, message was: " + dae.getMessage());
+                    ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Error updating data, message was: " + dae.getMessage());
                 }
            }
         } else {
-            ret = packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to perform this action");
+            ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to perform this action");
         }        
         return (ret);
     }
@@ -361,24 +362,24 @@ public class MapController {
                 String owner = recordOwner(id);
                 if (owner == null) {
                     /* Unable to determine if owner */
-                    ret = packageResults(HttpStatus.UNAUTHORIZED, null, "Failed to determine if you are the owner of record with id " + id);
+                    ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "Failed to determine if you are the owner of record with id " + id);
                 } else if (!owner.equals(username)) {
                     /* Not the owner */
-                    ret = packageResults(HttpStatus.UNAUTHORIZED, null, "You are not the owner of record with name " + id);
+                    ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "You are not the owner of record with name " + id);
                 } else {
                     /* Do deletion */                
                     try {
                         magicDataTpl.update("DELETE FROM " + MAPDEFS + " WHERE id=?", new Object[]{id});                        
-                        ret = packageResults(HttpStatus.OK, null, "Successfully deleted");
+                        ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Successfully deleted");
                     } catch(DataAccessException dae) {
-                        ret = packageResults(HttpStatus.BAD_REQUEST, null, "Error deleting data, message was: " + dae.getMessage());
+                        ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Error deleting data, message was: " + dae.getMessage());
                     }
                 }
             } else {
-                ret = packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to perform this action");
+                ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to perform this action");
             }
         } else {
-            ret = packageResults(HttpStatus.BAD_REQUEST, null, "Supplied with a null id - name to id translation has failed");
+            ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Supplied with a null id - name to id translation has failed");
         }
         return (ret);
     }
@@ -423,32 +424,5 @@ public class MapController {
         }
         return(owner);
     }
-    
-    /**
-     * Do the packaging of return values
-     * @param HttpStatus status
-     * @param String data
-     * @param String message
-     * @return ResponseEntity<String>
-     */
-    private ResponseEntity<String> packageResults(HttpStatus status, String data, String message) {
-        ResponseEntity<String> ret;
-        if (status.equals(HttpStatus.OK)) {
-            if (data != null) {
-                ret = new ResponseEntity<>(data, status);
-            } else {
-                JsonObject jo = new JsonObject();
-                jo.addProperty("status", status.value());
-                jo.addProperty("detail", message == null ? "" : message);
-                ret = new ResponseEntity<>(jo.toString(), status);
-            }
-        } else {
-            JsonObject jo = new JsonObject();
-            jo.addProperty("status", status.value());
-            jo.addProperty("detail", message);
-            ret = new ResponseEntity<>(jo.toString(), status);
-        }
-        return (ret);
-    }    
 
 }

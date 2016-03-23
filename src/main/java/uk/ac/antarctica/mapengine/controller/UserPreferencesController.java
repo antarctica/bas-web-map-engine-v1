@@ -4,7 +4,6 @@
 package uk.ac.antarctica.mapengine.controller;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -19,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import uk.ac.antarctica.mapengine.util.PackagingUtils;
 
 @RestController
 public class UserPreferencesController {
@@ -45,17 +45,17 @@ public class UserPreferencesController {
         String userName = (request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null);
         if (userName == null || userName.isEmpty()) {
             /* Default set for an anonymous user */
-            ret = packageResults(HttpStatus.OK, defaultPreferenceSet(), null);
+            ret = PackagingUtils.packageResults(HttpStatus.OK, defaultPreferenceSet(), null);
         } else {
             /* Get set from db */
             try {
                 String table = PREFS.substring(PREFS.indexOf(".")+1);
                 String jsonRow = magicDataTpl.queryForObject("SELECT row_to_json(" + table + ") FROM " + PREFS + " WHERE username=?", String.class, userName);
-                ret = packageResults(HttpStatus.OK, jsonRow, "");
+                ret = PackagingUtils.packageResults(HttpStatus.OK, jsonRow, "");
             } catch(IncorrectResultSizeDataAccessException irsdae) {
-                ret = packageResults(HttpStatus.OK, defaultPreferenceSet(), "");
+                ret = PackagingUtils.packageResults(HttpStatus.OK, defaultPreferenceSet(), "");
             } catch(DataAccessException dae) {
-                ret = packageResults(HttpStatus.OK, defaultPreferenceSet(), "");
+                ret = PackagingUtils.packageResults(HttpStatus.OK, defaultPreferenceSet(), "");
             }
         }
         return (ret);
@@ -75,7 +75,7 @@ public class UserPreferencesController {
         String userName = (request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null);
         if (userName == null || userName.isEmpty()) {
             /* Bad request for an anonymous user */
-            ret = packageResults(HttpStatus.BAD_REQUEST, null, "Not logged in");
+            ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Not logged in");
         } else {
             /* Save to db */
             try {
@@ -92,7 +92,7 @@ public class UserPreferencesController {
                             id
                         }
                     );
-                    ret = packageResults(HttpStatus.OK, null, "Updated successfully");
+                    ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Updated successfully");
                 } catch(IncorrectResultSizeDataAccessException irsdae) {
                     /* Insert new record */
                     magicDataTpl.update("INSERT INTO " + PREFS + " (distance, area, elevation, coordinates, dates) VALUES(?,?,?,?,?)",
@@ -104,31 +104,11 @@ public class UserPreferencesController {
                             prefs.getDates()
                         }
                     ); 
-                    ret = packageResults(HttpStatus.OK, null, "Saved successfully");
+                    ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Saved successfully");
                 } 
             } catch(DataAccessException dae) {
-                ret = packageResults(HttpStatus.BAD_REQUEST, null, dae.getMessage());
+                ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, dae.getMessage());
             }
-        }
-        return(ret);
-    }
-    
-    /**
-     * Do the packaging of preferences return
-     * @param HttpStatus status
-     * @param String data
-     * @param String message
-     * @return ResponseEntity<String>
-     */
-    private ResponseEntity<String> packageResults(HttpStatus status, String data, String message) {
-        ResponseEntity<String> ret;        
-        if (status.equals(HttpStatus.OK) && data != null) {            
-            ret = new ResponseEntity<>(data, status);
-        } else {
-            JsonObject jo = new JsonObject();
-            jo.addProperty("status", status.value());
-            jo.addProperty("detail", message);
-            ret = new ResponseEntity<>(jo.toString(), status);
         }
         return(ret);
     }

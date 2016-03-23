@@ -538,6 +538,12 @@ a.gaz-attribution:hover {
     cursor: pointer;
 }
 
+/* Feedback tool styles */
+div.feedback-info-text {
+    text-align:justify; 
+    font-size:smaller;
+}
+
 /* Measure tool styles */
 div.measurement-popover-content {
     width: 280px;
