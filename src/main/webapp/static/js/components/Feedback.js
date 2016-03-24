@@ -115,20 +115,29 @@ magic.classes.Feedback = function(options) {
                 }
             }, this));
             if (ok) {
-                var csrfHeaderVal = $("meta[name='_csrf']").attr("content");               
-                $.ajax({
-                    url: magic.config.paths.baseurl + "/feedback", 
-                    data: JSON.stringify(formdata), 
-                    method: "POST",
-                    dataType: "json",
-                    contentType: "application/json",
-                    headers: {
-                        "X-CSRF-TOKEN": csrfHeaderVal
-                    },
-                    success: $.proxy(function(data) {
-                        magic.modules.Common.buttonClickFeedback(this.target, data.status < 400, data.detail);
-                    }, this)
-                });
+                var csrfHeaderVal = $("meta[name='_csrf']").attr("content"); 
+                var jqXhr = $.ajax({
+                        url: magic.config.paths.baseurl + "/feedback",
+                        method: "POST",
+                        processData: false,
+                        data: JSON.stringify(formdata),
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRF-TOKEN": csrfHeaderVal
+                        }
+                    });
+                    jqXhr.done(function(response) {
+                        console.log(response.responseText);
+                    });
+                    jqXhr.fail(function(xhr, status, err) {
+                        var detail = JSON.parse(xhr.responseText)["detail"];
+                        bootbox.alert(
+                            '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                                '<p>Failed to enter your feedback into tracking system - details below:</p>' + 
+                                '<p>' + detail + '</p>' + 
+                            '</div>'
+                        );
+                    });                
             }
         }, this));
         /* Close button */
