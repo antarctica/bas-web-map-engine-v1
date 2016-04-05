@@ -540,8 +540,9 @@ a.gaz-attribution:hover {
 
 /* Feedback tool styles */
 div.feedback-info-text {
-    text-align:justify; 
-    font-size:smaller;
+    text-align: justify;
+    font-weight: bold;
+    font-size: 13px;
 }
 
 /* Measure tool styles */

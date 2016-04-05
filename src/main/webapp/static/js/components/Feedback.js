@@ -25,9 +25,9 @@ magic.classes.Feedback = function(options) {
                 '<input type="hidden" id="' + this.id + '-payload"></input>' + 
                 '<div class="panel">' +
                     '<div class="panel-body alert-info feedback-info-text">' + 
-                    'This form is your opportunity to improve the quality of this service by giving feedback on data or interface problems. Give a short description below e.g. ' +
-                    '&quot;Contours appear in the sea&quot; or &quot;Failed to find a certain place-name&quot; and configure the map to show the issue.  The complete state of the map will be saved ' +
-                    'automatically' + 
+                    'Your chance to improve service quality by reporting data or interface problems. Give a short description below e.g. ' +
+                    '&quot;Contours appear in the sea&quot; or &quot;Failed to find a certain place-name&quot; and configure the map to show the issue.  ' + 
+                    'The complete state of the map will be saved automatically' + 
                     '</div>' + 
                 '</div>' +
                 '<div class="form-group form-group-sm col-sm-12">' +
@@ -126,9 +126,14 @@ magic.classes.Feedback = function(options) {
                             "X-CSRF-TOKEN": csrfHeaderVal
                         }
                     });
-                    jqXhr.done(function(response) {
-                        console.log(response.responseText);
-                    });
+                    jqXhr.done($.proxy(function(response) {
+                        this.target.popover("hide");
+                        bootbox.alert(
+                            '<div class="alert alert-info" style="margin-bottom:0">' + 
+                                '<p>Successfully sent your feedback</p>' + 
+                            '</div>'
+                        );
+                    }, this));
                     jqXhr.fail(function(xhr, status, err) {
                         var detail = JSON.parse(xhr.responseText)["detail"];
                         bootbox.alert(
@@ -165,6 +170,8 @@ magic.classes.Feedback.prototype.mapPayload = function() {
         });
         /* Save map URL */
         payload.mapUrl = window.location.href;
+        /* Save user's browser and OS details */
+        payload.userAgent = navigator.userAgent;
     }
     return(payload);
 };

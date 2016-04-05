@@ -15,8 +15,10 @@
                 <div th:switch="${#httpServletRequest.remoteUser}">
                     <div th:case="null">
                         <div class="alert alert-info">
-                            You are not currently logged in.  The list of maps below is therefore, restricted to those available for public viewing, and creating a new map will
-                            require you to authenticate.  BAS users can do so with their SOUTH/Photo Database passwords.  Other users will be advised of their credentials.
+                            <strong>
+                                You are not currently logged in.  The list of maps below is therefore, restricted to those available for public viewing, and creating a new map will
+                                require you to authenticate.  BAS users can do so with their SOUTH/Photo Database passwords.  Other users will be advised of their credentials
+                            </strong>
                         </div>
                         <form class="form-inline" style="margin-bottom:10px">
                             <div class="form-group">
@@ -32,7 +34,7 @@
                     </div>
                     <div th:case="*">
                         <div class="alert alert-info">
-                            You are currently logged in as <span th:text="${#httpServletRequest.remoteUser}"></span> - select an option below.
+                            <strong>You are currently logged in as <span th:text="${#httpServletRequest.remoteUser}"></span> - select an option below:</strong>
                         </div>
                         <form>
                             <div class="form-inline" style="margin-bottom:10px">
@@ -64,6 +66,15 @@
                                     </select>
                                 </div>
                                 <button id="delete-map-go" type="button" class="btn btn-danger" style="width:70px" data-toggle="tooltip" data-placement="bottom" title="Delete the selected map">Delete</button>                            
+                            </div>
+                            <div class="form-inline" style="margin-bottom:10px">
+                                <div class="form-group">
+                                    <label style="width:100px" for="redmine-map">
+                                        Load issue
+                                    </label>                                
+                                    <input type="number" class="form-control" id="redmine-map" placeholder="Redmine issue number"></input>
+                                </div>
+                                <button id="redmine-map-go" type="button" class="btn btn-primary" style="width:70px" data-toggle="tooltip" data-placement="bottom" title="Load this Redmine issue into map">Replay</button>                            
                             </div>
                         </form>
                         <button id="create-map-go" type="button" class="btn btn-primary" data-toggle="tooltip" data-placement="bottom" title="Create a new map">Create a new map</button> 

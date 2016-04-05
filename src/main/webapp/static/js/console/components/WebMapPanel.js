@@ -50,6 +50,9 @@ magic.classes.console.WebMapPanel = function () {
             }
         }, this));
     }, this));
+    $("#redmine-map-go").click($.proxy(function() {
+        var issueNumber = $("#redmine-map").val();
+    }, this));
     this.populateMapLists();
 
 };
