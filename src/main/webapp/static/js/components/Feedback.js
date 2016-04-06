@@ -31,8 +31,8 @@ magic.classes.Feedback = function(options) {
                     '</div>' + 
                 '</div>' +
                 '<div class="form-group form-group-sm col-sm-12">' +
-                    '<label class="col-sm-5" for="' + this.id + '-trackerId">Issue type</label>' + 
-                    '<div class="col-sm-7">' + 
+                    '<label class="col-sm-4" for="' + this.id + '-trackerId">Issue</label>' + 
+                    '<div class="col-sm-8">' + 
                         '<select name="trackerId" id="' + this.id + '-trackerId" class="form-control" ' +
                             'data-toggle="tooltip" data-placement="right" ' + 
                             'title="What type of problem is this?">' + 
@@ -42,35 +42,35 @@ magic.classes.Feedback = function(options) {
                     '</div>' + 
                 '</div>' +
                 '<div class="form-group form-group-sm col-sm-12">' +
-                    '<label class="col-sm-5" for="' + this.id + '-subject">Subject</label>' + 
-                    '<div class="col-sm-7">' + 
+                    '<label class="col-sm-4" for="' + this.id + '-subject">One-liner</label>' + 
+                    '<div class="col-sm-8">' + 
                         '<input type="text" name="subject" id="' + this.id + '-subject" class="form-control" ' + 
                             'placeholder="One line problem description" maxlength="150" ' + 
                             'data-toggle="tooltip" data-placement="right" ' + 
-                            'title="Short problem description" ' + 
+                            'title="Short problem description (required)" ' + 
                             'required="required">' +
                         '</input>' +    
                     '</div>' + 
                 '</div>' +  
                 '<div class="form-group form-group-sm col-sm-12">' +
-                    '<label class="col-sm-5" for="' + this.id + '-description">Description</label>' +
-                    '<div class="col-sm-7">' + 
+                    '<label class="col-sm-4" for="' + this.id + '-description">Details</label>' +
+                    '<div class="col-sm-8">' + 
                         '<textarea name="description" id="' + this.id + '-description" class="form-control" ' + 
                             'style="height:8em !important" ' + 
-                            'placeholder="Problem description" ' + 
+                            'placeholder="More detailed problem description" ' + 
                             'data-toggle="tooltip" data-placement="right" ' + 
-                            'title="Longer description of the problem" ' + 
+                            'title="Longer description of the problem (required)" ' + 
                             'required="required">' +                                           
                         '</textarea>' + 
                     '</div>' + 
                 '</div>' +
                 '<div class="form-group form-group-sm col-sm-12">' +
-                    '<label class="col-sm-5" for="' + this.id + '-reporter">Your email</label>' + 
-                    '<div class="col-sm-7">' + 
+                    '<label class="col-sm-4" for="' + this.id + '-reporter">Email</label>' + 
+                    '<div class="col-sm-8">' + 
                         '<input type="email" name="reporter" id="' + this.id + '-reporter" class="form-control" ' + 
                             'placeholder="Your email address" maxlength="150" ' + 
                             'data-toggle="tooltip" data-placement="right" ' + 
-                            'title="Your email (used to communicate with you about this issue and for no other purpose)" ' + 
+                            'title="Your email (required - used to communicate with you about this issue and for no other purpose)" ' + 
                             'required="required">' +
                         '</input>' +    
                     '</div>' + 

@@ -35,7 +35,7 @@ magic.classes.console.WebMapPanel = function () {
                 .done($.proxy(function () {
                     this.populateMapLists();
                 }, this))
-                .fail(function () {
+                .fail(function (xhr, status) {
                     var detail = JSON.parse(xhr.responseText)["detail"];
                     bootbox.alert(
                         '<div class="alert alert-warning" style="margin-bottom:0">' + 
@@ -52,9 +52,68 @@ magic.classes.console.WebMapPanel = function () {
     }, this));
     $("#redmine-map-go").click($.proxy(function() {
         var issueNumber = $("#redmine-map").val();
+        /* Get the issue data as JSON */
+        var jqXhr = $.ajax({
+            url: magic.config.paths.baseurl + "/redmine/" + issueNumber,
+            method: "GET",
+            dataType: "json",
+            contentType: "application/json",
+        })
+        .done($.proxy(function(data) {
+            if (data && data.description) {
+                /* This is an issue which was submitted with a replayable payload */
+                var jsonPayload = JSON.parse(data.description);
+                var mapUrl = jsonPayload["mapUrl"] || "";
+                jsonPayload["mapUrl"] = mapUrl.replace(/\/home\//, "/restrictedd/");
+                
+                // TODO - need to open URL as a GET, then fiddle with the map created by the open - don't need the POST-ed methods */
+                
+                /* Create a dummy form to submit the data as POST and open a new window with the URL set 
+                 * http://stackoverflow.com/questions/17793183/how-to-replace-window-open-with-a-post */
+                var form = document.createElement("form");
+                form.action = jsonPayload["mapUrl"];
+                form.method = "POST";
+                form.target = "_blank";
+                for (var key in jsonPayload) {
+                    var input = document.createElement("textarea");
+                    input.name = key;
+                    input.value = typeof data[key] === "object" ? JSON.stringify(jsonPayload[key]) : jsonPayload[key];
+                    form.appendChild(input);                    
+                }
+                form.style.display = 'none';
+                document.body.appendChild(form);
+                form.submit();
+                document.body.removeChild(form);                
+            } else {
+                /* Valid issue number, but not replayable */
+                bootbox.alert(
+                    '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                        '<p>This is not a replayable issue</p>' + 
+                    '</div>'
+                );
+            }
+        }, this))
+        .fail($.proxy(function(xhr, status, err) {
+            if (xhr.responseText) {
+                var detail = JSON.parse(xhr.responseText)["detail"];
+                bootbox.alert(
+                    '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                        '<p>Failed to retrieve data for issue - details below:</p>' + 
+                        '<p>' + detail + '</p>' + 
+                    '</div>'
+                );
+            } else {
+                bootbox.alert(
+                    '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                        '<p>Failed to retrieve data for issue - unspecified error</p>' + 
+                    '</div>'
+                );
+            }
+        }, this));
+        bootbox.hideAll();
     }, this));
+    /* Get lists of maps appropriate to the user */
     this.populateMapLists();
-
 };
 
 /**
