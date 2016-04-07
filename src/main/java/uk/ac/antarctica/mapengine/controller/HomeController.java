@@ -151,28 +151,7 @@ public class HomeController {
         model.addAttribute("username", username);
         ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Restricted map " + map + " requested");
         return("map");
-    }
-    
-    /**
-     * Render user-defined public map with additional POST-ed JSON payload specifying map centre, zoom level and layer status     
-     * @param HttpServletRequest request,
-     * @param String map
-     * @param String payload
-     * @param ModelMap model
-     * @return
-     * @throws ServletException
-     * @throws IOException
-     */
-    @RequestMapping(value = "/restricted/{map}", method = RequestMethod.POST, produces = "text/html; charset=utf-8", headers = {"Content-type=application/json"})
-    public String mapRestrictedWithPayload(HttpServletRequest request, @PathVariable("map") String map, @RequestBody String payload, ModelMap model) throws ServletException, IOException {    
-        request.getSession().setAttribute("map", map);
-        String username = getUserName(request);
-        model.addAttribute("map", map);
-        model.addAttribute("username", username);
-        model.addAttribute("mapdata", payload);
-        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Public map " + map + " requested with payload " + payload);
-        return("map");
-    }
+    }    
     
     /**
      * Render user-defined public map (debug)  
@@ -192,29 +171,7 @@ public class HomeController {
         model.addAttribute("debug", true);
         ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Restricted map " + map + " (debug) requested");
         return("map");
-    }
-    
-    /**
-     * Render user-defined public map (debug) with additional POST-ed JSON payload specifying map centre, zoom level and layer status
-     * @param HttpServletRequest request,
-     * @param String map
-     * @param String payload
-     * @param ModelMap model
-     * @return
-     * @throws ServletException
-     * @throws IOException
-     */
-    @RequestMapping(value = "/restrictedd/{map}", method = RequestMethod.POST, produces = "text/html; charset=utf-8", headers = {"Content-type=application/json"})
-    public String mapRestrictedWithPayloadDebug(HttpServletRequest request, @PathVariable("map") String map, @RequestBody String payload, ModelMap model) throws ServletException, IOException {    
-        request.getSession().setAttribute("map", map);
-        String username = getUserName(request);
-        model.addAttribute("map", map);
-        model.addAttribute("username", username);
-        model.addAttribute("mapdata", payload);
-        model.addAttribute("debug", true);
-        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Restricted map " + map + " (debug) requested");
-        return("map");
-    }    
+    }       
         
     /**
      * Render map creator home page     

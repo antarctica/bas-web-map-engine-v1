@@ -407,6 +407,7 @@ magic.modules.Common = function () {
          * @returns {string} the date formatted accordingly
          */
         dateFormat: function (value, format) {
+            value = value + "";     /* Cope with integer dates like 1977 passed in which aren't strings... - David 07/04/2016 */
             var formattedValue = value;
             var dateParts = value.substring(0, 10).split(/[^\d]/);
             var dateRest = value.substring(10);

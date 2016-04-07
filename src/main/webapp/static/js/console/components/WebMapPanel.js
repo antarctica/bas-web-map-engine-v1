@@ -64,26 +64,41 @@ magic.classes.console.WebMapPanel = function () {
                 /* This is an issue which was submitted with a replayable payload */
                 var jsonPayload = JSON.parse(data.description);
                 var mapUrl = jsonPayload["mapUrl"] || "";
-                jsonPayload["mapUrl"] = mapUrl.replace(/\/home\//, "/restrictedd/");
+                jsonPayload["mapUrl"] = mapUrl.replace(/\/(home|restricted)\//, "/restrictedd/");    /* Note: needs to be /restricted eventually */
+                var newWin = window.open(jsonPayload["mapUrl"], "_blank");
+                //TODO - pass GET query string with params
                 
-                // TODO - need to open URL as a GET, then fiddle with the map created by the open - don't need the POST-ed methods */
-                
-                /* Create a dummy form to submit the data as POST and open a new window with the URL set 
-                 * http://stackoverflow.com/questions/17793183/how-to-replace-window-open-with-a-post */
-                var form = document.createElement("form");
-                form.action = jsonPayload["mapUrl"];
-                form.method = "POST";
-                form.target = "_blank";
-                for (var key in jsonPayload) {
-                    var input = document.createElement("textarea");
-                    input.name = key;
-                    input.value = typeof data[key] === "object" ? JSON.stringify(jsonPayload[key]) : jsonPayload[key];
-                    form.appendChild(input);                    
-                }
-                form.style.display = 'none';
-                document.body.appendChild(form);
-                form.submit();
-                document.body.removeChild(form);                
+                if (newWin) {
+//                    /* Window successfully opened - wait a while for map to be completely loaded, otherwise give up */
+//                    $(newWin.document).ready(function() {
+//                        var timer = newWin.setTimeout(function() {
+//                            var newMap = newWin.magic.runtime.map;
+//                            if (newMap) {
+//                                newMap.getView().setCenter(jsonPayload["center"]);
+//                                newMap.getView().setZoom(jsonPayload["zoom"]);
+//                                newMap.getLayers().forEach(function (layer) {
+//                                    layer.setVisible(jsonPayload["visible"][layer.get("name")] === true);
+//                                }, this);
+//                            } else {
+//                                bootbox.alert(
+//                                    '<div class="alert alert-warning" style="margin-bottom:0">' + 
+//                                        '<p>Failed to open map in new tab - server not responding</p>' + 
+//                                    '</div>'
+//                                );
+//                            }
+//                            newWin.clearTimeout(timer);
+//                        }, 5000);             
+//                    });
+//                    
+                                                                           
+                } else {
+                    /* Window blocked by browser settings - can't proceed */
+                    bootbox.alert(
+                        '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                            '<p>Failed to open map in new tab - check your browser popup blocking settings</p>' + 
+                        '</div>'
+                    );
+                }                 
             } else {
                 /* Valid issue number, but not replayable */
                 bootbox.alert(

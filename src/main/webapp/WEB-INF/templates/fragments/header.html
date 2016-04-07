@@ -65,7 +65,8 @@
                 var announcement = $("#announcement-all");
                 var cookieName = "announcement_seen_all";
                 if (announcement.length == 0) {
-                    var app = window.location.href.substring(window.location.href.lastIndexOf("/")+1);
+                    var qry = window.location.href.indexOf("?");
+                    var app = window.location.href.substring(window.location.href.lastIndexOf("/")+1, qry == -1 ? window.location.href.length : qry);
                     announcement = $("#announcement-" + app);
                     cookieName = "announcement_seen_" + app;
                 }
@@ -196,7 +197,8 @@
                 var announcement = $("#announcement-all");
                 var cookieName = "announcement_seen_all";
                 if (announcement.length == 0) {
-                    var app = window.location.href.substring(window.location.href.lastIndexOf("/")+1);
+                    var qry = window.location.href.indexOf("?");
+                    var app = window.location.href.substring(window.location.href.lastIndexOf("/")+1, qry == -1 ? window.location.href.length : qry);
                     announcement = $("#announcement-" + app);
                     cookieName = "announcement_seen_" + app;
                 }
