@@ -6,10 +6,12 @@ package uk.ac.antarctica.mapengine.controller;
 
 import it.geosolutions.geoserver.rest.HTTPUtils;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URLEncoder;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import org.apache.http.client.utils.URIBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -40,30 +42,26 @@ public class FeedbackController {
 		@Valid @RequestBody Feedback feedback, 
 		BindingResult result, 
 		ModelMap map)
-        throws ServletException, IOException {
-        ResponseEntity<String> ret = null;
+        throws ServletException, IOException {        
+        ResponseEntity<String> ret = null;                
         if (result.hasErrors()) {
             ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Invalid form data " + feedback.toString());
         } else {
             try {
-				feedback.setProjectId(121);
-				String redmineUrl = REDMINE_ISSUE + "?" +
-					"subject=" + URLEncoder.encode(feedback.getSubject(), "UTF-8") + "&" +
-					"project_id=" + feedback.getProjectId() + "&" +
-					"section=" + URLEncoder.encode(feedback.getSection(), "UTF-8") + "&" +
-					"tracker_id=" + feedback.getTrackerId() + "&" +
-					"assigned_to_id=" + feedback.getAssignedId() + "&" +
-                    "email=" + URLEncoder.encode(feedback.getReporter(), "UTF-8") + "&" + 
-					"description=" + URLEncoder.encode(feedback.getDescription(), "UTF-8");
-                String reportContent = HTTPUtils.get(redmineUrl, "magic_auto", "magic123");
-                try {
-                    int issueId = Integer.parseInt(reportContent);
-                    ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Successfully submitted - issue added with id " + issueId);
-                } catch(NumberFormatException nfe) {
-                    ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Failed to enter data into tracking system");
-                }
+				feedback.setProjectId(121);     /* ADD - if we want to write to others this will have to be set in the creation of the map */
+                URI uri = new URIBuilder(new URI(REDMINE_ISSUE))
+                    .addParameter("subject", feedback.getSubject())
+                    .addParameter("project_id", feedback.getProjectId() + "")
+                    .addParameter("section", feedback.getSection())
+                    .addParameter("tracker_id", feedback.getTrackerId() + "")
+                    .addParameter("assigned_to_id", feedback.getAssignedId() + "")
+                    .addParameter("email", feedback.getReporter())
+                    .addParameter("description", feedback.getDescription())
+                    .build();                 
+                HTTPUtils.get(uri.toURL().toString(), "magic_auto", "magic123");
+                ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Successfully added issue to tracking system");                
 			} catch(Exception ex) {
-				ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Error entering data into tracker, message was: " + ex.getMessage());
+				ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Error entering data into tracker, message was: " + ex.getMessage());                
 			}
         }
         return(ret);

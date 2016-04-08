@@ -114,8 +114,9 @@ magic.classes.Feedback = function(options) {
                     fg.removeClass("has-success").addClass("has-error");
                 }
             }, this));
-            if (ok) {
+            if (ok) {                
                 var csrfHeaderVal = $("meta[name='_csrf']").attr("content"); 
+                this.target.popover("hide");
                 var jqXhr = $.ajax({
                         url: magic.config.paths.baseurl + "/feedback",
                         method: "POST",
@@ -126,8 +127,7 @@ magic.classes.Feedback = function(options) {
                             "X-CSRF-TOKEN": csrfHeaderVal
                         }
                     });
-                    jqXhr.done($.proxy(function(response) {
-                        this.target.popover("hide");
+                    jqXhr.done($.proxy(function(response) {                        
                         bootbox.alert(
                             '<div class="alert alert-info" style="margin-bottom:0">' + 
                                 '<p>Successfully sent your feedback</p>' + 
@@ -138,7 +138,7 @@ magic.classes.Feedback = function(options) {
                         var detail = JSON.parse(xhr.responseText)["detail"];
                         bootbox.alert(
                             '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                                '<p>Failed to enter your feedback into tracking system - details below:</p>' + 
+                                '<p>Error occurred - details below:</p>' + 
                                 '<p>' + detail + '</p>' + 
                             '</div>'
                         );

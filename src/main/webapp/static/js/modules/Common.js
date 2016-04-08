@@ -323,6 +323,12 @@ magic.modules.Common = function () {
             if (prependInvite === true) {
                 select.append($("<option>", {value: "", text: "Please select"}));
             }
+            /* Sort by txtAttr */
+            optArr.sort(function(a, b) {
+                var lca = a[txtAttr].toLowerCase();
+                var lcb = b[txtAttr].toLowerCase();
+                return((lca < lcb ) ? -1 : (lca > lcb) ? 1 : 0);
+            });
             $.each(optArr, function(idx, optObj) {
                 var opt = $("<option>", {value: optObj[valAttr]});
                 var text = optObj[txtAttr] || optObj[valAttr];               

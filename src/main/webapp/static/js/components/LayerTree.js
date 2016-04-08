@@ -189,12 +189,7 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
             var isWms = "wms_source" in nd.source;
             var isSingleTile = isWms ? nd.source.is_singletile === true : false;
             var isBase = isWms ? nd.source.is_base === true : false;
-            var isInteractive = nd.is_interactive === true;
-            if (isBase) {
-                cb = '<input class="layer-vis-selector" name="base-layers-rb" id="base-layer-rb-' + nd.id + '" type="radio" ' + (nd.is_visible ? "checked" : "") + '/>';
-            } else {
-                cb = '<input class="layer-vis-selector" id="layer-cb-' + nd.id + '" type="checkbox" ' + (nd.is_visible ? "checked" : "") + '/>';
-            }
+            var isInteractive = nd.is_interactive === true;                        
             var name = nd.name, /* Save name as we may insert ellipsis into name text for presentation purposes */
                     ellipsisName = magic.modules.Common.ellipsis(nd.name, 30),
                     infoTitle = "Get layer legend/metadata",
@@ -202,6 +197,16 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
             if (name != ellipsisName) {
                 /* Tooltip to give the full version of any shortened name */
                 nameSpan = '<span data-toggle="tooltip" data-placement="top" title="' + name + '">' + ellipsisName + '</span>';
+            }
+            /* Determine visibility */
+            var isVisible = nd.is_visible;
+            if (magic.runtime.search && magic.runtime.search.visible && magic.runtime.search.visible[name]) {
+                isVisible = magic.runtime.search.visible[name];
+            }
+            if (isBase) {
+                cb = '<input class="layer-vis-selector" name="base-layers-rb" id="base-layer-rb-' + nd.id + '" type="radio" ' + (isVisible ? "checked" : "") + '/>';
+            } else {
+                cb = '<input class="layer-vis-selector" id="layer-cb-' + nd.id + '" type="checkbox" ' + (isVisible ? "checked" : "") + '/>';
             }
             element.append(
                     '<li class="list-group-item layer-list-group-item" id="layer-item-' + nd.id + '">' +
@@ -227,7 +232,7 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                     );
             /* Create a data layer */
             var layer = null;
-            var proj = magic.runtime.viewdata.projection;
+            var proj = magic.runtime.viewdata.projection;            
             /* Get min/max resolution */  
             var minRes = null, maxRes = null;
             if (nd.source.wms_source != "osm") {
@@ -257,7 +262,7 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                     }));
                     layer = new ol.layer.Image({
                         name: name,
-                        visible: nd.is_visible,
+                        visible: isVisible,
                         opacity: nd.opacity || 1.0,
                         metadata: nd,
                         source: wmsSource,
@@ -286,7 +291,7 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                     });
                     layer = new ol.layer.Tile({
                         name: name,
-                        visible: nd.is_visible,
+                        visible: isVisible,
                         opacity: nd.opacity || 1.0,
                         minResolution: minRes,
                         maxResolution: maxRes,
@@ -328,7 +333,7 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                     });
                     layer = new ol.layer.Vector({
                         name: nd.name,
-                        visible: nd.is_visible,
+                        visible: isVisible,
                         source: vectorSource,
                         style: this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map)) ,
                         metadata: nd,
@@ -339,7 +344,7 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                     /* Some other GeoJSON feed */
                     layer = new ol.layer.Image({
                         name: nd.name,
-                        visible: nd.is_visible,
+                        visible: isVisible,
                         metadata: nd,
                         source: new ol.source.ImageVector({
                             source: new ol.source.Vector({
@@ -357,7 +362,7 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                 /* GPX layer */
                 layer = new ol.layer.Image({
                     name: nd.name,
-                    visible: nd.is_visible,
+                    visible: isVisible,
                     metadata: nd,    
                     source: new ol.source.ImageVector({
                         source: new ol.source.Vector({
@@ -375,7 +380,7 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                 var kmlStyle = this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map));
                 layer = new ol.layer.Image({
                     name: nd.name,
-                    visible: nd.is_visible,
+                    visible: isVisible,
                     metadata: nd,
                     source: new ol.source.ImageVector({
                         source: new ol.source.Vector({

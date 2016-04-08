@@ -13,7 +13,15 @@ magic.classes.AppContainer = function () {
      */ 
     
     /* Set container sizes */
-    this.fitMapToViewport();
+    this.fitMapToViewport(); 
+    
+    /* Get issue data if supplied */
+    magic.runtime.search = {};
+    if (!$.isEmptyObject(magic.runtime.issuedata)) {
+        try {
+            magic.runtime.search = JSON.parse(magic.runtime.issuedata.description);
+        } catch(e) {}
+    }
     
     /* Initialise map view (returns the initialisation values for the view) */
     magic.runtime.viewdata = this.initView();
@@ -29,6 +37,9 @@ magic.classes.AppContainer = function () {
     
     /* Map switcher */
     magic.runtime.mapswitcher = new magic.classes.MapSwitcher({target: "map-switcher"});
+    
+    /* Issue information panel */
+    magic.runtime.issueinfo = new magic.classes.IssueInformation({target: "issue-info"});
 
     /* Set up drag and drop interaction for quick visualisation of GPX and KML files */
     var dd = new ol.interaction.DragAndDrop({formatConstructors: [ol.format.GPX, ol.format.KML]});
@@ -170,7 +181,7 @@ magic.classes.AppContainer = function () {
      * NOTE: even if anyone should manage to display the login menu they won't be able to do anything as all actions are barred server side, 
      * and the login database is LDAP or Ramadda     
      */
-    if (magic.runtime.map_context.allowed_usage != "public" || magic.runtime.map_context.allowed_download == "login") {
+    if (magic.runtime.map_context.allowed_usage != "public" || magic.runtime.map_context.allowed_download == "login" || window.location.pathname.indexOf("/restricted") == 0) {
         $("ul.navbar-right").removeClass("hidden").show();
         /* Activate logout menu */
         var lo = $("#log-out-user");
@@ -216,7 +227,7 @@ magic.classes.AppContainer = function () {
                 magic.runtime.featureinfotool.activate();
             }
         }
-    });
+    });    
 };
 
 /**
@@ -243,9 +254,9 @@ magic.classes.AppContainer.prototype.initView = function() {
     if (viewData.projection == "EPSG:3857") {
         /* Spherical Mercator (OSM/Google) - note DON'T set projection extent as bizarre 15km shifts */
         viewDefaults = {
-            center: viewData.center,        
+            center: magic.runtime.search.center || viewData.center,        
             rotation: viewData.rotation ? magic.modules.Common.toRadians(viewData.rotation) : 0.0,
-            zoom: viewData.zoom,
+            zoom: magic.runtime.search.zoom || viewData.zoom,
             projection: proj,
             minZoom: 1, 
             maxZoom: 20
@@ -255,9 +266,9 @@ magic.classes.AppContainer.prototype.initView = function() {
         proj.setExtent(viewData.proj_extent);
         proj.setWorldExtent(viewData.proj_extent);   
         viewDefaults = {
-            center: viewData.center,        
+            center: magic.runtime.search.center || viewData.center,        
             rotation: viewData.rotation ? magic.modules.Common.toRadians(viewData.rotation) : 0.0,
-            zoom: viewData.zoom,
+            zoom: magic.runtime.search.zoom || viewData.zoom,
             projection: proj,
             proj_extent: viewData.proj_extent,
             extent: viewData.proj_extent,

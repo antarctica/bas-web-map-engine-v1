@@ -3,6 +3,7 @@
  */
 package uk.ac.antarctica.mapengine.controller;
 
+import it.geosolutions.geoserver.rest.HTTPUtils;
 import java.io.IOException;
 import java.security.Principal;
 import javax.servlet.ServletException;
@@ -11,13 +12,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import uk.ac.antarctica.mapengine.util.ActivityLogger;
 
 @Controller
 public class HomeController {
+    
+    private static final String REDMINE = "http://redmine.nerc-bas.ac.uk";
     
     /**
      * Render top level page (this may need to be changed for different servers)   
@@ -80,6 +82,7 @@ public class HomeController {
         String username = getUserName(request);
         model.addAttribute("map", map);
         model.addAttribute("username", username);
+        model.addAttribute("issuedata", getIssueData(null));
         ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Public map " + map + " requested");
         return("map");
     }        
@@ -99,6 +102,7 @@ public class HomeController {
         String username = getUserName(request);
         model.addAttribute("map", map);
         model.addAttribute("username", username);
+        model.addAttribute("issuedata", getIssueData(null));
         model.addAttribute("debug", true);
         ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Public map " + map + " (debug) requested");
         return("map");
@@ -149,7 +153,29 @@ public class HomeController {
         String username = getUserName(request);
         model.addAttribute("map", map);
         model.addAttribute("username", username);
+        model.addAttribute("issuedata", getIssueData(null));
         ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Restricted map " + map + " requested");
+        return("map");
+    }    
+    
+    /**
+     * Render user-defined public map with attached issue number   
+     * @param HttpServletRequest request,
+     * @param String map
+     * @param Integer issue
+     * @param ModelMap model
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/restricted/{map}/{issue}", method = RequestMethod.GET)
+    public String mapRestrictedIssue(HttpServletRequest request, @PathVariable("map") String map, @PathVariable("issue") Integer issue, ModelMap model) throws ServletException, IOException {    
+        request.getSession().setAttribute("map", map);
+        String username = getUserName(request);
+        model.addAttribute("map", map);
+        model.addAttribute("username", username);
+        model.addAttribute("issuedata", getIssueData(issue));
+        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Restricted map " + map + " requested with issue " + issue);
         return("map");
     }    
     
@@ -168,8 +194,31 @@ public class HomeController {
         String username = getUserName(request);
         model.addAttribute("map", map);
         model.addAttribute("username", username);
+        model.addAttribute("issuedata", getIssueData(null));
         model.addAttribute("debug", true);
         ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Restricted map " + map + " (debug) requested");
+        return("map");
+    }       
+    
+    /**
+     * Render user-defined public map (debug) with attached issue 
+     * @param HttpServletRequest request,
+     * @param String map
+     * @param Integer issue
+     * @param ModelMap model
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/restrictedd/{map}/{issue}", method = RequestMethod.GET)
+    public String mapRestrictedDebugIssue(HttpServletRequest request, @PathVariable("map") String map, @PathVariable("issue") Integer issue, ModelMap model) throws ServletException, IOException {    
+        request.getSession().setAttribute("map", map);
+        String username = getUserName(request);
+        model.addAttribute("map", map);
+        model.addAttribute("username", username);
+        model.addAttribute("issuedata", getIssueData(issue));
+        model.addAttribute("debug", true);
+        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Restricted map " + map + " (debug) requested with issue " + issue);
         return("map");
     }       
         
@@ -237,6 +286,24 @@ public class HomeController {
             return(p.getName());
         }
         return("guest");
+    }
+
+    /**
+     * Retrieve data for Redmine issue <issue>
+     * @param Integer issue
+     * @return String
+     */
+    private String getIssueData(Integer issue) {
+        String data = "{}";
+        if (issue != null) {
+            try {
+                data = HTTPUtils.get(REDMINE + "/issues/" + issue + ".json", "magic_auto", "magic123");
+                if (data == null || data.isEmpty()) {
+                    data = "{}";
+                }
+            } catch(Exception ex) {}            
+        }
+        return(data);
     }
 
 }
