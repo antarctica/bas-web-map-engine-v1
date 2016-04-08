@@ -80,6 +80,7 @@ magic.classes.creator.LayerAttributeMap.prototype.vectorLoadContext = function(c
                                 "type": $.isNumeric(value) ? "decimal" : "string",
                                 "nillable": true,
                                 "alias": "",
+                                "ordinal": "",
                                 "displayed": true,
                                 "filterable": false,
                                 "unique_values": false
@@ -152,7 +153,7 @@ magic.classes.creator.LayerAttributeMap.prototype.saveContext = function(context
     if ($.isArray(this.attribute_dictionary[context.id])) {
         var newMap = [];
         var nAttrs = this.attribute_dictionary[context.id].length;
-        var fields = ["name", "type", "nillable", "alias", "label", "displayed", "filterable", "unique_values"];
+        var fields = ["name", "type", "nillable", "alias", "ordinal", "label", "displayed", "filterable", "unique_values"];
         for (var i = 0; i < nAttrs; i++) {
             var attrData = this.attribute_dictionary[context.id][i];
             if (attrData.type.indexOf("gml:") != 0) {
@@ -200,10 +201,11 @@ magic.classes.creator.LayerAttributeMap.prototype.toForm = function(id, attrMap,
         html += '<th>Name</th>';
         html += '<th>Type</th>';
         html += '<th>Alias</th>';
-        html += '<th width="46">Label</th>';
-        html += '<th width="46">Vis</th>';
-        html += '<th width="46">Filter</th>';
-        html += '<th width="46">Uniq</th>';
+        html += '<th width="37"><span data-toggle="tooltip" data-placement="top" title="Ordering of attribute in pop-up">O<span></th>';
+        html += '<th width="37"><span class="fa fa-tag" data-toggle="tooltip" data-placement="top" title="Use attribute a feature label (not for WMS layers)"><span></th>';        
+        html += '<th width="37"><span class="fa fa-eye" data-toggle="tooltip" data-placement="top" title="Attribute is visible in pop-ups"><span></th>';
+        html += '<th width="37"><span class="fa fa-filter" data-toggle="tooltip" data-placement="top" title="Can filter layer on this attribute"><span></th>';
+        html += '<th width="37"><span data-toggle="tooltip" data-placement="top" title="Display unique attribute values when filtering">U</span></th>';
         html += '</tr>';
         $.each(attrDict, $.proxy(function(idx, entry) {
             html += '<input type="hidden" id="_amap_name_' + idx + '" value="' + entry.name + '"></input>';
@@ -212,10 +214,11 @@ magic.classes.creator.LayerAttributeMap.prototype.toForm = function(id, attrMap,
             if (entry.type.indexOf("gml:") != 0) {
                 /* This is not the geometry field */
                 var exo = existingMap[entry.name];
-                var alias = "", label = false, display = false, filter = false, unique = false;
+                var alias = "", label = false, display = false, filter = false, unique = false, ordinal = "";
                 if (exo) {
                     alias = exo.alias;
                     label = exo.label;
+                    ordinal = exo.ordinal || "";
                     display = exo.displayed === true ? true : false;
                     filter = exo.filterable === true ? true : false;
                     unique = exo.unique_values === true ? true : false;
@@ -225,8 +228,9 @@ magic.classes.creator.LayerAttributeMap.prototype.toForm = function(id, attrMap,
                 html += '<td>' + entry.type.replace("xsd:", "") + '</td>';
                 html += '<td><input type="text" id="_amap_alias_' + idx + '" value="' + alias + '" style="width:90px !important" ' + 
                         'data-toggle="tooltip" data-placement="top" title="Human-friendly name to display in pop-ups"></input></td>';
+                html += '<td><input type="number" size="2" style="width: 37px" min="1" max="99" id="_amap_ordinal_' + idx + '" value="' + ordinal + '"></input></td>';
                 html += '<td><input type="checkbox" id="_amap_label_' + idx + '" value="label"' + (label ? ' checked' : '') + ' ' +
-                        'data-toggle="tooltip" data-placement="top" title="Display attribute value as a feature label on map"></input></td>';
+                        'data-toggle="tooltip" data-placement="top" title="Display attribute value as a feature label on map"></input></td>';                
                 html += '<td><input type="checkbox" id="_amap_displayed_' + idx + '" value="display"' + (display ? ' checked' : '') + ' ' +
                         'data-toggle="tooltip" data-placement="top" title="Display attribute value in pop-ups"></input></td>';
                 html += '<td><input type="checkbox" id="_amap_filterable_' + idx + '" value="filter"' + (filter ? ' checked' : '') + ' ' +

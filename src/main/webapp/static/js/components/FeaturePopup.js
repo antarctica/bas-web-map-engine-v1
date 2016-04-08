@@ -25,6 +25,9 @@ magic.classes.FeaturePopup = function(options) {
     /* Pointer to which feature in the list is being displayed */
     this.featurePointer = 0;
     
+    /* What counts as a long field which will get a pop-up and ellipsis button */
+    this.LONG_FIELD_THRESHOLD = 80;
+    
     if ($("#" + this.popupId).length == 0) {
         /* Popup div needs creating */
         $("#" + this.mapdiv).after(
@@ -107,6 +110,17 @@ magic.classes.FeaturePopup.prototype.show = function(showAt, featureData) {
             content: this.basicMarkup()  /* Basic feature attributes i.e. name, lon, lat */
         }).on("shown.bs.popover", $.proxy(function() {
             this.selectFeature();
+            /* Extension fields */
+            $(".long-field-extension").each(function(i, b) {
+                var divs = $(b).children("div");
+                if (divs.length > 0) {
+                    $(b).popover({
+                        title: false,
+                        html: true,
+                        content: '<div style="width:200px">' + $(divs[0]).html() + '</div>'
+                    });
+                }
+            });
             /* Close button */
             $("span.feature-popup-title-cont").find("button.close").click($.proxy(function() { 
                 $("#" + this.popupId).popover("hide");
@@ -151,8 +165,15 @@ magic.classes.FeaturePopup.prototype.basicMarkup = function() {
         if (feat.layer) {            
             var md = feat.layer.get("metadata");
             if (md && $.isArray(md.attribute_map)) {
+                /* Sort attribute map according to the ordinals (added by David 08/04/2016 in response to request by Alex B-J) */                
+                md.attribute_map.sort(function(a, b) {
+                    var orda = a["ordinal"] || 999;
+                    var ordb = b["ordinal"] || 999;
+                    return((orda < ordb) ? -1 : (orda > ordb) ? 1 : 0);
+                });                   
                 nAttrs = md.attribute_map.length;
                 $.each(md.attribute_map, $.proxy(function(idx, attrdata) {
+                    var extension = false;
                     if (attrdata.displayed === true) {
                         var nameStr = attrdata.alias || attrdata.name;
                         if (attrdata.type == "xsd:string") {
@@ -161,12 +182,25 @@ magic.classes.FeaturePopup.prototype.basicMarkup = function() {
                                 var quote1 = feat[attrdata.name].indexOf("\"");
                                 var quote2 = feat[attrdata.name].lastIndexOf("\"");
                                 if (quote1 != -1 && quote2 != -1) {
+                                    /* This is a link with an alias i.e. "<linktext>":<url> */
                                     finalValue = magic.modules.Common.linkify(feat[attrdata.name].substring(quote2+2), feat[attrdata.name].substring(quote1+1, quote2));
                                 } else {
-                                    finalValue = magic.modules.Common.linkify(feat[attrdata.name]);
+                                    var longContent = magic.modules.Common.linkify(feat[attrdata.name]);
+                                    if (longContent.length > this.LONG_FIELD_THRESHOLD && longContent.indexOf("http") != 0) {
+                                        /* Long field attribute, not a long link */
+                                        // HERE
+                                        finalValue += 
+                                            '<button class="btn btn-default btn-sm long-field-extension" role="button" data-toggle="popover" data-placement="right">' + 
+                                                '<span class="fa fa-ellipsis-h"></span>' + 
+                                                '<div style="display:none">' + longContent + '</div>' + 
+                                            '</button>';
+                                        extension = true;
+                                    } else {
+                                        finalValue = longContent;
+                                    }
                                 }                                                    
                             }
-                            content += '<tr><td>' + nameStr + '</td><td>' + finalValue + '</td></tr>';
+                            content += '<tr><td>' + nameStr + '</td><td' + (extension ? ' align="right"' : '') + '>' + finalValue + '</td></tr>';
                         } else {                            
                             content += '<tr><td>' + nameStr + '</td><td align="right">' + this.attributeValue(attrdata.name, feat[attrdata.name]) + '</td></tr>';
                         }

@@ -491,6 +491,19 @@
 													"description": "Human-friendly alias for this attribute name",
 													"type": "string"
 												},
+                                                "ordinal": {
+													"description": "Attribute appears at this ordering position in a pop-up",
+													"anyOf": [
+                                                        {
+                                                            "type": "number",
+                                                            "minimum": 1,
+                                                            "maximum": 99
+                                                        },
+                                                        {
+                                                            "type": "null"                    
+                                                        }
+                                                    ]		
+												},
 												"unique_values": {
 													"description": "Whether to present unique values of attr in a drop-down (not implemented in v1)",
 													"type": "boolean"
