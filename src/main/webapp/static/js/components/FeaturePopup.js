@@ -26,7 +26,7 @@ magic.classes.FeaturePopup = function(options) {
     this.featurePointer = 0;
     
     /* What counts as a long field which will get a pop-up and ellipsis button */
-    this.LONG_FIELD_THRESHOLD = 80;
+    this.LONG_FIELD_THRESHOLD = 120;
     
     if ($("#" + this.popupId).length == 0) {
         /* Popup div needs creating */
@@ -109,18 +109,7 @@ magic.classes.FeaturePopup.prototype.show = function(showAt, featureData) {
             html: true,
             content: this.basicMarkup()  /* Basic feature attributes i.e. name, lon, lat */
         }).on("shown.bs.popover", $.proxy(function() {
-            this.selectFeature();
-            /* Extension fields */
-            $(".long-field-extension").each(function(i, b) {
-                var divs = $(b).children("div");
-                if (divs.length > 0) {
-                    $(b).popover({
-                        title: false,
-                        html: true,
-                        content: '<div style="width:200px">' + $(divs[0]).html() + '</div>'
-                    });
-                }
-            });
+            this.selectFeature();            
             /* Close button */
             $("span.feature-popup-title-cont").find("button.close").click($.proxy(function() { 
                 $("#" + this.popupId).popover("hide");
@@ -186,9 +175,8 @@ magic.classes.FeaturePopup.prototype.basicMarkup = function() {
                                     finalValue = magic.modules.Common.linkify(feat[attrdata.name].substring(quote2+2), feat[attrdata.name].substring(quote1+1, quote2));
                                 } else {
                                     var longContent = magic.modules.Common.linkify(feat[attrdata.name]);
-                                    if (longContent.length > this.LONG_FIELD_THRESHOLD && longContent.indexOf("http") != 0) {
+                                    if (feat[attrdata.name].length > this.LONG_FIELD_THRESHOLD) {
                                         /* Long field attribute, not a long link */
-                                        // HERE
                                         finalValue += 
                                             '<button class="btn btn-default btn-sm long-field-extension" role="button" data-toggle="popover" data-placement="right">' + 
                                                 '<span class="fa fa-ellipsis-h"></span>' + 
@@ -265,8 +253,19 @@ magic.classes.FeaturePopup.prototype.selectFeature = function() {
             $(elt).removeClass("show").addClass("hidden");
         }
     }, this));
+    /* Add long field popup extension handler */
+    $("div.feature-popup-table-cont").find("button.long-field-extension").each(function(i, b) {
+        var divs = $(b).children("div");
+        if (divs.length > 0) {
+            $(b).popover({
+                title: false,
+                html: true,
+                content: '<div style="width:200px">' + $(divs[0]).html() + '</div>'
+            });
+        }
+    });
     /* Add full attribute set modal handler */
-    $("div.feature-popup-table-cont").find("button").off("click").on("click", $.proxy(function(evt) {
+    $("div.feature-popup-table-cont").find("button[id^='popup-full-attr-set-']").off("click").on("click", $.proxy(function(evt) {
         var btnId = evt.currentTarget.id;
         var fidx = parseInt(btnId.substring(btnId.lastIndexOf("-")+1));
         if (!isNaN(fidx) && fidx < this.featureCollection.length) {
