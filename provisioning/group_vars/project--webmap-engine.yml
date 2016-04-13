@@ -1,0 +1,21 @@
+---
+# These variables override those defined by roles
+
+# App variables - apply to a single project
+app_project: "webmap-engine"
+app_project_repository: "ssh://git@stash.ceh.ac.uk:7999/magic/webmap_engine.git"
+app_project_directory: "/srv/apps/{{ app_project }}"
+
+# system-users specific variables
+system_users_users:
+  -
+    username: webmap
+    comment: Generic user account for performing day-to-day webmap-engine application related tasks
+    shell: /bin/bash
+    authorized_keys_directory: files/HOME/DOT-ssh/authorized-keys
+    authorized_keys_files:
+      - "darb1.pub"
+      - "dacon.pub"
+      - "felnne.pub"
+      - "jpro.pub"
+    state: present
