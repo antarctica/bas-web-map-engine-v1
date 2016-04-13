@@ -13,10 +13,13 @@
     - include: tasks/ansible/setup-ansible-uri-module.yml
     - include: tasks/ansible/setup-ansible-unarchive-module.yml
 
+    - include: tasks/oracle-jdk7/install-java-advanced-imaging.yml
+
     - include: tasks/database/setup-webmap-database.yml
     - include: tasks/tomcat/setup-tomcat-manager.yml
     - include: tasks/tomcat/remove-default-applications.yml
 
-    - include: tasks/geoserver/install-geoserver.yml
+    - include: tasks/geoserver/deploy-geoserver.yml
+    - include: tasks/geoserver/configure-geoserver.yml
   handlers:
     - include: roles/bas-ansible-roles-collection.tomcat8/handlers/main.yml
