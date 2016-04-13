@@ -154,9 +154,9 @@ magic.classes.AttributionModal.prototype.metadataMarkup = function() {
             } else if (md.source.kml_source) {
                 sourceUrl = md.source.kml_source;            
             }
-            if (sourceUrl != null && sourceUrl.match(/entryid=[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$/)) {
+            if (sourceUrl != null && sourceUrl.match("/entry/get") != null && sourceUrl.match(/[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}/) != null) {
                 /* Ramadda repository URL */
-                var mdUrl = sourceUrl.replace("/get/", "/show/") + "&output=json";
+                var mdUrl = sourceUrl.replace("/get", "/show") + "&output=json";
                 $.getJSON(mdUrl, $.proxy(this.populateRecordRamadda, this));
             }
         }

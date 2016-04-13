@@ -65,30 +65,36 @@ magic.classes.creator.LayerAttributeMap.prototype.vectorLoadContext = function(c
                 dataType: "text"
             });
             jqXhr.done($.proxy(function(data) {
-                var testFeat = format.readFeature(data);
-                if (testFeat) {
-                    var attrKeys = testFeat.getKeys();
-                    if ($.isArray(attrKeys) && attrKeys.length > 0) {
-                        var allowedKeys = $.grep(attrKeys, function(elt) {
-                            return(elt.indexOf("geom") == 0 || elt.indexOf("extension") == 0);
-                        }, true);
-                        var attrDict = [];
-                        $.each(allowedKeys, $.proxy(function(idx, akey) {
-                            var value = testFeat.get(akey);
-                            attrDict.push({
-                                "name": akey,
-                                "type": $.isNumeric(value) ? "decimal" : "string",
-                                "nillable": true,
-                                "alias": "",
-                                "ordinal": "",
-                                "displayed": true,
-                                "filterable": false,
-                                "unique_values": false
-                            });                        
-                        }, this));
-                        this.attribute_dictionary[context.id] = attrDict;
-                        this.type_dictionary[context.id] = this.featureGeomType(testFeat);
-                        this.div.html(this.toForm(context.id, context.attribute_map, attrDict));
+                var testFeats = format.readFeatures(data);
+                if ($.isArray(testFeats) && testFeats.length > 0) {
+                    /* Successful read of test feature */            
+                    var testFeat = testFeats[0];
+                    if (testFeat) {
+                        var attrKeys = testFeat.getKeys();
+                        if ($.isArray(attrKeys) && attrKeys.length > 0) {
+                            var allowedKeys = $.grep(attrKeys, function(elt) {
+                                return(elt.indexOf("geom") == 0 || elt.indexOf("extension") == 0);
+                            }, true);
+                            var attrDict = [];
+                            $.each(allowedKeys, $.proxy(function(idx, akey) {
+                                var value = testFeat.get(akey);
+                                attrDict.push({
+                                    "name": akey,
+                                    "type": $.isNumeric(value) ? "decimal" : "string",
+                                    "nillable": true,
+                                    "alias": "",
+                                    "ordinal": "",
+                                    "displayed": true,
+                                    "filterable": false,
+                                    "unique_values": false
+                                });                        
+                            }, this));
+                            this.attribute_dictionary[context.id] = attrDict;
+                            this.type_dictionary[context.id] = this.featureGeomType(testFeat);
+                            this.div.html(this.toForm(context.id, context.attribute_map, attrDict));
+                        }
+                    } else {
+                        this.div.html('<div class="alert alert-warning" style="margin-bottom:0">Failed to parse test feature from ' + source + '</div>');
                     }
                 } else {
                     this.div.html('<div class="alert alert-warning" style="margin-bottom:0">Failed to parse test feature from ' + source + '</div>');

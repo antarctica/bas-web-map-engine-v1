@@ -36,7 +36,8 @@ magic.classes.creator.LayerUpdater = function(prefix) {
         ],
         "geojson": [
             {"field": "geojson_source", "default": ""},
-            {"field": "feature_name", "default": ""}
+            {"field": "feature_name", "default": ""},
+            {"field": "srs", "default": ""}
         ],
         "gpx": [
             {"field": "gpx_source", "default": ""}

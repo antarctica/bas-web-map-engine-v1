@@ -371,6 +371,11 @@
                                                         "type": "string",
                                                         "pattern": "^[a-zA-Z0-9_:]+$"
                                                     },
+                                                    "srs": {
+                                                        "description": "Projection of GeoJSON feed",
+                                                        "type": "string",
+                                                        "pattern": "^EPSG:[0-9]{4,5}$"
+                                                    },
                                                     "style_definition": {
                                                         "description": "Definition of a vector style to use",
                                                         "type": "string",

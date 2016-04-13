@@ -234,15 +234,17 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
             var layer = null;
             var proj = magic.runtime.viewdata.projection;            
             /* Get min/max resolution */  
-            var minRes = null, maxRes = null;
-            if (nd.source.wms_source != "osm") {
-                minRes = magic.runtime.viewdata.resolutions[magic.runtime.viewdata.resolutions.length-1];
-                maxRes = magic.runtime.viewdata.resolutions[0]+1;   /* Note: OL applies this one exclusively, whereas minRes is inclusive - duh! */  
-                if ($.isNumeric(nd.minScale)) {
-                    minRes = magic.modules.GeoUtils.getResolutionFromScale(nd.min_scale);
-                }
-                if ($.isNumeric(nd.maxScale)) {
-                    maxRes = magic.modules.GeoUtils.getResolutionFromScale(nd.max_scale);
+            var minRes = undefined, maxRes = undefined;
+            if (!(nd.source.wms_source && nd.source.wms_source == "osm")) {
+                if (magic.runtime.viewdata.resolutions) {
+                    minRes = magic.runtime.viewdata.resolutions[magic.runtime.viewdata.resolutions.length-1];
+                    maxRes = magic.runtime.viewdata.resolutions[0]+1;   /* Note: OL applies this one exclusively, whereas minRes is inclusive - duh! */  
+                    if ($.isNumeric(nd.minScale)) {
+                        minRes = magic.modules.GeoUtils.getResolutionFromScale(nd.min_scale);
+                    }
+                    if ($.isNumeric(nd.maxScale)) {
+                        maxRes = magic.modules.GeoUtils.getResolutionFromScale(nd.max_scale);
+                    }
                 }
             }
             if (isWms) {
@@ -302,13 +304,14 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                 this.layersBySource[isBase ? "base" : "wms"].push(layer);
             } else if (nd.source.geojson_source) {
                 /* GeosJSON layer */
-                if (nd.source.feature_name) {
-                    /* WFS */
-                    var format = new ol.format.GeoJSON();
-                    var vectorSource = new ol.source.Vector({
-                        format: format,
-                        loader: function(extent, resolution, projection) {
-                            var url = nd.source.geojson_source + "?service=wfs&request=getfeature&outputFormat=application/json&" + 
+                var format = new ol.format.GeoJSON();
+                var vectorSource = new ol.source.Vector({
+                    format: format,
+                    loader: function(extent, resolution, projection) {
+                        var url = nd.source.geojson_source;
+                        if (nd.source.feature_name) {                           
+                            /* WFS */
+                            url = nd.source.geojson_source + "?service=wfs&request=getfeature&outputFormat=application/json&" + 
                                 "typename=" + nd.source.feature_name + "&" + 
                                 "srsname=" + projection.getCode() + "&";
                             if (magic.runtime.filters[nd.name]) {
@@ -318,45 +321,45 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                             }     
                             if (magic.modules.Endpoints.proxy[url] === true) {
                                 url = magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(url);
+                            }                            
+                        }
+                        $.ajax({
+                            url: url,
+                            method: "GET"
+                        }).done(function(response) {
+                            var json = JSON.parse(response);
+                            if (json.type && json.type == "FeatureCollection") {
+                                /* This is a sensible response at least - discover data projection */
+                                var projCode = magic.runtime.map.getView().getProjection().getCode();
+                                var dataProjection = "EPSG:4326";
+                                if (!nd.source.srs) {
+                                    try {
+                                        var crs = json.crs.properties.name;
+                                        if (crs.indexOf(":" + projCode) != -1) {
+                                            dataProjection = projCode;
+                                        }
+                                    } catch(e){}
+                                } else {
+                                    dataProjection = nd.source.srs;
+                                }                              
+                                vectorSource.addFeatures(format.readFeatures(response, {
+                                    dataProjection: dataProjection,
+                                    featureProjection: projCode
+                                }));
                             }
-                            $.ajax({
-                                url: url,
-                                method: "GET"
-                            }).done(function(response) {
-                                vectorSource.addFeatures(format.readFeatures(response));
-                            });
-                            //.fail(function(jqXhr, status, err) {
-                            //TODO
-                            //});
-                        },                        
-                        projection: magic.runtime.view.getProjection()
-                    });
-                    layer = new ol.layer.Vector({
-                        name: nd.name,
-                        visible: isVisible,
-                        source: vectorSource,
-                        style: this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map)) ,
-                        metadata: nd,
-                        minResolution: minRes,
-                        maxResolution: maxRes
-                    });
-                } else {
-                    /* Some other GeoJSON feed */
-                    layer = new ol.layer.Image({
-                        name: nd.name,
-                        visible: isVisible,
-                        metadata: nd,
-                        source: new ol.source.ImageVector({
-                            source: new ol.source.Vector({
-                                format: new ol.format.GeoJSON(),                                
-                                url: nd.source.geojson_source
-                            })
-                        }),
-                        style: this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map)),
-                        minResolution: minRes,
-                        maxResolution: maxRes
-                    });
-                }
+                        })                        
+                    },                        
+                    projection: magic.runtime.view.getProjection()
+                });
+                layer = new ol.layer.Vector({
+                    name: nd.name,
+                    visible: isVisible,
+                    source: vectorSource,
+                    style: this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map)),
+                    metadata: nd,
+                    minResolution: minRes,
+                    maxResolution: maxRes
+                });
                 this.layersBySource["geojson"].push(layer);
             } else if (nd.source.gpx_source) {
                 /* GPX layer */
@@ -430,9 +433,16 @@ magic.classes.LayerTree.prototype.getLabelField = function(attrMap) {
 magic.classes.LayerTree.prototype.getVectorStyle = function(styleDef, labelField) {
     return(function(feature, resolution) {
         var style = null;
+        /* Determine feature type */
+        var geomType = "point";
+        if (feature.getGeometry() instanceof ol.geom.LineString || feature.getGeometry() instanceof ol.geom.MultiLineString) {
+            geomType = "line";
+        } else if (feature.getGeometry() instanceof ol.geom.Polygon || feature.getGeometry() instanceof ol.geom.MultiPolygon) {
+            geomType = "polygon";
+        }        
         var defaultFill =  {color: "rgba(255, 0, 0, 0.6)"};
         var defaultStroke = {color: "rgba(255, 0, 0, 1.0)", width: 1};   
-        var fill, stroke, graphic;
+        var fill = null, stroke = null, graphic = null, text = null;
         if (styleDef) {
             if (styleDef.fill) {
                 fill = new ol.style.Fill({
@@ -490,7 +500,7 @@ magic.classes.LayerTree.prototype.getVectorStyle = function(styleDef, labelField
                     stroke: stroke
                 });
             }
-            var text = null;
+            text = null;
             if (labelField) {
                 var textColor = stroke.getColor();
                 textColor[3] = 1.0; /* Opaque text */
@@ -507,25 +517,39 @@ magic.classes.LayerTree.prototype.getVectorStyle = function(styleDef, labelField
                         color: "#ffffff",
                         width: 1
                     })
-                });
-                style = new ol.style.Style({
-                    image: graphic,                    
-                    text: text
-                });
-            } else {
-                style = new ol.style.Style({
-                    image: graphic
-                });
-            }
+                });                
+            }            
         } else {
             /* Default style */
-            style = new ol.style.Style({
-                image: new ol.style.Circle({
-                    radius: 5, 
-                    fill: $.extend({}, defaultFill),
-                    stroke: $.extend({}, defaultStroke)
-                })
+            fill = $.extend({}, defaultFill);
+            stroke = $.extend({}, defaultStroke);
+            graphic =  new ol.style.Circle({
+                radius: 5, 
+                fill: fill,
+                stroke: stroke
             });
+            text = null;            
+        }
+        switch (geomType) {
+            case "polygon":
+                style = new ol.style.Style({
+                    fill: fill,
+                    stroke: stroke,
+                    text: text || ""
+                });
+                break;
+            case "line":
+                style = new ol.style.Style({
+                    stroke: stroke,
+                    text: text || ""
+                });
+                break;
+            default: 
+                style = new ol.style.Style({
+                    image: graphic,                    
+                    text: text || ""
+                });
+                break;                   
         }
         return([style]);
     });

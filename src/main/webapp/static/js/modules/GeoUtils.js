@@ -214,6 +214,9 @@ magic.modules.GeoUtils = function() {
          * @returns {String}
          */
         formatBbox: function(bbox, dp) {
+            if (!bbox) {
+                return("");
+            }
             if (!dp && dp != 0) {
                 dp = 1;
             }
