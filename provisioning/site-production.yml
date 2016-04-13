@@ -1,0 +1,9 @@
+---
+# Setup infrastructure and application for production environment
+
+- name: setup production nodes
+  hosts: project--webmap-engine:&env--prod
+  remote_user: "{{ privileged_remote_user }}"
+  become: yes
+  roles:
+    - bas-ansible-roles-collection.system-core

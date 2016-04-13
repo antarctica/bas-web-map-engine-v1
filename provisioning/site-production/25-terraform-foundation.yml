@@ -1,0 +1,7 @@
+---
+# Brings a Terraform managed VM to a common 'foundation' state - this only needs to be run once per host
+# In the case of Terraform, any required work depends on the provider of each VM (e.g. AWS EC2)
+
+- name: setup AWS EC2 instances for provisioning
+  hosts: provider--aws-ec2
+  remote_user: terraform

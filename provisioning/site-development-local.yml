@@ -1,0 +1,38 @@
+---
+# Setup infrastructure and application for development environment
+
+- name: setup development nodes
+  hosts: project--webmap-engine:&env--dev-local
+  remote_user: "{{ privileged_remote_user }}"
+  become: yes
+  roles:
+    - bas-ansible-roles-collection.system-core
+    - bas-ansible-roles-collection.postgresql9-ext-postgis
+  tasks:
+    - name: create a non-privileged postgresql role for webmap engine user
+      postgresql_user:
+        name="webmap"
+        password="password"
+        state=present
+      become_user: postgres
+    - name: create database for webmap engine application
+      postgresql_db:
+        name="webmap_engine"
+        owner="webmap"
+        state=present
+      become_user: postgres
+    - name: enable postgresql extensions within webmap engine database
+      postgresql_ext:
+        name="{{ item }}"
+        db="webmap_engine"
+      with_items:
+        - postgis
+        - unaccent
+        - fuzzystrmatch
+      become_user: postgres
+    - name: set default database for webmap user
+      lineinfile:
+        dest='~/.bash_profile'
+        line="export PGDATABASE=webmap_engine"
+        state=present
+      become_user: webmap

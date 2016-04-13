@@ -1,1 +1,5 @@
+# Provisioning tool directories
+provisioning/site-development-local/.vagrant
+
+# Build output directories
 target/
