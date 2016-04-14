@@ -158,6 +158,8 @@ magic.classes.AttributionModal.prototype.metadataMarkup = function() {
                 /* Ramadda repository URL */
                 var mdUrl = sourceUrl.replace("/get", "/show") + "&output=json";
                 $.getJSON(mdUrl, $.proxy(this.populateRecordRamadda, this));
+            } else {
+                $("#attribution-metadata").html("No metadata available");
             }
         }
     } else {

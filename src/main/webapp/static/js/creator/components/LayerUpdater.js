@@ -6,8 +6,12 @@ magic.classes.creator.LayerUpdater = function(prefix) {
     this.prefix = prefix;
     
     /* Sub-tabs */
-    this.style_definition = null;
-    this.attribute_map = null;
+    
+     /* Style definition sub-tab */
+    this.style_definition = new magic.classes.creator.LayerStyler(this.prefix);
+    
+    /* Attribute map sub-tab */
+    this.attribute_map = new magic.classes.creator.LayerAttributeMap($("#" + this.prefix + "-attributes-div"));
     
     /* Common form inputs */
     this.form_fields = [
@@ -72,7 +76,8 @@ magic.classes.creator.LayerUpdater = function(prefix) {
     }, this));
     
     /* Layer source tab change handler */
-    $("a[href^='#" + this.prefix + "'][data-toggle='tab']").on("shown.bs.tab", $.proxy(function(evt) {
+    $("a[href^='#" + this.prefix + "'][data-toggle='tab']")
+    .on("shown.bs.tab", $.proxy(function(evt) {
         var sourceType = evt.target.innerHTML.toLowerCase();
         this.loadContext(this.data, sourceType);
         var symbologyPanel = $("#" + this.prefix + "-symbology-panel");
@@ -81,6 +86,9 @@ magic.classes.creator.LayerUpdater = function(prefix) {
         } else {
             symbologyPanel.show();
         }
+    }, this))
+    .on("hide.bs.tab", $.proxy(function(evt) {
+        this.saveContext();
     }, this));
 };
 
@@ -93,13 +101,7 @@ magic.classes.creator.LayerUpdater.prototype.loadContext = function(context, sou
     
     this.data = context;
    
-    var activeTab = this.setActiveSourceTab(context.source, sourceType);
-    
-    /* Style definition sub-tab */
-    this.style_definition = new magic.classes.creator.LayerStyler(this.prefix);
-    
-    /* Attribute map sub-tab */
-    this.attribute_map = new magic.classes.creator.LayerAttributeMap($("#" + this.prefix + "-attributes-div"));
+    var activeTab = this.setActiveSourceTab(context.source, sourceType);       
             
     /* Load data into common non-source specific fields */
     magic.modules.creator.Common.dictToForm(this.form_fields, this.data, this.prefix);
@@ -122,7 +124,9 @@ magic.classes.creator.LayerUpdater.prototype.saveContext = function() {
     /* Delete currently specified source data pending replacement with new */
     this.data.source = {};
     magic.modules.creator.Common.formToDict(this.source_form_fields[activeTab], this.data.source, this.prefix + "-" + activeTab);
-    this.attribute_map.saveContext(this.data, activeTab);
+    if (this.attributeMap) {
+        this.attribute_map.saveContext(this.data, activeTab);
+    }
     if (activeTab != "wms") {
         if (!("style_definition" in this.data.source)) {
             this.data.source.style_definition = {};

@@ -207,7 +207,7 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                 cb = '<input class="layer-vis-selector" name="base-layers-rb" id="base-layer-rb-' + nd.id + '" type="radio" ' + (isVisible ? "checked" : "") + '/>';
             } else {
                 cb = '<input class="layer-vis-selector" id="layer-cb-' + nd.id + '" type="checkbox" ' + (isVisible ? "checked" : "") + '/>';
-            }
+            }           
             element.append(
                     '<li class="list-group-item layer-list-group-item" id="layer-item-' + nd.id + '">' +
                         '<span style="float:left">' +
@@ -229,7 +229,7 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                             '</ul>' +
                         '</span>' +
                     '</li>'
-                    );
+                    );            
             /* Create a data layer */
             var layer = null;
             var proj = magic.runtime.viewdata.projection;            
@@ -325,7 +325,8 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                         }
                         $.ajax({
                             url: url,
-                            method: "GET"
+                            method: "GET",
+                            dataType: "text"
                         }).done(function(response) {
                             var json = JSON.parse(response);
                             if (json.type && json.type == "FeatureCollection") {
@@ -335,7 +336,7 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                                 if (!nd.source.srs) {
                                     try {
                                         var crs = json.crs.properties.name;
-                                        if (crs.indexOf(":" + projCode) != -1) {
+                                        if (crs.indexOf(":" + projCode.replace(/^EPSG:/, "")) != -1) {
                                             dataProjection = projCode;
                                         }
                                     } catch(e){}
@@ -500,7 +501,7 @@ magic.classes.LayerTree.prototype.getVectorStyle = function(styleDef, labelField
                     stroke: stroke
                 });
             }
-            text = null;
+            text = undefined;
             if (labelField) {
                 var textColor = stroke.getColor();
                 textColor[3] = 1.0; /* Opaque text */
@@ -508,7 +509,7 @@ magic.classes.LayerTree.prototype.getVectorStyle = function(styleDef, labelField
                     font: "Arial",
                     scale: 1.2,
                     offsetX: 10,
-                    text: feature.get(labelField),
+                    text: feature.get(labelField) + "",
                     textAlign: "left",
                     fill: new ol.style.Fill({
                         color: textColor
@@ -528,26 +529,26 @@ magic.classes.LayerTree.prototype.getVectorStyle = function(styleDef, labelField
                 fill: fill,
                 stroke: stroke
             });
-            text = null;            
+            text = undefined;            
         }
         switch (geomType) {
             case "polygon":
                 style = new ol.style.Style({
                     fill: fill,
                     stroke: stroke,
-                    text: text || ""
+                    text: text
                 });
                 break;
             case "line":
                 style = new ol.style.Style({
                     stroke: stroke,
-                    text: text || ""
+                    text: text
                 });
                 break;
             default: 
                 style = new ol.style.Style({
                     image: graphic,                    
-                    text: text || ""
+                    text: text
                 });
                 break;                   
         }

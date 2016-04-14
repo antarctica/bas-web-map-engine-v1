@@ -41,13 +41,15 @@ magic.classes.creator.LayerAttributeMap.prototype.vectorLoadContext = function(c
         if (sourceType == "geojson") {
             source = context.source.geojson_source;
             feature = context.source.feature_name;
-            if (source.indexOf("/wfs") > 0 && feature) {
-                /* WFS */
-                this.ogcLoadContext(source, feature, context.attribute_map);
-                return;
-            } else {
-                /* GeoJSON e.g. from API */
-                format = new ol.format.GeoJSON();
+            if (source) {
+                if (source.indexOf("/wfs") > 0 && feature) {
+                    /* WFS */
+                    this.ogcLoadContext(source, feature, context.attribute_map, context.id);
+                    return;
+                } else {
+                    /* GeoJSON e.g. from API */
+                    format = new ol.format.GeoJSON();
+                }
             }
         } else if (sourceType == "gpx") {
             /* GPX file */
@@ -193,7 +195,7 @@ magic.classes.creator.LayerAttributeMap.prototype.saveContext = function(context
 magic.classes.creator.LayerAttributeMap.prototype.toForm = function(id, attrMap, attrDict) {
     var html = '';
     $(".geometry-type-indicator").html(this.type_dictionary[id]);
-    if (attrDict.length > 0) {
+    if ($.isArray(attrDict) && attrDict.length > 0) {
         /* Some attributes - first compile a dictionary of what we already have */
         if (!attrMap) {
             attrMap = [];
