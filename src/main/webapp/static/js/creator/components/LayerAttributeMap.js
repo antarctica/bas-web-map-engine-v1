@@ -135,9 +135,17 @@ magic.classes.creator.LayerAttributeMap.prototype.ogcLoadContext = function(wms,
                 method: "GET",
                 dataType: "xml"
             })
-            .done($.proxy(function(response) {           
-                /* The \\ escapes the colon - needed to work in FF - see http://stackoverflow.com/questions/853740/jquery-xml-parsing-with-namespaces */
-                var elts = $(response).find("xsd\\:sequence").find("xsd\\:element");
+            .done($.proxy(function(response) {
+                /* Oh hell - thought this kind of stuff was a thing of the past... David 15/04/2016 */
+                var elts = [];
+                if (navigator.userAgent.match(/chrome/i) != null) {
+                    /* Google Chrome */
+                    elts = $(response).find("sequence").find("element");
+                } else {
+                    /* Mozilla Firefox, MSIE and the rest */
+                    /* The \\ escapes the colon - needed to work in FF - see http://stackoverflow.com/questions/853740/jquery-xml-parsing-with-namespaces */
+                    elts = $(response).find("xsd\\:sequence").find("xsd\\:element");
+                }               
                 var geomType = "unknown";
                 $.each(elts, $.proxy(function(idx, elt) {
                     var attrs = {};
