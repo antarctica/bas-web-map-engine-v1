@@ -15,11 +15,11 @@
                 </div>
                 <div class="panel-body">                
                     <div class="form-group">
-                        <label class="col-sm-2" for="t1-new-rb">
+                        <label class="col-sm-3" for="t1-new-rb">
                             <input type="radio" name="_t1-action-rb" id="t1-new-rb" value="new" checked="checked"></input>
                             Create a new map of
                         </label>
-                        <div class="col-sm-10">
+                        <div class="col-sm-9">
                             <select class="form-control map-creator-control-lg map-select" id="t1-new">
                                 <option value="">Select region</option>
                                 <option value="antarctic">Antarctica</option> 
@@ -30,22 +30,22 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-sm-2" for="t1-clone-rb">
+                        <label class="col-sm-3" for="t1-clone-rb">
                             <input type="radio" name="_t1-action-rb" id="t1-clone-rb" value="clone"></input>
                             Clone existing map
                         </label>
-                        <div class="col-sm-10">
+                        <div class="col-sm-9">
                             <select class="form-control map-creator-control-lg map-select" id="t1-clone" disabled="disabled">
                                 <option value="">Select a map</option>                       
                             </select>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-sm-2" for="t1-edit-rb">
+                        <label class="col-sm-3" for="t1-edit-rb">
                             <input type="radio" name="_t1-action-rb" id="t1-edit-rb" value="edit"></input>
                             Edit existing map
                         </label>
-                        <div class="col-sm-10">
+                        <div class="col-sm-9">
                             <select class="form-control map-creator-control-lg map-select" id="t1-edit" disabled="disabled">
                                 <option value="">Select a map</option>                        
                             </select>
@@ -60,8 +60,8 @@
                 <div class="panel-body">
                     <input type="hidden" name="t1-id" id="t1-id"></input>
                     <div class="form-group">
-                        <label for="t1-name" class="col-sm-2 control-label">Name of map</label>
-                        <div class="col-sm-10">
+                        <label for="t1-name" class="col-sm-3 control-label">Name of map</label>
+                        <div class="col-sm-9">
                             <input type="text" class="form-control map-creator-control-xl" id="t1-name" name="t1-name" placeholder="Name for map" 
                                    maxlength="50" data-toggle="tooltip" data-placement="right" title="Name to be used in the URL: only lowercase letters, numbers and _ allowed" 
                                    pattern="^[a-z0-9_]+$" required="required">                                   
@@ -69,48 +69,48 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="t1-title" class="col-sm-2 control-label">Title of map</label>
-                        <div class="col-sm-10">
+                        <label for="t1-title" class="col-sm-3 control-label">Title of map</label>
+                        <div class="col-sm-9">
                             <input type="text" class="form-control map-creator-control-xl" id="t1-title" name="t1-title" placeholder="Title for map" 
                                    maxlength="100" data-toggle="tooltip" data-placement="right" title="Informative title for the map" required="required">                                   
                             </input>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="t1-description" class="col-sm-2 control-label">Description</label>
-                        <div class="col-sm-10">
+                        <label for="t1-description" class="col-sm-3 control-label">Description</label>
+                        <div class="col-sm-9">
                             <textarea class="form-control map-creator-control-xl" id="t1-description" name="t1-description" placeholder="Comprehensive map description"
                                       data-toggle="tooltip" data-placement="right" title="Useful info like map purpose, intended audience etc" required="required">                            
                             </textarea>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="t1-logo" class="col-sm-2 control-label">Logo</label>
-                        <div class="col-sm-10">
+                        <label for="t1-logo" class="col-sm-3 control-label">Logo</label>
+                        <div class="col-sm-9">
                             <input type="url" class="form-control map-creator-control-xl" id="t1-logo" name="t1-logo" placeholder="http://" 
                                    maxlength="254" data-toggle="tooltip" data-placement="right" title="Full URL of 50-pixel high logo graphic (png or jpeg) - defaults to BAS logo if blank">                                   
                             </input>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="t1-metadata_url" class="col-sm-2 control-label">Logo link</label>
-                        <div class="col-sm-10">
+                        <label for="t1-metadata_url" class="col-sm-3 control-label">Logo link</label>
+                        <div class="col-sm-9">
                             <input type="url" class="form-control map-creator-control-xl" id="t1-metadata_url" name="t1-metadata_url" placeholder="http://" 
                                    maxlength="254" data-toggle="tooltip" data-placement="right" title="URL to direct to when the logo is clicked e.g. project home page, metadata feed">                                   
                             </input>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="t1-version" class="col-sm-2 control-label">Version</label>
-                        <div class="col-sm-10">
+                        <label for="t1-version" class="col-sm-3 control-label">Version</label>
+                        <div class="col-sm-9">
                             <input type="text" class="form-control map-creator-control-xl" id="t1-version" name="t1-version" value="1.0" maxlength="20"
                                    data-toggle="tooltip" data-placement="right" title="Map version">                            
                             </input>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="t1-owner_email" class="col-sm-2 control-label">Contact email</label>
-                        <div class="col-sm-10">
+                        <label for="t1-owner_email" class="col-sm-3 control-label">Contact email</label>
+                        <div class="col-sm-9">
                             <input type="email" class="form-control map-creator-control-xl" id="t1-owner_email" name="t1-owner_email" placeholder="Valid email address" maxlength="150"
                                    data-toggle="tooltip" data-placement="right" title="Contact email for map owner" required="required">                            
                             </input>
