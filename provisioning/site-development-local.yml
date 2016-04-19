@@ -8,6 +8,7 @@
   roles:
     - bas-ansible-roles-collection.system-core
     - bas-ansible-roles-collection.postgresql9-ext-postgis
+    - bas-ansible-roles-collection.tomcat8
   tasks:
     - name: create a non-privileged postgresql role for webmap engine user
       postgresql_user:
@@ -36,3 +37,6 @@
         line="export PGDATABASE=webmap_engine"
         state=present
       become_user: webmap
+    - include: tasks/tomcat/setup-tomcat-manager.yml
+  handlers:
+    - include: roles/bas-ansible-roles-collection.tomcat8/handlers/main.yml

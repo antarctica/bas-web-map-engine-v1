@@ -29,6 +29,8 @@
   version: v0.1.0
 - src: bas-ansible-roles-collection.postgresql9-client
   version: v0.1.0
+- src: bas-ansible-roles-collection.tomcat8
+  version: v0.1.1
 
 # Pinned dependencies of top level roles
 - src: bas-ansible-roles-collection.system-security
@@ -43,3 +45,5 @@
   version: v0.2.1
 - src: bas-ansible-roles-collection.postgresql9-server
   version: v0.2.0
+- src: bas-ansible-roles-collection.oracle-jdk7
+  version: v0.1.0
