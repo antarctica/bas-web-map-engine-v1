@@ -13,7 +13,7 @@ app_tomcat_admin_user_password: password
 system_users_users:
   -
     username: webmap
-    comment: Generic user account for performing day-to-day webmap-engine application related tasks
+    comment: Generic unprivileged account for performing day-to-day webmap-engine application related tasks
     shell: /bin/bash
     authorized_keys_directory: files/HOME/DOT-ssh/authorized-keys
     authorized_keys_files:
