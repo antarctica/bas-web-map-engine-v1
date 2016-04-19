@@ -11,6 +11,8 @@
     - bas-ansible-roles-collection.tomcat8
   tasks:
     - include: tasks/database/setup-webmap-database.yml
+    - include: tasks/tomcat/setup-ansible-uri-module.yml
     - include: tasks/tomcat/setup-tomcat-manager.yml
+    - include: tasks/tomcat/remove-default-applications.yml
   handlers:
     - include: roles/bas-ansible-roles-collection.tomcat8/handlers/main.yml
