@@ -6,72 +6,13 @@ app_project: "webmap-engine"
 app_project_repository: "ssh://git@stash.ceh.ac.uk:7999/magic/webmap_engine.git"
 app_project_directory: "/srv/apps/{{ app_project }}"
 
-app_database_user_password: password
-
-app_tomcat_admin_user_username: admin
 app_tomcat_admin_user_password: password
-
-app_tomcat_listening_address: "{{ ansible_fqdn }}"
-app_tomcat_listening_port: "{{ tomcat8_firewall_port_http | default('8080') }}"
-
-app_tomcat_undeployed_applications:
-  -
-    path: "/"
-    context: "/:running:0:ROOT"
-  -
-    path: "/docs"
-    context: "/docs:running:0:docs"
-  -
-    path: "/examples"
-    context: "/examples:running:0:examples"
-
-app_geoserver_version: 2.8.3
-app_geoserver_path: /geoserver
-app_geoserver_context: "/geoserver:running:0:geoserver##{{ app_geoserver_version }}"
-app_geoserver_war_file_uri: "http://sourceforge.net/projects/geoserver/files/GeoServer/{{ app_geoserver_version }}/geoserver-{{ app_geoserver_version }}-war.zip"
-
-app_geoserver_admin_user_username: admin
-# This is a temporary problem until the tasks to set the GeoServer master password can be used
-app_geoserver_admin_user_password_default: geoserver
-app_geoserver_admin_user_password: "{{ app_geoserver_admin_user_password_default }}"
-
-app_geoserver_listening_address: "{{ app_tomcat_listening_address }}"
-app_geoserver_listening_port: "{{ app_tomcat_listening_port }}"
-
-app_geoserver_contactinformation:
-  contact:
-    addressCity: "Cambridge"
-    addressCountry: "United Kingdom"
-    addressType: "Work"
-    contactEmail: "darb1@bas.ac.uk"
-    contactOrganization: "British Antarctic Survey"
-    contactPerson: "David Herbert - Mapping and Geographic Information Centre (MAGIC)"
-    contactPosition: "Service Administrator"
-
-app_geoserver_removed_workspaces:
-  - it.geosolutions
-  - cite
-  - tiger
-  - sde
-  - topp
-  - sf
-  - nurc
-
-app_geoserver_native_jai_major_version: "1"
-app_geoserver_native_jai_minor_version: "1"
-app_geoserver_native_jai_patch_version: "3"
-app_geoserver_native_jai_imageio_major_version: "1"
-app_geoserver_native_jai_imageio_minor_version: "1"
-
-app_webmap_engine_version: 0.1.0
-app_webmap_engine_path: /
-app_webmap_engine_context: "/:running:0:webmap-engine##{{ app_webmap_engine_version }}"
 
 # system-users specific variables
 system_users_users:
   -
     username: webmap
-    comment: Generic unprivileged account for performing day-to-day webmap-engine application related tasks
+    comment: Generic user account for performing day-to-day webmap-engine application related tasks
     shell: /bin/bash
     authorized_keys_directory: files/HOME/DOT-ssh/authorized-keys
     authorized_keys_files:

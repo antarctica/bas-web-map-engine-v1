@@ -10,6 +10,7 @@
     - bas-ansible-roles-collection.postgresql9-ext-postgis
     - bas-ansible-roles-collection.tomcat8
   tasks:
+<<<<<<< fb46edc3eaade61bed87b7ba73f3e2d134b49077
     - include: tasks/ansible/setup-ansible-uri-module.yml
     - include: tasks/ansible/setup-ansible-unarchive-module.yml
 
@@ -21,5 +22,35 @@
 
     - include: tasks/geoserver/deploy-geoserver.yml
     - include: tasks/geoserver/configure-geoserver.yml
+=======
+    - name: create a non-privileged postgresql role for webmap engine user
+      postgresql_user:
+        name="webmap"
+        password="password"
+        state=present
+      become_user: postgres
+    - name: create database for webmap engine application
+      postgresql_db:
+        name="webmap_engine"
+        owner="webmap"
+        state=present
+      become_user: postgres
+    - name: enable postgresql extensions within webmap engine database
+      postgresql_ext:
+        name="{{ item }}"
+        db="webmap_engine"
+      with_items:
+        - postgis
+        - unaccent
+        - fuzzystrmatch
+      become_user: postgres
+    - name: set default database for webmap user
+      lineinfile:
+        dest='~/.bash_profile'
+        line="export PGDATABASE=webmap_engine"
+        state=present
+      become_user: webmap
+    - include: tasks/tomcat/setup-tomcat-manager.yml
+>>>>>>> Adding java and tomcat basic support
   handlers:
     - include: roles/bas-ansible-roles-collection.tomcat8/handlers/main.yml
