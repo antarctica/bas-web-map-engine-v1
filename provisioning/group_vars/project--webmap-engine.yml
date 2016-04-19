@@ -7,7 +7,23 @@ app_project_repository: "ssh://git@stash.ceh.ac.uk:7999/magic/webmap_engine.git"
 app_project_directory: "/srv/apps/{{ app_project }}"
 
 app_database_user_password: password
+
+app_tomcat_admin_user_username: admin
 app_tomcat_admin_user_password: password
+
+app_tomcat_listening_address: "{{ ansible_fqdn }}"
+app_tomcat_listening_port: "{{ tomcat8_firewall_port_http }}"
+
+app_tomcat_undeployed_applications:
+  -
+    path: "/"
+    context: "/:running:0:ROOT"
+  -
+    path: "/docs"
+    context: "/docs:running:0:docs"
+  -
+    path: "/examples"
+    context: "/examples:running:0:examples"
 
 # system-users specific variables
 system_users_users:
