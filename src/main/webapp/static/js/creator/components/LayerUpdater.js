@@ -88,7 +88,7 @@ magic.classes.creator.LayerUpdater = function(prefix) {
         }
     }, this))
     .on("hide.bs.tab", $.proxy(function(evt) {
-        // TO DO - need to preserve any entered data in layer name/visibility/legend image
+        /* Maybe want to save some entered data if tab changes? Re-ordered dialog may mean this is less important - David 19/04/2016 */
     }, this));
 };
 
