@@ -25,6 +25,11 @@ app_tomcat_undeployed_applications:
     path: "/examples"
     context: "/examples:running:0:examples"
 
+app_geoserver_version: 2.8.3
+app_geoserver_path: /geoserver
+app_geoserver_context: "/geoserver:running:0:geoserver##{{ app_geoserver_version }}"
+app_geoserver_war_file_uri: "http://sourceforge.net/projects/geoserver/files/GeoServer/{{ app_geoserver_version }}/geoserver-{{ app_geoserver_version }}-war.zip"
+
 # system-users specific variables
 system_users_users:
   -

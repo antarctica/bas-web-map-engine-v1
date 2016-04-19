@@ -14,5 +14,6 @@
     - include: tasks/tomcat/setup-ansible-uri-module.yml
     - include: tasks/tomcat/setup-tomcat-manager.yml
     - include: tasks/tomcat/remove-default-applications.yml
+    - include: tasks/geoserver/install-geoserver.yml
   handlers:
     - include: roles/bas-ansible-roles-collection.tomcat8/handlers/main.yml
