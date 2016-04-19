@@ -1,0 +1,10 @@
+---
+# Configures the tomcat manager application for deploying WAR files
+
+- name: generate tomcat-users configuration file
+  template:
+      src=../../templates/etc/tomcat8/conf/tomcat-users.xml.j2
+     dest=/etc/tomcat8/conf/tomcat-users.xml
+    owner=tomcat
+    group=adm
+  notify: Restart Tomcat

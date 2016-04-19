@@ -6,6 +6,8 @@ app_project: "webmap-engine"
 app_project_repository: "ssh://git@stash.ceh.ac.uk:7999/magic/webmap_engine.git"
 app_project_directory: "/srv/apps/{{ app_project }}"
 
+app_tomcat_admin_user_password: password
+
 # system-users specific variables
 system_users_users:
   -
@@ -18,4 +20,18 @@ system_users_users:
       - "dacon.pub"
       - "felnne.pub"
       - "jpro.pub"
+    state: present
+  -
+    username: admin
+    comment: TEMPORARY Generic privileged account for performing administration or diagnostic webmap-engine application related tasks
+    shell: /bin/bash
+    authorized_keys_directory: files/HOME/DOT-ssh/authorized-keys
+    authorized_keys_files:
+      - "darb1.pub"
+      - "dacon.pub"
+      - "felnne.pub"
+      - "jpro.pub"
+    secondary_groups:
+      - adm
+    sudo: true
     state: present
