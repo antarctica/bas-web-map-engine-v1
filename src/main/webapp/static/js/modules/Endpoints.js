@@ -23,7 +23,8 @@ magic.modules.Endpoints = function () {
                     {"name": "Arctic Open Data", "wms": "https://maps.bas.ac.uk/arctic/wms", "coast": ["arctic:arctic_coastline"], "graticule": "arctic:arctic_graticule"}
                 ],
                 "EPSG:3762": [
-                    {"name": "South Georgia GIS", "wms": "https://maps.bas.ac.uk/southgeorgia/wms", "coast": ["sggis:sg_coastline"], "graticule": "ol"}
+                    {"name": "South Georgia GIS", "wms": "https://maps.bas.ac.uk/southgeorgia/wms", "coast": ["sggis:sg_coastline"], "graticule": "ol"},
+                    {"name": "Antarctic Peninsula Information Portal (APIP)", "wms": "http://bslbatgis.nerc-bas.ac.uk/geoserver/apip/wms"},
                 ],
                 "EPSG:3857": [
                     {"name": "OpenStreetMap", "wms": "osm", "coast": "osm"}
@@ -39,7 +40,8 @@ magic.modules.Endpoints = function () {
                     {"name": "Arctic Open Data", "wms": magic.config.paths.baseurl + "/geoserver/arctic/wms", "coast": ["arctic:arctic_coastline"], "graticule": "arctic:arctic_graticule"}
                 ],
                 "EPSG:3762": [
-                    {"name": "South Georgia GIS", "wms":  magic.config.paths.baseurl + "/geoserver/sggis/wms", "coast": ["sggis:sg_coastline"], "graticule": "ol"}
+                    {"name": "South Georgia GIS", "wms":  magic.config.paths.baseurl + "/geoserver/sggis/wms", "coast": ["sggis:sg_coastline"], "graticule": "ol"},
+                    {"name": "Antarctic Peninsula Information Portal (APIP)", "wms": "http://bslbatgis.nerc-bas.ac.uk/geoserver/apip/wms"},
                 ],
                 "EPSG:3857": [
                     {"name": "OpenStreetMap", "wms": "osm", "coast": "osm"}
