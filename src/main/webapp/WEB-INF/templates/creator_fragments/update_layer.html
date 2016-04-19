@@ -7,7 +7,31 @@
     <body th:fragment="layout">
         <form id="t2-layer-form" class="form-horizontal">
             <input type="hidden" id="t2-layer-id" name="t2-layer-id"></input>
-            <input type="hidden" id="t2-layer-geom_type" name="t2-layer-geom_type"></input>
+            <input type="hidden" id="t2-layer-geom_type" name="t2-layer-geom_type"></input>            
+            <div role="tabpanel">                
+                <!-- Source type tabs -->
+                <ul class="nav nav-pills" role="tablist">
+                    <li role="presentation" class="active">
+                        <a href="#t2-layer-wms-tab" aria-controls="home" role="tab" data-toggle="tab" data-placement="top" title="Data source is a WMS (Web Map Service) feed">WMS</a>
+                    </li>
+                    <li role="presentation">
+                        <a href="#t2-layer-geojson-tab" aria-controls="profile" role="tab" data-toggle="tab" data-placement="top" title="Data source is a GeoJSON feed">GeoJSON</a>
+                    </li>
+                    <li role="presentation">
+                        <a href="#t2-layer-gpx-tab" aria-controls="messages" role="tab" data-toggle="tab" data-placement="top" title="Data source is a GPX route/track or waypoints">GPX</a>
+                    </li>
+                    <li role="presentation">
+                        <a href="#t2-layer-kml-tab" aria-controls="settings" role="tab" data-toggle="tab" data-placement="top" title="Data source is a KML (Google Earth) file">KML</a>
+                    </li>
+                </ul>
+                <!-- Source tab panes -->
+                <div class="tab-content">
+                    <div role="tabpanel" class="tab-pane active" id="t2-layer-wms-tab" th:include="creator_fragments/layer_wms_tab :: layout"></div>
+                    <div role="tabpanel" class="tab-pane" id="t2-layer-geojson-tab" th:include="creator_fragments/layer_geojson_tab :: layout"></div>
+                    <div role="tabpanel" class="tab-pane" id="t2-layer-gpx-tab" th:include="creator_fragments/layer_gpx_tab :: layout"></div>
+                    <div role="tabpanel" class="tab-pane" id="t2-layer-kml-tab" th:include="creator_fragments/layer_kml_tab :: layout"></div>
+                </div>
+            </div>
             <div class="form-group">
                 <label for="t2-layer-name" class="col-sm-3 control-label">Layer name</label>
                 <div class="col-sm-9">
@@ -34,7 +58,7 @@
                            data-toggle="tooltip" data-placement="left" title="Custom URL for a legend image">                                   
                     </input>
                 </div>
-            </div>              
+            </div>
             <div class="panel panel-default" id="t2-layer-symbology-panel">
                 <div class="panel-heading">
                     <a class="btn btn-default"  style="width:100%" data-toggle="collapse" href="#t2-layer-style-props-div">Edit symbology</a>
@@ -133,23 +157,7 @@
                         </div>
                     </div>
                 </div> 
-            </div>
-            <div role="tabpanel">
-                <!-- Source type tabs -->
-                <ul class="nav nav-pills" role="tablist">
-                    <li role="presentation" class="active"><a href="#t2-layer-wms-tab" aria-controls="home" role="tab" data-toggle="tab">WMS</a></li>
-                    <li role="presentation"><a href="#t2-layer-geojson-tab" aria-controls="profile" role="tab" data-toggle="tab">GeoJSON</a></li>
-                    <li role="presentation"><a href="#t2-layer-gpx-tab" aria-controls="messages" role="tab" data-toggle="tab">GPX</a></li>
-                    <li role="presentation"><a href="#t2-layer-kml-tab" aria-controls="settings" role="tab" data-toggle="tab">KML</a></li>
-                </ul>
-                <!-- Source tab panes -->
-                <div class="tab-content">
-                    <div role="tabpanel" class="tab-pane active" id="t2-layer-wms-tab" th:include="creator_fragments/layer_wms_tab :: layout"></div>
-                    <div role="tabpanel" class="tab-pane" id="t2-layer-geojson-tab" th:include="creator_fragments/layer_geojson_tab :: layout"></div>
-                    <div role="tabpanel" class="tab-pane" id="t2-layer-gpx-tab" th:include="creator_fragments/layer_gpx_tab :: layout"></div>
-                    <div role="tabpanel" class="tab-pane" id="t2-layer-kml-tab" th:include="creator_fragments/layer_kml_tab :: layout"></div>
-                </div>
-            </div>
+            </div>            
             <button id="t2-layer-save" type="button" class="btn btn-primary">Update</button>
             <button id="t2-layer-delete" type="button" class="btn btn-danger btn-primary">Delete</button>
         </form>

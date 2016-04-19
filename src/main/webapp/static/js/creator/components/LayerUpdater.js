@@ -88,7 +88,7 @@ magic.classes.creator.LayerUpdater = function(prefix) {
         }
     }, this))
     .on("hide.bs.tab", $.proxy(function(evt) {
-        this.saveContext();
+        // TO DO - need to preserve any entered data in layer name/visibility/legend image
     }, this));
 };
 

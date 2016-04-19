@@ -67,6 +67,13 @@ magic.modules.creator.Common = function () {
             $('[data-toggle="tooltip"]').tooltip();
             /* For dynamic tooltips - http://stackoverflow.com/questions/9958825/how-do-i-bind-twitter-bootstrap-tooltips-to-dynamically-created-elements */
             $("body").tooltip({ selector: '[data-toggle="tooltip"]'});
+            /* See http://stackoverflow.com/questions/26023008/bootstrap-3-tooltip-on-tabs */
+            $('[data-toggle="tab"]').tooltip({
+                trigger: "hover",
+                placement: "top",
+                animate: true,
+                container: "body"
+            });
             /* Initialise tabs */
             this.map_context = new magic.classes.creator.MapContext();
             this.layer_dictionary = new magic.classes.creator.LayerDictionary();
