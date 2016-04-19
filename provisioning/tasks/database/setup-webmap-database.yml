@@ -1,0 +1,33 @@
+---
+# Creates a PostgreSQL role and database for the webmapp application, with relevant PostgreSQL extensions
+
+- name: create a non-privileged postgresql role for webmap engine user
+  postgresql_user:
+    name="webmap"
+    password="{{ app_database_user_password }}"
+    state=present
+  become_user: postgres
+
+- name: create database for webmap engine application
+  postgresql_db:
+    name="webmap_engine"
+    owner="webmap"
+    state=present
+  become_user: postgres
+
+- name: set default database for webmap user
+  lineinfile:
+    dest='~/.bash_profile'
+    line="export PGDATABASE=webmap_engine"
+    state=present
+  become_user: webmap
+
+- name: enable postgresql extensions within webmap engine database
+  postgresql_ext:
+    name="{{ item }}"
+    db="webmap_engine"
+  with_items:
+    - postgis
+    - unaccent
+    - fuzzystrmatch
+  become_user: postgres
