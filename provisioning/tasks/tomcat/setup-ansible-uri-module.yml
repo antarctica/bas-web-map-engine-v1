@@ -1,0 +1,10 @@
+---
+# Installs dependencies needed by Ansible for interacting with web-applications
+
+- name: install dependencies for ansible to interact with tomcat manager api
+  yum:
+             pkg={{ item }}
+    update_cache=yes
+           state=present
+  with_items:
+    - python-httplib2

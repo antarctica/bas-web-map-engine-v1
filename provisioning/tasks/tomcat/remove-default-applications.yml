@@ -27,8 +27,8 @@
     return_content=yes
   register: app_tomcat8_fact_applications_list
 
-- name: assert any applications to be undeployed are undeployed
+- name: fail if any applications to be undeployed are still deployed
   assert:
     that:
-      - "'{{ item.context }}' not in app_tomcat8_fact_applications_list.content"
+      - "'{{ item.context }}' not in app_tomcat8_fact_applications_list"
   with_items: app_tomcat_undeployed_applications
