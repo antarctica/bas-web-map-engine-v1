@@ -30,6 +30,33 @@ app_geoserver_path: /geoserver
 app_geoserver_context: "/geoserver:running:0:geoserver##{{ app_geoserver_version }}"
 app_geoserver_war_file_uri: "http://sourceforge.net/projects/geoserver/files/GeoServer/{{ app_geoserver_version }}/geoserver-{{ app_geoserver_version }}-war.zip"
 
+app_geoserver_admin_user_username: admin
+# This is a temporary problem until the tasks to set the GeoServer master password can be used
+app_geoserver_admin_user_password_default: geoserver
+app_geoserver_admin_user_password: "{{ app_geoserver_admin_user_password_default }}"
+
+app_geoserver_listening_address: "{{ app_tomcat_listening_address }}"
+app_geoserver_listening_port: "{{ app_tomcat_listening_port }}"
+
+app_geoserver_contactinformation:
+  contact:
+    addressCity: "Cambridge"
+    addressCountry: "United Kingdom"
+    addressType: "Work"
+    contactEmail: "darb1@bas.ac.uk"
+    contactOrganization: "British Antarctic Survey"
+    contactPerson: "David Herbert - Mapping and Geographic Information Centre (MAGIC)"
+    contactPosition: "Service Administrator"
+
+app_geoserver_removed_workspaces:
+  - it.geosolutions
+  - cite
+  - tiger
+  - sde
+  - topp
+  - sf
+  - nurc
+
 app_geoserver_native_jai_major_version: "1"
 app_geoserver_native_jai_minor_version: "1"
 app_geoserver_native_jai_patch_version: "3"

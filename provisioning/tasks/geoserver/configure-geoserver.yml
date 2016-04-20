@@ -1,4 +1,89 @@
 ---
+# Configure GeoServer admin account, contact information, workspaces and opt to use native JAI modules
+
+# Configure admin account
+#
+# NOTE: These tasks are currently disabled, therefore the default geoserver password ('geoserver') is used.
+#
+# This is slightly complicated as the password needed to login to GeoServer will change as a result of this action.
+# If we login with password1, which then changes to password2 on the first play-through, we can't repeat this on the
+# next play-through because password1 will no longer be valid.
+#
+# To get around this problem, we set a local fact after the password has been changed, and check for this fact before
+# trying to check the current password, or change it. If the fact has been set we move on.
+#
+# This has a major limitation (as well as not being very elegant) as once the password has been checked once it won't
+# be set again, even if the password variable changes. The only way around this to start from scratch.
+# However since this password is not expected to change that often in production, or not matter in development, this
+# isn't seen as being particularly limiting.
+#
+# These tasks are disabled because its not possible to check if the local fact has been defined, as ansible refuses to
+# to allow a when condition in the form 'if foo is defined, AND THEN if foo.bar is defined', instead of working through
+# each condition and failing on the first variable that is undefined, it checks all conditions at once, and then fails
+# complaining a deep variable (e.g. foo.bar) can't be checked because its parent variable (e.g. foo) is defined, despite
+# the fact we explicitly test for that first
+
+# - name: read geoserver master password
+#   uri:
+#                user="admin"
+#             password="geoserver"
+#               method=GET
+#     force_basic_auth=yes
+#                  url="http://{{ app_geoserver_listening_address }}:{{ app_geoserver_listening_port }}{{ app_geoserver_path }}/rest/security/masterpw.json"
+#   register: app_geoserver_fact_master_password
+#   when: ansible_local.app_geoserver is not defined and
+#     ansible_local.app_geoserver.general is not defined and
+#     ansible_local.app_geoserver.general.geoserver_master_password_set is not defined and
+#     ansible_local.app_geoserver.general.geoserver_master_password_set != true
+
+# - name: set geoserver master password
+#   shell: "curl -u admin:geoserver -X PUT -H 'Content-Type: application/json' -H 'Accept: application/json' -H 'Cache-Control: no-cache' -d '{ \"oldMasterPassword\": \"{{ app_geoserver_fact_master_password.json.oldMasterPassword }}\", \"newMasterPassword\": \"{{ app_geoserver_admin_user_password }}\"}' http://{{ app_geoserver_listening_address }}:{{ app_geoserver_listening_port }}{{ app_geoserver_path }}/rest/security/masterpw.json"
+#   register: app_geoserver_fact_set_master_password
+  # when: ansible_local.app_geoserver.general.geoserver_master_password_set is not defined
+
+# - name: set local fact to record that the geoserver master password has been changed
+#   file: ../../templates/etc/ansible/facts.d/app_geoserver.fact.j2
+  # when: ansible_local.app_geoserver.general.geoserver_master_password_set is not defined
+
+# Configure contact information
+
+- name: read geoserver contact information
+  uri:
+                user="{{ app_geoserver_admin_user_username }}"
+            password="{{ app_geoserver_admin_user_password }}"
+             timeout=180
+              method=GET
+    force_basic_auth=yes
+                 url="http://{{ app_geoserver_listening_address }}:{{ app_geoserver_listening_port }}{{ app_geoserver_path }}/rest/settings/contact.json"
+  register: app_geoserver_fact_contact_information
+
+- name: set geoserver contact information
+  shell: "curl -u {{ app_geoserver_admin_user_username }}:{{ app_geoserver_admin_user_password }} -X PUT -H 'Content-Type: application/json' -H 'Accept: application/json' -H 'Cache-Control: no-cache' -d '{{ app_geoserver_contactinformation | to_json }}' {{ app_geoserver_listening_address }}:{{ app_geoserver_listening_port }}{{ app_geoserver_path }}/rest/settings/contact.json"
+  changed_when: false
+  when: app_geoserver_fact_contact_information.json.contact.contactEmail != app_geoserver_contactinformation.contact.contactEmail
+
+# Configure workspaces
+
+- name: read geoserver workspaces
+  uri:
+                user="{{ app_geoserver_admin_user_username }}"
+            password="{{ app_geoserver_admin_user_password }}"
+             timeout=180
+              method=GET
+    force_basic_auth=yes
+                 url="http://{{ app_geoserver_listening_address }}:{{ app_geoserver_listening_port }}{{ app_geoserver_path }}/rest/workspaces.json"
+  register: app_geoserver_fact_workspaces
+
+- name: remove default geoserver workspaces
+  uri:
+                user="{{ app_geoserver_admin_user_username }}"
+            password="{{ app_geoserver_admin_user_password }}"
+             timeout=180
+              method=DELETE
+    force_basic_auth=yes
+                 url="{{ item.href }}?recurse=true"
+  with_items: app_geoserver_fact_workspaces.json.workspaces.workspace
+  when: app_geoserver_fact_workspaces.json is defined and item.name in app_geoserver_removed_workspaces
 
 - name: remove bundled java advanced imaging extensions from geoserver
   file: path="/var/lib/tomcat8/webapps/geoserver##{{ app_geoserver_version }}/WEB-INF/lib/{{ item }}" state=absent
