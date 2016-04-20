@@ -8,3 +8,13 @@
     owner=tomcat
     group=adm
   notify: Restart Tomcat
+  register: app_tomcat_users_updated
+
+# Tomcat needs to be restarted to use updated user file
+# Tomcat doesn't restart that quickly so we need to wait a bit before trying to hit its API,
+# otherwise we get a refused connection :/
+- meta: flush_handlers
+- wait_for:
+    port="{{ tomcat8_firewall_port_http }}"
+    delay=10
+  when: app_tomcat_users_updated.changed is defined and app_tomcat_users_updated.changed == true
