@@ -12,6 +12,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box = "antarctica/centos7"
   config.vm.box_version = "~> 0.7"
 
+  # VM resources
+    # More RAM is required for Java applications
+  config.vm.provider "vmware_fusion" do |v|
+        v.vmx["memsize"] = "2048"
+  end
+
   # Port forwarding
     # Disables Vagrant's default behaviour of forwarding default SSH port
   config.vm.network "forwarded_port", id: "ssh", guest: 22, host: 2222, auto_correct: true, disabled: true
