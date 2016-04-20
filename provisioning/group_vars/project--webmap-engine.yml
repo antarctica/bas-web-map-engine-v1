@@ -30,6 +30,12 @@ app_geoserver_path: /geoserver
 app_geoserver_context: "/geoserver:running:0:geoserver##{{ app_geoserver_version }}"
 app_geoserver_war_file_uri: "http://sourceforge.net/projects/geoserver/files/GeoServer/{{ app_geoserver_version }}/geoserver-{{ app_geoserver_version }}-war.zip"
 
+app_geoserver_native_jai_major_version: "1"
+app_geoserver_native_jai_minor_version: "1"
+app_geoserver_native_jai_patch_version: "3"
+app_geoserver_native_jai_imageio_major_version: "1"
+app_geoserver_native_jai_imageio_minor_version: "1"
+
 # system-users specific variables
 system_users_users:
   -
