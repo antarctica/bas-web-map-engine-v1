@@ -15,7 +15,7 @@
   get_url:
      url="{{ app_geoserver_war_file_uri }}"
     dest=/tmp/geoserver.war.zip
-  when: true == true and '{{ app_geoserver_context }}' not in "{{ app_tomcat8_fact_applications_list.content }}"
+  when: true == true and '{{ app_geoserver_path }}' not in "{{ app_tomcat8_fact_applications_list.content }}"
 
 - name: create directory to hold uncompressed geoserver war file
   file:
@@ -27,12 +27,12 @@
      src=/tmp/geoserver.war.zip
     dest=/tmp/geoserver/
     copy=no
-  when: true == true and '{{ app_geoserver_context }}' not in "{{ app_tomcat8_fact_applications_list.content }}"
+  when: true == true and '{{ app_geoserver_path }}' not in "{{ app_tomcat8_fact_applications_list.content }}"
 
 - name: deploy geoserver war through tomcat manager api
   shell: "curl -k -X PUT -u {{ app_tomcat_admin_user_username }}:{{ app_tomcat_admin_user_password }} --upload-file /tmp/geoserver/geoserver.war 'http://{{ app_tomcat_listening_address }}:{{ app_tomcat_listening_port }}/manager/text/deploy?path={{ app_geoserver_path }}&version={{ app_geoserver_version }}'"
   changed_when: true
-  when: true == true and '{{ app_geoserver_context }}' not in "{{ app_tomcat8_fact_applications_list.content }}"
+  when: true == true and '{{ app_geoserver_path }}' not in "{{ app_tomcat8_fact_applications_list.content }}"
 
 - name: check which tomcat applications are deployed
   uri:
@@ -45,7 +45,7 @@
 - name: assert geoserver has been deployed
   assert:
     that:
-      - "'{{ app_geoserver_context }}' in app_tomcat8_fact_applications_list.content"
+      - "'{{ app_geoserver_path }}' in app_tomcat8_fact_applications_list.content"
 
 - name: remove geoserver war file
   file:
@@ -54,4 +54,4 @@
   with_items:
     - /tmp/geosever.war.zip
     - /tmp/geoserver
-  when: true == true and '{{ app_geoserver_context }}' not in "{{ app_tomcat8_fact_applications_list.content }}"
+  when: true == true and '{{ app_geoserver_path }}' not in "{{ app_tomcat8_fact_applications_list.content }}"
