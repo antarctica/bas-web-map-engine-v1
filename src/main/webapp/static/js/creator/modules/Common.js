@@ -114,7 +114,7 @@ magic.modules.creator.Common = function () {
             /* Now validate the assembled map context against the JSON schema in /static/js/json/web_map_schema.json
              * https://github.com/geraintluff/tv4 is the validator used */            
             $.getJSON(magic.config.paths.baseurl + "/static/js/json/web_map_schema.json", $.proxy(function(schema) {
-                console.log(finalContext);
+                //console.log(finalContext);
                 var validationResult = tv4.validate(finalContext, schema);
                 var csrfHeaderVal = $("meta[name='_csrf']").attr("content");
                 var csrfHeader = $("meta[name='_csrf_header']").attr("content");
