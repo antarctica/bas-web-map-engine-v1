@@ -1,0 +1,43 @@
+---
+# Deploy webmap-engine Java application
+
+# Note: Because this application is deployed to the root, and so has a path of '/', we can't just use the path as a
+# test to see if the application is deployed as all applications contain a '/'. Therefore we actually test for:
+# '{{ path }}:' <-- note the colon
+
+- name: check which tomcat applications are deployed
+  uri:
+              user="{{ app_tomcat_admin_user_username }}"
+          password="{{ app_tomcat_admin_user_password }}"
+               url="http://{{ app_tomcat_listening_address }}:{{ app_tomcat_listening_port }}/manager/text/list"
+    return_content=yes
+  register: app_tomcat8_fact_applications_list
+
+- name: upload webmap-engine war file
+  copy:
+     src=../../files/webapps/webmap-engine.war
+    dest=~/webmap-engine.war
+  when: true == true and '{{ app_webmap_engine_path }}:' not in "{{ app_tomcat8_fact_applications_list.content }}"
+
+- name: deploy webmap-engine war through tomcat manager api
+  shell: "curl -k -X PUT -u {{ app_tomcat_admin_user_username }}:{{ app_tomcat_admin_user_password }} --upload-file ~/webmap-engine.war 'http://{{ app_tomcat_listening_address }}:{{ app_tomcat_listening_port }}/manager/text/deploy?path={{ app_webmap_engine_path }}&version={{ app_webmap_engine_version }}'"
+  changed_when: true
+  when: true == true and '{{ app_webmap_engine_path }}:' not in "{{ app_tomcat8_fact_applications_list.content }}"
+
+- name: check which tomcat applications are deployed
+  uri:
+              user="{{ app_tomcat_admin_user_username }}"
+          password="{{ app_tomcat_admin_user_password }}"
+               url="http://{{ app_tomcat_listening_address }}:{{ app_tomcat_listening_port }}/manager/text/list"
+    return_content=yes
+  register: app_tomcat8_fact_applications_list
+
+- name: assert webmap-engine has been deployed
+  assert:
+    that:
+      - "'{{ app_webmap_engine_path }}:' in app_tomcat8_fact_applications_list.content"
+
+- name: remove webmap-engine war file
+  file:
+    path="~/webmap-engine.war"
+    state=absent
