@@ -20,5 +20,6 @@
     - include: tasks/tomcat/remove-default-applications.yml
 
     - include: tasks/geoserver/deploy-geoserver.yml
+    - include: tasks/geoserver/configure-geoserver.yml
   handlers:
     - include: roles/bas-ansible-roles-collection.tomcat8/handlers/main.yml
