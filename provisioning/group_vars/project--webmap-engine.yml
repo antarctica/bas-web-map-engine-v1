@@ -12,7 +12,7 @@ app_tomcat_admin_user_username: admin
 app_tomcat_admin_user_password: password
 
 app_tomcat_listening_address: "{{ ansible_fqdn }}"
-app_tomcat_listening_port: "{{ tomcat8_firewall_port_http }}"
+app_tomcat_listening_port: "{{ tomcat8_firewall_port_http | default('8080') }}"
 
 app_tomcat_undeployed_applications:
   -
@@ -62,6 +62,10 @@ app_geoserver_native_jai_minor_version: "1"
 app_geoserver_native_jai_patch_version: "3"
 app_geoserver_native_jai_imageio_major_version: "1"
 app_geoserver_native_jai_imageio_minor_version: "1"
+
+app_webmap_engine_version: 0.1.0
+app_webmap_engine_path: /
+app_webmap_engine_context: "/:running:0:webmap-engine##{{ app_webmap_engine_version }}"
 
 # system-users specific variables
 system_users_users:
