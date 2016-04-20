@@ -1,0 +1,9 @@
+---
+
+- name: remove bundled java advanced imaging extensions from geoserver
+  file: path="/var/lib/tomcat8/webapps/geoserver##{{ app_geoserver_version }}/WEB-INF/lib/{{ item }}" state=absent
+  with_items:
+    - "jai_core-{{ app_geoserver_native_jai_major_version }}.{{ app_geoserver_native_jai_minor_version }}.{{ app_geoserver_native_jai_patch_version }}.jar"
+    - "jai_codec-{{ app_geoserver_native_jai_major_version }}.{{ app_geoserver_native_jai_minor_version }}.{{ app_geoserver_native_jai_patch_version }}.jar"
+    - "jai_imageio-{{ app_geoserver_native_jai_imageio_major_version }}.{{ app_geoserver_native_jai_imageio_minor_version }}.jar"
+  notify: Restart Tomcat
