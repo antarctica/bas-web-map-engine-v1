@@ -74,8 +74,7 @@ This project uses manual testing only.
 
 ## Feedback
 
-The maintainer of this project is David Herbert - BAS Mapping and Geographic Information Centre, they can be contacted 
-at: darb1@bas.ac.uk.
+The maintainer of this project is David Herbert - BAS Mapping and Geographic Information Centre, they can be contacted  at: darb1@bas.ac.uk.
 
 ## Licence
 

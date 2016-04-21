@@ -1,5 +1,5 @@
 ---
-# Setup infrastructure and application for development environment
+# Setup infrastructure and application for local development environment
 
 - name: setup development nodes
   hosts: project--webmap-engine:&env--dev-local
