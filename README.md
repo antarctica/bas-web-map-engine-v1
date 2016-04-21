@@ -21,6 +21,19 @@ to bring up a local development environment
 4. `$ vagrant up`
 5. `$ cd ..`
 6. `$ ansible-playbook site-development-local.yml`
+7. `$ ansible-playbook app-deploy-development-local.yml`
+
+To bring up a development environment:
+
+1. Ensure you meet all the requirements (TODO)
+2. Create a new VM on the BAS development cluster using the [`antarctica/trusty7`]() base image
+3. Configure the VM with the correct hostname and reboot
+4. Checkout this project locally `$ git clone ssh://git@stash.ceh.ac.uk:7999/magic/webmap_engine.git`
+5. `$ cd webmap-engine/provisioning/site-development`
+6. `$ ansible-playbook -i ../inventories/vcentre-manual-inventory vmware-vcentre-foundation.yml`
+7. `$ cd ..`
+8. `$ ansible-playbook site-development.yml`
+9. `$ ansible-playbook app-deploy-development.yml`
 
 To bring up the production environment:
 
