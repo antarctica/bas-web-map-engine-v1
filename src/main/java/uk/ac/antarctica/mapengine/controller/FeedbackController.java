@@ -7,7 +7,6 @@ package uk.ac.antarctica.mapengine.controller;
 import it.geosolutions.geoserver.rest.HTTPUtils;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URLEncoder;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
