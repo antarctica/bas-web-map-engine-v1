@@ -19,9 +19,6 @@ app_tomcat_undeployed_applications:
     path: "/"
     context: "/:running:0:ROOT"
   -
-    path: "/docs"
-    context: "/docs:running:0:docs"
-  -
     path: "/examples"
     context: "/examples:running:0:examples"
 
