@@ -1,10 +1,10 @@
 ---
-# Deploy the webmap engine application to local development nodes
+# Deploy the webmap engine application to development nodes
 
 # Note: The use of the 'admin' user is temporary and will be replaced with the username of the local user in future
 
 - name: deploy webmap engine to development nodes
-  hosts: project--webmap-engine:&env--dev-local
+  hosts: project--webmap-engine:&env--dev
   remote_user: "admin"
   tasks:
     - include: tasks/app/deploy-webmap-engine.yml

@@ -1,0 +1,6 @@
+---
+# Brings a VMware vCentre managed VM to a common 'foundation' state - this only needs to be run once per host
+
+- name: setup vmware vcentre virtual machines for provisioning
+  hosts: provider--vmware-vcentre
+  remote_user: vagrant

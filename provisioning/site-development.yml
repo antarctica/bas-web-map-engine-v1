@@ -1,8 +1,8 @@
 ---
-# Setup infrastructure and application for local development environment
+# Setup infrastructure and application for development environment
 
 - name: setup development nodes
-  hosts: project--webmap-engine:&env--dev-local
+  hosts: project--webmap-engine:&env--dev
   remote_user: "{{ privileged_remote_user }}"
   become: yes
   roles:
