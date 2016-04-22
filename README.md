@@ -25,8 +25,11 @@ to bring up a local development environment
 
 To bring up a development environment:
 
-1. Ensure you meet all the requirements (TODO)
-2. Create a new VM on the BAS development cluster using the [`antarctica/trusty7`]() base image
+1. Ensure you meet all the
+[requirements](https://paper.dropbox.com/doc/BAS-Base-Project-Pristine-Base-Flavour-Usage-ZdMdHHzf8xB4HjxcNuDXa#:h2=Environment---development)
+to bring up a development environment
+2. Create a new VM on the BAS development cluster using the 
+[`antarctica/trusty7`](https://atlas.hashicorp.com/antarctica/boxes/centos7) base image
 3. Configure the VM with the correct hostname and reboot
 4. Checkout this project locally `$ git clone ssh://git@stash.ceh.ac.uk:7999/magic/webmap_engine.git`
 5. `$ cd webmap-engine/provisioning/site-development`
