@@ -4,7 +4,6 @@
 package uk.ac.antarctica.mapengine.config;
 
 import java.io.IOException;
-import java.util.Enumeration;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
