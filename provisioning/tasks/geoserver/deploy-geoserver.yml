@@ -52,6 +52,6 @@
     path="{{ item }}"
     state=absent
   with_items:
-    - /tmp/geosever.war.zip
+    - /tmp/geoserver.war.zip
     - /tmp/geoserver
   when: true == true and '{{ app_geoserver_path }}' not in "{{ app_tomcat8_fact_applications_list.content }}"

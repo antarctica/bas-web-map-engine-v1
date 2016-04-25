@@ -84,6 +84,37 @@
                  url="{{ item.href }}?recurse=true"
   with_items: app_geoserver_fact_workspaces.json.workspaces.workspace
   when: app_geoserver_fact_workspaces.json is defined and item.name in app_geoserver_removed_workspaces
+  
+  # Added by David 25/04/2016
+- name: download all the necessary plugins
+  get_url:
+    url="{{ app_geoserver_extensions_download_site }}/{{ item }}.zip"
+    dest=/tmp/{{ item }}.zip
+  with_items:
+    - "geoserver-{{ app_geoserver_version }}-monitor-plugin"
+    - "geoserver-{{ app_geoserver_version }}-gdal-plugin"
+    - "geoserver-{{ app_geoserver_version }}-csw-plugin"
+    - "geoserver-{{ app_geoserver_version }}-importer-plugin"
+    - "geoserver-{{ app_geoserver_version }}-jp2k-plugin"
+    
+  # Create directory to unzip all plugin jars to
+- name: create plugin unpack directory
+  file: path=/tmp/geoserver_plugins state=directory mode=0755
+  
+- name: unzip all the plugins into the unpack directory
+  unarchive:
+    src="/tmp/{{ item }}.zip"
+    dest=/tmp/geoserver_plugins
+    copy=no
+  with_items:
+    - "geoserver-{{ app_geoserver_version }}-monitor-plugin"
+    - "geoserver-{{ app_geoserver_version }}-gdal-plugin"
+    - "geoserver-{{ app_geoserver_version }}-csw-plugin"
+    - "geoserver-{{ app_geoserver_version }}-importer-plugin"
+    - "geoserver-{{ app_geoserver_version }}-jp2k-plugin"
+    
+  
+  # End of David's changes
 
 - name: remove bundled java advanced imaging extensions from geoserver
   file: path="/var/lib/tomcat8/webapps/geoserver##{{ app_geoserver_version }}/WEB-INF/lib/{{ item }}" state=absent

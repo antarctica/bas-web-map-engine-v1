@@ -53,6 +53,12 @@ app_geoserver_removed_workspaces:
   - topp
   - sf
   - nurc
+  
+# Added by David 25/04/2016
+
+app_geoserver_extensions_download_site: "https://sourceforge.net/projects/geoserver/files/GeoServer/{{ app_geoserver_version }}/extensions"
+
+# End of David's changes
 
 app_geoserver_native_jai_major_version: "1"
 app_geoserver_native_jai_minor_version: "1"
@@ -70,6 +76,7 @@ system_users_users:
     username: webmap
     comment: Generic unprivileged account for performing day-to-day webmap-engine application related tasks
     shell: /bin/bash
+    password: webmap
     authorized_keys_directory: files/HOME/DOT-ssh/authorized-keys
     authorized_keys_files:
       - "darb1.pub"
