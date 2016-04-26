@@ -136,11 +136,31 @@
     
 - name: set monitoring plugin monitor.properties file
   template:
-      # HERE
-    src=../../templates/geoserver/web.xml.j2
-    dest="/var/lib/tomcat8/webapps/geoserver##{{ app_geoserver_version }}/WEB-INF/web.xml"
-    owner=tomcat
-    group=adm
+    src=../../templates/geoserver/monitoring/monitor.properties.j2
+    dest="{{ app_geoserver_data_dir }}/monitoring/monitor.properties"
+    owner=webmap
+    mode=0664
+    
+- name: set monitoring plugin filter.properties file
+  template:
+    src=../../templates/geoserver/monitoring/filter.properties.j2
+    dest="{{ app_geoserver_data_dir }}/monitoring/filter.properties"
+    owner=webmap
+    mode=0664
+    
+- name: install user projections in epsg_overrides.properties file
+  template:
+    src=../../templates/geoserver/user_projections/epsg_overrides.properties.j2
+    dest="{{ app_geoserver_data_dir }}/user_projections/epsg_overrides.properties"
+    owner=webmap
+    mode=0664
+    
+- name: allow GET requests to the geoserver REST API via the rest.properties file
+  template:
+    src=../../templates/geoserver/security/rest.properties.j2
+    dest="{{ app_geoserver_data_dir }}/security/rest.properties"
+    owner=webmap
+    mode=0664
       
   # End of David's changes
 
