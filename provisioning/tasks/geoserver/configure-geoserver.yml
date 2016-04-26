@@ -90,30 +90,58 @@
   get_url:
     url="{{ app_geoserver_extensions_download_site }}/{{ item }}.zip"
     dest=/tmp/{{ item }}.zip
-  with_items:
-    - "geoserver-{{ app_geoserver_version }}-monitor-plugin"
-    - "geoserver-{{ app_geoserver_version }}-gdal-plugin"
-    - "geoserver-{{ app_geoserver_version }}-csw-plugin"
-    - "geoserver-{{ app_geoserver_version }}-importer-plugin"
-    - "geoserver-{{ app_geoserver_version }}-jp2k-plugin"
-    
-  # Create directory to unzip all plugin jars to
-- name: create plugin unpack directory
-  file: path=/tmp/geoserver_plugins state=directory mode=0755
+  with_items: app_geoserver_installed_extensions
   
-- name: unzip all the plugins into the unpack directory
+- name: unzip all the plugin JARs into the geoserver WEB-INF/lib directory
   unarchive:
     src="/tmp/{{ item }}.zip"
-    dest=/tmp/geoserver_plugins
+    dest={{ app_geoserver_lib_dir }}
     copy=no
-  with_items:
-    - "geoserver-{{ app_geoserver_version }}-monitor-plugin"
-    - "geoserver-{{ app_geoserver_version }}-gdal-plugin"
-    - "geoserver-{{ app_geoserver_version }}-csw-plugin"
-    - "geoserver-{{ app_geoserver_version }}-importer-plugin"
-    - "geoserver-{{ app_geoserver_version }}-jp2k-plugin"
+  with_items: app_geoserver_installed_extensions
     
+- name: download the support libraries for the gdal plugin
+  file: path={{ app_geoserver_gdal_support_lib }} state=directory owner=webmap mode=0755
+  get_url:
+    url="{{ app_geoserver_gdal_support_download_site }}/linux/{{ app_geoserver_gdal_support }}.tar.gz
+    dest=/tmp
+    
+- name: unpack support libraries for gdal plugin to install directory
+  unarchive:
+    src="/tmp/{{ app_geoserver_gdal_support }}.tar.gz"
+    dest={{ app_geoserver_gdal_support_lib }}
+    copy=no
+    
+- name: download the supporting data for the gdal plugin
+  file: path={{ app_geoserver_gdal_support_lib }}/{{ app_geoserver_gdal_support_data }} state=directory owner=webmap mode=0755
+  get_url:
+    url="{{ app_geoserver_gdal_support_download_site }}/{{ app_geoserver_gdal_support_data }}.zip
+    dest=/tmp
   
+- name: unpack support libraries for gdal plugin data to install directory
+  unarchive:
+    src="/tmp/{{ app_geoserver_gdal_support_data }}.zip"
+    dest={{ app_geoserver_gdal_support_lib }}/{{ app_geoserver_gdal_support_data }}
+    copy=no
+    
+- name: move data directory from webapps/geoserver to local geoserver_data directory (renaming any existing directory geoserver_data.YYYYMMDDHHmmSS)
+  command: mv {{ app_geoserver_data_dir }} {{ app_geoserver_data_dir }}.`date +%Y%m%d%H%M%S`
+  command: mv /var/lib/tomcat8/webapps/geoserver##{{ app_geoserver_version }}/data {{ app_geoserver_data_dir }}
+  
+- name: update geoserver web.xml to point GEOSERVER_DATA_DIR to the directory just created
+  template:
+    src=../../templates/geoserver/web.xml.j2
+    dest="/var/lib/tomcat8/webapps/geoserver##{{ app_geoserver_version }}/WEB-INF/web.xml"
+    owner=tomcat
+    group=adm
+    
+- name: set monitoring plugin monitor.properties file
+  template:
+      # HERE
+    src=../../templates/geoserver/web.xml.j2
+    dest="/var/lib/tomcat8/webapps/geoserver##{{ app_geoserver_version }}/WEB-INF/web.xml"
+    owner=tomcat
+    group=adm
+      
   # End of David's changes
 
 - name: remove bundled java advanced imaging extensions from geoserver
