@@ -8,7 +8,7 @@ magic.modules.Endpoints = function () {
             "default_host": {
                 "EPSG:3031": [
                     {"name": "Antarctic Digital Database", "wms": "https://maps.bas.ac.uk/antarctic/wms", "coast": ["add:antarctic_coastline", "add:sub_antarctic_coastline"], "graticule": "add:antarctic_graticule"},
-                    {"name": "Operations GIS", "wms": "http://rolgis.nerc-bas.ac.uk/geoserver/opsgis/wms"},                
+                    {"name": "Operations GIS", "wms": "http://bslgisa.nerc-bas.ac.uk/geoserver/opsgis/wms"},                
                     {"name": "Antarctic Peninsula Information Portal (APIP)", "wms": "http://bslbatgis.nerc-bas.ac.uk/geoserver/apip/wms"},
                     {"name": "ASPA CIR imagery", "wms": "http://bslbatgis.nerc-bas.ac.uk/geoserver/iws_aspa/wms"},
                     {"name": "ASPA NDVI imagery", "wms": "http://bslbatgis.nerc-bas.ac.uk/geoserver/aspa_ndvi/wms"},
@@ -30,7 +30,7 @@ magic.modules.Endpoints = function () {
                     {"name": "OpenStreetMap", "wms": "osm", "coast": "osm"}
                 ]
             },
-            "rolgis.nerc-bas.ac.uk": {
+            "bslgisa.nerc-bas.ac.uk": {
                 "EPSG:3031": [
                     {"name": "Antarctic Digital Database", "wms": magic.config.paths.baseurl + "/geoserver/add/wms", "coast": ["add:antarctic_coastline", "add:sub_antarctic_coastline"], "graticule": "add:antarctic_graticule"},
                     {"name": "Operations GIS", "wms": magic.config.paths.baseurl + "/geoserver/opsgis/wms"},                              
