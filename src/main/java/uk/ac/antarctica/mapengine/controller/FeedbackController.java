@@ -25,7 +25,7 @@ import uk.ac.antarctica.mapengine.util.PackagingUtils;
 @Controller
 public class FeedbackController {
     
-    private static final String REDMINE_ISSUE = "http://basweb.nerc-bas.ac.uk/south/api/redmine/issue.php";
+    private static final String REDMINE_ISSUE = "http://basweb.nerc-bas.ac.uk/south-legacy/api/redmine/issue.php";
    
    /**
 	 * Record feedback as a Redmine issue
