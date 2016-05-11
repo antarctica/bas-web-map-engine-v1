@@ -43,7 +43,7 @@
     
 - name: run SQL template
   shell: "psql -f {{ app_unprivileged_home }}/webmap_schema.sql webmap_engine"
-  become_user: postgres
+  become_user: webmap
   
 - name: delete SQL template
   file: path="{{ app_unprivileged_home }}/webmap_schema.sql" state=absent

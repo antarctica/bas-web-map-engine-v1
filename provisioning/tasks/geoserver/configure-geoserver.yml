@@ -98,11 +98,13 @@
     dest={{ app_geoserver_lib_dir }}
     copy=no
   with_items: app_geoserver_installed_extensions
+  
+- name: create directory for the gdal plugin supporting libraries
+  file: path={{ app_geoserver_gdal_support_lib }} state=directory owner=webmap mode=0755
     
 - name: download the support libraries for the gdal plugin
-  file: path={{ app_geoserver_gdal_support_lib }} state=directory owner=webmap mode=0755
   get_url:
-    url="{{ app_geoserver_gdal_support_download_site }}/linux/{{ app_geoserver_gdal_support }}.tar.gz
+    url="{{ app_geoserver_gdal_support_download_site }}/linux/{{ app_geoserver_gdal_support }}.tar.gz"
     dest=/tmp
     
 - name: unpack support libraries for gdal plugin to install directory
@@ -111,10 +113,12 @@
     dest={{ app_geoserver_gdal_support_lib }}
     copy=no
     
-- name: download the supporting data for the gdal plugin
+- name: create subdirectory for the gdal plugin supporting definitions
   file: path={{ app_geoserver_gdal_support_lib }}/{{ app_geoserver_gdal_support_data }} state=directory owner=webmap mode=0755
+    
+- name: download the supporting definition data for the gdal plugin
   get_url:
-    url="{{ app_geoserver_gdal_support_download_site }}/{{ app_geoserver_gdal_support_data }}.zip
+    url="{{ app_geoserver_gdal_support_download_site }}/{{ app_geoserver_gdal_support_data }}.zip"
     dest=/tmp
   
 - name: unpack support libraries for gdal plugin data to install directory
@@ -122,10 +126,17 @@
     src="/tmp/{{ app_geoserver_gdal_support_data }}.zip"
     dest={{ app_geoserver_gdal_support_lib }}/{{ app_geoserver_gdal_support_data }}
     copy=no
-    
-- name: move data directory from webapps/geoserver to local geoserver_data directory (renaming any existing directory geoserver_data.YYYYMMDDHHmmSS)
-  command: mv {{ app_geoserver_data_dir }} {{ app_geoserver_data_dir }}.`date +%Y%m%d%H%M%S`
-  command: mv /var/lib/tomcat8/webapps/geoserver##{{ app_geoserver_version }}/data {{ app_geoserver_data_dir }}
+
+- name: check if existing geoserver_data directory exists
+  stat: path="{{ app_geoserver_data_dir }}"
+  register: app_geoserver_data_dir_exists
+
+- name: rename any existing directory geoserver_data.YYYYMMDDHHmmSS
+  shell: "mv {{ app_geoserver_data_dir }} {{ app_geoserver_data_dir }}.`date +%Y%m%d%H%M%S`"
+  when: app_geoserver_data_dir_exists.stat.exists == true
+  
+- name: move data directory from webapps/geoserver to local geoserver_data directory
+  command: "mv /var/lib/tomcat8/webapps/geoserver##{{ app_geoserver_version }}/data {{ app_geoserver_data_dir }}"
   
 - name: update geoserver web.xml to point GEOSERVER_DATA_DIR to the directory just created
   template:
