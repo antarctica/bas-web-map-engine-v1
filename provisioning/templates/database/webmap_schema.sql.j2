@@ -1,0 +1,77 @@
+# Primary keys table for views
+
+CREATE TABLE public.gt_pk_metadata_table
+(
+  table_schema character varying(32) NOT NULL,
+  table_name character varying(64) NOT NULL,
+  pk_column character varying(32) NOT NULL,
+  pk_column_idx integer,
+  pk_policy character varying(32),
+  pk_sequence character varying(64),
+  CONSTRAINT gt_pk_metadata_table_table_schema_table_name_pk_column_key UNIQUE (table_schema, table_name, pk_column),
+  CONSTRAINT gt_pk_metadata_table_pk_policy_check CHECK (pk_policy::text = ANY (ARRAY['sequence'::character varying::text, 'assigned'::character varying::text, 'autoincrement'::character varying::text]))
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE public.gt_pk_metadata_table
+  OWNER TO webmap;
+
+# Web-map specific schema
+
+CREATE SCHEMA webmap
+  AUTHORIZATION webmap;
+
+COMMENT ON SCHEMA webmap
+  IS 'Configuration data for web maps';
+
+# Maps table
+CREATE TABLE webmap.maps
+(
+  id character varying(40) NOT NULL,
+  name character varying(50) NOT NULL,
+  title character varying(100),
+  description text,
+  version character varying(20),
+  logo character varying(255),
+  favicon character varying(255),
+  repository character varying(255),
+  creation_date timestamp without time zone,
+  modified_date timestamp without time zone,
+  owner_name character varying(50),
+  owner_email character varying(150),
+  metadata_url character varying(255),
+  data json,
+  allowed_usage character varying(10),
+  allowed_download character varying(10),
+  allowed_edit character varying(10),
+  CONSTRAINT maps_pkey PRIMARY KEY (id),
+  CONSTRAINT maps_name_unique UNIQUE (name)
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE webmap.maps
+  OWNER TO webmap;
+COMMENT ON TABLE webmap.maps
+  IS 'User-defined maps';
+
+# User preferences table
+CREATE TABLE webmap.preferences
+(
+  id serial,
+  username character varying(150),
+  distance character varying(10),
+  area character varying(10),
+  elevation character varying(10),
+  coordinates character varying(10),
+  dates character varying(10),
+  CONSTRAINT preferences_pkey PRIMARY KEY (id)
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE webmap.preferences
+  OWNER TO webmap;
+COMMENT ON TABLE webmap.preferences
+  IS 'User unit preferences';

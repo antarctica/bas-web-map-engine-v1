@@ -56,11 +56,13 @@ app_geoserver_removed_workspaces:
   
 # Added by David 25/04/2016
 
+app_unprivileged_home: /home/webmap
+
 app_geoserver_extensions_download_site: "https://sourceforge.net/projects/geoserver/files/GeoServer/{{ app_geoserver_version }}/extensions"
 app_geoserver_gdal_support_download_site: "http://demo.geo-solutions.it/share/github/imageio-ext/releases/1.1.X/1.1.12/native/gdal"
 
 app_geoserver_lib_dir: "/var/lib/tomcat8/webapps/geoserver##{{ app_geoserver_version }}/WEB-INF/lib"
-app_geoserver_data_dir: "/home/webmap/geoserver_data"
+app_geoserver_data_dir: "{{ app_unprivileged_home }}/geoserver_data"
 
 app_geoserver_installed_extensions:
   - "geoserver-{{ app_geoserver_version }}-monitor-plugin"
@@ -71,7 +73,7 @@ app_geoserver_installed_extensions:
 
 app_geoserver_gdal_support: "gdal192-CentOS5.8-gcc4.1.2-x86_64"
 app_geoserver_gdal_support_data: "gdal-data"
-app_geoserver_gdal_support_lib: "/home/webmap/lib"
+app_geoserver_gdal_support_lib: "{{ app_unprivileged_home }}/lib"
   
 # End of David's changes
 

@@ -31,3 +31,23 @@
     - unaccent
     - fuzzystrmatch
   become_user: postgres
+  
+  # Set up web map specific schema and tables (added by David 11/05/2016)
+  
+- name: get SQL template
+  template: 
+    src=../../templates/database/webmap_schema.sql.j2
+    dest="{{ app_unprivileged_home }}/webmap_schema.sql"
+    owner=webmap
+    mode=0664
+    
+- name: run SQL template
+  shell: "psql -f {{ app_unprivileged_home }}/webmap_schema.sql webmap_engine"
+  become_user: postgres
+  
+- name: delete SQL template
+  file: path="{{ app_unprivileged_home }}/webmap_schema.sql" state=absent
+  
+  # End of David's changes
+  
+  
