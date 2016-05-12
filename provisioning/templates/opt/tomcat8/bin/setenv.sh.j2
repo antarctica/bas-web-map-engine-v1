@@ -14,7 +14,7 @@ SERVER="-server"
 export JAVA_OPTS="-Djava.awt.headless=true $HEAP $NEW $RMIGC $PGC $PERM $SERVER"
 PGCLIENTENCODING=UNICODE
 # For Geoserver gdal plugin
-WEBMAPHOME=/home/webmap
+WEBMAPHOME={{ app_unprivileged_home }}
 export GDAL_DATA=$WEBMAPHOME/lib/gdal-data
 export LD_LIBRARY_PATH=$WEBMAPHOME/lib
 # http://osgeo-org.1560.x6.nabble.com/ECW-support-on-Fedora-Linux-error-td4991388.html

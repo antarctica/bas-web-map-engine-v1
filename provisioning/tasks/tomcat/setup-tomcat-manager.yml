@@ -1,4 +1,16 @@
 ---
+
+# Add extra configuration in bin/setenv.sh - added by David 12/05/2016
+
+- name: generate setenv.sh configuration file
+  template:
+     src=../../templates/opt/tomcat8/bin/setenv.sh.j2
+     dest=/opt/tomcat8/bin/setenv.sh
+    owner=tomcat
+    group=adm
+
+# End of David's additions
+
 # Configures the tomcat manager application for deploying WAR files
 
 - name: generate tomcat-users configuration file

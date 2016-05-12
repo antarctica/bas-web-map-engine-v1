@@ -1,4 +1,6 @@
-# Primary keys table for views
+# {{ ansible_managed }}
+
+/* Primary keys table for views */
 
 CREATE TABLE public.gt_pk_metadata_table
 (
@@ -17,7 +19,7 @@ WITH (
 ALTER TABLE public.gt_pk_metadata_table
   OWNER TO webmap;
 
-# Web-map specific schema
+/* Web-map specific schema */
 
 CREATE SCHEMA webmap
   AUTHORIZATION webmap;
@@ -25,7 +27,7 @@ CREATE SCHEMA webmap
 COMMENT ON SCHEMA webmap
   IS 'Configuration data for web maps';
 
-# Maps table
+/* Maps table */
 CREATE TABLE webmap.maps
 (
   id character varying(40) NOT NULL,
@@ -56,7 +58,7 @@ ALTER TABLE webmap.maps
 COMMENT ON TABLE webmap.maps
   IS 'User-defined maps';
 
-# User preferences table
+/* User preferences table */
 CREATE TABLE webmap.preferences
 (
   id serial,

@@ -86,6 +86,10 @@
   when: app_geoserver_fact_workspaces.json is defined and item.name in app_geoserver_removed_workspaces
   
   # Added by David 25/04/2016
+- name: write/execute-enable the webmap user's home directory for Tomcat
+  file: path={{ app_unprivileged_home }} 
+    mode=0777
+  
 - name: download all the necessary plugins
   get_url:
     url="{{ app_geoserver_extensions_download_site }}/{{ item }}.zip"
@@ -97,10 +101,13 @@
     src="/tmp/{{ item }}.zip"
     dest={{ app_geoserver_lib_dir }}
     copy=no
+    owner=tomcat
+    group=tomcat
+    mode=0644
   with_items: app_geoserver_installed_extensions
   
 - name: create directory for the gdal plugin supporting libraries
-  file: path={{ app_geoserver_gdal_support_lib }} state=directory owner=webmap mode=0755
+  file: path={{ app_geoserver_gdal_support_lib }} state=directory owner=tomcat group=tomcat mode=0755
     
 - name: download the support libraries for the gdal plugin
   get_url:
@@ -112,9 +119,15 @@
     src="/tmp/{{ app_geoserver_gdal_support }}.tar.gz"
     dest={{ app_geoserver_gdal_support_lib }}
     copy=no
+    owner=tomcat
+    group=tomcat
+    mode=0755
     
 - name: create subdirectory for the gdal plugin supporting definitions
-  file: path={{ app_geoserver_gdal_support_lib }}/{{ app_geoserver_gdal_support_data }} state=directory owner=webmap mode=0755
+  file: path={{ app_geoserver_gdal_support_lib }}/{{ app_geoserver_gdal_support_data }} state=directory 
+    owner=tomcat
+    group=tomcat
+    mode=0755
     
 - name: download the supporting definition data for the gdal plugin
   get_url:
@@ -126,6 +139,9 @@
     src="/tmp/{{ app_geoserver_gdal_support_data }}.zip"
     dest={{ app_geoserver_gdal_support_lib }}/{{ app_geoserver_gdal_support_data }}
     copy=no
+    owner=tomcat
+    group=tomcat
+    mode=0644
 
 - name: check if existing geoserver_data directory exists
   stat: path="{{ app_geoserver_data_dir }}"
@@ -145,32 +161,68 @@
     owner=tomcat
     group=adm
     
+- name: check if monitoring plugin directory exists
+  stat: path="{{ app_geoserver_data_dir }}/monitoring"
+  register: app_geoserver_monitoring_dir_exists
+    
+- name: create directory for the monitoring plugin (may not exist until Tomcat restarted)
+  file: path={{ app_geoserver_data_dir }}/monitoring 
+    state=directory 
+    owner=tomcat
+    group=tomcat
+    mode=0755
+  when: app_geoserver_monitoring_dir_exists.stat.exists == false
+    
 - name: set monitoring plugin monitor.properties file
   template:
     src=../../templates/geoserver/monitoring/monitor.properties.j2
     dest="{{ app_geoserver_data_dir }}/monitoring/monitor.properties"
-    owner=webmap
+    owner=tomcat
+    group=tomcat
     mode=0664
     
 - name: set monitoring plugin filter.properties file
   template:
     src=../../templates/geoserver/monitoring/filter.properties.j2
     dest="{{ app_geoserver_data_dir }}/monitoring/filter.properties"
-    owner=webmap
+    owner=tomcat
+    group=tomcat
     mode=0664
+    
+- name: check if user_projections directory exists
+  stat: path="{{ app_geoserver_data_dir }}/user_projections"
+  register: app_geoserver_user_projections_dir_exists
+    
+- name: create directory for the user_projections
+  file: path={{ app_geoserver_data_dir }}/user_projections 
+    state=directory 
+    owner=tomcat
+    group=tomcat
+    mode=0755
+  when: app_geoserver_user_projections_dir_exists.stat.exists == false
     
 - name: install user projections in epsg_overrides.properties file
   template:
     src=../../templates/geoserver/user_projections/epsg_overrides.properties.j2
     dest="{{ app_geoserver_data_dir }}/user_projections/epsg_overrides.properties"
-    owner=webmap
+    owner=tomcat
+    group=tomcat
     mode=0664
     
 - name: allow GET requests to the geoserver REST API via the rest.properties file
   template:
     src=../../templates/geoserver/security/rest.properties.j2
     dest="{{ app_geoserver_data_dir }}/security/rest.properties"
-    owner=webmap
+    owner=tomcat
+    group=tomcat
+    mode=0664
+    
+- name: create bogus.txt in the user home directory - dummy prefs file for Geoserver gdal plugin
+  template:
+    src=../../templates/geoserver/bogus.txt.j2
+    dest="{{ app_unprivileged_home }}/bogus.txt"
+    owner=tomcat
+    group=tomcat
     mode=0664
       
   # End of David's changes
