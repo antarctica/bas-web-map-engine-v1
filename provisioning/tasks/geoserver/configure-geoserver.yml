@@ -111,7 +111,7 @@
     
 - name: download the support libraries for the gdal plugin
   get_url:
-    url="{{ app_geoserver_gdal_support_download_site }}/linux/{{ app_geoserver_gdal_support }}.tar.gz"
+    url="{{ app_geoserver_extensions_download_site }}/{{ app_geoserver_gdal_support }}.tar.gz"
     dest=/tmp
     
 - name: unpack support libraries for gdal plugin to install directory
@@ -131,7 +131,7 @@
     
 - name: download the supporting definition data for the gdal plugin
   get_url:
-    url="{{ app_geoserver_gdal_support_download_site }}/{{ app_geoserver_gdal_support_data }}.zip"
+    url="{{ app_geoserver_extensions_download_site }}/{{ app_geoserver_gdal_support_data }}.zip"
     dest=/tmp
   
 - name: unpack support libraries for gdal plugin data to install directory

@@ -58,7 +58,7 @@ app_geoserver_removed_workspaces:
 
 app_unprivileged_home: /home/webmap
 
-app_geoserver_extensions_download_site: "https://sourceforge.net/projects/geoserver/files/GeoServer/{{ app_geoserver_version }}/extensions"
+app_geoserver_extensions_download_site: "https://s3-eu-west-1.amazonaws.com/bas-packages-dev/wars/geoserver/plugins"
 app_geoserver_gdal_support_download_site: "http://demo.geo-solutions.it/share/github/imageio-ext/releases/1.1.X/1.1.12/native/gdal"
 
 app_geoserver_lib_dir: "/var/lib/tomcat8/webapps/geoserver##{{ app_geoserver_version }}/WEB-INF/lib"
