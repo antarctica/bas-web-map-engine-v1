@@ -51,7 +51,7 @@ magic.classes.AircraftPositionButton = function (name, ribbon) {
         if (magic.runtime.inset) {
             this.insetLayer = new ol.layer.Vector({
                 name: "BAS aircraft_inset",
-                visible: true,
+                visible: this.isActive(),
                 source: new ol.source.Vector({
                     features: []
                 }),

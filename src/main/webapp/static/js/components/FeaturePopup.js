@@ -265,7 +265,7 @@ magic.classes.FeaturePopup.prototype.selectFeature = function() {
         }
     });
     /* Add full attribute set modal handler */
-    $("div.feature-popup-table-cont").find("button[id^='popup-full-attr-set-']").off("click").on("click", $.proxy(function(evt) {
+    $("div.feature-popup-table-cont").find("button[id^='" + this.popupId + "-full-attr-set-']").off("click").on("click", $.proxy(function(evt) {
         var btnId = evt.currentTarget.id;
         var fidx = parseInt(btnId.substring(btnId.lastIndexOf("-")+1));
         if (!isNaN(fidx) && fidx < this.featureCollection.length) {
