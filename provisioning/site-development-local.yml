@@ -21,5 +21,7 @@
 
     - include: tasks/geoserver/deploy-geoserver.yml
     - include: tasks/geoserver/configure-geoserver.yml
+    
+    - include: tasks/app/deploy-webmap-engine.yml
   handlers:
     - include: roles/bas-ansible-roles-collection.tomcat8/handlers/main.yml

@@ -86,6 +86,7 @@ app_geoserver_native_jai_imageio_minor_version: "1"
 app_webmap_engine_version: 0.1.0
 app_webmap_engine_path: /
 app_webmap_engine_context: "/:running:0:webmap-engine##{{ app_webmap_engine_version }}"
+app_webmap_engine_download_site: "https://s3-eu-west-1.amazonaws.com/bas-packages-dev/wars/webmap-engine/0.1.0"
 
 # system-users specific variables
 system_users_users:
