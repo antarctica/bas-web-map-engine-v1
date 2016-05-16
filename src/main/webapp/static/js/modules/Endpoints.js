@@ -1,4 +1,4 @@
-/* Deployment location-specific WxS endpoints */
+/* WxS endpoints */
 
 magic.modules.Endpoints = function () {
 
@@ -7,70 +7,53 @@ magic.modules.Endpoints = function () {
         wms: {
             "default_host": {
                 "EPSG:3031": [
-                    {"name": "Antarctic Digital Database", "wms": "https://maps.bas.ac.uk/antarctic/wms", "coast": ["add:antarctic_coastline", "add:sub_antarctic_coastline"], "graticule": "add:antarctic_graticule"},
-                    {"name": "Operations GIS", "wms": "http://bslgisa.nerc-bas.ac.uk/geoserver/opsgis/wms"},                
-                    {"name": "Antarctic Peninsula Information Portal (APIP)", "wms": "http://bslbatgis.nerc-bas.ac.uk/geoserver/apip/wms"},
-                    {"name": "ASPA CIR imagery", "wms": "http://bslbatgis.nerc-bas.ac.uk/geoserver/iws_aspa/wms"},
-                    {"name": "ASPA NDVI imagery", "wms": "http://bslbatgis.nerc-bas.ac.uk/geoserver/aspa_ndvi/wms"},
-                    {"name": "APC Misc Maps", "wms": "http://bslbatgis.nerc-bas.ac.uk/geoserver/iws_apc_misc/wms"},
-                    {"name": "Continent-wide mosaics", "wms": "http://bslmagb.nerc-bas.ac.uk/erdas-iws/ogc/wms/Mosaics"},
-                    {"name": "Pan-Antarctic maps", "wms": "http://bslmagb.nerc-bas.ac.uk/erdas-iws/ogc/wms/PanAntarcticMaps"},
-                    {"name": "Scanned maps", "wms": "http://geo.antarctica.ac.uk/geoserver/scanned_maps/wms"},
-                    {"name": "Polar View", "wms": "http://geos.polarview.aq/geoserver/wms"},
-                    {"name": "CCAMLR GIS", "wms": "http://geo.antarctica.ac.uk/geoserver/ccamlr_gis/wms"}
+                    {"name": "Antarctic Digital Database", bandwidth: "high", "wms": "https://maps.bas.ac.uk/antarctic/wms", "coast": ["add:antarctic_coastline", "add:sub_antarctic_coastline"], "graticule": "add:antarctic_graticule"},
+                    {"name": "Operations GIS", bandwidth: "high", "wms": "http://bslgisa.nerc-bas.ac.uk/geoserver/opsgis/wms"},                
+                    {"name": "Antarctic Peninsula Information Portal (APIP)", bandwidth: "high", "wms": "http://bslbatgis.nerc-bas.ac.uk/geoserver/apip/wms"},
+                    {"name": "ASPA CIR imagery", bandwidth: "high", "wms": "http://bslbatgis.nerc-bas.ac.uk/geoserver/iws_aspa/wms"},
+                    {"name": "ASPA NDVI imagery", bandwidth: "high", "wms": "http://bslbatgis.nerc-bas.ac.uk/geoserver/aspa_ndvi/wms"},
+                    {"name": "APC Misc Maps", bandwidth: "high", "wms": "http://bslbatgis.nerc-bas.ac.uk/geoserver/iws_apc_misc/wms"},
+                    {"name": "Continent-wide mosaics", bandwidth: "high", "wms": "http://bslmagb.nerc-bas.ac.uk/erdas-iws/ogc/wms/Mosaics"},
+                    {"name": "Pan-Antarctic maps", bandwidth: "high", "wms": "http://bslmagb.nerc-bas.ac.uk/erdas-iws/ogc/wms/PanAntarcticMaps"},
+                    {"name": "Scanned maps", bandwidth: "high", "wms": "http://geo.antarctica.ac.uk/geoserver/scanned_maps/wms"},
+                    {"name": "Polar View", bandwidth: "high", "wms": "http://geos.polarview.aq/geoserver/wms"},
+                    {"name": "CCAMLR GIS", bandwidth: "high", "wms": "http://geo.antarctica.ac.uk/geoserver/ccamlr_gis/wms", proxy: "https://gis.ccamlr.org/geoserver/wms"},
+                    {"name": "Antarctic Digital Database", bandwidth: "low", "wms": magic.config.paths.baseurl + "/geoserver/add/wms", "coast": ["add:antarctic_coastline", "add:sub_antarctic_coastline"], "graticule": "add:antarctic_graticule"},
+                    {"name": "Operations GIS", bandwidth: "low", "wms":  magic.config.paths.baseurl + "/geoserver/opsgis/wms"}
                 ],
                 "EPSG:3995": [
-                    {"name": "Arctic Open Data", "wms": "https://maps.bas.ac.uk/arctic/wms", "coast": ["arctic:arctic_coastline"], "graticule": "arctic:arctic_graticule"}
+                    {"name": "Arctic Open Data", bandwidth: "high", "wms": "https://maps.bas.ac.uk/arctic/wms", "coast": ["arctic:arctic_coastline"], "graticule": "arctic:arctic_graticule"},
+                    {"name": "Arctic Open Data", bandwidth: "low", "wms":  magic.config.paths.baseurl + "/geoserver/arctic/wms", "coast": ["arctic:arctic_coastline"], "graticule": "arctic:arctic_graticule"}
                 ],
                 "EPSG:3762": [
-                    {"name": "South Georgia GIS", "wms": "https://maps.bas.ac.uk/southgeorgia/wms", "coast": ["sggis:sg_coastline"], "graticule": "ol"},
-                    {"name": "Antarctic Peninsula Information Portal (APIP)", "wms": "http://bslbatgis.nerc-bas.ac.uk/geoserver/apip/wms"},
+                    {"name": "South Georgia GIS", bandwidth: "high", "wms": "https://maps.bas.ac.uk/southgeorgia/wms", "coast": ["sggis:sg_coastline"], "graticule": "ol"},
+                    {"name": "South Georgia GIS", bandwidth: "low", "wms":  magic.config.paths.baseurl + "/geoserver/sggis/wms", "coast": ["sggis:sg_coastline"], "graticule": "ol"},
+                    {"name": "Antarctic Peninsula Information Portal (APIP)", bandwidth: "high", "wms": "http://bslbatgis.nerc-bas.ac.uk/geoserver/apip/wms"},
                 ],
                 "EPSG:3857": [
-                    {"name": "OpenStreetMap", "wms": "osm", "coast": "osm"}
-                ]
-            },
-            "bslgisa.nerc-bas.ac.uk": {
-                "EPSG:3031": [
-                    {"name": "Antarctic Digital Database", "wms": magic.config.paths.baseurl + "/geoserver/add/wms", "coast": ["add:antarctic_coastline", "add:sub_antarctic_coastline"], "graticule": "add:antarctic_graticule"},
-                    {"name": "Operations GIS", "wms": magic.config.paths.baseurl + "/geoserver/opsgis/wms"},                              
-                    {"name": "Polar View", "wms": "http://geos.polarview.aq/geoserver/wms"}
-                ],
-                "EPSG:3995": [
-                    {"name": "Arctic Open Data", "wms": magic.config.paths.baseurl + "/geoserver/arctic/wms", "coast": ["arctic:arctic_coastline"], "graticule": "arctic:arctic_graticule"}
-                ],
-                "EPSG:3762": [
-                    {"name": "South Georgia GIS", "wms":  magic.config.paths.baseurl + "/geoserver/sggis/wms", "coast": ["sggis:sg_coastline"], "graticule": "ol"},
-                    {"name": "Antarctic Peninsula Information Portal (APIP)", "wms": "http://bslbatgis.nerc-bas.ac.uk/geoserver/apip/wms"},
-                ],
-                "EPSG:3857": [
-                    {"name": "OpenStreetMap", "wms": "osm", "coast": "osm"}
-                ]
-            },
-            "rolgis.rothera.nerc-bas.ac.uk": {
-                "EPSG:3031": [
-                    {"name": "Antarctic Digital Database", "wms": magic.config.paths.baseurl + "/geoserver/add/wms", "coast": ["add:antarctic_coastline", "add:sub_antarctic_coastline"], "graticule": "add:antarctic_graticule"},
-                    {"name": "Operations GIS", "wms":  magic.config.paths.baseurl + "/geoserver/opsgis/wms"}
-                ],
-                "EPSG:3995": [
-                    {"name": "Arctic Open Data", "wms":  magic.config.paths.baseurl + "/geoserver/arctic/wms", "coast": ["arctic:arctic_coastline"], "graticule": "arctic:arctic_graticule"}
-                ],
-                "EPSG:3762": [
-                    {"name": "South Georgia GIS", "wms":  magic.config.paths.baseurl + "/geoserver/sggis/wms", "coast": ["sggis:sg_coastline"], "graticule": "ol"}
-                ],
-                "EPSG:3857": [
-                    {"name": "Natural Earth Data", "wms": magic.config.paths.baseurl + "/geoserver/opsgis/wms", "coast": "opsgis:natearth_world_10m_land"}
+                    {"name": "OpenStreetMap", bandwidth: "high", "wms": "osm", "coast": "osm"},
+                    {"name": "Natural Earth Data", bandwidth: "low", "wms": magic.config.paths.baseurl + "/geoserver/opsgis/wms", "coast": "opsgis:natearth_world_10m_land"}
                 ]
             }
-        },        
-        proxy: {
-            "https://gis.ccamlr.org/geoserver/wms": true,
-            "https://gis.ccamlr.org/geoserver/wfs": true
-        },
+        },                
         /* Default local Geoserver endpoint */
         default_wms: {
             "name": "Local Geoserver WMS",
             "wms": magic.config.paths.baseurl + "/geoserver/wms"
+        },
+        /**
+         * Queries hostname to decide whether this is a low-bandwidth (i.e. self-contained from a data point of view) location
+         * @returns {Boolean}
+         */
+        lowBandwidthLocation: function() {
+            var lb = ["rothera", "halley", "jcr", "es", "kep", "bi", "signy"];                            
+            var host = window.location.hostname;
+            for (var i = 0; i < lb.length; i++) {
+                if (host.indexOf("." + lb[i] + ".") >= 0) {
+                    return(true);
+                }
+            }
+            return(false);
         },
         /**
          * Convenience method to get the allowed endpoint list for host/projection
@@ -78,33 +61,47 @@ magic.modules.Endpoints = function () {
          * @returns {Array}
          */
         getWmsEndpoints: function(projection) {
-            var wms = this.wms[window.location.hostname] || this.wms["default_host"];
-            return(wms[projection] || []);
-        },
+            var filteredEps = [];
+            var wmsEps = this.wms["default_host"][projection] || [];
+            if (wmsEps.length > 0) {
+                var lb = this.isLowBandwidthLocation();
+                filteredEps = $.grep(wmsEps, function(ep, idx) {
+                    return((ep.bandwidth == "low" && lb) || (ep.bandwidth == "high" && !lb));
+                });
+            }
+            return(filteredEps);
+        },      
         /**
          * Get a suitable mid-latitudes coast layer (OSM, except if in a low bandwidth location, in which case default to Natural Earth)
          * @returns {ol.layer}
          */
-        getMidLatitudeCoastLayer: function() {            
-            var wms = this.wms[window.location.hostname] || this.wms["default_host"];           
-            if (wms["EPSG:3857"][0].wms == "osm") {
-                /* OpenStreetMap */
-                return(new ol.layer.Tile({source: new ol.source.OSM()}));
+        getMidLatitudeCoastLayer: function() {   
+            var lb = this.lowBandwidthLocation();
+            if (lb) {
+                var lb3857 = $.grep(this.wms["default_host"]["EPSG:3857"], function(ep, idx) {
+                   return(ep.bandwidth == "low");
+                });
+                if (lb3857.length > 0) {
+                    /* Use locally-hosted Natural Earth data */
+                    var wmsSource = new ol.source.TileWMS({
+                        url: lb3857[0].wms,
+                        params: {
+                            "LAYERS": lb3857[0].coast, 
+                            "CRS": "EPSG:3857",
+                            "SRS": "EPSG:3857",
+                            "VERSION": "1.3.0",
+                            "WORKSPACE": "opsgis"   /* NB: needs to be made a parameter somewhere */
+                        },            
+                        projection: "EPSG:3857"
+                    });                     
+                    return(new ol.layer.Tile({source: wmsSource}));
+                } else {
+                    return(null);
+                }
             } else {
-                /* Use locally-hosted Natural Earth data */
-                var wmsSource = new ol.source.TileWMS({
-                    url: wms["EPSG:3857"][0].wms,
-                    params: {
-                        "LAYERS": wms["EPSG:3857"][0].coast, 
-                        "CRS": "EPSG:3857",
-                        "SRS": "EPSG:3857",
-                        "VERSION": "1.3.0",
-                        "WORKSPACE": "opsgis"   /* NB: needs to be made a parameter somewhere */
-                    },            
-                    projection: "EPSG:3857"
-                });                     
-                return(new ol.layer.Tile({source: wmsSource}));        
-            } 
+                /* High bandwidth locations can use OpenStreetMap */
+                return(new ol.layer.Tile({source: new ol.source.OSM()}));
+            }            
         }
 
     });

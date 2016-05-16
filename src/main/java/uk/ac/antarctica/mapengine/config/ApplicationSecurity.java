@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,6 +37,9 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
     @Autowired
     private LdapContextSource contextSource;
     
+    @Value("${geoserver.local}")
+    private String geoserverUrl;
+               
     @Bean
     public AuthenticationSuccessHandler successHandler() {
         CustomLoginSuccessHandler handler = new CustomLoginSuccessHandler();
@@ -94,6 +98,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
             .groupSearchBase(null)
             .contextSource(this.contextSource);
         auth.authenticationProvider(new RamaddaAuthenticationProvider("/repository/user/login"));
+        //auth.authenticationProvider(new GeoserverAuthenticationProvider(geoserverUrl));
     }
 
 }

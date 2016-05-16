@@ -261,7 +261,7 @@ magic.modules.creator.Data = function () {
             "id": null,
             "name": "New layer group",
             "layers": []
-        }        
+        }     
 
     });
 

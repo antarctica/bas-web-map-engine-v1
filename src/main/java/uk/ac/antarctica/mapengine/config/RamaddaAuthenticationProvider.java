@@ -74,7 +74,7 @@ public class RamaddaAuthenticationProvider implements AuthenticationProvider {
         return loginUrl;
     }
 
-    public void seLogintUrl(String loginUrl) {
+    public void seLoginUrl(String loginUrl) {
         this.loginUrl = loginUrl;
     }        
     
