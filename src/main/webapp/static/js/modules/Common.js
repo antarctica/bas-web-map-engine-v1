@@ -251,6 +251,32 @@ magic.modules.Common = function () {
             }
         },
         /**
+         * Construct a WxS URL for the specified operation from a WMS URL
+         * @param {String} wmsUrl
+         * @param {String} operation GetCapabilities|DescribeFeatureType|GetFeature
+         * @param {String} feature
+         * @returns {String}
+         */
+        getWxsRequestUrl: function(wmsUrl, operation, feature) {
+            var requestUrl = "";
+            switch(operation.toLowerCase()) {
+                case "getcapabilities":
+                    requestUrl = wmsUrl + "?request=GetCapabilities&service=wms"
+                    break;
+                case "describefeaturetype":
+                    /* Note: version set to 1.0.0 here as certain attributes do NOT get picked up by later versions - is a Geoserver bug */
+                    requestUrl = wmsUrl.replace("wms", "wfs") + "?version=1.0.0&request=DescribeFeatureType&typename=" + feature;                    
+                    break;
+                default:
+                    break;
+            }
+            if (magic.modules.Endpoints.proxy[wmsUrl]) {
+                /* Apply proxy */
+                requestUrl = magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(requestUrl);
+            }
+            return(requestUrl);
+        },
+        /**
          * Retrieve a WMS GetCapabilities document for the URL, calling the given callback with the supplied arguments
          * @param {string} url
          * @param {Function} callback
@@ -260,12 +286,8 @@ magic.modules.Common = function () {
             if (magic.runtime.capabilities[url]) {
                 callback(magic.runtime.capabilities[url], typename);
             } else {
-                var parser = new ol.format.WMSCapabilities();
-                var wmsUrl = url + "?request=GetCapabilities&service=wms";
-                if (magic.modules.Endpoints.proxy[url]) {
-                    wmsUrl = magic.config.paths.baseurl + "/proxy?url=" + wmsUrl;
-                }
-                var jqXhr = $.get(wmsUrl, $.proxy(function(response) {
+                var parser = new ol.format.WMSCapabilities();                
+                var jqXhr = $.get(this.getWxsRequestUrl(url, "GetCapabilities"), $.proxy(function(response) {
                     try {
                         var capsJson = $.parseJSON(JSON.stringify(parser.read(response)));
                         if (capsJson) {

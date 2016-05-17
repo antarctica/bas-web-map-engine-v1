@@ -30,7 +30,7 @@ public class ProxyController {
     
     private static final HashMap<String, Boolean> ALLOWED_URLS = new HashMap();
     static {
-        ALLOWED_URLS.put("https://gis.ccamlr.org/wms", true);
+        ALLOWED_URLS.put("https://gis.ccamlr.org", true);
     }
     
     private static final String REDMINE = "http://redmine.nerc-bas.ac.uk";

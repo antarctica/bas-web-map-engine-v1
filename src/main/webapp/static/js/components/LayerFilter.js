@@ -30,7 +30,7 @@ magic.classes.LayerFilter = function(options) {
     this.target.html(
         '<div class="panel panel-default">' +
             '<div class="panel-body layer-filter-panel">' + 
-                '<form style="width: 230px; margin-top: 10px">' +
+                '<form id="ftr-form-"' + this.nodeid + '" style="width: 230px; margin-top: 10px">' +
                     '<input id="ftr-comparison-type-' + this.nodeid + '" type="hidden" value="string">' + 
                     '<div class="form-group form-group-sm col-sm-12">' +
                         '<select id="ftr-attr-' + this.nodeid + '" class="form-control">' +
@@ -45,7 +45,12 @@ magic.classes.LayerFilter = function(options) {
                             '<option id="ftr-op-str-ct-' + this.nodeid + '" value="ct">Contains (case-insensitive)</option>' +
                         '</select>' +                            
                     '</div>' +
-                    '<div class="form-group form-group-sm col-sm-12" class="hidden">' +
+                    '<div class="form-group form-group-sm col-sm-12 hidden">' +
+                        '<select id="ftr-op-str-unique-' + this.nodeid + '" class="form-control">' +                             
+                            '<option id="ftr-op-str-eq-' + this.nodeid + '" value="eq">equal to</option>' +                            
+                        '</select>' +                            
+                    '</div>' +
+                    '<div class="form-group form-group-sm col-sm-12 hidden">' +
                         '<select id="ftr-op-num-' + this.nodeid + '" class="form-control">' +
                             '<option id="ftr-op-num-eq-' + this.nodeid + '" value="=" selected>equal to</option>' +
                             '<option id="ftr-op-num-gt-' + this.nodeid + '" value=">">greater than</option>' +
@@ -57,24 +62,29 @@ magic.classes.LayerFilter = function(options) {
                     '</div>' +
                     '<div class="form-group form-group-sm col-sm-12">' +
                         '<input id="ftr-val-str-' + this.nodeid + '" class="form-control" type="text" required="true" placeholder="Attribute value" ' + 
-                            'data-toggle="tooltip" data-placement="right" title="Enter the attribute value to filter on" />' + 
+                            'data-toggle="tooltip" data-placement="right" title="Enter the attribute value to filter on"></input>' + 
                     '</div>' + 
-                    '<div class="form-group form-group-sm col-sm-12" class="hidden">' +
+                    '<div class="form-group form-group-sm col-sm-12 hidden">' +
+                        '<select id="ftr-val-str-unique-' + this.nodeid + '" class="form-control" type="text" required="true" placeholder="Attribute value" ' + 
+                            'data-toggle="tooltip" data-placement="right" title="Select the attribute value to filter on">' + 
+                        '</select>' + 
+                    '</div>' + 
+                    '<div class="form-group form-group-sm col-sm-12 hidden">' +
                         '<input id="ftr-val-num1-' + this.nodeid + '" class="form-control" type="number" required="true" placeholder="Numeric attribute value" ' + 
-                            'data-toggle="tooltip" data-placement="right" title="Enter numeric attribute value to filter on" />' + 
+                            'data-toggle="tooltip" data-placement="right" title="Enter numeric attribute value to filter on"></input>' + 
                     '</div>' + 
-                    '<div class="form-group form-group-sm col-sm-12" class="hidden">' +
+                    '<div class="form-group form-group-sm col-sm-12 hidden">' +
                         '<input id="ftr-val-num2-' + this.nodeid + '" class="form-control" type="number" required="false" placeholder="Numeric attribute value" ' + 
-                            'data-toggle="tooltip" data-placement="right" title="Enter upper numeric attribute value to filter on" />' + 
+                            'data-toggle="tooltip" data-placement="right" title="Enter upper numeric attribute value to filter on"></input>' + 
                     '</div>' + 
                     '<div class="form-group form-group-sm col-sm-12">' +
                         '<button id="ftr-btn-go-' + this.nodeid + '" class="btn btn-primary" type="button" ' + 
                             'data-toggle="tooltip" data-placement="right" title="Set filter on layer">' + 
-                            '<span class="fa fa-filter"></span>' + 
+                            '<span class="fa fa-filter"></span>Apply' + 
                         '</button>' +
                         '<button id="ftr-btn-reset-' + this.nodeid + '" class="btn btn-danger" type="button" ' + 
                             'data-toggle="tooltip" data-placement="right" title="Remove layer filter">' + 
-                            '<span class="fa fa-minus-circle"></span>' + 
+                            '<span class="fa fa-minus-circle"></span>Reset' + 
                         '</button>' +
                     '</div>' + 
                 '</form>' + 
@@ -107,65 +117,69 @@ magic.classes.LayerFilter = function(options) {
  */
 magic.classes.LayerFilter.prototype.setFilterOptions = function(changed, to) {
     
-    var inputComparison = $("#ftr-comparison-type-" + this.nodeid);
-    var selectAttr = $("#ftr-attr-" + this.nodeid);
-    var selectOpStr = $("#ftr-op-str-" + this.nodeid);
-    var inputValStr = $("#ftr-val-str-" + this.nodeid);
-    var selectOpNum = $("#ftr-op-num-" + this.nodeid);
-    var inputValNum1 = $("#ftr-val-num1-" + this.nodeid);
-    var inputValNum2 = $("#ftr-val-num2-" + this.nodeid);
+    var inputComparison = $("#ftr-comparison-type-" + this.nodeid);            
     
     if (changed == "attr") {
-        /* Attribute has changed */
+        
+        /* Attribute has changed, completely reset the form apart from this */
+        $("input[type='text'],input[type='number'],input[type='hidden']").not("[id^='ftr-attr-']").val("");
+        $("select").prop("selectedIndex", 0);
+        
         var adata = $.grep(this.attribute_map, function(elt) {
             return(elt.name == to);
         })[0];
-        selectOpStr.selectedIndex = 0;        
-        selectOpNum.selectedIndex = 0;
-        inputValStr.val("");
-        inputValNum1.val("");
-        inputValNum2.val("");
         if (adata.type == "xsd:string") {
             /* String compare */
             inputComparison.val("string");
-            selectOpStr.parent().removeClass("hidden").addClass("show");
-            inputValStr.parent().removeClass("hidden").addClass("show");
-            selectOpNum.parent().removeClass("show").addClass("hidden");
-            inputValNum1.parent().removeClass("show").addClass("hidden");                    
+            $("input[id*='-num'],select[id*='-num']").parent().removeClass("show").addClass("hidden");
+            $("input[id*='-str-" + this.nodeid + "'],select[id*='-str-" + this.nodeid + "']").parent().removeClass("hidden").addClass("show");
+            if (adata.unique_values === true) {
+                /* This will fetch the unique attribute values, and if successful show the appropriate inputs */
+                this.getUniqueValues(adata.name, null);
+            }
         } else {
             /* Numeric/date */
-            inputComparison.val("number");
-            selectOpStr.parent().removeClass("show").addClass("hidden");
-            inputValStr.parent().removeClass("show").addClass("hidden");
-            selectOpNum.parent().removeClass("hidden").addClass("show");
-            inputValNum1.parent().removeClass("hidden").addClass("show");
+            inputComparison.val("number");  
+            $("input[id*='-str-'],select[id*='-str-']").parent().removeClass("show").addClass("hidden");
+            $("input[id*='-num-'],input[id*='-num1-'],select[id*='-num-']").parent().removeClass("hidden").addClass("show");
         }        
-        inputValNum2.parent().removeClass("show").addClass("hidden"); 
+        
     } else if (changed == "op") {
-        /* Operation has changed */
+        
+        /* Operation has changed - leave attribute and value(s) as they are */
         var comparisonType = inputComparison.val();
         if (comparisonType == "number") {
+            var inputValNum2 = $("input[id*='-num2']");
             if (to == "between") {
                 /* Make second value visible */
                 inputValNum2.parent().removeClass("hidden").addClass("show"); 
-                inputValNum2.val("");
             } else {
                 /* Hide second value */
                 inputValNum2.parent().removeClass("show").addClass("hidden"); 
             }
         }
     } else if (changed == "init") {
+        
         /* Load existing filter data */
         this.loadExistingFilter();
-        if (this.attr != null) {
-            selectAttr.val(this.attr);
-        } else {
-            selectAttr.selectedIndex = 0;
-        }
-        if (this.comparison == null || this.comparison == "string") {            
-            if (this.op != null) {
-                if (this.val1 != null) {
+        
+        if (this.attr != null) {            
+            /* Existing filter data found */
+            $("select[id^='ftr-attr-']").val(this.attr);
+            var adata = $.grep(this.attribute_map, $.proxy(function(elt) {
+                return(elt.name == this.attr);
+            }, this))[0];
+            if (this.comparison == "string") {
+                inputComparison.val("string");
+                $("input[id*='-num'],select[id*='-num']").parent().removeClass("show").addClass("hidden");
+                $("input[id*='-str-" + this.nodeid + "'],select[id*='-str-" + this.nodeid + "']").parent().removeClass("hidden").addClass("show");
+                if (adata.unique_values === true) {
+                    /* This will fetch the unique attribute values, and if successful show the appropriate inputs */
+                    this.getUniqueValues(adata.name, this.val1);
+                } else {
                     /* Value will have % characters to indicate wildcards depending on the operation */
+                    var selectOpStr = $("select[id^='ftr-op-str-'" + this.nodeid + "']");
+                    var inputValStr = $("input[id^='ftr-val-str-'" + this.nodeid + "']")
                     var startPc = this.val1.indexOf("%") == 0;
                     var endPc = this.val1.lastIndexOf("%") == this.val1.length-1;
                     if (startPc && endPc) {
@@ -177,52 +191,92 @@ magic.classes.LayerFilter.prototype.setFilterOptions = function(changed, to) {
                     } else {
                         selectOpStr.val("eq"); 
                     }
-                } else {
-                    selectOpStr.selectedIndex = 0;
+                    inputValStr.val(this.val1.replace(/%/g, ""));
                 }
             } else {
-                selectOpStr.selectedIndex = 0;
+                /* Numeric/date */
+                inputComparison.val("number");  
+                $("input[id*='-str-'],select[id*='-str-']").parent().removeClass("show").addClass("hidden");
+                $("input[id*='-num-'],input[id*='-num1-'],select[id*='-num-']").parent().removeClass("hidden").addClass("show");
+                var inputValNum2 = $("input[id*='-num2']");
+                if (this.op == "between") {
+                    inputValNum2.parent().removeClass("hidden").addClass("show").val(this.val2);
+                } else {
+                    inputValNum2.parent().removeClass("show").addClass("hidden").val("");
+                }
             }
-            inputValStr.val(this.val1 ? this.val1.replace(/%/g, "") : "");
-            inputComparison.val("string");
-            selectOpStr.parent().removeClass("hidden").addClass("show");
-            inputValStr.parent().removeClass("hidden").addClass("show");
-            selectOpNum.parent().removeClass("show").addClass("hidden");
-            inputValNum1.parent().removeClass("show").addClass("hidden");
-            inputValNum2.parent().removeClass("show").addClass("hidden");
         } else {
-            if (this.op != null) {
-                selectOpNum.val(this.op);
-            } else {
-                selectOpNum.selectedIndex = 0;
-            }
-            inputValNum1.val(this.val1);
-            inputValNum2.val(this.val2);
-            inputComparison.val("number");
-            selectOpStr.parent().removeClass("show").addClass("hidden");
-            inputValStr.parent().removeClass("show").addClass("hidden");
-            selectOpNum.parent().removeClass("hidden").addClass("show");
-            inputValNum1.parent().removeClass("hidden").addClass("show");
-            if (this.op == "between") {
-                inputValNum2.parent().removeClass("hidden").addClass("show");
-            } else {
-                inputValNum2.parent().removeClass("show").addClass("hidden");
-            }
-        }
+            /* Reset form */
+            $("input[type='text'],input[type='number'],input[type='hidden']").val("");
+            $("select").prop("selectedIndex", 0);
+        }      
     }        
 };
 
 magic.classes.LayerFilter.prototype.loadExistingFilter = function() {
     if (this.layer) {
         var exFilter = magic.runtime.filters[this.layer.get("name")];
-        if (exFilter) {
-            this.attr = exFilter.attr,
-            this.comparison = exFilter.comparison,
-            this.op = exFilter.op,
-            this.val1 = exFilter.val1,
-            this.val2 = exFilter.val2
+        var valid = exFilter && exFilter.attr && exFilter.comparison && exFilter.op && exFilter.val1;
+        this.attr = valid ? exFilter.attr : null,
+        this.comparison = valid ? exFilter.comparison : null,
+        this.op = valid ? exFilter.op : null,
+        this.val1 = valid ? exFilter.val1 : null,
+        this.val2 = valid ? exFilter.val2 : null      
+    }
+};
+
+/**
+ * Get unique values of attrName, if successful setting the alternative inputs
+ * @param {type} attrName
+ * @param {type} attrVal
+ */
+magic.classes.LayerFilter.prototype.getUniqueValues = function(attrName, attrVal) {
+    var sourceMd = this.layer.get("metadata").source;
+    if (sourceMd) {
+        if (sourceMd.wms_source) {
+            /* WMS source */
+            var url = sourceMd.wms_source;
+            var qry = "?service=wfs&version=1.1.0&request=GetFeature&outputFormat=CSV&typeName=" + sourceMd.feature_name + "&propertyName=" + attrName;
+            if (magic.modules.Endpoints.proxy[url]) {
+                url = magic.modules.Endpoints.proxy[url];
+                url = magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(url.replace(/wms$/, "wfs") + qry);
+            } else {
+                url = url.replace(/wms$/, "wfs") + qry;
+            }            
+            var jqXhr = $.ajax(url)
+                .done($.proxy(function(data) {
+                    var arr = data.split(/\n/);
+                    if (arr.length > 0) {
+                        /* Find the index of the desired attribute */
+                        var attrPos = -1;
+                        var fldNames = arr[0].split(",");
+                        for (var i = 0; i < fldNames.length; i++) {
+                            if (fldNames[i] == attrName) {
+                                attrPos = i;
+                                break;
+                            }
+                        }
+                        if (attrPos != -1) {
+                            /* Remove first field name line */
+                            arr.shift();
+                            /* Extract the value of the desired attribute */
+                            var vals = $.map(arr, function(idx, elt) {
+                                return(elt.split(",")[attrPos]);
+                            });
+                            this.populateUniqueValueSelection(vals, attrVal);
+                        }
+                    }
+                }, this))
+                .fail($.proxy(function(jqXhr, status, err) {
+                    /* Leave the status quo unchanged for now */
+                }, this));  
+        } else {
+            /* Unique values from the source features */
+            var vals = $.map(this.layer.getSource().getSource().getFeatures(), $.proxy(function(idx, feat) {return(feat.get(attrName))}, this));
+            this.populateUniqueValueSelection(vals, attrVal);            
         }
     }
+        
 };
 
 /**
@@ -235,7 +289,13 @@ magic.classes.LayerFilter.prototype.applyFilter = function() {
     
     var inputComparison = $("#ftr-comparison-type-" + this.nodeid);
     var selectOpStr = $("#ftr-op-str-" + this.nodeid);
+    if (selectOpStr.hasClass("hidden")) {
+        selectOpStr = $("#ftr-op-str-unique-" + this.nodeid);
+    }
     var inputValStr = $("#ftr-val-str-" + this.nodeid);
+    if (inputValStr.hasClass("hidden")) {
+        inputValStr = $("#ftr-val-str-unique-" + this.nodeid);
+    }
     var selectOpNum = $("#ftr-op-num-" + this.nodeid);
     var inputValNum1 = $("#ftr-val-num1-" + this.nodeid);
     var inputValNum2 = $("#ftr-val-num2-" + this.nodeid);
@@ -318,13 +378,8 @@ magic.classes.LayerFilter.prototype.applyFilter = function() {
                 {"cql_filter": ecql}
             ));
         } else if (sourceMd.geojson_source) {
-            if (sourceMd.feature_name) {
-                /* WFS source */                
-                // TODO
-            } else {
-                /* Other GeoJSON */
-                this.filterVectorSource(this.layer.getSource().getSource());
-            }
+            /* WFS/GeoJson source */
+            this.filterVectorSource(this.layer.getSource().getSource());           
         } else {
             /* GPX/KML */
             this.filterVectorSource(this.layer.getSource().getSource());
@@ -418,4 +473,33 @@ magic.classes.LayerFilter.prototype.filterVectorSource = function(source, url, f
             source.removeFeature(feat);
         }
     }, this));        
+};
+
+/**
+ * Populate the unique values selector 
+ * @param {Array} attrVals
+ * @param {String} selectedVal
+ */
+magic.classes.LayerFilter.prototype.populateUniqueValueSelection = function(attrVals, selectedVal) {            
+    /* Sort attribute values into alphabetical order */
+    attrVals.sort();
+    /* Populate select list */
+    var selOpt = null;
+    var uniqueSelect = $("#ftr-val-str-unique-" + this.nodeid);
+    uniqueSelect.find("option").remove();
+    $.each(attrVals, function(idx, aval) {
+        var opt = $("<option>", {value: aval});
+        opt.text(aval);            
+        uniqueSelect.append(opt);
+        if (aval == selectedVal) {
+            selOpt = opt;
+        }
+    });
+    if (selOpt != null) {
+        selOpt.prop("selected", "selected");
+    }
+    uniqueSelect.removeClass("hidden").addClass("show");
+    $("#ftr-op-str-unique-" + this.nodeid).prop("selectedIndex", 0).removeClass("hidden").addClass("show");
+    $("#ftr-val-str-" + this.nodeid).removeClass("show").addClass("hidden");
+    $("#ftr-op-str-" + this.nodeid).removeClass("show").addClass("hidden");
 };

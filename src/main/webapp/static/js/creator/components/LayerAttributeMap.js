@@ -124,14 +124,9 @@ magic.classes.creator.LayerAttributeMap.prototype.ogcLoadContext = function(wms,
         } else {
             /* Get the feature type attributes from DescribeFeatureType */
             this.attribute_dictionary[id] = [];
-            this.type_dictionary[id] = null;
-            /* Note: version set to 1.0.0 here as certain attributes do NOT get picked up by later versions - is a Geoserver bug */
-            var url = wms.replace("wms", "wfs") + "?version=1.0.0&request=DescribeFeatureType&typename=" + feature;
-            if (magic.modules.Endpoints.proxy[wms] === true) {
-                url = magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(url);
-            } 
+            this.type_dictionary[id] = null;            
             $.ajax({
-                url: url,
+                url: magic.modules.Common.getWxsRequestUrl(wms, "DescribeFeatureType", feature),
                 method: "GET",
                 dataType: "xml"
             })

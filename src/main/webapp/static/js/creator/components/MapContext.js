@@ -13,7 +13,7 @@ magic.classes.creator.MapContext = function() {
 magic.classes.creator.MapContext.prototype.load = function(action, name, callback) {
     if (action == "new") {
         /* New blank map context */
-        this.context = $.extend(true, {}, magic.modules.creator.Data.BLANK_MAP_CORE, {"data": magic.modules.creator.Data.BLANK_MAP_DATA[name]});
+        this.context = $.extend(true, {}, magic.modules.creator.Data.BLANK_MAP_CORE, {"data": magic.modules.creator.Data.BLANK_MAP_DATA(name)});
         this.id = "";
         callback(this.context);
     } else {

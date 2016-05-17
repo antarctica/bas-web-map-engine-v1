@@ -330,12 +330,8 @@ magic.classes.creator.LayerUpdater.prototype.populateWmsFeatureSelector = functi
                 this.populateWmsStyleSelector(wmsUrl, currentFeature);            
             } else {
                 /* Read available layer data from the service GetCapabilities document */
-                var parser = new ol.format.WMSCapabilities();
-                var url = wmsUrl + "?request=GetCapabilities&service=wms";
-                if (magic.modules.Endpoints.proxy[wmsUrl]) {
-                    url = magic.config.paths.baseurl + "/proxy?url=" + url;
-                }
-                var jqXhr = $.get(url, $.proxy(function(response) {
+                var parser = new ol.format.WMSCapabilities();                
+                var jqXhr = $.get(magic.modules.Common.getWxsRequestUrl(wmsUrl, "GetCapabilities"), $.proxy(function(response) {
                     try {
                         var capsJson = $.parseJSON(JSON.stringify(parser.read(response)));
                         if (capsJson) {

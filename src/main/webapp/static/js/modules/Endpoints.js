@@ -17,7 +17,7 @@ magic.modules.Endpoints = function () {
                     {"name": "Pan-Antarctic maps", bandwidth: "high", "wms": "http://bslmagb.nerc-bas.ac.uk/erdas-iws/ogc/wms/PanAntarcticMaps"},
                     {"name": "Scanned maps", bandwidth: "high", "wms": "http://geo.antarctica.ac.uk/geoserver/scanned_maps/wms"},
                     {"name": "Polar View", bandwidth: "high", "wms": "http://geos.polarview.aq/geoserver/wms"},
-                    {"name": "CCAMLR GIS", bandwidth: "high", "wms": "http://geo.antarctica.ac.uk/geoserver/ccamlr_gis/wms", proxy: "https://gis.ccamlr.org/geoserver/wms"},
+                    {"name": "CCAMLR GIS", bandwidth: "high", "wms": "http://geo.antarctica.ac.uk/geoserver/ccamlr_gis/wms"},
                     {"name": "Antarctic Digital Database", bandwidth: "low", "wms": magic.config.paths.baseurl + "/geoserver/add/wms", "coast": ["add:antarctic_coastline", "add:sub_antarctic_coastline"], "graticule": "add:antarctic_graticule"},
                     {"name": "Operations GIS", bandwidth: "low", "wms":  magic.config.paths.baseurl + "/geoserver/opsgis/wms"}
                 ],
@@ -31,11 +31,14 @@ magic.modules.Endpoints = function () {
                     {"name": "Antarctic Peninsula Information Portal (APIP)", bandwidth: "high", "wms": "http://bslbatgis.nerc-bas.ac.uk/geoserver/apip/wms"},
                 ],
                 "EPSG:3857": [
-                    {"name": "OpenStreetMap", bandwidth: "high", "wms": "osm", "coast": "osm"},
-                    {"name": "Natural Earth Data", bandwidth: "low", "wms": magic.config.paths.baseurl + "/geoserver/opsgis/wms", "coast": "opsgis:natearth_world_10m_land"}
+                    {"name": "Midlatitude Data", bandwidth: "high", "wms": "osm", "coast": "osm"},
+                    {"name": "Midlatitude Data", bandwidth: "low", "wms": magic.config.paths.baseurl + "/geoserver/opsgis/wms", "coast": "opsgis:natearth_world_10m_land"}
                 ]
             }
-        },                
+        },
+        proxy: {
+            "http://geo.antarctica.ac.uk/geoserver/ccamlr_gis/wms": "https://gis.ccamlr.org/geoserver/wms"
+        },
         /* Default local Geoserver endpoint */
         default_wms: {
             "name": "Local Geoserver WMS",
@@ -70,7 +73,20 @@ magic.modules.Endpoints = function () {
                 });
             }
             return(filteredEps);
-        },      
+        }, 
+        /**
+         * Get a suitable service WMS endpoint depending on location bandwidth
+         * @param {String} service
+         * @param {String} projection
+         * @returns {String}
+         */
+        getWmsServiceUrl: function(service, projection) {
+            var lb = this.lowBandwidthLocation() ? "low" : "high";
+            var candidates = $.grep(this.getWmsEndpoints(projection), function(ep, idx) {
+                return(ep.bandwidth == lb && ep.name.toLowerCase() == service.toLowerCase());
+            });
+            return((candidates.length > 0) ? candidates[0].wms : "");            
+        },
         /**
          * Get a suitable mid-latitudes coast layer (OSM, except if in a low bandwidth location, in which case default to Natural Earth)
          * @returns {ol.layer}
@@ -102,6 +118,20 @@ magic.modules.Endpoints = function () {
                 /* High bandwidth locations can use OpenStreetMap */
                 return(new ol.layer.Tile({source: new ol.source.OSM()}));
             }            
+        },
+        getMidLatitudeCoastSource: function() {
+            var wms = this.getWmsServiceUrl("Midlatitude Data", "EPSG:3857");            
+            return({
+               "id": null,
+               "name": "Mid-latitude data",
+               "source": {
+                    "wms_source": wms || "osm", 
+                    "feature_name": (wms != "osm" ? "opsgis:natearth_world_10m_land" : "osm"), 
+                    "is_base": true
+               },
+               "is_visible": true
+            });
+            
         }
 
     });

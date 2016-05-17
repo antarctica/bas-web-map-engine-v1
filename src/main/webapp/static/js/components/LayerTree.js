@@ -319,9 +319,7 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                             } else {
                                 url += "bbox=" + extent.join(",");
                             }     
-                            if (magic.modules.Endpoints.proxy[url] === true) {
-                                url = magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(url);
-                            }                            
+                            url = magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(url);
                         }
                         $.ajax({
                             url: url,
