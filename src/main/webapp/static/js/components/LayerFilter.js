@@ -30,7 +30,7 @@ magic.classes.LayerFilter = function(options) {
     this.target.html(
         '<div class="panel panel-default">' +
             '<div class="panel-body layer-filter-panel">' + 
-                '<form id="ftr-form-"' + this.nodeid + '" style="width: 230px; margin-top: 10px">' +
+                '<form id="ftr-form-' + this.nodeid + '" style="width: 230px; margin-top: 10px">' +
                     '<input id="ftr-comparison-type-' + this.nodeid + '" type="hidden" value="string">' + 
                     '<div class="form-group form-group-sm col-sm-12">' +
                         '<select id="ftr-attr-' + this.nodeid + '" class="form-control">' +
@@ -78,11 +78,11 @@ magic.classes.LayerFilter = function(options) {
                             'data-toggle="tooltip" data-placement="right" title="Enter upper numeric attribute value to filter on"></input>' + 
                     '</div>' + 
                     '<div class="form-group form-group-sm col-sm-12">' +
-                        '<button id="ftr-btn-go-' + this.nodeid + '" class="btn btn-primary" type="button" ' + 
-                            'data-toggle="tooltip" data-placement="right" title="Set filter on layer">' + 
+                        '<button id="ftr-btn-go-' + this.nodeid + '" class="btn btn-primary btn-sm" type="button" ' + 
+                            'data-toggle="tooltip" data-placement="right" title="Set filter on layer" style="margin-right:5px">' + 
                             '<span class="fa fa-filter"></span>Apply' + 
                         '</button>' +
-                        '<button id="ftr-btn-reset-' + this.nodeid + '" class="btn btn-danger" type="button" ' + 
+                        '<button id="ftr-btn-reset-' + this.nodeid + '" class="btn btn-danger btn-sm" type="button" ' + 
                             'data-toggle="tooltip" data-placement="right" title="Remove layer filter">' + 
                             '<span class="fa fa-minus-circle"></span>Reset' + 
                         '</button>' +
@@ -117,13 +117,14 @@ magic.classes.LayerFilter = function(options) {
  */
 magic.classes.LayerFilter.prototype.setFilterOptions = function(changed, to) {
     
+    var form = $("#ftr-form-" + this.nodeid);
     var inputComparison = $("#ftr-comparison-type-" + this.nodeid);            
     
     if (changed == "attr") {
         
         /* Attribute has changed, completely reset the form apart from this */
-        $("input[type='text'],input[type='number'],input[type='hidden']").not("[id^='ftr-attr-']").val("");
-        $("select").prop("selectedIndex", 0);
+        form.find("input[type='text'],input[type='number'],input[type='hidden']").val("");
+        form.find("select").not("[id^='ftr-attr-']").prop("selectedIndex", 0);
         
         var adata = $.grep(this.attribute_map, function(elt) {
             return(elt.name == to);
@@ -131,8 +132,8 @@ magic.classes.LayerFilter.prototype.setFilterOptions = function(changed, to) {
         if (adata.type == "xsd:string") {
             /* String compare */
             inputComparison.val("string");
-            $("input[id*='-num'],select[id*='-num']").parent().removeClass("show").addClass("hidden");
-            $("input[id*='-str-" + this.nodeid + "'],select[id*='-str-" + this.nodeid + "']").parent().removeClass("hidden").addClass("show");
+            form.find("input[id*='-num'],select[id*='-num']").parent().removeClass("show").addClass("hidden");
+            form.find("input[id*='-str-" + this.nodeid + "'],select[id*='-str-" + this.nodeid + "']").parent().removeClass("hidden").addClass("show");
             if (adata.unique_values === true) {
                 /* This will fetch the unique attribute values, and if successful show the appropriate inputs */
                 this.getUniqueValues(adata.name, null);
@@ -140,8 +141,8 @@ magic.classes.LayerFilter.prototype.setFilterOptions = function(changed, to) {
         } else {
             /* Numeric/date */
             inputComparison.val("number");  
-            $("input[id*='-str-'],select[id*='-str-']").parent().removeClass("show").addClass("hidden");
-            $("input[id*='-num-'],input[id*='-num1-'],select[id*='-num-']").parent().removeClass("hidden").addClass("show");
+            form.find("input[id*='-str-'],select[id*='-str-']").parent().removeClass("show").addClass("hidden");
+            form.find("input[id*='-num-'],input[id*='-num1-'],select[id*='-num-']").parent().removeClass("hidden").addClass("show");
         }        
         
     } else if (changed == "op") {
@@ -149,7 +150,7 @@ magic.classes.LayerFilter.prototype.setFilterOptions = function(changed, to) {
         /* Operation has changed - leave attribute and value(s) as they are */
         var comparisonType = inputComparison.val();
         if (comparisonType == "number") {
-            var inputValNum2 = $("input[id*='-num2']");
+            var inputValNum2 = form.find("input[id*='-num2']");
             if (to == "between") {
                 /* Make second value visible */
                 inputValNum2.parent().removeClass("hidden").addClass("show"); 
@@ -165,23 +166,23 @@ magic.classes.LayerFilter.prototype.setFilterOptions = function(changed, to) {
         
         if (this.attr != null) {            
             /* Existing filter data found */
-            $("select[id^='ftr-attr-']").val(this.attr);
+            form.find("select[id^='ftr-attr-']").val(this.attr);
             var adata = $.grep(this.attribute_map, $.proxy(function(elt) {
                 return(elt.name == this.attr);
             }, this))[0];
             if (this.comparison == "string") {
                 inputComparison.val("string");
-                $("input[id*='-num'],select[id*='-num']").parent().removeClass("show").addClass("hidden");
-                $("input[id*='-str-" + this.nodeid + "'],select[id*='-str-" + this.nodeid + "']").parent().removeClass("hidden").addClass("show");
+                form.find("input[id*='-num'],select[id*='-num']").parent().removeClass("show").addClass("hidden");
+                form.find("input[id*='-str-" + this.nodeid + "'],select[id*='-str-" + this.nodeid + "']").parent().removeClass("hidden").addClass("show");
                 if (adata.unique_values === true) {
                     /* This will fetch the unique attribute values, and if successful show the appropriate inputs */
                     this.getUniqueValues(adata.name, this.val1);
                 } else {
                     /* Value will have % characters to indicate wildcards depending on the operation */
-                    var selectOpStr = $("select[id^='ftr-op-str-'" + this.nodeid + "']");
-                    var inputValStr = $("input[id^='ftr-val-str-'" + this.nodeid + "']")
+                    var selectOpStr = $("#ftr-op-str-" + this.nodeid);
+                    var inputValStr = $("#ftr-val-str-" + this.nodeid)
                     var startPc = this.val1.indexOf("%") == 0;
-                    var endPc = this.val1.lastIndexOf("%") == this.val1.length-1;
+                    var endPc = this.val && (this.val1.lastIndexOf("%") == this.val1.length-1);
                     if (startPc && endPc) {
                         selectOpStr.val("ct"); 
                     } else if (startPc) {
@@ -196,8 +197,8 @@ magic.classes.LayerFilter.prototype.setFilterOptions = function(changed, to) {
             } else {
                 /* Numeric/date */
                 inputComparison.val("number");  
-                $("input[id*='-str-'],select[id*='-str-']").parent().removeClass("show").addClass("hidden");
-                $("input[id*='-num-'],input[id*='-num1-'],select[id*='-num-']").parent().removeClass("hidden").addClass("show");
+                form.find("input[id*='-str-'],select[id*='-str-']").parent().removeClass("show").addClass("hidden");
+                form.find("input[id*='-num-'],input[id*='-num1-'],select[id*='-num-']").parent().removeClass("hidden").addClass("show");
                 var inputValNum2 = $("input[id*='-num2']");
                 if (this.op == "between") {
                     inputValNum2.parent().removeClass("hidden").addClass("show").val(this.val2);
@@ -207,21 +208,38 @@ magic.classes.LayerFilter.prototype.setFilterOptions = function(changed, to) {
             }
         } else {
             /* Reset form */
-            $("input[type='text'],input[type='number'],input[type='hidden']").val("");
-            $("select").prop("selectedIndex", 0);
+            form.find("input[type='text'],input[type='number'],input[type='hidden']").val("");
+            form.find("select").prop("selectedIndex", 0);
         }      
     }        
 };
 
 magic.classes.LayerFilter.prototype.loadExistingFilter = function() {
-    if (this.layer) {
-        var exFilter = magic.runtime.filters[this.layer.get("name")];
-        var valid = exFilter && exFilter.attr && exFilter.comparison && exFilter.op && exFilter.val1;
-        this.attr = valid ? exFilter.attr : null,
-        this.comparison = valid ? exFilter.comparison : null,
-        this.op = valid ? exFilter.op : null,
-        this.val1 = valid ? exFilter.val1 : null,
-        this.val2 = valid ? exFilter.val2 : null      
+    var exFilter = magic.runtime.filters[this.layer.get("name")];
+    var valid = exFilter && exFilter.attr && exFilter.comparison && exFilter.op && exFilter.val1;
+    if (valid) {
+        this.attr = exFilter.attr,
+        this.comparison = exFilter.comparison,
+        this.op = exFilter.op,
+        this.val1 = exFilter.val1,
+        this.val2 = exFilter.val2
+    } else {
+        var filterables = $.grep(this.attribute_map, $.proxy(function(elt) {
+            return(elt.filterable);
+        }, this));
+        if (filterables.length > 0) {
+            this.attr = filterables[0].name;
+            this.comparison = filterables[0].type == "xsd:string" ? "string" : "number";
+            this.op = "eq";
+            this.val1 = "";
+            this.val2 = "";
+        } else {
+            this.attr = null;
+            this.comparison = "string";
+            this.op = "eq";
+            this.val1 = "";
+            this.val2 = "";
+        }
     }
 };
 
@@ -259,9 +277,15 @@ magic.classes.LayerFilter.prototype.getUniqueValues = function(attrName, attrVal
                         if (attrPos != -1) {
                             /* Remove first field name line */
                             arr.shift();
+                            var foundDict = {};
                             /* Extract the value of the desired attribute */
                             var vals = $.map(arr, function(idx, elt) {
-                                return(elt.split(",")[attrPos]);
+                                var eltAttrVal = elt.split(",")[attrPos];
+                                if (foundDict[eltAttrVal] !== true) {
+                                    foundDict[eltAttrVal] = true;
+                                    return(eltAttrVal);
+                                }
+                                return(null);
                             });
                             this.populateUniqueValueSelection(vals, attrVal);
                         }
@@ -289,13 +313,7 @@ magic.classes.LayerFilter.prototype.applyFilter = function() {
     
     var inputComparison = $("#ftr-comparison-type-" + this.nodeid);
     var selectOpStr = $("#ftr-op-str-" + this.nodeid);
-    if (selectOpStr.hasClass("hidden")) {
-        selectOpStr = $("#ftr-op-str-unique-" + this.nodeid);
-    }
     var inputValStr = $("#ftr-val-str-" + this.nodeid);
-    if (inputValStr.hasClass("hidden")) {
-        inputValStr = $("#ftr-val-str-unique-" + this.nodeid);
-    }
     var selectOpNum = $("#ftr-op-num-" + this.nodeid);
     var inputValNum1 = $("#ftr-val-num1-" + this.nodeid);
     var inputValNum2 = $("#ftr-val-num2-" + this.nodeid);
@@ -307,8 +325,14 @@ magic.classes.LayerFilter.prototype.applyFilter = function() {
     var fop = null, fval1 = null, fval2 = null, rules = [];
     var filterString = null;
     /* Validate the inputs */
-    if (comparisonType == "string") {
+    if (!comparisonType || comparisonType == "string") {
         fop = "ilike";
+        if (selectOpStr.hasClass("hidden")) {
+            selectOpStr = $("#ftr-op-str-unique-" + this.nodeid);
+        } 
+        if (inputValStr.hasClass("hidden")) {
+            inputValStr = $("#ftr-val-str-unique-" + this.nodeid);
+        }
         var ciOp = selectOpStr.val();
         fval1 = inputValStr.val();
         if (fval1 != null && fval1 != "") {

@@ -67,7 +67,7 @@ magic.modules.Endpoints = function () {
             var filteredEps = [];
             var wmsEps = this.wms["default_host"][projection] || [];
             if (wmsEps.length > 0) {
-                var lb = this.isLowBandwidthLocation();
+                var lb = this.lowBandwidthLocation();
                 filteredEps = $.grep(wmsEps, function(ep, idx) {
                     return((ep.bandwidth == "low" && lb) || (ep.bandwidth == "high" && !lb));
                 });

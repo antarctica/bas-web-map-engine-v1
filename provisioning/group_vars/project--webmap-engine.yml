@@ -25,7 +25,10 @@ app_tomcat_undeployed_applications:
 app_geoserver_version: 2.8.3
 app_geoserver_path: /geoserver
 app_geoserver_context: "/geoserver:running:0:geoserver##{{ app_geoserver_version }}"
-app_geoserver_war_file_uri: "http://sourceforge.net/projects/geoserver/files/GeoServer/{{ app_geoserver_version }}/geoserver-{{ app_geoserver_version }}-war.zip"
+
+# This URL is far too unreliable - times out a lot
+#app_geoserver_war_file_uri: "http://sourceforge.net/projects/geoserver/files/GeoServer/{{ app_geoserver_version }}/geoserver-{{ app_geoserver_version }}-war.zip"
+app_geoserver_war_file_uri: "https://s3-eu-west-1.amazonaws.com/bas-packages-dev/wars/geoserver/geoserver-2.8.3-war.zip"
 
 app_geoserver_admin_user_username: admin
 # This is a temporary problem until the tasks to set the GeoServer master password can be used

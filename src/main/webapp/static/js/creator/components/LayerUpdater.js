@@ -124,7 +124,7 @@ magic.classes.creator.LayerUpdater.prototype.saveContext = function() {
     /* Delete currently specified source data pending replacement with new */
     this.data.source = {};
     magic.modules.creator.Common.formToDict(this.source_form_fields[activeTab], this.data.source, this.prefix + "-" + activeTab);
-    if (this.attributeMap) {
+    if (this.attribute_map) {
         this.attribute_map.saveContext(this.data, activeTab);
     }
     if (activeTab != "wms") {

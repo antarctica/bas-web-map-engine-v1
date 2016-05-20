@@ -41,3 +41,10 @@
   file:
     path="~/ROOT.war"
     state=absent
+    
+- name: set the appropriate application.properties file
+  template:
+    src=../../templates/app/application.properties.j2
+    dest="/var/lib/tomcat8/webapps/ROOT##{{ app_webmap_engine_version }}/WEB-INF/classes/application.properties"
+    owner=tomcat
+    group=adm
