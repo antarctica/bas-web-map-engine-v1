@@ -134,6 +134,7 @@ magic.classes.LayerFilter.prototype.setFilterOptions = function(changed, to) {
             inputComparison.val("string");
             form.find("input[id*='-num'],select[id*='-num']").parent().removeClass("show").addClass("hidden");
             form.find("input[id*='-str-" + this.nodeid + "'],select[id*='-str-" + this.nodeid + "']").parent().removeClass("hidden").addClass("show");
+            form.find("input[id*='-str-unique-'],select[id*='-str-unique']").parent().removeClass("show").addClass("hidden");
             if (adata.unique_values === true) {
                 /* This will fetch the unique attribute values, and if successful show the appropriate inputs */
                 this.getUniqueValues(adata.name, null);
