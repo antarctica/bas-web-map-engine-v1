@@ -180,7 +180,7 @@ magic.classes.LayerFilter.prototype.setFilterOptions = function(changed, to) {
                 } else {
                     /* Value will have % characters to indicate wildcards depending on the operation */
                     var selectOpStr = $("#ftr-op-str-" + this.nodeid);
-                    var inputValStr = $("#ftr-val-str-" + this.nodeid)
+                    var inputValStr = $("#ftr-val-str-" + this.nodeid);
                     var startPc = this.val1.indexOf("%") == 0;
                     var endPc = this.val && (this.val1.lastIndexOf("%") == this.val1.length-1);
                     if (startPc && endPc) {
@@ -199,8 +199,11 @@ magic.classes.LayerFilter.prototype.setFilterOptions = function(changed, to) {
                 inputComparison.val("number");  
                 form.find("input[id*='-str-'],select[id*='-str-']").parent().removeClass("show").addClass("hidden");
                 form.find("input[id*='-num-'],input[id*='-num1-'],select[id*='-num-']").parent().removeClass("hidden").addClass("show");
-                var inputValNum2 = $("input[id*='-num2']");
+                $("#ftr-op-num-" + this.nodeid).val(this.op);
+                $("#ftr-val-num1-" + this.nodeid).val(this.val1);
+                var inputValNum2 = $("#ftr-val-num2-" + this.nodeid);
                 if (this.op == "between") {
+                    inputValNum2.val(this.val2);
                     inputValNum2.parent().removeClass("hidden").addClass("show").val(this.val2);
                 } else {
                     inputValNum2.parent().removeClass("show").addClass("hidden").val("");
@@ -269,7 +272,8 @@ magic.classes.LayerFilter.prototype.getUniqueValues = function(attrName, attrVal
                         var attrPos = -1;
                         var fldNames = arr[0].split(",");
                         for (var i = 0; i < fldNames.length; i++) {
-                            if (fldNames[i] == attrName) {
+                            /* Note the trim() here - data could have appended whitespace/CR */
+                            if (fldNames[i].trim() == attrName) {
                                 attrPos = i;
                                 break;
                             }
@@ -279,11 +283,14 @@ magic.classes.LayerFilter.prototype.getUniqueValues = function(attrName, attrVal
                             arr.shift();
                             var foundDict = {};
                             /* Extract the value of the desired attribute */
-                            var vals = $.map(arr, function(idx, elt) {
+                            var vals = $.map(arr, function(elt, idx) {
                                 var eltAttrVal = elt.split(",")[attrPos];
-                                if (foundDict[eltAttrVal] !== true) {
-                                    foundDict[eltAttrVal] = true;
-                                    return(eltAttrVal);
+                                if (eltAttrVal) {
+                                    eltAttrVal = eltAttrVal.trim();                                
+                                    if (foundDict[eltAttrVal] !== true) {
+                                        foundDict[eltAttrVal] = true;
+                                        return(eltAttrVal);
+                                    }
                                 }
                                 return(null);
                             });
@@ -327,10 +334,10 @@ magic.classes.LayerFilter.prototype.applyFilter = function() {
     /* Validate the inputs */
     if (!comparisonType || comparisonType == "string") {
         fop = "ilike";
-        if (selectOpStr.hasClass("hidden")) {
+        if (selectOpStr.parent().hasClass("hidden")) {
             selectOpStr = $("#ftr-op-str-unique-" + this.nodeid);
         } 
-        if (inputValStr.hasClass("hidden")) {
+        if (inputValStr.parent().hasClass("hidden")) {
             inputValStr = $("#ftr-val-str-unique-" + this.nodeid);
         }
         var ciOp = selectOpStr.val();
@@ -522,8 +529,8 @@ magic.classes.LayerFilter.prototype.populateUniqueValueSelection = function(attr
     if (selOpt != null) {
         selOpt.prop("selected", "selected");
     }
-    uniqueSelect.removeClass("hidden").addClass("show");
-    $("#ftr-op-str-unique-" + this.nodeid).prop("selectedIndex", 0).removeClass("hidden").addClass("show");
-    $("#ftr-val-str-" + this.nodeid).removeClass("show").addClass("hidden");
-    $("#ftr-op-str-" + this.nodeid).removeClass("show").addClass("hidden");
+    uniqueSelect.parent().removeClass("hidden").addClass("show");
+    $("#ftr-op-str-unique-" + this.nodeid).prop("selectedIndex", 0).parent().removeClass("hidden").addClass("show");
+    $("#ftr-val-str-" + this.nodeid).parent().removeClass("show").addClass("hidden");
+    $("#ftr-op-str-" + this.nodeid).parent().removeClass("show").addClass("hidden");
 };
