@@ -168,6 +168,7 @@ magic.classes.FeaturePopup.prototype.basicMarkup = function() {
                         if (attrdata.type == "xsd:string") {
                             var finalValue = "";
                             if (feat[attrdata.name]) {
+                                /* Attribute has a value, so worth displaying */
                                 var quote1 = feat[attrdata.name].indexOf("\"");
                                 var quote2 = feat[attrdata.name].lastIndexOf("\"");
                                 if (quote1 != -1 && quote2 != -1) {
@@ -186,13 +187,17 @@ magic.classes.FeaturePopup.prototype.basicMarkup = function() {
                                     } else {
                                         finalValue = longContent;
                                     }
-                                }                                                    
+                                }
+                                content += '<tr><td>' + nameStr + '</td><td' + (extension ? ' align="right"' : '') + '>' + finalValue + '</td></tr>';
+                                nDisplayed++;
+                            }                            
+                        } else { 
+                            if (feat[attrdata.name]) {
+                                /* Attribute has a non-null value, so worth displaying */
+                                content += '<tr><td>' + nameStr + '</td><td align="right">' + this.attributeValue(attrdata.name, feat[attrdata.name]) + '</td></tr>';
+                                nDisplayed++;
                             }
-                            content += '<tr><td>' + nameStr + '</td><td' + (extension ? ' align="right"' : '') + '>' + finalValue + '</td></tr>';
-                        } else {                            
-                            content += '<tr><td>' + nameStr + '</td><td align="right">' + this.attributeValue(attrdata.name, feat[attrdata.name]) + '</td></tr>';
-                        }
-                        nDisplayed++;
+                        }                        
                     }
                 }, this));
             }
