@@ -135,8 +135,8 @@ magic.classes.ShipPositionButton.prototype.deactivate = function () {
 
 magic.classes.ShipPositionButton.prototype.getData = function() {
     /* Aircraft positional API */
-    var shipApi = "https://legacy.bas.ac.uk/webteam/api/ship/position/";
-    //var shipApi = "https://api.bas.ac.uk/marine/v1/vessels/position/";        
+    //var shipApi = "https://legacy.bas.ac.uk/webteam/api/ship/position/";
+    var shipApi = "https://api.bas.ac.uk/marine/v1/vessels/position/";        
     $.ajax({
         url: shipApi,
         method: "GET",

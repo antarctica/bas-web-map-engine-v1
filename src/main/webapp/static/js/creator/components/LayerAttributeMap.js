@@ -11,7 +11,7 @@ magic.classes.creator.LayerAttributeMap = function(div) {
     /* Type dictionary for layers */
     this.type_dictionary = {};
       
-    this.div.html("");
+    this.displayInteractivityDiv("unknown", "");
             
 };
 
@@ -34,7 +34,7 @@ magic.classes.creator.LayerAttributeMap.prototype.loadContext = function(context
 magic.classes.creator.LayerAttributeMap.prototype.vectorLoadContext = function(context, sourceType) { 
     if ($.isArray(this.attribute_dictionary[context.id])) {
         /* Already fetched the attributes */
-        this.div.html(this.toForm(context.attribute_map, this.attribute_dictionary[context.id]));
+        this.displayInteractivityDiv("yes", this.toForm(context.attribute_map, this.attribute_dictionary[context.id]));
     } else {
         /* Need to read a sample feature to get attribute schema */
         var source = null, feature = null, format = null;
@@ -93,18 +93,18 @@ magic.classes.creator.LayerAttributeMap.prototype.vectorLoadContext = function(c
                             }, this));
                             this.attribute_dictionary[context.id] = attrDict;
                             this.type_dictionary[context.id] = this.featureGeomType(testFeat);
-                            this.div.html(this.toForm(context.id, context.attribute_map, attrDict));
+                            this.displayInteractivityDiv("yes", this.toForm(context.id, context.attribute_map, attrDict));
                         }
                     } else {
-                        this.div.html('<div class="alert alert-warning" style="margin-bottom:0">Failed to parse test feature from ' + source + '</div>');
+                        this.displayInteractivityDiv("yes", '<div class="alert alert-warning" style="margin-bottom:0">Failed to parse test feature from ' + source + '</div>');
                     }
                 } else {
-                    this.div.html('<div class="alert alert-warning" style="margin-bottom:0">Failed to parse test feature from ' + source + '</div>');
+                    this.displayInteractivityDiv("yes", '<div class="alert alert-warning" style="margin-bottom:0">Failed to parse test feature from ' + source + '</div>');
                 }
             }, this));
-            jqXhr.fail(function(xhr, status) {
-                this.div.html('<div class="alert alert-warning" style="margin-bottom:0">Failed to read features from ' + source + '(' + xhr.responseText + ')</div>');
-            });
+            jqXhr.fail($.proxy(function(xhr, status) {
+                this.displayInteractivityDiv("yes", '<div class="alert alert-warning" style="margin-bottom:0">Failed to read features from ' + source + '(' + xhr.responseText + ')</div>');
+            }, this));
         }
     }    
 };
@@ -120,7 +120,7 @@ magic.classes.creator.LayerAttributeMap.prototype.ogcLoadContext = function(wms,
     if (wms && feature && id) {    
         if (wms == "osm") {
             /* OpenStreetMap */
-            this.div.html('<div class="alert alert-warning" style="margin-bottom:0">No attributes available for OSM layers</div>');
+            this.displayInteractivityDiv("no", "");
         } else {
             /* Get the feature type attributes from DescribeFeatureType */
             this.attribute_dictionary[id] = [];
@@ -154,11 +154,15 @@ magic.classes.creator.LayerAttributeMap.prototype.ogcLoadContext = function(wms,
                     this.attribute_dictionary[id].push(attrs);                    
                 }, this));
                 this.type_dictionary[id] = geomType;
-                this.div.html(this.toForm(id, attrMap, this.attribute_dictionary[id]));
+                if (geomType == "unknown") {
+                    this.displayInteractivityDiv("no", "");
+                } else {
+                    this.displayInteractivityDiv("yes", this.toForm(id, attrMap, this.attribute_dictionary[id]));
+                }
             }, this));
         }
     } else {
-        this.div.html('<div class="alert alert-warning" style="margin-bottom:0">No WMS or feature type name defined</div>');
+        this.displayInteractivityDiv("unknown", "");
     }
 };
 
@@ -300,4 +304,21 @@ magic.classes.creator.LayerAttributeMap.prototype.featureGeomType = function(fea
         }
     }
     return(type);
+};
+
+/**
+ * Display attribute information
+ * @param {String} status yes|no|unknown
+ * @param {String} html 
+ */
+magic.classes.creator.LayerAttributeMap.prototype.displayInteractivityDiv = function(status, html) {
+    var divIds = ["yes", "no", "unknown"];
+    for (var i = 0; i < divIds.length; i++) {
+        if (divIds[i] == status) {
+            $("#t2-layer-int-" + divIds[i]).removeClass("hidden").addClass("show");
+        } else {
+            $("#t2-layer-int-" + divIds[i]).removeClass("show").addClass("hidden");
+        }
+    }
+    this.div.html(html);
 };
