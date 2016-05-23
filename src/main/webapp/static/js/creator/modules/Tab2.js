@@ -15,8 +15,9 @@ magic.modules.creator.Tab2 = function () {
             "background-position": "center center",
             "background-repeat": "no-repeat"
         },
-        open_img: magic.config.paths.baseurl + "/static/images/sortable_lists/open.png",
-        close_img: magic.config.paths.baseurl + "/static/images/sortable_lists/close.png",
+        
+        openHtml: '<i class="fa fa-plus" style="font-size:20px"></i>',
+        closeHtml: '<i class="fa fa-minus" style="font-size:20px"></i>',        
         
         /* Sub-tab for layer update */
         layer_updater: null,
@@ -118,8 +119,9 @@ magic.modules.creator.Tab2 = function () {
                 insertZone: 50,
                 opener: {
                     active: true,
-                    close: this.close_img,
-                    open: this.open_img,                        
+                    as: "html",  
+                    close: this.closeHtml,
+                    open: this.openHtml,
                     openerCss: this.opener_css
                 },
                 ignoreClass: "layer-name-button"
@@ -191,16 +193,16 @@ magic.modules.creator.Tab2 = function () {
                 .css($.extend({"background-image": "url('" + this.open_img + "')"}, this.opener_css))
                 .on("mousedown", $.proxy(function(evt) {                    
 					if (li.hasClass("sortableListsClosed")) {
-                        $(evt.currentTarget).css({"background-image": "url('" + this.close_img + "')"});
+                        $(evt.currentTarget).html(this.closeHtml);
                         li.removeClass("sortableListsClosed").addClass("sortableListsOpen");
                         li.children("ul, ol").css("display", "block");
-                        li.children("div").children(".sortableListsOpener").first().css("background-image", "url('" + this.close_img + "')");
+                        li.children("div").children(".sortableListsOpener").first().html(this.closeHtml);
                     }
 					else { 
-                        $(evt.currentTarget).css({"background-image": "url('" + this.open_img + "')"});
+                        $(evt.currentTarget).html(this.openHtml);
                         li.removeClass("sortableListsOpen").addClass("sortableListsClosed");
                         li.children("ul, ol").css("display", "none");
-                        li.children("div").children(".sortableListsOpener").first().css("background-image", "url('" + this.open_img + "')");
+                        li.children("div").children(".sortableListsOpener").first().html(this.openHtml);
                     }
 					return(false);
             }, this));
