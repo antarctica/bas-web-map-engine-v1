@@ -57,12 +57,14 @@ magic.classes.LayerTree = function (target) {
         } else {
             /* Overlay layer visibility change */
             layer.setVisible(evt.currentTarget.checked);
+            this.propagateCheckStatus($(evt.currentTarget));
         }
     }, this));
 
     /* Assign layer group visibility handlers */
     $("input.layer-vis-group-selector").change($.proxy(function (evt) {
         var checked = evt.currentTarget.checked;
+        //$(evt.currentTarget).next().html('<span class="fa fa-eye">&nbsp;</span>0')
         $(evt.currentTarget).parent().next().find("li").each($.proxy(function (idx, elt) {
             var nodeid = this.getNodeId(elt.id);
             var lyr = this.nodeLayerTranslation[nodeid];
@@ -72,7 +74,8 @@ magic.classes.LayerTree = function (target) {
             } else {
                 $("#group-cb-" + nodeid).prop("checked", checked);
             }
-        }, this));
+            this.propagateCheckStatus($(evt.currentTarget));
+        }, this));        
     }, this));
 
     /* The get layer info buttons */
@@ -101,6 +104,11 @@ magic.classes.LayerTree = function (target) {
     .on("hidden.bs.collapse", $.proxy(function (evt) {        
         $(evt.currentTarget).parent().first().find("span.panel-title").attr("data-original-title", "Expand this group").tooltip("fixTitle");
         evt.stopPropagation();
+    }, this));
+    
+    /* Initialise checked indicator badges in layer groups */
+    $("input[id^='layer-cb-']:checked").each($.proxy(function(idx, elt) {
+        this.propagateCheckStatus($(elt));
     }, this));
 
 };
@@ -163,10 +171,11 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
             var topMargin = i == 0 ? "margin-top:5px" : "";
             element.append(
                     ((element.length > 0 && element[0].tagName.toLowerCase() == "ul") ? '<li class="list-group-item layer-list-group-group" id="layer-item-' + nd.id + '">' : "") +
-                    '<div class="panel ' + hbg + ' center-block" style="width:96%;margin-bottom:5px;' + topMargin + '">' +
+                    '<div class="panel ' + hbg + ' center-block layer-group" style="' + topMargin + '">' +
                         '<div class="panel-heading" id="layer-group-heading-' + nd.id + '">' +
                             '<span class="icon-layers"></span>' +
                             (nd.base ? '<span style="margin:5px"></span>' : '<input class="layer-vis-group-selector" id="group-cb-' + nd.id + '" type="checkbox" />') +
+                            (nd.base ? '' : '<span class="badge checked-indicator-badge hidden"><span class="fa fa-eye">&nbsp;</span>0</span>') + 
                             '<span class="panel-title layer-group-panel-title" data-toggle="tooltip" data-placement="right" title="' + title + '">' +
                                 '<a class="layer-group-tool" role="button" data-toggle="collapse" href="#layer-group-panel-' + nd.id + '">' +
                                     '<span style="font-weight:bold">' + nd.name + '</span>' +
@@ -421,6 +430,29 @@ magic.classes.LayerTree.prototype.getLabelField = function(attrMap) {
         });
     }
     return(labelField);
+};
+
+/**
+ * Increment/decrement the parent group(s) visibility indicators according to the status of the supploed checkbox
+ * @param {jQuery.Object} chk
+ */
+magic.classes.LayerTree.prototype.propagateCheckStatus = function(chk) {
+    var checked = chk.prop("checked");
+    chk.parents("div.panel").each(function(idx, elt) {
+        var badge = $(elt).children("div.panel-heading").find("span.checked-indicator-badge");
+        if (badge.length > 0) {
+            var nShown = parseInt(badge.text());
+            nShown += checked ? 1 : (nShown == 0 ? 0 : -1);
+            badge.html('<span class="fa fa-eye">&nbsp;' + nShown + '</span>');
+            if (nShown == 0) {
+                /* Hide the badge */
+                badge.removeClass("show").addClass("hidden");
+            } else {
+                /* Show the badge with the number of visible layers */
+                badge.removeClass("hidden").addClass("show");
+            }            
+        }
+    });    
 };
 
 /**

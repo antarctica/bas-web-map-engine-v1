@@ -210,6 +210,11 @@ div.layer-group-panel {
     border-bottom: 0px;
 }
 
+div.layer-group {
+    width: 96%;
+    margin-bottom: 5px;
+}
+
 span.layer-group-panel-title {
     margin-left: 0px;
 }
@@ -255,6 +260,13 @@ a.layer-group-tool:hover {
 span.filter-badge {
     float: left !important;
     background-color: #c9302c;
+    color: #ffffff;
+    margin-right: 5px;
+}
+
+span.checked-indicator-badge {
+    float: right !important;
+    background-color: #808080;
     color: #ffffff;
     margin-right: 5px;
 }
