@@ -470,7 +470,7 @@ magic.classes.LayerTree.prototype.refreshTreeIndicators = function(branchHierarc
                 if (gcb.length > 0) {
                     gcb.off("change").prop("checked", true).change($.proxy(this.groupVisibilityHandler, this));
                 }
-            } else if (cbx.length == 0) {
+            } else {
                 /* Additionally uncheck the group checkbox for this panel */
                 var gcb = jqp.first().find("input[id^='group-cb-']");
                 if (gcb.length > 0) {
@@ -479,7 +479,7 @@ magic.classes.LayerTree.prototype.refreshTreeIndicators = function(branchHierarc
             }    
             var badge = jqp.first().find("span.checked-indicator-badge");
             if (badge.length > 0) {
-                badge.html('<span class="fa fa-eye">&nbsp;</span>' + cbx.length);
+                badge.html('<span class="fa fa-eye">&nbsp;</span>' + cbx.length + ' / ' + cbs.length);
                 if (cbx.length == 0) {
                     badge.removeClass("show").addClass("hidden");
                 } else {
