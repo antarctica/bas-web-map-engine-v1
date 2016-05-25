@@ -40,43 +40,10 @@ magic.classes.LayerTree = function (target) {
     }, this));
 
     /* Assign layer visibility handlers */
-    $("input.layer-vis-selector").change($.proxy(function (evt) {
-        var id = evt.currentTarget.id;
-        var nodeid = this.getNodeId(id);
-        var layer = this.nodeLayerTranslation[nodeid];
-        if (id.indexOf("base-layer-rb") != -1) {
-            /* Base layer visibility change */
-            $.each(this.layersBySource["base"], $.proxy(function (bli, bl) {                
-                bl.setVisible(bl.get("metadata")["id"] == nodeid);
-            }, this));            
-            /* Trigger baselayerchanged event */
-            $.event.trigger({
-                type: "baselayerchanged",
-                layer: layer
-            });
-        } else {
-            /* Overlay layer visibility change */
-            layer.setVisible(evt.currentTarget.checked);
-            this.propagateCheckStatus($(evt.currentTarget));
-        }
-    }, this));
+    $("input.layer-vis-selector").change($.proxy(this.layerVisibilityHandler, this));        
 
     /* Assign layer group visibility handlers */
-    $("input.layer-vis-group-selector").change($.proxy(function (evt) {
-        var checked = evt.currentTarget.checked;
-        //$(evt.currentTarget).next().html('<span class="fa fa-eye">&nbsp;</span>0')
-        $(evt.currentTarget).parent().next().find("li").each($.proxy(function (idx, elt) {
-            var nodeid = this.getNodeId(elt.id);
-            var lyr = this.nodeLayerTranslation[nodeid];
-            if (lyr) {
-                lyr.setVisible(checked);
-                $("#layer-cb-" + nodeid).prop("checked", checked);
-            } else {
-                $("#group-cb-" + nodeid).prop("checked", checked);
-            }
-            this.propagateCheckStatus($(evt.currentTarget));
-        }, this));        
-    }, this));
+    $("input.layer-vis-group-selector").change($.proxy(this.groupVisibilityHandler, this));        
 
     /* The get layer info buttons */
     $("span[id^='layer-info-']").on("click", $.proxy(function (evt) {
@@ -108,9 +75,10 @@ magic.classes.LayerTree = function (target) {
     
     /* Initialise checked indicator badges in layer groups */
     $("input[id^='layer-cb-']:checked").each($.proxy(function(idx, elt) {
-        this.propagateCheckStatus($(elt));
+        this.setLayerVisibility($(elt));
     }, this));
-
+    this.refreshTreeIndicators();
+    
 };
 
 magic.classes.LayerTree.prototype.getTarget = function () {
@@ -433,26 +401,93 @@ magic.classes.LayerTree.prototype.getLabelField = function(attrMap) {
 };
 
 /**
- * Increment/decrement the parent group(s) visibility indicators according to the status of the supploed checkbox
+ * Set layer visibility
  * @param {jQuery.Object} chk
  */
-magic.classes.LayerTree.prototype.propagateCheckStatus = function(chk) {
+magic.classes.LayerTree.prototype.setLayerVisibility = function(chk) {
+    var id = chk.prop("id");
+    var nodeid = this.getNodeId(id);
+    var layer = this.nodeLayerTranslation[nodeid];
+    if (id.indexOf("base-layer-rb") != -1) {
+        /* Base layer visibility change */
+        $.each(this.layersBySource["base"], $.proxy(function (bli, bl) {                
+            bl.setVisible(bl.get("metadata")["id"] == nodeid);
+        }, this));            
+        /* Trigger baselayerchanged event */
+        $.event.trigger({
+            type: "baselayerchanged",
+            layer: layer
+        });
+    } else {
+        /* Overlay layer visibility change */        
+        layer.setVisible(chk.prop("checked"));
+    }  
+};
+
+/**
+ * Handle layer visibility
+ * @param {jQuery.Event} evt
+ */
+magic.classes.LayerTree.prototype.layerVisibilityHandler = function(evt) {
+    this.setLayerVisibility($(evt.currentTarget));    
+    this.refreshTreeIndicators($(evt.currentTarget).parents("div.layer-group"));
+};
+
+/**
+ * Handler for group visibility checkbox
+ * @param {jQuery.Event} evt
+ */
+magic.classes.LayerTree.prototype.groupVisibilityHandler = function(evt) { 
+    var chk = $(evt.currentTarget);
     var checked = chk.prop("checked");
-    chk.parents("div.panel").each(function(idx, elt) {
-        var badge = $(elt).children("div.panel-heading").find("span.checked-indicator-badge");
-        if (badge.length > 0) {
-            var nShown = parseInt(badge.text());
-            nShown += checked ? 1 : (nShown == 0 ? 0 : -1);
-            badge.html('<span class="fa fa-eye">&nbsp;' + nShown + '</span>');
-            if (nShown == 0) {
-                /* Hide the badge */
-                badge.removeClass("show").addClass("hidden");
-            } else {
-                /* Show the badge with the number of visible layers */
-                badge.removeClass("hidden").addClass("show");
-            }            
+    $.each(chk.closest("div.panel").find("input[type='checkbox']"), $.proxy(function(idx, cb) {
+        var jqCb = $(cb);
+        if (jqCb.hasClass("layer-vis-selector")) {
+            /* Layer visibility */
+            jqCb.off("change").prop("checked", checked).change($.proxy(this.layerVisibilityHandler, this));
+            this.setLayerVisibility(jqCb);
+        } else {
+            /* Group visibility */
+            jqCb.off("change").prop("checked", checked).change($.proxy(this.groupVisibilityHandler, this));
         }
-    });    
+    }, this)); 
+    this.refreshTreeIndicators($(evt.currentTarget).parents("div.layer-group"));
+};
+
+/**
+ * Recurse down the tree setting indicator badges, filtering the work by the supplied parental branch
+ * @param {Array} branchHierarchy
+ */
+magic.classes.LayerTree.prototype.refreshTreeIndicators = function(branchHierarchy) {    
+    $("#" + this.target).find("div.layer-group").each($.proxy(function(idx, elt) {
+        if (!$.isArray(branchHierarchy) || ($.isArray(branchHierarchy) && $.inArray(elt, branchHierarchy) != -1)) {
+            var jqp = $(elt);
+            var cbs = jqp.find("input[id^='layer-cb-']");
+            var cbx = cbs.filter(":checked");
+            if (cbx.length == cbs.length) {
+                /* Additionally check the group checkbox for this panel */
+                var gcb = jqp.first().find("input[id^='group-cb-']");
+                if (gcb.length > 0) {
+                    gcb.off("change").prop("checked", true).change($.proxy(this.groupVisibilityHandler, this));
+                }
+            } else if (cbx.length == 0) {
+                /* Additionally uncheck the group checkbox for this panel */
+                var gcb = jqp.first().find("input[id^='group-cb-']");
+                if (gcb.length > 0) {
+                    gcb.off("change").prop("checked", false).change($.proxy(this.groupVisibilityHandler, this));
+                }
+            }    
+            var badge = jqp.first().find("span.checked-indicator-badge");
+            if (badge.length > 0) {
+                badge.html('<span class="fa fa-eye">&nbsp;</span>' + cbx.length);
+                if (cbx.length == 0) {
+                    badge.removeClass("show").addClass("hidden");
+                } else {
+                    badge.removeClass("hidden").addClass("show");
+                }
+            }
+        }
+    }, this));
 };
 
 /**
