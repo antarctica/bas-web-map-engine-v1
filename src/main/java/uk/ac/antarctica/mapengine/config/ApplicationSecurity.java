@@ -99,11 +99,11 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 //            .password("geoserver")
 //            .roles("USER");      
         auth.authenticationProvider(new GeoserverAuthenticationProvider(geoserverUrl));
-//        auth
-//            .ldapAuthentication()
-//            .userDnPatterns("uid={0},ou=People")
-//            .groupSearchBase(null)
-//            .contextSource(this.contextSource);  
+        auth
+            .ldapAuthentication()
+            .userDnPatterns("uid={0},ou=People")
+            .groupSearchBase(null)
+            .contextSource(this.contextSource);  
         //auth.authenticationProvider(new RamaddaAuthenticationProvider("/repository/user/login"));
         
     }

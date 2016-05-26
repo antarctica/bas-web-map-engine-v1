@@ -4,15 +4,16 @@
 package uk.ac.antarctica.mapengine.config;
 
 import java.io.IOException;
-import java.net.URLEncoder;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
+import org.apache.http.ParseException;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.fluent.Executor;
-import org.apache.http.client.fluent.Form;
 import org.apache.http.client.fluent.Request;
+import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.LaxRedirectStrategy;
-import org.apache.http.util.EntityUtils;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -39,39 +40,23 @@ public class GeoserverAuthenticationProvider implements AuthenticationProvider {
         String name = authentication.getName();
         String password = authentication.getCredentials().toString();
         try {
-            /* Use the credentials to try to authenticate against local Ramadda installation */
-            Request request = Request.Post(loginUrl + "/j_spring_security_check")                
-                .addHeader("Content-type", "application/x-www-form-urlencoded")                
-                .bodyForm(Form.form().add("username", name).add("password", URLEncoder.encode(password, "UTF-8")).build())
-                .connectTimeout(60000)
-                .socketTimeout(60000);            
+            /* If the request succeeds it will be because we have been sent to the login page */
+            Request request = Request.Post(loginUrl + "/j_spring_security_check")
+                .bodyString("username=" + name + "&password=" + password, ContentType.APPLICATION_FORM_URLENCODED);                
             response = Executor.newInstance(client).execute(request).returnResponse();
-            int code = response.getStatusLine().getStatusCode();
-            if (code < 400) {
-                String content = EntityUtils.toString(response.getEntity(), "UTF-8");
-                //TODO
-                return(new UsernamePasswordAuthenticationToken(name, password, null));
-                /* Returned HTML content differs from simple XML listed in the published API http://geoport.whoi.edu/repository/userguide/developer/publishapi.html
-                 * Compromise here is to check for the absence of the login form in the returned HTML - I think the problem is something to do with the 
-                 * 302 redirect code from the raw URL */
-//                if (!content.contains("form  method=\"post\"  action=\"" + this.loginUrl + "\"")) {
-//                    Header[] scHeader = response.getHeaders("Set-Cookie");
-//                    if (scHeader.length > 0) {
-//                        String hval = scHeader[0].getValue();
-//                        System.out.println(hval);
-//                        SimpleGrantedAuthority ga = new SimpleGrantedAuthority(hval.substring(0, hval.indexOf(";")));
-//                        List<GrantedAuthority> grantedAuths = new ArrayList<>();
-//                        grantedAuths.add(ga);
-//                        return(new UsernamePasswordAuthenticationToken(name, password, grantedAuths));
-//                    } else {
-//                        throw new GeoserverAuthenticationException("Failed to get Geoserver session id from response");
-//                    }                                        
-//                }
+            String content = IOUtils.toString(response.getEntity().getContent());
+            if (content.contains("Invalid username/password combination")) {
+                throw new GeoserverAuthenticationException("Invalid credentials");
             } else {
-                throw new GeoserverAuthenticationException("Unable to authenticate against local Geoserver - response code was " + code);
+                throw new GeoserverAuthenticationException("Unable to authenticate against local Geoserver");
             }
-        } catch(Exception ex) {
-            throw new GeoserverAuthenticationException("Unable to authenticate against local Geoserver - error was: " + ex.getMessage());
+        } catch(ClientProtocolException cpe) {
+            /* 302 redirection will come here, apparently because of a circular redirect detected - means we have authenticated ok! */
+            return(new UsernamePasswordAuthenticationToken(name, password, null));
+        } catch (IOException ioe) {
+            throw new GeoserverAuthenticationException("Unable to authenticate against local Geoserver - IOException was: " + ioe.getMessage());
+        } catch (ParseException pe) {
+            throw new GeoserverAuthenticationException("Unable to authenticate against local Geoserver - ParseException was: " + pe.getMessage());
         } finally {
             try {
                 client.close();
