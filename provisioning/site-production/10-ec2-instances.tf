@@ -26,7 +26,7 @@ resource "atlas_artifact" "antarctica-centos7-latest" {
 # AWS source: https://aws.amazon.com/ec2/
 # Terraform source: https://www.terraform.io/docs/providers/aws/r/instance.html
 resource "aws_instance" "webmap-engine-prod-node1" {
-    instance_type = "t2.nano"
+    instance_type = "m4.xlarge"
     ami = "${atlas_artifact.antarctica-centos7-latest.metadata_full.region-eu-west-1}"
     key_name = "${var.aws_ssh_key}"
 
