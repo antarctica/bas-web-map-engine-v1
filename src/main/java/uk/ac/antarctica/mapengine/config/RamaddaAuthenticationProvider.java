@@ -15,10 +15,15 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.stereotype.Component;
 
+@Component
 public class RamaddaAuthenticationProvider implements AuthenticationProvider {
        
     private String loginUrl;
+    
+    public RamaddaAuthenticationProvider() {
+    }
     
     public RamaddaAuthenticationProvider(String loginUrl) {
         this.loginUrl = loginUrl;

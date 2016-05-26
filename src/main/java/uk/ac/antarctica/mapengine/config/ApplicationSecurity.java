@@ -91,14 +91,21 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 
     @Override
     public void configure(AuthenticationManagerBuilder auth) throws Exception {
-        //auth.jdbcAuthentication().dataSource(this.userDataSource);         
-        auth
-            .ldapAuthentication()
-            .userDnPatterns("uid={0},ou=People")
-            .groupSearchBase(null)
-            .contextSource(this.contextSource);
-        auth.authenticationProvider(new RamaddaAuthenticationProvider("/repository/user/login"));
-        //auth.authenticationProvider(new GeoserverAuthenticationProvider(geoserverUrl));
+        //auth.jdbcAuthentication().dataSource(this.userDataSource);
+// For a default training installation where LDAP is not available        
+//        auth
+//            .inMemoryAuthentication()
+//            .withUser("admin")
+//            .password("geoserver")
+//            .roles("USER");      
+        auth.authenticationProvider(new GeoserverAuthenticationProvider(geoserverUrl));
+//        auth
+//            .ldapAuthentication()
+//            .userDnPatterns("uid={0},ou=People")
+//            .groupSearchBase(null)
+//            .contextSource(this.contextSource);  
+        //auth.authenticationProvider(new RamaddaAuthenticationProvider("/repository/user/login"));
+        
     }
 
 }

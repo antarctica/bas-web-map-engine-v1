@@ -3,18 +3,29 @@
  */
 package uk.ac.antarctica.mapengine.config;
 
+import java.io.IOException;
+import java.net.URLEncoder;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.fluent.Executor;
 import org.apache.http.client.fluent.Form;
 import org.apache.http.client.fluent.Request;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.util.EntityUtils;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Component;
 import uk.ac.antarctica.mapengine.exception.GeoserverAuthenticationException;
 
+@Component
 public class GeoserverAuthenticationProvider implements AuthenticationProvider {
     
     private String loginUrl;
+    
+    public GeoserverAuthenticationProvider() {
+    }
     
     public GeoserverAuthenticationProvider(String loginUrl) {
         this.loginUrl = loginUrl;
@@ -23,19 +34,20 @@ public class GeoserverAuthenticationProvider implements AuthenticationProvider {
     @Override
     public Authentication authenticate(Authentication authentication) 
       throws GeoserverAuthenticationException {
+        HttpResponse response = null;
+        CloseableHttpClient client = HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy()).build();
         String name = authentication.getName();
         String password = authentication.getCredentials().toString();
         try {
-            /* Use the credentials to try to authenticate against local Ramadda installation */            
-            HttpResponse response = Request.Post(loginUrl + "/j_spring_security_check")
-                .addHeader("Content-type", "application/x-www-form-urlencoded")
-                .bodyForm(Form.form().add("username", name).add("password", password).build())
+            /* Use the credentials to try to authenticate against local Ramadda installation */
+            Request request = Request.Post(loginUrl + "/j_spring_security_check")                
+                .addHeader("Content-type", "application/x-www-form-urlencoded")                
+                .bodyForm(Form.form().add("username", name).add("password", URLEncoder.encode(password, "UTF-8")).build())
                 .connectTimeout(60000)
-                .socketTimeout(60000)
-                .execute()
-                .returnResponse();
+                .socketTimeout(60000);            
+            response = Executor.newInstance(client).execute(request).returnResponse();
             int code = response.getStatusLine().getStatusCode();
-            if (code == 200) {
+            if (code < 400) {
                 String content = EntityUtils.toString(response.getEntity(), "UTF-8");
                 //TODO
                 return(new UsernamePasswordAuthenticationToken(name, password, null));
@@ -60,6 +72,12 @@ public class GeoserverAuthenticationProvider implements AuthenticationProvider {
             }
         } catch(Exception ex) {
             throw new GeoserverAuthenticationException("Unable to authenticate against local Geoserver - error was: " + ex.getMessage());
+        } finally {
+            try {
+                client.close();
+            } catch(IOException ioe) {
+                throw new GeoserverAuthenticationException("IO exception authenticating against local Geoserver - error was: " + ioe.getMessage());
+            }
         } 
     }
  
