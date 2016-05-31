@@ -34,7 +34,8 @@ resource "aws_instance" "webmap-engine-prod-node1" {
     vpc_security_group_ids = [
         "${terraform_remote_state.BAS-AWS.output.BAS-VPC-2-SG-All-Egress-ID}",
         "${terraform_remote_state.BAS-AWS.output.BAS-VPC-2-SG-Ping-ID}",
-        "${terraform_remote_state.BAS-AWS.output.BAS-VPC-2-SG-SSH-BAS-ID}"
+        "${terraform_remote_state.BAS-AWS.output.BAS-VPC-2-SG-SSH-BAS-ID}",
+        "${terraform_remote_state.BAS-AWS.output.BAS-VPC-2-SG-DEV-WEB-BAS-ID}"
     ]
 
     tags {

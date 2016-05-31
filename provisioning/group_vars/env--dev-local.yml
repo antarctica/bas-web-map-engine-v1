@@ -3,3 +3,4 @@
 
 # BAS Systems Inventory variables
 bas_systems_inventory_instance_environment: development-local
+tomcat8_firewall_port_http: 9000
