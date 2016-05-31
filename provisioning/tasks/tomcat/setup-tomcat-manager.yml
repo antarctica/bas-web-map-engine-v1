@@ -8,6 +8,14 @@
      dest=/opt/tomcat8/bin/setenv.sh
     owner=tomcat
     group=adm
+    
+# Configure server port and compression targets in server.xml
+- name: generate server.xml configuration file
+  template:
+     src=../../templates/etc/tomcat8/conf/server.xml.j2
+     dest=/etc/tomcat8/conf/server.xml
+    owner=tomcat
+    group=adm
 
 # End of David's additions
 
