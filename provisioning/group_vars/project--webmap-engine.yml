@@ -1,9 +1,6 @@
 ---
 # These variables override those defined by roles
 
-# Override of Tomcat role's default port
-tomcat8_firewall_port_http: 9000
-
 # App variables - apply to a single project
 app_project: "webmap-engine"
 app_project_repository: "ssh://git@stash.ceh.ac.uk:7999/magic/webmap_engine.git"
