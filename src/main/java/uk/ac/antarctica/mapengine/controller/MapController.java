@@ -129,7 +129,7 @@ public class MapController {
             ret = PackagingUtils.packageResults(HttpStatus.OK, views.toString(), null);
         } else if (ret == null) {
             /* No data is fine - simply return empty results array */
-            ret = PackagingUtils.packageResults(HttpStatus.OK, new JsonArray().getAsString(), null);
+            ret = PackagingUtils.packageResults(HttpStatus.OK, "[]", null);
         }
         return(ret);
     }

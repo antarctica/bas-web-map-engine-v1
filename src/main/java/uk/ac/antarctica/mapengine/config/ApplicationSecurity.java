@@ -20,6 +20,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.servlet.configuration.EnableWebMvcSecurity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.ldap.authentication.BindAuthenticator;
+import org.springframework.security.ldap.authentication.LdapAuthenticationProvider;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.savedrequest.DefaultSavedRequest;
@@ -91,20 +93,31 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 
     @Override
     public void configure(AuthenticationManagerBuilder auth) throws Exception {
-        //auth.jdbcAuthentication().dataSource(this.userDataSource);
-// For a default training installation where LDAP is not available        
-//        auth
-//            .inMemoryAuthentication()
-//            .withUser("admin")
-//            .password("geoserver")
-//            .roles("USER");      
-        auth.authenticationProvider(new GeoserverAuthenticationProvider(geoserverUrl));
+        
+        /* Attempt to authenticate an in-memory user, useful when LDAP and other providers are not available   */      
         auth
-            .ldapAuthentication()
-            .userDnPatterns("uid={0},ou=People")
-            .groupSearchBase(null)
-            .contextSource(this.contextSource);  
-        //auth.authenticationProvider(new RamaddaAuthenticationProvider("/repository/user/login"));
+            .inMemoryAuthentication()
+            .withUser("user")
+            .password("password")
+            .roles("USER");                   
+        
+        /* Attempt to authenticate against a local Geoserver instance */
+        auth.authenticationProvider(new GeoserverAuthenticationProvider(geoserverUrl));
+        
+        /* Attempt to authenticate against LDAP */
+        BindAuthenticator ba = new BindAuthenticator(this.contextSource);
+        ba.setUserDnPatterns(new String[]{"uid={0},ou=People"});
+        auth.authenticationProvider(new LdapAuthenticationProvider(ba));
+// NOTE: it would appear that this syntax only works in a standalone mode where it is the only authentication provider used
+// it will not operate properly alongside a Spring Security Filter Chain of other providers, as we have here - David 31/05/2016
+//        auth
+//            .ldapAuthentication()
+//            .userDnPatterns("uid={0},ou=People")
+//            .groupSearchBase(null)
+//            .contextSource(this.contextSource);  
+        
+        /* Attempt to authenticate against Ramadda if present */
+        auth.authenticationProvider(new RamaddaAuthenticationProvider("/repository/user/login"));
         
     }
 
