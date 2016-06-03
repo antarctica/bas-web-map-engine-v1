@@ -46,4 +46,4 @@
 - src: bas-ansible-roles-collection.postgresql9-server
   version: v0.2.0
 - src: bas-ansible-roles-collection.oracle-jdk7
-  version: v0.1.0
+  version: v0.1.1
