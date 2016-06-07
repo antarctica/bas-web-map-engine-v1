@@ -8,6 +8,13 @@
 # AWS Source: http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html
 variable "aws_ssh_key" {}
 
+# Added by David 07/06/2016
+# Define the number of instances required
+variable "instances_count" {
+    default = 3
+}
+# End of David's changes
+
 # Represents the latest version of the antarctica/centos7 AWS AIM
 #
 # Atlas source: https://atlas.hashicorp.com/antarctica/artifacts/centos7/types/amazon.ami
@@ -26,6 +33,11 @@ resource "atlas_artifact" "antarctica-centos7-latest" {
 # AWS source: https://aws.amazon.com/ec2/
 # Terraform source: https://www.terraform.io/docs/providers/aws/r/instance.html
 resource "aws_instance" "webmap-engine-prod-node1" {
+
+    # Added by David 07/06/2016
+    count = "${var.instances_count}"
+    # End of David's changes
+
     instance_type = "m4.xlarge"
     ami = "${atlas_artifact.antarctica-centos7-latest.metadata_full.region-eu-west-1}"
     key_name = "${var.aws_ssh_key}"
@@ -66,6 +78,11 @@ resource "aws_eip" "webmap-engine-prod-node1" {
 #
 # Tags are not supported by this resource
 resource "aws_route53_record" "webmap-engine-prod-node1-ext" {
+
+    # Added by David 07/06/2016
+    count = "${var.instances_count}"
+    # End of David's changes
+
     zone_id = "${terraform_remote_state.BAS-AWS.output.BAS-AWS-External-Subdomain-ID}"
 
     name = "webmap-engine-prod-node1"
@@ -84,6 +101,11 @@ resource "aws_route53_record" "webmap-engine-prod-node1-ext" {
 #
 # Tags are not supported by this resource
 resource "aws_route53_record" "webmap-engine-prod-node1-int" {
+
+    # Added by David 07/06/2016
+    count = "${var.instances_count}"
+    # End of David's changes
+
     zone_id = "${terraform_remote_state.BAS-AWS.output.BAS-AWS-Internal-Subdomain-ID}"
 
     name = "webmap-engine-prod-node1"
