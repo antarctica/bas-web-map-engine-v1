@@ -9,7 +9,7 @@ magic.classes.AppContainer = function () {
      * 
      * User preferences in:
      * 
-     * magic.runtime.user_prefs
+     * magic.runtime.preferencedata
      */ 
     
     /* Set container sizes */
@@ -30,10 +30,10 @@ magic.classes.AppContainer = function () {
     magic.runtime.userlayers = [];
     magic.runtime.mapdata = magic.runtime.map_context.data;
     magic.runtime.repository = magic.runtime.map_context.repository;
-    magic.runtime.layertree = new magic.classes.LayerTree("layer-tree");
+    magic.runtime.layertree = new magic.classes.LayerTree("layer-tree", false);
     
     /* User unit preferences */
-    magic.runtime.preferences = new magic.classes.UserPreferences({target: "unit-prefs", preferences: magic.runtime.preferences});
+    magic.runtime.preferences = new magic.classes.UserPreferences({target: "unit-prefs", preferences: magic.runtime.preferencedata});
     
     /* Map switcher */
     magic.runtime.mapswitcher = new magic.classes.MapSwitcher({target: "map-switcher"});

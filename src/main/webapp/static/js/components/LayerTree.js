@@ -1,8 +1,10 @@
 /* Layer tree */
 
-magic.classes.LayerTree = function (target) {
+magic.classes.LayerTree = function (target, embedded) {
 
     this.target = target || "layer-tree";
+    
+    this.embedded = embedded === true;
 
     this.treedata = magic.runtime.mapdata.layers || [];
 
@@ -22,63 +24,65 @@ magic.classes.LayerTree = function (target) {
 
     this.collapsed = false;
 
-    var expanderLocation = $("#" + this.target).find("div.panel-heading:first");
-    if (expanderLocation) {
-        expanderLocation.append('<span data-toggle="tooltip" data-placement="bottom" title="Collapse layer tree" class="layer-tree-collapse fa fa-angle-double-left hidden-xs"></span>');
-    }
+    if (!this.embedded) {
+        /* Layer tree is visible => assign all the necessary handlers  */
+        var expanderLocation = $("#" + this.target).find("div.panel-heading:first");
+        if (expanderLocation) {
+            expanderLocation.append('<span data-toggle="tooltip" data-placement="bottom" title="Collapse layer tree" class="layer-tree-collapse fa fa-angle-double-left hidden-xs"></span>');
+        }
 
-    /* Collapse layer tree handler */
-    $("span.layer-tree-collapse").on("click", $.proxy(function (evt) {
-        evt.stopPropagation();
-        this.setCollapsed(true);
-    }, this));
+        /* Collapse layer tree handler */
+        $("span.layer-tree-collapse").on("click", $.proxy(function (evt) {
+            evt.stopPropagation();
+            this.setCollapsed(true);
+        }, this));
 
-    /* Expand layer tree handler */
-    $("button.layer-tree-expand").on("click", $.proxy(function (evt) {
-        evt.stopPropagation();
-        this.setCollapsed(false);
-    }, this));
+        /* Expand layer tree handler */
+        $("button.layer-tree-expand").on("click", $.proxy(function (evt) {
+            evt.stopPropagation();
+            this.setCollapsed(false);
+        }, this));
 
-    /* Assign layer visibility handlers */
-    $("input.layer-vis-selector").change($.proxy(this.layerVisibilityHandler, this));        
+        /* Assign layer visibility handlers */
+        $("input.layer-vis-selector").change($.proxy(this.layerVisibilityHandler, this));        
 
-    /* Assign layer group visibility handlers */
-    $("input.layer-vis-group-selector").change($.proxy(this.groupVisibilityHandler, this));        
+        /* Assign layer group visibility handlers */
+        $("input.layer-vis-group-selector").change($.proxy(this.groupVisibilityHandler, this));        
 
-    /* The get layer info buttons */
-    $("span[id^='layer-info-']").on("click", $.proxy(function (evt) {
-        var id = evt.currentTarget.id;
-        var nodeid = this.getNodeId(id);
-        magic.runtime.attribution.show(this.nodeLayerTranslation[nodeid]);
-    }, this));
-
-    /* Layer dropdown handlers */
-    $("a.layer-tool").click($.proxy(function (evt) {
-        var id = evt.currentTarget.id;
-        var nodeid = this.getNodeId(id);
-        new magic.classes.LayerTreeOptionsMenu({
-            nodeid: nodeid,
-            layer: this.nodeLayerTranslation[nodeid]
-        });
-    }, this));   
-
-    /* Change tooltip for collapsible panels */
-    $("div[id^='layer-group-panel-']")
-    .on("shown.bs.collapse", $.proxy(function (evt) {       
-        $(evt.currentTarget).parent().first().find("span.panel-title").attr("data-original-title", "Collapse this group").tooltip("fixTitle");
-        evt.stopPropagation();
-    }, this))
-    .on("hidden.bs.collapse", $.proxy(function (evt) {        
-        $(evt.currentTarget).parent().first().find("span.panel-title").attr("data-original-title", "Expand this group").tooltip("fixTitle");
-        evt.stopPropagation();
-    }, this));
+        /* The get layer info buttons */
+        $("span[id^='layer-info-']").on("click", $.proxy(function (evt) {
+            var id = evt.currentTarget.id;
+            var nodeid = this.getNodeId(id);
+            magic.runtime.attribution.show(this.nodeLayerTranslation[nodeid]);
+        }, this));
     
-    /* Initialise checked indicator badges in layer groups */
-    $("input[id^='layer-cb-']:checked").each($.proxy(function(idx, elt) {
-        this.setLayerVisibility($(elt));
-    }, this));
-    this.refreshTreeIndicators();
-    
+        /* Layer dropdown handlers */
+        $("a.layer-tool").click($.proxy(function (evt) {
+            var id = evt.currentTarget.id;
+            var nodeid = this.getNodeId(id);
+            new magic.classes.LayerTreeOptionsMenu({
+                nodeid: nodeid,
+                layer: this.nodeLayerTranslation[nodeid]
+            });
+        }, this));   
+
+        /* Change tooltip for collapsible panels */
+        $("div[id^='layer-group-panel-']")
+        .on("shown.bs.collapse", $.proxy(function (evt) {       
+            $(evt.currentTarget).parent().first().find("span.panel-title").attr("data-original-title", "Collapse this group").tooltip("fixTitle");
+            evt.stopPropagation();
+        }, this))
+        .on("hidden.bs.collapse", $.proxy(function (evt) {        
+            $(evt.currentTarget).parent().first().find("span.panel-title").attr("data-original-title", "Expand this group").tooltip("fixTitle");
+            evt.stopPropagation();
+        }, this));
+
+        /* Initialise checked indicator badges in layer groups */
+        $("input[id^='layer-cb-']:checked").each($.proxy(function(idx, elt) {
+            this.setLayerVisibility($(elt));
+        }, this));
+        this.refreshTreeIndicators();
+    }    
 };
 
 magic.classes.LayerTree.prototype.getTarget = function () {

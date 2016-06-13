@@ -1,0 +1,16 @@
+css/ol.css
+css/embedded_map.css
+js/ol.min.js
+js/vector.js
+js/proj4.js
+js/proj4defs
+js/embedded/init.js
+js/modules
+js/embedded/components/AppContainer.js
+js/components/ControlButtonRibbon.js
+js/components/DragZoomButton.js
+js/components/FeatureInfoTool.js
+js/components/FeaturePopup.js
+js/components/InsetMap.js
+js/components/LayerTree.js
+js/components/UserPreferences.js

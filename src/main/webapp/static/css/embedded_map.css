@@ -1,0 +1,253 @@
+/*!
+ * Start Bootstrap - SB Admin Bootstrap Admin Template (http://startbootstrap.com)
+ * Code licensed under the Apache License v2.0.
+ * For details, see http://www.apache.org/licenses/LICENSE-2.0.
+ */
+
+/* Global Styles */
+
+body {
+    background-color: #222;
+}
+
+#wrapper {
+    padding-left: 0;
+}
+
+#page-wrapper {
+    width: 100%;
+    padding: 0;
+    background-color: #fff;
+}
+
+.huge {
+    font-size: 50px;
+    line-height: normal;
+}
+
+/* Button ribbon styles */
+div.button-ribbon {    
+    margin-left: 5px !important;
+    border: 0;
+    background-color: transparent;
+}
+
+/* Ensure size uniformity */
+div.button-ribbon button {
+    width: 43px !important;
+    height: 43px !important;
+}
+
+div.button-ribbon button.minimise-button  {
+    width: 34px !important;
+}
+
+div.button-ribbon button.maximise-button  {
+    width: 34px !important;   
+}
+
+div.ribbon-button-wrapper {
+    float: left;
+}
+
+/* Stop buttons in the ribbon look ugly as the font size of the icon is too big */
+span.glyphicon-stop {
+    font-size: 14px !important;
+}
+
+/* Simulate the btn-group style for buttons enclosed by a wrapper (which won't inherit the btn-group styles) */
+button.ribbon-first-tool {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+button.ribbon-middle-tool {
+    border-radius: 0;
+    margin-left: -1px;
+}
+
+/* Yuck */
+button.ribbon-middle-tool:hover {
+    border-radius: 0;
+    margin-left: -1px;
+}
+
+button.ribbon-last-tool {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    margin-left: -1px;
+}
+
+div.button-ribbon span {
+    font-size: 18px;
+}
+
+/* OL control custom styles */
+.custom-mouse-position {
+    right: 8px;
+    bottom: 8px;
+    position: absolute;
+}
+
+.custom-scale-line-top {
+    background: transparent;
+    bottom: 26px;
+    left: 10px;
+    padding: 0;
+    margin: 0;
+    position: absolute;
+}
+
+.custom-scale-line-top-inner {
+    border: 1px solid #3a3f44;
+    border-top: none;
+    color: #3a3f44;
+    font-size: 12px;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+.custom-scale-line-bottom {
+    background: transparent;
+    bottom: 10px;
+    left: 10px;
+    padding: 0;
+    margin: 0;
+    position: absolute;
+}
+
+.custom-scale-line-bottom-inner {
+    border: 1px solid #3a3f44;
+    border-bottom: none;
+    border-top: none;
+    color: #3a3f44;
+    font-size: 12px;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+.custom-overview-map {
+    position: relative;
+    left: 0;
+    bottom: 0;   
+}
+
+div.overview-map-popover-content {
+    width: 158px;
+    height: auto; 
+    padding:0 !important;
+}
+
+/* Feature popup styles */
+span.feature-popup-title-cont {
+    font-weight: bold;
+    width: 200px;   /* Make sure excessively long titles go onto two lines */
+}
+
+table.feature-popup-table {
+    font-size: 13px;
+    width: 100%;
+    margin-bottom: 6px !important;
+}
+
+td.feature-popup-heading {
+    font-size: 14px;
+    font-weight: bold;
+}
+
+div#all-attributes-modal {
+    z-index: 20000;    
+}
+
+div.popup-pager-xofy {
+    height: 29px;
+    float: left;
+    padding-top: 6px;
+    margin-left: 5px;
+    margin-right: 5px;
+    font-size: 12px
+}
+
+/* Attribution modal styles */
+div#attribution-modal {    
+}
+
+div#attribution-legend {
+    margin-top: 6px;   
+}
+
+div#attribution-metadata {
+    margin-top: 6px;    
+}
+
+div.attribution-legend-content {
+    background-color: #272b30;
+    border-radius: 5px
+}
+
+div.attribution-content {
+    padding: 10px;
+}
+
+div.attribution-footer {
+    padding: 10px;
+}
+
+div.attribution-title {
+    padding: 5px;
+    background-color: #272b30;
+    color: #ffffff;
+}
+
+ul.metadata-pager {
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+table.metadata-table {
+    font-size: 13px;
+    width: 100%;
+    margin-bottom: 6px !important;
+}
+
+td.metadata-heading {
+    font-size: 14px;
+    font-weight: bold;
+}
+
+td.metadata {
+    white-space: pre-line;
+}
+
+/* Ensure modals don't get too large and display a scrollbar */
+.modal .modal-body {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+/* Inset map styles */
+button.inset-map-expand {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    width: 43px;
+    height: 43px;
+}
+
+div.inset-map-popover {
+    width: 400px;
+    height: 400px;
+}
+
+div.inset-map-popover-content {
+    width: 100%;
+    height: 365px;
+}
+
+/* Drag-zoom box */
+.ol-dragzoom {
+  border: 3px dashed rgba(255,0,0,1.0);
+  background-color: rgba(255,255,255,0.4);
+}
