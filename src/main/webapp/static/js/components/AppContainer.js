@@ -12,8 +12,10 @@ magic.classes.AppContainer = function () {
      * magic.runtime.preferencedata
      */ 
     
-    /* Global map container */
+    /* Global map container (contains the map div for a non-embedded map) */
     magic.runtime.map_container = jQuery("#map-container");
+    magic.runtime.map_div = magic.runtime.map_container.children(":first");
+    magic.runtime.map_embedded = false;
     
     /* Set container sizes */
     this.fitMapToViewport(); 

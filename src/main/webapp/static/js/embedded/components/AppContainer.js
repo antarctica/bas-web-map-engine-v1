@@ -21,6 +21,8 @@ magic.classes.embedded.AppContainer = function (opts) {
     
     /* Global map container */
     magic.runtime.map_container = jQuery("#" + this.target);
+    magic.runtime.map_div = magic.runtime.map_container;
+    magic.runtime.map_embedded = true;
     
     /* Set defaults for data irrelevant to an embedded map */
     magic.runtime.search = {};

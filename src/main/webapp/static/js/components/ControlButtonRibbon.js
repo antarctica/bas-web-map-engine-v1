@@ -7,10 +7,17 @@ magic.classes.ControlButtonRibbon = function(config) {
     var id = "control-button-ribbon", ribbonId = id + "-group", maximiseId = "maximise-" + ribbonId;
     
     /* Get position for ribbon */
-    var ribbonTop = (jQuery("nav.navbar").outerHeight()-50) + "px", ribbonLeft = "0px";
-    
+    var ribbonTop = "0px", ribbonLeft = "0px";
+    if (!magic.runtime.map_embedded) {
+        /* Not an embedded map, so subtract off the height of the navigation bar */
+        var nav = jQuery("nav.navbar");
+        if (nav.length > 0) {            
+            ribbonTop = (nav.outerHeight()-50) + "px";
+        }
+    }
+        
     /* Add the outer markup and the maximise button */
-    var insertAt = jQuery("#map").find("div.ol-overlaycontainer-stopevent");
+    var insertAt = magic.runtime.map_div.find("div.ol-overlaycontainer-stopevent");
     insertAt.prepend(
         '<div id="' + id + '" style="position:absolute; left:  ' + ribbonLeft + '; top: ' + ribbonTop + '" class="btn-toolbar">' + 
             '<div id="' + ribbonId + '" class="btn-group button-ribbon show"></div>' +   
@@ -22,13 +29,13 @@ magic.classes.ControlButtonRibbon = function(config) {
     
     /* Initialise tooltips and popovers */
     jQuery("body").tooltip({selector: "[data-toggle=tooltip]", container: "body"});
-    magic.runtime.map_container.popover({selector: "[data-toggle=popover]", container: "#map"});
+    magic.runtime.map_container.popover({selector: "[data-toggle=popover]", container: "#" + magic.runtime.map_div[0].id});
     
     jQuery.each(this.buttons, jQuery.proxy(function(bidx, bname) {                
         switch(bname) {
             case "zoom_world":
                 /* Zoom world */
-                this.createControlButton("zoom-world", "glyphicon glyphicon-globe", bidx, "Maximum map extent")
+                this.createControlButton("zoom-world", "glyphicon glyphicon-globe", bidx, "Reset to original map extent")
                 .on("click", this.zoomToMaxExtent);                         
                 break;
                 

@@ -93,7 +93,7 @@ magic.classes.FeaturePopup.prototype.show = function(showAt, featureData) {
             placement: jQuery.proxy(function() {
                 var placement = "bottom",
                     popoverLocation = this.map.getPixelFromCoordinate(showAt),
-                    mapHeight = jQuery("#map").outerHeight(),
+                    mapHeight = magic.runtime.map_div.outerHeight(),
                     mtop = popoverLocation[1] - 400,
                     mbtm = popoverLocation[1] + 400;
                 if (mbtm > mapHeight) {
