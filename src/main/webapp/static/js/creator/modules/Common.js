@@ -14,39 +14,39 @@ magic.modules.creator.Common = function () {
          */
         init: function () {
             /* Initialise wizard progress bar */
-            $("#rootwizard").bootstrapWizard({
-                onTabShow: $.proxy(function (tab, navigation, index) {
+            jQuery("#rootwizard").bootstrapWizard({
+                onTabShow: jQuery.proxy(function (tab, navigation, index) {
                     var total = navigation.find("li").length;
                     var current = index + 1;
                     var percent = (current / total) * 100;
-                    $("#rootwizard").find(".progress-bar").css({width: percent + "%"});
+                    jQuery("#rootwizard").find(".progress-bar").css({width: percent + "%"});
                     if (index >= total-1) {
                         /* Need to load the map into the final tab */
                         this.tabs[index].loadMap(this.map_context.getContext());
-                        $("ul.pager li.finish").removeClass("hidden");
+                        jQuery("ul.pager li.finish").removeClass("hidden");
                     } else {
-                        $("ul.pager li.finish").addClass("hidden");
+                        jQuery("ul.pager li.finish").addClass("hidden");
                     }
                 }, this),
-                onNext: $.proxy(function (tab, navigation, index) {
+                onNext: jQuery.proxy(function (tab, navigation, index) {
                     var total = navigation.find("li").length;
                     if (this.tabs[index-1].validate()) {
-                        if ($.isFunction(this.tabs[index-1].saveContext)) {
+                        if (jQuery.isFunction(this.tabs[index-1].saveContext)) {
                             this.tabs[index-1].saveContext(this.map_context.getContext());
                         }
                         if (index >= total-1) {                        
-                            $("ul.pager li.finish").removeClass("hidden");
+                            jQuery("ul.pager li.finish").removeClass("hidden");
                         } else {
-                            $("ul.pager li.finish").addClass("hidden");
+                            jQuery("ul.pager li.finish").addClass("hidden");
                         }
                         return(true);
                     } else {
                         return(false);
                     }
                 }, this),
-                onBack: $.proxy(function (tab, navigation, index) {
+                onBack: jQuery.proxy(function (tab, navigation, index) {
                     if (this.tabs[index-1].validate()) {
-                        if ($.isFunction(this.tabs[index+1].saveContext)) {
+                        if (jQuery.isFunction(this.tabs[index+1].saveContext)) {
                             this.tabs[index+1].saveContext(this.map_context.getContext());
                         }  
                         return(true);
@@ -60,15 +60,15 @@ magic.modules.creator.Common = function () {
                 }
             });
             /* For some reason the onFinish event published doesn't work... David 02/12/2015 */
-            $("#rootwizard .finish").click($.proxy(function (tab, navigation, index) {
+            jQuery("#rootwizard .finish").click(jQuery.proxy(function (tab, navigation, index) {
                 this.saveContext(this.map_context.getContext());
             }, this));
             /* Tooltips */
-            $('[data-toggle="tooltip"]').tooltip();
+            jQuery('[data-toggle="tooltip"]').tooltip();
             /* For dynamic tooltips - http://stackoverflow.com/questions/9958825/how-do-i-bind-twitter-bootstrap-tooltips-to-dynamically-created-elements */
-            $("body").tooltip({ selector: '[data-toggle="tooltip"]'});
+            jQuery("body").tooltip({ selector: '[data-toggle="tooltip"]'});
             /* See http://stackoverflow.com/questions/26023008/bootstrap-3-tooltip-on-tabs */
-            $('[data-toggle="tab"]').tooltip({
+            jQuery('[data-toggle="tab"]').tooltip({
                 trigger: "hover",
                 placement: "top",
                 animate: true,
@@ -83,7 +83,7 @@ magic.modules.creator.Common = function () {
                 magic.modules.creator.Tab3, 
                 magic.modules.creator.Tab4
             ];
-            $.each(this.tabs, function(idx, tab) {
+            jQuery.each(this.tabs, function(idx, tab) {
                 tab.init();
             });                
         },
@@ -92,7 +92,7 @@ magic.modules.creator.Common = function () {
          * @param {object} data
          */
         loadContext: function(data) {
-            $.each(this.tabs, $.proxy(function(idx, tab) {
+            jQuery.each(this.tabs, jQuery.proxy(function(idx, tab) {
                 tab.loadContext(data);
             }, this));    
         },
@@ -101,10 +101,10 @@ magic.modules.creator.Common = function () {
          * @param {object} data
          */
         saveContext: function(data) {
-            $.each(this.tabs, $.proxy(function(idx, tab) {
+            jQuery.each(this.tabs, jQuery.proxy(function(idx, tab) {
                 tab.saveContext(data);
             }, this));   
-            var layerHierarchy = $("ul.layertree").sortableListsToHierarchy();           
+            var layerHierarchy = jQuery("ul.layertree").sortableListsToHierarchy();           
             var layerTree = [];           
             this.sortLayers(layerTree, layerHierarchy);
             this.map_context.setLayers(layerTree);
@@ -113,14 +113,14 @@ magic.modules.creator.Common = function () {
             var name = this.map_context.getMapName();
             /* Now validate the assembled map context against the JSON schema in /static/js/json/web_map_schema.json
              * https://github.com/geraintluff/tv4 is the validator used */            
-            $.getJSON(magic.config.paths.baseurl + "/static/js/json/web_map_schema.json", $.proxy(function(schema) {
+            jQuery.getJSON(magic.config.paths.baseurl + "/static/js/json/web_map_schema.json", jQuery.proxy(function(schema) {
                 //console.log(finalContext);
                 var validationResult = tv4.validate(finalContext, schema);
-                var csrfHeaderVal = $("meta[name='_csrf']").attr("content");
-                var csrfHeader = $("meta[name='_csrf_header']").attr("content");
+                var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content");
+                var csrfHeader = jQuery("meta[name='_csrf_header']").attr("content");
                 if (validationResult) {
                     /* Success - save the map and take the user to the map view */ 
-                    var jqXhr = $.ajax({
+                    var jqXhr = jQuery.ajax({
                         url: magic.config.paths.baseurl + "/maps/" + (existingId != "" ? "update/" + existingId : "save"),
                         /* The PUT verb should be used here for updates as per REST-ful interfaces, however there seems to be a Tomcat bug on
                          * bslmagg (the live server) which causes a 403 forbidden error.  I have ascertained it is nothing to do with CSRF tokens
@@ -194,10 +194,10 @@ magic.modules.creator.Common = function () {
          * @param {string} prefix
          */
         dictToForm: function(fields, data, prefix) { 
-            $.each(fields, function(idx, fo) {
+            jQuery.each(fields, function(idx, fo) {
                 var name = fo["field"];
                 var defval = fo["default"];
-                var input = $("#" + prefix + "-" + name);                
+                var input = jQuery("#" + prefix + "-" + name);                
                 if (input.attr("type") == "checkbox" || input.attr("type") == "radio") {
                     /* Set the "checked" property */
                     input.prop("checked", !data ? defval : (name in data ? (data[name] === true ? true : false) : defval));
@@ -216,9 +216,9 @@ magic.modules.creator.Common = function () {
          */
         formToDict: function(fields, data, prefix) {
             if (data) {
-                $.each(fields, function(idx, fo) {
+                jQuery.each(fields, function(idx, fo) {
                     var name = fo["field"];
-                    var input = $("#" + prefix + "-" + name);                    
+                    var input = jQuery("#" + prefix + "-" + name);                    
                     switch(input.attr("type")) {
                         case "checkbox":
                         case "radio":
@@ -227,7 +227,7 @@ magic.modules.creator.Common = function () {
                             break;                       
                         default:
                             var value = input.val();
-                            if (input.attr("type") == "number" && $.isNumeric(value)) {
+                            if (input.attr("type") == "number" && jQuery.isNumeric(value)) {
                                 /* Make sure numeric values are numbers not strings or will fail schema validation */
                                 value = Math.floor(value) == value ? parseInt(value) : parseFloat(value);
                             }
@@ -246,7 +246,7 @@ magic.modules.creator.Common = function () {
          */
         resetFormIndicators: function() {
             /* Reset any error/success indicators on form elements */
-            $("div.form-group").removeClass("has-error").removeClass("has-success");
+            jQuery("div.form-group").removeClass("has-error").removeClass("has-success");
         }        
 
     });

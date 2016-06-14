@@ -32,7 +32,7 @@ magic.classes.ShipPositionButton = function (name, ribbon) {
         {name: "code", alias: "Vessel code", displayed: false} /* To force pop-up to offer "full attribute set" */        
     ];
         
-    this.btn = $('<button>', {
+    this.btn = jQuery('<button>', {
         "id": "btn-" + this.name,
         "class": "btn btn-default",
         "data-toggle": "tooltip",
@@ -40,7 +40,7 @@ magic.classes.ShipPositionButton = function (name, ribbon) {
         "title": this.inactiveTitle,
         "html": '<span class="fa fa-ship"></span>'
     });
-    this.btn.on("click", $.proxy(function () {
+    this.btn.on("click", jQuery.proxy(function () {
         if (this.isActive()) {
             this.deactivate();
         } else {
@@ -48,7 +48,7 @@ magic.classes.ShipPositionButton = function (name, ribbon) {
         }
     }, this));    
     window.setTimeout(this.getData, 300000);
-    $(document).on("insetmapopened", $.proxy(function(evt) {
+    jQuery(document).on("insetmapopened", jQuery.proxy(function(evt) {
         if (magic.runtime.inset) {
             this.insetLayer = new ol.layer.Vector({
                 name: "BAS ships_inset",
@@ -63,14 +63,14 @@ magic.classes.ShipPositionButton = function (name, ribbon) {
             });            
             magic.runtime.inset.addLayer(this.insetLayer); 
             if (this.data.outside.length > 0) {
-                var osClones = $.map(this.data.outside, function(f) {
+                var osClones = jQuery.map(this.data.outside, function(f) {
                     return(f.clone());
                 });                        
                 this.insetLayer.getSource().addFeatures(osClones);
             }
         }
     }, this));
-    $(document).on("insetmapclosed", $.proxy(function(evt) {
+    jQuery(document).on("insetmapclosed", jQuery.proxy(function(evt) {
         this.insetLayer = null;
     }, this));
 };
@@ -137,19 +137,19 @@ magic.classes.ShipPositionButton.prototype.getData = function() {
     /* Aircraft positional API */
     //var shipApi = "https://legacy.bas.ac.uk/webteam/api/ship/position/";
     var shipApi = "https://api.bas.ac.uk/marine/v1/vessels/position/";        
-    $.ajax({
+    jQuery.ajax({
         url: shipApi,
         method: "GET",
-        success: $.proxy(function(response) {
+        success: jQuery.proxy(function(response) {
             /* Format is as https://github.com/felnne/bas-api-documentation/blob/master/marine-api/v1/documentation/resources/vessel.md */           
             var data = response.data;
-            if ($.isArray(data)) {
+            if (jQuery.isArray(data)) {
                 this.data = {
                     inside: [],
                     outside: []
                 };                
                 var projExtent = magic.modules.GeoUtils.projectionLatLonExtent(magic.runtime.viewdata.projection.getCode());                         
-                $.each(data, $.proxy(function(idx, elt) {
+                jQuery.each(data, jQuery.proxy(function(idx, elt) {
                     var attrs = {
                         callsign: elt.callsign,
                         name: elt.name,
@@ -200,7 +200,7 @@ magic.classes.ShipPositionButton.prototype.getData = function() {
                 if (this.data.outside.length > 0) {
                     if (this.insetLayer) {
                         this.insetLayer.getSource().clear();
-                        var osClones = $.map(this.data.outside, function(f) {
+                        var osClones = jQuery.map(this.data.outside, function(f) {
                             return(f.clone());
                         });      
                         this.insetLayer.getSource().addFeatures(osClones); 

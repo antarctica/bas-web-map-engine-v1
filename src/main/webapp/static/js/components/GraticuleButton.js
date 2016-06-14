@@ -13,7 +13,7 @@ magic.classes.GraticuleButton = function (name, ribbon) {
     this.inactiveTitle = "Show graticule";
     this.activeTitle = "Hide graticule";
 
-    this.btn = $('<button>', {
+    this.btn = jQuery('<button>', {
         "id": "btn-" + this.name,
         "class": "btn btn-default",
         "data-toggle": "tooltip",
@@ -21,7 +21,7 @@ magic.classes.GraticuleButton = function (name, ribbon) {
         "title": this.inactiveTitle,
         "html": '<span class="fa fa-table"></span>'
     });
-    this.btn.on("click", $.proxy(function () {
+    this.btn.on("click", jQuery.proxy(function () {
         if (this.isActive()) {
             this.deactivate();
         } else {

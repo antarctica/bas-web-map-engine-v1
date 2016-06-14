@@ -9,9 +9,9 @@ magic.classes.FullScreenButton = function(name, ribbon) {
     
     magic.runtime.map.addControl(new ol.control.FullScreen());
     /* Get rid of the OL standard full-screen control buttons which are ugly and off-theme */
-    $("div.ol-full-screen.ol-unselectable.ol-control").css("display", "none");                
+    jQuery("div.ol-full-screen.ol-unselectable.ol-control").css("display", "none");                
     
-    this.btn = $('<button>', {
+    this.btn = jQuery('<button>', {
         "id": "btn-" + this.name,
         "class": "btn btn-default",
         "data-toggle": "tooltip",
@@ -19,9 +19,9 @@ magic.classes.FullScreenButton = function(name, ribbon) {
         "title": this.title,
         "html": '<span class="glyphicon glyphicon-fullscreen"></span>'
     });
-    this.btn.on("click", $.proxy(function() {
+    this.btn.on("click", jQuery.proxy(function() {
         /* Redirect the full-screen button click to click the invisible ol button */
-        $("div.ol-full-screen.ol-unselectable.ol-control").children("button").click();
+        jQuery("div.ol-full-screen.ol-unselectable.ol-control").children("button").click();
     }, this));
     
 };

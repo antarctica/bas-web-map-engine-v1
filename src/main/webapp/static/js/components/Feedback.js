@@ -8,7 +8,7 @@ magic.classes.Feedback = function(options) {
     this.id = options.id || "feedback";
     
     /* Button invoking the feedback form */
-    this.target = $("#" + options.target); 
+    this.target = jQuery("#" + options.target); 
     
     /* Map */
     this.map = options.map || magic.runtime.map;
@@ -89,22 +89,22 @@ magic.classes.Feedback = function(options) {
         container: "body",
         html: true,            
         content: this.content
-    }).on("shown.bs.popover", $.proxy(function() {
+    }).on("shown.bs.popover", jQuery.proxy(function() {
         /* Set button handlers */
-        $("#" + this.id + "-go").click($.proxy(function(evt) {
+        jQuery("#" + this.id + "-go").click(jQuery.proxy(function(evt) {
             var formdata = {
                 payload: this.mapPayload()
             };
             var ok = true;
-            $("#" + this.id + "-payload").val(formdata.payload);
-            $("#" + this.id + "-feedback-form")[0].checkValidity();
-            $.each(["trackerId", "subject", "description", "reporter"], $.proxy(function(idx, elt) {
-                var fip = $("#" + this.id + "-" + elt);
+            jQuery("#" + this.id + "-payload").val(formdata.payload);
+            jQuery("#" + this.id + "-feedback-form")[0].checkValidity();
+            jQuery.each(["trackerId", "subject", "description", "reporter"], jQuery.proxy(function(idx, elt) {
+                var fip = jQuery("#" + this.id + "-" + elt);
                 var fg = fip.closest("div.form-group");
                 var fstate = fip.prop("validity");
                 if (fstate.valid) {
                     if (elt == "description") {
-                        formdata[elt] = JSON.stringify($.extend({}, this.mapPayload(), {"description": fip.val()}));
+                        formdata[elt] = JSON.stringify(jQuery.extend({}, this.mapPayload(), {"description": fip.val()}));
                     } else {
                         formdata[elt] = fip.val();
                     }
@@ -115,9 +115,9 @@ magic.classes.Feedback = function(options) {
                 }
             }, this));
             if (ok) {                
-                var csrfHeaderVal = $("meta[name='_csrf']").attr("content"); 
+                var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content"); 
                 this.target.popover("hide");
-                var jqXhr = $.ajax({
+                var jqXhr = jQuery.ajax({
                         url: magic.config.paths.baseurl + "/feedback",
                         method: "POST",
                         processData: false,
@@ -127,7 +127,7 @@ magic.classes.Feedback = function(options) {
                             "X-CSRF-TOKEN": csrfHeaderVal
                         }
                     });
-                    jqXhr.done($.proxy(function(response) {                        
+                    jqXhr.done(jQuery.proxy(function(response) {                        
                         bootbox.alert(
                             '<div class="alert alert-info" style="margin-bottom:0">' + 
                                 '<p>Successfully sent your feedback</p>' + 
@@ -146,7 +146,7 @@ magic.classes.Feedback = function(options) {
             }
         }, this));
         /* Close button */
-        $(".feedback-popover").find("button.close").click($.proxy(function() { 
+        jQuery(".feedback-popover").find("button.close").click(jQuery.proxy(function() { 
             this.target.popover("hide");
         }, this));
     }, this));           

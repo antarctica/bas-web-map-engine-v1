@@ -7,24 +7,24 @@ magic.classes.ControlButtonRibbon = function(config) {
     var id = "control-button-ribbon", ribbonId = id + "-group", maximiseId = "maximise-" + ribbonId;
     
     /* Get position for ribbon */
-    var ribbonTop = ($("nav.navbar").outerHeight()-50) + "px", ribbonLeft = "0px";
+    var ribbonTop = (jQuery("nav.navbar").outerHeight()-50) + "px", ribbonLeft = "0px";
     
     /* Add the outer markup and the maximise button */
-    var insertAt = $("#map").find("div.ol-overlaycontainer-stopevent");
+    var insertAt = jQuery("#map").find("div.ol-overlaycontainer-stopevent");
     insertAt.prepend(
         '<div id="' + id + '" style="position:absolute; left:  ' + ribbonLeft + '; top: ' + ribbonTop + '" class="btn-toolbar">' + 
             '<div id="' + ribbonId + '" class="btn-group button-ribbon show"></div>' +   
             '<div id="' + maximiseId + '" class="btn-group button-ribbon hidden"></div>' + 
         '</div>'
     );
-    this.ribbonDiv = $("#" + ribbonId);   
-    this.maximiseDiv = $("#" + maximiseId);
+    this.ribbonDiv = jQuery("#" + ribbonId);   
+    this.maximiseDiv = jQuery("#" + maximiseId);
     
     /* Initialise tooltips and popovers */
-    $("body").tooltip({selector: "[data-toggle=tooltip]", container: "body"});
-    $("#map-container").popover({selector: "[data-toggle=popover]", container: "#map"});
+    jQuery("body").tooltip({selector: "[data-toggle=tooltip]", container: "body"});
+    magic.runtime.map_container.popover({selector: "[data-toggle=popover]", container: "#map"});
     
-    $.each(this.buttons, $.proxy(function(bidx, bname) {                
+    jQuery.each(this.buttons, jQuery.proxy(function(bidx, bname) {                
         switch(bname) {
             case "zoom_world":
                 /* Zoom world */
@@ -85,14 +85,14 @@ magic.classes.ControlButtonRibbon = function(config) {
     }, this));
     /* Add a minimise ribbon button */
     this.createControlButton("minimise-control-ribbon", "fa fa-caret-left", this.buttons.length, "Minimise control toolbar")
-    .on("click", $.proxy(function(evt) {
+    .on("click", jQuery.proxy(function(evt) {
         var shown = this.ribbonDiv, hidden = this.maximiseDiv;
         hidden.toggleClass("hidden");
         shown.toggleClass("hidden");       
     }, this));
     /* Add a maximise ribbon button */    
     this.createControlButton("maximise-control-ribbon", "fa fa-caret-right", -1, "Maximise control toolbar", this.maximiseDiv)
-    .on("click", $.proxy(function(evt) {
+    .on("click", jQuery.proxy(function(evt) {
         var hidden = this.ribbonDiv, shown = this.maximiseDiv;
         hidden.toggleClass("hidden");
         shown.toggleClass("hidden");
@@ -131,7 +131,7 @@ magic.classes.ControlButtonRibbon.prototype.createControlButton = function(name,
         /* Convention for a maximise button */
         modifierClass = "maximise-button";
     }
-    var btn = $('<button>', {
+    var btn = jQuery('<button>', {
         "id": "btn-" + name,
         "class": "btn btn-default " + modifierClass,
         "data-toggle": "tooltip",

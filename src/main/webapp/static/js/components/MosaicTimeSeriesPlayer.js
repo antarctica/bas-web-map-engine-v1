@@ -24,9 +24,9 @@ magic.classes.MosaicTimeSeriesPlayer = function(options) {
             var params = this.layer.getSource().getParams();
             var fparts = params["LAYERS"].split(":");
             restUrl += ("/" + params["WORKSPACE"] + "/coveragestores/" + fparts[1] + "/coverages/" + fparts[1] + "/index/granules");
-            $.getJSON(restUrl, $.proxy(function(data) {
+            jQuery.getJSON(restUrl, jQuery.proxy(function(data) {
                 var feats = data.features;
-                if ($.isArray(feats) && feats.length > 0) {
+                if (jQuery.isArray(feats) && feats.length > 0) {
                     feats.sort(function(a, b) {
                         var cda = Date.parse(a.properties.chart_date);
                         var cdb = Date.parse(b.properties.chart_date);
@@ -43,14 +43,14 @@ magic.classes.MosaicTimeSeriesPlayer = function(options) {
                         '<div style="margin-left:10px"><span id="granule-date-' + this.nodeid + '"></span></div>'
                     );  
                     var btns = this.target.children("button");
-                    $(btns[0]).on("click", {pointer: "0"}, $.proxy(this.showImage, this));
-                    $(btns[1]).on("click", {pointer: "-"}, $.proxy(this.showImage, this));
-                    $(btns[2]).on("click", $.proxy(this.playMovie, this));
-                    $(btns[3]).on("click",{pointer: "+"}, $.proxy(this.showImage, this));
-                    $(btns[4]).on("click",{pointer: "1"}, $.proxy(this.showImage, this));
+                    jQuery(btns[0]).on("click", {pointer: "0"}, jQuery.proxy(this.showImage, this));
+                    jQuery(btns[1]).on("click", {pointer: "-"}, jQuery.proxy(this.showImage, this));
+                    jQuery(btns[2]).on("click", jQuery.proxy(this.playMovie, this));
+                    jQuery(btns[3]).on("click",{pointer: "+"}, jQuery.proxy(this.showImage, this));
+                    jQuery(btns[4]).on("click",{pointer: "1"}, jQuery.proxy(this.showImage, this));
                     this.syncButtons();
                     this.target.toggleClass("hidden");
-                    $("#granule-date-" + this.nodeid).html(this.getTime().replace(".000Z", ""));
+                    jQuery("#granule-date-" + this.nodeid).html(this.getTime().replace(".000Z", ""));
                 } else {
                     alert("No data");
                 }
@@ -89,14 +89,14 @@ magic.classes.MosaicTimeSeriesPlayer.prototype.showImage = function(evt) {
  */
 magic.classes.MosaicTimeSeriesPlayer.prototype.playMovie = function(evt) {
     evt.stopPropagation();
-    var playBtn = $(this.target.children("button")[2]);
+    var playBtn = jQuery(this.target.children("button")[2]);
     this.movie = setInterval(
-        $.proxy(function() {
+        jQuery.proxy(function() {
             if (this.imagePointer < this.times.length - 1) {
                 if (playBtn.hasClass("fa-play")) {
                     playBtn.removeClass("fa-play").addClass("fa-pause");
                     playBtn.attr("data-original-title", "Pause movie").tooltip("fixTitle");
-                    playBtn.off("click").on("click", $.proxy(this.pauseMovie, this));                    
+                    playBtn.off("click").on("click", jQuery.proxy(this.pauseMovie, this));                    
                 }
                 this.imagePointer++;
                 this.updateLayer();
@@ -118,13 +118,13 @@ magic.classes.MosaicTimeSeriesPlayer.prototype.playMovie = function(evt) {
  */
 magic.classes.MosaicTimeSeriesPlayer.prototype.pauseMovie = function(evt) {
     evt.stopPropagation();
-    var playBtn = $(this.target.children("button")[2]);
+    var playBtn = jQuery(this.target.children("button")[2]);
     clearInterval(this.movie);
     if (playBtn.hasClass("fa-pause")) {
         playBtn.removeClass("fa-pause").addClass("fa-play");
         playBtn.attr("data-original-title", "Play movie of mosaic images").tooltip("fixTitle");
     }
-    playBtn.off("click").on("click", $.proxy(this.playMovie, this));    
+    playBtn.off("click").on("click", jQuery.proxy(this.playMovie, this));    
 };
 
 /**
@@ -132,11 +132,11 @@ magic.classes.MosaicTimeSeriesPlayer.prototype.pauseMovie = function(evt) {
  */
 magic.classes.MosaicTimeSeriesPlayer.prototype.syncButtons = function() {
     var btns = this.target.children("button");
-    $(btns[0]).prop("disabled", this.imagePointer == 0);
-    $(btns[1]).prop("disabled", this.imagePointer == 0);
-    $(btns[2]).prop("disabled", this.imagePointer == this.granules.length - 1);
-    $(btns[3]).prop("disabled", this.imagePointer == this.granules.length - 1);
-    $(btns[4]).prop("disabled", this.imagePointer == this.granules.length - 1);    
+    jQuery(btns[0]).prop("disabled", this.imagePointer == 0);
+    jQuery(btns[1]).prop("disabled", this.imagePointer == 0);
+    jQuery(btns[2]).prop("disabled", this.imagePointer == this.granules.length - 1);
+    jQuery(btns[3]).prop("disabled", this.imagePointer == this.granules.length - 1);
+    jQuery(btns[4]).prop("disabled", this.imagePointer == this.granules.length - 1);    
 };
 
 /**
@@ -145,8 +145,8 @@ magic.classes.MosaicTimeSeriesPlayer.prototype.syncButtons = function() {
 magic.classes.MosaicTimeSeriesPlayer.prototype.updateLayer = function() {
     /* Actually show the image in the layer */
     var t = this.getTime();
-    $("#granule-date-" + this.nodeid).html(t.replace(".000Z", ""));
-    this.layer.getSource().updateParams($.extend({}, 
+    jQuery("#granule-date-" + this.nodeid).html(t.replace(".000Z", ""));
+    this.layer.getSource().updateParams(jQuery.extend({}, 
         this.layer.getSource().getParams(), 
         {"time": t}
     ));

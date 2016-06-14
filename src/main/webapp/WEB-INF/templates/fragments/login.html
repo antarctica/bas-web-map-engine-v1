@@ -21,13 +21,13 @@
             /*<![CDATA[*/            
             var error = [[${param.error}]];
             
-            $(function() {
-                if ($.isArray(error)) {                    
-                    $("#creator-username").parent().addClass("has-error").addClass("has-feedback");
-                    $("#creator-password").parent().addClass("has-error").addClass("has-feedback");
+            jQuery(function() {
+                if (jQuery.isArray(error)) {                    
+                    jQuery("#creator-username").parent().addClass("has-error").addClass("has-feedback");
+                    jQuery("#creator-password").parent().addClass("has-error").addClass("has-feedback");
                 } else {
-                    $("#creator-username").parent().removeClass("has-error").removeClass("has-feedback");
-                    $("#creator-password").parent().removeClass("has-error").removeClass("has-feedback");
+                    jQuery("#creator-username").parent().removeClass("has-error").removeClass("has-feedback");
+                    jQuery("#creator-password").parent().removeClass("has-error").removeClass("has-feedback");
                 }
             });
             

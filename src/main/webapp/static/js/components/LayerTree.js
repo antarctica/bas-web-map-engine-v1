@@ -20,44 +20,44 @@ magic.classes.LayerTree = function (target, embedded) {
         "kml": []
     };
 
-    this.initTree(this.treedata, $("#" + this.target), 0);
+    this.initTree(this.treedata, jQuery("#" + this.target), 0);
 
     this.collapsed = false;
 
     if (!this.embedded) {
         /* Layer tree is visible => assign all the necessary handlers  */
-        var expanderLocation = $("#" + this.target).find("div.panel-heading:first");
+        var expanderLocation = jQuery("#" + this.target).find("div.panel-heading:first");
         if (expanderLocation) {
             expanderLocation.append('<span data-toggle="tooltip" data-placement="bottom" title="Collapse layer tree" class="layer-tree-collapse fa fa-angle-double-left hidden-xs"></span>');
         }
 
         /* Collapse layer tree handler */
-        $("span.layer-tree-collapse").on("click", $.proxy(function (evt) {
+        jQuery("span.layer-tree-collapse").on("click", jQuery.proxy(function (evt) {
             evt.stopPropagation();
             this.setCollapsed(true);
         }, this));
 
         /* Expand layer tree handler */
-        $("button.layer-tree-expand").on("click", $.proxy(function (evt) {
+        jQuery("button.layer-tree-expand").on("click", jQuery.proxy(function (evt) {
             evt.stopPropagation();
             this.setCollapsed(false);
         }, this));
 
         /* Assign layer visibility handlers */
-        $("input.layer-vis-selector").change($.proxy(this.layerVisibilityHandler, this));        
+        jQuery("input.layer-vis-selector").change(jQuery.proxy(this.layerVisibilityHandler, this));        
 
         /* Assign layer group visibility handlers */
-        $("input.layer-vis-group-selector").change($.proxy(this.groupVisibilityHandler, this));        
+        jQuery("input.layer-vis-group-selector").change(jQuery.proxy(this.groupVisibilityHandler, this));        
 
         /* The get layer info buttons */
-        $("span[id^='layer-info-']").on("click", $.proxy(function (evt) {
+        jQuery("span[id^='layer-info-']").on("click", jQuery.proxy(function (evt) {
             var id = evt.currentTarget.id;
             var nodeid = this.getNodeId(id);
             magic.runtime.attribution.show(this.nodeLayerTranslation[nodeid]);
         }, this));
     
         /* Layer dropdown handlers */
-        $("a.layer-tool").click($.proxy(function (evt) {
+        jQuery("a.layer-tool").click(jQuery.proxy(function (evt) {
             var id = evt.currentTarget.id;
             var nodeid = this.getNodeId(id);
             new magic.classes.LayerTreeOptionsMenu({
@@ -67,19 +67,19 @@ magic.classes.LayerTree = function (target, embedded) {
         }, this));   
 
         /* Change tooltip for collapsible panels */
-        $("div[id^='layer-group-panel-']")
-        .on("shown.bs.collapse", $.proxy(function (evt) {       
-            $(evt.currentTarget).parent().first().find("span.panel-title").attr("data-original-title", "Collapse this group").tooltip("fixTitle");
+        jQuery("div[id^='layer-group-panel-']")
+        .on("shown.bs.collapse", jQuery.proxy(function (evt) {       
+            jQuery(evt.currentTarget).parent().first().find("span.panel-title").attr("data-original-title", "Collapse this group").tooltip("fixTitle");
             evt.stopPropagation();
         }, this))
-        .on("hidden.bs.collapse", $.proxy(function (evt) {        
-            $(evt.currentTarget).parent().first().find("span.panel-title").attr("data-original-title", "Expand this group").tooltip("fixTitle");
+        .on("hidden.bs.collapse", jQuery.proxy(function (evt) {        
+            jQuery(evt.currentTarget).parent().first().find("span.panel-title").attr("data-original-title", "Expand this group").tooltip("fixTitle");
             evt.stopPropagation();
         }, this));
 
         /* Initialise checked indicator badges in layer groups */
-        $("input[id^='layer-cb-']:checked").each($.proxy(function(idx, elt) {
-            this.setLayerVisibility($(elt));
+        jQuery("input[id^='layer-cb-']:checked").each(jQuery.proxy(function(idx, elt) {
+            this.setLayerVisibility(jQuery(elt));
         }, this));
         this.refreshTreeIndicators();
     }    
@@ -117,11 +117,11 @@ magic.classes.LayerTree.prototype.getCollapsed = function () {
 
 magic.classes.LayerTree.prototype.setCollapsed = function (collapsed) {
     if (collapsed) {
-        $("#" + this.target).hide({
+        jQuery("#" + this.target).hide({
             complete: magic.runtime.appcontainer.fitMapToViewport
         });
     } else {
-        $("#" + this.target).show({
+        jQuery("#" + this.target).show({
             complete: magic.runtime.appcontainer.fitMapToViewport
         });
     }
@@ -135,8 +135,8 @@ magic.classes.LayerTree.prototype.setCollapsed = function (collapsed) {
  * @param {int} depth
  */
 magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
-    $.each(nodes, $.proxy(function (i, nd) {
-        if ($.isArray(nd.layers)) {
+    jQuery.each(nodes, jQuery.proxy(function (i, nd) {
+        if (jQuery.isArray(nd.layers)) {
             /* Style a group */
             var title = (nd.expanded ? "Collapse" : "Expand") + " this group";
             var hbg = depth == 0 ? "panel-primary" : (depth == 1 ? "panel-info" : "");
@@ -163,7 +163,7 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                     '</div>' +
                     ((element.length > 0 && element[0].tagName.toLowerCase() == "ul") ? '</li>' : "")
                     );
-            this.initTree(nd.layers, $("#layer-group-" + nd.id), depth + 1);
+            this.initTree(nd.layers, jQuery("#layer-group-" + nd.id), depth + 1);
         } else {
             /* Style a data node */
             var cb;
@@ -220,10 +220,10 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                 if (magic.runtime.viewdata.resolutions) {
                     minRes = magic.runtime.viewdata.resolutions[magic.runtime.viewdata.resolutions.length-1];
                     maxRes = magic.runtime.viewdata.resolutions[0]+1;   /* Note: OL applies this one exclusively, whereas minRes is inclusive - duh! */  
-                    if ($.isNumeric(nd.minScale)) {
+                    if (jQuery.isNumeric(nd.minScale)) {
                         minRes = magic.modules.GeoUtils.getResolutionFromScale(nd.min_scale);
                     }
-                    if ($.isNumeric(nd.maxScale)) {
+                    if (jQuery.isNumeric(nd.maxScale)) {
                         maxRes = magic.modules.GeoUtils.getResolutionFromScale(nd.max_scale);
                     }
                 }
@@ -302,7 +302,7 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                             }     
                             url = magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(url);
                         }
-                        $.ajax({
+                        jQuery.ajax({
                             url: url,
                             method: "GET",
                             dataType: "text"
@@ -393,8 +393,8 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
  */
 magic.classes.LayerTree.prototype.getLabelField = function(attrMap) {
     var labelField = null;
-    if ($.isArray(attrMap)) {
-        $.each(attrMap, function(idx, attr) {
+    if (jQuery.isArray(attrMap)) {
+        jQuery.each(attrMap, function(idx, attr) {
             if (attr.label === true) {
                 labelField = attr.name;
                 return(false);
@@ -414,11 +414,11 @@ magic.classes.LayerTree.prototype.setLayerVisibility = function(chk) {
     var layer = this.nodeLayerTranslation[nodeid];
     if (id.indexOf("base-layer-rb") != -1) {
         /* Base layer visibility change */
-        $.each(this.layersBySource["base"], $.proxy(function (bli, bl) {                
+        jQuery.each(this.layersBySource["base"], jQuery.proxy(function (bli, bl) {                
             bl.setVisible(bl.get("metadata")["id"] == nodeid);
         }, this));            
         /* Trigger baselayerchanged event */
-        $.event.trigger({
+        jQuery.event.trigger({
             type: "baselayerchanged",
             layer: layer
         });
@@ -433,8 +433,8 @@ magic.classes.LayerTree.prototype.setLayerVisibility = function(chk) {
  * @param {jQuery.Event} evt
  */
 magic.classes.LayerTree.prototype.layerVisibilityHandler = function(evt) {
-    this.setLayerVisibility($(evt.currentTarget));    
-    this.refreshTreeIndicators($(evt.currentTarget).parents("div.layer-group"));
+    this.setLayerVisibility(jQuery(evt.currentTarget));    
+    this.refreshTreeIndicators(jQuery(evt.currentTarget).parents("div.layer-group"));
 };
 
 /**
@@ -442,20 +442,20 @@ magic.classes.LayerTree.prototype.layerVisibilityHandler = function(evt) {
  * @param {jQuery.Event} evt
  */
 magic.classes.LayerTree.prototype.groupVisibilityHandler = function(evt) { 
-    var chk = $(evt.currentTarget);
+    var chk = jQuery(evt.currentTarget);
     var checked = chk.prop("checked");
-    $.each(chk.closest("div.panel").find("input[type='checkbox']"), $.proxy(function(idx, cb) {
-        var jqCb = $(cb);
+    jQuery.each(chk.closest("div.panel").find("input[type='checkbox']"), jQuery.proxy(function(idx, cb) {
+        var jqCb = jQuery(cb);
         if (jqCb.hasClass("layer-vis-selector")) {
             /* Layer visibility */
-            jqCb.off("change").prop("checked", checked).change($.proxy(this.layerVisibilityHandler, this));
+            jqCb.off("change").prop("checked", checked).change(jQuery.proxy(this.layerVisibilityHandler, this));
             this.setLayerVisibility(jqCb);
         } else {
             /* Group visibility */
-            jqCb.off("change").prop("checked", checked).change($.proxy(this.groupVisibilityHandler, this));
+            jqCb.off("change").prop("checked", checked).change(jQuery.proxy(this.groupVisibilityHandler, this));
         }
     }, this)); 
-    this.refreshTreeIndicators($(evt.currentTarget).parents("div.layer-group"));
+    this.refreshTreeIndicators(jQuery(evt.currentTarget).parents("div.layer-group"));
 };
 
 /**
@@ -463,22 +463,22 @@ magic.classes.LayerTree.prototype.groupVisibilityHandler = function(evt) {
  * @param {Array} branchHierarchy
  */
 magic.classes.LayerTree.prototype.refreshTreeIndicators = function(branchHierarchy) {    
-    $("#" + this.target).find("div.layer-group").each($.proxy(function(idx, elt) {
-        if (!$.isArray(branchHierarchy) || ($.isArray(branchHierarchy) && $.inArray(elt, branchHierarchy) != -1)) {
-            var jqp = $(elt);
+    jQuery("#" + this.target).find("div.layer-group").each(jQuery.proxy(function(idx, elt) {
+        if (!jQuery.isArray(branchHierarchy) || (jQuery.isArray(branchHierarchy) && jQuery.inArray(elt, branchHierarchy) != -1)) {
+            var jqp = jQuery(elt);
             var cbs = jqp.find("input[id^='layer-cb-']");
             var cbx = cbs.filter(":checked");
             if (cbx.length == cbs.length) {
                 /* Additionally check the group checkbox for this panel */
                 var gcb = jqp.first().find("input[id^='group-cb-']");
                 if (gcb.length > 0) {
-                    gcb.off("change").prop("checked", true).change($.proxy(this.groupVisibilityHandler, this));
+                    gcb.off("change").prop("checked", true).change(jQuery.proxy(this.groupVisibilityHandler, this));
                 }
             } else {
                 /* Additionally uncheck the group checkbox for this panel */
                 var gcb = jqp.first().find("input[id^='group-cb-']");
                 if (gcb.length > 0) {
-                    gcb.off("change").prop("checked", false).change($.proxy(this.groupVisibilityHandler, this));
+                    gcb.off("change").prop("checked", false).change(jQuery.proxy(this.groupVisibilityHandler, this));
                 }
             }    
             var badge = jqp.first().find("span.checked-indicator-badge");
@@ -519,7 +519,7 @@ magic.classes.LayerTree.prototype.getVectorStyle = function(styleDef, labelField
                     color: magic.modules.Common.rgbToDec(styleDef.fill.color, styleDef.fill.opacity)
                 });
             } else {
-                fill = $.extend({}, defaultFill);
+                fill = jQuery.extend({}, defaultFill);
             }
             if (styleDef.stroke) {
                 var lineStyle = styleDef.stroke.style == "dashed" ? [3, 3] : (styleDef.stroke.style == "dotted" ? [1, 1] : undefined);
@@ -529,7 +529,7 @@ magic.classes.LayerTree.prototype.getVectorStyle = function(styleDef, labelField
                     width: styleDef.stroke.width || 1
                 });
             } else {
-                stroke = $.extend({}, defaultStroke);
+                stroke = jQuery.extend({}, defaultStroke);
             }
             if (styleDef.graphic) {
                 if (styleDef.graphic.marker == "circle") {
@@ -591,8 +591,8 @@ magic.classes.LayerTree.prototype.getVectorStyle = function(styleDef, labelField
             }            
         } else {
             /* Default style */
-            fill = $.extend({}, defaultFill);
-            stroke = $.extend({}, defaultStroke);
+            fill = jQuery.extend({}, defaultFill);
+            stroke = jQuery.extend({}, defaultStroke);
             graphic =  new ol.style.Circle({
                 radius: 5, 
                 fill: fill,

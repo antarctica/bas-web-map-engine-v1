@@ -14,14 +14,14 @@
         </div>
         <script type="text/javascript">
 
-            $(document).ready(function () {
+            jQuery(document).ready(function () {
 
-                $('[data-toggle="tooltip"]').tooltip({container: 'body'});
+                jQuery('[data-toggle="tooltip"]').tooltip({container: 'body'});
 
                 /* Logout behaviour */
-                $("#log-out-user").click(function (evt) {
+                jQuery("#log-out-user").click(function (evt) {
                     evt.preventDefault();
-                    $("#logout-form").submit();
+                    jQuery("#logout-form").submit();
                 });
                 
                 magic.runtime.webmap_panel = new magic.classes.console.WebMapPanel();

@@ -19,12 +19,12 @@ magic.modules.creator.Tab1 = function () {
                 
         init: function () {
             /* Creator method radio button change handler */
-            $("input[name$='action-rb']").click($.proxy(function (evt) {
-                var rb = $(evt.currentTarget);
-                $.each(["new", "edit", "clone"], $.proxy(function (idx, elt) {
+            jQuery("input[name$='action-rb']").click(jQuery.proxy(function (evt) {
+                var rb = jQuery(evt.currentTarget);
+                jQuery.each(["new", "edit", "clone"], jQuery.proxy(function (idx, elt) {
                     if (elt == rb.val()) {
                         /* Checked one */
-                        var select = $("#t1-" + elt);
+                        var select = jQuery("#t1-" + elt);
                         select.prop("disabled", false);
                         if (elt == "edit" || elt == "clone") {
                             /* load up a map if required */
@@ -40,43 +40,43 @@ magic.modules.creator.Tab1 = function () {
                             if (defVal != "") {
                                 /* Load the context */
                                 magic.modules.creator.Common.resetFormIndicators();
-                                magic.modules.creator.Common.map_context.load("edit", defVal, $.proxy(magic.modules.creator.Common.loadContext, magic.modules.creator.Common));
+                                magic.modules.creator.Common.map_context.load("edit", defVal, jQuery.proxy(magic.modules.creator.Common.loadContext, magic.modules.creator.Common));
                             }
                         }
                     } else {
                         /* Has been unchecked */
-                        $("#t1-" + elt).prop("disabled", true);
+                        jQuery("#t1-" + elt).prop("disabled", true);
                     }
                 }, this));
             }, this));
             /* Load a map definition depending on the selection */
-            $("select.map-select").change(function (evt) {
-                var sel = $(evt.currentTarget);
+            jQuery("select.map-select").change(function (evt) {
+                var sel = jQuery(evt.currentTarget);
                 var action = sel.attr("id").split("-").pop();
                 var mapname = sel.val();
                 magic.modules.creator.Common.resetFormIndicators();
-                magic.modules.creator.Common.map_context.load(action, mapname, $.proxy(magic.modules.creator.Common.loadContext, magic.modules.creator.Common));
+                magic.modules.creator.Common.map_context.load(action, mapname, jQuery.proxy(magic.modules.creator.Common.loadContext, magic.modules.creator.Common));
             }); 
             /* If there is a search string, assume a map edit */
             var search = window.location.search;
             if (search && search.match(/\?name=[a-z0-9_]+$/)) {
-                $("#t1-edit-rb").trigger("click");                
+                jQuery("#t1-edit-rb").trigger("click");                
             }
         },
         validate: function() {
             /* Make sure a map source selection has been made */
-            var checkRb = $("input[type='radio'][name='_t1-action-rb']:checked");
+            var checkRb = jQuery("input[type='radio'][name='_t1-action-rb']:checked");
             if (!checkRb) {
                 return(false);
             }
-            if ($("#t1-" + checkRb.val()) == "") {
+            if (jQuery("#t1-" + checkRb.val()) == "") {
                 return(false);
             }
             /* Check form inputs */
-            var ok = $("#t1-form")[0].checkValidity();
+            var ok = jQuery("#t1-form")[0].checkValidity();
             /* Indicate invalid fields */
-            $.each($("#t1-form").find("input[required='required'],textarea[required='required'],input[type='url']"), function(idx, ri) {
-                var riEl = $(ri);
+            jQuery.each(jQuery("#t1-form").find("input[required='required'],textarea[required='required'],input[type='url']"), function(idx, ri) {
+                var riEl = jQuery(ri);
                 var fg = riEl.closest("div.form-group");
                 var vState = riEl.prop("validity");
                 if (vState.valid) {
@@ -110,7 +110,7 @@ magic.modules.creator.Tab1 = function () {
         loadMapOptions: function (select, defval, action) {
             select.find("option").remove();
             /* Service returns [{name: <name>, title: <title>},...] */
-            $.getJSON(magic.config.paths.baseurl + "/maps/dropdown/" + action, function (data) {
+            jQuery.getJSON(magic.config.paths.baseurl + "/maps/dropdown/" + action, function (data) {
                 magic.modules.Common.populateSelect(select, data, "name", "title", defval, true);                
             });
         }

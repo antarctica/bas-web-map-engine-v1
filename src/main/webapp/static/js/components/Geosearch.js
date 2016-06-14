@@ -10,7 +10,7 @@ magic.classes.Geosearch = function(options) {
     /* Array of gazetteer names to be used in application */
     this.gazetteers = options.gazetteers || ["cga"];
     
-    this.target = $("#" + options.target);
+    this.target = jQuery("#" + options.target);
     
     /* Internal properties */
     
@@ -18,8 +18,8 @@ magic.classes.Geosearch = function(options) {
     
     /* Get data about gazetteers, keyed by name */
     this.gazetteerData = {};
-    $.getJSON("https://api.bas.ac.uk/locations/v1/gazetteer", $.proxy(function(payload) {
-        $.map(payload.data, $.proxy(function(gd) {
+    jQuery.getJSON("https://api.bas.ac.uk/locations/v1/gazetteer", jQuery.proxy(function(payload) {
+        jQuery.map(payload.data, jQuery.proxy(function(gd) {
             this.gazetteerData[gd.gazetteer] = gd;
         }, this));
     }, this));
@@ -155,8 +155,8 @@ magic.classes.Geosearch = function(options) {
         html: true,            
         content: this.content
     })
-    .on("shown.bs.popover", $.proxy(this.activate, this))
-    .on("hidden.bs.popover", $.proxy(this.deactivate, this));
+    .on("shown.bs.popover", jQuery.proxy(this.activate, this))
+    .on("hidden.bs.popover", jQuery.proxy(this.deactivate, this));
 };
             
 magic.classes.Geosearch.prototype.getTarget = function() {
@@ -179,18 +179,18 @@ magic.classes.Geosearch.prototype.activate = function(quiet) {
             
     if (!quiet) {
         /* Trigger mapinteractionactivated event */
-        $(document).trigger("mapinteractionactivated", [this]);   
+        jQuery(document).trigger("mapinteractionactivated", [this]);   
     }
     
     this.active = true;
            
     this.layer.setVisible(true);   
 
-    $("#" + this.id + "-ta").typeahead({minLength: 4, highlight: true}, this.getSources())
-        .on("typeahead:autocompleted", $.proxy(this.selectHandler, this))
-        .on("typeahead:selected", $.proxy(this.selectHandler, this))            
-        .on("typeahead:render", $.proxy(function() {
-            $("p.suggestion").off("mouseover").on("mouseover", $.proxy(function(evt) {                   
+    jQuery("#" + this.id + "-ta").typeahead({minLength: 4, highlight: true}, this.getSources())
+        .on("typeahead:autocompleted", jQuery.proxy(this.selectHandler, this))
+        .on("typeahead:selected", jQuery.proxy(this.selectHandler, this))            
+        .on("typeahead:render", jQuery.proxy(function() {
+            jQuery("p.suggestion").off("mouseover").on("mouseover", jQuery.proxy(function(evt) {                   
                 var name = evt.target.innerText;
                 if (this.searchSuggestions[name]) {
                     var feat = this.searchSuggestions[name].feature;                        
@@ -207,7 +207,7 @@ magic.classes.Geosearch.prototype.activate = function(quiet) {
                     feat.setStyle(this.suggestionStyle);                                              
                 }                   
             }, this));
-            $("p.suggestion").off("mouseout").on("mouseout", $.proxy(function(evt) {                   
+            jQuery("p.suggestion").off("mouseout").on("mouseout", jQuery.proxy(function(evt) {                   
                 var name = evt.target.innerText;
                 if (this.searchSuggestions[name] && this.searchSuggestions[name].feature) {
                     this.searchSuggestions[name].feature.setStyle(this.invisibleStyle);
@@ -215,25 +215,25 @@ magic.classes.Geosearch.prototype.activate = function(quiet) {
             }, this));
         }, this));                     
 
-    $("#" + this.id + "-placename-go").click($.proxy(this.placenameSearchHandler, this));
-    $("#" + this.id + "-position-go").click($.proxy(this.positionSearchHandler, this));
+    jQuery("#" + this.id + "-placename-go").click(jQuery.proxy(this.placenameSearchHandler, this));
+    jQuery("#" + this.id + "-position-go").click(jQuery.proxy(this.positionSearchHandler, this));
    
     /* Attribution link */
-    $("a.gaz-attribution").click($.proxy(function(evt) {
-        var attribArea = $("#" + this.id + "-attribution-text");
+    jQuery("a.gaz-attribution").click(jQuery.proxy(function(evt) {
+        var attribArea = jQuery("#" + this.id + "-attribution-text");
         attribArea.toggleClass("hidden");
         if (!attribArea.hasClass("hidden")) {
             attribArea.html(this.getAttributions());
-            $(evt.currentTarget).children("span").removeClass("fa-caret-down").addClass("fa-caret-up");
-            $(evt.currentTarget).attr("data-original-title", "Hide gazetteer sources").tooltip("fixTitle");
+            jQuery(evt.currentTarget).children("span").removeClass("fa-caret-down").addClass("fa-caret-up");
+            jQuery(evt.currentTarget).attr("data-original-title", "Hide gazetteer sources").tooltip("fixTitle");
         } else {
-            $(evt.currentTarget).children("span").removeClass("fa-caret-up").addClass("fa-caret-down");
-            $(evt.currentTarget).attr("data-original-title", "Show gazetteer sources").tooltip("fixTitle");
+            jQuery(evt.currentTarget).children("span").removeClass("fa-caret-up").addClass("fa-caret-down");
+            jQuery(evt.currentTarget).attr("data-original-title", "Show gazetteer sources").tooltip("fixTitle");
         }
     }, this));
 
     /* Close button */
-    $(".geosearch-popover").find("button.close").click($.proxy(function() { 
+    jQuery(".geosearch-popover").find("button.close").click(jQuery.proxy(function() { 
         this.target.popover("hide");
     }, this));     
 };
@@ -247,7 +247,7 @@ magic.classes.Geosearch.prototype.deactivate = function(quiet) {
     this.layer.setVisible(false);
     if (!quiet) {
         /* Trigger mapinteractiondeactivated event */
-        $(document).trigger("mapinteractiondeactivated", [this]);  
+        jQuery(document).trigger("mapinteractiondeactivated", [this]);  
     }
 };
 
@@ -256,15 +256,15 @@ magic.classes.Geosearch.prototype.deactivate = function(quiet) {
  * @returns {Array}
  */
 magic.classes.Geosearch.prototype.getSources = function() {
-    var sources = $.map(this.gazetteers, $.proxy(function(gaz) {
+    var sources = jQuery.map(this.gazetteers, jQuery.proxy(function(gaz) {
         return({
             source: function(query, syncResults, asyncResults) {
-                $.getJSON("https://api.bas.ac.uk/locations/v1/gazetteer/" + gaz + "/" + query + "/brief", function(json) {
+                jQuery.getJSON("https://api.bas.ac.uk/locations/v1/gazetteer/" + gaz + "/" + query + "/brief", function(json) {
                     asyncResults(json.data);
                 });
             },
             name: gaz,
-            display: $.proxy(function(value) {
+            display: jQuery.proxy(function(value) {
                 var output = value.placename;
                 if (this.gazetteerData[gaz].composite) {
                     output += " (" + value.gazetteer + ")";
@@ -275,12 +275,12 @@ magic.classes.Geosearch.prototype.getSources = function() {
             templates: {
                 notFound: '<div class="suggestion-group-header">' + this.gazetteerData[gaz].title + '</div><p class="suggestion">No results</p>',
                 header: '<div class="suggestion-group-header">' + this.gazetteerData[gaz].title + '</div>',
-                suggestion: $.proxy(function(value) {
+                suggestion: jQuery.proxy(function(value) {
                     var output = value.placename;
                     if (this.gazetteerData[gaz].composite) {
                         output += " (" + value.gazetteer + ")";
                     }
-                    this.searchSuggestions[output] = $.extend({}, value, {"__gaz_name": gaz});
+                    this.searchSuggestions[output] = jQuery.extend({}, value, {"__gaz_name": gaz});
                     return('<p class="suggestion">' + output + '</p>');
                 }, this)
             }
@@ -294,7 +294,7 @@ magic.classes.Geosearch.prototype.getSources = function() {
  * @returns {string}
  */
 magic.classes.Geosearch.prototype.getAttributions = function() {
-    var attrArr = $.map(this.gazetteers, $.proxy(function(gaz) {
+    var attrArr = jQuery.map(this.gazetteers, jQuery.proxy(function(gaz) {
         return(
             '<strong>' + this.gazetteerData[gaz].title + '</strong>' + 
             '<p style="font-size:smaller">' + magic.modules.Common.linkify(this.gazetteerData[gaz].attribution + ". " + this.gazetteerData[gaz].website) + '</p>'
@@ -310,13 +310,13 @@ magic.classes.Geosearch.prototype.getAttributions = function() {
  */
 magic.classes.Geosearch.prototype.selectHandler = function(evt, sugg) {
     var gaz = "";
-    $.each(this.searchSuggestions, function(idx, s) {
+    jQuery.each(this.searchSuggestions, function(idx, s) {
         if (s.id == sugg.id) {
             gaz = s["__gaz_name"];
             return(false);
         }
     });
-    var data = $.extend({}, sugg, {"__gaz_name": gaz});
+    var data = jQuery.extend({}, sugg, {"__gaz_name": gaz});
     this.currentPlacenameSearch = data;    
 };
 
@@ -330,7 +330,7 @@ magic.classes.Geosearch.prototype.placenameSearchHandler = function(evt) {
     
     /* Check if this search has already been done */
     var exIdx = -1;
-    $.each(this.placenameSearches, $.proxy(function(idx, ps) {
+    jQuery.each(this.placenameSearches, jQuery.proxy(function(idx, ps) {
         if (ps.id == this.currentPlacenameSearch.id && ps["__gaz_name"] == this.currentPlacenameSearch["__gaz_name"]) {
             exIdx = idx;
             return(false);
@@ -340,11 +340,11 @@ magic.classes.Geosearch.prototype.placenameSearchHandler = function(evt) {
     var gazName = this.currentPlacenameSearch["__gaz_name"];        
     if (exIdx < 0) {
         /* Fetch data */
-        $.getJSON("https://api.bas.ac.uk/locations/v1/placename/" + gazName + "/" + this.currentPlacenameSearch["id"], $.proxy(function(json) {
+        jQuery.getJSON("https://api.bas.ac.uk/locations/v1/placename/" + gazName + "/" + this.currentPlacenameSearch["id"], jQuery.proxy(function(json) {
             var jsonData = json.data;
             delete jsonData["suggestion"];
             var geom = this.computeProjectedGeometry(gazName, jsonData);
-            var attrs = $.extend({
+            var attrs = jQuery.extend({
                 geometry: geom, 
                 name: this.currentPlacenameSearch.placename,
                 "__gaz_name": gazName
@@ -352,7 +352,7 @@ magic.classes.Geosearch.prototype.placenameSearchHandler = function(evt) {
             var feat = new ol.Feature(attrs);
             feat.setStyle(this.resultStyle);
             this.layer.getSource().addFeature(feat);
-            if ($("#" + this.id + "-tmt").prop("checked")) {
+            if (jQuery("#" + this.id + "-tmt").prop("checked")) {
                 this.flyMeThere(feat);            
             }
             this.placenameSearches.push(this.currentPlacenameSearch);
@@ -393,7 +393,7 @@ magic.classes.Geosearch.prototype.computeProjectedGeometry = function(gaz, data)
  * @param {ol.Feature} feature
  */
 magic.classes.Geosearch.prototype.flyMeThere = function(feature) {
-    if ($("#" + this.id + "-tmt").prop("checked")) {
+    if (jQuery("#" + this.id + "-tmt").prop("checked")) {
         var duration = 2000,
             pan = ol.animation.pan({
                 duration: duration,
@@ -418,9 +418,9 @@ magic.classes.Geosearch.prototype.positionSearchHandler = function(evt) {
     
     this.searchInit();
               
-    var lon = $("#" + this.id + "-lon"),
-        lat = $("#" + this.id + "-lat"),
-        label = $("#" + this.id + "-label"),
+    var lon = jQuery("#" + this.id + "-lon"),
+        lat = jQuery("#" + this.id + "-lat"),
+        label = jQuery("#" + this.id + "-label"),
         lonFg = lon.closest("div.form-group"),
         latFg = lat.closest("div.form-group");
     if (magic.modules.GeoUtils.validCoordinate(lon.val(), false, false) && magic.modules.GeoUtils.validCoordinate(lat.val(), true, false)) {
@@ -447,7 +447,7 @@ magic.classes.Geosearch.prototype.positionSearchHandler = function(evt) {
  * Initialise a search by clearing suggestions and all their attendant "ghost" features
  */
 magic.classes.Geosearch.prototype.searchInit = function() {
-    $("#popup").popover("destroy");
+    jQuery("#popup").popover("destroy");
     this.searchSuggestions = {};
     var suggestions = [];
     this.layer.getSource().forEachFeature(function(f) {
@@ -456,7 +456,7 @@ magic.classes.Geosearch.prototype.searchInit = function() {
             suggestions.push(f);
         }
     }, this);
-    $.map(suggestions, $.proxy(function(f) {
+    jQuery.map(suggestions, jQuery.proxy(function(f) {
         this.layer.getSource().removeFeature(f);
     }, this));
 };

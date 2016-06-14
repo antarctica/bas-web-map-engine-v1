@@ -21,7 +21,7 @@ magic.classes.LayerFilter = function(options) {
     
     /* Get the filterable options */
     var opts = "";
-    $.each(this.attribute_map, function(idx, attrdata) {
+    jQuery.each(this.attribute_map, function(idx, attrdata) {
         if (attrdata.filterable === true) {
             opts += '<option value="' + attrdata.name + '">' + (attrdata.alias || attrdata.name) + '</option>';
         }
@@ -97,14 +97,14 @@ magic.classes.LayerFilter = function(options) {
         /* Allow clicking on the inputs without the dropdown going away */
         this.target.find("form").click(function(evt2) {evt2.stopPropagation()});
         this.setFilterOptions("init", null);
-        $("#ftr-attr-" + this.nodeid).on("change", $.proxy(function(evt) {
-            this.setFilterOptions("attr", $(evt.target).val());                                
+        jQuery("#ftr-attr-" + this.nodeid).on("change", jQuery.proxy(function(evt) {
+            this.setFilterOptions("attr", jQuery(evt.target).val());                                
         }, this));
-        $("#ftr-op-num-" + this.nodeid).on("change", $.proxy(function(evt) {
-            this.setFilterOptions("op", $(evt.target).val());                    
+        jQuery("#ftr-op-num-" + this.nodeid).on("change", jQuery.proxy(function(evt) {
+            this.setFilterOptions("op", jQuery(evt.target).val());                    
         }, this));      
-        $("#ftr-btn-go-" + this.nodeid).on("click", $.proxy(this.applyFilter, this));
-        $("#ftr-btn-reset-" + this.nodeid).on("click", $.proxy(this.resetFilter, this));
+        jQuery("#ftr-btn-go-" + this.nodeid).on("click", jQuery.proxy(this.applyFilter, this));
+        jQuery("#ftr-btn-reset-" + this.nodeid).on("click", jQuery.proxy(this.resetFilter, this));
     } else {
         this.target.removeClass("show").addClass("hidden");        
     }           
@@ -117,8 +117,8 @@ magic.classes.LayerFilter = function(options) {
  */
 magic.classes.LayerFilter.prototype.setFilterOptions = function(changed, to) {
     
-    var form = $("#ftr-form-" + this.nodeid);
-    var inputComparison = $("#ftr-comparison-type-" + this.nodeid);            
+    var form = jQuery("#ftr-form-" + this.nodeid);
+    var inputComparison = jQuery("#ftr-comparison-type-" + this.nodeid);            
     
     if (changed == "attr") {
         
@@ -126,7 +126,7 @@ magic.classes.LayerFilter.prototype.setFilterOptions = function(changed, to) {
         form.find("input[type='text'],input[type='number'],input[type='hidden']").val("");
         form.find("select").not("[id^='ftr-attr-']").prop("selectedIndex", 0);
         
-        var adata = $.grep(this.attribute_map, function(elt) {
+        var adata = jQuery.grep(this.attribute_map, function(elt) {
             return(elt.name == to);
         })[0];
         if (adata.type == "xsd:string") {
@@ -168,7 +168,7 @@ magic.classes.LayerFilter.prototype.setFilterOptions = function(changed, to) {
         if (this.attr != null) {            
             /* Existing filter data found */
             form.find("select[id^='ftr-attr-']").val(this.attr);
-            var adata = $.grep(this.attribute_map, $.proxy(function(elt) {
+            var adata = jQuery.grep(this.attribute_map, jQuery.proxy(function(elt) {
                 return(elt.name == this.attr);
             }, this))[0];
             if (this.comparison == "string") {
@@ -180,8 +180,8 @@ magic.classes.LayerFilter.prototype.setFilterOptions = function(changed, to) {
                     this.getUniqueValues(adata.name, this.val1);
                 } else {
                     /* Value will have % characters to indicate wildcards depending on the operation */
-                    var selectOpStr = $("#ftr-op-str-" + this.nodeid);
-                    var inputValStr = $("#ftr-val-str-" + this.nodeid);
+                    var selectOpStr = jQuery("#ftr-op-str-" + this.nodeid);
+                    var inputValStr = jQuery("#ftr-val-str-" + this.nodeid);
                     var startPc = this.val1.indexOf("%") == 0;
                     var endPc = this.val && (this.val1.lastIndexOf("%") == this.val1.length-1);
                     if (startPc && endPc) {
@@ -200,9 +200,9 @@ magic.classes.LayerFilter.prototype.setFilterOptions = function(changed, to) {
                 inputComparison.val("number");  
                 form.find("input[id*='-str-'],select[id*='-str-']").parent().removeClass("show").addClass("hidden");
                 form.find("input[id*='-num-'],input[id*='-num1-'],select[id*='-num-']").parent().removeClass("hidden").addClass("show");
-                $("#ftr-op-num-" + this.nodeid).val(this.op);
-                $("#ftr-val-num1-" + this.nodeid).val(this.val1);
-                var inputValNum2 = $("#ftr-val-num2-" + this.nodeid);
+                jQuery("#ftr-op-num-" + this.nodeid).val(this.op);
+                jQuery("#ftr-val-num1-" + this.nodeid).val(this.val1);
+                var inputValNum2 = jQuery("#ftr-val-num2-" + this.nodeid);
                 if (this.op == "between") {
                     inputValNum2.val(this.val2);
                     inputValNum2.parent().removeClass("hidden").addClass("show").val(this.val2);
@@ -228,7 +228,7 @@ magic.classes.LayerFilter.prototype.loadExistingFilter = function() {
         this.val1 = exFilter.val1,
         this.val2 = exFilter.val2
     } else {
-        var filterables = $.grep(this.attribute_map, $.proxy(function(elt) {
+        var filterables = jQuery.grep(this.attribute_map, jQuery.proxy(function(elt) {
             return(elt.filterable);
         }, this));
         if (filterables.length > 0) {
@@ -265,8 +265,8 @@ magic.classes.LayerFilter.prototype.getUniqueValues = function(attrName, attrVal
             } else {
                 url = url.replace(/wms$/, "wfs") + qry;
             }            
-            var jqXhr = $.ajax(url)
-                .done($.proxy(function(data) {
+            var jqXhr = jQuery.ajax(url)
+                .done(jQuery.proxy(function(data) {
                     var arr = data.split(/\n/);
                     if (arr.length > 0) {
                         /* Find the index of the desired attribute */
@@ -284,7 +284,7 @@ magic.classes.LayerFilter.prototype.getUniqueValues = function(attrName, attrVal
                             arr.shift();
                             var foundDict = {};
                             /* Extract the value of the desired attribute */
-                            var vals = $.map(arr, function(elt, idx) {
+                            var vals = jQuery.map(arr, function(elt, idx) {
                                 var eltAttrVal = elt.split(",")[attrPos];
                                 if (eltAttrVal) {
                                     eltAttrVal = eltAttrVal.trim();                                
@@ -299,12 +299,12 @@ magic.classes.LayerFilter.prototype.getUniqueValues = function(attrName, attrVal
                         }
                     }
                 }, this))
-                .fail($.proxy(function(jqXhr, status, err) {
+                .fail(jQuery.proxy(function(jqXhr, status, err) {
                     /* Leave the status quo unchanged for now */
                 }, this));  
         } else {
             /* Unique values from the source features */
-            var vals = $.map(this.layer.getSource().getSource().getFeatures(), $.proxy(function(idx, feat) {return(feat.get(attrName))}, this));
+            var vals = jQuery.map(this.layer.getSource().getSource().getFeatures(), jQuery.proxy(function(idx, feat) {return(feat.get(attrName))}, this));
             this.populateUniqueValueSelection(vals, attrVal);            
         }
     }
@@ -317,18 +317,18 @@ magic.classes.LayerFilter.prototype.getUniqueValues = function(attrName, attrVal
 magic.classes.LayerFilter.prototype.applyFilter = function() {
     
     /* Reset the errors */
-    $("div.layer-filter-panel").find("div.form-group").removeClass("has-error");
+    jQuery("div.layer-filter-panel").find("div.form-group").removeClass("has-error");
     
-    var inputComparison = $("#ftr-comparison-type-" + this.nodeid);
-    var selectOpStr = $("#ftr-op-str-" + this.nodeid);
-    var inputValStr = $("#ftr-val-str-" + this.nodeid);
-    var selectOpNum = $("#ftr-op-num-" + this.nodeid);
-    var inputValNum1 = $("#ftr-val-num1-" + this.nodeid);
-    var inputValNum2 = $("#ftr-val-num2-" + this.nodeid);
+    var inputComparison = jQuery("#ftr-comparison-type-" + this.nodeid);
+    var selectOpStr = jQuery("#ftr-op-str-" + this.nodeid);
+    var inputValStr = jQuery("#ftr-val-str-" + this.nodeid);
+    var selectOpNum = jQuery("#ftr-op-num-" + this.nodeid);
+    var inputValNum1 = jQuery("#ftr-val-num1-" + this.nodeid);
+    var inputValNum2 = jQuery("#ftr-val-num2-" + this.nodeid);
     
     var ecql = null;          
     /* Construct a new ECQL filter based on form inputs */
-    var fattr = $("#ftr-attr-" + this.nodeid).val();
+    var fattr = jQuery("#ftr-attr-" + this.nodeid).val();
     var comparisonType = inputComparison.val();
     var fop = null, fval1 = null, fval2 = null, rules = [];
     var filterString = null;
@@ -336,10 +336,10 @@ magic.classes.LayerFilter.prototype.applyFilter = function() {
     if (!comparisonType || comparisonType == "string") {
         fop = "ilike";
         if (selectOpStr.parent().hasClass("hidden")) {
-            selectOpStr = $("#ftr-op-str-unique-" + this.nodeid);
+            selectOpStr = jQuery("#ftr-op-str-unique-" + this.nodeid);
         } 
         if (inputValStr.parent().hasClass("hidden")) {
-            inputValStr = $("#ftr-val-str-unique-" + this.nodeid);
+            inputValStr = jQuery("#ftr-val-str-unique-" + this.nodeid);
         }
         var ciOp = selectOpStr.val();
         fval1 = inputValStr.val();
@@ -389,7 +389,7 @@ magic.classes.LayerFilter.prototype.applyFilter = function() {
         this.val2 = fval2; 
         
          /* Save filter */
-        magic.runtime.filters[this.layer.get("name")] = $.extend({}, {
+        magic.runtime.filters[this.layer.get("name")] = jQuery.extend({}, {
             attr: this.attr,
             comparison: this.comparison,
             op: this.op,
@@ -405,7 +405,7 @@ magic.classes.LayerFilter.prototype.applyFilter = function() {
             } else {           
                 ecql = fattr + " " + fop + " " + fval1 + (fop == "between" ? " and " + fval2 : "");            
             }
-            this.layer.getSource().updateParams($.extend({}, 
+            this.layer.getSource().updateParams(jQuery.extend({}, 
                 this.layer.getSource().getParams(), 
                 {"cql_filter": ecql}
             ));
@@ -416,11 +416,11 @@ magic.classes.LayerFilter.prototype.applyFilter = function() {
             /* GPX/KML */
             this.filterVectorSource(this.layer.getSource().getSource());
         }
-        $("#ftr-btn-reset-" + this.nodeid).removeClass("disabled");
+        jQuery("#ftr-btn-reset-" + this.nodeid).removeClass("disabled");
         /* Show filter badge */
-        $("#layer-filter-badge-" + this.nodeid).removeClass("hidden").addClass("show").attr("data-original-title", filterString).tooltip("fixTitle");        
+        jQuery("#layer-filter-badge-" + this.nodeid).removeClass("hidden").addClass("show").attr("data-original-title", filterString).tooltip("fixTitle");        
         /* Reset the errors */
-        $("div.layer-filter-panel").find("div.form-group").removeClass("has-error");        
+        jQuery("div.layer-filter-panel").find("div.form-group").removeClass("has-error");        
     }
 };
 
@@ -442,7 +442,7 @@ magic.classes.LayerFilter.prototype.resetFilter = function() {
     var sourceMd = this.layer.get("metadata").source;
     if (sourceMd.wms_source) {
         /* Straightforward WMS layer */
-        this.layer.getSource().updateParams($.extend({}, 
+        this.layer.getSource().updateParams(jQuery.extend({}, 
             this.layer.getSource().getParams(),
             {"cql_filter": null}
         ));
@@ -458,9 +458,9 @@ magic.classes.LayerFilter.prototype.resetFilter = function() {
         /* GPX/KML */
         this.layer.getSource().getSource().clear(); /* Why this resets the filter and doesn't clear the layer is beyond me - must be an OL bug! */
     }    
-    $("#ftr-btn-reset-" + this.nodeid).addClass("disabled");    
+    jQuery("#ftr-btn-reset-" + this.nodeid).addClass("disabled");    
     /* Hide filter badge */
-    $("#layer-filter-badge-" + this.nodeid).removeClass("show").addClass("hidden");
+    jQuery("#layer-filter-badge-" + this.nodeid).removeClass("show").addClass("hidden");
     
 };
 
@@ -471,7 +471,7 @@ magic.classes.LayerFilter.prototype.resetFilter = function() {
  * @param {ol.format} format
  */
 magic.classes.LayerFilter.prototype.filterVectorSource = function(source, url, format) {            
-    $.each(source.getFeatures(), $.proxy(function(idx, feat) {
+    jQuery.each(source.getFeatures(), jQuery.proxy(function(idx, feat) {
         var addIt = false;
         if (this.attr != null) {
             var attrVal = feat.get(this.attr);                
@@ -517,10 +517,10 @@ magic.classes.LayerFilter.prototype.populateUniqueValueSelection = function(attr
     attrVals.sort();
     /* Populate select list */
     var selOpt = null;
-    var uniqueSelect = $("#ftr-val-str-unique-" + this.nodeid);
+    var uniqueSelect = jQuery("#ftr-val-str-unique-" + this.nodeid);
     uniqueSelect.find("option").remove();
-    $.each(attrVals, function(idx, aval) {
-        var opt = $("<option>", {value: aval});
+    jQuery.each(attrVals, function(idx, aval) {
+        var opt = jQuery("<option>", {value: aval});
         opt.text(aval);            
         uniqueSelect.append(opt);
         if (aval == selectedVal) {
@@ -531,7 +531,7 @@ magic.classes.LayerFilter.prototype.populateUniqueValueSelection = function(attr
         selOpt.prop("selected", "selected");
     }
     uniqueSelect.parent().removeClass("hidden").addClass("show");
-    $("#ftr-op-str-unique-" + this.nodeid).prop("selectedIndex", 0).parent().removeClass("hidden").addClass("show");
-    $("#ftr-val-str-" + this.nodeid).parent().removeClass("show").addClass("hidden");
-    $("#ftr-op-str-" + this.nodeid).parent().removeClass("show").addClass("hidden");
+    jQuery("#ftr-op-str-unique-" + this.nodeid).prop("selectedIndex", 0).parent().removeClass("hidden").addClass("show");
+    jQuery("#ftr-val-str-" + this.nodeid).parent().removeClass("show").addClass("hidden");
+    jQuery("#ftr-op-str-" + this.nodeid).parent().removeClass("show").addClass("hidden");
 };

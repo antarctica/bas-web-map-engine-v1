@@ -19,9 +19,9 @@ magic.classes.AttributionModal = function(options) {
         {name: "attribution", caption: "Attribution", type: "text"},
         {name: "metadataurl", caption: "Metadata URL", type: "text"}        
     ];
-    var attributionMarkup = $("#attribution-modal");
+    var attributionMarkup = jQuery("#attribution-modal");
     if (attributionMarkup.length == 0) {
-        $("#map-container").after(
+        magic.runtime.map_container.after(
             '<!-- Attribution modal -->' + 
             '<div class="modal fade" id="attribution-modal" tabindex="-1" role="dialog" aria-labelledby="attribution-title" aria-hidden="true">' + 
                 '<div class="modal-dialog modal-sm">' + 
@@ -58,15 +58,15 @@ magic.classes.AttributionModal = function(options) {
             '</div>'
         );
     };
-    $("#" + this.target).on("shown.bs.modal", $.proxy(function() {
+    jQuery("#" + this.target).on("shown.bs.modal", jQuery.proxy(function() {
         this.legendMarkup();  
-        $('a[href="#attribution-legend"]').tab("show");
+        jQuery('a[href="#attribution-legend"]').tab("show");
     }, this));
-    $('a[href="#attribution-legend"]').on("shown.bs.tab", $.proxy(function(evt) {
+    jQuery('a[href="#attribution-legend"]').on("shown.bs.tab", jQuery.proxy(function(evt) {
         /* Legend */
         this.legendMarkup();        
     }, this));
-    $('a[href="#attribution-metadata"]').on("shown.bs.tab", $.proxy(function(evt) {
+    jQuery('a[href="#attribution-metadata"]').on("shown.bs.tab", jQuery.proxy(function(evt) {
         /* Metadata */            
         this.metadataMarkup();        
     }, this));   
@@ -78,8 +78,8 @@ magic.classes.AttributionModal = function(options) {
  */
 magic.classes.AttributionModal.prototype.show = function(layer) {
     this.layer = layer;
-    $("#attribution-title").html(layer.get("name"));
-    $("#" + this.target).modal("show");
+    jQuery("#attribution-title").html(layer.get("name"));
+    jQuery("#" + this.target).modal("show");
 };
 
 /**
@@ -126,7 +126,7 @@ magic.classes.AttributionModal.prototype.legendMarkup = function() {
         content += '<div class="attribution-title">No layer specified</div>';
     }
     content += '</div>';
-    $("#attribution-legend").html(content);
+    jQuery("#attribution-legend").html(content);
 };
 
 /**
@@ -143,7 +143,7 @@ magic.classes.AttributionModal.prototype.metadataMarkup = function() {
             } else {
                 wmsUrl = md.source.wms_source;
             }
-            magic.modules.Common.getCapabilities(wmsUrl, $.proxy(this.populateRecordWms, this), md.source.feature_name);        
+            magic.modules.Common.getCapabilities(wmsUrl, jQuery.proxy(this.populateRecordWms, this), md.source.feature_name);        
         } else {
             /* Vector source */
             var sourceUrl = null;
@@ -157,13 +157,13 @@ magic.classes.AttributionModal.prototype.metadataMarkup = function() {
             if (sourceUrl != null && sourceUrl.match("/entry/get") != null && sourceUrl.match(/[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}/) != null) {
                 /* Ramadda repository URL */
                 var mdUrl = sourceUrl.replace("/get", "/show") + "&output=json";
-                $.getJSON(mdUrl, $.proxy(this.populateRecordRamadda, this));
+                jQuery.getJSON(mdUrl, jQuery.proxy(this.populateRecordRamadda, this));
             } else {
-                $("#attribution-metadata").html("No metadata available");
+                jQuery("#attribution-metadata").html("No metadata available");
             }
         }
     } else {
-        $("#attribution-metadata").html("No metadata available");
+        jQuery("#attribution-metadata").html("No metadata available");
     }
 };
 
@@ -177,7 +177,7 @@ magic.classes.AttributionModal.prototype.populateRecordRamadda = function(data) 
     if (json) {        
         /* Read abstract */
         var abstractBits = [];
-        $.each(["name", "description", "typeName", "createDate", "filename", "filesize"], function(idx, fld) {
+        jQuery.each(["name", "description", "typeName", "createDate", "filename", "filesize"], function(idx, fld) {
             if (json[fld]) {
                 abstractBits.push(fld + " : " + json[fld]);
             }
@@ -190,9 +190,9 @@ magic.classes.AttributionModal.prototype.populateRecordRamadda = function(data) 
         /* Read WGS84 bounding box */
         rec["bboxwgs84"] = magic.modules.GeoUtils.formatBbox(json["bbox"], 1);        
         /* Read metadata URLs */
-        if ($.isArray(json["services"])) {            
+        if (jQuery.isArray(json["services"])) {            
             var links = [];
-            $.each(json["services"], function(mui, murl) {
+            jQuery.each(json["services"], function(mui, murl) {
                 links.push('<a href="' + murl["url"] + '" target="_blank">[external resource]</a>');
             });
             rec["metadataurl"] = links.join("<br />");
@@ -217,7 +217,7 @@ magic.classes.AttributionModal.prototype.populateRecordWms = function(getCaps, f
         rec["abstract"] = caps["Abstract"] || "";
         /* Read SRS */
         rec["srs"] = magic.modules.GeoUtils.formatProjection("EPSG:4326");
-        if ($.isArray(caps["CRS"])) {        
+        if (jQuery.isArray(caps["CRS"])) {        
             for (var i = 0; i < caps["CRS"].length; i++) {
                 if (caps["CRS"][i] == proj) {
                     rec["srs"] = magic.modules.GeoUtils.formatProjection(caps["CRS"][i]);
@@ -244,8 +244,8 @@ magic.classes.AttributionModal.prototype.populateRecordWms = function(getCaps, f
         /* Read keywords */
         rec["keywords"] = caps["KeywordList"] ? caps["KeywordList"].join("<br />") : "";
         /* Read SRS bounding box */
-        if ($.isArray(caps["BoundingBox"])) {
-            $.each(caps["BoundingBox"], function(idx, bb) {
+        if (jQuery.isArray(caps["BoundingBox"])) {
+            jQuery.each(caps["BoundingBox"], function(idx, bb) {
                 if (bb.crs == magic.runtime.viewdata.projection.getCode()) {
                     rec["bboxsrs"] = magic.modules.GeoUtils.formatBbox(bb.extent, 0);
                     return(false);
@@ -253,7 +253,7 @@ magic.classes.AttributionModal.prototype.populateRecordWms = function(getCaps, f
             }); 
         }
         /* Read WGS84 bounding box */
-        if ($.isArray(caps["EX_GeographicBoundingBox"])) {
+        if (jQuery.isArray(caps["EX_GeographicBoundingBox"])) {
             rec["bboxwgs84"] = magic.modules.GeoUtils.formatBbox(caps["EX_GeographicBoundingBox"], 0);
         }
         /* Read attribution */
@@ -266,11 +266,11 @@ magic.classes.AttributionModal.prototype.populateRecordWms = function(getCaps, f
         /* Read metadata URLs */
         if (caps["MetadataURL"]) {
             var value = caps["MetadataURL"];    
-            if (!$.isArray(value)) {    
+            if (!jQuery.isArray(value)) {    
                 value = [value];
             }
             var links = [];
-            $.each(value, function(mui, murl) {
+            jQuery.each(value, function(mui, murl) {
                 links.push('<a href="' + murl["OnlineResource"] + '" target="_blank">[external resource]</a>');
             });
             rec["metadataurl"] = links.join("<br />");
@@ -289,7 +289,7 @@ magic.classes.AttributionModal.prototype.populateRecordWms = function(getCaps, f
 magic.classes.AttributionModal.prototype.tabulate = function(rec) {    
     var content = '<table id="attribution-metadata-content" class="table table-striped table-condensed metadata-table show">';
     if (rec != null) {
-        $.each(this.metadataRecord, $.proxy(function(mi, mf) {
+        jQuery.each(this.metadataRecord, jQuery.proxy(function(mi, mf) {
             var value = rec[mf.name];
             if (value != null && value != undefined && value != "") {
                 /* Format table row */
@@ -305,5 +305,5 @@ magic.classes.AttributionModal.prototype.tabulate = function(rec) {
         content = '<tr><td colspan="2">No metadata available</td></tr>';
     }
     content += '</table>';
-    $("#attribution-metadata").html(content);
+    jQuery("#attribution-metadata").html(content);
 };

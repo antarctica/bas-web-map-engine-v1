@@ -3,36 +3,36 @@
 magic.classes.console.WebMapPanel = function () {
 
     /* Assign click handlers for the buttons */
-    $("#select-map-go").click(function () {
-        var view = $("#select-map").val();
+    jQuery("#select-map-go").click(function () {
+        var view = jQuery("#select-map").val();
         var av = view.split(":");
         window.open(magic.config.paths.baseurl + "/" + (av[0] == "public" ? "home" : "restricted") + "/" + av[1], "_blank");
     });
-    $("#login-map-go").click(function () {
+    jQuery("#login-map-go").click(function () {
         window.location = magic.config.paths.baseurl + "/restricted";
     });
-    $("#create-map-go").click(function () {
+    jQuery("#create-map-go").click(function () {
         window.location = magic.config.paths.baseurl + "/creator";
     });
-    $("#edit-map-go").click(function () {
-        window.location = magic.config.paths.baseurl + "/creator?name=" + $("#edit-map").val();
+    jQuery("#edit-map-go").click(function () {
+        window.location = magic.config.paths.baseurl + "/creator?name=" + jQuery("#edit-map").val();
     });
-    $("#delete-map-go").click($.proxy(function () {
-        var mapName = $("#delete-map").val();
-        var mapText = $("#delete-map option:selected").text();
-        bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">Are you sure you want to delete ' + mapText + '</div>', $.proxy(function (result) {
+    jQuery("#delete-map-go").click(jQuery.proxy(function () {
+        var mapName = jQuery("#delete-map").val();
+        var mapText = jQuery("#delete-map option:selected").text();
+        bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">Are you sure you want to delete ' + mapText + '</div>', jQuery.proxy(function (result) {
             if (result) {
                 /* Do the deletion */
-                var jqxhr = $.ajax({
+                var jqxhr = jQuery.ajax({
                     url: magic.config.paths.baseurl + "/maps/deletebyname/" + mapName,
                     method: "DELETE",
                     beforeSend: function (xhr) {
-                        var csrfHeaderVal = $("meta[name='_csrf']").attr("content");
-                        var csrfHeader = $("meta[name='_csrf_header']").attr("content");
+                        var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content");
+                        var csrfHeader = jQuery("meta[name='_csrf_header']").attr("content");
                         xhr.setRequestHeader(csrfHeader, csrfHeaderVal)
                     }
                 })
-                .done($.proxy(function () {
+                .done(jQuery.proxy(function () {
                     this.populateMapLists();
                 }, this))
                 .fail(function (xhr, status) {
@@ -50,16 +50,16 @@ magic.classes.console.WebMapPanel = function () {
             }
         }, this));
     }, this));
-    $("#redmine-map-go").click($.proxy(function() {
-        var issueNumber = $("#redmine-map").val();
+    jQuery("#redmine-map-go").click(jQuery.proxy(function() {
+        var issueNumber = jQuery("#redmine-map").val();
         /* Get the issue data as JSON */
-        var jqXhr = $.ajax({
+        var jqXhr = jQuery.ajax({
             url: magic.config.paths.baseurl + "/redmine/" + issueNumber,
             method: "GET",
             dataType: "json",
             contentType: "application/json",
         })
-        .done($.proxy(function(data) {
+        .done(jQuery.proxy(function(data) {
             if (data && data.description) {
                 try {
                     /* This is an issue which was submitted with a replayable payload */
@@ -92,7 +92,7 @@ magic.classes.console.WebMapPanel = function () {
                 );
             }
         }, this))
-        .fail($.proxy(function(xhr, status, err) {
+        .fail(jQuery.proxy(function(xhr, status, err) {
             if (xhr.responseText) {
                 var detail = JSON.parse(xhr.responseText)["detail"];
                 bootbox.alert(
@@ -120,12 +120,12 @@ magic.classes.console.WebMapPanel = function () {
  */
 magic.classes.console.WebMapPanel.prototype.populateMapLists = function() {
     /* View selector */
-    var select = $("#select-map");
+    var select = jQuery("#select-map");
     select.html("");
-    $.getJSON(magic.config.paths.baseurl + "/maps/dropdown/view")
+    jQuery.getJSON(magic.config.paths.baseurl + "/maps/dropdown/view")
         .done(function (data) {
-            $.each(data, function (idx, mo) {
-                var opt = $("<option>", {value: mo["name"]});
+            jQuery.each(data, function (idx, mo) {
+                var opt = jQuery("<option>", {value: mo["name"]});
                 opt.text(mo["title"]);
                 select.append(opt);
             });
@@ -133,13 +133,13 @@ magic.classes.console.WebMapPanel.prototype.populateMapLists = function() {
         .fail(function (data) {            
         });
     /* Edit selector */
-    var edit = $("#edit-map");
+    var edit = jQuery("#edit-map");
     if (edit.length > 0) {
         edit.html("");
-        $.getJSON(magic.config.paths.baseurl + "/maps/dropdown/edit")
+        jQuery.getJSON(magic.config.paths.baseurl + "/maps/dropdown/edit")
             .done(function (data) {
-                $.each(data, function (idx, mo) {
-                    var opt = $("<option>", {value: mo["name"]});
+                jQuery.each(data, function (idx, mo) {
+                    var opt = jQuery("<option>", {value: mo["name"]});
                     opt.text(mo["title"]);
                     edit.append(opt);
                 });
@@ -148,13 +148,13 @@ magic.classes.console.WebMapPanel.prototype.populateMapLists = function() {
             });
     }
     /* Delete selector */
-    var del = $("#delete-map");
+    var del = jQuery("#delete-map");
     if (del.length > 0) {
         del.html("");
-        $.getJSON(magic.config.paths.baseurl + "/maps/dropdown/delete")
+        jQuery.getJSON(magic.config.paths.baseurl + "/maps/dropdown/delete")
             .done(function (data) {
-                $.each(data, function (idx, mo) {
-                    var opt = $("<option>", {value: mo["name"]});
+                jQuery.each(data, function (idx, mo) {
+                    var opt = jQuery("<option>", {value: mo["name"]});
                     opt.text(mo["title"]);
                     del.append(opt);
                 });

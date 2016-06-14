@@ -4,7 +4,7 @@ magic.classes.InsetMap = function(options) {
     
     this.id = options.id || "inset-map-tool";
       
-    this.target = options.target || $("button.inset-map-expand");  
+    this.target = options.target || jQuery("button.inset-map-expand");  
     
     this.active = false;
     
@@ -25,16 +25,16 @@ magic.classes.InsetMap = function(options) {
         html: true,
         content: ""
     })
-    .on("shown.bs.popover", $.proxy(function() {
+    .on("shown.bs.popover", jQuery.proxy(function() {
         this.initMap();        
         /* Close button */
-        $(".inset-map-popover").find("button.close").click($.proxy(function() { 
+        jQuery(".inset-map-popover").find("button.close").click(jQuery.proxy(function() { 
             this.target.popover("hide");
         }, this));
         /* Trigger insetmapopened event */
-        $.event.trigger({type: "insetmapopened"});
+        jQuery.event.trigger({type: "insetmapopened"});
     }, this))
-    .on("hidden.bs.popover", $.proxy(function() {
+    .on("hidden.bs.popover", jQuery.proxy(function() {
         if (this.featureinfo) {
             /* Remove any pop-up */
             this.featureinfo.hide();
@@ -42,7 +42,7 @@ magic.classes.InsetMap = function(options) {
         this.map = null;
         this.featureinfo = null;
         /* Trigger insetmapclosed event */
-        $.event.trigger({type: "insetmapclosed"});
+        jQuery.event.trigger({type: "insetmapclosed"});
     }, this));
 };
 
@@ -72,7 +72,7 @@ magic.classes.InsetMap.prototype.deactivate = function() {
     var nlayers = 0;
     if (this.map) {
         this.map.getLayers().forEach(function(lyr, idx, arr) {
-            if ($.isFunction(lyr.getSource().getFeatures)) {
+            if (jQuery.isFunction(lyr.getSource().getFeatures)) {
                 /* A vector overlay layer - check number of features */
                 nf += lyr.getSource().getFeatures().length;
             }    
@@ -135,18 +135,18 @@ magic.classes.InsetMap.prototype.featureAtPixelHandler = function(evt) {
         if (layer != null) {
             /* This is not a feature overlay i.e. an artefact of presentation not real data */
             var clusterMembers = feature.get("features");
-            if (clusterMembers && $.isArray(clusterMembers)) {
+            if (clusterMembers && jQuery.isArray(clusterMembers)) {
                 /* Unpack cluster features */
-                $.each(clusterMembers, function(fi, f) {
+                jQuery.each(clusterMembers, function(fi, f) {
                     if (f.getGeometry()) {
                         var exProps = f.getProperties();
-                        fprops.push($.extend({}, exProps, {"layer": layer}));                           
+                        fprops.push(jQuery.extend({}, exProps, {"layer": layer}));                           
                     }                    
                 });
             } else {
                 if (feature.getGeometry()) {
                     var exProps = feature.getProperties();
-                    fprops.push($.extend({}, exProps, {"layer": layer}));
+                    fprops.push(jQuery.extend({}, exProps, {"layer": layer}));
                 }          
             }
         }

@@ -56,9 +56,9 @@ magic.classes.UserPreferences = function(options) {
     /* End of constants */
     
     /* Set up link handler */    
-    $("#" + this.target).click($.proxy(function(evt) {
+    jQuery("#" + this.target).click(jQuery.proxy(function(evt) {
         evt.stopPropagation();
-        var contentDiv = $(evt.currentTarget).next("div");                
+        var contentDiv = jQuery(evt.currentTarget).next("div");                
         if (contentDiv) {  
             contentDiv.toggleClass("hidden");
             contentDiv.html(
@@ -119,13 +119,13 @@ magic.classes.UserPreferences = function(options) {
             /* Allow clicking on the inputs without the dropdown going away */
             contentDiv.children("form").click(function(evt2) {evt2.stopPropagation()});
             /* Set button handlers */
-            $("#" + this.target + "-go").click($.proxy(function(evt) {
+            jQuery("#" + this.target + "-go").click(jQuery.proxy(function(evt) {
                 var formdata = {};
-                $.each(["distance", "area", "elevation", "coordinates", "dates"], $.proxy(function(idx, elt) {
-                    formdata[elt] = $("#" + this.target + "-" + elt).val();
+                jQuery.each(["distance", "area", "elevation", "coordinates", "dates"], jQuery.proxy(function(idx, elt) {
+                    formdata[elt] = jQuery("#" + this.target + "-" + elt).val();
                 }, this));
-                var csrfHeaderVal = $("meta[name='_csrf']").attr("content");               
-                $.ajax({
+                var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content");               
+                jQuery.ajax({
                     url: magic.config.paths.baseurl + "/prefs/set", 
                     data: JSON.stringify(formdata), 
                     method: "POST",
@@ -134,13 +134,13 @@ magic.classes.UserPreferences = function(options) {
                     headers: {
                         "X-CSRF-TOKEN": csrfHeaderVal
                     },
-                    success: $.proxy(function(data) {
+                    success: jQuery.proxy(function(data) {
                         magic.modules.Common.buttonClickFeedback(this.target, data.status < 400, data.detail);
-                        this.preferences = $.extend({}, this.preferences, formdata);
+                        this.preferences = jQuery.extend({}, this.preferences, formdata);
                     }, this)
                 });
             }, this));
-            $("#" + this.target + "-cancel").click($.proxy(function(evt) {
+            jQuery("#" + this.target + "-cancel").click(jQuery.proxy(function(evt) {
                 contentDiv.toggleClass("hidden");
             }, this));
         }

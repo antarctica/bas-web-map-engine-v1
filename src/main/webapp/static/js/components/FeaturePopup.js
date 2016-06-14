@@ -12,9 +12,7 @@ magic.classes.FeaturePopup = function(options) {
     /* id of DOM element to bind popup to */
     this.popupId = options.popupId || "popup";   
     /* The map the popup will appear on (defaults to main map) */
-    this.map = options.map || magic.runtime.map;
-    /* The map target div (defaults to map-container) */
-    this.mapdiv = options.mapdiv || "map-container";
+    this.map = options.map || magic.runtime.map;  
     /* Continuation modal id (defaults to all-attributes-modal) */
     this.continuation = "all-attributes-modal";
     
@@ -28,9 +26,9 @@ magic.classes.FeaturePopup = function(options) {
     /* What counts as a long field which will get a pop-up and ellipsis button */
     this.LONG_FIELD_THRESHOLD = 120;
     
-    if ($("#" + this.popupId).length == 0) {
+    if (jQuery("#" + this.popupId).length == 0) {
         /* Popup div needs creating */
-        $("#" + this.mapdiv).after(
+        magic.runtime.map_container.after(
             '<!-- Pop-up overlay -->' + 
             '<div id="' + this.popupId + '" class="ol-popup">' + 
                 '<div id="' + this.popupId + '-content"></div>' + 
@@ -38,14 +36,14 @@ magic.classes.FeaturePopup = function(options) {
         );
     }    
     this.popup = new ol.Overlay({
-        element: $("#" + this.popupId)[0],
+        element: jQuery("#" + this.popupId)[0],
         positioning: "center-center"
     });
     this.map.addOverlay(this.popup);
     
     /* Text continuation markup (always done in main map as will never fit in an inset!) */
-    if ($(this.continuation).length == 0) {
-        $("#map-container").after(
+    if (jQuery(this.continuation).length == 0) {
+        magic.runtime.map_container.after(
             '<!-- Full attribute set modal -->' + 
             '<div class="modal fade" id="' + this.continuation + '" tabindex="-1" role="dialog" aria-labelledby="' + this.continuation + '-title" aria-hidden="true">' + 
                 '<div class="modal-dialog">' + 
@@ -67,12 +65,12 @@ magic.classes.FeaturePopup = function(options) {
     }   
     
     /* Change mouse cursor when over a vector feature/overlay */
-    $(this.map.getViewport()).on("mousemove", $.proxy(function(e) {
+    jQuery(this.map.getViewport()).on("mousemove", jQuery.proxy(function(e) {
         var pixel = this.map.getEventPixel(e.originalEvent);
         var hit = this.map.forEachFeatureAtPixel(pixel, function() {
             return(true);
         });
-        $("#" + this.map.getTarget()).css("cursor", hit ? "pointer" : "");        
+        jQuery("#" + this.map.getTarget()).css("cursor", hit ? "pointer" : "");        
     }, this));
 };
 
@@ -82,20 +80,20 @@ magic.classes.FeaturePopup = function(options) {
  * @param {Array} featureData array of feature attribute objects, with __geomtype set to the geometry type (in lower case)
  */
 magic.classes.FeaturePopup.prototype.show = function(showAt, featureData) {    
-    $("#" + this.popupId).popover("destroy");
+    jQuery("#" + this.popupId).popover("destroy");
     var showPopup = featureData.length > 0;    
     if (showPopup) {        
         this.popup.setPosition(showAt);
-        $.extend(this, {
+        jQuery.extend(this, {
             featurePointer: 0,
             initPager: false,
             featureCollection: featureData
         });
-        $("#" + this.popupId).popover({
-            placement: $.proxy(function() {
+        jQuery("#" + this.popupId).popover({
+            placement: jQuery.proxy(function() {
                 var placement = "bottom",
                     popoverLocation = this.map.getPixelFromCoordinate(showAt),
-                    mapHeight = $("#map").outerHeight(),
+                    mapHeight = jQuery("#map").outerHeight(),
                     mtop = popoverLocation[1] - 400,
                     mbtm = popoverLocation[1] + 400;
                 if (mbtm > mapHeight) {
@@ -108,21 +106,21 @@ magic.classes.FeaturePopup.prototype.show = function(showAt, featureData) {
             title: this.title(),
             html: true,
             content: this.basicMarkup()  /* Basic feature attributes i.e. name, lon, lat */
-        }).on("shown.bs.popover", $.proxy(function() {
+        }).on("shown.bs.popover", jQuery.proxy(function() {
             this.selectFeature();            
             /* Close button */
-            $("span.feature-popup-title-cont").find("button.close").click($.proxy(function() { 
-                $("#" + this.popupId).popover("hide");
+            jQuery("span.feature-popup-title-cont").find("button.close").click(jQuery.proxy(function() { 
+                jQuery("#" + this.popupId).popover("hide");
             }, this));
         }, this));
-        $("#" + this.popupId).popover("show");
+        jQuery("#" + this.popupId).popover("show");
     }
 };
 /**
  * Hide (i.e. destroy) the popup
  */
 magic.classes.FeaturePopup.prototype.hide = function() {
-    $("#" + this.popupId).popover("destroy");
+    jQuery("#" + this.popupId).popover("destroy");
 };
 
 /**
@@ -131,7 +129,7 @@ magic.classes.FeaturePopup.prototype.hide = function() {
  */
 magic.classes.FeaturePopup.prototype.title = function() {
     var content = "";
-    $.each(this.featureCollection, $.proxy(function(i, feat) {
+    jQuery.each(this.featureCollection, jQuery.proxy(function(i, feat) {
         var name = feat.layer.get("name");
         content += '<span class="feature-popup-title-cont ' + (i > 0 ? "hidden" : "show") + '">' + magic.modules.Common.ellipsis(name, 20) +
                    '<button type="button" style="float:right" class="close">&times;</button></span>';      
@@ -147,13 +145,13 @@ magic.classes.FeaturePopup.prototype.title = function() {
 magic.classes.FeaturePopup.prototype.basicMarkup = function() {    
     var content = "";
     //var basicSchema = ["name", "lon", "lat", "date"];
-    $.each(this.featureCollection, $.proxy(function(i, feat) {
+    jQuery.each(this.featureCollection, jQuery.proxy(function(i, feat) {
         content += '<div class="feature-popup-table-cont ' + (i > 0 ? "hidden" : "show") + '">';
         content += '<table class="table table-striped table-condensed feature-popup-table">';
         var nDisplayed = 0, nAttrs = -1;
         if (feat.layer) {            
             var md = feat.layer.get("metadata");
-            if (md && $.isArray(md.attribute_map)) {
+            if (md && jQuery.isArray(md.attribute_map)) {
                 /* Sort attribute map according to the ordinals (added by David 08/04/2016 in response to request by Alex B-J) */                
                 md.attribute_map.sort(function(a, b) {
                     var orda = a["ordinal"] || 999;
@@ -161,7 +159,7 @@ magic.classes.FeaturePopup.prototype.basicMarkup = function() {
                     return((orda < ordb) ? -1 : (orda > ordb) ? 1 : 0);
                 });                   
                 nAttrs = md.attribute_map.length;
-                $.each(md.attribute_map, $.proxy(function(idx, attrdata) {
+                jQuery.each(md.attribute_map, jQuery.proxy(function(idx, attrdata) {
                     var extension = false;
                     if (attrdata.displayed === true) {
                         var nameStr = attrdata.alias || attrdata.name;
@@ -240,37 +238,37 @@ magic.classes.FeaturePopup.prototype.basicMarkup = function() {
 magic.classes.FeaturePopup.prototype.selectFeature = function() {
     if (this.featureCollection.length > 1) {
         /* Update "showing x of y" message */
-        $("#" + this.popupId + "-pager-xofy").html("Showing " + (this.featurePointer+1) + " of " + this.featureCollection.length);
+        jQuery("#" + this.popupId + "-pager-xofy").html("Showing " + (this.featurePointer+1) + " of " + this.featureCollection.length);
     }
     /* Show the relevant title from the markup */
-    $("span.feature-popup-title-cont").each($.proxy(function(idx, elt) {
+    jQuery("span.feature-popup-title-cont").each(jQuery.proxy(function(idx, elt) {
         if (idx == this.featurePointer) {
-            $(elt).removeClass("hidden").addClass("show");
+            jQuery(elt).removeClass("hidden").addClass("show");
         } else {
-            $(elt).removeClass("show").addClass("hidden");
+            jQuery(elt).removeClass("show").addClass("hidden");
         }
     }, this));
     /* Show the relevant div from the combined markup */
-    $("div.feature-popup-table-cont").each($.proxy(function(idx, elt) {
+    jQuery("div.feature-popup-table-cont").each(jQuery.proxy(function(idx, elt) {
         if (idx == this.featurePointer) {
-            $(elt).removeClass("hidden").addClass("show");
+            jQuery(elt).removeClass("hidden").addClass("show");
         } else {
-            $(elt).removeClass("show").addClass("hidden");
+            jQuery(elt).removeClass("show").addClass("hidden");
         }
     }, this));
     /* Add long field popup extension handler */
-    $("div.feature-popup-table-cont").find("button.long-field-extension").each(function(i, b) {
-        var divs = $(b).children("div");
+    jQuery("div.feature-popup-table-cont").find("button.long-field-extension").each(function(i, b) {
+        var divs = jQuery(b).children("div");
         if (divs.length > 0) {
-            $(b).popover({
+            jQuery(b).popover({
                 title: false,
                 html: true,
-                content: '<div style="width:200px">' + $(divs[0]).html() + '</div>'
+                content: '<div style="width:200px">' + jQuery(divs[0]).html() + '</div>'
             });
         }
     });
     /* Add full attribute set modal handler */
-    $("div.feature-popup-table-cont").find("button[id^='" + this.popupId + "-full-attr-set-']").off("click").on("click", $.proxy(function(evt) {
+    jQuery("div.feature-popup-table-cont").find("button[id^='" + this.popupId + "-full-attr-set-']").off("click").on("click", jQuery.proxy(function(evt) {
         var btnId = evt.currentTarget.id;
         var fidx = parseInt(btnId.substring(btnId.lastIndexOf("-")+1));
         if (!isNaN(fidx) && fidx < this.featureCollection.length) {
@@ -283,10 +281,10 @@ magic.classes.FeaturePopup.prototype.selectFeature = function() {
                 }
             }
             var content = '<table class="table table-striped table-condensed feature-popup-table">';
-            $.each(keys.sort(), function(idx, key) {
+            jQuery.each(keys.sort(), function(idx, key) {
                 var value = attrdata[key];
                 if (value) {
-                    if ($.isNumeric(value)) {                        
+                    if (jQuery.isNumeric(value)) {                        
                         content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td align="right">' + value + '</td></tr>';
                     } else if (key.toLowerCase().indexOf("geom") == -1) {
                         /* Test for Redmine markup-style link with alias of form "<alias>":<url> which should be translated */
@@ -305,15 +303,15 @@ magic.classes.FeaturePopup.prototype.selectFeature = function() {
                 }
             });
             content += '</table>';
-            $("#" + this.continuation + "-content").html(content);
-            $("#" + this.continuation).modal("show");            
+            jQuery("#" + this.continuation + "-content").html(content);
+            jQuery("#" + this.continuation).modal("show");            
         }
     }, this));
     if (this.featureCollection.length > 1) {
         /* Do we need to add handlers for pager buttons? */
         if (!this.initPager) {
             /* Add handlers */
-            $("#" + this.popupId + "-pager div button").off("click").on("click", $.proxy(function(evt) {                
+            jQuery("#" + this.popupId + "-pager div button").off("click").on("click", jQuery.proxy(function(evt) {                
                 switch(evt.currentTarget.id) {
                     case this.popupId + "-pager-first":
                         this.featurePointer = 0;                       
@@ -335,20 +333,20 @@ magic.classes.FeaturePopup.prototype.selectFeature = function() {
                         break;
                 }
                 if (this.featurePointer == 0) {
-                    $("#" + this.popupId + "-pager-first").addClass("disabled").prop("disabled", true);
-                    $("#" + this.popupId + "-pager-prev").addClass("disabled").prop("disabled", true);
-                    $("#" + this.popupId + "-pager-next").removeClass("disabled").prop("disabled", false);
-                    $("#" + this.popupId + "-pager-last").removeClass("disabled").prop("disabled", false);
+                    jQuery("#" + this.popupId + "-pager-first").addClass("disabled").prop("disabled", true);
+                    jQuery("#" + this.popupId + "-pager-prev").addClass("disabled").prop("disabled", true);
+                    jQuery("#" + this.popupId + "-pager-next").removeClass("disabled").prop("disabled", false);
+                    jQuery("#" + this.popupId + "-pager-last").removeClass("disabled").prop("disabled", false);
                 } else if (this.featurePointer == this.featureCollection.length-1) {
-                    $("#" + this.popupId + "-pager-first").removeClass("disabled").prop("disabled", false);
-                    $("#" + this.popupId + "-pager-prev").removeClass("disabled").prop("disabled", false);
-                    $("#" + this.popupId + "-pager-next").addClass("disabled").prop("disabled", true);
-                    $("#" + this.popupId + "-pager-last").addClass("disabled").prop("disabled", true);
+                    jQuery("#" + this.popupId + "-pager-first").removeClass("disabled").prop("disabled", false);
+                    jQuery("#" + this.popupId + "-pager-prev").removeClass("disabled").prop("disabled", false);
+                    jQuery("#" + this.popupId + "-pager-next").addClass("disabled").prop("disabled", true);
+                    jQuery("#" + this.popupId + "-pager-last").addClass("disabled").prop("disabled", true);
                 } else {
-                    $("#" + this.popupId + "-pager-first").removeClass("disabled").prop("disabled", false);
-                    $("#" + this.popupId + "-pager-prev").removeClass("disabled").prop("disabled", false);
-                    $("#" + this.popupId + "-pager-next").removeClass("disabled").prop("disabled", false);
-                    $("#" + this.popupId + "-pager-last").removeClass("disabled").prop("disabled", false);
+                    jQuery("#" + this.popupId + "-pager-first").removeClass("disabled").prop("disabled", false);
+                    jQuery("#" + this.popupId + "-pager-prev").removeClass("disabled").prop("disabled", false);
+                    jQuery("#" + this.popupId + "-pager-next").removeClass("disabled").prop("disabled", false);
+                    jQuery("#" + this.popupId + "-pager-last").removeClass("disabled").prop("disabled", false);
                 }
                 this.selectFeature();
                 this.fixPopoverPosition();
@@ -362,7 +360,7 @@ magic.classes.FeaturePopup.prototype.selectFeature = function() {
  * Make sure the popover arrow is anchored to the location of the first feature in the list, and remains so anchored through dynamic content changes
  */
 magic.classes.FeaturePopup.prototype.fixPopoverPosition = function() {
-    var parentPopover = $("div.feature-popup-table-cont").parents("div.popover");
+    var parentPopover = jQuery("div.feature-popup-table-cont").parents("div.popover");
     if (parentPopover.hasClass("top")) {
         /* Redjustment potentially necessary */   
         parentPopover.css("top", -parentPopover.outerHeight() + "px");

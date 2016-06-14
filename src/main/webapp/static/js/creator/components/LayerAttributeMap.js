@@ -32,7 +32,7 @@ magic.classes.creator.LayerAttributeMap.prototype.loadContext = function(context
  * @param {object} context
  */
 magic.classes.creator.LayerAttributeMap.prototype.vectorLoadContext = function(context, sourceType) { 
-    if ($.isArray(this.attribute_dictionary[context.id])) {
+    if (jQuery.isArray(this.attribute_dictionary[context.id])) {
         /* Already fetched the attributes */
         this.displayInteractivityDiv("yes", this.toForm(context.attribute_map, this.attribute_dictionary[context.id]));
     } else {
@@ -61,28 +61,28 @@ magic.classes.creator.LayerAttributeMap.prototype.vectorLoadContext = function(c
             format = new ol.format.KML({showPointNames: false}); 
         }
         if (source && format) {
-            var jqXhr = $.ajax({
+            var jqXhr = jQuery.ajax({
                 url: source,
                 method: "GET",
                 dataType: "text"
             });
-            jqXhr.done($.proxy(function(data) {
+            jqXhr.done(jQuery.proxy(function(data) {
                 var testFeats = format.readFeatures(data);
-                if ($.isArray(testFeats) && testFeats.length > 0) {
+                if (jQuery.isArray(testFeats) && testFeats.length > 0) {
                     /* Successful read of test feature */            
                     var testFeat = testFeats[0];
                     if (testFeat) {
                         var attrKeys = testFeat.getKeys();
-                        if ($.isArray(attrKeys) && attrKeys.length > 0) {
-                            var allowedKeys = $.grep(attrKeys, function(elt) {
+                        if (jQuery.isArray(attrKeys) && attrKeys.length > 0) {
+                            var allowedKeys = jQuery.grep(attrKeys, function(elt) {
                                 return(elt.indexOf("geom") == 0 || elt.indexOf("extension") == 0);
                             }, true);
                             var attrDict = [];
-                            $.each(allowedKeys, $.proxy(function(idx, akey) {
+                            jQuery.each(allowedKeys, jQuery.proxy(function(idx, akey) {
                                 var value = testFeat.get(akey);
                                 attrDict.push({
                                     "name": akey,
-                                    "type": $.isNumeric(value) ? "decimal" : "string",
+                                    "type": jQuery.isNumeric(value) ? "decimal" : "string",
                                     "nillable": true,
                                     "alias": "",
                                     "ordinal": "",
@@ -102,7 +102,7 @@ magic.classes.creator.LayerAttributeMap.prototype.vectorLoadContext = function(c
                     this.displayInteractivityDiv("yes", '<div class="alert alert-warning" style="margin-bottom:0">Failed to parse test feature from ' + source + '</div>');
                 }
             }, this));
-            jqXhr.fail($.proxy(function(xhr, status) {
+            jqXhr.fail(jQuery.proxy(function(xhr, status) {
                 this.displayInteractivityDiv("yes", '<div class="alert alert-warning" style="margin-bottom:0">Failed to read features from ' + source + '(' + xhr.responseText + ')</div>');
             }, this));
         }
@@ -125,26 +125,26 @@ magic.classes.creator.LayerAttributeMap.prototype.ogcLoadContext = function(wms,
             /* Get the feature type attributes from DescribeFeatureType */
             this.attribute_dictionary[id] = [];
             this.type_dictionary[id] = null;            
-            $.ajax({
+            jQuery.ajax({
                 url: magic.modules.Common.getWxsRequestUrl(wms, "DescribeFeatureType", feature),
                 method: "GET",
                 dataType: "xml"
             })
-            .done($.proxy(function(response) {
+            .done(jQuery.proxy(function(response) {
                 /* Oh hell - thought this kind of stuff was a thing of the past... David 15/04/2016 */
                 var elts = [];
                 if (navigator.userAgent.match(/chrome/i) != null) {
                     /* Google Chrome */
-                    elts = $(response).find("sequence").find("element");
+                    elts = jQuery(response).find("sequence").find("element");
                 } else {
                     /* Mozilla Firefox, MSIE and the rest */
                     /* The \\ escapes the colon - needed to work in FF - see http://stackoverflow.com/questions/853740/jquery-xml-parsing-with-namespaces */
-                    elts = $(response).find("xsd\\:sequence").find("xsd\\:element");
+                    elts = jQuery(response).find("xsd\\:sequence").find("xsd\\:element");
                 }               
                 var geomType = "unknown";
-                $.each(elts, $.proxy(function(idx, elt) {
+                jQuery.each(elts, jQuery.proxy(function(idx, elt) {
                     var attrs = {};
-                    $.each(elt.attributes, $.proxy(function(i, a) {                        
+                    jQuery.each(elt.attributes, jQuery.proxy(function(i, a) {                        
                         if (a.value.indexOf("gml:") == 0) {                           
                             geomType = this.computeOgcGeomType(a.value);
                             this.type_dictionary[id] = geomType;
@@ -171,7 +171,7 @@ magic.classes.creator.LayerAttributeMap.prototype.ogcLoadContext = function(wms,
  * @param {object} context
  */
 magic.classes.creator.LayerAttributeMap.prototype.saveContext = function(context) {
-    if ($.isArray(this.attribute_dictionary[context.id])) {
+    if (jQuery.isArray(this.attribute_dictionary[context.id])) {
         var newMap = [];
         var nAttrs = this.attribute_dictionary[context.id].length;
         var fields = ["name", "type", "nillable", "alias", "ordinal", "label", "displayed", "filterable", "unique_values"];
@@ -181,7 +181,7 @@ magic.classes.creator.LayerAttributeMap.prototype.saveContext = function(context
                 /* Exclude the geometry attribute */
                 var o = {};
                 for (var j = 0; j < fields.length; j++) {
-                    var fEl = $("#_amap_" + fields[j] + "_" + i);
+                    var fEl = jQuery("#_amap_" + fields[j] + "_" + i);
                     if (fEl.length > 0) {
                         if (fEl.attr("type") == "checkbox") {
                             o[fields[j]] = fEl.prop("checked") === true ? true : false;
@@ -207,14 +207,14 @@ magic.classes.creator.LayerAttributeMap.prototype.saveContext = function(context
  */
 magic.classes.creator.LayerAttributeMap.prototype.toForm = function(id, attrMap, attrDict) {
     var html = '';
-    $(".geometry-type-indicator").html(this.type_dictionary[id]);
-    if ($.isArray(attrDict) && attrDict.length > 0) {
+    jQuery(".geometry-type-indicator").html(this.type_dictionary[id]);
+    if (jQuery.isArray(attrDict) && attrDict.length > 0) {
         /* Some attributes - first compile a dictionary of what we already have */
         if (!attrMap) {
             attrMap = [];
         }
         var existingMap = {};
-        $.each(attrMap, function(mi, me) {
+        jQuery.each(attrMap, function(mi, me) {
             existingMap[me.name] = me;
         });
         html += '<table class="table table-condensed table-striped table-hover table-responsive">';
@@ -228,7 +228,7 @@ magic.classes.creator.LayerAttributeMap.prototype.toForm = function(id, attrMap,
         html += '<th width="37"><span class="fa fa-filter" data-toggle="tooltip" data-placement="top" title="Can filter layer on this attribute"><span></th>';
         html += '<th width="37"><span data-toggle="tooltip" data-placement="top" title="Display unique attribute values when filtering">U</span></th>';
         html += '</tr>';
-        $.each(attrDict, $.proxy(function(idx, entry) {
+        jQuery.each(attrDict, jQuery.proxy(function(idx, entry) {
             html += '<input type="hidden" id="_amap_name_' + idx + '" value="' + entry.name + '"></input>';
             html += '<input type="hidden" id="_amap_type_' + idx + '" value="' + entry.type + '"></input>';
             html += '<input type="hidden" id="_amap_nillable_' + idx + '" value="' + entry.nillable + '"></input>';
@@ -315,9 +315,9 @@ magic.classes.creator.LayerAttributeMap.prototype.displayInteractivityDiv = func
     var divIds = ["yes", "no", "unknown"];
     for (var i = 0; i < divIds.length; i++) {
         if (divIds[i] == status) {
-            $("#t2-layer-int-" + divIds[i]).removeClass("hidden").addClass("show");
+            jQuery("#t2-layer-int-" + divIds[i]).removeClass("hidden").addClass("show");
         } else {
-            $("#t2-layer-int-" + divIds[i]).removeClass("show").addClass("hidden");
+            jQuery("#t2-layer-int-" + divIds[i]).removeClass("show").addClass("hidden");
         }
     }
     this.div.html(html);

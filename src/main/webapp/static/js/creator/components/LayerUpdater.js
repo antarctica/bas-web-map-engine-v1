@@ -11,7 +11,7 @@ magic.classes.creator.LayerUpdater = function(prefix) {
     this.style_definition = new magic.classes.creator.LayerStyler(this.prefix);
     
     /* Attribute map sub-tab */
-    this.attribute_map = new magic.classes.creator.LayerAttributeMap($("#" + this.prefix + "-attributes-div"));
+    this.attribute_map = new magic.classes.creator.LayerAttributeMap(jQuery("#" + this.prefix + "-attributes-div"));
     
     /* Common form inputs */
     this.form_fields = [
@@ -55,39 +55,39 @@ magic.classes.creator.LayerUpdater = function(prefix) {
     this.data = null;    
        
     /* Add update layer group button handler */    
-    var btnUpdateLayer = $("#" + this.prefix + "-save");
-    btnUpdateLayer.click($.proxy(function(evt) {
+    var btnUpdateLayer = jQuery("#" + this.prefix + "-save");
+    btnUpdateLayer.click(jQuery.proxy(function(evt) {
         if (this.data && this.validate()) {
             /* Update dictionary entry */
             this.saveContext();
             /* Update the tree button caption as we have updated the name */
-            $("#" + this.data.id).find("button").html(this.data.name);
+            jQuery("#" + this.data.id).find("button").html(this.data.name);
             magic.modules.creator.Common.resetFormIndicators();
-            $("[id$='-update-panel']").fadeOut("slow");
+            jQuery("[id$='-update-panel']").fadeOut("slow");
         }
     }, this));
      
     /* Add delete layer group button handler */            
-    var btnDeleteLayer = $("#" + this.prefix + "-delete");
-    btnDeleteLayer.click($.proxy(function(evt) {
+    var btnDeleteLayer = jQuery("#" + this.prefix + "-delete");
+    btnDeleteLayer.click(jQuery.proxy(function(evt) {
         if (this.data) {
             this.confirmDeleteEntry(this.data.id, "Really delete layer : " + this.data.name + "?");                                                       
         }
     }, this));
     
     /* Layer source tab change handler */
-    $("a[href^='#" + this.prefix + "'][data-toggle='tab']")
-    .on("shown.bs.tab", $.proxy(function(evt) {
+    jQuery("a[href^='#" + this.prefix + "'][data-toggle='tab']")
+    .on("shown.bs.tab", jQuery.proxy(function(evt) {
         var sourceType = evt.target.innerHTML.toLowerCase();
         this.loadContext(this.data, sourceType);
-        var symbologyPanel = $("#" + this.prefix + "-symbology-panel");
+        var symbologyPanel = jQuery("#" + this.prefix + "-symbology-panel");
         if (sourceType == "wms") {
             symbologyPanel.hide();
         } else {
             symbologyPanel.show();
         }
     }, this))
-    .on("hide.bs.tab", $.proxy(function(evt) {
+    .on("hide.bs.tab", jQuery.proxy(function(evt) {
         /* Maybe want to save some entered data if tab changes? Re-ordered dialog may mean this is less important - David 19/04/2016 */
     }, this));
 };
@@ -140,10 +140,10 @@ magic.classes.creator.LayerUpdater.prototype.saveContext = function() {
  */
 magic.classes.creator.LayerUpdater.prototype.validate = function() {    
     var ok = true;
-    $("#t2-layer-form")[0].checkValidity();
+    jQuery("#t2-layer-form")[0].checkValidity();
     var checks = ["name", "min_scale", "max_scale", "opacity"];
-    $.each(checks, function(idx, chk) {
-        var input = $("#t2-layer-" + chk);
+    jQuery.each(checks, function(idx, chk) {
+        var input = jQuery("#t2-layer-" + chk);
         var vState = input.prop("validity");
         var fg = input.closest("div.form-group");
         if (vState.valid) {
@@ -155,8 +155,8 @@ magic.classes.creator.LayerUpdater.prototype.validate = function() {
     });    
     if (ok) {
         /* Check max/min scale inputs */
-        var minInput = $("#t2-layer-min_scale");
-        var maxInput = $("#t2-layer-max_scale");       
+        var minInput = jQuery("#t2-layer-min_scale");
+        var maxInput = jQuery("#t2-layer-max_scale");       
         if (minInput.val() >= maxInput.val()) {
             maxInput.closest("div.form-group").removeClass("has-success").addClass("has-error");
             ok = false;
@@ -172,7 +172,7 @@ magic.classes.creator.LayerUpdater.prototype.validate = function() {
  * @returns {string}
  */
 magic.classes.creator.LayerUpdater.prototype.getActiveSourceTab = function() {
-    var tab = $("div.active[id^='t2-layer'][role='tabpanel']");
+    var tab = jQuery("div.active[id^='t2-layer'][role='tabpanel']");
     var tabName = tab.attr("id").replace(this.prefix + "-", "").replace("-tab", "");
     return(tabName);
 };
@@ -185,7 +185,7 @@ magic.classes.creator.LayerUpdater.prototype.getActiveSourceTab = function() {
  */
 magic.classes.creator.LayerUpdater.prototype.setActiveSourceTab = function(source, sourceType) {    
     var activeTab = null;
-    var symbologyPanel = $("#" + this.prefix + "-symbology-panel"); 
+    var symbologyPanel = jQuery("#" + this.prefix + "-symbology-panel"); 
     if (sourceType) {
         /* User has selected and shown the desired tab already */
         activeTab = sourceType;
@@ -196,10 +196,10 @@ magic.classes.creator.LayerUpdater.prototype.setActiveSourceTab = function(sourc
         }
     } else {
         /* Compute the tab to show based on the data */
-        $.each($("a[role='tab'][href^='#" + this.prefix + "']"), $.proxy(function(i, a) {
-            var tabName = $(a).attr("href").replace("#" + this.prefix + "-", "").replace("-tab", "");
+        jQuery.each(jQuery("a[role='tab'][href^='#" + this.prefix + "']"), jQuery.proxy(function(i, a) {
+            var tabName = jQuery(a).attr("href").replace("#" + this.prefix + "-", "").replace("-tab", "");
             if (source[tabName + "_source"]) {
-                $(a).tab("show");
+                jQuery(a).tab("show");
                 activeTab = tabName;
                 if (tabName == "wms") {
                     symbologyPanel.hide();
@@ -211,7 +211,7 @@ magic.classes.creator.LayerUpdater.prototype.setActiveSourceTab = function(sourc
             return(true);
         }, this));
         if (activeTab == null) {
-            $("a[href='#" + this.prefix + "-wms-tab']").tab("show");
+            jQuery("a[href='#" + this.prefix + "-wms-tab']").tab("show");
             activeTab = "wms";
             symbologyPanel.hide();
         }    
@@ -226,7 +226,7 @@ magic.classes.creator.LayerUpdater.prototype.setActiveSourceTab = function(sourc
  */
 magic.classes.creator.LayerUpdater.prototype.extractFeatureTypes = function(getCaps) {
     var ftypes = [];
-    if ("Capability" in getCaps && "Layer" in getCaps.Capability && "Layer" in getCaps.Capability.Layer && $.isArray(getCaps.Capability.Layer.Layer)) {
+    if ("Capability" in getCaps && "Layer" in getCaps.Capability && "Layer" in getCaps.Capability.Layer && jQuery.isArray(getCaps.Capability.Layer.Layer)) {
         var layers = getCaps.Capability.Layer.Layer;
         this.getFeatures(ftypes, layers);        
     } else {
@@ -241,7 +241,7 @@ magic.classes.creator.LayerUpdater.prototype.extractFeatureTypes = function(getC
  * @param {Array} layers
  */
 magic.classes.creator.LayerUpdater.prototype.getFeatures = function(ftypes, layers) {
-    $.each(layers, $.proxy(function(idx, layer) {
+    jQuery.each(layers, jQuery.proxy(function(idx, layer) {
         if ("Name" in layer) {
             /* Leaf node - a named layer */
             ftypes.push({
@@ -249,7 +249,7 @@ magic.classes.creator.LayerUpdater.prototype.getFeatures = function(ftypes, laye
                 value: layer.Name,
                 styles: layer.Style
             });
-        } else if ("Layer" in layer && $.isArray(layer["Layer"])) {
+        } else if ("Layer" in layer && jQuery.isArray(layer["Layer"])) {
             /* More trawling to do */
             this.getFeatures(ftypes, layer["Layer"]);
         }        
@@ -266,12 +266,12 @@ magic.classes.creator.LayerUpdater.prototype.populateWmsSourceSelector = functio
     if (proj) {
         /* Get the WMS endpoints available for this projection on this server platform */
         var currentSource = this.data.source.wms_source;
-        var sourceSelect = $("select[name='" + this.prefix + "-wms-wms_source']");       
+        var sourceSelect = jQuery("select[name='" + this.prefix + "-wms-wms_source']");       
         var eps = magic.modules.Endpoints.getWmsEndpoints(proj).slice(0);
-        var jqXhr = $.ajax(magic.config.paths.baseurl + "/geoserver/rest/workspaces.json")
-            .done($.proxy(function(data) {
-                if (data.workspaces && $.isArray(data.workspaces.workspace)) {
-                    $.each(data.workspaces.workspace, function(idx, ws) {
+        var jqXhr = jQuery.ajax(magic.config.paths.baseurl + "/geoserver/rest/workspaces.json")
+            .done(jQuery.proxy(function(data) {
+                if (data.workspaces && jQuery.isArray(data.workspaces.workspace)) {
+                    jQuery.each(data.workspaces.workspace, function(idx, ws) {
                         if ("assets|opsgis|sggis|arctic|add".indexOf(ws.name) == -1) {
                             eps.unshift({
                                 wms: magic.config.paths.baseurl + "/geoserver/" + ws.name + "/wms",
@@ -282,18 +282,18 @@ magic.classes.creator.LayerUpdater.prototype.populateWmsSourceSelector = functio
                 }                         
                 magic.modules.Common.populateSelect(sourceSelect, eps, "wms", "name", currentSource, true);
                 this.populateWmsFeatureSelector(currentSource);       
-                sourceSelect.off("change").on("change", $.proxy(function(evt) {
+                sourceSelect.off("change").on("change", jQuery.proxy(function(evt) {
                     /* WMS source selector has changed, update the features available */
-                    this.populateWmsFeatureSelector($(evt.currentTarget).val());
+                    this.populateWmsFeatureSelector(jQuery(evt.currentTarget).val());
                 }, this));
             }, this))
-            .fail($.proxy(function(jqXhr, status, err) {
+            .fail(jQuery.proxy(function(jqXhr, status, err) {
                 /* This mode will be frequently used e.g. if the local server isn't Geoserver */
                 magic.modules.Common.populateSelect(sourceSelect, eps, "wms", "name", currentSource, true);
                 this.populateWmsFeatureSelector(currentSource);       
-                sourceSelect.off("change").on("change", $.proxy(function(evt) {
+                sourceSelect.off("change").on("change", jQuery.proxy(function(evt) {
                     /* WMS source selector has changed, update the features available */
-                    this.populateWmsFeatureSelector($(evt.currentTarget).val());
+                    this.populateWmsFeatureSelector(jQuery(evt.currentTarget).val());
                 }, this));
             }, this));        
     } else {
@@ -309,11 +309,11 @@ magic.classes.creator.LayerUpdater.prototype.populateWmsSourceSelector = functio
  * @param {string} defval
  */
 magic.classes.creator.LayerUpdater.prototype.populateWmsFeatureSelector = function(wmsUrl) {
-    var featureSelect = $("select[name='" + this.prefix + "-wms-feature_name']");
-    var styleSelect = $("select[name='" + this.prefix + "-wms-style_name']");
-    featureSelect.off("change").on("change", $.proxy(function(evt) {
+    var featureSelect = jQuery("select[name='" + this.prefix + "-wms-feature_name']");
+    var styleSelect = jQuery("select[name='" + this.prefix + "-wms-style_name']");
+    featureSelect.off("change").on("change", jQuery.proxy(function(evt) {
         this.populateWmsStyleSelector(wmsUrl, null);
-        this.attribute_map.ogcLoadContext(wmsUrl, $(evt.currentTarget).val(), this.data["attribute_map"], this.data["id"]);
+        this.attribute_map.ogcLoadContext(wmsUrl, jQuery(evt.currentTarget).val(), this.data["attribute_map"], this.data["id"]);
     }, this));
     if (wmsUrl) {
         if (wmsUrl == "osm") {
@@ -331,9 +331,9 @@ magic.classes.creator.LayerUpdater.prototype.populateWmsFeatureSelector = functi
             } else {
                 /* Read available layer data from the service GetCapabilities document */
                 var parser = new ol.format.WMSCapabilities();                
-                var jqXhr = $.get(magic.modules.Common.getWxsRequestUrl(wmsUrl, "GetCapabilities"), $.proxy(function(response) {
+                var jqXhr = jQuery.get(magic.modules.Common.getWxsRequestUrl(wmsUrl, "GetCapabilities"), jQuery.proxy(function(response) {
                     try {
-                        var capsJson = $.parseJSON(JSON.stringify(parser.read(response)));
+                        var capsJson = jQuery.parseJSON(JSON.stringify(parser.read(response)));
                         if (capsJson) {
                             magic.runtime.creator.catalogues[wmsUrl] = this.extractFeatureTypes(capsJson);
                             magic.modules.Common.populateSelect(featureSelect, magic.runtime.creator.catalogues[wmsUrl], "value", "name", currentFeature, true);
@@ -348,7 +348,7 @@ magic.classes.creator.LayerUpdater.prototype.populateWmsFeatureSelector = functi
                         magic.modules.Common.populateSelect(featureSelect, [{name: currentFeature, value: currentFeature}], "value", "name", currentFeature, true);
                         this.populateWmsStyleSelector(wmsUrl, currentFeature);
                     }
-                }, this)).fail($.proxy(function() {                
+                }, this)).fail(jQuery.proxy(function() {                
                     bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to read capabilities for WMS ' + wmsUrl + '</div>');
                     magic.modules.Common.populateSelect(featureSelect, [{name: currentFeature, value: currentFeature}], "value", "name", currentFeature, true);
                     this.populateWmsStyleSelector(wmsUrl, currentFeature);
@@ -370,15 +370,15 @@ magic.classes.creator.LayerUpdater.prototype.populateWmsFeatureSelector = functi
  * @param {type} styleName
  */
 magic.classes.creator.LayerUpdater.prototype.populateWmsStyleSelector = function(wmsUrl, featName) {
-    var styleSelect = $("select[name='" + this.prefix + "-wms-style_name']");
+    var styleSelect = jQuery("select[name='" + this.prefix + "-wms-style_name']");
     var currentStyle = this.data.source.style_name;
-    if (featName && $.isArray(magic.runtime.creator.catalogues[wmsUrl])) {
-        $.each(magic.runtime.creator.catalogues[wmsUrl], $.proxy(function(idx, lyr) {
+    if (featName && jQuery.isArray(magic.runtime.creator.catalogues[wmsUrl])) {
+        jQuery.each(magic.runtime.creator.catalogues[wmsUrl], jQuery.proxy(function(idx, lyr) {
             var fnNoWs = featName.toLowerCase().split(":").pop();
             var lvNoWs = lyr.value.toLowerCase().split(":").pop();
             if (lvNoWs == fnNoWs) {
                 styleSelect.find("option").remove();
-                if ($.isArray(lyr.styles) && lyr.styles.length > 1) {
+                if (jQuery.isArray(lyr.styles) && lyr.styles.length > 1) {
                     /* There's a choice here */
                     magic.modules.Common.populateSelect(styleSelect, lyr.styles, "Name", "Title", currentStyle || lyr.styles[0].Name, false);
                 } else {
@@ -402,9 +402,9 @@ magic.classes.creator.LayerUpdater.prototype.confirmDeleteEntry = function(id, m
     bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">' + msg + '</div>', function(result) {
         if (result) {
             /* Do the deletion */
-            $("#" + id).remove();
+            jQuery("#" + id).remove();
             magic.modules.creator.Common.layer_dictionary.del(id);
-            $("[id$='-update-panel']").fadeOut("slow");
+            jQuery("[id$='-update-panel']").fadeOut("slow");
             bootbox.hideAll();
         } else {
             bootbox.hideAll();

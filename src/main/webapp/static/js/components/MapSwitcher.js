@@ -13,9 +13,9 @@ magic.classes.MapSwitcher = function(options) {
     //this.populateViewList(this.target + "-view-list", magic.runtime.viewname) + 
     
     /* Set up link handler */    
-    $("#" + this.target).click($.proxy(function(evt) {
+    jQuery("#" + this.target).click(jQuery.proxy(function(evt) {
         evt.stopPropagation();
-        var contentDiv = $(evt.currentTarget).next("div");                
+        var contentDiv = jQuery(evt.currentTarget).next("div");                
         if (contentDiv) {  
             contentDiv.toggleClass("hidden");
             contentDiv.html(
@@ -46,23 +46,23 @@ magic.classes.MapSwitcher = function(options) {
                     '</div>' + 
                 '</div>'
             );
-            $.ajax({
+            jQuery.ajax({
                 url: magic.config.paths.baseurl + "/maps/dropdown", 
                 method: "GET",
                 dataType: "json",
                 contentType: "application/json",       
-                success: $.proxy(function(data) {
-                    magic.modules.Common.populateSelect($("#" + this.target + "-view-list"), data, "name", "title", true);                        
+                success: jQuery.proxy(function(data) {
+                    magic.modules.Common.populateSelect(jQuery("#" + this.target + "-view-list"), data, "name", "title", true);                        
                 }, this)
             });
             /* Allow clicking on the inputs without the dropdown going away */
             contentDiv.children("form").click(function(evt2) {evt2.stopPropagation()});
             /* Set button handlers */            
-            $("#" + this.target + "-view-list-go").click($.proxy(function(evt) {
+            jQuery("#" + this.target + "-view-list-go").click(jQuery.proxy(function(evt) {
                 /* Load a map */
-                var view = $("#" + this.target + "-view-list").val();
+                var view = jQuery("#" + this.target + "-view-list").val();
                 var av = view.split(":");                
-                window.open(magic.config.paths.baseurl + "/" + (av[0] == "public" ? "home" : "restricted") + "/" + av[1], $("#" + this.target + "-new-tab").prop("checked") ? "_blank" : "_self");                
+                window.open(magic.config.paths.baseurl + "/" + (av[0] == "public" ? "home" : "restricted") + "/" + av[1], jQuery("#" + this.target + "-new-tab").prop("checked") ? "_blank" : "_self");                
             }, this));
         }
     }, this));

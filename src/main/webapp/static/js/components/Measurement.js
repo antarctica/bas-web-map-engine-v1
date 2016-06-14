@@ -5,7 +5,7 @@ magic.classes.Measurement = function(options) {
     /* id allows more than one tool per application */
     this.id = options.id || "measure-tool";
     
-    this.target = $("#" + options.target);
+    this.target = jQuery("#" + options.target);
     
     this.active = false;
 
@@ -43,10 +43,10 @@ magic.classes.Measurement = function(options) {
      */    
     this.demLayers = [];
     
-    var hPopDiv = $("#height-popup");
+    var hPopDiv = jQuery("#height-popup");
     if (hPopDiv.length == 0) {
-        $("body").append('<div id="height-popup" title="Elevation"></div>');
-        hPopDiv = $("#height-popup");
+        jQuery("body").append('<div id="height-popup" title="Elevation"></div>');
+        hPopDiv = jQuery("#height-popup");
     }
 
     this.heightPopup = new ol.Overlay({element: hPopDiv[0]});
@@ -62,7 +62,7 @@ magic.classes.Measurement = function(options) {
     /* Status of measure operation */
     this.measuring = false;
 
-    this.target = $("#" + options.target);
+    this.target = jQuery("#" + options.target);
     this.template =
         '<div class="popover popover-auto-width measure-tool-popover" role="popover">' +
             '<div class="arrow"></div>' +
@@ -167,12 +167,12 @@ magic.classes.Measurement = function(options) {
         html: true,
         content: this.content
     })
-    .on("shown.bs.popover", $.proxy(function() {
+    .on("shown.bs.popover", jQuery.proxy(function() {
 
         this.actionType = "distance";
        
         /* Add go button handlers */
-        $("button[id$='-go']").click($.proxy(function(evt) {
+        jQuery("button[id$='-go']").click(jQuery.proxy(function(evt) {
             if (this.measuring) {
                 this.deactivate(evt);
             } else {
@@ -181,43 +181,43 @@ magic.classes.Measurement = function(options) {
         }, this));
 
         /* Set handlers for selecting between area and distance measurement */
-        $("a[href='#" + this.id + "-distance']").on("shown.bs.tab", $.proxy(function() {
-            $("#" + this.id + "-distance-units").focus();
+        jQuery("a[href='#" + this.id + "-distance']").on("shown.bs.tab", jQuery.proxy(function() {
+            jQuery("#" + this.id + "-distance-units").focus();
             this.actionType = "distance";
             this.deactivate();
         }, this));
-        $("a[href='#" + this.id + "-area']").on("shown.bs.tab", $.proxy(function() {
-            $("#" + this.id + "-area-units").focus();
+        jQuery("a[href='#" + this.id + "-area']").on("shown.bs.tab", jQuery.proxy(function() {
+            jQuery("#" + this.id + "-area-units").focus();
             this.actionType = "area";
             this.deactivate();
         }, this));
-        $("a[href='#" + this.id + "-elevation']").on("shown.bs.tab", $.proxy(function() {
+        jQuery("a[href='#" + this.id + "-elevation']").on("shown.bs.tab", jQuery.proxy(function() {
             this.demLayers = this.getDemLayers();
             if (this.demLayers.length > 0) {
                 /* DEM layer on the map usable for elevation */
-                $("#" + this.id + "-elevation-units").focus();
+                jQuery("#" + this.id + "-elevation-units").focus();
                 this.actionType = "elevation";
             } else {
                 /* No suitable DEM => elevation is unavailable */
-                $("a[href='" + this.id + "-elevation']").prop("disabled", "disabled");
+                jQuery("a[href='" + this.id + "-elevation']").prop("disabled", "disabled");
             }
             this.deactivate();
         }, this));
 
         /* Click handler for dropdown action units selection */
-        $("select[id$='-units']").change($.proxy(function(evt) {
+        jQuery("select[id$='-units']").change(jQuery.proxy(function(evt) {
             this.deactivate();
         }, this));
 
         /* Close button */
-        $(".measure-tool-popover").find("button.close").click($.proxy(function() {
+        jQuery(".measure-tool-popover").find("button.close").click(jQuery.proxy(function() {
             this.target.popover("hide");
         }, this));
 
         /* Initial focus */
-        $("#" + this.id + "-distance-units").focus();
+        jQuery("#" + this.id + "-distance-units").focus();
     }, this))
-    .on("hidden.bs.popover", $.proxy(function() {
+    .on("hidden.bs.popover", jQuery.proxy(function() {
         this.deactivate();
     }, this));
 };
@@ -242,7 +242,7 @@ magic.classes.Measurement.prototype.activate = function(quiet) {
     
     if (!quiet) {
         /* Trigger mapinteractionactivated event */
-        $(document).trigger("mapinteractionactivated", [this]);  
+        jQuery(document).trigger("mapinteractionactivated", [this]);  
     }
     
     this.active = true;
@@ -251,7 +251,7 @@ magic.classes.Measurement.prototype.activate = function(quiet) {
     this.measuring = true;
 
     /* Change the button icon from play to stop */
-    $("#" + this.id + "-" + this.actionType + "-go span").removeClass("fa-play").addClass("fa-stop");
+    jQuery("#" + this.id + "-" + this.actionType + "-go span").removeClass("fa-play").addClass("fa-stop");
 
     if (this.actionType == "distance" || this.actionType == "area") {
         
@@ -288,13 +288,13 @@ magic.classes.Measurement.prototype.activate = function(quiet) {
         /* Add mouse move handler to give a running total in the output */
         magic.runtime.map.un("pointermove", this.pointerMoveHandler, this);
         magic.runtime.map.on("pointermove", this.pointerMoveHandler, this);
-        $(magic.runtime.map.getViewport()).on("mouseout", $.proxy(function() {
-            $(this.helpTooltipElt).addClass("hidden");
+        jQuery(magic.runtime.map.getViewport()).on("mouseout", jQuery.proxy(function() {
+            jQuery(this.helpTooltipElt).addClass("hidden");
         }, this));
     } else {
         /* Height measure set-up */
         magic.runtime.map.on("singleclick", this.queryElevation, this);
-        magic.runtime.map.on("moveend", $.proxy(this.destroyPopup, this));
+        magic.runtime.map.on("moveend", jQuery.proxy(this.destroyPopup, this));
     }
 };
 
@@ -310,12 +310,12 @@ magic.classes.Measurement.prototype.deactivate = function(quiet) {
     this.measuring = false;
     
     /* Change the button icon from stop to play */
-    $("#" + this.id + "-" + this.actionType + "-go span").removeClass("fa-stop").addClass("fa-play");
+    jQuery("#" + this.id + "-" + this.actionType + "-go span").removeClass("fa-stop").addClass("fa-play");
     
     if (this.actionType == "distance" || this.actionType == "area") {
         
         /* Clear all the measurement indicator overlays */
-        $.each(this.measureOverlays, function(mi, mo) {
+        jQuery.each(this.measureOverlays, function(mi, mo) {
             magic.runtime.map.removeOverlay(mo);
         });
         this.measureOverlays = [];
@@ -335,14 +335,14 @@ magic.classes.Measurement.prototype.deactivate = function(quiet) {
     } else {
         /* Clear height measure */
         var element = this.heightPopup.getElement();
-        $(element).popover("destroy");
+        jQuery(element).popover("destroy");
         magic.runtime.map.un("singleclick", this.queryElevation, this);
-        magic.runtime.map.un("moveend", $.proxy(this.destroyPopup, this));
+        magic.runtime.map.un("moveend", jQuery.proxy(this.destroyPopup, this));
     }
     
     if (!quiet) {
         /* Trigger mapinteractiondeactivated event */
-        $(document).trigger("mapinteractiondeactivated", [this]);  
+        jQuery(document).trigger("mapinteractiondeactivated", [this]);  
     }
 };
 
@@ -352,20 +352,20 @@ magic.classes.Measurement.prototype.deactivate = function(quiet) {
  */
 magic.classes.Measurement.prototype.sketchChangeHandler = function(evt) {
     var value, fromUnits, toUnits, tooltipCoord;
-    var isGeodesic = $("#" + this.id + "-true").prop("checked");
+    var isGeodesic = jQuery("#" + this.id + "-true").prop("checked");
     var geom = this.sketch.getGeometry();
     if (this.actionType == "area") {
         value = isGeodesic ? this.geodesicArea() : geom.getArea();
         fromUnits = "m2";
-        toUnits = $("#" + this.id + "-area-units").val();
+        toUnits = jQuery("#" + this.id + "-area-units").val();
         tooltipCoord = geom.getInteriorPoint().getCoordinates();
     } else {
         value = isGeodesic ? this.geodesicLength() : geom.getLength();
         fromUnits = "m";
-        toUnits = $("#" + this.id + "-distance-units").val();
+        toUnits = jQuery("#" + this.id + "-distance-units").val();
         tooltipCoord = geom.getLastCoordinate();
     }
-    $(this.measureTooltipElt).html(magic.modules.Common.unitConverter(value, fromUnits, toUnits));
+    jQuery(this.measureTooltipElt).html(magic.modules.Common.unitConverter(value, fromUnits, toUnits));
     this.measureTooltip.setPosition(tooltipCoord);   
 };
 
@@ -385,9 +385,9 @@ magic.classes.Measurement.prototype.pointerMoveHandler = function(evt) {
             helpMsg = "Click to continue sketching line";
         }             
     }
-    $(this.helpTooltipElt).html(helpMsg);
+    jQuery(this.helpTooltipElt).html(helpMsg);
     this.helpTooltip.setPosition(evt.coordinate);
-    $(this.helpTooltipElt).removeClass("hidden");
+    jQuery(this.helpTooltipElt).removeClass("hidden");
 };
 
 /**
@@ -422,7 +422,7 @@ magic.classes.Measurement.prototype.createHelpTooltip = function() {
         this.helpTooltipElt.parentNode.removeChild(this.helpTooltipElt);
     }
     this.helpTooltipElt = document.createElement("div");
-    $(this.helpTooltipElt).addClass("measure-tool-tooltip hidden");
+    jQuery(this.helpTooltipElt).addClass("measure-tool-tooltip hidden");
     this.helpTooltip = new ol.Overlay({
         element: this.helpTooltipElt,
         offset: [15, 0],
@@ -440,7 +440,7 @@ magic.classes.Measurement.prototype.createMeasurementtip = function() {
         this.measureTooltipElt.parentNode.removeChild(this.measureTooltipElt);
     }
     this.measureTooltipElt = document.createElement("div");
-    $(this.measureTooltipElt).addClass("measure-tool-tooltip measure-tool-tooltip-out");
+    jQuery(this.measureTooltipElt).addClass("measure-tool-tooltip measure-tool-tooltip-out");
     var mtto = new ol.Overlay({
         element: this.measureTooltipElt,
         offset: [0, -15],
@@ -452,9 +452,9 @@ magic.classes.Measurement.prototype.createMeasurementtip = function() {
 };
 
 magic.classes.Measurement.prototype.queryElevation = function(evt) {
-    if ($.isArray(this.demLayers) && this.demLayers.length > 0) {        
+    if (jQuery.isArray(this.demLayers) && this.demLayers.length > 0) {        
         var viewResolution = magic.runtime.view.getResolution();
-        var demFeats = $.map(this.demLayers, function(l, idx) {
+        var demFeats = jQuery.map(this.demLayers, function(l, idx) {
             if (l.getVisible()) {
                 return(l.get("metadata").source.feature_name);
             }
@@ -472,48 +472,48 @@ magic.classes.Measurement.prototype.queryElevation = function(evt) {
             if (url) {
                 var ll = ol.proj.transform(evt.coordinate, magic.runtime.view.getProjection().getCode(), "EPSG:4326");
                 var element = this.heightPopup.getElement();
-                $(element).popover("destroy");
+                jQuery(element).popover("destroy");
                 this.heightPopup.setPosition(evt.coordinate);
-                $.ajax({
+                jQuery.ajax({
                     url: url,
                     method: "GET"
                 })
-                .done($.proxy(function(data) {
+                .done(jQuery.proxy(function(data) {
                     /* Expect a feature collection with one feature containing a properties object */
                     var lon = magic.runtime.preferences.applyPref("coordinates", parseFloat(ll[0]).toFixed(2), "lon");
                     var lat = magic.runtime.preferences.applyPref("coordinates", parseFloat(ll[1]).toFixed(2), "lat");
-                    var units = $("#" + this.id + "-elevation-units").val();
-                    $(element).popover({
+                    var units = jQuery("#" + this.id + "-elevation-units").val();
+                    jQuery(element).popover({
                         "container": "body",
                         "placement": "top",
                         "animation": false,
                         "html": true,
                         "content": this.getDemValue(data, units) + " at (" + lon + ", " + lat + ")"
                     }); 
-                    $(element).popover("show");
+                    jQuery(element).popover("show");
                 }, this))
-                .fail($.proxy(function(xhr, status) {
-                    $(element).popover({
+                .fail(jQuery.proxy(function(xhr, status) {
+                    jQuery(element).popover({
                         "container": "body",
                         "placement": "top",
                         "animation": false,
                         "html": true,
                         "content": "Failed to get height"
                     }); 
-                    $(element).popover("show");
+                    jQuery(element).popover("show");
                 }, this));
             }
         } else {
             /* Inform user that a DEM layer needs to be visible */
             this.heightPopup.setPosition(evt.coordinate);
-            $(element).popover({
+            jQuery(element).popover({
                 "container": "body",
                 "placement": "top",
                 "animation": false,
                 "html": true,
                 "content": "No DEM layers are turned on"
             }); 
-            $(element).popover("show");
+            jQuery(element).popover("show");
         }
     }
 };
@@ -523,7 +523,7 @@ magic.classes.Measurement.prototype.queryElevation = function(evt) {
  */
 magic.classes.Measurement.prototype.destroyPopup = function() {
     var element = this.heightPopup.getElement();
-    $(element).popover("destroy");
+    jQuery(element).popover("destroy");
 };
 
 /**
@@ -553,12 +553,12 @@ magic.classes.Measurement.prototype.getDemLayers = function() {
  */
 magic.classes.Measurement.prototype.getDemValue = function(json, units) {
     var dem = "unknown";
-    if ($.isArray(json.features) && json.features.length > 0) {
+    if (jQuery.isArray(json.features) && json.features.length > 0) {
         /* Look for a sensible number */    
         var fdem = -99999;
-        $.each(json.features, function(idx, f) {
+        jQuery.each(json.features, function(idx, f) {
             if (f.properties) {
-                $.each(f.properties, function(key, value) {
+                jQuery.each(f.properties, function(key, value) {
                     var fval = parseFloat(value);
                     if (!isNaN(fval) && Math.abs(fval) < 9000 && fval > fdem) {
                         fdem = fval;

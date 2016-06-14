@@ -7,7 +7,7 @@ magic.classes.OverviewMap = function(options) {
     /* id allows more than one tool per application */
     this.id = options.id || "overview-map-tool";
       
-    this.target = $("#" + options.target);
+    this.target = jQuery("#" + options.target);
     
     /* Internal */
     this.control = null;
@@ -24,21 +24,21 @@ magic.classes.OverviewMap = function(options) {
         html: true,
         content: "Overview map"
     })
-    .on("show.bs.popover", $.proxy(function() {
+    .on("show.bs.popover", jQuery.proxy(function() {
         return(this.setEnabledStatus());
     }, this))
-    .on("shown.bs.popover", $.proxy(function() {
+    .on("shown.bs.popover", jQuery.proxy(function() {
         this.initControl();        
         /* Close button */
-        $(".overview-map-popover").find("button.close").click($.proxy(function() { 
+        jQuery(".overview-map-popover").find("button.close").click(jQuery.proxy(function() { 
             this.target.popover("hide");
         }, this));
     }, this));
-    $(document).on("baselayerchanged", $.proxy(this.initControl, this));
+    jQuery(document).on("baselayerchanged", jQuery.proxy(this.initControl, this));
 };
 
 magic.classes.OverviewMap.prototype.initControl = function() {
-    var poContent = $("div.overview-map-popover-content");
+    var poContent = jQuery("div.overview-map-popover-content");
     poContent.html("");
     if (this.control != null) {
         magic.runtime.map.removeControl(this.control);
@@ -54,7 +54,7 @@ magic.classes.OverviewMap.prototype.initControl = function() {
         })
     });        
     magic.runtime.map.addControl(this.control);
-    $("button[title='Overview map']").addClass("hidden");
+    jQuery("button[title='Overview map']").addClass("hidden");
 };
 
 magic.classes.OverviewMap.prototype.getTarget = function() {
@@ -72,7 +72,7 @@ magic.classes.OverviewMap.prototype.getTemplate = function() {
 magic.classes.OverviewMap.prototype.getOverviewLayers = function() {
     var oLayers = [];
     if (magic.runtime.layertree) {
-        $.each(magic.runtime.layertree.getBaseLayers(), $.proxy(function(bi, bl) {
+        jQuery.each(magic.runtime.layertree.getBaseLayers(), jQuery.proxy(function(bi, bl) {
             if (bl.getVisible()) {
                 /* This is the visible base layer */
                 oLayers.push(bl);
@@ -80,7 +80,7 @@ magic.classes.OverviewMap.prototype.getOverviewLayers = function() {
             }
         }, this));
         if (oLayers.length > 0) {
-            $.each(magic.runtime.layertree.getWmsOverlayLayers(), $.proxy(function(oi, olyr) {
+            jQuery.each(magic.runtime.layertree.getWmsOverlayLayers(), jQuery.proxy(function(oi, olyr) {
                 var md = olyr.get("metadata");
                 if (md.source && md.source.wms_source) {  
                     var featName = md.source.feature_name;

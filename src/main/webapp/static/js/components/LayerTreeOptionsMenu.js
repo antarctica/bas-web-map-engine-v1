@@ -6,7 +6,7 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
     this.layer = options.layer;
     
     /* Markup */
-    $("#layer-opts-dm-" + this.nodeid).html(
+    jQuery("#layer-opts-dm-" + this.nodeid).html(
         '<li>' + 
             '<a href="Javascript:void(0)" id="ztl-' + this.nodeid + '">Zoom to layer extent</a>' + 
         '</li>' + 
@@ -45,25 +45,25 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
     var md = this.layer.get("metadata");
     if (this.layer.getVisible() && !(md && md.source && md.source.wms_source == "osm")) {
         /* Layer is visible on the map */        
-        $("#ztl-" + this.nodeid).off("click").on("click", $.proxy(this.zoomToExtent, this));        
+        jQuery("#ztl-" + this.nodeid).off("click").on("click", jQuery.proxy(this.zoomToExtent, this));        
     } else {
         /* Layer invisible (or OSM), so option is unavailable */
-        $("#ztl-" + this.nodeid).parent().addClass("disabled");
+        jQuery("#ztl-" + this.nodeid).parent().addClass("disabled");
     }
     /* Filter layer */
     var md = this.layer.get("metadata");
-    if (this.layer.getVisible() && md && md.is_filterable === true && $.isArray(md.attribute_map)) {
-        $("#ftr-" + this.nodeid).off("click").on("click", $.proxy(function(evt) {
+    if (this.layer.getVisible() && md && md.is_filterable === true && jQuery.isArray(md.attribute_map)) {
+        jQuery("#ftr-" + this.nodeid).off("click").on("click", jQuery.proxy(function(evt) {
             evt.stopPropagation();
             new magic.classes.LayerFilter({               
-                target: $(evt.currentTarget).next("div"),
+                target: jQuery(evt.currentTarget).next("div"),
                 nodeid: this.nodeid,
                 layer: this.layer
             });                       
         }, this));
     } else {
         /* Hide filter link for layer where it isn't possible */
-        $("#ftr-" + this.nodeid).parent().addClass("disabled");        
+        jQuery("#ftr-" + this.nodeid).parent().addClass("disabled");        
     }
     /* Transparency control */
     this.addWebglSliderHandler("opc", 0.0, 1.0, 0.1);
@@ -84,9 +84,9 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
 magic.classes.LayerTreeOptionsMenu.prototype.addWebglSliderHandler = function(idbase, minVal, maxVal, step) { 
     if (this.layer.getVisible()) {
         /* Add the handlers */
-        $("#" + idbase + "-" + this.nodeid).off("click").on("click", $.proxy(function(evt) {
+        jQuery("#" + idbase + "-" + this.nodeid).off("click").on("click", jQuery.proxy(function(evt) {
             evt.stopPropagation();
-            var wrapper = $(evt.currentTarget).next("div");
+            var wrapper = jQuery(evt.currentTarget).next("div");
             if (wrapper.hasClass("hidden")) {
                 wrapper.removeClass("hidden").addClass("show");
                 var layer = this.layer;
@@ -96,7 +96,7 @@ magic.classes.LayerTreeOptionsMenu.prototype.addWebglSliderHandler = function(id
                     case "brt": startValue = layer.getBrightness(); break;
                     case "ctr": startValue = layer.getContrast(); break;        
                 }
-                $("#" + idbase + "-slider-" + this.nodeid).slider({
+                jQuery("#" + idbase + "-slider-" + this.nodeid).slider({
                     value: startValue,
                     formatter: function(value) {
                         return("Current value: " + value);
@@ -114,7 +114,7 @@ magic.classes.LayerTreeOptionsMenu.prototype.addWebglSliderHandler = function(id
             }                        
         }, this));
     } else {
-        $("#" + idbase + "-" + this.nodeid).parent().addClass("disabled");
+        jQuery("#" + idbase + "-" + this.nodeid).parent().addClass("disabled");
     }
 };
 
@@ -127,14 +127,14 @@ magic.classes.LayerTreeOptionsMenu.prototype.zoomToWmsExtent = function(caps, fe
     var bbox = null;
     if (caps != null && caps[featureName]) {
         var md = caps[featureName];
-        if ($.isArray(md["BoundingBox"]) && md["BoundingBox"].length > 0) {
-            $.each(md["BoundingBox"], function(idx, bb) {
+        if (jQuery.isArray(md["BoundingBox"]) && md["BoundingBox"].length > 0) {
+            jQuery.each(md["BoundingBox"], function(idx, bb) {
                 if (bb.crs == magic.runtime.viewdata.projection.getCode()) {
                     bbox = bb.extent;
                     return(false);
                 }
             });            
-        } else if ($.isArray(md["EX_GeographicBoundingBox"]) && md["EX_GeographicBoundingBox"].length == 4) {
+        } else if (jQuery.isArray(md["EX_GeographicBoundingBox"]) && md["EX_GeographicBoundingBox"].length == 4) {
             bbox = magic.modules.GeoUtils.extentFromWgs84Extent(md["EX_GeographicBoundingBox"]);
         } else {
             bbox = magic.runtime.viewdata.proj_extent;
@@ -154,15 +154,15 @@ magic.classes.LayerTreeOptionsMenu.prototype.zoomToExtent = function() {
         if (md.source && md.source.wms_source) {
             /* WMS layer extent needs to come from GetCapabilities */
             var wmsUrl = md.source.wms_source;
-            magic.modules.Common.getCapabilities(wmsUrl, $.proxy(this.zoomToWmsExtent, this), md.source.feature_name);            
+            magic.modules.Common.getCapabilities(wmsUrl, jQuery.proxy(this.zoomToWmsExtent, this), md.source.feature_name);            
         } else {
             /* Vector layers have an extent enquiry method */
             var extent = magic.runtime.viewdata.proj_extent;
-            if ($.isFunction(this.layer.getSource().getExtent)) {                
+            if (jQuery.isFunction(this.layer.getSource().getExtent)) {                
                 extent = this.layer.getSource().getExtent();
             } else {
                 /* Check a further level of source wrapping for ImageVector layers */
-                if (this.layer.getSource().getSource() && $.isFunction(this.layer.getSource().getSource().getExtent)) {
+                if (this.layer.getSource().getSource() && jQuery.isFunction(this.layer.getSource().getSource().getExtent)) {
                     extent = this.layer.getSource().getSource().getExtent();
                 } 
             }

@@ -31,7 +31,7 @@ magic.classes.AircraftPositionButton = function (name, ribbon) {
         {name: "speed", alias: "Speed", displayed: false} /* To force pop-up to offer "full attribute set" */
     ];
         
-    this.btn = $('<button>', {
+    this.btn = jQuery('<button>', {
         "id": "btn-" + this.name,
         "class": "btn btn-default",
         "data-toggle": "tooltip",
@@ -39,7 +39,7 @@ magic.classes.AircraftPositionButton = function (name, ribbon) {
         "title": this.inactiveTitle,
         "html": '<span class="fa fa-plane"></span>'
     });
-    this.btn.on("click", $.proxy(function () {
+    this.btn.on("click", jQuery.proxy(function () {
         if (this.isActive()) {
             this.deactivate();
         } else {
@@ -47,7 +47,7 @@ magic.classes.AircraftPositionButton = function (name, ribbon) {
         }
     }, this));                 
     window.setTimeout(this.getData, 600000);
-    $(document).on("insetmapopened", $.proxy(function(evt) {
+    jQuery(document).on("insetmapopened", jQuery.proxy(function(evt) {
         if (magic.runtime.inset) {
             this.insetLayer = new ol.layer.Vector({
                 name: "BAS aircraft_inset",
@@ -62,14 +62,14 @@ magic.classes.AircraftPositionButton = function (name, ribbon) {
             });            
             magic.runtime.inset.addLayer(this.insetLayer); 
             if (this.data.outside.length > 0) {
-                var osClones = $.map(this.data.outside, function(f) {
+                var osClones = jQuery.map(this.data.outside, function(f) {
                     return(f.clone());
                 });                        
                 this.insetLayer.getSource().addFeatures(osClones);
             }
         }
     }, this));
-    $(document).on("insetmapclosed", $.proxy(function(evt) {
+    jQuery(document).on("insetmapclosed", jQuery.proxy(function(evt) {
         this.insetLayer = null;
     }, this));
 };
@@ -134,18 +134,18 @@ magic.classes.AircraftPositionButton.prototype.deactivate = function () {
 
 magic.classes.AircraftPositionButton.prototype.getData = function() {
     /* Aircraft positional API */
-    $.ajax({
+    jQuery.ajax({
         /* Might be nice to get this listed as part of the maps.bas.ac.uk stable... */
         url: "http://add.antarctica.ac.uk/geoserver/assets/wfs?service=wfs&request=getfeature&version=2.0.0&typeNames=assets:latest_aircraft_positions&outputFormat=json",
         method: "GET",
-        success: $.proxy(function(data) {
+        success: jQuery.proxy(function(data) {
             if (!this.geoJson) {
                 return;
             }
             var feats = this.geoJson.readFeatures(data);
             var projExtent = magic.modules.GeoUtils.projectionLatLonExtent(magic.runtime.viewdata.projection.getCode());
-            $.each(feats, $.proxy(function(idx, f) {
-                var props = $.extend({}, f.getProperties());
+            jQuery.each(feats, jQuery.proxy(function(idx, f) {
+                var props = jQuery.extend({}, f.getProperties());
                 var colour = props.speed > 5 ? "green" : "red";                        
                 var fclone = f.clone();
                 fclone.setProperties(props);
@@ -207,7 +207,7 @@ magic.classes.AircraftPositionButton.prototype.getData = function() {
             if (this.data.outside.length > 0) {
                 if (this.insetLayer) {
                     this.insetLayer.getSource().clear();
-                    var osClones = $.map(this.data.outside, function(f) {
+                    var osClones = jQuery.map(this.data.outside, function(f) {
                         return(f.clone());
                     });      
                     this.insetLayer.getSource().addFeatures(osClones); 

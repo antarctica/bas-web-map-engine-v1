@@ -11,7 +11,7 @@ magic.classes.ResetRotationButton = function(name, ribbon) {
     this.dragRotateZoomInteraction.setActive(true);
     magic.runtime.map.addInteraction(this.dragRotateZoomInteraction);
    
-    this.btn = $('<button>', {
+    this.btn = jQuery('<button>', {
         "id": "btn-" + this.name,
         "class": "btn btn-default disabled",
         "data-toggle": "tooltip",
@@ -19,12 +19,12 @@ magic.classes.ResetRotationButton = function(name, ribbon) {
         "title": this.title,
         "html": '<span class="glyphicon glyphicon-repeat"></span>'
     });
-    this.btn.on("click", $.proxy(function() {
+    this.btn.on("click", jQuery.proxy(function() {
         magic.runtime.view.setRotation(magic.runtime.viewdata.rotation);
         this.btn.addClass("disabled");
     }, this));
     
-    magic.runtime.map.getView().on("change:rotation", $.proxy(function() {
+    magic.runtime.map.getView().on("change:rotation", jQuery.proxy(function() {
         this.btn.removeClass("disabled");
     }, this));    
     

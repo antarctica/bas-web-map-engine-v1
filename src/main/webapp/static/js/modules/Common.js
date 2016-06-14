@@ -115,9 +115,9 @@ magic.modules.Common = function () {
          * @param {string} msg      
          */
         buttonClickFeedback: function(btnBaseId, success, msg) {
-            var btnGo = $("#" + btnBaseId + "-go"),
-                btnFbOk = $("#" + btnBaseId + "-fb-ok"),
-                btnFbError = $("#" + btnBaseId + "-fb-error"),
+            var btnGo = jQuery("#" + btnBaseId + "-go"),
+                btnFbOk = jQuery("#" + btnBaseId + "-fb-ok"),
+                btnFbError = jQuery("#" + btnBaseId + "-fb-error"),
                 effect;
             btnGo.hide();
             /* See https://api.jquery.com/promise/ for queuing up animations like this */
@@ -128,7 +128,7 @@ magic.modules.Common = function () {
                 btnFbError.attr("data-original-title", msg).tooltip("fixTitle");
                 effect = function(){return(btnFbError.fadeIn(600).delay(1200).fadeOut(600))};
             }
-            $.when(effect()).done(function() {
+            jQuery.when(effect()).done(function() {
                 btnGo.show();                            
             });                        
         },
@@ -287,12 +287,12 @@ magic.modules.Common = function () {
                 callback(magic.runtime.capabilities[url], typename);
             } else {
                 var parser = new ol.format.WMSCapabilities();                
-                var jqXhr = $.get(this.getWxsRequestUrl(url, "GetCapabilities"), $.proxy(function(response) {
+                var jqXhr = jQuery.get(this.getWxsRequestUrl(url, "GetCapabilities"), jQuery.proxy(function(response) {
                     try {
-                        var capsJson = $.parseJSON(JSON.stringify(parser.read(response)));
+                        var capsJson = jQuery.parseJSON(JSON.stringify(parser.read(response)));
                         if (capsJson) {
                             var ftypes = null;
-                            if ("Capability" in capsJson && "Layer" in capsJson.Capability && "Layer" in capsJson.Capability.Layer && $.isArray(capsJson.Capability.Layer.Layer)) {
+                            if ("Capability" in capsJson && "Layer" in capsJson.Capability && "Layer" in capsJson.Capability.Layer && jQuery.isArray(capsJson.Capability.Layer.Layer)) {
                                 var layers = capsJson.Capability.Layer.Layer;
                                 ftypes = {};
                                 this.getFeatureTypes(ftypes, layers);                                
@@ -320,11 +320,11 @@ magic.modules.Common = function () {
          * @param {Array} layers
          */
         getFeatureTypes: function(ftypes, layers) {
-            $.each(layers, $.proxy(function(idx, layer) {
+            jQuery.each(layers, jQuery.proxy(function(idx, layer) {
                 if ("Name" in layer) {
                     /* Leaf node - a named layer */
                     ftypes[layer.Name] = layer;
-                } else if ("Layer" in layer && $.isArray(layer["Layer"])) {
+                } else if ("Layer" in layer && jQuery.isArray(layer["Layer"])) {
                     /* More trawling to do */
                     this.getFeatureTypes(ftypes, layer["Layer"]);
                 }        
@@ -343,7 +343,7 @@ magic.modules.Common = function () {
             var selOpt = null;
             select.find("option").remove();
             if (prependInvite === true) {
-                select.append($("<option>", {value: "", text: "Please select"}));
+                select.append(jQuery("<option>", {value: "", text: "Please select"}));
             }
             /* Sort by txtAttr */
             optArr.sort(function(a, b) {
@@ -351,8 +351,8 @@ magic.modules.Common = function () {
                 var lcb = b[txtAttr].toLowerCase();
                 return((lca < lcb ) ? -1 : (lca > lcb) ? 1 : 0);
             });
-            $.each(optArr, function(idx, optObj) {
-                var opt = $("<option>", {value: optObj[valAttr]});
+            jQuery.each(optArr, function(idx, optObj) {
+                var opt = jQuery("<option>", {value: optObj[valAttr]});
                 var text = optObj[txtAttr] || optObj[valAttr];               
                 opt.text(text);            
                 select.append(opt);

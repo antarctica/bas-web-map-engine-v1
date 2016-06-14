@@ -99,7 +99,7 @@ magic.modules.GeoUtils = function() {
          */
         toDecDegrees: function(value) {
             var res = value;
-            if (!$.isNumeric(value)) {
+            if (!jQuery.isNumeric(value)) {
                 /* Try DMS */
                 res = Number.NaN;
                 var cpts = value.split(/[^0-9EWSNewsn.]/);
@@ -181,7 +181,7 @@ magic.modules.GeoUtils = function() {
             if (!dp && dp != 0) {
                 dp = 1;
             }
-            if ($.isNumeric(value) && sourceFormat != destFormat) {
+            if (jQuery.isNumeric(value) && sourceFormat != destFormat) {
                 var multipliers = {
                     "m": 1.0,
                     "ft": 3.2808399,
@@ -220,10 +220,10 @@ magic.modules.GeoUtils = function() {
             if (!dp && dp != 0) {
                 dp = 1;
             }
-            var flattened = $.map(bbox, function(n) {return(n)}),
+            var flattened = jQuery.map(bbox, function(n) {return(n)}),
                 captions = ["minx", "miny", "maxx", "maxy"],                       
                 values = [];
-            $.each(flattened, function(idx, item) {
+            jQuery.each(flattened, function(idx, item) {
                 values.push(captions[idx] + " : " + parseFloat(item).toFixed(dp));
             });
             return(values.join("<br />"));

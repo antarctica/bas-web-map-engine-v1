@@ -15,7 +15,7 @@ magic.classes.DragZoomButton = function(name, ribbon) {
     this.dragZoomInteraction.setActive(false);
     magic.runtime.map.addInteraction(this.dragZoomInteraction);
     
-    this.btn = $('<button>', {
+    this.btn = jQuery('<button>', {
         "id": "btn-" + this.name,
         "class": "btn btn-default",
         "data-toggle": "tooltip",
@@ -23,7 +23,7 @@ magic.classes.DragZoomButton = function(name, ribbon) {
         "title": this.inactiveTitle,
         "html": '<span class="fa fa-plus-square-o"></span>'
     });
-    this.btn.on("click", $.proxy(function() {
+    this.btn.on("click", jQuery.proxy(function() {
         if (this.isActive()) {
             this.deactivate();
         } else {

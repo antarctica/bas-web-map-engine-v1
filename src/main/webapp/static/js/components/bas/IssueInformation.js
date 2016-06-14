@@ -11,12 +11,12 @@ magic.classes.IssueInformation = function(options) {
     this.issueData = options.data || magic.runtime.issuedata;
     
     /* Set up link handler */    
-    $("#" + this.target).click($.proxy(function(evt) {
+    jQuery("#" + this.target).click(jQuery.proxy(function(evt) {
         evt.stopPropagation();
-        var contentDiv = $(evt.currentTarget).next("div");                
+        var contentDiv = jQuery(evt.currentTarget).next("div");                
         if (contentDiv) {
             contentDiv.toggleClass("hidden");
-            if (!$.isEmptyObject(this.issueData)) {
+            if (!jQuery.isEmptyObject(this.issueData)) {
                 var description = "None";
                 try {
                     description = JSON.parse(this.issueData.description)["description"];

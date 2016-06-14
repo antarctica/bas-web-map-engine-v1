@@ -30,15 +30,15 @@ magic.classes.StaticTimeSeriesPlayer = function(options) {
             '<div style="margin-left:10px"><span id="granule-date-' + this.nodeid + '"></span></div>'
         );  
         var btns = this.target.children("button");
-        $(btns[0]).on("click", {pointer: "0"}, $.proxy(this.showImage, this));
-        $(btns[1]).on("click", {pointer: "-"}, $.proxy(this.showImage, this));
-        $(btns[2]).on("click", $.proxy(this.playMovie, this));
-        $(btns[3]).on("click",{pointer: "+"}, $.proxy(this.showImage, this));
-        $(btns[4]).on("click",{pointer: "1"}, $.proxy(this.showImage, this));
+        jQuery(btns[0]).on("click", {pointer: "0"}, jQuery.proxy(this.showImage, this));
+        jQuery(btns[1]).on("click", {pointer: "-"}, jQuery.proxy(this.showImage, this));
+        jQuery(btns[2]).on("click", jQuery.proxy(this.playMovie, this));
+        jQuery(btns[3]).on("click",{pointer: "+"}, jQuery.proxy(this.showImage, this));
+        jQuery(btns[4]).on("click",{pointer: "1"}, jQuery.proxy(this.showImage, this));
         this.syncButtons();
         this.updateLayer(); /* Important, as we may have an old image displaying whose time is not recorded */
         this.target.toggleClass("hidden");
-        $("#granule-date-" + this.nodeid).html(this.formatTime());        
+        jQuery("#granule-date-" + this.nodeid).html(this.formatTime());        
     } else {
         alert("No data");
     }
@@ -88,14 +88,14 @@ magic.classes.StaticTimeSeriesPlayer.prototype.showImage = function(evt) {
  */
 magic.classes.StaticTimeSeriesPlayer.prototype.playMovie = function(evt) {
     evt.stopPropagation();
-    var playBtn = $(this.target.children("button")[2]);
+    var playBtn = jQuery(this.target.children("button")[2]);
     this.movie = setInterval(
-        $.proxy(function() {
+        jQuery.proxy(function() {
             if (this.imagePointer < this.times.length - 1) {
                 if (playBtn.hasClass("fa-play")) {
                     playBtn.removeClass("fa-play").addClass("fa-pause");
                     playBtn.attr("data-original-title", "Pause movie").tooltip("fixTitle");
-                    playBtn.off("click").on("click", $.proxy(this.pauseMovie, this));                    
+                    playBtn.off("click").on("click", jQuery.proxy(this.pauseMovie, this));                    
                 }
                 this.imagePointer++;
                 this.updateLayer();
@@ -117,13 +117,13 @@ magic.classes.StaticTimeSeriesPlayer.prototype.playMovie = function(evt) {
  */
 magic.classes.StaticTimeSeriesPlayer.prototype.pauseMovie = function(evt) {
     evt.stopPropagation();
-    var playBtn = $(this.target.children("button")[2]);
+    var playBtn = jQuery(this.target.children("button")[2]);
     clearInterval(this.movie);
     if (playBtn.hasClass("fa-pause")) {
         playBtn.removeClass("fa-pause").addClass("fa-play");
         playBtn.attr("data-original-title", "Play movie of mosaic images").tooltip("fixTitle");
     }
-    playBtn.off("click").on("click", $.proxy(this.playMovie, this));    
+    playBtn.off("click").on("click", jQuery.proxy(this.playMovie, this));    
 };
 
 /**
@@ -131,11 +131,11 @@ magic.classes.StaticTimeSeriesPlayer.prototype.pauseMovie = function(evt) {
  */
 magic.classes.StaticTimeSeriesPlayer.prototype.syncButtons = function() {
     var btns = this.target.children("button");
-    $(btns[0]).prop("disabled", this.imagePointer == 0);
-    $(btns[1]).prop("disabled", this.imagePointer == 0);
-    $(btns[2]).prop("disabled", this.imagePointer == this.times.length - 1);
-    $(btns[3]).prop("disabled", this.imagePointer == this.times.length - 1);
-    $(btns[4]).prop("disabled", this.imagePointer == this.times.length - 1);    
+    jQuery(btns[0]).prop("disabled", this.imagePointer == 0);
+    jQuery(btns[1]).prop("disabled", this.imagePointer == 0);
+    jQuery(btns[2]).prop("disabled", this.imagePointer == this.times.length - 1);
+    jQuery(btns[3]).prop("disabled", this.imagePointer == this.times.length - 1);
+    jQuery(btns[4]).prop("disabled", this.imagePointer == this.times.length - 1);    
 };
 
 /**
@@ -144,7 +144,7 @@ magic.classes.StaticTimeSeriesPlayer.prototype.syncButtons = function() {
 magic.classes.StaticTimeSeriesPlayer.prototype.updateLayer = function() {
     /* Actually show the image in the layer */
     var t = this.times[this.imagePointer] + "";
-    $("#granule-date-" + this.nodeid).html(this.formatTime());
+    jQuery("#granule-date-" + this.nodeid).html(this.formatTime());
     this.layer.setSource(new ol.source.ImageStatic({
         url: magic.config.paths.baseurl + "/proxy/static?service=" + this.service + "&t=" + t,
         projection: magic.runtime.viewdata.projection,

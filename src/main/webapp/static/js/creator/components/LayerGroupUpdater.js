@@ -17,27 +17,27 @@ magic.classes.creator.LayerGroupUpdater = function(prefix) {
     this.data = null;
     
     /* Add update layer group button handler */
-    var btnUpdateGroup = $("#" + this.prefix + "-save");
+    var btnUpdateGroup = jQuery("#" + this.prefix + "-save");
     btnUpdateGroup.prop("disabled", true);     
-    $("[id^='" + this.prefix + "']").filter(":input").on("change keyup", function() {
+    jQuery("[id^='" + this.prefix + "']").filter(":input").on("change keyup", function() {
         /* Update button enabled when anything in the form changes */
         btnUpdateGroup.prop("disabled", false);
     });                                
-    btnUpdateGroup.click($.proxy(function(evt) {
+    btnUpdateGroup.click(jQuery.proxy(function(evt) {
         if (this.data && this.validate()) {
             /* Update dictionary entry */
             this.saveContext();
             /* Update the tree button caption as we have updated the name */
-            $("#" + this.data.id).find("button").first().html(this.data.name);
+            jQuery("#" + this.data.id).find("button").first().html(this.data.name);
             magic.modules.creator.Common.resetFormIndicators();
-            $("[id$='-update-panel']").fadeOut("slow");            
+            jQuery("[id$='-update-panel']").fadeOut("slow");            
         }
     }, this));
      
     /* Add delete layer group button handler */            
-    var btnDeleteGroup = $("#" + this.prefix + "-delete");   
+    var btnDeleteGroup = jQuery("#" + this.prefix + "-delete");   
     btnDeleteGroup.prop("disabled", true);
-    btnDeleteGroup.click($.proxy(function(evt) {
+    btnDeleteGroup.click(jQuery.proxy(function(evt) {
         if (this.data) {
             this.confirmDeleteEntry(this.data.id, "Really delete group : " + this.data.name + "?");
         }
@@ -51,7 +51,7 @@ magic.classes.creator.LayerGroupUpdater.prototype.loadContext = function(context
     this.data = context;
      
     /* Disable delete button if the group has any sub-layers or groups */
-    $("#" + this.prefix + "-delete").prop("disabled", $("#" + this.data.id).find("ul").find("li").length > 0);
+    jQuery("#" + this.prefix + "-delete").prop("disabled", jQuery("#" + this.data.id).find("ul").find("li").length > 0);
     
     /* Populate form snippet from data */
     magic.modules.creator.Common.dictToForm(this.form_fields, this.data, this.prefix);            
@@ -65,10 +65,10 @@ magic.classes.creator.LayerGroupUpdater.prototype.saveContext = function() {
  * Validate form inputs
  */
 magic.classes.creator.LayerGroupUpdater.prototype.validate = function() {    
-    var ok = $("#t2-group-form")[0].checkValidity();
+    var ok = jQuery("#t2-group-form")[0].checkValidity();
     /* Indicate invalid fields */
-    $.each($("#t2-group-form").find("input"), function(idx, ri) {
-        var riEl = $(ri);
+    jQuery.each(jQuery("#t2-group-form").find("input"), function(idx, ri) {
+        var riEl = jQuery(ri);
         var fg = riEl.closest("div.form-group");
         var vState = riEl.prop("validity");
         if (vState.valid) {
@@ -89,9 +89,9 @@ magic.classes.creator.LayerGroupUpdater.prototype.confirmDeleteEntry = function(
     bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">' + msg + '</div>', function(result) {
         if (result) {
             /* Do the deletion */
-            $("#" + id).remove();
+            jQuery("#" + id).remove();
             magic.modules.creator.Common.layer_dictionary.del(id);
-            $("[id$='-update-panel']").fadeOut("slow");
+            jQuery("[id$='-update-panel']").fadeOut("slow");
             bootbox.hideAll();
         } else {
             bootbox.hideAll();

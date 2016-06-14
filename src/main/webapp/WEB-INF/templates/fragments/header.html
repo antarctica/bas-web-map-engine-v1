@@ -31,15 +31,15 @@
         <script type="text/javascript">
             /* <![CDATA[*/
             function fetchPayload() {
-                var payloadRequest = $.ajax({
+                var payloadRequest = jQuery.ajax({
                     url: magic.config.paths.baseurl + "/maps/name/" + magic.runtime.mapname,
                     method: "GET",
                     dataType: "json"
                 }), 
                 prefsRequest = payloadRequest.then(function(payload) {                                        
-                    magic.runtime.map_context = $.extend({}, payload);
+                    magic.runtime.map_context = jQuery.extend({}, payload);
                     magic.runtime.map_context.data = JSON.parse(payload.data.value);
-                    return($.ajax({
+                    return(jQuery.ajax({
                         url: magic.config.paths.baseurl + "/prefs/get",
                         method: "GET",
                         dataType: "json"
@@ -61,24 +61,24 @@
                 });
             }
 
-            $(document).ready(function () {
+            jQuery(document).ready(function () {
                 /* Test whether general announcement is needed for all applications */
-                var announcement = $("#announcement-all");
+                var announcement = jQuery("#announcement-all");
                 var cookieName = "announcement_seen_all";
                 if (announcement.length == 0) {
                     var qry = window.location.href.indexOf("?");
                     var app = window.location.href.substring(window.location.href.lastIndexOf("/")+1, qry == -1 ? window.location.href.length : qry);
-                    announcement = $("#announcement-" + app);
+                    announcement = jQuery("#announcement-" + app);
                     cookieName = "announcement_seen_" + app;
                 }
                 if (announcement.length != 0) {
                     /* Need to display an announcement */
-                    var announceModal = $("#announcement-modal");
+                    var announceModal = jQuery("#announcement-modal");
                     if (announceModal.length > 0 && getCookie(cookieName) == "") {
                         announcement.removeClass("hidden");
                         announceModal.find(".modal-body").prepend(announcement);
-                        $("#announcement-close").on("click", function(evt) {
-                            if ($("#announcement-dismiss").prop("checked")) {
+                        jQuery("#announcement-close").on("click", function(evt) {
+                            if (jQuery("#announcement-dismiss").prop("checked")) {
                                 setCookie(cookieName, "yes", 1000);
                             }
                             announceModal.modal("hide");
@@ -171,15 +171,15 @@
         <script type="text/javascript">
             /* <![CDATA[*/
             function fetchPayload() {
-                var payloadRequest = $.ajax({
+                var payloadRequest = jQuery.ajax({
                     url: magic.config.paths.baseurl + "/maps/name/" + magic.runtime.mapname,
                     method: "GET",
                     dataType: "json"
                 }), 
                 prefsRequest = payloadRequest.then(function(payload) {                                        
-                    magic.runtime.map_context = $.extend({}, payload);
+                    magic.runtime.map_context = jQuery.extend({}, payload);
                     magic.runtime.map_context.data = JSON.parse(payload.data.value);
-                    return($.ajax({
+                    return(jQuery.ajax({
                         url: magic.config.paths.baseurl + "/prefs/get",
                         method: "GET",
                         dataType: "json"
@@ -195,24 +195,24 @@
                 });
             }
 
-            $(document).ready(function () {
+            jQuery(document).ready(function () {
                 /* Test whether general announcement is needed for all applications */
-                var announcement = $("#announcement-all");
+                var announcement = jQuery("#announcement-all");
                 var cookieName = "announcement_seen_all";
                 if (announcement.length == 0) {
                     var qry = window.location.href.indexOf("?");
                     var app = window.location.href.substring(window.location.href.lastIndexOf("/")+1, qry == -1 ? window.location.href.length : qry);
-                    announcement = $("#announcement-" + app);
+                    announcement = jQuery("#announcement-" + app);
                     cookieName = "announcement_seen_" + app;
                 }
                 if (announcement.length != 0) {
                     /* Need to display an announcement */
-                    var announceModal = $("#announcement-modal");
+                    var announceModal = jQuery("#announcement-modal");
                     if (announceModal.length > 0 && getCookie(cookieName) == "") {
                         announcement.removeClass("hidden");
                         announceModal.find(".modal-body").prepend(announcement);
-                        $("#announcement-close").on("click", function(evt) {
-                            if ($("#announcement-dismiss").prop("checked")) {
+                        jQuery("#announcement-close").on("click", function(evt) {
+                            if (jQuery("#announcement-dismiss").prop("checked")) {
                                 setCookie(cookieName, "yes", 1000);
                             }
                             announceModal.modal("hide");

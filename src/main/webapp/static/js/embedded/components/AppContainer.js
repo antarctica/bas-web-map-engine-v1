@@ -19,6 +19,9 @@ magic.classes.embedded.AppContainer = function (opts) {
     /* Set container sizes */
     this.fitMapToViewport(); 
     
+    /* Global map container */
+    magic.runtime.map_container = jQuery("#" + this.target);
+    
     /* Set defaults for data irrelevant to an embedded map */
     magic.runtime.search = {};
     magic.runtime.userlayers = [];
@@ -55,7 +58,7 @@ magic.classes.embedded.AppContainer = function (opts) {
             })
         ],
         interactions: ol.interaction.defaults(),
-        target: "map",
+        target: this.target,
         view: magic.runtime.view
     });
 
@@ -80,45 +83,10 @@ magic.classes.embedded.AppContainer = function (opts) {
     magic.runtime.feedback = null;
   
     /* Updates height of map when window resizes */
-    $(window).on("resize", $.proxy(function () {
+    jQuery(window).on("resize", jQuery.proxy(function () {
         this.fitMapToViewport();
     }, this));
-    
-    /* Listen for controls being activated/deactivated */
-    $(document).on("mapinteractionactivated", function (evt, tool) {
-        if (evt) {
-            $.each(magic.runtime.map_interaction_tools, function (mti, mt) {
-                if (tool != mt) {
-                    /* Deactivate tool and remove popover if required */
-                    if ($.isFunction(mt.deactivate)) {
-                        mt.deactivate(true);
-                    }
-                    if ($.isFunction(mt.getTarget)) {
-                        mt.getTarget().popover("hide");
-                    }
-                }
-            });
-            if (tool != magic.runtime.measurement) {
-                /* Allow clicking on features (gets in the way bigtime when measuring!) */
-                magic.runtime.featureinfotool.activate();
-            } else {
-                magic.runtime.featureinfotool.deactivate();
-            }
-        }
-    });
-    $(document).on("mapinteractiondeactivated", function (evt, tool) {
-        if (evt) {
-            var nActive = 0;
-            $.each(magic.runtime.map_interaction_tools, function (mti, mt) {
-                if ($.isFunction(mt.isActive) && mt.isActive()) {
-                    nActive++;
-                }
-            });
-            if (nActive == 0) {
-                magic.runtime.featureinfotool.activate();
-            }
-        }
-    });    
+        
 };
 
 /**
@@ -162,7 +130,7 @@ magic.classes.embedded.AppContainer.prototype.initView = function() {
  * Adjust width and height of map container to occupy all space apart from sidebar and top navigation *
  */
 magic.classes.embedded.AppContainer.prototype.fitMapToViewport = function () {
-    var mc = $("#" + this.target).height(this.height).width(this.width);
+    var mc = jQuery("#" + this.target).height(this.height).width(this.width);
     if (magic.runtime.map) {
         magic.runtime.map.updateSize();
     }

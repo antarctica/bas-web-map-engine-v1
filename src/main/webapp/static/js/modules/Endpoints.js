@@ -68,7 +68,7 @@ magic.modules.Endpoints = function () {
             var wmsEps = this.wms["default_host"][projection] || [];
             if (wmsEps.length > 0) {
                 var lb = this.lowBandwidthLocation();
-                filteredEps = $.grep(wmsEps, function(ep, idx) {
+                filteredEps = jQuery.grep(wmsEps, function(ep, idx) {
                     return((ep.bandwidth == "low" && lb) || (ep.bandwidth == "high" && !lb));
                 });
             }
@@ -82,7 +82,7 @@ magic.modules.Endpoints = function () {
          */
         getWmsServiceUrl: function(service, projection) {
             var lb = this.lowBandwidthLocation() ? "low" : "high";
-            var candidates = $.grep(this.getWmsEndpoints(projection), function(ep, idx) {
+            var candidates = jQuery.grep(this.getWmsEndpoints(projection), function(ep, idx) {
                 return(ep.bandwidth == lb && ep.name.toLowerCase() == service.toLowerCase());
             });
             return((candidates.length > 0) ? candidates[0].wms : "");            
@@ -94,7 +94,7 @@ magic.modules.Endpoints = function () {
         getMidLatitudeCoastLayer: function() {   
             var lb = this.lowBandwidthLocation();
             if (lb) {
-                var lb3857 = $.grep(this.wms["default_host"]["EPSG:3857"], function(ep, idx) {
+                var lb3857 = jQuery.grep(this.wms["default_host"]["EPSG:3857"], function(ep, idx) {
                    return(ep.bandwidth == "low");
                 });
                 if (lb3857.length > 0) {

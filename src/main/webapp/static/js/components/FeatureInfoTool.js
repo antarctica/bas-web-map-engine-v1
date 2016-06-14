@@ -22,7 +22,7 @@ magic.classes.FeatureInfoTool.prototype.isActive = function () {
  */
 magic.classes.FeatureInfoTool.prototype.activate = function () {    
     this.active = true;       
-    $("#map-container").css("cursor", "help");
+    magic.runtime.map_container.css("cursor", "help");
     magic.runtime.map.on("singleclick", this.queryFeatures, this);
 };
 
@@ -33,7 +33,7 @@ magic.classes.FeatureInfoTool.prototype.deactivate = function () {
     this.active = false;        
     /* Remove map click handler */
     magic.runtime.featureinfo.hide();
-    $("#map-container").css("cursor", "default");
+    magic.runtime.map_container.css("cursor", "default");
     magic.runtime.map.un("singleclick", this.queryFeatures, this);        
 };
 
@@ -68,14 +68,14 @@ magic.classes.FeatureInfoTool.prototype.queryFeatures = function(evt) {
                     url = magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(url);
                 }
                 if (url) {
-                    deferreds.push($.get(url).success(function(data) {
-                        if ($.isArray(data.features) && data.features.length > 0) {
-                            $.each(data.features, function(idx, f) {
+                    deferreds.push(jQuery.get(url).success(function(data) {
+                        if (jQuery.isArray(data.features) && data.features.length > 0) {
+                            jQuery.each(data.features, function(idx, f) {
                                 if (f.geometry) {
                                     var capBits = f.id.split(/[^A-Za-z0-9]/);
                                     capBits = capBits.slice(0, capBits.length-1);
                                     var caption = magic.modules.Common.initCap(capBits.join(" "));                        
-                                    fprops.push($.extend({}, f.properties, {"layer": layer}));                                       
+                                    fprops.push(jQuery.extend({}, f.properties, {"layer": layer}));                                       
                                 }
                             });
                         }
@@ -84,7 +84,7 @@ magic.classes.FeatureInfoTool.prototype.queryFeatures = function(evt) {
             }
         }
     });
-    $.when.apply($, deferreds).done($.proxy(function() {
+    jQuery.when.apply($, deferreds).done(jQuery.proxy(function() {
         this.featureinfo.show(evt.coordinate, fprops)
     }, this));
 };
@@ -99,18 +99,18 @@ magic.classes.FeatureInfoTool.prototype.featuresAtPixel = function(px) {
         if (layer != null) {
             /* This is not a feature overlay i.e. an artefact of presentation not real data */
             var clusterMembers = feature.get("features");
-            if (clusterMembers && $.isArray(clusterMembers)) {
+            if (clusterMembers && jQuery.isArray(clusterMembers)) {
                 /* Unpack cluster features */
-                $.each(clusterMembers, function(fi, f) {
+                jQuery.each(clusterMembers, function(fi, f) {
                     if (f.getGeometry()) {
                         var exProps = f.getProperties();
-                        fprops.push($.extend({}, exProps, {"layer": layer}));                           
+                        fprops.push(jQuery.extend({}, exProps, {"layer": layer}));                           
                     }                    
                 });
             } else {
                 if (feature.getGeometry()) {
                     var exProps = feature.getProperties();
-                    fprops.push($.extend({}, exProps, {"layer": layer}));
+                    fprops.push(jQuery.extend({}, exProps, {"layer": layer}));
                 }          
             }
         }

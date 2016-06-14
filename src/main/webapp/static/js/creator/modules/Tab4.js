@@ -7,8 +7,8 @@ magic.modules.creator.Tab4 = function () {
         map: null,
                 
         init: function() {
-            $("#t4-rotation-set").click($.proxy(function(evt) {
-                var rotationDeg = $("#t4-rotation").val();
+            jQuery("#t4-rotation-set").click(jQuery.proxy(function(evt) {
+                var rotationDeg = jQuery("#t4-rotation").val();
                 if (!isNaN(rotationDeg)) {
                     var rotationRad = Math.PI*rotationDeg/180.0;
                     this.map.getView().setRotation(rotationRad);
@@ -19,7 +19,7 @@ magic.modules.creator.Tab4 = function () {
         },
         saveContext: function(context) {
             context.data.center = this.map.getView().getCenter();
-            var rotation = parseFloat($("#t4-rotation").val());
+            var rotation = parseFloat(jQuery("#t4-rotation").val());
             context.data.rotation = isNaN(rotation) ? 0.0 : rotation;
             context.data.zoom = this.map.getView().getZoom();            
         },
@@ -33,7 +33,7 @@ magic.modules.creator.Tab4 = function () {
             }            
             if (resetMap || !this.map) {
                 this.map = null;
-                $("#t4-map").children().remove();
+                jQuery("#t4-map").children().remove();
                 var proj = ol.proj.get(context.data.projection);                               
                 var view = null;
                 /* Sort out the rotation (saved in degrees - OL needs radians */
@@ -43,7 +43,7 @@ magic.modules.creator.Tab4 = function () {
                 } else {
                     rotation = Math.PI*rotation/180.0;
                 }
-                $("#t4-rotation").val(context.data.rotation);
+                jQuery("#t4-rotation").val(context.data.rotation);
                 var layers = [];
                 var wms = magic.modules.Endpoints.getWmsEndpoints(context.data.projection)[0]["wms"];
                 if (wms == "osm") {
@@ -62,7 +62,7 @@ magic.modules.creator.Tab4 = function () {
                     proj.setExtent(context.data.proj_extent);   /* Don't do this for OSM - bizarre ~15km shifts happen! */
                     proj.setWorldExtent(context.data.proj_extent);
                     var coasts = magic.modules.Endpoints.getWmsEndpoints(context.data.projection)[0]["coast"];                    
-                    $.each(coasts, function(idx, cl) {
+                    jQuery.each(coasts, function(idx, cl) {
                         var wmsSource = new ol.source.TileWMS({
                             url: wms,
                             params: {

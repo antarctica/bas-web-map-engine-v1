@@ -83,16 +83,22 @@ jQuery(document).ready(function () {
         addCssToHeader(__embed_css_arr);
         jQuery.getMultiScripts(__embed_script_arr, __embed_cdn_path)
         .done(function () {
-            console.log("Getting map payload from " + data_url);
+            console.log("Getting map payload from " + data_url);            
             jQuery.ajax({
                 url: data_url,
                 method: "GET",
                 dataType: "json"
             })
-            .done(function () {
+            .done(function (payload) {
                 console.log("Successful");
                 magic.runtime.issuedata = {};
-                magic.runtime.appcontainer = new magic.classes.embedded.AppContainer({target: "map"});
+                magic.runtime.map_context = jQuery.extend({}, payload);
+                magic.runtime.map_context.data = JSON.parse(payload.data.value);
+                magic.runtime.appcontainer = new magic.classes.embedded.AppContainer({
+                    target: data_container,
+                    width: data_width,
+                    height: data_height
+                });
             })
             .fail(function () {
                 bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to load payload for embedded map from ' + data_url + '</div>');

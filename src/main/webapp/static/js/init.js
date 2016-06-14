@@ -35,7 +35,7 @@ var magic = {
         filters: {            
         },
         pingSession: function() {
-            $.get(magic.config.paths.baseurl + "/ping");
+            jQuery.get(magic.config.paths.baseurl + "/ping");
         },
         /* Eventually per-user */
         preferences: {

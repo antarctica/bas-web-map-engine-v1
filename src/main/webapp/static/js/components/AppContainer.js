@@ -12,12 +12,15 @@ magic.classes.AppContainer = function () {
      * magic.runtime.preferencedata
      */ 
     
+    /* Global map container */
+    magic.runtime.map_container = jQuery("#map-container");
+    
     /* Set container sizes */
     this.fitMapToViewport(); 
     
     /* Get issue data if supplied */
     magic.runtime.search = {};
-    if (!$.isEmptyObject(magic.runtime.issuedata)) {
+    if (!jQuery.isEmptyObject(magic.runtime.issuedata)) {
         try {
             magic.runtime.search = JSON.parse(magic.runtime.issuedata.description);
         } catch(e) {}
@@ -87,63 +90,63 @@ magic.classes.AppContainer = function () {
 
     /* Geosearch tool */
     magic.runtime.geosearch = null;
-    if ($.inArray("geosearch", magic.runtime.mapdata.controls) != -1 && $.isArray(magic.runtime.mapdata.gazetteers) && magic.runtime.mapdata.gazetteers.length > 0) {
+    if (jQuery.inArray("geosearch", magic.runtime.mapdata.controls) != -1 && jQuery.isArray(magic.runtime.mapdata.gazetteers) && magic.runtime.mapdata.gazetteers.length > 0) {
         /* Activate geosearch */
         magic.runtime.geosearch = new magic.classes.Geosearch({gazetteers: magic.runtime.mapdata.gazetteers, target: "geosearch-tool"});
         magic.runtime.map_interaction_tools.push(magic.runtime.geosearch);
     } else {
         /* Hide the geosearch button */
-        $("#geosearch-tool").closest("li").hide();
+        jQuery("#geosearch-tool").closest("li").hide();
     }
 
     /* Measurement tool */
     magic.runtime.measurement = null;
-    if ($.inArray("measurement", magic.runtime.mapdata.controls) != -1) {
+    if (jQuery.inArray("measurement", magic.runtime.mapdata.controls) != -1) {
         /* Activate measuring tool */
         magic.runtime.measurement = new magic.classes.Measurement({target: "measure-tool"});
         magic.runtime.map_interaction_tools.push(magic.runtime.measurement);
     } else {
         /* Hide the measure tool button */
-        $("#measure-tool").closest("li").hide();
+        jQuery("#measure-tool").closest("li").hide();
     }
 
     /* Overview map tool */
     magic.runtime.overview = null;
-    if ($.inArray("overview_map", magic.runtime.mapdata.controls) != -1) {
+    if (jQuery.inArray("overview_map", magic.runtime.mapdata.controls) != -1) {
         /* Activate overview map tool */
         magic.runtime.overview = new magic.classes.OverviewMap({target: "overview-map-tool"});
         magic.runtime.overview.setEnabledStatus();
     } else {
         /* Hide the overview map button */
-        $("#overview-map-tool").closest("li").hide();
+        jQuery("#overview-map-tool").closest("li").hide();
     }
     
     /* Data download from repository tool */
-    if ($.inArray("download_data", magic.runtime.mapdata.controls) != -1 && magic.runtime.map_context.allowed_download != "nobody" && magic.runtime.repository) {
+    if (jQuery.inArray("download_data", magic.runtime.mapdata.controls) != -1 && magic.runtime.map_context.allowed_download != "nobody" && magic.runtime.repository) {
         /* Activate repository tool */        
-        $("#repo-tool").closest("li").show();
-        $("#repo-tool").on("click", function(evt) {
+        jQuery("#repo-tool").closest("li").show();
+        jQuery("#repo-tool").on("click", function(evt) {
             evt.stopPropagation();
             var repoUrl = magic.runtime.repository;            
             window.open(repoUrl, "_blank");
         });
     } else {
         /* Hide the download button */
-        $("#repo-tool").closest("li").hide();
+        jQuery("#repo-tool").closest("li").hide();
     }
     
     /* User feedback tool */
     magic.runtime.feedback = null;
-    if ($.inArray("feedback", magic.runtime.mapdata.controls) != -1) {
+    if (jQuery.inArray("feedback", magic.runtime.mapdata.controls) != -1) {
         /* Activate user feedback tool */
         magic.runtime.feedback = new magic.classes.Feedback({target: "feedback-tool"});
     } else {
         /* Hide the user feedback button */
-        $("#feedback-tool").closest("li").hide();
+        jQuery("#feedback-tool").closest("li").hide();
     }
 
     /* Updates height of map when window resizes */
-    $(window).on("resize", $.proxy(function () {
+    jQuery(window).on("resize", jQuery.proxy(function () {
         this.fitMapToViewport();
     }, this));
 
@@ -156,11 +159,11 @@ magic.classes.AppContainer = function () {
     }, this);
 
     /* Allow drag and drop of user GPX and KML layers */    
-    dd.on("addfeatures", $.proxy(function(evt) {
+    dd.on("addfeatures", jQuery.proxy(function(evt) {
         var vectorSource = new ol.source.Vector({
             features: evt.features
         });
-        $.each(evt.features, $.proxy(function(idx, feat) {
+        jQuery.each(evt.features, jQuery.proxy(function(idx, feat) {
             feat.setStyle(this.constructStyle(feat))
         }, this));        
         var layer = new ol.layer.Image({
@@ -182,27 +185,27 @@ magic.classes.AppContainer = function () {
      * and the login database is LDAP or Ramadda     
      */
     if (magic.runtime.map_context.allowed_usage != "public" || magic.runtime.map_context.allowed_download == "login" || window.location.pathname.indexOf("/restricted") == 0) {
-        $("ul.navbar-right").removeClass("hidden").show();
+        jQuery("ul.navbar-right").removeClass("hidden").show();
         /* Activate logout menu */
-        var lo = $("#log-out-user");
+        var lo = jQuery("#log-out-user");
         if (lo.length > 0) {
             lo.click(function (evt) {
                 evt.preventDefault();
-                $("#logout-form").submit();
+                jQuery("#logout-form").submit();
             });
         }
     }
     
     /* Listen for controls being activated/deactivated */
-    $(document).on("mapinteractionactivated", function (evt, tool) {
+    jQuery(document).on("mapinteractionactivated", function (evt, tool) {
         if (evt) {
-            $.each(magic.runtime.map_interaction_tools, function (mti, mt) {
+            jQuery.each(magic.runtime.map_interaction_tools, function (mti, mt) {
                 if (tool != mt) {
                     /* Deactivate tool and remove popover if required */
-                    if ($.isFunction(mt.deactivate)) {
+                    if (jQuery.isFunction(mt.deactivate)) {
                         mt.deactivate(true);
                     }
-                    if ($.isFunction(mt.getTarget)) {
+                    if (jQuery.isFunction(mt.getTarget)) {
                         mt.getTarget().popover("hide");
                     }
                 }
@@ -215,11 +218,11 @@ magic.classes.AppContainer = function () {
             }
         }
     });
-    $(document).on("mapinteractiondeactivated", function (evt, tool) {
+    jQuery(document).on("mapinteractiondeactivated", function (evt, tool) {
         if (evt) {
             var nActive = 0;
-            $.each(magic.runtime.map_interaction_tools, function (mti, mt) {
-                if ($.isFunction(mt.isActive) && mt.isActive()) {
+            jQuery.each(magic.runtime.map_interaction_tools, function (mti, mt) {
+                if (jQuery.isFunction(mt.isActive) && mt.isActive()) {
                     nActive++;
                 }
             });
@@ -235,12 +238,12 @@ magic.classes.AppContainer = function () {
  */
 magic.classes.AppContainer.prototype.initMapMetadata = function() {
     var context = magic.runtime.map_context;
-    $("#apptitle").text(context.title);
-    $(document).attr("title", context.title);
-    $("#applogo").attr("src", context.logo || magic.config.paths.baseurl + "/static/images/bas.png");
-    $("#appurl").attr("href", context.metadata_url);
-    $("link[rel='icon']").attr("href", magic.config.paths.baseurl + "/" + context.favicon);
-    $("link[rel='shortcut icon']").attr("href", magic.config.paths.baseurl + "/" + context.favicon);
+    jQuery("#apptitle").text(context.title);
+    jQuery(document).attr("title", context.title);
+    jQuery("#applogo").attr("src", context.logo || magic.config.paths.baseurl + "/static/images/bas.png");
+    jQuery("#appurl").attr("href", context.metadata_url);
+    jQuery("link[rel='icon']").attr("href", magic.config.paths.baseurl + "/" + context.favicon);
+    jQuery("link[rel='shortcut icon']").attr("href", magic.config.paths.baseurl + "/" + context.favicon);
 };
 
 /**
@@ -284,19 +287,18 @@ magic.classes.AppContainer.prototype.initView = function() {
  * Adjust width and height of map container to occupy all space apart from sidebar and top navigation *
  */
 magic.classes.AppContainer.prototype.fitMapToViewport = function () {
-    var sideBar = $("div#layer-tree");
-    var mc = $("#map-container");
+    var sideBar = jQuery("div#layer-tree");
     var sbWidth = 0;
     if (sideBar.length == 0 || sideBar.is(":hidden")) {
         /* Set map to start at left margin */
-        mc.css("left", 0);
+        magic.runtime.map_container.css("left", 0);
     } else {
         /* Restore sidebar */
         sbWidth = sideBar.width();
-        mc.css("left", sbWidth);
+        magic.runtime.map_container.css("left", sbWidth);
     }
-    mc.height(window.innerHeight - $("div.navbar-header").height());
-    mc.width(window.innerWidth - sbWidth);
+    magic.runtime.map_container.height(window.innerHeight - jQuery("div.navbar-header").height());
+    magic.runtime.map_container.width(window.innerWidth - sbWidth);
     if (magic.runtime.map) {
         magic.runtime.map.updateSize();
     }
@@ -326,7 +328,7 @@ magic.classes.AppContainer.prototype.constructStyle = function(feat) {
     var geomType = feat.getGeometry().getType();    
     var paletteEntry = magic.runtime.userlayers.length % magic.modules.Common.color_palette.length;
     var label = null;
-    $.each(feat.getProperties(), function(key, value) {
+    jQuery.each(feat.getProperties(), function(key, value) {
         if (magic.modules.Common.isNameLike(key)) {
             label = value;
             return(false);

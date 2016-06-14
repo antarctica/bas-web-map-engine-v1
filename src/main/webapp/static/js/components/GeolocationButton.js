@@ -17,7 +17,7 @@ magic.classes.GeolocationButton = function (name, ribbon, map) {
     this.geolocation = null;
     this.deviceOrientation = null;
 
-    this.btn = $('<button>', {
+    this.btn = jQuery('<button>', {
         "id": "btn-" + this.name,
         "class": "btn btn-default",
         "data-toggle": "tooltip",
@@ -25,7 +25,7 @@ magic.classes.GeolocationButton = function (name, ribbon, map) {
         "title": this.inactiveTitle,
         "html": '<span class="fa fa-location-arrow"></span>'
     });
-    this.btn.on("click", $.proxy(function () {
+    this.btn.on("click", jQuery.proxy(function () {
         if (this.isActive()) {
             this.deactivate();
         } else {
@@ -51,7 +51,7 @@ magic.classes.GeolocationButton.prototype.activate = function () {
         
     if (this.marker == null) {
         this.marker = new ol.Overlay({
-            element: $("#geolocation")[0],
+            element: jQuery("#geolocation")[0],
             positioning: "center-center"
         });
         this.map.addOverlay(this.marker);
@@ -88,7 +88,7 @@ magic.classes.GeolocationButton.prototype.activate = function () {
 magic.classes.GeolocationButton.prototype.deactivate = function () {
     this.active = false;   
     if (this.marker) {
-        $("#geolocation").addClass("hidden");
+        jQuery("#geolocation").addClass("hidden");
     }
     this.geolocation.setTracking(false);
     this.deviceOrientation.setTracking(false);
@@ -105,7 +105,7 @@ magic.classes.GeolocationButton.prototype.showLocation = function () {
         var projc = ol.proj.transform(coordinate, this.map.getView().getProjection(), "EPSG:4326");                
         if (magic.modules.GeoUtils.withinExtent(projc, magic.modules.GeoUtils.projectionLatLonExtent(this.map.getView().getProjection()))) {
             /* Display the marker and append current location to cumulative track */
-            $("#geolocation").removeClass("hidden");
+            jQuery("#geolocation").removeClass("hidden");
             this.marker.setPosition(coordinate);
             /* Current location on the map - project to map projection and center the map */                                        
             this.map.getView().setCenter(coordinate);                                 
@@ -124,7 +124,7 @@ magic.classes.GeolocationButton.prototype.showLocation = function () {
 magic.classes.GeolocationButton.prototype.showHeading = function () {
     var heading = this.deviceOrientation.getHeading()
     //this.map.getView().setRotation(-rotation);
-    var mElt = $("#geolocation")[0];
+    var mElt = jQuery("#geolocation")[0];
     mElt.style["-webkit-transform"] = "rotate(" + heading + "rad)";
     mElt.style["transform"] = "rotate(" + heading + "rad)";
 };

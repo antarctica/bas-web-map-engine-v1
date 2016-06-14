@@ -13,13 +13,13 @@ magic.classes.creator.MapContext = function() {
 magic.classes.creator.MapContext.prototype.load = function(action, name, callback) {
     if (action == "new") {
         /* New blank map context */
-        this.context = $.extend(true, {}, magic.modules.creator.Data.BLANK_MAP_CORE, {"data": magic.modules.creator.Data.BLANK_MAP_DATA(name)});
+        this.context = jQuery.extend(true, {}, magic.modules.creator.Data.BLANK_MAP_CORE, {"data": magic.modules.creator.Data.BLANK_MAP_DATA(name)});
         this.id = "";
         callback(this.context);
     } else {
         /* Clone or edit implies a fetch of map with id */
-        $.getJSON(magic.config.paths.baseurl + "/maps/name/" + name, $.proxy(function (response) {
-            this.context = $.extend({}, response);
+        jQuery.getJSON(magic.config.paths.baseurl + "/maps/name/" + name, jQuery.proxy(function (response) {
+            this.context = jQuery.extend({}, response);
             this.context.data = JSON.parse(response.data.value);
             this.id = action == "edit" ? this.context.id : "";
             callback(this.context);
@@ -41,7 +41,7 @@ magic.classes.creator.MapContext.prototype.getMapName = function() {
 
 magic.classes.creator.MapContext.prototype.getLayers = function() {
     var layers = [];
-    if (this.context.data && $.isArray(this.context.data.layers)) {
+    if (this.context.data && jQuery.isArray(this.context.data.layers)) {
         layers = this.context.data.layers;
     }
     return(layers);
