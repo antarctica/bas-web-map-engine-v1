@@ -17,15 +17,15 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
         '</li>' + 
         '<li>' + 
             '<a href="Javascript:void(0)" id="opc-' + this.nodeid + '">Change layer transparency</a>' + 
-            '<div class="layer-options-slider hidden" id="wrapper-opc-' + this.nodeid + '" style="">' + 
+            '<div class="layer-options-dd-entry layer-options-slider hidden" id="wrapper-opc-' + this.nodeid + '">' + 
                 '<input id="opc-slider-' + this.nodeid + '" data-slider-id="opc-slider-' + this.nodeid + '" data-slider-min="0" data-slider-max="1" data-slider-step="0.1" data-slider-value="1">' + 
             '</div>' + 
-        '</li>' 
-//        '<li>' + 
-//            '<a href="Javascript:void(0)" id="tss-' + this.nodeid + '">View time series</a>' +
-//            '<div class="hidden" id="wrapper-tss-' + this.nodeid + '">' +                                    
-//            '</div>' + 
-//        '</li>'
+        '</li>' +
+        '<li>' + 
+            '<a href="Javascript:void(0)" id="tss-' + this.nodeid + '">View time series</a>' +
+            '<div class="layer-options-dd-entry hidden" id="wrapper-tss-' + this.nodeid + '">' +                                    
+            '</div>' + 
+        '</li>'
 /* Awaiting a more effective WebGL implementation in OL3 - David 22/07/15 */        
 //        '<li>' + 
 //            '<a href="Javascript:void(0)" id="brt-' + this.nodeid + '">Change layer brightness</a>' + 
@@ -39,39 +39,62 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
 //                '<input id="ctr-slider-' + this.nodeid + '" data-slider-id="ctr-slider-' + this.nodeid + '" data-slider-min="0" data-slider-max="10" data-slider-step="1" data-slider-value="5">' + 
 //            '</div>' +
 //        '</li>'  
-    );
-    /* Handlers */
-    /* Zoom to layer extent */
-    var md = this.layer.get("metadata");
-    if (this.layer.getVisible() && !(md && md.source && md.source.wms_source == "osm")) {
-        /* Layer is visible on the map */        
-        jQuery("#ztl-" + this.nodeid).off("click").on("click", jQuery.proxy(this.zoomToExtent, this));        
-    } else {
-        /* Layer invisible (or OSM), so option is unavailable */
-        jQuery("#ztl-" + this.nodeid).parent().addClass("disabled");
+    );        
+    if (this.layer) {
+        /* Add handlers */
+
+        /* Zoom to layer extent */
+        var md = this.layer.get("metadata");
+        var layerVis = this.layer.getVisible();
+        if (layerVis && !(md && md.source && md.source.wms_source == "osm")) {
+            /* Layer is visible on the map, and this is not an OSM layer */        
+            jQuery("#ztl-" + this.nodeid).off("click").on("click", jQuery.proxy(this.zoomToExtent, this));        
+        } else {
+            /* Layer invisible (or OSM), so option is unavailable */
+            jQuery("#ztl-" + this.nodeid).parent().addClass("disabled");
+        }
+        
+        /* Filter layer */
+        if (layerVis && md && md.is_filterable === true && jQuery.isArray(md.attribute_map)) {
+            jQuery("#ftr-" + this.nodeid).off("click").on("click", jQuery.proxy(function(evt) {
+                evt.stopPropagation();
+                new magic.classes.LayerFilter({               
+                    target: jQuery(evt.currentTarget).next("div"),
+                    nodeid: this.nodeid,
+                    layer: this.layer
+                });                       
+            }, this));
+        } else {
+            /* Hide filter link for layer where it isn't possible */
+            jQuery("#ftr-" + this.nodeid).parent().addClass("disabled");        
+        }
+        
+        /* Time series movie player, if layer supports the time dimension */
+        if (layerVis && md && md.source && md.source.is_time_dependent === true) {
+            jQuery(".tooltip").attr("container", "body");
+            jQuery("#tss-" + this.nodeid).off("click").on("click", jQuery.proxy(function(evt) {
+                evt.stopPropagation();
+                // TODO - don't re-allocate these every time 
+                new magic.classes.MosaicTimeSeriesPlayer({               
+                    target: jQuery(evt.currentTarget).next("div"),
+                    nodeid: this.nodeid,
+                    layer: this.layer
+                });                       
+            }, this));
+        } else {
+            /* Hide time series link for layer where it isn't possible */
+            jQuery("#tss-" + this.nodeid).parent().addClass("disabled");        
+        }
+        
+        /* Transparency control */
+        this.addWebglSliderHandler("opc", 0.0, 1.0, 0.1);
+        
+        /* Awaiting a more effective WebGL implementation in OL3 - David 22/07/15 */
+        /* Brightness control */
+        //this.addWebglSliderHandler("brt", -1.0, 1.0, 0.2);
+        /* Contrast control */
+        //this.addWebglSliderHandler("ctr", 0.0, 10.0, 1.0);
     }
-    /* Filter layer */
-    var md = this.layer.get("metadata");
-    if (this.layer.getVisible() && md && md.is_filterable === true && jQuery.isArray(md.attribute_map)) {
-        jQuery("#ftr-" + this.nodeid).off("click").on("click", jQuery.proxy(function(evt) {
-            evt.stopPropagation();
-            new magic.classes.LayerFilter({               
-                target: jQuery(evt.currentTarget).next("div"),
-                nodeid: this.nodeid,
-                layer: this.layer
-            });                       
-        }, this));
-    } else {
-        /* Hide filter link for layer where it isn't possible */
-        jQuery("#ftr-" + this.nodeid).parent().addClass("disabled");        
-    }
-    /* Transparency control */
-    this.addWebglSliderHandler("opc", 0.0, 1.0, 0.1);
-    /* Awaiting a more effective WebGL implementation in OL3 - David 22/07/15 */
-    /* Brightness control */
-    //this.addWebglSliderHandler("brt", -1.0, 1.0, 0.2);
-    /* Contrast control */
-    //this.addWebglSliderHandler("ctr", 0.0, 10.0, 1.0);
 };
 
 /**
@@ -99,7 +122,7 @@ magic.classes.LayerTreeOptionsMenu.prototype.addWebglSliderHandler = function(id
                 jQuery("#" + idbase + "-slider-" + this.nodeid).slider({
                     value: startValue,
                     formatter: function(value) {
-                        return("Current value: " + value);
+                        return("Value: " + value);
                     }
                 }).on("slide", function(evt) {
                     var newVal = evt.value;
@@ -108,7 +131,7 @@ magic.classes.LayerTreeOptionsMenu.prototype.addWebglSliderHandler = function(id
                         case "brt": layer.setBrightness(newVal); break;
                         case "ctr": layer.setContrast(newVal); break;        
                     }
-                });
+                }).relayout();
             } else {
                 wrapper.removeClass("show").addClass("hidden");
             }                        

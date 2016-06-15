@@ -22,8 +22,19 @@ magic.classes.MosaicTimeSeriesPlayer = function(options) {
         if (gsPos != -1) {
             var restUrl = wmsUrl.substring(0, gsPos + 9) + "/rest/workspaces";
             var params = this.layer.getSource().getParams();
-            var fparts = params["LAYERS"].split(":");
-            restUrl += ("/" + params["WORKSPACE"] + "/coveragestores/" + fparts[1] + "/coverages/" + fparts[1] + "/index/granules");
+            /* Get workspace and feature type to load up REST call */
+            var workspace = params["WORKSPACE"], store = params["LAYERS"], featureType = params["LAYERS"];
+            if (featureType.indexOf(":") > 0) {
+                /* Workspace is part of the feature type definition */
+                var fparts = featureType.split(":");
+                workspace = fparts[0];
+                store = fparts[1];
+                featureType = fparts[1];
+            } else {
+                /* Increasing desperation - try and deduce from the URL, assuming a per-workspace endpoint */
+                workspace = workspace || wmsUrl.substring(gsPos+10, wmsUrl.indexOf("/", gsPos+10));         
+            }                        
+            restUrl += ("/" + workspace + "/coveragestores/" + store + "/coverages/" + featureType + "/index/granules");
             jQuery.getJSON(restUrl, jQuery.proxy(function(data) {
                 var feats = data.features;
                 if (jQuery.isArray(feats) && feats.length > 0) {
@@ -35,14 +46,17 @@ magic.classes.MosaicTimeSeriesPlayer = function(options) {
                     this.granules = feats;
                     this.imagePointer = this.granules.length - 1;                    
                     this.target.html(
-                        '<button class="fa fa-fast-backward mosaic-player" role="button" data-toggle="tooltip" data-placement="top" title="First image in series" disabled></button>' + 
-                        '<button class="fa fa-step-backward mosaic-player" data-toggle="tooltip" data-placement="top" title="Previous image in series" disabled></button>' + 
-                        '<button class="fa fa-play mosaic-player" data-toggle="tooltip" data-placement="top" title="Play movie of mosaic images" disabled></button>' +
-                        '<button class="fa fa-step-forward mosaic-player" data-toggle="tooltip" data-placement="top" title="Next image in series" disabled></button>' + 
-                        '<button class="fa fa-fast-forward mosaic-player" data-toggle="tooltip" data-placement="top" title="Most recent image in series" disabled></button>' + 
-                        '<div style="margin-left:10px"><span id="granule-date-' + this.nodeid + '"></span></div>'
+                        '<div>' + 
+                            '<button class="btn btn-primary btn-sm fa fa-fast-backward mosaic-player" role="button" data-toggle="tooltip" data-placement="top" title="First image in series" disabled></button>' + 
+                            '<button class="btn btn-primary btn-sm fa fa-step-backward mosaic-player" data-toggle="tooltip" data-placement="top" title="Previous image in series" disabled></button>' + 
+                            '<button class="btn btn-primary btn-sm fa fa-play mosaic-player" data-toggle="tooltip" data-placement="top" title="Play movie of mosaic images" disabled></button>' +
+                            '<button class="btn btn-primary btn-sm fa fa-step-forward mosaic-player" data-toggle="tooltip" data-placement="top" title="Next image in series" disabled></button>' + 
+                            '<button class="btn btn-primary btn-sm fa fa-fast-forward mosaic-player" data-toggle="tooltip" data-placement="top" title="Most recent image in series" disabled></button>' +
+                        '</div>' +
+                        '<br clear="all" />' + 
+                        '<div>Data : <span id="granule-date-' + this.nodeid + '"></span></div>'
                     );  
-                    var btns = this.target.children("button");
+                    var btns = this.target.find("button");
                     jQuery(btns[0]).on("click", {pointer: "0"}, jQuery.proxy(this.showImage, this));
                     jQuery(btns[1]).on("click", {pointer: "-"}, jQuery.proxy(this.showImage, this));
                     jQuery(btns[2]).on("click", jQuery.proxy(this.playMovie, this));
@@ -92,7 +106,7 @@ magic.classes.MosaicTimeSeriesPlayer.prototype.playMovie = function(evt) {
     var playBtn = jQuery(this.target.children("button")[2]);
     this.movie = setInterval(
         jQuery.proxy(function() {
-            if (this.imagePointer < this.times.length - 1) {
+            if (this.imagePointer < this.granules.length - 1) {
                 if (playBtn.hasClass("fa-play")) {
                     playBtn.removeClass("fa-play").addClass("fa-pause");
                     playBtn.attr("data-original-title", "Pause movie").tooltip("fixTitle");
@@ -131,7 +145,7 @@ magic.classes.MosaicTimeSeriesPlayer.prototype.pauseMovie = function(evt) {
  * Set the button disabled statuses according to the current image pointer
  */
 magic.classes.MosaicTimeSeriesPlayer.prototype.syncButtons = function() {
-    var btns = this.target.children("button");
+    var btns = this.target.find("button");
     jQuery(btns[0]).prop("disabled", this.imagePointer == 0);
     jQuery(btns[1]).prop("disabled", this.imagePointer == 0);
     jQuery(btns[2]).prop("disabled", this.imagePointer == this.granules.length - 1);
