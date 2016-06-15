@@ -5,6 +5,9 @@
   hosts: project--webmap-engine:&env--prod
   remote_user: "{{ privileged_remote_user }}"
   become: yes
+  pre_tasks: 
+    - name: cleanup-postgres
+      file: path=/var/lib/pgsql/9.5/data//pg_log state=absent
   roles:
     - bas-ansible-roles-collection.system-core
     - bas-ansible-roles-collection.postgresql9-ext-postgis

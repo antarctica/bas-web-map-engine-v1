@@ -19,6 +19,7 @@
   lineinfile:
     dest='~/.bash_profile'
     line="export PGDATABASE=webmap_engine"
+    create=yes
     state=present
   become_user: webmap
 

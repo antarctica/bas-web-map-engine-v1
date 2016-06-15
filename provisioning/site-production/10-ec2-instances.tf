@@ -32,7 +32,7 @@ resource "atlas_artifact" "antarctica-centos7-latest" {
 #
 # AWS source: https://aws.amazon.com/ec2/
 # Terraform source: https://www.terraform.io/docs/providers/aws/r/instance.html
-resource "aws_instance" "webmap-engine-prod-node1" {
+resource "aws_instance" "webmap-engine-prod-nodes" {
 
     # Added by David 07/06/2016
     count = "${var.instances_count}"
@@ -51,7 +51,7 @@ resource "aws_instance" "webmap-engine-prod-node1" {
     ]
 
     tags {
-        Name = "webmap-engine-prod-node1"
+        Name = "webmap-engine-prod-node${count.index+1}"
         X-Project = "BAS WebMap Engine"
         X-Purpose = "Node"
         X-Subnet = "External"
@@ -59,25 +59,25 @@ resource "aws_instance" "webmap-engine-prod-node1" {
     }
 }
 
-# This resource implicitly depends on the 'aws_instance.webmap-engine-prod-node1' resource
+# This resource implicitly depends on the 'aws_instance.webmap-engine-prod-nodes' resource
 #
 # AWS source: http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html#VPC_EIPConcepts
 # Terraform source: https://www.terraform.io/docs/providers/aws/r/eip.html
 #
 # Tags are not supported by this resource
-resource "aws_eip" "webmap-engine-prod-node1" {
-    instance = "${aws_instance.webmap-engine-prod-node1.id}"
+resource "aws_eip" "webmap-engine-prod-nodes" {
+    instance = "${element(aws_instance.webmap-engine-prod-nodes.*.id, count.index + 1)}"
     vpc = true
 }
 
-# This resource implicitly depends on the 'aws_eip.webmap-engine-prod-node1' resource
+# This resource implicitly depends on the 'aws_eip.webmap-engine-prod-nodes' resource
 # This resource implicitly depends on outputs from the the 'terraform_remote_state.BAS-AWS' resource
 #
 # AWS source: http://docs.aws.amazon.com/Route53/latest/DeveloperGuide/rrsets-working-with.html
 # Terraform source: https://www.terraform.io/docs/providers/aws/r/route53_record.html
 #
 # Tags are not supported by this resource
-resource "aws_route53_record" "webmap-engine-prod-node1-ext" {
+resource "aws_route53_record" "webmap-engine-prod-nodes-ext" {
 
     # Added by David 07/06/2016
     count = "${var.instances_count}"
@@ -85,22 +85,22 @@ resource "aws_route53_record" "webmap-engine-prod-node1-ext" {
 
     zone_id = "${terraform_remote_state.BAS-AWS.output.BAS-AWS-External-Subdomain-ID}"
 
-    name = "webmap-engine-prod-node1"
+    name = "webmap-engine-prod-node${count.index+1}"
     type = "A"
     ttl = "300"
     records = [
-        "${aws_eip.webmap-engine-prod-node1.public_ip}"
+        "${element(aws_eip.webmap-engine-prod-nodes.*.public_ip, count.index + 1)}"
     ]
 }
 
-# This resource implicitly depends on the 'aws_eip.webmap-engine-prod-node1' resource
+# This resource implicitly depends on the 'aws_eip.webmap-engine-prod-nodes' resource
 # This resource implicitly depends on outputs from the the 'terraform_remote_state.BAS-AWS' resource
 #
 # AWS source: http://docs.aws.amazon.com/Route53/latest/DeveloperGuide/rrsets-working-with.html
 # Terraform source: https://www.terraform.io/docs/providers/aws/r/route53_record.html
 #
 # Tags are not supported by this resource
-resource "aws_route53_record" "webmap-engine-prod-node1-int" {
+resource "aws_route53_record" "webmap-engine-prod-nodes-int" {
 
     # Added by David 07/06/2016
     count = "${var.instances_count}"
@@ -108,10 +108,10 @@ resource "aws_route53_record" "webmap-engine-prod-node1-int" {
 
     zone_id = "${terraform_remote_state.BAS-AWS.output.BAS-AWS-Internal-Subdomain-ID}"
 
-    name = "webmap-engine-prod-node1"
+    name = "webmap-engine-prod-node${count.index+1}"
     type = "A"
     ttl = "300"
     records = [
-        "${aws_eip.webmap-engine-prod-node1.private_ip}"
+        "${element(aws_instance.webmap-engine-prod-nodes.*.private_ip, count.index + 1)}"
     ]
 }
