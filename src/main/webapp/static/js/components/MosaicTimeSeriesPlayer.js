@@ -45,33 +45,44 @@ magic.classes.MosaicTimeSeriesPlayer = function(options) {
                     });
                     this.granules = feats;
                     this.imagePointer = this.granules.length - 1;                    
-                    this.target.html(
-                        '<div>' + 
-                            '<button class="btn btn-primary btn-sm fa fa-fast-backward mosaic-player" role="button" data-toggle="tooltip" data-placement="top" title="First image in series" disabled></button>' + 
-                            '<button class="btn btn-primary btn-sm fa fa-step-backward mosaic-player" data-toggle="tooltip" data-placement="top" title="Previous image in series" disabled></button>' + 
-                            '<button class="btn btn-primary btn-sm fa fa-play mosaic-player" data-toggle="tooltip" data-placement="top" title="Play movie of mosaic images" disabled></button>' +
-                            '<button class="btn btn-primary btn-sm fa fa-step-forward mosaic-player" data-toggle="tooltip" data-placement="top" title="Next image in series" disabled></button>' + 
-                            '<button class="btn btn-primary btn-sm fa fa-fast-forward mosaic-player" data-toggle="tooltip" data-placement="top" title="Most recent image in series" disabled></button>' +
-                        '</div>' +
-                        '<br clear="all" />' + 
-                        '<div>Data : <span id="granule-date-' + this.nodeid + '"></span></div>'
-                    );  
-                    var btns = this.target.find("button");
-                    jQuery(btns[0]).on("click", {pointer: "0"}, jQuery.proxy(this.showImage, this));
-                    jQuery(btns[1]).on("click", {pointer: "-"}, jQuery.proxy(this.showImage, this));
-                    jQuery(btns[2]).on("click", jQuery.proxy(this.playMovie, this));
-                    jQuery(btns[3]).on("click",{pointer: "+"}, jQuery.proxy(this.showImage, this));
-                    jQuery(btns[4]).on("click",{pointer: "1"}, jQuery.proxy(this.showImage, this));
-                    this.syncButtons();
-                    this.target.toggleClass("hidden");
-                    jQuery("#granule-date-" + this.nodeid).html(this.getTime().replace(".000Z", ""));
+                    this.showCurrentState();
                 } else {
-                    alert("No data");
+                    alert("No data received");
                 }
             }, this));
             
         }
     }
+};
+
+/**
+ * Show the current state of the player, including the layer granule displayed
+ */
+magic.classes.MosaicTimeSeriesPlayer.prototype.showCurrentState = function() {
+    if (this.imagePointer < 0) {
+        this.imagePointer = this.granules.length - 1;
+    }
+    this.target.html(
+        '<div>' + 
+            '<button class="btn btn-primary btn-sm fa fa-fast-backward mosaic-player" role="button" data-toggle="tooltip" data-placement="top" title="First image in series" disabled></button>' + 
+            '<button class="btn btn-primary btn-sm fa fa-step-backward mosaic-player" data-toggle="tooltip" data-placement="top" title="Previous image in series" disabled></button>' + 
+            '<button class="btn btn-primary btn-sm fa fa-play mosaic-player" data-toggle="tooltip" data-placement="top" title="Play movie of mosaic images" disabled></button>' +
+            '<button class="btn btn-primary btn-sm fa fa-step-forward mosaic-player" data-toggle="tooltip" data-placement="top" title="Next image in series" disabled></button>' + 
+            '<button class="btn btn-primary btn-sm fa fa-fast-forward mosaic-player" data-toggle="tooltip" data-placement="top" title="Most recent image in series" disabled></button>' +
+        '</div>' +
+        '<br clear="all" />' + 
+        '<div>Data : <span id="granule-date-' + this.nodeid + '"></span></div>'
+    );  
+    var btns = this.target.find("button");
+    jQuery(btns[0]).on("click", {pointer: "0"}, jQuery.proxy(this.showImage, this));
+    jQuery(btns[1]).on("click", {pointer: "-"}, jQuery.proxy(this.showImage, this));
+    jQuery(btns[2]).on("click", jQuery.proxy(this.playMovie, this));
+    jQuery(btns[3]).on("click",{pointer: "+"}, jQuery.proxy(this.showImage, this));
+    jQuery(btns[4]).on("click",{pointer: "1"}, jQuery.proxy(this.showImage, this));
+    this.syncButtons();
+    this.updateLayer();
+    this.target.toggleClass("hidden");
+    jQuery("#granule-date-" + this.nodeid).html(this.getTime().replace(".000Z", ""));
 };
 
 /**

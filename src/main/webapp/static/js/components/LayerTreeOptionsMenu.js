@@ -2,8 +2,12 @@
 
 magic.classes.LayerTreeOptionsMenu = function(options) {    
     
+    /* API properties */
     this.nodeid = options.nodeid;
     this.layer = options.layer;
+
+    /* Internal properties */
+    this.time_dependent_mosaics = {};
     
     /* Markup */
     jQuery("#layer-opts-dm-" + this.nodeid).html(
@@ -74,12 +78,17 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
             jQuery(".tooltip").attr("container", "body");
             jQuery("#tss-" + this.nodeid).off("click").on("click", jQuery.proxy(function(evt) {
                 evt.stopPropagation();
-                // TODO - don't re-allocate these every time 
-                new magic.classes.MosaicTimeSeriesPlayer({               
-                    target: jQuery(evt.currentTarget).next("div"),
-                    nodeid: this.nodeid,
-                    layer: this.layer
-                });                       
+                var layerName = this.layer.get("name");
+                if (!this.time_dependent_mosaics[layerName]) {
+                    /* Allocate time series player */
+                    this.time_dependent_mosaics[layerName] = new magic.classes.MosaicTimeSeriesPlayer({               
+                        target: jQuery(evt.currentTarget).next("div"),
+                        nodeid: this.nodeid,
+                        layer: this.layer
+                    }); 
+                } else {
+                    this.time_dependent_mosaics[layerName].showCurrentState();
+                }
             }, this));
         } else {
             /* Hide time series link for layer where it isn't possible */
