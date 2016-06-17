@@ -77,6 +77,14 @@ magic.classes.LayerFilter = function(options) {
                         '<input id="ftr-val-num2-' + this.nodeid + '" class="form-control" type="number" required="false" placeholder="Numeric attribute value" ' + 
                             'data-toggle="tooltip" data-placement="right" title="Enter upper numeric attribute value to filter on"></input>' + 
                     '</div>' + 
+                    '<div class="form-group form-group-sm col-sm-12 hidden">' +
+                        '<input id="ftr-val-date1-' + this.nodeid + '" class="form-control" type="date" required="true" placeholder="Date as yyyy-mm-dd hh:mm:ss" ' + 
+                            'data-toggle="tooltip" data-placement="right" title="Enter date/time to filter on"></input>' + 
+                    '</div>' + 
+                    '<div class="form-group form-group-sm col-sm-12 hidden">' +
+                        '<input id="ftr-val-date2-' + this.nodeid + '" class="form-control" type="date" required="false" placeholder="Date as yyyy-mm-dd hh:mm:ss" ' + 
+                            'data-toggle="tooltip" data-placement="right" title="Enter date/time to filter on"></input>' + 
+                    '</div>' + 
                     '<div class="form-group form-group-sm col-sm-12">' +
                         '<button id="ftr-btn-go-' + this.nodeid + '" class="btn btn-primary btn-sm" type="button" ' + 
                             'data-toggle="tooltip" data-placement="right" title="Set filter on layer" style="margin-right:5px">' + 
@@ -132,18 +140,19 @@ magic.classes.LayerFilter.prototype.setFilterOptions = function(changed, to) {
         if (adata.type == "xsd:string") {
             /* String compare */
             inputComparison.val("string");
-            form.find("input[id*='-num'],select[id*='-num']").parent().removeClass("show").addClass("hidden");
-            form.find("input[id*='-str-" + this.nodeid + "'],select[id*='-str-" + this.nodeid + "']").parent().removeClass("hidden").addClass("show");
-            form.find("input[id*='-str-unique-'],select[id*='-str-unique']").parent().removeClass("show").addClass("hidden");
+            this.showFormFields(form, "string");           
             if (adata.unique_values === true) {
                 /* This will fetch the unique attribute values, and if successful show the appropriate inputs */
                 this.getUniqueValues(adata.name, null);
             }
+        } else if (adata.type == "xsd:dateTime") {
+            /* Date/time */
+            inputComparison.val("date"); 
+            this.showFormFields(form, "date");            
         } else {
-            /* Numeric/date */
+            /* Numeric */
             inputComparison.val("number");  
-            form.find("input[id*='-str-'],select[id*='-str-']").parent().removeClass("show").addClass("hidden");
-            form.find("input[id*='-num-'],input[id*='-num1-'],select[id*='-num-']").parent().removeClass("hidden").addClass("show");
+            this.showFormFields(form, "number");           
         }        
         
     } else if (changed == "op") {
@@ -159,6 +168,15 @@ magic.classes.LayerFilter.prototype.setFilterOptions = function(changed, to) {
                 /* Hide second value */
                 inputValNum2.parent().removeClass("show").addClass("hidden"); 
             }
+        } else if (comparisonType == "date") {
+            var inputValDate2 = form.find("input[id*='-date2']");
+            if (to == "between") {
+                /* Make second value visible */
+                inputValDate2.parent().removeClass("hidden").addClass("show"); 
+            } else {
+                /* Hide second value */
+                inputValDate2.parent().removeClass("show").addClass("hidden"); 
+            }
         }
     } else if (changed == "init") {
         
@@ -173,8 +191,7 @@ magic.classes.LayerFilter.prototype.setFilterOptions = function(changed, to) {
             }, this))[0];
             if (this.comparison == "string") {
                 inputComparison.val("string");
-                form.find("input[id*='-num'],select[id*='-num']").parent().removeClass("show").addClass("hidden");
-                form.find("input[id*='-str-" + this.nodeid + "'],select[id*='-str-" + this.nodeid + "']").parent().removeClass("hidden").addClass("show");
+                this.showFormFields(form, "string");               
                 if (adata.unique_values === true) {
                     /* This will fetch the unique attribute values, and if successful show the appropriate inputs */
                     this.getUniqueValues(adata.name, this.val1);
@@ -195,11 +212,10 @@ magic.classes.LayerFilter.prototype.setFilterOptions = function(changed, to) {
                     }
                     inputValStr.val(this.val1.replace(/%/g, ""));
                 }
-            } else {
-                /* Numeric/date */
+            } else if (this.comparison == "number") {
+                /* Numeric */
                 inputComparison.val("number");  
-                form.find("input[id*='-str-'],select[id*='-str-']").parent().removeClass("show").addClass("hidden");
-                form.find("input[id*='-num-'],input[id*='-num1-'],select[id*='-num-']").parent().removeClass("hidden").addClass("show");
+                this.showFormFields(form, "number");               
                 jQuery("#ftr-op-num-" + this.nodeid).val(this.op);
                 jQuery("#ftr-val-num1-" + this.nodeid).val(this.val1);
                 var inputValNum2 = jQuery("#ftr-val-num2-" + this.nodeid);
@@ -209,6 +225,19 @@ magic.classes.LayerFilter.prototype.setFilterOptions = function(changed, to) {
                 } else {
                     inputValNum2.parent().removeClass("show").addClass("hidden").val("");
                 }
+            } else if (this.comparison == "date") {
+                /* Date */
+                inputComparison.val("date"); 
+                this.showFormFields(form, "date");                
+                jQuery("#ftr-op-num-" + this.nodeid).val(this.op);
+                jQuery("#ftr-val-date1-" + this.nodeid).val(this.val1);
+                var inputValDate2 = jQuery("#ftr-val-date2-" + this.nodeid);
+                if (this.op == "between") {
+                    inputValDate2.val(this.val2);
+                    inputValDate2.parent().removeClass("hidden").addClass("show").val(this.val2);
+                } else {
+                    inputValDate2.parent().removeClass("show").addClass("hidden").val("");
+                }
             }
         } else {
             /* Reset form */
@@ -216,6 +245,31 @@ magic.classes.LayerFilter.prototype.setFilterOptions = function(changed, to) {
             form.find("select").prop("selectedIndex", 0);
         }      
     }        
+};
+
+/**
+ * Show the appropriate form fields for the attribute type
+ * @param {jQuery.Object} form
+ * @param {string} attrType string|number|date
+ */
+magic.classes.LayerFilter.prototype.showFormFields = function(form, attrType) {
+    if (attrType == "string") {
+        /* Hide all inputs/selects concerning numbers or dates */
+        form.find("input[id*='-num'],select[id*='-num'],input[id*='-date']").parent().removeClass("show").addClass("hidden");
+        /* Show default string inputs and hide unique-type ones, pending an extra enquiry */
+        form.find("input[id*='-str-" + this.nodeid + "'],select[id*='-str-" + this.nodeid + "']").parent().removeClass("hidden").addClass("show");        
+        form.find("input[id*='-str-unique-'],select[id*='-str-unique']").parent().removeClass("show").addClass("hidden");
+    } else if (attrType == "number") {
+        /* Hide all inputs/selects concerning strings, and any inputs concerning dates */
+        form.find("input[id*='-str'],select[id*='-str'],input[id*='-date']").parent().removeClass("show").addClass("hidden");     
+        /* Show number inputs and numeric comparison select */
+        form.find("input[id*='-num'],select[id*='-num-']").parent().removeClass("hidden").addClass("show");
+    } else if (attrType == "date") {
+        /* Hide all inputs/selects concerning strings, and any inputs concerning numbers */
+        form.find("input[id*='-str'],select[id*='-str'],input[id*='-num']").parent().removeClass("show").addClass("hidden");     
+        /* Show date inputs and numeric comparison select */
+        form.find("input[id*='-date'],select[id*='-num-']").parent().removeClass("hidden").addClass("show");
+    }
 };
 
 magic.classes.LayerFilter.prototype.loadExistingFilter = function() {
@@ -233,7 +287,7 @@ magic.classes.LayerFilter.prototype.loadExistingFilter = function() {
         }, this));
         if (filterables.length > 0) {
             this.attr = filterables[0].name;
-            this.comparison = filterables[0].type == "xsd:string" ? "string" : "number";
+            this.comparison = filterables[0].type == "xsd:string" ? "string" : (filterables[0].type == "xsd:dateTime" ? "date" : "number");
             this.op = "eq";
             this.val1 = "";
             this.val2 = "";
@@ -325,6 +379,8 @@ magic.classes.LayerFilter.prototype.applyFilter = function() {
     var selectOpNum = jQuery("#ftr-op-num-" + this.nodeid);
     var inputValNum1 = jQuery("#ftr-val-num1-" + this.nodeid);
     var inputValNum2 = jQuery("#ftr-val-num2-" + this.nodeid);
+    var inputValDate1 = jQuery("#ftr-val-date1-" + this.nodeid);
+    var inputValDate2 = jQuery("#ftr-val-date2-" + this.nodeid);
     
     var ecql = null;          
     /* Construct a new ECQL filter based on form inputs */
@@ -361,7 +417,7 @@ magic.classes.LayerFilter.prototype.applyFilter = function() {
         } else {
             magic.modules.Common.flagInputError(inputValStr);
         }        
-    } else {
+    } else if (comparisonType == "number") {
         fop = selectOpNum.val();
         fval1 = inputValNum1.val();
         if (fval1 != null && fval1 != "") {
@@ -377,6 +433,23 @@ magic.classes.LayerFilter.prototype.applyFilter = function() {
             }
         } else {
             magic.modules.Common.flagInputError(inputValNum1);
+        }                
+    } else if (comparisonType == "date") {
+        fop = selectOpNum.val();
+        fval1 = inputValDate1.val();
+        if (fval1 != null && fval1 != "") {
+            filterString = fattr + " " + fop + " '" + fval1 + "'";
+            if (fop == "between") {
+                fval2 = inputValDate2.val();
+                if (fval2 != null && fval2 != "") {
+                    filterString += " and " + fval2;
+                } else {
+                    filterString = null;
+                    magic.modules.Common.flagInputError(inputValDate2);
+                }                
+            }
+        } else {
+            magic.modules.Common.flagInputError(inputValDate1);
         }                
     } 
     if (filterString) {               
