@@ -186,16 +186,22 @@ magic.classes.AppContainer = function () {
      * NOTE: even if anyone should manage to display the login menu they won't be able to do anything as all actions are barred server side, 
      * and the login database is LDAP or Ramadda     
      */
-    if (magic.runtime.map_context.allowed_usage != "public" || magic.runtime.map_context.allowed_download == "login" || window.location.pathname.indexOf("/restricted") == 0) {
-        jQuery("ul.navbar-right").removeClass("hidden").show();
-        /* Activate logout menu */
-        var lo = jQuery("#log-out-user");
-        if (lo.length > 0) {
-            lo.click(function (evt) {
-                evt.preventDefault();
-                jQuery("#logout-form").submit();
-            });
-        }
+    jQuery("ul.navbar-right").removeClass("hidden").show();
+    /* Activate logout menu */
+    var lo = jQuery("#log-out-user");
+    if (lo.length > 0) {
+        lo.click(function (evt) {
+            evt.preventDefault();
+            jQuery("#logout-form").submit();
+        });
+    }
+    /* Activate login */
+    var li = jQuery("#log-in-user");
+    if (li.length > 0) {
+        li.click(function (evt) {
+            evt.preventDefault();
+            window.location.assign(window.location.href.replace("/home", "/restricted"));
+        });
     }
     
     /* Listen for controls being activated/deactivated */
@@ -219,7 +225,7 @@ magic.classes.AppContainer = function () {
                 magic.runtime.featureinfotool.deactivate();
             }
         }
-    });
+    }); 
     jQuery(document).on("mapinteractiondeactivated", function (evt, tool) {
         if (evt) {
             var nActive = 0;

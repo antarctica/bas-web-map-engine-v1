@@ -94,16 +94,16 @@ magic.modules.Common = function () {
         buttonFeedbackSet: function(btnBaseId, msg) {
             return(
                 '<button id="' + btnBaseId + '-go" class="btn btn-primary" type="button" ' + 
-                    'data-toggle="tooltip" data-placement="top" title="' + msg + '">' + 
-                    '<span class="fa fa-floppy-o"></span>' + 
+                    'data-toggle="tooltip" data-placement="top" title="' + msg + '" style="margin-right:5px">' + 
+                    '<span class="fa fa-floppy-o"></span>Save' + 
                 '</button>' +
-                '<button id="' + btnBaseId + '-fb-ok" class="btn btn-success" style="display:none" type="button" ' + 
+                '<button id="' + btnBaseId + '-fb-ok" class="btn btn-success" style="display:none; margin-right:5px" type="button" ' + 
                     'data-toggle="tooltip" data-placement="top" title="Ok">' + 
-                    '<span class="glyphicon glyphicon-ok post-ok"></span>' + 
+                    '<span class="glyphicon glyphicon-ok post-ok"></span>Ok' + 
                 '</button>' +
                 '<button id="' + btnBaseId + '-fb-error" class="btn btn-danger" style="display:none" type="button" ' + 
                     'data-toggle="tooltip" data-placement="top" title="Error">' + 
-                    '<span class="glyphicon glyphicon-remove post-error"></span>' + 
+                    '<span class="glyphicon glyphicon-remove post-error">Error</span>' + 
                 '</button>'
             );
         },
