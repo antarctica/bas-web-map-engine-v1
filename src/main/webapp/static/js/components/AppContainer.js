@@ -169,10 +169,13 @@ magic.classes.AppContainer = function () {
             feat.setStyle(this.constructStyle(feat))
         }, this));        
         var layer = new ol.layer.Image({
-            name: "_user_layer_" + magic.runtime.userlayers.length,
+            name: (evt.file && evt.file.name) ? evt.file.name : "_user_layer_" + magic.runtime.userlayers.length,
             source: new ol.source.ImageVector({
                 source: vectorSource
-            })
+            }),
+            metadata: {                
+                is_interactive: true
+            }
         });
         magic.runtime.map.addLayer(layer);        
         magic.runtime.map.getView().fit(vectorSource.getExtent(), magic.runtime.map.getSize());

@@ -130,7 +130,7 @@ magic.classes.FeaturePopup.prototype.hide = function() {
 magic.classes.FeaturePopup.prototype.title = function() {
     var content = "";
     jQuery.each(this.featureCollection, jQuery.proxy(function(i, feat) {
-        var name = feat.layer.get("name");
+        var name = feat.layer.get("name");        
         content += '<span class="feature-popup-title-cont ' + (i > 0 ? "hidden" : "show") + '">' + magic.modules.Common.ellipsis(name, 20) +
                    '<button type="button" style="float:right" class="close">&times;</button></span>';      
     }, this));    
