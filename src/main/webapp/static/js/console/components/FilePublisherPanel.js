@@ -46,10 +46,14 @@ magic.classes.console.FilePublisherPanel = function () {
     jQuery("#publish-files-dz").dropzone({
         url: magic.config.paths.baseurl + "/publish_postgis",
         paramName: "file", /* The name that will be used to transfer the file */
-        maxFilesize: 10, /* Maximum file size, in MB */
+        maxFilesize: 20,   /* Maximum file size, in MB */
         uploadMultiple: true,
         autoProcessQueue: false,
+        parallelUploads: 100,
         previewTemplate: previewTemplate,
+        headers: {
+            "X-CSRF-TOKEN": jQuery("meta[name='_csrf']").attr("content")
+        },
         init: function () {
             this.on("addedfile", function(file) {
                 var nOccurs = 0;
@@ -63,9 +67,14 @@ magic.classes.console.FilePublisherPanel = function () {
                     this.removeFile(file);
                 }
             });
+            jQuery("#publish-actions").find(".publish-start").click(jQuery.proxy(function() {
+                this.processQueue();
+            }, this));
+            jQuery("#publish-actions").find(".publish-cancel").click(jQuery.proxy(function() {
+                this.removeAllFiles(true);
+            }, this));
         },
         accept: function (file, done) {
-            console.log(file);
             switch (file.type) {
                 case "text/csv":
                 case "application/vnd.ms-excel":
