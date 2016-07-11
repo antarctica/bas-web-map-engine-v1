@@ -241,7 +241,26 @@ magic.classes.AppContainer = function () {
                 magic.runtime.featureinfotool.activate();
             }
         }
-    });    
+    });   
+    
+    /* Mouseover of the map scale bar to provide tooltip of the current map scale */
+    jQuery(".custom-scale-line-top").popover({
+        container: "body",
+        content: function() {
+            /* Do a bit of rounding when the scale value is not a precise integer */
+            var scale = magic.modules.GeoUtils.getCurrentMapScale(magic.runtime.map) + "";
+            var dp1 = scale.indexOf(".");
+            if (dp1 >= 0) {
+                var dp2 = scale.indexOf("9");                
+                var scaleFactor = Math.pow(10, dp1-dp2);
+                scale = scaleFactor * Math.round(parseFloat(scale)/scaleFactor);
+            }
+            return("Map scale 1:" + scale);
+        },
+        placement: "right",
+        title: "",
+        trigger: "hover"
+    });
 };
 
 /**
