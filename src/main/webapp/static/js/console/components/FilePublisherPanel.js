@@ -75,12 +75,14 @@ magic.classes.console.FilePublisherPanel = function () {
             }, this));
         },
         accept: function (file, done) {
+            console.log(file);
             switch (file.type) {
                 case "text/csv":
                 case "application/vnd.ms-excel":
                 case "application/gpx+xml":
                 case "application/vnd.google-earth.kml+xml":
                 case "application/zip":
+                case "application/x-zip-compressed":
                     break;
                 case "":
                     /* Do some more work - GPX files routinely get uploaded without a type */
