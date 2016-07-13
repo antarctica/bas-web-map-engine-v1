@@ -106,7 +106,7 @@ magic.modules.GeoUtils = function() {
                 switch (cpts.length) {
                     case 3:
                         /* Potential DMS - dd mm ss.ssH */
-                        var dd = (cpts[0].length == 1 || cpts[0].length == 2) ? parseFloat(cpts[0]) : Number.NaN;
+                        var dd = (cpts[0].length >= 1 || cpts[0].length <= 3) ? parseFloat(cpts[0]) : Number.NaN;
                         var mm = (cpts[1].length == 1 || cpts[1].length == 2) ? parseFloat(cpts[1]) : Number.NaN;
                         var ss = parseFloat(cpts[2].substring(0, cpts[2].length - 1));
                         var hh = cpts[2].substring(cpts[2].length - 1, cpts[2].length).toUpperCase();

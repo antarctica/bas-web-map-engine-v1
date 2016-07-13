@@ -126,7 +126,12 @@
             <groupId>it.geosolutions</groupId>
             <artifactId>geoserver-manager</artifactId>
             <version>1.5.2</version>
-        </dependency>       
+        </dependency>  
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-csv</artifactId>
+            <version>1.4</version>
+        </dependency>     
        
     </dependencies>
 

@@ -9,6 +9,8 @@ import it.geosolutions.geoserver.rest.encoder.feature.FeatureTypeAttribute;
 import it.geosolutions.geoserver.rest.encoder.feature.GSAttributeEncoder;
 import it.geosolutions.geoserver.rest.encoder.feature.GSFeatureTypeEncoder;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
@@ -17,6 +19,10 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -78,10 +84,8 @@ public class DataPublishController {
                     File uploaded = new File(wd.getAbsolutePath() + SEP + stdName);
                     mpf.transferTo(uploaded);
                     UploadedFileMetadata md = extractMetadata(mpf, userName);
-                    if (extension.equals("gpx")) {
-                        statusMessages.add(publishGpx(uploaded, md));
-                    } else if (extension.equals("kml")) {
-                        statusMessages.add(publishKml(uploaded, md));
+                    if (extension.equals("gpx") || extension.equals("kml")) {
+                        statusMessages.add(publishGpxKml(uploaded, md));
                     } else if (extension.equals("csv")) {
                         statusMessages.add(publishCsv(uploaded, md));
                     } else if (extension.equals("zip")) {
@@ -100,17 +104,17 @@ public class DataPublishController {
     }
 
     /**
-     * Publishing workflow for uploaded GPX file
+     * Publishing workflow for uploaded GPX or KML file
      * @param File uploaded
      * @param UploadedFileMetadata md
      * @return String
      */
     @Transactional
-    private String publishGpx(File uploaded, UploadedFileMetadata md) {
+    private String publishGpxKml(File uploaded, UploadedFileMetadata md) {
         
         String message = "";
         
-        String pgSchema = "gpx_temp_" + Calendar.getInstance().getTimeInMillis();
+        String pgSchema = FilenameUtils.getExtension(uploaded.getName()) + "_temp_" + Calendar.getInstance().getTimeInMillis();
         String pgUploadSchema = env.getProperty("datasource.magic.userUploadSchema");
         String pgUser = env.getProperty("datasource.magic.username");
         String pgPass = env.getProperty("datasource.magic.password").replaceAll("!", "\\!");    /* ! is a shell metacharacter */
@@ -134,7 +138,7 @@ public class DataPublishController {
                     if (!createdTables.isEmpty()) {
                         /* Some tables created */
                         for (Map<String,Object> pgTableRec : createdTables) {
-                            String pgTable = (String)pgTableRec.get("table_name");
+                            String pgTable = standardiseName((String)pgTableRec.get("table_name"));
                             String srcTableName = pgSchema + "." + pgTable;
                             String destTableName = pgUploadSchema + "." + FilenameUtils.getBaseName(uploaded.getName()) + "_" + pgTable;
                             int nRecs = magicDataTpl.queryForObject("SELECT count(*) FROM " + pgSchema + "." + pgTable, Integer.class);
@@ -148,9 +152,7 @@ public class DataPublishController {
                                     configureFeatureType(md, destTableName), 
                                     configureLayer(getGeometryType(destTableName))
                                 );
-                                if (!published) {
-                                    message = "Publishing to Geoserver failed";
-                                }
+                                message = "Publishing PostGIS table " + pgTable + " to Geoserver " + (published ? "succeeded" : "failed");
                             }                        
                         }
                     } else {
@@ -175,85 +177,35 @@ public class DataPublishController {
     }
 
     /**
-     * Publishing workflow for uploaded KML file
-     * @param File uploaded
-     * @param UploadedFileMetadata md
-     * @return String
-     */
-    @Transactional
-    private String publishKml(File uploaded, UploadedFileMetadata md) {
-        
-        String message = "";
-        
-        String pgSchema = "kml_temp_" + Calendar.getInstance().getTimeInMillis();
-        String pgUploadSchema = env.getProperty("datasource.magic.userUploadSchema");
-        String pgUser = env.getProperty("datasource.magic.username");
-        String pgPass = env.getProperty("datasource.magic.password").replaceAll("!", "\\!");    /* ! is a shell metacharacter */
-
-        message = createUploadConversionSchema(pgSchema);
-        if (message.isEmpty()) {
-            /* Successful schema creation - now construct ogr2ogr command to run to convert KML to PostGIS
-             * example: 
-             * ogr2ogr -f PostgreSQL 'PG:host=localhost dbname=magic schemas=<schema> user=<user> password=<pass>' wright_pen_skidoo_track.kml 
-             */
-            try {
-                String cmd = "ogr2ogr -f PostgreSQL 'PG:host=localhost dbname=magic schemas=" + pgSchema + " user=" + pgUser + " password=" + pgPass + "' " + uploaded.getAbsolutePath();               
-                Process ogrProc = appRuntime.exec(cmd);
-                ProcessWithTimeout ogrProcTimeout = new ProcessWithTimeout(ogrProc);
-                int ogrProcRet = ogrProcTimeout.waitForProcess(30000);  /* Timeout in milliseconds */
-                if (ogrProcRet == 0) {
-                    /* Normal termination 
-                     * ogr2ogr will have created potentially several tables - not all of these will have any content depending on the data - delete all empty ones
-                     */
-                    
-                    String[] createdTableNames = new String[]{"waypoints", "routes", "tracks"};
-                    for (String pgTable : createdTableNames) {
-                        String srcTableName = pgSchema + "." + pgTable;
-                        String destTableName = pgUploadSchema + "." + FilenameUtils.getBaseName(uploaded.getName()) + "_" + pgTable;
-                        int nRecs = magicDataTpl.queryForObject("SELECT count(*) FROM " + pgSchema + "." + pgTable, Integer.class);
-                        if (nRecs > 0) {
-                            /* Copy records from non-empty table into user uploads schema with a user-friendly name */
-                            magicDataTpl.execute("CREATE TABLE " + destTableName + " AS SELECT * FROM " + srcTableName);
-                            /* Now publish to Geoserver */                                                      
-                            boolean published = grp.publishDBLayer(
-                                env.getProperty("geoserver.local.userWorkspace"), 
-                                env.getProperty("geoserver.local.userPostgis"), 
-                                configureFeatureType(md, destTableName), 
-                                configureLayer(pgTable.equals("waypoints") ? "point" : "line")
-                            );
-                            if (!published) {
-                                message = "Publishing to Geoserver failed";
-                            }
-                        }
-                        /* Delete the temporary schema and all contents */
-                        magicDataTpl.execute("DROP SCHEMA " + pgSchema + " CASCADE");
-                    }
-                } else if (ogrProcRet == Integer.MIN_VALUE) {
-                    /* Timeout */
-                    message = "No response from conversion process after 30 seconds - aborted";
-                } else {
-                    /* Unexpected process return */
-                    message = "Unexpected return " + ogrProcRet + " from GPX to PostGIS process";
-                }
-
-            } catch (IOException ioe) {
-                message = "Failed to start conversion process from KML to PostGIS - error was " + ioe.getMessage();
-            } catch (DataAccessException dae) {
-                message = "Database error occurred during KML to PostGIS conversion - message was " + dae.getMessage();
-            }
-        }
-        return (uploaded.getName() + ": " + message);
-    }
-
-    /**
-     * Publishing workflow for uploaded CSV file
+     * Publishing workflow for uploaded CSV file (comma-delimited, double quotes, first record is column header names)
      * @param File uploaded
      * @param UploadedFileMetadata md
      * @return String
      */
     @Transactional
     private String publishCsv(File uploaded, UploadedFileMetadata md) {
+        
         String message = "";
+        
+        String pgTable = env.getProperty("datasource.magic.userUploadSchema") + "." + md.getName();
+        try {
+            FileReader fileInput = new FileReader(uploaded);
+            int recNum = 1;
+            for (CSVRecord record : CSVFormat.DEFAULT.parse(fileInput)) {
+                if (recNum == 1) {
+                    /* These are the headers */
+                    // HERE
+                } else {
+                    /* Feature record */
+                }
+            }
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(DataPublishController.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(DataPublishController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        
         return (message);
     }
 
