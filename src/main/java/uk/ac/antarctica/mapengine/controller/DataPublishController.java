@@ -34,6 +34,12 @@ import uk.ac.antarctica.mapengine.util.PackagingUtils;
 
 @Controller
 public class DataPublishController {
+    
+    /* OS-specific directory path separator */
+    private static final String SEP = System.getProperty("file.separator");
+    
+    /* Upload temporary working directory base name */
+    private static final String WDBASE = System.getProperty("java.io.tmpdir") + SEP + "upload_";
 
     @Autowired
     Environment env;
@@ -49,11 +55,10 @@ public class DataPublishController {
     public ResponseEntity<String> publishToPostGIS(MultipartHttpServletRequest request) throws Exception {
         
         ResponseEntity<String> ret = null;
-        int count = 1;
-        String sep = System.getProperty("file.separator");
-        String wdBase = System.getProperty("java.io.tmpdir") + sep + "upload_";
+        int count = 1;       
         ArrayList<String> statusMessages = new ArrayList();        
         grp = new GeoServerRESTPublisher(env.getProperty("geoserver.local.url"), env.getProperty("geoserver.local.username"), env.getProperty("geoserver.local.password"));
+        String userName = (request.getUserPrincipal() != null) ? request.getUserPrincipal().getName() : "guest";        
         
         for (MultipartFile mpf : request.getFileMap().values()) {
             
@@ -66,20 +71,21 @@ public class DataPublishController {
             
             String stdName = standardiseName(mpf.getOriginalFilename());
             String extension = FilenameUtils.getExtension(stdName);
-            File wd = new File(wdBase + Calendar.getInstance().getTimeInMillis());
+            File wd = new File(WDBASE + Calendar.getInstance().getTimeInMillis());
             try {
                 if (wd.mkdir()) {
                     /* Created the working directory */
-                    File uploaded = new File(wd.getAbsolutePath() + sep + stdName);
+                    File uploaded = new File(wd.getAbsolutePath() + SEP + stdName);
                     mpf.transferTo(uploaded);
+                    UploadedFileMetadata md = extractMetadata(mpf, userName);
                     if (extension.equals("gpx")) {
-                        statusMessages.add(publishGpx(uploaded, mpf));
+                        statusMessages.add(publishGpx(uploaded, md));
                     } else if (extension.equals("kml")) {
-                        statusMessages.add(publishKml(uploaded, mpf));
+                        statusMessages.add(publishKml(uploaded, md));
                     } else if (extension.equals("csv")) {
-                        statusMessages.add(publishCsv(uploaded, mpf));
+                        statusMessages.add(publishCsv(uploaded, md));
                     } else if (extension.equals("zip")) {
-                        statusMessages.add(publishShp(uploaded, mpf));
+                        statusMessages.add(publishShp(uploaded, md));
                     }
                 } else {
                     /* Failed to create */
@@ -96,11 +102,11 @@ public class DataPublishController {
     /**
      * Publishing workflow for uploaded GPX file
      * @param File uploaded
-     * @param MultipartFile mpf
+     * @param UploadedFileMetadata md
      * @return String
      */
     @Transactional
-    private String publishGpx(File uploaded, MultipartFile mpf) {
+    private String publishGpx(File uploaded, UploadedFileMetadata md) {
         
         String message = "";
         
@@ -136,7 +142,7 @@ public class DataPublishController {
                             boolean published = grp.publishDBLayer(
                                 env.getProperty("geoserver.local.userWorkspace"), 
                                 env.getProperty("geoserver.local.userPostgis"), 
-                                configureFeatureType(mpf, destTableName), 
+                                configureFeatureType(md, destTableName), 
                                 configureLayer(pgTable.equals("waypoints") ? "point" : "line")
                             );
                             if (!published) {
@@ -165,11 +171,11 @@ public class DataPublishController {
     /**
      * Publishing workflow for uploaded KML file
      * @param File uploaded
-     * @param MultipartFile mpf
+     * @param UploadedFileMetadata md
      * @return String
      */
     @Transactional
-    private String publishKml(File uploaded, MultipartFile mpf) {
+    private String publishKml(File uploaded, UploadedFileMetadata md) {
         String message = "";
         String pgSchema = "kml_temp_" + Calendar.getInstance().getTimeInMillis();
         String pgUploadSchema = env.getProperty("datasource.magic.userUploadSchema");
@@ -202,11 +208,11 @@ public class DataPublishController {
     /**
      * Publishing workflow for uploaded CSV file
      * @param File uploaded
-     * @param MultipartFile mpf
+     * @param UploadedFileMetadata md
      * @return String
      */
     @Transactional
-    private String publishCsv(File uploaded, MultipartFile mpf) {
+    private String publishCsv(File uploaded, UploadedFileMetadata md) {
         String message = "";
         return (message);
     }
@@ -218,7 +224,7 @@ public class DataPublishController {
      * @return String
      */
     @Transactional
-    private String publishShp(File uploaded, MultipartFile mpf) {
+    private String publishShp(File uploaded, UploadedFileMetadata md) {
         String message = "";
         return (message);
     }
@@ -255,11 +261,11 @@ public class DataPublishController {
 
     /**
      * Construct the attribute map for Geoserver Manager for <schema>.<table>     
-     * @param MultipartFile mpf
+     * @param UploadedFileMetadat md
      * @param String destTableName
      * @return GSFeatureTypeEncoder
      */
-    private GSFeatureTypeEncoder configureFeatureType(MultipartFile mpf, String destTableName) throws DataAccessException {
+    private GSFeatureTypeEncoder configureFeatureType(UploadedFileMetadata md, String destTableName) throws DataAccessException {
         GSFeatureTypeEncoder gsfte = new GSFeatureTypeEncoder();
         String tsch = destTableName.substring(0, destTableName.indexOf("."));
         String tname = destTableName.substring(destTableName.indexOf(".") + 1);
@@ -290,12 +296,11 @@ public class DataPublishController {
             }
         }
         /* Now set feature metadata */
-        configureMetadata(gsfte, mpf);
-        gsfte.setNativeCRS("EPSG:4326");
-        gsfte.setSRS("EPSG:4326");
-        gsfte.setName(tname);
-        gsfte.setTitle("");
-        gsfte.setAbstract("");
+        gsfte.setNativeCRS(md.getSrs());
+        gsfte.setSRS(md.getSrs());
+        gsfte.setName(destTableName);
+        gsfte.setTitle(md.getTitle());
+        gsfte.setAbstract(md.getDescription());
         return(gsfte);
     }
 
@@ -346,17 +351,24 @@ public class DataPublishController {
     }
 
     /**
-     * Set the feature metadata from information about the uploaded file
-     * @param GSFeatureTypeEncoder gsfte
+     * Extract feature-level metadata from information about the uploaded file
      * @param MultipartFile mpf 
+     * @param String userName
      */
-    private void configureMetadata(GSFeatureTypeEncoder gsfte, MultipartFile mpf) {
+    private UploadedFileMetadata extractMetadata(MultipartFile mpf, String userName) {
+        
+        UploadedFileMetadata md = new UploadedFileMetadata();
+        
+        String basename = FilenameUtils.getBaseName(mpf.getOriginalFilename());
         String extension = FilenameUtils.getExtension(mpf.getOriginalFilename());
-        String title = FilenameUtils.getBaseName(mpf.getOriginalFilename()).replace("[^A-Za-z0-9]", " ").replace("\\s{2,}", " ");
-        StringBuilder description = new StringBuilder();
         String uploadDate = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date());
-        description.append(extension + " file " + mpf.getOriginalFilename() + " uploaded on " + uploadDate);
-        //Here
+        
+        md.setName(basename);
+        md.setTitle(basename.replace("[^A-Za-z0-9]", " ").replace("\\s{2,}", " "));
+        md.setDescription(extension.toUpperCase() + " file " +  mpf.getOriginalFilename() + " of size " + sizeFormatter(mpf.getSize()) + " uploaded on " + uploadDate + " by " + userName);
+        md.setSrs("EPSG:4326");     /* Any different projection (shapefiles only) will be done in the appropriate place */
+        
+        return(md);
     }
     
     /**
@@ -374,6 +386,50 @@ public class DataPublishController {
         } else {
             return(filesize + " bytes");         
         }
+    }
+    
+    public class UploadedFileMetadata {
+        
+        private String name;
+        private String title;
+        private String description;
+        private String srs;
+        
+        public UploadedFileMetadata() {            
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getTitle() {
+            return title;
+        }
+
+        public void setTitle(String title) {
+            this.title = title;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public void setDescription(String description) {
+            this.description = description;
+        }
+
+        public String getSrs() {
+            return srs;
+        }
+
+        public void setSrs(String srs) {
+            this.srs = srs;
+        }
+                        
     }
 
     public class ProcessWithTimeout extends Thread {
