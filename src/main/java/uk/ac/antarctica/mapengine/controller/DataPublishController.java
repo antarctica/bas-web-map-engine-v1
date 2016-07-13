@@ -115,7 +115,7 @@ public class DataPublishController {
         String pgUser = env.getProperty("datasource.magic.username");
         String pgPass = env.getProperty("datasource.magic.password").replaceAll("!", "\\!");    /* ! is a shell metacharacter */
 
-        message = createGpxConversionSchema(pgSchema);
+        message = createUploadConversionSchema(pgSchema);
         if (message.isEmpty()) {
             /* Successful schema creation - now construct ogr2ogr command to run to convert GPX to PostGIS
              * example: 
@@ -130,6 +130,82 @@ public class DataPublishController {
                     /* Normal termination 
                      * ogr2ogr will have created routes, tracks and waypoints tables - not all of these will have any content depending on the data - delete all empty ones
                      */
+                    List<Map<String,Object>> createdTables = magicDataTpl.queryForList("SELECT table_name FROM information_schema.tables WHERE table_schema=?", pgSchema);
+                    if (!createdTables.isEmpty()) {
+                        /* Some tables created */
+                        for (Map<String,Object> pgTableRec : createdTables) {
+                            String pgTable = (String)pgTableRec.get("table_name");
+                            String srcTableName = pgSchema + "." + pgTable;
+                            String destTableName = pgUploadSchema + "." + FilenameUtils.getBaseName(uploaded.getName()) + "_" + pgTable;
+                            int nRecs = magicDataTpl.queryForObject("SELECT count(*) FROM " + pgSchema + "." + pgTable, Integer.class);
+                            if (nRecs > 0) {
+                                /* Copy records from non-empty table into user uploads schema with a user-friendly name */                                
+                                magicDataTpl.execute("CREATE TABLE " + destTableName + " AS SELECT * FROM " + srcTableName);
+                                /* Now publish to Geoserver */                                                      
+                                boolean published = grp.publishDBLayer(
+                                    env.getProperty("geoserver.local.userWorkspace"), 
+                                    env.getProperty("geoserver.local.userPostgis"), 
+                                    configureFeatureType(md, destTableName), 
+                                    configureLayer(getGeometryType(destTableName))
+                                );
+                                if (!published) {
+                                    message = "Publishing to Geoserver failed";
+                                }
+                            }                        
+                        }
+                    } else {
+                        message = "Conversion process completed successfully but created no data";
+                    }
+                    /* Delete the temporary schema and all contents */
+                    magicDataTpl.execute("DROP SCHEMA " + pgSchema + " CASCADE");
+                } else if (ogrProcRet == Integer.MIN_VALUE) {
+                    /* Timeout */
+                    message = "No response from conversion process after 30 seconds - aborted";
+                } else {
+                    /* Unexpected process return */
+                    message = "Unexpected return " + ogrProcRet + " from GPX to PostGIS process";
+                }
+            } catch (IOException ioe) {
+                message = "Failed to start conversion process from GPX to PostGIS - error was " + ioe.getMessage();
+            } catch (DataAccessException dae) {
+                message = "Database error occurred during GPX to PostGIS conversion - message was " + dae.getMessage();
+            }
+        }
+        return (uploaded.getName() + ": " + message);
+    }
+
+    /**
+     * Publishing workflow for uploaded KML file
+     * @param File uploaded
+     * @param UploadedFileMetadata md
+     * @return String
+     */
+    @Transactional
+    private String publishKml(File uploaded, UploadedFileMetadata md) {
+        
+        String message = "";
+        
+        String pgSchema = "kml_temp_" + Calendar.getInstance().getTimeInMillis();
+        String pgUploadSchema = env.getProperty("datasource.magic.userUploadSchema");
+        String pgUser = env.getProperty("datasource.magic.username");
+        String pgPass = env.getProperty("datasource.magic.password").replaceAll("!", "\\!");    /* ! is a shell metacharacter */
+
+        message = createUploadConversionSchema(pgSchema);
+        if (message.isEmpty()) {
+            /* Successful schema creation - now construct ogr2ogr command to run to convert KML to PostGIS
+             * example: 
+             * ogr2ogr -f PostgreSQL 'PG:host=localhost dbname=magic schemas=<schema> user=<user> password=<pass>' wright_pen_skidoo_track.kml 
+             */
+            try {
+                String cmd = "ogr2ogr -f PostgreSQL 'PG:host=localhost dbname=magic schemas=" + pgSchema + " user=" + pgUser + " password=" + pgPass + "' " + uploaded.getAbsolutePath();               
+                Process ogrProc = appRuntime.exec(cmd);
+                ProcessWithTimeout ogrProcTimeout = new ProcessWithTimeout(ogrProc);
+                int ogrProcRet = ogrProcTimeout.waitForProcess(30000);  /* Timeout in milliseconds */
+                if (ogrProcRet == 0) {
+                    /* Normal termination 
+                     * ogr2ogr will have created potentially several tables - not all of these will have any content depending on the data - delete all empty ones
+                     */
+                    
                     String[] createdTableNames = new String[]{"waypoints", "routes", "tracks"};
                     for (String pgTable : createdTableNames) {
                         String srcTableName = pgSchema + "." + pgTable;
@@ -159,45 +235,9 @@ public class DataPublishController {
                     /* Unexpected process return */
                     message = "Unexpected return " + ogrProcRet + " from GPX to PostGIS process";
                 }
-            } catch (IOException ioe) {
-                message = "Failed to start conversion process from GPX to PostGIS - error was " + ioe.getMessage();
-            } catch (DataAccessException dae) {
-                message = "Database error occurred during GPX to PostGIS conversion - message was " + dae.getMessage();
-            }
-        }
-        return (uploaded.getName() + ": " + message);
-    }
-
-    /**
-     * Publishing workflow for uploaded KML file
-     * @param File uploaded
-     * @param UploadedFileMetadata md
-     * @return String
-     */
-    @Transactional
-    private String publishKml(File uploaded, UploadedFileMetadata md) {
-        String message = "";
-        String pgSchema = "kml_temp_" + Calendar.getInstance().getTimeInMillis();
-        String pgUploadSchema = env.getProperty("datasource.magic.userUploadSchema");
-        String pgUser = env.getProperty("datasource.magic.username");
-        String pgPass = env.getProperty("datasource.magic.password").replaceAll("!", "\\!");    /* ! is a shell metacharacter */
-
-        message = createGpxConversionSchema(pgSchema);
-        if (message.isEmpty()) {
-            /* Successful schema creation - now construct ogr2ogr command to run to convert KML to PostGIS
-             * example: 
-             * ogr2ogr -f PostgreSQL 'PG:host=localhost dbname=magic schemas=<schema> user=<user> password=<pass>' wright_pen_skidoo_track.kml 
-             */
-            try {
-                String cmd = "ogr2ogr -f PostgreSQL 'PG:host=localhost dbname=magic schemas=" + pgSchema + " user=" + pgUser + " password=" + pgPass + "' " + uploaded.getAbsolutePath();
-                Process ogrProc = appRuntime.exec(cmd);
-                int ogrProcRet = ogrProc.waitFor();
-                /* Copy records from non-empty table into user uploads schema with a user-friendly name */
 
             } catch (IOException ioe) {
                 message = "Failed to start conversion process from KML to PostGIS - error was " + ioe.getMessage();
-            } catch (InterruptedException ie) {
-                message = "Conversion from KML to PostGIS was interrupted - message was " + ie.getMessage();
             } catch (DataAccessException dae) {
                 message = "Database error occurred during KML to PostGIS conversion - message was " + dae.getMessage();
             }
@@ -245,11 +285,11 @@ public class DataPublishController {
     }
 
     /**
-     * Create a new database schema to receive the tables created from the GPX file
+     * Create a new database schema to receive tables created from an uploaded file
      * @param String name
      * @return String
      */
-    private String createGpxConversionSchema(String name) {
+    private String createUploadConversionSchema(String name) {
         String message = "";
         try {
             magicDataTpl.execute("CREATE SCHEMA IF NOT EXISTS " + name + " AUTHORIZATION " + env.getProperty("datasource.magic.username"));
@@ -386,6 +426,22 @@ public class DataPublishController {
         } else {
             return(filesize + " bytes");         
         }
+    }
+
+    /**
+     * Get geometry type (point|line|polygon) for the given table
+     * @param String tableName
+     * @return String
+     */
+    private String getGeometryType(String tableName) throws DataAccessException {
+        String type = "point";
+        String pgType = magicDataTpl.queryForObject("SELECT st_geometry_type FROM " + tableName + " LIMIT 1", String.class).toLowerCase();
+        if (pgType.indexOf("line") >= 0) {
+            type = "line";
+        } else if (pgType.indexOf("polygon") >= 0) {
+            type = "polygon";
+        }
+        return(type);
     }
     
     public class UploadedFileMetadata {
