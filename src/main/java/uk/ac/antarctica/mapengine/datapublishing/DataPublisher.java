@@ -1,0 +1,253 @@
+/*
+ * Abstract base class for data publication to Geoserver workflows
+ */
+package uk.ac.antarctica.mapengine.datapublishing;
+
+import it.geosolutions.geoserver.rest.GeoServerRESTPublisher;
+import it.geosolutions.geoserver.rest.encoder.GSLayerEncoder;
+import it.geosolutions.geoserver.rest.encoder.feature.FeatureTypeAttribute;
+import it.geosolutions.geoserver.rest.encoder.feature.GSAttributeEncoder;
+import it.geosolutions.geoserver.rest.encoder.feature.GSFeatureTypeEncoder;
+import java.io.File;
+import java.io.IOException;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import org.apache.commons.io.FilenameUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import uk.ac.antarctica.mapengine.model.UploadedFileMetadata;
+
+public abstract class DataPublisher {
+
+    /* OS-specific directory path separator */
+    private static final String SEP = System.getProperty("file.separator");
+
+    /* Upload temporary working directory base name */
+    private static final String WDBASE = System.getProperty("java.io.tmpdir") + SEP + "upload_";
+
+    @Autowired
+    private Environment env;
+
+    @Autowired
+    private JdbcTemplate magicDataTpl;
+    
+    /* Geoserver Manager publisher */
+    private GeoServerRESTPublisher grp;
+
+    /* Access to OS level commands */
+    private Runtime appRuntime = Runtime.getRuntime();
+
+    /* Multipart file upload */
+    MultipartFile mpf;
+    
+    /* Current user */
+    String userName;
+    
+    /* Metadata for file upload */
+    UploadedFileMetadata md;    
+
+    public DataPublisher(MultipartFile cMpf, String cUserName) throws IOException, IllegalStateException {
+        mpf = cMpf;
+        userName = cUserName;
+        grp = new GeoServerRESTPublisher(env.getProperty("geoserver.local.url"), env.getProperty("geoserver.local.username"), env.getProperty("geoserver.local.password"));
+        File wd = new File(WDBASE + Calendar.getInstance().getTimeInMillis());
+        if (wd.mkdir()) {
+            /* Created the working directory */
+            File uploaded = new File(wd.getAbsolutePath() + SEP + standardiseName(mpf.getName()));
+            mpf.transferTo(uploaded);
+            md = extractMetadata();
+        } else {
+            /* Failed to create */
+            throw new IOException("Failed to create working directory");
+        }      
+    }
+
+    @Transactional
+    public abstract String publish(File upload, UploadedFileMetadata md);
+    
+    /**
+     * Get geometry type (point|line|polygon) for the given table
+     * @param String tableName
+     * @return String
+     */
+    private String getGeometryType(String tableName) throws DataAccessException {
+        String type = "point";
+        String pgType = magicDataTpl.queryForObject("SELECT st_geometry_type FROM " + tableName + " LIMIT 1", String.class).toLowerCase();
+        if (pgType.indexOf("line") >= 0) {
+            type = "line";
+        } else if (pgType.indexOf("polygon") >= 0) {
+            type = "polygon";
+        }
+        return (type);
+    }
+
+    /**
+     * Create a new database schema to receive tables created from an uploaded
+     * file
+     * @param String name
+     * @return String
+     */
+    private String createUploadConversionSchema(String name) {
+        String message = "";
+        try {
+            magicDataTpl.execute("CREATE SCHEMA IF NOT EXISTS " + name + " AUTHORIZATION " + env.getProperty("datasource.magic.username"));
+        } catch (DataAccessException dae) {
+            message = "Failed to create schema " + name + ", error was " + dae.getMessage();
+        }
+        return (message);
+    }
+
+    /**
+     * Construct the attribute map for Geoserver Manager for <schema>.<table>
+     * @param UploadedFileMetadat md
+     * @param String destTableName
+     * @return GSFeatureTypeEncoder
+     */
+    private GSFeatureTypeEncoder configureFeatureType(String destTableName) throws DataAccessException {
+
+        GSFeatureTypeEncoder gsfte = new GSFeatureTypeEncoder();
+        String tsch = destTableName.substring(0, destTableName.indexOf("."));
+        String tname = destTableName.substring(destTableName.indexOf(".") + 1);
+
+        List<Map<String, Object>> recs = magicDataTpl.queryForList("SELECT column_name, is_nullable, data_type FROM information_schema.columns WHERE table_schema=? AND table_name=?", tname, tsch);
+        if (!recs.isEmpty()) {
+            for (Map<String, Object> rec : recs) {
+                /* Create Geoserver Manager's configuration */
+                String colName = (String) rec.get("column_name");
+                String isNillable = (String) rec.get("is_nullable");
+                String dataType = getDataTypeBinding((String) rec.get("data_type"));
+                GSAttributeEncoder attribute = new GSAttributeEncoder();
+                attribute.setAttribute(FeatureTypeAttribute.name, colName);
+                attribute.setAttribute(FeatureTypeAttribute.minOccurs, String.valueOf(0));
+                attribute.setAttribute(FeatureTypeAttribute.minOccurs, String.valueOf(1));
+                attribute.setAttribute(FeatureTypeAttribute.nillable, String.valueOf(isNillable.toLowerCase().equals("yes")));
+                attribute.setAttribute(FeatureTypeAttribute.binding, dataType);
+                gsfte.setAttribute(attribute);
+                /* Add primary key if necessary */
+                boolean isPk = isNillable.toLowerCase().equals("no");
+                if (isPk) {
+                    magicDataTpl.execute("ALTER TABLE " + destTableName + " ADD PRIMARY KEY (" + colName + ")");
+                }
+                /* Add index if necessary */
+                boolean isGeom = dataType.toLowerCase().equals("user-defined");
+                if (isGeom) {
+                    magicDataTpl.execute("CREATE INDEX " + tname + "_geom_gist ON " + destTableName + " USING gist (" + colName + ")");
+                }
+            }
+        }
+        /* Now set feature metadata */
+        gsfte.setNativeCRS(md.getSrs());
+        gsfte.setSRS(md.getSrs());
+        gsfte.setName(destTableName);
+        gsfte.setTitle(md.getTitle());
+        gsfte.setAbstract(md.getDescription());
+
+        return (gsfte);
+    }
+
+    /**
+     * Construct layer configurator for Geoserver Manager
+     * @param String defaultStyle
+     * @return GSLayerEncoder
+     */
+    private GSLayerEncoder configureLayer(String defaultStyle) {
+        GSLayerEncoder gsle = new GSLayerEncoder();
+        gsle.setDefaultStyle(defaultStyle);
+        gsle.setEnabled(true);
+        gsle.setQueryable(true);
+        return (gsle);
+    }
+
+    /**
+     * Translate a PostgreSQL data type into a Java class binding (very simple,
+     * may need to be extended if lots of other types come up)
+     * @param String pgType
+     * @return String
+     */
+    private String getDataTypeBinding(String pgType) {
+        String jType = null;
+        switch (pgType) {
+            case "integer":
+            case "bigint":
+            case "smallint":
+                jType = "java.lang.Integer";
+                break;
+            case "double precision":
+            case "numeric":
+                jType = "java.lang.Double";
+                break;
+            case "timestamp with time zone":
+            case "timestamp without time zone":
+            case "date":
+                jType = "java.sql.Date";
+                break;
+            case "USER-DEFINED":
+                jType = "com.vividsolutions.jts.geom.Geometry";
+                break;
+            default:
+                jType = "java.lang.String";
+                break;
+        }
+        return (jType);
+    }
+
+    /**
+     * Extract feature-level metadata from information about the uploaded file   
+     */
+    private UploadedFileMetadata extractMetadata() {
+
+        UploadedFileMetadata md = new UploadedFileMetadata();
+
+        String basename = FilenameUtils.getBaseName(mpf.getOriginalFilename());
+        String extension = FilenameUtils.getExtension(mpf.getOriginalFilename());
+        String uploadDate = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date());
+
+        md.setName(basename);
+        md.setTitle(basename.replace("[^A-Za-z0-9]", " ").replace("\\s{2,}", " "));
+        md.setDescription(extension.toUpperCase() + " file " + mpf.getOriginalFilename() + " of size " + sizeFormatter(mpf.getSize()) + " uploaded on " + uploadDate + " by " + userName);
+        md.setSrs("EPSG:4326");     /* Any different projection (shapefiles only) will be done in the appropriate place */
+
+        return (md);
+    }
+    
+    /**
+     * Create a standardised file (and hence table) name from the user's
+     * filename - done by lowercasing, converting all non-alphanumerics to _ and
+     * sequences of _ to single _
+     * @param String fileName
+     * @return String
+     */
+    private String standardiseName(String fileName) {
+        String stdName = "";
+        if (fileName != null && !fileName.isEmpty()) {
+            stdName = fileName.toLowerCase().replaceAll("[^a-z0-9.]", "_").replaceAll("_{2,}", "_");
+        }
+        return (stdName);
+    }
+
+    /**
+     * Human-friendly file size
+     * @param long filesize
+     * @return String
+     */
+    private String sizeFormatter(long filesize) {
+        if (filesize >= 1073741824) {
+            return (Double.parseDouble(new DecimalFormat("#.##").format(filesize / 1073741824)) + "GB");
+        } else if (filesize >= 1048576) {
+            return (Double.parseDouble(new DecimalFormat("#.##").format(filesize / 1048576)) + "MB");
+        } else if (filesize >= 1024) {
+            return (Double.parseDouble(new DecimalFormat("#.#").format(filesize / 1024)) + "KB");
+        } else {
+            return (filesize + " bytes");
+        }
+    }
+
+}
