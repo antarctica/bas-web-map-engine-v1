@@ -45,42 +45,52 @@ public abstract class DataPublisher {
     /* Access to OS level commands */
     private Runtime appRuntime = Runtime.getRuntime();
 
-    /* Multipart file upload */
-    MultipartFile mpf;
-    
-    /* Current user */
-    String userName;
-    
-    /* Metadata for file upload */
-    UploadedFileMetadata md;    
+    public DataPublisher() {
+    }
 
-    public DataPublisher(MultipartFile cMpf, String cUserName) throws IOException, IllegalStateException {
-        mpf = cMpf;
-        userName = cUserName;
-        grp = new GeoServerRESTPublisher(env.getProperty("geoserver.local.url"), env.getProperty("geoserver.local.username"), env.getProperty("geoserver.local.password"));
+    @Transactional
+    public abstract String publish(UploadedFileMetadata md);
+    
+    /**
+     * Create the working environment to process a data file upload
+     * @param MultipartFile mpf
+     * @param String userName
+     * @return UploadedFileMetadata
+     * @throws IOException 
+     */
+    public UploadedFileMetadata initWorkingEnvironment(MultipartFile mpf, String userName) throws IOException {
+        UploadedFileMetadata md = new UploadedFileMetadata();
+        setGrp(new GeoServerRESTPublisher(getEnv().getProperty("geoserver.local.url"), getEnv().getProperty("geoserver.local.username"), getEnv().getProperty("geoserver.local.password")));
         File wd = new File(WDBASE + Calendar.getInstance().getTimeInMillis());
         if (wd.mkdir()) {
             /* Created the working directory */
             File uploaded = new File(wd.getAbsolutePath() + SEP + standardiseName(mpf.getName()));
             mpf.transferTo(uploaded);
-            md = extractMetadata();
+            String basename = FilenameUtils.getBaseName(mpf.getOriginalFilename());
+            md.setUploaded(uploaded);
+            md.setName(basename);
+            md.setTitle(basename.replace("[^A-Za-z0-9]", " ").replace("\\s{2,}", " "));
+            md.setDescription(FilenameUtils.getExtension(mpf.getOriginalFilename()).toUpperCase() + 
+                " file " + mpf.getOriginalFilename() + 
+                " of size " + sizeFormatter(mpf.getSize()) + 
+                " uploaded on " + new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date()) + 
+                " by " + userName);
+            md.setSrs("EPSG:4326");     /* Any different projection (shapefiles only) will be done in the appropriate place */
         } else {
             /* Failed to create */
-            throw new IOException("Failed to create working directory");
-        }      
+            throw new IOException("Failed to create working directory " + wd.getName());
+        }  
+        return(md);
     }
-
-    @Transactional
-    public abstract String publish(File upload, UploadedFileMetadata md);
     
     /**
      * Get geometry type (point|line|polygon) for the given table
      * @param String tableName
      * @return String
      */
-    private String getGeometryType(String tableName) throws DataAccessException {
+    protected String getGeometryType(String tableName) throws DataAccessException {
         String type = "point";
-        String pgType = magicDataTpl.queryForObject("SELECT st_geometry_type FROM " + tableName + " LIMIT 1", String.class).toLowerCase();
+        String pgType = getMagicDataTpl().queryForObject("SELECT st_geometry_type FROM " + tableName + " LIMIT 1", String.class).toLowerCase();
         if (pgType.indexOf("line") >= 0) {
             type = "line";
         } else if (pgType.indexOf("polygon") >= 0) {
@@ -90,34 +100,26 @@ public abstract class DataPublisher {
     }
 
     /**
-     * Create a new database schema to receive tables created from an uploaded
-     * file
+     * Create a new database schema to receive tables created from an uploaded file name
      * @param String name
-     * @return String
      */
-    private String createUploadConversionSchema(String name) {
-        String message = "";
-        try {
-            magicDataTpl.execute("CREATE SCHEMA IF NOT EXISTS " + name + " AUTHORIZATION " + env.getProperty("datasource.magic.username"));
-        } catch (DataAccessException dae) {
-            message = "Failed to create schema " + name + ", error was " + dae.getMessage();
-        }
-        return (message);
+    protected void createUploadConversionSchema(String name) throws DataAccessException {
+        getMagicDataTpl().execute("CREATE SCHEMA IF NOT EXISTS " + name + " AUTHORIZATION " + getEnv().getProperty("datasource.magic.username"));
     }
 
     /**
      * Construct the attribute map for Geoserver Manager for <schema>.<table>
-     * @param UploadedFileMetadat md
+     * @param UploadedFileMetadata md
      * @param String destTableName
      * @return GSFeatureTypeEncoder
      */
-    private GSFeatureTypeEncoder configureFeatureType(String destTableName) throws DataAccessException {
+    protected GSFeatureTypeEncoder configureFeatureType(UploadedFileMetadata md, String destTableName) throws DataAccessException {
 
         GSFeatureTypeEncoder gsfte = new GSFeatureTypeEncoder();
         String tsch = destTableName.substring(0, destTableName.indexOf("."));
         String tname = destTableName.substring(destTableName.indexOf(".") + 1);
 
-        List<Map<String, Object>> recs = magicDataTpl.queryForList("SELECT column_name, is_nullable, data_type FROM information_schema.columns WHERE table_schema=? AND table_name=?", tname, tsch);
+        List<Map<String, Object>> recs = getMagicDataTpl().queryForList("SELECT column_name, is_nullable, data_type FROM information_schema.columns WHERE table_schema=? AND table_name=?", tname, tsch);
         if (!recs.isEmpty()) {
             for (Map<String, Object> rec : recs) {
                 /* Create Geoserver Manager's configuration */
@@ -134,12 +136,12 @@ public abstract class DataPublisher {
                 /* Add primary key if necessary */
                 boolean isPk = isNillable.toLowerCase().equals("no");
                 if (isPk) {
-                    magicDataTpl.execute("ALTER TABLE " + destTableName + " ADD PRIMARY KEY (" + colName + ")");
+                    getMagicDataTpl().execute("ALTER TABLE " + destTableName + " ADD PRIMARY KEY (" + colName + ")");
                 }
                 /* Add index if necessary */
                 boolean isGeom = dataType.toLowerCase().equals("user-defined");
                 if (isGeom) {
-                    magicDataTpl.execute("CREATE INDEX " + tname + "_geom_gist ON " + destTableName + " USING gist (" + colName + ")");
+                    getMagicDataTpl().execute("CREATE INDEX " + tname + "_geom_gist ON " + destTableName + " USING gist (" + colName + ")");
                 }
             }
         }
@@ -158,7 +160,7 @@ public abstract class DataPublisher {
      * @param String defaultStyle
      * @return GSLayerEncoder
      */
-    private GSLayerEncoder configureLayer(String defaultStyle) {
+    protected GSLayerEncoder configureLayer(String defaultStyle) {
         GSLayerEncoder gsle = new GSLayerEncoder();
         gsle.setDefaultStyle(defaultStyle);
         gsle.setEnabled(true);
@@ -172,7 +174,7 @@ public abstract class DataPublisher {
      * @param String pgType
      * @return String
      */
-    private String getDataTypeBinding(String pgType) {
+    protected String getDataTypeBinding(String pgType) {
         String jType = null;
         switch (pgType) {
             case "integer":
@@ -200,32 +202,13 @@ public abstract class DataPublisher {
     }
 
     /**
-     * Extract feature-level metadata from information about the uploaded file   
-     */
-    private UploadedFileMetadata extractMetadata() {
-
-        UploadedFileMetadata md = new UploadedFileMetadata();
-
-        String basename = FilenameUtils.getBaseName(mpf.getOriginalFilename());
-        String extension = FilenameUtils.getExtension(mpf.getOriginalFilename());
-        String uploadDate = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date());
-
-        md.setName(basename);
-        md.setTitle(basename.replace("[^A-Za-z0-9]", " ").replace("\\s{2,}", " "));
-        md.setDescription(extension.toUpperCase() + " file " + mpf.getOriginalFilename() + " of size " + sizeFormatter(mpf.getSize()) + " uploaded on " + uploadDate + " by " + userName);
-        md.setSrs("EPSG:4326");     /* Any different projection (shapefiles only) will be done in the appropriate place */
-
-        return (md);
-    }
-    
-    /**
      * Create a standardised file (and hence table) name from the user's
      * filename - done by lowercasing, converting all non-alphanumerics to _ and
      * sequences of _ to single _
      * @param String fileName
      * @return String
      */
-    private String standardiseName(String fileName) {
+    protected String standardiseName(String fileName) {
         String stdName = "";
         if (fileName != null && !fileName.isEmpty()) {
             stdName = fileName.toLowerCase().replaceAll("[^a-z0-9.]", "_").replaceAll("_{2,}", "_");
@@ -238,7 +221,7 @@ public abstract class DataPublisher {
      * @param long filesize
      * @return String
      */
-    private String sizeFormatter(long filesize) {
+    protected String sizeFormatter(long filesize) {
         if (filesize >= 1073741824) {
             return (Double.parseDouble(new DecimalFormat("#.##").format(filesize / 1073741824)) + "GB");
         } else if (filesize >= 1048576) {
@@ -248,6 +231,38 @@ public abstract class DataPublisher {
         } else {
             return (filesize + " bytes");
         }
+    }
+
+    public Environment getEnv() {
+        return env;
+    }
+
+    public void setEnv(Environment env) {
+        this.env = env;
+    }
+
+    public JdbcTemplate getMagicDataTpl() {
+        return magicDataTpl;
+    }
+
+    public void setMagicDataTpl(JdbcTemplate magicDataTpl) {
+        this.magicDataTpl = magicDataTpl;
+    }
+
+    public GeoServerRESTPublisher getGrp() {
+        return grp;
+    }
+
+    public void setGrp(GeoServerRESTPublisher grp) {
+        this.grp = grp;
+    }
+
+    public Runtime getAppRuntime() {
+        return appRuntime;
+    }
+
+    public void setAppRuntime(Runtime appRuntime) {
+        this.appRuntime = appRuntime;
     }
 
 }

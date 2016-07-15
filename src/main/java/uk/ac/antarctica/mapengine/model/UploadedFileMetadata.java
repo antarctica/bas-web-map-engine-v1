@@ -3,12 +3,15 @@
  */
 package uk.ac.antarctica.mapengine.model;
 
+import java.io.File;
+
 public class UploadedFileMetadata {
 
     private String name;
     private String title;
     private String description;
     private String srs;
+    private File uploaded;
 
     public UploadedFileMetadata() {
     }
@@ -43,6 +46,14 @@ public class UploadedFileMetadata {
 
     public void setSrs(String srs) {
         this.srs = srs;
+    }
+
+    public File getUploaded() {
+        return uploaded;
+    }
+    
+    public void setUploaded(File uploaded) {
+        this.uploaded = uploaded;
     }
 
 }
