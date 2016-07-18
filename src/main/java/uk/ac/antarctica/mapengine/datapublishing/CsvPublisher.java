@@ -3,17 +3,20 @@
  */
 package uk.ac.antarctica.mapengine.datapublishing;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.LinkedHashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.antarctica.mapengine.model.UploadedFileMetadata;
+import uk.ac.antarctica.mapengine.util.CoordinateConversionUtils;
 
 @Component
 public class CsvPublisher extends DataPublisher {
@@ -29,58 +32,115 @@ public class CsvPublisher extends DataPublisher {
         
         String message = "";
         
-        String pgTable = env.getProperty("datasource.magic.userUploadSchema") + "." + md.getName();
-        try {
-            FileReader fileInput = new FileReader(uploaded);
-            boolean gotHeaders = false;
-            LinkedHashMap<String, String> columnTypes = new LinkedHashMap();
-            for (CSVRecord record : CSVFormat.DEFAULT.parse(fileInput)) {
-                if (!gotHeaders) {
-                    /* These are the headers - create a list of names - bomb the process if any are empty or numeric */
-                    for (int i = 0; i < record.size(); i++) {
-                        String colName = record.get(i);
-                        if (colName.isEmpty() || StringUtils.isNumeric(colName)) {
-                            message = "Bad column name >" + colName + "< in first row - check this contains the attribute names";
-                            break;
-                        } else {
-                            /* Initialise the Postgres type */
-                            columnTypes.put(colName, null);
-                        }
-                    }
-                    if (message.isEmpty()) {
-                        gotHeaders = true;
-                    }                    
-                } else {
-                    /* Feature record */
-                    int i = 0;
-                    for (String key : columnTypes.keySet()) {
-                        String attrValue = record.get(i);
-                        String currAttrType = columnTypes.get(key);
-                        String thisAttrType = getPostgresType(attrValue);
-                        if (currAttrType == null || (getTypePriority(thisAttrType) > getTypePriority(currAttrType))) {
-                            columnTypes.put(key, thisAttrType);
-                        }
-                        i++;
-                    }                    
-                }
-                if (!message.isEmpty()) {
-                    break;
-                }
+        String pgTable = getEnv().getProperty("datasource.magic.userUploadSchema") + "." + md.getName();
+        try {                    
+            /* Deduce table column types from CSV values and create the table */
+            LinkedHashMap<String, String> columnTypes = getColumnTypeDictionary(md.getUploaded());                            
+            StringBuilder ctSql = new StringBuilder("CREATE TABLE " + pgTable + "(\n");
+            ctSql.append("pgid serial,\n");
+            for (String key : columnTypes.keySet()) {
+                ctSql.append(key);
+                ctSql.append(" ");
+                ctSql.append(columnTypes.get(key));
+                ctSql.append(",\n");
             }
-            if (message.isEmpty()) {
-                /* Create the table based on the column types deduced by the file scan above */
-                
-            }
-            
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(DataPublishController.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(DataPublishController.class.getName()).log(Level.SEVERE, null, ex);
+            ctSql.append("geom geometry(Point, 4326)\n");
+            ctSql.append(") WITH(OIDS=FALSE)");
+            getMagicDataTpl().execute(ctSql.toString());
+            getMagicDataTpl().execute("ALTER TABLE " + pgTable + " OWNER TO " + getEnv().getProperty("datasource.magic.username"));
+            populateTable(md.getUploaded(), columnTypes, pgTable);
+        } catch (FileNotFoundException fnfe) {
+            message = "Uploaded CSV file " + md.getName() + " not found - error was: " + fnfe.getMessage();
+        } catch (IOException ioe) {
+            message = "Failed to parse uploaded CSV file " + md.getName() + " - error was: " + ioe.getMessage();
+        } catch (DataAccessException dae) {               
+            message = "Database error when populating PostgreSQL table - error was: " + dae.getMessage();
         }
-        
-        
-        return (message);
         return (md.getName() + ": " + message);
+    }
+    
+    /**
+     * Populate the created PostgreSQL table using the values from the file
+     * @param File csv
+     * @param LinkedHashMap<String, String> columnTypes
+     * @param String tableName
+     * @throws FileNotFoundException
+     * @throws IOException
+     * @throws DataAccessException 
+     */
+    private void populateTable(File csv, LinkedHashMap<String, String> columnTypes, String tableName) throws FileNotFoundException, IOException, DataAccessException {
+        FileReader fileInput = new FileReader(csv);
+        int count = 0;
+        for (CSVRecord record : CSVFormat.DEFAULT.parse(fileInput)) {
+            if (count > 0) {
+                /* Skipped the header line, so this is an actual feature record */
+                int i = 0;
+                Object[] values = new Object[columnTypes.keySet().size()];
+                StringBuilder insertSql = new StringBuilder("INSERT INTO " + tableName + " VALUES(");
+                Double lat = null, lon = null;
+                for (String key : columnTypes.keySet()) {
+                    if (candidateLatitudeColumn(key)) {
+                        /* Looks like a latitude => invoke conversion */
+                        lat = CoordinateConversionUtils.toDecDegrees(record.get(i), true);
+                    } else if (candidateLongitudeColumn(key)) {
+                        /* Looks like a longitude => invoke conversion */
+                        lon = CoordinateConversionUtils.toDecDegrees(record.get(i), false);
+                    }
+                    insertSql.append(i == 0 ? "?" : ",?");
+                    values[i] = record.get(i);                    
+                    i++;
+                }
+                insertSql.append(") RETURNING pgid");
+                Integer added = getMagicDataTpl().queryForObject(insertSql.toString(), Integer.class);
+                if (lat != null && lon != null) {
+                    String setGeom = "UPDATE " + tableName + " SET geom=st_geomfromtext('POINT(" + lon + " " + lat + "', 4326) WHERE pgid=?";
+                    getMagicDataTpl().update(setGeom, added);
+                }
+            }       
+            count++;
+        }
+    }
+    
+    /**
+     * Perform a scan of the file's contents, and make the best effort to deduce the PostgreSQL data types of the columns
+     * NOTE: only recognises character varying|numeric|integer|text
+     * @param File csv
+     * @return LinkedHashMap
+     * @throws FileNotFoundException
+     * @throws IOException 
+     */
+    private LinkedHashMap<String, String> getColumnTypeDictionary(File csv) throws FileNotFoundException, IOException {
+        FileReader fileInput = new FileReader(csv);
+        boolean gotHeaders = false;
+        LinkedHashMap<String, String> columnTypes = new LinkedHashMap();
+        for (CSVRecord record : CSVFormat.DEFAULT.parse(fileInput)) {
+            if (!gotHeaders) {
+                /* These are the headers - create a list of names - bomb the process if any are empty or numeric */
+                for (int i = 0; i < record.size(); i++) {
+                    String colName = record.get(i);
+                    if (colName.isEmpty() || StringUtils.isNumeric(colName)) {
+                        throw new IOException("Bad column name >" + colName + "< in first row - check this contains the attribute names");
+                    } else {
+                        /* Initialise the Postgres type */
+                        columnTypes.put(colName, null);
+                    }
+                }
+                gotHeaders = true;
+            } else {
+                /* Feature record */
+                int i = 0;
+                for (String key : columnTypes.keySet()) {
+                    String attrValue = record.get(i);
+                    String currAttrType = columnTypes.get(key);
+                    String thisAttrType = getPostgresType(attrValue);
+                    if (currAttrType == null || (getTypePriority(thisAttrType) > getTypePriority(currAttrType))) {
+                        columnTypes.put(key, thisAttrType);
+                    }
+                    i++;
+                }                    
+            }            
+        }
+        return(columnTypes);
     }
     
     /**
@@ -90,7 +150,7 @@ public class CsvPublisher extends DataPublisher {
      * @return String
      */
     private String getPostgresType(String s) {
-        String type = "character varying";
+        String type = "character varying (254)";
         try {
             Integer.parseInt(s);
             type = "integer";
