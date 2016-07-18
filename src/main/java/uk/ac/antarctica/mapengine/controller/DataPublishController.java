@@ -56,6 +56,7 @@ public class DataPublishController {
                     /* Publish the file */
                     UploadedFileMetadata md = pub.initWorkingEnvironment(mpf, userName);
                     statusMessages.add(pub.publish(md));
+                    pub.cleanUp(md.getUploaded());
                 } else {
                     /* Unsupported extension type */
                     statusMessages.add(mpf.getName() + ": unsupported extension type " + extension);

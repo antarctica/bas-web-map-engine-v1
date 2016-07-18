@@ -49,6 +49,14 @@ public class CsvPublisher extends DataPublisher {
             getMagicDataTpl().execute(ctSql.toString());
             getMagicDataTpl().execute("ALTER TABLE " + pgTable + " OWNER TO " + getEnv().getProperty("datasource.magic.username"));
             populateTable(md.getUploaded(), columnTypes, pgTable);
+            /* Now publish to Geoserver */                                                      
+            boolean published = getGrp().publishDBLayer(
+                getEnv().getProperty("geoserver.local.userWorkspace"), 
+                getEnv().getProperty("geoserver.local.userPostgis"), 
+                configureFeatureType(md, pgTable), 
+                configureLayer(getGeometryType(pgTable))
+            );
+            message = "Publishing PostGIS table " + pgTable + " to Geoserver " + (published ? "succeeded" : "failed");
         } catch (FileNotFoundException fnfe) {
             message = "Uploaded CSV file " + md.getName() + " not found - error was: " + fnfe.getMessage();
         } catch (IOException ioe) {

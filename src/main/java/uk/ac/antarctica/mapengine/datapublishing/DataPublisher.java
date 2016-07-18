@@ -16,6 +16,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -81,6 +82,14 @@ public abstract class DataPublisher {
             throw new IOException("Failed to create working directory " + wd.getName());
         }  
         return(md);
+    }
+    
+    /**
+     * Tear down the working environment
+     * @param File uploaded 
+     */
+    public void cleanUp(File uploaded) {
+        FileUtils.deleteQuietly(uploaded.getParentFile());        
     }
     
     /**
