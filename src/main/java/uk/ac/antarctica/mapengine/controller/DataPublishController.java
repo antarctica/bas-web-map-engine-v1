@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import uk.ac.antarctica.mapengine.datapublishing.CsvPublisher;
 import uk.ac.antarctica.mapengine.datapublishing.DataPublisher;
 import uk.ac.antarctica.mapengine.datapublishing.GpxKmlPublisher;
+import uk.ac.antarctica.mapengine.datapublishing.ShpZipPublisher;
 import uk.ac.antarctica.mapengine.model.UploadedFileMetadata;
 
 @Controller
@@ -48,6 +49,7 @@ public class DataPublishController {
                         pub = new CsvPublisher();
                         break;
                     case "zip":
+                        pub = new ShpZipPublisher();
                         break;
                     default:
                         break;

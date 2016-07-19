@@ -3,10 +3,10 @@
  */
 package uk.ac.antarctica.mapengine.datapublishing;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Map;
+import java.util.Collection;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
@@ -29,58 +29,62 @@ public class ShpZipPublisher extends DataPublisher {
         String message = "";
         
         try {
-            String pgSchema = FilenameUtils.getExtension(md.getUploaded().getName()) + "_temp_" + Calendar.getInstance().getTimeInMillis();
             String pgUploadSchema = getEnv().getProperty("datasource.magic.userUploadSchema");
             String pgUser = getEnv().getProperty("datasource.magic.username");
             String pgPass = getEnv().getProperty("datasource.magic.password").replaceAll("!", "\\!");    /* ! is a shell metacharacter */
 
-            createUploadConversionSchema(pgSchema);
             if (message.isEmpty()) {
-                /* Successful schema creation - now construct ogr2ogr command to run to convert GPX to PostGIS
-                 * example: 
-                 * ogr2ogr -f PostgreSQL 'PG:host=localhost dbname=magic schemas=<schema> user=<user> password=<pass>' punta_to_rothera.gpx 
-                 */
-                String cmd = "ogr2ogr -f PostgreSQL 'PG:host=localhost dbname=magic schemas=" + pgSchema + " user=" + pgUser + " password=" + pgPass + "' " + md.getUploaded().getAbsolutePath();
-                Process ogrProc = getAppRuntime().exec(cmd);
-                ProcessWithTimeout ogrProcTimeout = new ProcessWithTimeout(ogrProc);
-                int ogrProcRet = ogrProcTimeout.waitForProcess(30000);  /* Timeout in milliseconds */
-                if (ogrProcRet == 0) {
-                    /* Normal termination 
-                     * ogr2ogr will have created routes, tracks and waypoints tables - not all of these will have any content depending on the data - delete all empty ones
-                     */
-                    List<Map<String,Object>> createdTables = getMagicDataTpl().queryForList("SELECT table_name FROM information_schema.tables WHERE table_schema=?", pgSchema);
-                    if (!createdTables.isEmpty()) {
-                        /* Some tables created */
-                        for (Map<String,Object> pgTableRec : createdTables) {
-                            String pgTable = standardiseName((String)pgTableRec.get("table_name"));
-                            String srcTableName = pgSchema + "." + pgTable;
-                            String destTableName = pgUploadSchema + "." + FilenameUtils.getBaseName(md.getUploaded().getName()) + "_" + pgTable;
-                            int nRecs = getMagicDataTpl().queryForObject("SELECT count(*) FROM " + pgSchema + "." + pgTable, Integer.class);
-                            if (nRecs > 0) {
-                                /* Copy records from non-empty table into user uploads schema with a user-friendly name */                                
-                                getMagicDataTpl().execute("CREATE TABLE " + destTableName + " AS SELECT * FROM " + srcTableName);
-                                /* Now publish to Geoserver */                                                      
-                                boolean published = getGrp().publishDBLayer(
+                /* First unzip the uploaded file */
+                unzipFile(md.getUploaded()); 
+                String[] validFiles = new String[]{"shp", "shx", "dbf", "prj", "sld"};
+                Collection<File> shpCpts = FileUtils.listFiles(md.getUploaded().getParentFile(), validFiles, true);
+                if (shpCpts.size() < validFiles.length - 1) {
+                    /* Cannot make sense of underspecified data */
+                    message = "Shapefile " + md.getUploaded().getName() + " is underspecified";
+                } else {
+                    /* Find SLD if present, and publish a style */
+                    File sld = null, shp = null;
+                    for (File f : shpCpts) {
+                        if (FilenameUtils.getExtension(f.getName()).equals("sld")) {
+                            /* Found an SLD */
+                            sld = f.getAbsoluteFile();
+                        } else if (FilenameUtils.getExtension(f.getName()).equals("shp")) {
+                            /* Found top-level shapefile */
+                            shp = f.getAbsoluteFile();
+                        }
+                    }
+                    if (sld != null) {
+                        /* Create a Geoserver style based on the submitted SLD */
+                        getGrp().publishStyle(sld, standardiseName(sld.getName()));
+                    }
+                    if (shp != null) {
+                        /* Create PostGIS table from shapefile */
+                        String cmd = "ogr2ogr -f PostgreSQL 'PG:host=localhost dbname=magic schemas=" + pgUploadSchema + " user=" + pgUser + " password=" + pgPass + "' " + shp.getAbsolutePath();
+                        Process ogrProc = getAppRuntime().exec(cmd);
+                        ProcessWithTimeout ogrProcTimeout = new ProcessWithTimeout(ogrProc);
+                        int ogrProcRet = ogrProcTimeout.waitForProcess(30000);  /* Timeout in milliseconds */
+                        if (ogrProcRet == 0) {
+                            /* Normal termination */
+                            String destTableName = standardiseName(shp.getName());
+                            getMagicDataTpl().execute("ALTER TABLE " + FilenameUtils.getBaseName(shp.getName()) + " RENAME TO " + destTableName);
+                            boolean published = getGrp().publishDBLayer(
                                     getEnv().getProperty("geoserver.local.userWorkspace"), 
                                     getEnv().getProperty("geoserver.local.userPostgis"), 
                                     configureFeatureType(md, destTableName), 
                                     configureLayer(getGeometryType(destTableName))
-                                );
-                                message = "Publishing PostGIS table " + pgTable + " to Geoserver " + (published ? "succeeded" : "failed");
-                            }                        
+                            );
+                            message = "Publishing PostGIS table " + destTableName + " to Geoserver " + (published ? "succeeded" : "failed");
+                        } else if (ogrProcRet == Integer.MIN_VALUE) {
+                            /* Timeout */
+                            message = "No response from conversion process after 30 seconds - aborted";
+                        } else {
+                            /* Unexpected process return */
+                            message = "Unexpected return " + ogrProcRet + " from GPX to PostGIS process";
                         }
                     } else {
-                        message = "Conversion process completed successfully but created no data";
+                        message = "Failed to find .shp file in the uploaded zip";
                     }
-                    /* Delete the temporary schema and all contents */
-                    getMagicDataTpl().execute("DROP SCHEMA " + pgSchema + " CASCADE");
-                } else if (ogrProcRet == Integer.MIN_VALUE) {
-                    /* Timeout */
-                    message = "No response from conversion process after 30 seconds - aborted";
-                } else {
-                    /* Unexpected process return */
-                    message = "Unexpected return " + ogrProcRet + " from GPX to PostGIS process";
-                }
+                }               
             }
         } catch(IOException ioe) {
             message = "Failed to start conversion process from GPX to PostGIS - error was " + ioe.getMessage();
@@ -89,5 +93,7 @@ public class ShpZipPublisher extends DataPublisher {
         }
         return (md.getName() + ": " + message);
     }
+
+    
     
 }

@@ -9,6 +9,9 @@ import it.geosolutions.geoserver.rest.encoder.feature.FeatureTypeAttribute;
 import it.geosolutions.geoserver.rest.encoder.feature.GSAttributeEncoder;
 import it.geosolutions.geoserver.rest.encoder.feature.GSFeatureTypeEncoder;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
@@ -16,6 +19,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,10 +34,10 @@ import uk.ac.antarctica.mapengine.model.UploadedFileMetadata;
 public abstract class DataPublisher {
 
     /* OS-specific directory path separator */
-    private static final String SEP = System.getProperty("file.separator");
+    protected static final String SEP = System.getProperty("file.separator");
 
     /* Upload temporary working directory base name */
-    private static final String WDBASE = System.getProperty("java.io.tmpdir") + SEP + "upload_";
+    protected static final String WDBASE = System.getProperty("java.io.tmpdir") + SEP + "upload_";
 
     @Autowired
     private Environment env;
@@ -90,6 +95,29 @@ public abstract class DataPublisher {
      */
     public void cleanUp(File uploaded) {
         FileUtils.deleteQuietly(uploaded.getParentFile());        
+    }
+    
+    /**
+     * Unzip the given file into the same directory
+     * @param File zip 
+     */
+    protected void unzipFile(File zip) throws FileNotFoundException, IOException {
+        String workDir = zip.getParent();
+        ZipInputStream zis = new ZipInputStream(new FileInputStream(zip));
+        ZipEntry ze = zis.getNextEntry();
+        while(ze != null) {
+            File f = new File(workDir + SEP + ze.getName());
+            FileOutputStream fos = new FileOutputStream(f);
+            int len;
+            byte buffer[] = new byte[1024];
+            while ((len = zis.read(buffer)) > 0) {
+                fos.write(buffer, 0, len);
+            }
+            fos.close();   
+            ze = zis.getNextEntry();
+        }
+        zis.closeEntry();
+        zis.close();
     }
     
     /**
