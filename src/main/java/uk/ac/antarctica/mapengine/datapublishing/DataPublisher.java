@@ -70,7 +70,7 @@ public abstract class DataPublisher {
         File wd = new File(WDBASE + Calendar.getInstance().getTimeInMillis());
         if (wd.mkdir()) {
             /* Created the working directory */
-            File uploaded = new File(wd.getAbsolutePath() + SEP + standardiseName(mpf.getName()));
+            File uploaded = new File(wd.getAbsolutePath() + SEP + standardiseName(mpf.getOriginalFilename()));
             mpf.transferTo(uploaded);
             String basename = FilenameUtils.getBaseName(mpf.getOriginalFilename());
             md.setUploaded(uploaded);

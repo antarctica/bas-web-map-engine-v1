@@ -5,6 +5,10 @@ package uk.ac.antarctica.mapengine.controller;
 
 import java.util.ArrayList;
 import org.apache.commons.io.FilenameUtils;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,14 +20,17 @@ import uk.ac.antarctica.mapengine.datapublishing.DataPublisher;
 import uk.ac.antarctica.mapengine.datapublishing.GpxKmlPublisher;
 import uk.ac.antarctica.mapengine.datapublishing.ShpZipPublisher;
 import uk.ac.antarctica.mapengine.model.UploadedFileMetadata;
+import uk.ac.antarctica.mapengine.util.PackagingUtils;
 
 @Controller
-public class DataPublishController {
+public class DataPublishController implements ApplicationContextAware {
+    
+    private ApplicationContext applicationContext;
     
     @RequestMapping(value = "/publish_postgis", method = RequestMethod.POST, consumes = "multipart/form-data", produces = {"application/json"})
     public ResponseEntity<String> publishToPostGIS(MultipartHttpServletRequest request) throws Exception {
         
-        ResponseEntity<String> ret = null;
+        HttpStatus status = HttpStatus.BAD_REQUEST;
         int count = 1;       
         ArrayList<String> statusMessages = new ArrayList();        
         String userName = (request.getUserPrincipal() != null) ? request.getUserPrincipal().getName() : "guest";        
@@ -43,13 +50,13 @@ public class DataPublishController {
                 switch(extension) {
                     case "gpx":
                     case "kml":
-                        pub = new GpxKmlPublisher();
+                        pub = applicationContext.getBean(GpxKmlPublisher.class);
                         break;
                     case "csv":
-                        pub = new CsvPublisher();
+                        pub = applicationContext.getBean(CsvPublisher.class);
                         break;
                     case "zip":
-                        pub = new ShpZipPublisher();
+                        pub = applicationContext.getBean(ShpZipPublisher.class);
                         break;
                     default:
                         break;
@@ -59,6 +66,7 @@ public class DataPublishController {
                     UploadedFileMetadata md = pub.initWorkingEnvironment(mpf, userName);
                     statusMessages.add(pub.publish(md));
                     pub.cleanUp(md.getUploaded());
+                    status = HttpStatus.OK;
                 } else {
                     /* Unsupported extension type */
                     statusMessages.add(mpf.getName() + ": unsupported extension type " + extension);
@@ -68,7 +76,32 @@ public class DataPublishController {
             }                 
             count++;
         }
-        return(ret);
+        return(PackagingUtils.packageResults(status, null, formatMessage(statusMessages)));
+    }
+
+    public ApplicationContext getApplicationContext() {
+        return applicationContext;
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext ac) throws BeansException {
+        applicationContext = ac;
+    }
+
+    /**
+     * Format a list of status messages in a human-friendly way
+     * @param ArrayList<String> statusMessages
+     * @return String
+     */
+    private String formatMessage(ArrayList<String> statusMessages) {
+        StringBuilder out = new StringBuilder();
+        out.append("---- Results ----\n");
+        for (String msg : statusMessages) {
+            out.append(msg);
+            out.append("\n");
+        }
+        out.append("---- End ----");
+        return(out.toString());
     }
 
 }

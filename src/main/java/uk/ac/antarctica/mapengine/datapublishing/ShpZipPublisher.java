@@ -31,7 +31,7 @@ public class ShpZipPublisher extends DataPublisher {
         try {
             String pgUploadSchema = getEnv().getProperty("datasource.magic.userUploadSchema");
             String pgUser = getEnv().getProperty("datasource.magic.username");
-            String pgPass = getEnv().getProperty("datasource.magic.password").replaceAll("!", "\\!");    /* ! is a shell metacharacter */
+            String pgPass = getEnv().getProperty("datasource.magic.password").replaceAll("!", "\\\\!");    /* ! is a shell metacharacter */
 
             if (message.isEmpty()) {
                 /* First unzip the uploaded file */
@@ -59,7 +59,7 @@ public class ShpZipPublisher extends DataPublisher {
                     }
                     if (shp != null) {
                         /* Create PostGIS table from shapefile */
-                        String cmd = "ogr2ogr -f PostgreSQL 'PG:host=localhost dbname=magic schemas=" + pgUploadSchema + " user=" + pgUser + " password=" + pgPass + "' " + shp.getAbsolutePath();
+                        String cmd = "c:\\Program Files\\QGIS Essen\\bin\\ogr2ogr.exe -f PostgreSQL 'PG:host=localhost dbname=magic schemas=" + pgUploadSchema + " user=" + pgUser + " password=" + pgPass + "' " + shp.getAbsolutePath();
                         Process ogrProc = getAppRuntime().exec(cmd);
                         ProcessWithTimeout ogrProcTimeout = new ProcessWithTimeout(ogrProc);
                         int ogrProcRet = ogrProcTimeout.waitForProcess(30000);  /* Timeout in milliseconds */
