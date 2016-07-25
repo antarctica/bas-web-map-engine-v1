@@ -38,6 +38,11 @@ public abstract class DataPublisher {
 
     /* Upload temporary working directory base name */
     protected static final String WDBASE = System.getProperty("java.io.tmpdir") + SEP + "upload_";
+    
+    /* Path to ogr2ogr executable */
+    protected static final String OGR2OGR = SEP.equals("/") 
+        ? System.getProperty("user.home") + "/gdal/bin/ogr2ogr" 
+        : "\"c:/Program Files/QGIS Essen/bin/ogr2ogr.exe\"";
 
     @Autowired
     private Environment env;
@@ -127,7 +132,7 @@ public abstract class DataPublisher {
      */
     protected String getGeometryType(String tableName) throws DataAccessException {
         String type = "point";
-        String pgType = getMagicDataTpl().queryForObject("SELECT st_geometry_type FROM " + tableName + " LIMIT 1", String.class).toLowerCase();
+        String pgType = getMagicDataTpl().queryForObject("SELECT ST_GeometryType(wkb_geometry) FROM " + tableName + " LIMIT 1", String.class).toLowerCase();
         if (pgType.indexOf("line") >= 0) {
             type = "line";
         } else if (pgType.indexOf("polygon") >= 0) {
@@ -268,6 +273,10 @@ public abstract class DataPublisher {
         } else {
             return (filesize + " bytes");
         }
+    }
+    
+    protected String dateTimeSuffix() {
+        return(new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
     }
 
     public Environment getEnv() {

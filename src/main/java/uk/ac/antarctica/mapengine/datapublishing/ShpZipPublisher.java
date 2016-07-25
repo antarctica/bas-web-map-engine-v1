@@ -3,16 +3,25 @@
  */
 package uk.ac.antarctica.mapengine.datapublishing;
 
+import it.geosolutions.geoserver.rest.encoder.GSLayerEncoder;
+import it.geosolutions.geoserver.rest.encoder.feature.GSFeatureTypeEncoder;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import org.apache.commons.exec.CommandLine;
+import org.apache.commons.exec.DefaultExecutor;
+import org.apache.commons.exec.ExecuteException;
+import org.apache.commons.exec.ExecuteWatchdog;
+import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.output.NullOutputStream;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.antarctica.mapengine.model.UploadedFileMetadata;
-import uk.ac.antarctica.mapengine.util.ProcessWithTimeout;
 
 @Component
 public class ShpZipPublisher extends DataPublisher {
@@ -31,8 +40,8 @@ public class ShpZipPublisher extends DataPublisher {
         try {
             String pgUploadSchema = getEnv().getProperty("datasource.magic.userUploadSchema");
             String pgUser = getEnv().getProperty("datasource.magic.username");
-            String pgPass = getEnv().getProperty("datasource.magic.password").replaceAll("!", "\\\\!");    /* ! is a shell metacharacter */
-
+            String pgPass = getEnv().getProperty("datasource.magic.password").replaceAll("!", "\\\\!");    /* ! is a shell metacharacter for UNIX */
+           
             if (message.isEmpty()) {
                 /* First unzip the uploaded file */
                 unzipFile(md.getUploaded()); 
@@ -58,42 +67,67 @@ public class ShpZipPublisher extends DataPublisher {
                         getGrp().publishStyle(sld, standardiseName(sld.getName()));
                     }
                     if (shp != null) {
-                        /* Create PostGIS table from shapefile */
-                        String cmd = "c:\\Program Files\\QGIS Essen\\bin\\ogr2ogr.exe -f PostgreSQL 'PG:host=localhost dbname=magic schemas=" + pgUploadSchema + " user=" + pgUser + " password=" + pgPass + "' " + shp.getAbsolutePath();
-                        Process ogrProc = getAppRuntime().exec(cmd);
-                        ProcessWithTimeout ogrProcTimeout = new ProcessWithTimeout(ogrProc);
-                        int ogrProcRet = ogrProcTimeout.waitForProcess(30000);  /* Timeout in milliseconds */
-                        if (ogrProcRet == 0) {
-                            /* Normal termination */
-                            String destTableName = standardiseName(shp.getName());
-                            getMagicDataTpl().execute("ALTER TABLE " + FilenameUtils.getBaseName(shp.getName()) + " RENAME TO " + destTableName);
-                            boolean published = getGrp().publishDBLayer(
-                                    getEnv().getProperty("geoserver.local.userWorkspace"), 
-                                    getEnv().getProperty("geoserver.local.userPostgis"), 
-                                    configureFeatureType(md, destTableName), 
-                                    configureLayer(getGeometryType(destTableName))
-                            );
-                            message = "Publishing PostGIS table " + destTableName + " to Geoserver " + (published ? "succeeded" : "failed");
-                        } else if (ogrProcRet == Integer.MIN_VALUE) {
-                            /* Timeout */
-                            message = "No response from conversion process after 30 seconds - aborted";
-                        } else {
-                            /* Unexpected process return */
-                            message = "Unexpected return " + ogrProcRet + " from GPX to PostGIS process";
+                        
+                        /* Create PostGIS table from shapefile - first rename any existing table of the same name */
+                        String destTableBase = standardiseName(FilenameUtils.getBaseName(shp.getName()));
+                        String ogrTableName = pgUploadSchema + "." + FilenameUtils.getBaseName(shp.getName());     /* What ogr2ogr will name the table - we have no control over this */
+                        String destTableName = pgUploadSchema + "." + destTableBase;
+                        
+                        /* Copy any existing table to a new archival one */                        
+                        getMagicDataTpl().execute("CREATE TABLE  " + destTableName + "_" + dateTimeSuffix() + " AS TABLE " + destTableName);
+                        /* Drop the existing table, including any sequence and index previously created by ogr2ogr */
+                        getMagicDataTpl().execute("DROP TABLE " + destTableName + " CASCADE");
+                        
+                        /* Pass incremental command line to ogr2ogr */
+                        Map map = new HashMap();
+                        map.put("SHP", shp.getAbsolutePath());
+                        map.put("PGSCHEMA", pgUploadSchema);
+                        map.put("PGUSER", pgUser);
+                        map.put("PGPASS", pgPass);
+                        CommandLine ogr2ogr = new CommandLine(OGR2OGR);
+                        ogr2ogr.setSubstitutionMap(map);
+                        ogr2ogr.addArgument("-f", false);
+                        ogr2ogr.addArgument("PostgreSQL", false);
+                        ogr2ogr.addArgument("PG:host=localhost dbname=magic schemas=${PGSCHEMA} user=${PGUSER} password=${PGPASS}", true);
+                        ogr2ogr.addArgument("${SHP}", true);        
+                        DefaultExecutor executor = new DefaultExecutor();
+                        /* Send stdout and stderr to Tomcat log so we get some feedback about errors */
+                        PumpStreamHandler pumpStreamHandler = new PumpStreamHandler(System.out, System.out); 
+                        executor.setStreamHandler(pumpStreamHandler);
+                        executor.setExitValue(0);
+                        ExecuteWatchdog watchdog = new ExecuteWatchdog(30000);  /* Time process out after 30 seconds */
+                        executor.setWatchdog(watchdog);
+                        executor.execute(ogr2ogr);                             
+                        /* Normal termination comes here, other error returns will throw an exception */  
+                        if (!destTableName.equals(ogrTableName)) {
+                            /* Copy the created table to it appointed name, assign a primary key and geometry index and drop the old one */
+                            getMagicDataTpl().execute("CREATE TABLE " + destTableName + " AS TABLE " + ogrTableName);
+                            getMagicDataTpl().execute("ALTER TABLE " + destTableName + " ADD PRIMARY KEY (ogc_fid)");
+                            getMagicDataTpl().execute("CREATE INDEX " + destTableBase + "_geom_idx ON " + destTableName + " USING gist (wkb_geometry)");
+                            getMagicDataTpl().execute("DROP TABLE IF EXISTS " + ogrTableName + " CASCADE");
                         }
+                        GSFeatureTypeEncoder gsfte = configureFeatureType(md, destTableName);
+                        GSLayerEncoder gsle = configureLayer(getGeometryType(destTableName));
+                        boolean published = getGrp().publishDBLayer(
+                                getEnv().getProperty("geoserver.local.userWorkspace"), 
+                                getEnv().getProperty("geoserver.local.userPostgis"), 
+                                gsfte, 
+                                gsle
+                        );
+                        message = "Publishing PostGIS table " + destTableName + " to Geoserver " + (published ? "succeeded" : "failed");                        
                     } else {
                         message = "Failed to find .shp file in the uploaded zip";
                     }
                 }               
             }
-        } catch(IOException ioe) {
-            message = "Failed to start conversion process from GPX to PostGIS - error was " + ioe.getMessage();
+        } catch(ExecuteException exec) {
+            message = "Unexpected error return from SHP to PostGIS conversion - error was " + exec.getMessage();
         } catch(DataAccessException dae) {
-            message = "Database error occurred during GPX to PostGIS conversion - message was " + dae.getMessage();
+            message = "Database error occurred during SHP to PostGIS conversion - message was " + dae.getMessage();
+        } catch (IOException ioe) {
+            message = "Failed to start conversion process from SHP to PostGIS - error was " + ioe.getMessage();
         }
         return (md.getName() + ": " + message);
-    }
-
-    
+    }       
     
 }
