@@ -17,10 +17,15 @@ import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import org.apache.commons.exec.CommandLine;
+import org.apache.commons.exec.DefaultExecutor;
+import org.apache.commons.exec.ExecuteWatchdog;
+import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +57,9 @@ public abstract class DataPublisher {
     
     /* Geoserver Manager publisher */
     private GeoServerRESTPublisher grp;
+    
+    /* Map of PostgreSQL schema/credentials */
+    private HashMap<String, String> pgMap = new HashMap();
 
     /* Access to OS level commands */
     private Runtime appRuntime = Runtime.getRuntime();
@@ -70,8 +78,14 @@ public abstract class DataPublisher {
      * @throws IOException 
      */
     public UploadedFileMetadata initWorkingEnvironment(MultipartFile mpf, String userName) throws IOException {
+        
         UploadedFileMetadata md = new UploadedFileMetadata();
+        
         setGrp(new GeoServerRESTPublisher(getEnv().getProperty("geoserver.local.url"), getEnv().getProperty("geoserver.local.username"), getEnv().getProperty("geoserver.local.password")));
+        getPgMap().put("PGSCHEMA", getEnv().getProperty("datasource.magic.userUploadSchema"));
+        getPgMap().put("PGUSER", getEnv().getProperty("datasource.magic.username"));
+        getPgMap().put("PGPASS", getEnv().getProperty("datasource.magic.password").replaceAll("!", "\\\\!"));   /* ! is a shell metacharacter for UNIX */
+        
         File wd = new File(WDBASE + Calendar.getInstance().getTimeInMillis());
         if (wd.mkdir()) {
             /* Created the working directory */
@@ -133,9 +147,9 @@ public abstract class DataPublisher {
     protected String getGeometryType(String tableName) throws DataAccessException {
         String type = "point";
         String pgType = getMagicDataTpl().queryForObject("SELECT ST_GeometryType(wkb_geometry) FROM " + tableName + " LIMIT 1", String.class).toLowerCase();
-        if (pgType.indexOf("line") >= 0) {
+        if (pgType.contains("line")) {
             type = "line";
-        } else if (pgType.indexOf("polygon") >= 0) {
+        } else if (pgType.contains("polygon")) {
             type = "polygon";
         }
         return (type);
@@ -148,7 +162,63 @@ public abstract class DataPublisher {
     protected void createUploadConversionSchema(String name) throws DataAccessException {
         getMagicDataTpl().execute("CREATE SCHEMA IF NOT EXISTS " + name + " AUTHORIZATION " + getEnv().getProperty("datasource.magic.username"));
     }
-
+    
+    /**
+     * Import the given file data into a single PostGIS table via a commandline call to ogr2ogr
+     * Note: if the ogr2ogr call will result in multiple tables of defined name, tableName can be null and a containing schema name supplied instead
+     * @param File toConvert  
+     * @param String tableName
+     * @param String tableSchema
+     * @throws IOException 
+     */
+    protected void executeOgr2ogr(File toConvert, String tableName, String tableSchema) throws IOException {
+        if (tableSchema != null) {
+            getPgMap().put("PGSCHEMA", tableSchema);
+        }
+        getPgMap().put("TOCONVERT", toConvert.getAbsolutePath());       
+        CommandLine ogr2ogr = new CommandLine(OGR2OGR);
+        ogr2ogr.setSubstitutionMap(getPgMap());
+        ogr2ogr.addArgument("-f", false);
+        ogr2ogr.addArgument("PostgreSQL", false);
+        ogr2ogr.addArgument("PG:host=localhost dbname=magic schemas=${PGSCHEMA} user=${PGUSER} password=${PGPASS}", true);
+        ogr2ogr.addArgument("${TOCONVERT}", true);
+        if (tableName != null) {
+            ogr2ogr.addArgument("-nln");
+            ogr2ogr.addArgument(tableName);
+        }
+        DefaultExecutor executor = new DefaultExecutor();
+        /* Send stdout and stderr to Tomcat log so we get some feedback about errors */
+        PumpStreamHandler pumpStreamHandler = new PumpStreamHandler(System.out, System.out); 
+        executor.setStreamHandler(pumpStreamHandler);
+        executor.setExitValue(0);
+        ExecuteWatchdog watchdog = new ExecuteWatchdog(30000);  /* Time process out after 30 seconds */
+        executor.setWatchdog(watchdog);
+        executor.execute(ogr2ogr);        
+    }
+        
+    /**
+     * If table with given name exists in the upload schema, copy it to one with an archival name and remove the corresponding Geoserver feature
+     * NOTE: tableName must include a schema prefix i.e. be of form <schema>.<tablename>
+     * @param String tableName 
+     */
+    protected void archiveExistingTable(String tableName) {
+        String tableSchema = tableName.split(".")[0];
+        String tableBase = tableName.split(".")[1];
+        List<Map<String, Object>> exTab = getMagicDataTpl().queryForList("SELECT 1 FROM information_schema.tables WHERE table_schema=? AND table_name=?", tableSchema, tableBase);
+        if (exTab.size() == 1) {                            
+            /* Copy existing table to a new archival one */                        
+            getMagicDataTpl().execute("CREATE TABLE  " + tableName + "_" + dateTimeSuffix() + " AS TABLE " + tableName);
+            /* Drop the existing table, including any sequence and index previously created by ogr2ogr */
+            getMagicDataTpl().execute("DROP TABLE " + tableName + " CASCADE");
+            /* Drop any Geoserver feature corresponding to this table */
+            getGrp().unpublishFeatureType(
+                getEnv().getProperty("geoserver.local.userWorkspace"),
+                getEnv().getProperty("geoserver.local.userPostgis"),
+                tableName
+            );
+        }
+    }
+    
     /**
      * Construct the attribute map for Geoserver Manager for <schema>.<table>
      * @param UploadedFileMetadata md
@@ -160,8 +230,15 @@ public abstract class DataPublisher {
         GSFeatureTypeEncoder gsfte = new GSFeatureTypeEncoder();
         String tsch = destTableName.substring(0, destTableName.indexOf("."));
         String tname = destTableName.substring(destTableName.indexOf(".") + 1);
+        
+        /* Now set feature metadata */
+        gsfte.setNativeCRS(md.getSrs());
+        gsfte.setSRS(md.getSrs());
+        gsfte.setName(tname);
+        gsfte.setTitle(md.getTitle());
+        gsfte.setAbstract(md.getDescription());
 
-        List<Map<String, Object>> recs = getMagicDataTpl().queryForList("SELECT column_name, is_nullable, data_type FROM information_schema.columns WHERE table_schema=? AND table_name=?", tname, tsch);
+        List<Map<String, Object>> recs = getMagicDataTpl().queryForList("SELECT column_name, is_nullable, data_type FROM information_schema.columns WHERE table_schema=? AND table_name=?", tsch, tname);
         if (!recs.isEmpty()) {
             for (Map<String, Object> rec : recs) {
                 /* Create Geoserver Manager's configuration */
@@ -171,29 +248,12 @@ public abstract class DataPublisher {
                 GSAttributeEncoder attribute = new GSAttributeEncoder();
                 attribute.setAttribute(FeatureTypeAttribute.name, colName);
                 attribute.setAttribute(FeatureTypeAttribute.minOccurs, String.valueOf(0));
-                attribute.setAttribute(FeatureTypeAttribute.minOccurs, String.valueOf(1));
+                attribute.setAttribute(FeatureTypeAttribute.maxOccurs, String.valueOf(1));
                 attribute.setAttribute(FeatureTypeAttribute.nillable, String.valueOf(isNillable.toLowerCase().equals("yes")));
                 attribute.setAttribute(FeatureTypeAttribute.binding, dataType);
-                gsfte.setAttribute(attribute);
-                /* Add primary key if necessary */
-                boolean isPk = isNillable.toLowerCase().equals("no");
-                if (isPk) {
-                    getMagicDataTpl().execute("ALTER TABLE " + destTableName + " ADD PRIMARY KEY (" + colName + ")");
-                }
-                /* Add index if necessary */
-                boolean isGeom = dataType.toLowerCase().equals("user-defined");
-                if (isGeom) {
-                    getMagicDataTpl().execute("CREATE INDEX " + tname + "_geom_gist ON " + destTableName + " USING gist (" + colName + ")");
-                }
+                gsfte.setAttribute(attribute);                              
             }
-        }
-        /* Now set feature metadata */
-        gsfte.setNativeCRS(md.getSrs());
-        gsfte.setSRS(md.getSrs());
-        gsfte.setName(destTableName);
-        gsfte.setTitle(md.getTitle());
-        gsfte.setAbstract(md.getDescription());
-
+        }        
         return (gsfte);
     }
 
@@ -217,7 +277,7 @@ public abstract class DataPublisher {
      * @return String
      */
     protected String getDataTypeBinding(String pgType) {
-        String jType = null;
+        String jType;
         switch (pgType) {
             case "integer":
             case "bigint":
@@ -301,6 +361,14 @@ public abstract class DataPublisher {
 
     public void setGrp(GeoServerRESTPublisher grp) {
         this.grp = grp;
+    }
+    
+    public HashMap<String, String> getPgMap() {
+        return pgMap;
+    }
+    
+    public void setPgMap(HashMap<String, String> pgMap) {
+        this.pgMap = pgMap;
     }
 
     public Runtime getAppRuntime() {
