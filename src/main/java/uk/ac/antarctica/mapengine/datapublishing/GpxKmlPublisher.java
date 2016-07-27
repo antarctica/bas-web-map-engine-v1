@@ -10,7 +10,6 @@ import java.util.Map;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import uk.ac.antarctica.mapengine.model.UploadedFileMetadata;
 
 @Component
@@ -22,14 +21,14 @@ public class GpxKmlPublisher extends DataPublisher {
      * @return String
      */
     @Override
-    @Transactional
     public String publish(UploadedFileMetadata md) {
         
         String message = "";
+        String uploadedExtension = FilenameUtils.getExtension(md.getUploaded().getName());
+        String uploadedBasename = FilenameUtils.getBaseName(md.getUploaded().getName());
+        String pgTempSchema = uploadedExtension + "_temp_" + Calendar.getInstance().getTimeInMillis();
         
-        try {
-            
-            String pgTempSchema = FilenameUtils.getExtension(md.getUploaded().getName()) + "_temp_" + Calendar.getInstance().getTimeInMillis();
+        try {                        
             String pgUploadSchema = getEnv().getProperty("datasource.magic.userUploadSchema");           
             createUploadConversionSchema(pgTempSchema);
             
@@ -43,34 +42,37 @@ public class GpxKmlPublisher extends DataPublisher {
                     for (Map<String,Object> pgTableRec : createdTables) {
                         String pgTable = standardiseName((String)pgTableRec.get("table_name"));
                         String srcTableName = pgTempSchema + "." + pgTable;
-                        String destTableName = pgUploadSchema + "." + FilenameUtils.getBaseName(md.getUploaded().getName()) + "_" + pgTable;
-                        int nRecs = getMagicDataTpl().queryForObject("SELECT count(*) FROM " + pgTempSchema + "." + pgTable, Integer.class);
+                        /* Make sure destination table name does not start with a number, which upsets Postgres and Geoserver */
+                        String destTableName = pgUploadSchema + "." + (Character.isDigit(uploadedBasename.charAt(0)) ? uploadedExtension + "_" : "") + uploadedBasename + "_" + pgTable;                       
+                        int nRecs = getMagicDataTpl().queryForObject("SELECT count(*) FROM " + srcTableName, Integer.class);
                         if (nRecs > 0) {
                             /* Copy records from non-empty table into user uploads schema with a user-friendly name */ 
                             archiveExistingTable(destTableName); 
-                            getMagicDataTpl().execute("CREATE TABLE " + destTableName + " AS " + srcTableName);
+                            getMagicDataTpl().execute("CREATE TABLE " + destTableName + " AS TABLE " + srcTableName);
                             /* Now publish to Geoserver */                                                      
-                            boolean published = getGrp().publishDBLayer(
+                            if (!getGrp().publishDBLayer(
                                 getEnv().getProperty("geoserver.local.userWorkspace"), 
                                 getEnv().getProperty("geoserver.local.userPostgis"), 
                                 configureFeatureType(md, destTableName), 
                                 configureLayer(getGeometryType(destTableName))
-                            );
-                            message = "Publishing PostGIS table " + pgTable + " to Geoserver " + (published ? "succeeded" : "failed");
+                            )) {
+                                message = "Publishing PostGIS table " + pgTable + " to Geoserver failed";
+                            }
                         }                        
                     }
                 } else {
                     message = "Conversion process completed successfully but created no data";
-                }
-                /* Delete the temporary schema and all contents */
-                getMagicDataTpl().execute("DROP SCHEMA " + pgTempSchema + " CASCADE");                
+                }                          
             }
         } catch(IOException ioe) {
             message = "Failed to start conversion process from GPX to PostGIS - error was " + ioe.getMessage();
         } catch(DataAccessException dae) {
             message = "Database error occurred during GPX to PostGIS conversion - message was " + dae.getMessage();
+        } finally {
+            /* Delete the temporary schema and all contents */
+            getMagicDataTpl().execute("DROP SCHEMA IF EXISTS " + pgTempSchema + " CASCADE");      
         }
-        return (md.getName() + ": " + message);
+        return (message);
     }
     
 }

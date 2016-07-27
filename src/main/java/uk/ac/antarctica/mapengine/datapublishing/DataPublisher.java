@@ -24,6 +24,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
+import org.apache.commons.exec.ExecuteException;
 import org.apache.commons.exec.ExecuteWatchdog;
 import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.commons.io.FileUtils;
@@ -159,8 +160,8 @@ public abstract class DataPublisher {
      * Create a new database schema to receive tables created from an uploaded file name
      * @param String name
      */
-    protected void createUploadConversionSchema(String name) throws DataAccessException {
-        getMagicDataTpl().execute("CREATE SCHEMA IF NOT EXISTS " + name + " AUTHORIZATION " + getEnv().getProperty("datasource.magic.username"));
+    protected void createUploadConversionSchema(String name) {
+        getMagicDataTpl().execute("CREATE SCHEMA " + name + " AUTHORIZATION " + getEnv().getProperty("datasource.magic.username"));
     }
     
     /**
@@ -172,17 +173,20 @@ public abstract class DataPublisher {
      * @throws IOException 
      */
     protected void executeOgr2ogr(File toConvert, String tableName, String tableSchema) throws IOException {
-        if (tableSchema != null) {
-            getPgMap().put("PGSCHEMA", tableSchema);
-        }
+        getPgMap().put("PGSCHEMA", (tableSchema != null) ? tableSchema : getEnv().getProperty("datasource.magic.userUploadSchema"));     
         getPgMap().put("TOCONVERT", toConvert.getAbsolutePath());       
         CommandLine ogr2ogr = new CommandLine(OGR2OGR);
         ogr2ogr.setSubstitutionMap(getPgMap());
-        ogr2ogr.addArgument("-f", false);
+        ogr2ogr.addArgument("-overwrite", false);
+        ogr2ogr.addArgument("-f", false);        
         ogr2ogr.addArgument("PostgreSQL", false);
         ogr2ogr.addArgument("PG:host=localhost dbname=magic schemas=${PGSCHEMA} user=${PGUSER} password=${PGPASS}", true);
-        ogr2ogr.addArgument("${TOCONVERT}", true);
+        ogr2ogr.addArgument("${TOCONVERT}", true);        
         if (tableName != null) {
+            if (tableName.contains(".")) {
+                /* Strip schema name if present */
+                tableName = tableName.substring(tableName.indexOf(".")+1);
+            }
             ogr2ogr.addArgument("-nln");
             ogr2ogr.addArgument(tableName);
         }
@@ -201,9 +205,9 @@ public abstract class DataPublisher {
      * NOTE: tableName must include a schema prefix i.e. be of form <schema>.<tablename>
      * @param String tableName 
      */
-    protected void archiveExistingTable(String tableName) {
-        String tableSchema = tableName.split(".")[0];
-        String tableBase = tableName.split(".")[1];
+    protected void archiveExistingTable(String tableName) throws ExecuteException {
+        String tableSchema = tableName.split("\\.")[0];
+        String tableBase = tableName.split("\\.")[1];
         List<Map<String, Object>> exTab = getMagicDataTpl().queryForList("SELECT 1 FROM information_schema.tables WHERE table_schema=? AND table_name=?", tableSchema, tableBase);
         if (exTab.size() == 1) {                            
             /* Copy existing table to a new archival one */                        
@@ -211,11 +215,13 @@ public abstract class DataPublisher {
             /* Drop the existing table, including any sequence and index previously created by ogr2ogr */
             getMagicDataTpl().execute("DROP TABLE " + tableName + " CASCADE");
             /* Drop any Geoserver feature corresponding to this table */
-            getGrp().unpublishFeatureType(
+            if (!getGrp().unpublishFeatureType(
                 getEnv().getProperty("geoserver.local.userWorkspace"),
                 getEnv().getProperty("geoserver.local.userPostgis"),
-                tableName
-            );
+                tableBase
+            )) {
+                throw new ExecuteException("Failed to remove existing Geoserver layer " + tableBase, 1);
+            }
         }
     }
     

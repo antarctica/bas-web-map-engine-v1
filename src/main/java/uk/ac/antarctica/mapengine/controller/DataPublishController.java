@@ -4,6 +4,7 @@
 package uk.ac.antarctica.mapengine.controller;
 
 import java.util.ArrayList;
+import java.util.Date;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -31,18 +32,20 @@ public class DataPublishController implements ApplicationContextAware {
     public ResponseEntity<String> publishToPostGIS(MultipartHttpServletRequest request) throws Exception {
         
         HttpStatus status = HttpStatus.BAD_REQUEST;
-        int count = 1;       
+        int count = 0, npub = 0;
+        String msg;
         ArrayList<String> statusMessages = new ArrayList();        
         String userName = (request.getUserPrincipal() != null) ? request.getUserPrincipal().getName() : "guest";        
         
         for (MultipartFile mpf : request.getFileMap().values()) {
-            
-            System.out.println("*** File no " + count);
+                                    
+            System.out.println("*** File no " + (count+1));
+            System.out.println("Publish workflow started at " + (new Date().toString()));
             System.out.println("Original name : " + mpf.getOriginalFilename());
             System.out.println("Name : " + mpf.getName());
             System.out.println("Content type : " + mpf.getContentType());
             System.out.println("Size : " + mpf.getSize());
-            System.out.println("*** End of file no " + count);
+            System.out.println("*** End of file no " + (count+1));
             
             try {
                 String extension = FilenameUtils.getExtension(mpf.getOriginalFilename());
@@ -64,17 +67,31 @@ public class DataPublishController implements ApplicationContextAware {
                 if (pub != null) {
                     /* Publish the file */
                     UploadedFileMetadata md = pub.initWorkingEnvironment(mpf, userName);
-                    statusMessages.add(pub.publish(md));
-                    pub.cleanUp(md.getUploaded());
-                    status = HttpStatus.OK;
+                    msg = pub.publish(md);
+                    if (msg.isEmpty()) {
+                        npub++;
+                        msg = "published ok";
+                    }
+                    pub.cleanUp(md.getUploaded());                    
                 } else {
                     /* Unsupported extension type */
-                    statusMessages.add(mpf.getName() + ": unsupported extension type " + extension);
+                    msg = "unsupported extension type " + extension;
                 }
             } catch(Exception ex) {
-                statusMessages.add(mpf.getName() + ": failed to publish with error " + ex.getMessage());
-            }                 
+                msg = "failed to publish with error " + ex.getMessage();
+            }
+            
+            statusMessages.add(mpf.getName() + " at index " + count + ": " + msg);
+            
+            System.out.println("*** File no " + (count+1));
+            System.out.println("Publish workflow ended at " + (new Date().toString()) + " with status message " + msg);            
+            System.out.println("*** End of file no " + (count+1));
+            
             count++;
+        }
+        if (npub == count) {
+            /* All published */
+            status = HttpStatus.OK;
         }
         return(PackagingUtils.packageResults(status, null, formatMessage(statusMessages)));
     }

@@ -14,7 +14,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import uk.ac.antarctica.mapengine.model.UploadedFileMetadata;
 import uk.ac.antarctica.mapengine.util.CoordinateConversionUtils;
 
@@ -27,7 +26,6 @@ public class CsvPublisher extends DataPublisher {
      * @return String
      */
     @Override
-    @Transactional
     public String publish(UploadedFileMetadata md) {
         
         String message = "";
@@ -50,13 +48,14 @@ public class CsvPublisher extends DataPublisher {
             getMagicDataTpl().execute("ALTER TABLE " + pgTable + " OWNER TO " + getEnv().getProperty("datasource.magic.username"));
             populateTable(md.getUploaded(), columnTypes, pgTable);
             /* Now publish to Geoserver */                                                      
-            boolean published = getGrp().publishDBLayer(
+            if (!getGrp().publishDBLayer(
                 getEnv().getProperty("geoserver.local.userWorkspace"), 
                 getEnv().getProperty("geoserver.local.userPostgis"), 
                 configureFeatureType(md, pgTable), 
                 configureLayer(getGeometryType(pgTable))
-            );
-            message = "Publishing PostGIS table " + pgTable + " to Geoserver " + (published ? "succeeded" : "failed");
+            )) {
+                message = "Publishing PostGIS table " + pgTable + " to Geoserver failed";
+            }
         } catch (FileNotFoundException fnfe) {
             message = "Uploaded CSV file " + md.getName() + " not found - error was: " + fnfe.getMessage();
         } catch (IOException ioe) {
@@ -64,7 +63,7 @@ public class CsvPublisher extends DataPublisher {
         } catch (DataAccessException dae) {               
             message = "Database error when populating PostgreSQL table - error was: " + dae.getMessage();
         }
-        return (md.getName() + ": " + message);
+        return (message);
     }
     
     /**

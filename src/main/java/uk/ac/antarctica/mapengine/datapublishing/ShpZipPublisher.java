@@ -13,7 +13,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import uk.ac.antarctica.mapengine.model.UploadedFileMetadata;
 
 @Component
@@ -25,7 +24,6 @@ public class ShpZipPublisher extends DataPublisher {
      * @return String
      */
     @Override
-    @Transactional
     public String publish(UploadedFileMetadata md) {
         
         String message = "";
@@ -64,13 +62,14 @@ public class ShpZipPublisher extends DataPublisher {
                         /* Publish to Geoserver */
                         GSFeatureTypeEncoder gsfte = configureFeatureType(md, newTableName);
                         GSLayerEncoder gsle = configureLayer(getGeometryType(newTableName));
-                        boolean published = getGrp().publishDBLayer(
+                        if (!getGrp().publishDBLayer(
                                 getEnv().getProperty("geoserver.local.userWorkspace"), 
                                 getEnv().getProperty("geoserver.local.userPostgis"), 
                                 gsfte, 
                                 gsle
-                        );
-                        message = "Publishing PostGIS table " + newTableName + " to Geoserver " + (published ? "succeeded" : "failed");                        
+                        )) {
+                            message = "Publishing PostGIS table " + newTableName + " to Geoserver failed";
+                        }
                     } else {
                         message = "Failed to find .shp file in the uploaded zip";
                     }
@@ -83,7 +82,7 @@ public class ShpZipPublisher extends DataPublisher {
         } catch (IOException ioe) {
             message = "Failed to start conversion process from SHP to PostGIS - error was " + ioe.getMessage();
         }
-        return (md.getName() + ": " + message);
+        return (message);
     }       
     
 }
