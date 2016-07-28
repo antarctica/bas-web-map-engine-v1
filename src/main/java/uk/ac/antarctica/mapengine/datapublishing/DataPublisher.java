@@ -205,7 +205,7 @@ public abstract class DataPublisher {
      * NOTE: tableName must include a schema prefix i.e. be of form <schema>.<tablename>
      * @param String tableName 
      */
-    protected void archiveExistingTable(String tableName) throws ExecuteException {
+    protected void archiveExistingTable(String tableName) { //throws ExecuteException {
         String tableSchema = tableName.split("\\.")[0];
         String tableBase = tableName.split("\\.")[1];
         List<Map<String, Object>> exTab = getMagicDataTpl().queryForList("SELECT 1 FROM information_schema.tables WHERE table_schema=? AND table_name=?", tableSchema, tableBase);
@@ -220,7 +220,7 @@ public abstract class DataPublisher {
                 getEnv().getProperty("geoserver.local.userPostgis"),
                 tableBase
             )) {
-                throw new ExecuteException("Failed to remove existing Geoserver layer " + tableBase, 1);
+                //throw new ExecuteException("Failed to remove existing Geoserver layer " + tableBase, 1);
             }
         }
     }
@@ -319,7 +319,7 @@ public abstract class DataPublisher {
     protected String standardiseName(String fileName) {
         String stdName = "";
         if (fileName != null && !fileName.isEmpty()) {
-            stdName = fileName.toLowerCase().replaceAll("[^a-z0-9.]", "_").replaceAll("_{2,}", "_");
+            stdName = fileName.toLowerCase().replaceAll("[^a-z0-9.]", "_").replaceAll("_{2,}", "_").replaceFirst("_$", "");
         }
         return (stdName);
     }

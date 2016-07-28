@@ -21,26 +21,36 @@ magic.classes.console.FilePublisherPanel = function () {
 
     var previewTemplate =
             '<div class="table table-striped files" id="publish-previews">' +
-            '<div id="publish-template" class="file-row">' +
-            '<div class="col-lg-7">' +
-            '<p class="name" data-dz-name style="font-weight: bold"></p>' +
-            '<strong class="error text-danger" data-dz-errormessage></strong>' +
-            '</div>' +
-            '<div class="col-lg-1">' +
-            '<p class="size" data-dz-size=""></p>' +
-            '</div>' +
-            '<div class="col-lg-2">' +
-            '<div class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">' +
-            '<div class="progress-bar progress-bar-success" style="width:0%;" data-dz-uploadprogress></div>' +
-            '</div>' +
-            '</div>' +
-            '<div class="col-lg-2">' +
-            '<button data-dz-remove class="btn btn-danger publish-delete">' +
-            '<i class="glyphicon glyphicon-trash"></i>' +
-            '<span>Delete</span>' +
-            '</button>' +
-            '</div>' +
-            '</div>' +
+                '<div id="publish-template" class="file-row">' +
+                    '<div class="col-lg-7">' +
+                        '<p class="name" data-dz-name style="font-weight: bold"></p>' +
+                        '<strong class="error text-danger" data-dz-errormessage></strong>' +
+                    '</div>' +
+                    '<div class="col-lg-1">' +
+                        '<p class="size" data-dz-size=""></p>' +
+                    '</div>' +
+                    '<div class="col-lg-2 publish-feedback">' +
+                        '<div class="progress progress-striped active show" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">' +
+                            '<div class="progress-bar progress-bar-success" style="width:0%;" data-dz-uploadprogress></div>' +
+                        '</div>' +
+                        '<div class="publish-feedback-msg hidden">' + 
+                        '</div>' + 
+                    '</div>' +
+                    '<div class="col-lg-2">' +
+                        '<button data-dz-remove class="btn btn-danger publish-delete show">' +
+                            '<i class="glyphicon glyphicon-trash"></i>' +
+                            '<span>Delete</span>' +
+                        '</button>' +
+                        '<button class="btn btn-success publish-success hidden">' +
+                            '<i class="glyphicon glyphicon-ok"></i>' +
+                            '<span>Edit in Geoserver</span>' +
+                        '</button>' +
+                        '<button class="btn btn-warning publish-error hidden">' +
+                            '<i class="glyphicon glyphicon-remove"></i>' +
+                            '<span>Failed</span>' +
+                        '</button>' +
+                    '</div>' +
+                '</div>' +
             '</div>';
 
     jQuery("#publish-files-dz").dropzone({
@@ -67,6 +77,10 @@ magic.classes.console.FilePublisherPanel = function () {
                     this.removeFile(file);
                 }
             });
+            this.on("successmultiple", function(file, response) {
+                console.log(file);
+                console.log(response);
+            });
             jQuery("#publish-actions").find(".publish-start").click(jQuery.proxy(function() {
                 this.processQueue();
             }, this));
@@ -75,7 +89,6 @@ magic.classes.console.FilePublisherPanel = function () {
             }, this));
         },
         accept: function (file, done) {
-            console.log(file);
             switch (file.type) {
                 case "text/csv":
                 case "application/vnd.ms-excel":

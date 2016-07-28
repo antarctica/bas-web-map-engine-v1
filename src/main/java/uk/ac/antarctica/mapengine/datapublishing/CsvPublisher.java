@@ -30,22 +30,26 @@ public class CsvPublisher extends DataPublisher {
         
         String message = "";
         
-        String pgTable = getEnv().getProperty("datasource.magic.userUploadSchema") + "." + md.getName();
+        String pgTable = getEnv().getProperty("datasource.magic.userUploadSchema") + "." + standardiseName(md.getName());
         try {                    
             /* Deduce table column types from CSV values and create the table */
-            LinkedHashMap<String, String> columnTypes = getColumnTypeDictionary(md.getUploaded());                            
-            StringBuilder ctSql = new StringBuilder("CREATE TABLE " + pgTable + "(\n");
+            LinkedHashMap<String, String> columnTypes = getColumnTypeDictionary(md.getUploaded());
+            archiveExistingTable(pgTable);
+            StringBuilder ctSql = new StringBuilder("CREATE TABLE " + pgTable + " (\n");
             ctSql.append("pgid serial,\n");
             for (String key : columnTypes.keySet()) {
+                ctSql.append("\"");
                 ctSql.append(key);
+                ctSql.append("\"");
                 ctSql.append(" ");
                 ctSql.append(columnTypes.get(key));
                 ctSql.append(",\n");
             }
-            ctSql.append("geom geometry(Point, 4326)\n");
+            ctSql.append("wkb_geometry geometry(Point, 4326)\n");
             ctSql.append(") WITH(OIDS=FALSE)");
             getMagicDataTpl().execute(ctSql.toString());
             getMagicDataTpl().execute("ALTER TABLE " + pgTable + " OWNER TO " + getEnv().getProperty("datasource.magic.username"));
+            getMagicDataTpl().execute("ALTER TABLE " + pgTable + " ADD PRIMARY KEY (pgid)");
             populateTable(md.getUploaded(), columnTypes, pgTable);
             /* Now publish to Geoserver */                                                      
             if (!getGrp().publishDBLayer(
@@ -76,14 +80,30 @@ public class CsvPublisher extends DataPublisher {
      * @throws DataAccessException 
      */
     private void populateTable(File csv, LinkedHashMap<String, String> columnTypes, String tableName) throws FileNotFoundException, IOException, DataAccessException {
+        
+        /* Create INSERT statement */
+        StringBuilder insertSql = new StringBuilder("INSERT INTO " + tableName + "(");
+        String fieldList = "";
+        String valuePlaceholders = "";
+        int pos = 0;
+        for (String key : columnTypes.keySet()) {            
+            fieldList += ((pos == 0 ? "" : ",") + "\"" + key + "\"");
+            valuePlaceholders += (pos == 0 ? "?" : ",?");
+            pos++;
+        }
+        insertSql.append(fieldList);
+        insertSql.append(") VALUES(");
+        insertSql.append(valuePlaceholders);                
+        insertSql.append(") RETURNING pgid");
+        
+        /* Read actual values */
         FileReader fileInput = new FileReader(csv);
         int count = 0;
         for (CSVRecord record : CSVFormat.DEFAULT.parse(fileInput)) {
             if (count > 0) {
                 /* Skipped the header line, so this is an actual feature record */
                 int i = 0;
-                Object[] values = new Object[columnTypes.keySet().size()];
-                StringBuilder insertSql = new StringBuilder("INSERT INTO " + tableName + " VALUES(");
+                Object[] values = new Object[columnTypes.keySet().size()];                                             
                 Double lat = null, lon = null;
                 for (String key : columnTypes.keySet()) {
                     if (candidateLatitudeColumn(key)) {
@@ -93,14 +113,23 @@ public class CsvPublisher extends DataPublisher {
                         /* Looks like a longitude => invoke conversion */
                         lon = CoordinateConversionUtils.toDecDegrees(record.get(i), false);
                     }
-                    insertSql.append(i == 0 ? "?" : ",?");
-                    values[i] = record.get(i);                    
+                    String value = record.get(i);
+                    switch(columnTypes.get(key)) {
+                        case "integer":
+                            values[i] = (value == null || value.isEmpty()) ? null : Integer.parseInt(value);
+                            break;
+                        case "numeric":
+                            values[i] = (value == null || value.isEmpty()) ? null : Double.parseDouble(value);
+                            break;
+                        default:
+                            values[i] = (value == null || value.isEmpty()) ? null : value;  
+                            break;
+                    }                                      
                     i++;
-                }
-                insertSql.append(") RETURNING pgid");
-                Integer added = getMagicDataTpl().queryForObject(insertSql.toString(), Integer.class);
+                }                
+                Integer added = getMagicDataTpl().queryForObject(insertSql.toString(), Integer.class, values);
                 if (lat != null && lon != null) {
-                    String setGeom = "UPDATE " + tableName + " SET geom=st_geomfromtext('POINT(" + lon + " " + lat + "', 4326) WHERE pgid=?";
+                    String setGeom = "UPDATE " + tableName + " SET wkb_geometry=st_geomfromtext('POINT(" + lon + " " + lat + ")', 4326) WHERE pgid=?";
                     getMagicDataTpl().update(setGeom, added);
                 }
             }       
@@ -129,7 +158,7 @@ public class CsvPublisher extends DataPublisher {
                         throw new IOException("Bad column name >" + colName + "< in first row - check this contains the attribute names");
                     } else {
                         /* Initialise the Postgres type */
-                        columnTypes.put(colName, null);
+                        columnTypes.put(standardiseName(colName), null);
                     }
                 }
                 gotHeaders = true;
@@ -140,13 +169,19 @@ public class CsvPublisher extends DataPublisher {
                     String attrValue = record.get(i);
                     String currAttrType = columnTypes.get(key);
                     String thisAttrType = getPostgresType(attrValue);
-                    if (currAttrType == null || (getTypePriority(thisAttrType) > getTypePriority(currAttrType))) {
+                    if (thisAttrType != null && (currAttrType == null || (getTypePriority(thisAttrType) > getTypePriority(currAttrType)))) {
                         columnTypes.put(key, thisAttrType);
                     }
                     i++;
                 }                    
             }            
         }
+        /* Postprocess to coerce all null types to character varying(254) */
+        for (String key : columnTypes.keySet()) {
+            if (columnTypes.get(key) == null) {
+                columnTypes.put(key, "character varying(254)");
+            }
+        }    
         return(columnTypes);
     }
     
@@ -157,17 +192,21 @@ public class CsvPublisher extends DataPublisher {
      * @return String
      */
     private String getPostgresType(String s) {
-        String type = "character varying (254)";
-        try {
-            Integer.parseInt(s);
-            type = "integer";
-        } catch(NumberFormatException | NullPointerException ex) {            
+        String type = null;
+        if (s != null && !s.isEmpty()) {
             try {
-                Double.parseDouble(s);
-                type = "numeric";
-            } catch(NumberFormatException | NullPointerException ex2) {   
-                if (type.length() > 254) {
-                    type = "text";
+                Integer.parseInt(s);
+                type = "integer";
+            } catch(NumberFormatException | NullPointerException ex) {            
+                try {
+                    Double.parseDouble(s);
+                    type = "numeric";
+                } catch(NumberFormatException | NullPointerException ex2) {   
+                    if (s.length() > 254) {
+                        type = "text";
+                    } else {
+                        type = "character varying (254)";
+                    }
                 }
             }
         }
@@ -182,14 +221,16 @@ public class CsvPublisher extends DataPublisher {
      */
     private int getTypePriority(String dataType) {
         int priority = -999;
-        if (dataType.equals("integer")) {
-            priority = 1;
-        } else if (dataType.equals("numeric")) {
-            priority = 2;
-        } else if (dataType.startsWith("character varying")) {
-            priority = 3;
-        } else if (dataType.equals("text")) {
-            priority = 4;
+        if (dataType != null) {
+            if (dataType.equals("integer")) {
+                priority = 1;
+            } else if (dataType.equals("numeric")) {
+                priority = 2;
+            } else if (dataType.startsWith("character varying")) {
+                priority = 3;
+            } else if (dataType.equals("text")) {
+                priority = 4;
+            }
         }
         return(priority);
     }           
@@ -200,9 +241,7 @@ public class CsvPublisher extends DataPublisher {
      * @return boolean
      */
     private boolean candidateLatitudeColumn(String colName) {
-        String[] knownNames = new String[] {
-            "lat",
-            "latitude",
+        String[] knownNames = new String[] {           
             "y",
             "north",
             "northing",
@@ -211,7 +250,7 @@ public class CsvPublisher extends DataPublisher {
             "ycoordinate"
         };
         colName = colName.trim().toLowerCase().replaceAll("[^a-z]", "");
-        return(ArrayUtils.contains(knownNames, colName));
+        return(colName.startsWith("lat") || ArrayUtils.contains(knownNames, colName));
     }
     
     /**
@@ -220,10 +259,7 @@ public class CsvPublisher extends DataPublisher {
      * @return boolean
      */
     private boolean candidateLongitudeColumn(String colName) {
-        String[] knownNames = new String[] {
-            "lon",
-            "long",
-            "longitude",
+        String[] knownNames = new String[] {           
             "x",
             "east",
             "easting",
@@ -232,7 +268,7 @@ public class CsvPublisher extends DataPublisher {
             "xcoordinate"
         };
         colName = colName.trim().toLowerCase().replaceAll("[^a-z]", "");
-        return(ArrayUtils.contains(knownNames, colName));
+        return(colName.startsWith("lon") || ArrayUtils.contains(knownNames, colName));
     }            
     
 }

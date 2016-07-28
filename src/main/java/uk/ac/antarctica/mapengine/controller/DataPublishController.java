@@ -3,7 +3,9 @@
  */
 package uk.ac.antarctica.mapengine.controller;
 
-import java.util.ArrayList;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import java.util.Date;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.BeansException;
@@ -21,7 +23,6 @@ import uk.ac.antarctica.mapengine.datapublishing.DataPublisher;
 import uk.ac.antarctica.mapengine.datapublishing.GpxKmlPublisher;
 import uk.ac.antarctica.mapengine.datapublishing.ShpZipPublisher;
 import uk.ac.antarctica.mapengine.model.UploadedFileMetadata;
-import uk.ac.antarctica.mapengine.util.PackagingUtils;
 
 @Controller
 public class DataPublishController implements ApplicationContextAware {
@@ -34,7 +35,7 @@ public class DataPublishController implements ApplicationContextAware {
         HttpStatus status = HttpStatus.BAD_REQUEST;
         int count = 0, npub = 0;
         String msg;
-        ArrayList<String> statusMessages = new ArrayList();        
+        JsonArray messages = new JsonArray();        
         String userName = (request.getUserPrincipal() != null) ? request.getUserPrincipal().getName() : "guest";        
         
         for (MultipartFile mpf : request.getFileMap().values()) {
@@ -79,9 +80,10 @@ public class DataPublishController implements ApplicationContextAware {
                 }
             } catch(Exception ex) {
                 msg = "failed to publish with error " + ex.getMessage();
+                ex.printStackTrace();
             }
             
-            statusMessages.add(mpf.getName() + " at index " + count + ": " + msg);
+            messages.add(new JsonPrimitive(msg));
             
             System.out.println("*** File no " + (count+1));
             System.out.println("Publish workflow ended at " + (new Date().toString()) + " with status message " + msg);            
@@ -93,7 +95,10 @@ public class DataPublishController implements ApplicationContextAware {
             /* All published */
             status = HttpStatus.OK;
         }
-        return(PackagingUtils.packageResults(status, null, formatMessage(statusMessages)));
+        JsonObject jo = new JsonObject();
+        jo.addProperty("status", status.value());
+        jo.add("messages", messages);
+        return(new ResponseEntity<>(jo.toString(), status));
     }
 
     public ApplicationContext getApplicationContext() {
@@ -103,22 +108,6 @@ public class DataPublishController implements ApplicationContextAware {
     @Override
     public void setApplicationContext(ApplicationContext ac) throws BeansException {
         applicationContext = ac;
-    }
-
-    /**
-     * Format a list of status messages in a human-friendly way
-     * @param ArrayList<String> statusMessages
-     * @return String
-     */
-    private String formatMessage(ArrayList<String> statusMessages) {
-        StringBuilder out = new StringBuilder();
-        out.append("---- Results ----\n");
-        for (String msg : statusMessages) {
-            out.append(msg);
-            out.append("\n");
-        }
-        out.append("---- End ----");
-        return(out.toString());
     }
 
 }

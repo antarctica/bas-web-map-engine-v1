@@ -10,34 +10,40 @@ public class CoordinateConversionUtils {
     public static Double toDecDegrees(String coord, boolean isLat) {
         double dd, mm, ss; 
         String hh;
-        Double convertedCoord = null;
-        try {
-            String[] parts = coord.split("[^0-9EWSNewsn.]");
-            switch(parts.length) {
-                case 4:
-                case 3:
-                    /* Assume DMS, either ddd mm ss.ss H or ddd mm ss.ssH */
-                    dd = Double.valueOf(parts[0]);
-                    mm = Double.valueOf(parts[1]);
-                    ss = parts.length == 4 ? Double.valueOf(parts[2]) : Double.valueOf(parts[2].substring(0, parts[2].length() - 1));
-                    hh = (parts.length == 4 ? parts[3] : parts[2].substring(parts[2].length() - 1)).toUpperCase();
-                    if (validateCoordinate(dd, mm, ss, hh, isLat)) {
-                        convertedCoord = (dd + mm / 60.0 + ss / 3600.0) * ((hh == "S" || hh == "W") ? -1.0 : 1.0);                       
+        Double convertedCoord = null; 
+        if (coord != null && !coord.isEmpty()) {
+            try {
+                convertedCoord = Double.parseDouble(coord);
+            } catch (NumberFormatException nfe) {
+                try {
+                    String[] parts = coord.split("[^0-9EWSNewsn.]");
+                    switch(parts.length) {
+                        case 4:
+                        case 3:
+                            /* Assume DMS, either ddd mm ss.ss H or ddd mm ss.ssH */
+                            dd = Double.valueOf(parts[0]);
+                            mm = Double.valueOf(parts[1]);
+                            ss = parts.length == 4 ? Double.valueOf(parts[2]) : Double.valueOf(parts[2].substring(0, parts[2].length() - 1));
+                            hh = (parts.length == 4 ? parts[3] : parts[2].substring(parts[2].length() - 1)).toUpperCase();
+                            if (validateCoordinate(dd, mm, ss, hh, isLat)) {
+                                convertedCoord = (dd + mm / 60.0 + ss / 3600.0) * ((hh == "S" || hh == "W") ? -1.0 : 1.0);                       
+                            }
+                            break;
+                        case 2:
+                            /* Assume DDM, Hddd mm.mm */
+                            dd = Double.valueOf(parts[0].substring(1));
+                            mm = Double.valueOf(parts[1]);
+                            hh = parts[0].substring(0, 1);
+                            if (validateCoordinate(dd, mm, 0.0, hh, isLat)) {
+                                convertedCoord = (dd + mm / 60.0) * ((hh == "S" || hh == "W") ? -1.0 : 1.0);
+                            }
+                            break;
+                        default:
+                            break;
                     }
-                    break;
-                case 2:
-                    /* Assume DDM, Hddd mm.mm */
-                    dd = Double.valueOf(parts[0].substring(1));
-                    mm = Double.valueOf(parts[1]);
-                    hh = parts[0].substring(0, 1);
-                    if (validateCoordinate(dd, mm, 0.0, hh, isLat)) {
-                        convertedCoord = (dd + mm / 60.0) * ((hh == "S" || hh == "W") ? -1.0 : 1.0);
-                    }
-                    break;
-                default:
-                    break;
-            }
-        } catch(NumberFormatException | NullPointerException nfe) {            
+                } catch(NumberFormatException | NullPointerException nfe2) {            
+                }
+            }           
         }
         return(convertedCoord);
     }
