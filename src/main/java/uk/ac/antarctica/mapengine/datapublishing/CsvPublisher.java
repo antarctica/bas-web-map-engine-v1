@@ -56,7 +56,7 @@ public class CsvPublisher extends DataPublisher {
                 getEnv().getProperty("geoserver.local.userWorkspace"), 
                 getEnv().getProperty("geoserver.local.userPostgis"), 
                 configureFeatureType(md, pgTable), 
-                configureLayer(getGeometryType(pgTable))
+                configureLayer("point")
             )) {
                 message = "Publishing PostGIS table " + pgTable + " to Geoserver failed";
             }
@@ -241,7 +241,12 @@ public class CsvPublisher extends DataPublisher {
      * @return boolean
      */
     private boolean candidateLatitudeColumn(String colName) {
-        String[] knownNames = new String[] {           
+        String[] knownNames = new String[] {
+            "lat",
+            "latdd",
+            "latdms",
+            "latddm",
+            "latitude",
             "y",
             "north",
             "northing",
@@ -250,7 +255,7 @@ public class CsvPublisher extends DataPublisher {
             "ycoordinate"
         };
         colName = colName.trim().toLowerCase().replaceAll("[^a-z]", "");
-        return(colName.startsWith("lat") || ArrayUtils.contains(knownNames, colName));
+        return(ArrayUtils.contains(knownNames, colName));
     }
     
     /**
@@ -259,7 +264,13 @@ public class CsvPublisher extends DataPublisher {
      * @return boolean
      */
     private boolean candidateLongitudeColumn(String colName) {
-        String[] knownNames = new String[] {           
+        String[] knownNames = new String[] {
+            "lon",
+            "longitude",
+            "long",
+            "londd",
+            "londms",
+            "londdm",
             "x",
             "east",
             "easting",
@@ -268,7 +279,7 @@ public class CsvPublisher extends DataPublisher {
             "xcoordinate"
         };
         colName = colName.trim().toLowerCase().replaceAll("[^a-z]", "");
-        return(colName.startsWith("lon") || ArrayUtils.contains(knownNames, colName));
+        return(ArrayUtils.contains(knownNames, colName));
     }            
     
 }

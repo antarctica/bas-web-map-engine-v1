@@ -16,8 +16,7 @@ div.table .file-row:nth-child(odd) {
 }
 
 #publish-files-dz {
-    height: 100px;
-    min-height: 100px; 
+    min-height: 200px; 
     height: auto !important; 
     border: 3px #909090 dashed; 
     margin-top: 10px;

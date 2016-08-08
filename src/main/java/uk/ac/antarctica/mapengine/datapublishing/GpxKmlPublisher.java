@@ -41,7 +41,7 @@ public class GpxKmlPublisher extends DataPublisher {
                     /* Some tables created */
                     for (Map<String,Object> pgTableRec : createdTables) {
                         String pgTable = standardiseName((String)pgTableRec.get("table_name"));
-                        String srcTableName = pgTempSchema + "." + pgTable;
+                        String srcTableName = pgTempSchema + ".\"" + (String)pgTableRec.get("table_name") + "\"";
                         /* Make sure destination table name does not start with a number, which upsets Postgres and Geoserver */
                         String destTableName = pgUploadSchema + "." + (Character.isDigit(uploadedBasename.charAt(0)) ? uploadedExtension + "_" : "") + uploadedBasename + "_" + pgTable;                       
                         int nRecs = getMagicDataTpl().queryForObject("SELECT count(*) FROM " + srcTableName, Integer.class);

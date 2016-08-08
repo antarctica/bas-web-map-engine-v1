@@ -39,15 +39,15 @@ magic.classes.console.FilePublisherPanel = function () {
                     '<div class="col-lg-2">' +
                         '<button data-dz-remove class="btn btn-danger publish-delete show">' +
                             '<i class="glyphicon glyphicon-trash"></i>' +
-                            '<span>Delete</span>' +
+                            '<span>&nbsp;Delete</span>' +
                         '</button>' +
                         '<button class="btn btn-success publish-success hidden">' +
                             '<i class="glyphicon glyphicon-ok"></i>' +
-                            '<span>Edit in Geoserver</span>' +
+                            '<span>&nbsp;Publish ok</span>' +
                         '</button>' +
                         '<button class="btn btn-warning publish-error hidden">' +
                             '<i class="glyphicon glyphicon-remove"></i>' +
-                            '<span>Failed</span>' +
+                            '<span>&nbsp;Publish failed</span>' +
                         '</button>' +
                     '</div>' +
                 '</div>' +
@@ -75,11 +75,36 @@ magic.classes.console.FilePublisherPanel = function () {
                 if (nOccurs > 1) {
                     /* It's already in the list, so remove it */
                     this.removeFile(file);
+                } else {
+                    jQuery("button.publish-start").attr("disabled", false);
                 }
             });
-            this.on("successmultiple", function(file, response) {
-                console.log(file);
-                console.log(response);
+            this.on("successmultiple", function(file, response) {  
+                if (jQuery.isArray(response.messages) && response.messages.length > 0) {
+                    var delBtns = jQuery("button.publish-delete");
+                    var pokBtns = jQuery("button.publish-success");
+                    var perBtns = jQuery("button.publish-error");
+                    var pBars = jQuery("div.progress-striped");
+                    var pMsgs = jQuery("div.publish-feedback");
+                    for (var i = 0, j = 0; i < delBtns.length; i++) {
+                        var thisDel = jQuery(delBtns[i]);
+                        if (thisDel.hasClass("show")) {
+                            thisDel.removeClass("show").addClass("hidden");
+                            jQuery(pBars[i]).removeClass("show").addClass("hidden");                                                    
+                            if (response.messages[j] == "published ok") {
+                                jQuery(pokBtns[i]).removeClass("hidden").addClass("show");
+                                jQuery(perBtns[i]).removeClass("show").addClass("hidden");
+                                jQuery(pMsgs[i]).removeClass("hidden").addClass("show").html("");
+                            } else {
+                                jQuery(pokBtns[i]).removeClass("show").addClass("hidden");
+                                jQuery(perBtns[i]).removeClass("hidden").addClass("show");
+                                jQuery(pMsgs[i]).removeClass("hidden").addClass("show").html(response.messages[j]);
+                            }
+                            j++;
+                        }
+                    }
+                    jQuery("button.publish-start").attr("disabled", true);
+                }                
             });
             jQuery("#publish-actions").find(".publish-start").click(jQuery.proxy(function() {
                 this.processQueue();
@@ -112,7 +137,7 @@ magic.classes.console.FilePublisherPanel = function () {
             }
             done();
         },
-        dictDefaultMessage: "Drop GPX, KML, CSV or zipped Shapefile to upload",
+        dictDefaultMessage: "Upload GPX, KML, CSV or zipped Shapefiles by dragging and dropping them here",
         dictInvalidFileType: "Not a GPX, KML, CSV or zipped Shapefile",
         dictFileTooBig: "File is too large ({{filesize}} bytes) - maximum size is {{maxFileSize}}",
         dictResponseError: "Publication failed - server responded with code {{statusCode}}",

@@ -32,8 +32,8 @@ public class DataPublishController implements ApplicationContextAware {
     @RequestMapping(value = "/publish_postgis", method = RequestMethod.POST, consumes = "multipart/form-data", produces = {"application/json"})
     public ResponseEntity<String> publishToPostGIS(MultipartHttpServletRequest request) throws Exception {
         
-        HttpStatus status = HttpStatus.BAD_REQUEST;
-        int count = 0, npub = 0;
+        HttpStatus status = HttpStatus.OK;
+        int count = 0;
         String msg;
         JsonArray messages = new JsonArray();        
         String userName = (request.getUserPrincipal() != null) ? request.getUserPrincipal().getName() : "guest";        
@@ -70,7 +70,6 @@ public class DataPublishController implements ApplicationContextAware {
                     UploadedFileMetadata md = pub.initWorkingEnvironment(mpf, userName);
                     msg = pub.publish(md);
                     if (msg.isEmpty()) {
-                        npub++;
                         msg = "published ok";
                     }
                     pub.cleanUp(md.getUploaded());                    
@@ -90,11 +89,7 @@ public class DataPublishController implements ApplicationContextAware {
             System.out.println("*** End of file no " + (count+1));
             
             count++;
-        }
-        if (npub == count) {
-            /* All published */
-            status = HttpStatus.OK;
-        }
+        }      
         JsonObject jo = new JsonObject();
         jo.addProperty("status", status.value());
         jo.add("messages", messages);

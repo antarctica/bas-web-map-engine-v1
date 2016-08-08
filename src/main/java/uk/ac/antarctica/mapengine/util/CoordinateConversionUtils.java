@@ -7,39 +7,41 @@ public class CoordinateConversionUtils {
     
     public static final double RESOLUTION = 1e-05;
     
-    public static Double toDecDegrees(String coord, boolean isLat) {
-        double dd, mm, ss; 
-        String hh;
+    public static Double toDecDegrees(String coord, boolean isLat) {        
         Double convertedCoord = null; 
         if (coord != null && !coord.isEmpty()) {
             try {
+                /* Catch the case of decimal degrees already first */
                 convertedCoord = Double.parseDouble(coord);
             } catch (NumberFormatException nfe) {
-                try {
-                    String[] parts = coord.split("[^0-9EWSNewsn.]");
-                    switch(parts.length) {
-                        case 4:
-                        case 3:
-                            /* Assume DMS, either ddd mm ss.ss H or ddd mm ss.ssH */
-                            dd = Double.valueOf(parts[0]);
+                try {         
+                    char hh = 'X';
+                    double dd = 0.0, mm = 0.0, ss = 0.0;
+                    /* Find out where the hemisphere information is - assumed at the start or end */
+                    coord = coord.trim().toUpperCase();
+                    char c1 = coord.charAt(0), cn = coord.charAt(coord.length()-1);
+                    if (c1 == 'N' || c1 == 'S' || c1 == 'E' || c1 == 'W') {
+                        hh = c1;
+                        coord = coord.substring(1);
+                    } else if (cn == 'N' || cn == 'S' || cn == 'E' || cn == 'W') {
+                        hh = cn;
+                        coord = coord.substring(0, coord.length()-1);
+                    }
+                    if (hh != 'X') {
+                        /* Replace all non-numerical stuff by spaces */
+                        coord = coord.replaceAll("[^0-9.+-]{1,}", " ");
+                        coord = coord.trim();                    
+                        String[] parts = coord.split("[\\s]");
+                        dd = Double.valueOf(parts[0]);
+                        if (parts.length > 1) {
                             mm = Double.valueOf(parts[1]);
-                            ss = parts.length == 4 ? Double.valueOf(parts[2]) : Double.valueOf(parts[2].substring(0, parts[2].length() - 1));
-                            hh = (parts.length == 4 ? parts[3] : parts[2].substring(parts[2].length() - 1)).toUpperCase();
-                            if (validateCoordinate(dd, mm, ss, hh, isLat)) {
-                                convertedCoord = (dd + mm / 60.0 + ss / 3600.0) * ((hh == "S" || hh == "W") ? -1.0 : 1.0);                       
-                            }
-                            break;
-                        case 2:
-                            /* Assume DDM, Hddd mm.mm */
-                            dd = Double.valueOf(parts[0].substring(1));
-                            mm = Double.valueOf(parts[1]);
-                            hh = parts[0].substring(0, 1);
-                            if (validateCoordinate(dd, mm, 0.0, hh, isLat)) {
-                                convertedCoord = (dd + mm / 60.0) * ((hh == "S" || hh == "W") ? -1.0 : 1.0);
-                            }
-                            break;
-                        default:
-                            break;
+                        } 
+                        if (parts.length > 2) {
+                            ss = Double.valueOf(parts[2]);
+                        }
+                        if (validateCoordinate(dd, mm, ss, hh, isLat)) {
+                            convertedCoord = (dd + mm / 60.0 + ss / 3600.0) * ((hh == 'S' || hh == 'W') ? -1.0 : 1.0);                       
+                        }     
                     }
                 } catch(NumberFormatException | NullPointerException nfe2) {            
                 }
@@ -48,9 +50,9 @@ public class CoordinateConversionUtils {
         return(convertedCoord);
     }
     
-    public static boolean validateCoordinate(double dd, double mm, double ss, String hh, boolean isLat) {
+    public static boolean validateCoordinate(double dd, double mm, double ss, char hh, boolean isLat) {
         double bdry = isLat ? 90.0 : 180.0; 
-        boolean validh = isLat ? (hh.equals("N") || hh.equals("S")) : (hh.equals("E") || hh.equals("W"));
+        boolean validh = isLat ? (hh == 'N' || hh == 'S') : (hh == 'E' || hh == 'W');
         return(
             ((dd > -bdry && dd < bdry) || withinResolution(dd, -bdry) || withinResolution(dd, bdry)) &&
             (mm >= 0.0 && mm <= 60.0) &&
