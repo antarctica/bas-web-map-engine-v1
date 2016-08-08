@@ -102,36 +102,30 @@ magic.modules.GeoUtils = function() {
             if (!jQuery.isNumeric(value)) {
                 /* Try DMS */
                 res = Number.NaN;
-                var cpts = value.split(/[^0-9EWSNewsn.]/);
-                switch (cpts.length) {
-                    case 3:
-                        /* Potential DMS - dd mm ss.ssH */
-                        var dd = (cpts[0].length >= 1 || cpts[0].length <= 3) ? parseFloat(cpts[0]) : Number.NaN;
-                        var mm = (cpts[1].length == 1 || cpts[1].length == 2) ? parseFloat(cpts[1]) : Number.NaN;
-                        var ss = parseFloat(cpts[2].substring(0, cpts[2].length - 1));
-                        var hh = cpts[2].substring(cpts[2].length - 1, cpts[2].length).toUpperCase();
-                        if (!isNaN(dd) && !isNaN(mm) && !isNaN(ss) && hh.length == 1 && hh.match(/N|E|S|W/) != null) {
-                            res = dd + mm / 60.0 + ss / 3600.0;
-                            if (hh == "S" || hh == "W") {
-                                res *= -1.0;
-                            }
-                        }
-                        break;
-                    case 2:
-                        /* Potential degrees, decimal minutes Hdd mm.mmmm */
-                        var hh = cpts[0].substring(0, 1).toUpperCase();
-                        var dd = cpts[0].substring(1);
-                        var mm = parseFloat(cpts[1]);
-                        if (dd.length >= 1 && dd.length <= 3 && !isNaN(parseFloat(dd)) && !isNaN(mm) && hh.length == 1 && hh.match(/N|E|S|W/) != null) {
-                            res = parseFloat(dd) + mm / 60;
-                            if (hh == "S" || hh == "W") {
-                                res *= -1.0;
-                            }
-                        }
-                        break;
-                    default:
-                        break;
+                value = value.trim().toUpperCase();
+                var hh = "X";
+                var dd = 0.0, mm = 0.0, ss = 0.0;
+                var c1 = value.charAt(0), cn = value.charAt(value.length-1);
+                if (c1 == "N" || c1 == "S" || c1 == "E" || c1 == "W") {
+                    hh = c1;
+                    value = value.substring(1);
+                } else if (cn == "N" || cn == "S" || cn == "E" || cn == "W") {
+                    hh = cn;
+                    value = value.substring(0, value.length-1);
                 }
+                if (hh != "X") {
+                    value = value.replace(/[^0-9.]{1,}/g, " ");
+                    value = value.trim();
+                    var parts = value.split(" ");
+                    dd = parseFloat(parts[0]);
+                    if (parts.length > 1) {
+                        mm = parseFloat(parts[1]);
+                    }
+                    if (parts.length > 2) {
+                        ss = parseFloat(parts[2]);
+                    }
+                    res = (dd + mm / 60.0 + ss / 3600.0) * ((hh == "S" || hh == "W") ? -1.0 : 1.0); 
+                }                
             }
             return(isNaN(res) ? Number.NaN : parseFloat(res));
         },

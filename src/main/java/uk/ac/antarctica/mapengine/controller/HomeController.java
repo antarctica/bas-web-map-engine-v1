@@ -224,7 +224,8 @@ public class HomeController {
         
     /**
      * Render map creator home page     
-     * @param HttpServletRequest request,
+     * @param HttpServletRequest request
+     * @param ModelMap model
      * @return
      * @throws ServletException
      * @throws IOException
@@ -237,7 +238,8 @@ public class HomeController {
     
     /**
      * Render map creator home page (debug)    
-     * @param HttpServletRequest request,
+     * @param HttpServletRequest request
+     * @param ModelMap model
      * @return
      * @throws ServletException
      * @throws IOException
@@ -247,6 +249,35 @@ public class HomeController {
         model.addAttribute("debug", true);
         ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "MAGIC Web Map Creator (debug) requested");
         return("creator");
+    }
+    
+    /**
+     * Render data publisher home page     
+     * @param HttpServletRequest request
+     * @param ModelMap model 
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/publisher", method = RequestMethod.GET)
+    public String publisher(HttpServletRequest request, ModelMap model) throws ServletException, IOException {
+        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Data publisher requested");
+        return("publisher");
+    }
+    
+    /**
+     * Render data publisher home page (debug)    
+     * @param HttpServletRequest request
+     * @param ModelMap model
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/publisherd", method = RequestMethod.GET)
+    public String publisherDebug(HttpServletRequest request, ModelMap model) throws ServletException, IOException {
+        model.addAttribute("debug", true);
+        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Data publisher (debug) requested");
+        return("publisher");
     }
     
     /* Legacy redirects - URLs which have been given out and will be expected to work, but which aren't convenient to export in the new world  */

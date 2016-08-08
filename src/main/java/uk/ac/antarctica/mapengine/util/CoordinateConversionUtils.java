@@ -29,7 +29,7 @@ public class CoordinateConversionUtils {
                     }
                     if (hh != 'X') {
                         /* Replace all non-numerical stuff by spaces */
-                        coord = coord.replaceAll("[^0-9.+-]{1,}", " ");
+                        coord = coord.replaceAll("[^0-9.]{1,}", " ");
                         coord = coord.trim();                    
                         String[] parts = coord.split("[\\s]");
                         dd = Double.valueOf(parts[0]);
