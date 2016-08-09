@@ -41,12 +41,15 @@ public class ShpZipPublisher extends DataPublisher {
                     /* Find SLD if present, and publish a style */
                     File sld = null, shp = null;
                     for (File f : shpCpts) {
-                        if (FilenameUtils.getExtension(f.getName()).equals("sld")) {
-                            /* Found an SLD */
-                            sld = f.getAbsoluteFile();
-                        } else if (FilenameUtils.getExtension(f.getName()).equals("shp")) {
-                            /* Found top-level shapefile */
-                            shp = f.getAbsoluteFile();
+                        switch (FilenameUtils.getExtension(f.getName())) {
+                            case "sld":
+                                /* Found an SLD */
+                                sld = f.getAbsoluteFile();
+                                break;
+                            case "shp":
+                                /* Found top-level shapefile */
+                                shp = f.getAbsoluteFile();
+                                break;
                         }
                     }
                     if (sld != null) {

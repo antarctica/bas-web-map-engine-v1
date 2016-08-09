@@ -53,11 +53,12 @@ magic.classes.publisher.FilePublisherPanel = function () {
                 '</div>' +
             '</div>';
 
-    jQuery("#publish-files-dz").dropzone({
+    Dropzone.options.publishFilesDz = {
         url: magic.config.paths.baseurl + "/publish_postgis",
         paramName: "file", /* The name that will be used to transfer the file */
         maxFilesize: 20,   /* Maximum file size, in MB */
         uploadMultiple: true,
+        autoDiscover: false,
         autoProcessQueue: false,
         parallelUploads: 100,
         previewTemplate: previewTemplate,
@@ -144,6 +145,6 @@ magic.classes.publisher.FilePublisherPanel = function () {
         dictCancelUpload: "Cancel upload",
         dictCancelUploadConfirmation: "Are you sure?",
         clickable: ".publish-addfiles"
-    });
+    };
 
 };
