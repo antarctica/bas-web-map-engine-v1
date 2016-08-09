@@ -62,6 +62,14 @@
                         return(false);
                     }
                 });
+                /* Zap events on the backspace key to prevent back navigation and losing data                 
+                 * http://stackoverflow.com/questions/11112127/prevent-backspace-from-navigating-back-with-jquery-like-googles-homepage */
+                jQuery(document).keydown(function(evt) {
+                    if (evt.which === 8 && !jQuery(evt.target).is("input, textarea")) {
+                        evt.preventDefault();
+                        return(false);
+                    }
+                });
                 /* Logout behaviour */
                 var lo = jQuery("#log-out-user");
                 if (lo.length > 0) {
