@@ -1,10 +1,10 @@
 /* GPX, KML, CSV, SHP (zipped) publisher console panel */
 
-magic.classes.console.FilePublisherPanel = function () {
+magic.classes.publisher.FilePublisherPanel = function () {
 
     /* Assign click handlers for the buttons */
     jQuery("#login-publish-go").click(function () {
-        window.location = magic.config.paths.baseurl + "/restricted";
+        window.location = magic.config.paths.baseurl + "/publisher";
     });
 
     /* Stop accidental drag/drop from loading uploaded file into page - see http://stackoverflow.com/questions/6756583/prevent-browser-from-loading-a-drag-and-dropped-file */
