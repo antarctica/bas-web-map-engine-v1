@@ -30,8 +30,7 @@ public class GpxKmlPublisher extends DataPublisher {
         
         try {                        
             String pgUploadSchema = getEnv().getProperty("datasource.magic.userUploadSchema");           
-            createUploadConversionSchema(pgTempSchema);
-            
+            createUploadConversionSchema(pgTempSchema);           
             if (message.isEmpty()) {
                 /* Convert GPX/KML to PostGIS table via ogr2ogr */
                 executeOgr2ogr(md.getUploaded(), null, pgTempSchema);

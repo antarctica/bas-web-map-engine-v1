@@ -46,7 +46,8 @@ public abstract class DataPublisher {
     
     /* Path to ogr2ogr executable */
     protected static final String OGR2OGR = SEP.equals("/") 
-        ? System.getProperty("user.home") + "/gdal/bin/ogr2ogr" 
+        //? System.getProperty("user.home") + "/gdal/bin/ogr2ogr"   /* If we have to install the gdal package into user home directory ourselves */
+        ? "/packages/gdal/current/bin/ogr2ogr"                      /* If Jeremy has installed the authorised package on the server */
         : "\"c:/Program Files/QGIS Essen/bin/ogr2ogr.exe\"";
 
     @Autowired
@@ -91,6 +92,8 @@ public abstract class DataPublisher {
             /* Created the working directory */
             File uploaded = new File(wd.getAbsolutePath() + SEP + standardiseName(mpf.getOriginalFilename()));
             mpf.transferTo(uploaded);
+            System.out.println("File transferred to : " + uploaded.getAbsolutePath());
+            System.out.println("Is readable : " + (uploaded.canRead() ? "yes" : "no"));
             String basename = FilenameUtils.getBaseName(mpf.getOriginalFilename());
             md.setUploaded(uploaded);
             md.setName(basename);
@@ -159,7 +162,7 @@ public abstract class DataPublisher {
      * Create a new database schema to receive tables created from an uploaded file name
      * @param String name
      */
-    protected void createUploadConversionSchema(String name) {
+    protected void createUploadConversionSchema(String name) throws DataAccessException {
         getMagicDataTpl().execute("CREATE SCHEMA " + name + " AUTHORIZATION " + getEnv().getProperty("datasource.magic.username"));
     }
     
@@ -180,15 +183,13 @@ public abstract class DataPublisher {
         ogr2ogr.addArgument("-f", false);        
         ogr2ogr.addArgument("PostgreSQL", false);
         ogr2ogr.addArgument("PG:host=localhost dbname=magic schemas=${PGSCHEMA} user=${PGUSER} password=${PGPASS}", true);
-        ogr2ogr.addArgument("${TOCONVERT}", true);        
+        ogr2ogr.addArgument("${TOCONVERT}", true);
         if (tableName != null) {
-            if (tableName.contains(".")) {
-                /* Strip schema name if present */
-                tableName = tableName.substring(tableName.indexOf(".")+1);
-            }
+            /* Strip schema name if present */
             ogr2ogr.addArgument("-nln");
-            ogr2ogr.addArgument(tableName);
+            ogr2ogr.addArgument(tableName.substring(tableName.indexOf(".")+1));
         }
+        System.out.println("Executing ogr commandline : " + ogr2ogr.toString());
         DefaultExecutor executor = new DefaultExecutor();
         /* Send stdout and stderr to Tomcat log so we get some feedback about errors */
         PumpStreamHandler pumpStreamHandler = new PumpStreamHandler(System.out, System.out); 
@@ -196,7 +197,7 @@ public abstract class DataPublisher {
         executor.setExitValue(0);
         ExecuteWatchdog watchdog = new ExecuteWatchdog(30000);  /* Time process out after 30 seconds */
         executor.setWatchdog(watchdog);
-        executor.execute(ogr2ogr);        
+        executor.execute(ogr2ogr);         
     }
         
     /**
@@ -219,6 +220,7 @@ public abstract class DataPublisher {
                 getEnv().getProperty("geoserver.local.userPostgis"),
                 tableBase
             )) {
+                /* Don't really want to throw an exception here as the existing feature type might simply not exist, which is perfectly ok! */
                 //throw new ExecuteException("Failed to remove existing Geoserver layer " + tableBase, 1);
             }
         }
