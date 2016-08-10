@@ -8,11 +8,13 @@ import it.geosolutions.geoserver.rest.encoder.GSLayerEncoder;
 import it.geosolutions.geoserver.rest.encoder.feature.FeatureTypeAttribute;
 import it.geosolutions.geoserver.rest.encoder.feature.GSAttributeEncoder;
 import it.geosolutions.geoserver.rest.encoder.feature.GSFeatureTypeEncoder;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -24,6 +26,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
+import org.apache.commons.exec.ExecuteException;
 import org.apache.commons.exec.ExecuteWatchdog;
 import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.commons.io.FileUtils;
@@ -172,9 +175,9 @@ public abstract class DataPublisher {
      * @param File toConvert  
      * @param String tableName
      * @param String tableSchema
-     * @throws IOException 
+     * @throws ExecuteException 
      */
-    protected void executeOgr2ogr(File toConvert, String tableName, String tableSchema) throws IOException {
+    protected void executeOgr2ogr(File toConvert, String tableName, String tableSchema) throws ExecuteException {
         getPgMap().put("PGSCHEMA", (tableSchema != null) ? tableSchema : getEnv().getProperty("datasource.magic.userUploadSchema"));     
         getPgMap().put("TOCONVERT", toConvert.getAbsolutePath());       
         CommandLine ogr2ogr = new CommandLine(OGR2OGR);
@@ -182,7 +185,9 @@ public abstract class DataPublisher {
         ogr2ogr.addArgument("-overwrite", false);
         ogr2ogr.addArgument("-f", false);        
         ogr2ogr.addArgument("PostgreSQL", false);
-        ogr2ogr.addArgument("PG:host=localhost dbname=magic schemas=${PGSCHEMA} user=${PGUSER} password=${PGPASS}", true);
+        /* Don't really understand why Linux wants this string UNQUOTED as it has spaces in it - all the examples do, however if you quote it it looks like ogr2ogr
+         * attempts to create the database which it doesn't have the privileges to do */
+        ogr2ogr.addArgument("PG:host=localhost dbname=magic schemas=${PGSCHEMA} user=${PGUSER} password=${PGPASS}", false);
         ogr2ogr.addArgument("${TOCONVERT}", true);
         if (tableName != null) {
             /* Strip schema name if present */
@@ -191,13 +196,21 @@ public abstract class DataPublisher {
         }
         System.out.println("Executing ogr commandline : " + ogr2ogr.toString());
         DefaultExecutor executor = new DefaultExecutor();
-        /* Send stdout and stderr to Tomcat log so we get some feedback about errors */
-        PumpStreamHandler pumpStreamHandler = new PumpStreamHandler(System.out, System.out); 
+        /* Send stdout and stderr to specific byte arrays so that the end user will get some feedback about the problem */
+        ByteArrayOutputStream ogrStdout = new ByteArrayOutputStream();
+        ByteArrayOutputStream ogrStderr = new ByteArrayOutputStream();
+        PumpStreamHandler pumpStreamHandler = new PumpStreamHandler(ogrStdout, ogrStderr); 
         executor.setStreamHandler(pumpStreamHandler);
         executor.setExitValue(0);
         ExecuteWatchdog watchdog = new ExecuteWatchdog(30000);  /* Time process out after 30 seconds */
         executor.setWatchdog(watchdog);
-        executor.execute(ogr2ogr);         
+        int exitValue = -1;
+        try {         
+            exitValue = executor.execute(ogr2ogr);
+        } catch (IOException ex) {
+            /* Report what ogr2ogr wrote to stderr (may use the stdout output too at some point) */
+            throw new ExecuteException("Error converting file : " + new String(ogrStderr.toByteArray(), StandardCharsets.UTF_8), exitValue);
+        }
     }
         
     /**
