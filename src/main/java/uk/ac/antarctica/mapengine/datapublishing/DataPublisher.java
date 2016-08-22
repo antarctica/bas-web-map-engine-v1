@@ -71,8 +71,8 @@ public abstract class DataPublisher {
     public DataPublisher() {
     }
 
-    @Transactional
-    public abstract String publish(UploadedFileMetadata md);
+    @Transactional(rollbackFor = java.lang.Exception.class)
+    public abstract String publish(UploadedFileMetadata md) throws Exception;
     
     /**
      * Create the working environment to process a data file upload

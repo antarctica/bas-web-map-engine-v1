@@ -60,6 +60,18 @@
                     </input>
                 </div>
             </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label" for="t2-layer-refresh_rate">
+                    Refresh rate
+                </label>
+                <div class="col-sm-9">
+                    <input type="number" class="form-control map-creator-control-sm" id="t2-layer-refresh_rate" name="t2-layer-refresh_rate"
+                       placeholder="Minutes before data is auto-refreshed" 
+                       min="0" max="300" step="5"
+                       data-toggle="tooltip" data-placement="left" title="Elapsed minutes before layer data is auto-refreshed">                                   
+                    </input>
+                </div>
+            </div>   
             <div class="panel panel-default" id="t2-layer-symbology-panel">
                 <div class="panel-heading">
                     <a class="btn btn-default"  style="width:100%" data-toggle="collapse" href="#t2-layer-style-props-div">Edit symbology</a>

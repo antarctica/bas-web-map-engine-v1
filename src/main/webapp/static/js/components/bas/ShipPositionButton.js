@@ -10,6 +10,7 @@ magic.classes.ShipPositionButton = function (name, ribbon) {
     this.title = "Latest positions of BAS ships";
     
     this.active = false;
+    this.timer = null;
     
     this.inactiveTitle = "Show latest BAS ship positions";
     this.activeTitle = "Hide BAS ship positions";
@@ -46,8 +47,7 @@ magic.classes.ShipPositionButton = function (name, ribbon) {
         } else {
             this.activate();
         }
-    }, this));    
-    window.setTimeout(this.getData, 300000);
+    }, this));        
     jQuery(document).on("insetmapopened", jQuery.proxy(function(evt) {
         if (magic.runtime.inset) {
             this.insetLayer = new ol.layer.Vector({
@@ -88,6 +88,7 @@ magic.classes.ShipPositionButton.prototype.isActive = function () {
  */
 magic.classes.ShipPositionButton.prototype.activate = function () {
     this.active = true;
+    this.timer = window.setInterval(this.getData, 300000);
     if (!this.geoJson) {
         this.geoJson = new ol.format.GeoJSON({
             geometryName: "geom"
@@ -122,6 +123,10 @@ magic.classes.ShipPositionButton.prototype.activate = function () {
  */
 magic.classes.ShipPositionButton.prototype.deactivate = function () {
     this.active = false;
+    if (this.timer != null) {
+        window.clearInterval(this.timer);
+        this.timer = null;
+    }
     this.layer.setVisible(false);
     if (this.insetLayer) {
         this.insetLayer.setVisible(false);

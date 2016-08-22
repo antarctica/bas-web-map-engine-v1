@@ -10,6 +10,7 @@ magic.classes.AircraftPositionButton = function (name, ribbon) {
     this.title = "Latest positions of BAS aircraft";
     
     this.active = false;
+    this.timer = null;
     
     this.inactiveTitle = "Show latest BAS aircraft positions";
     this.activeTitle = "Hide BAS aircraft positions";
@@ -45,8 +46,7 @@ magic.classes.AircraftPositionButton = function (name, ribbon) {
         } else {
             this.activate();
         }
-    }, this));                 
-    window.setTimeout(this.getData, 600000);
+    }, this));                     
     jQuery(document).on("insetmapopened", jQuery.proxy(function(evt) {
         if (magic.runtime.inset) {
             this.insetLayer = new ol.layer.Vector({
@@ -87,6 +87,7 @@ magic.classes.AircraftPositionButton.prototype.isActive = function () {
  */
 magic.classes.AircraftPositionButton.prototype.activate = function () {
     this.active = true;
+    this.timer = window.setInterval(this.getData, 600000);
     if (!this.geoJson) {
         this.geoJson = new ol.format.GeoJSON({
             geometryName: "geom"
@@ -121,6 +122,10 @@ magic.classes.AircraftPositionButton.prototype.activate = function () {
  */
 magic.classes.AircraftPositionButton.prototype.deactivate = function () {
     this.active = false;
+    if (this.timer = null) {
+        window.clearInterval(this.timer);
+        this.timer = null;
+    }
     this.layer.setVisible(false);
     if (this.insetLayer) {
         this.insetLayer.setVisible(false);

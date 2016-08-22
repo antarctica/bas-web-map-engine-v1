@@ -16,7 +16,8 @@ magic.classes.creator.LayerUpdater = function(prefix) {
     /* Common form inputs */
     this.form_fields = [
         {"field": "id", "default": ""}, 
-        {"field": "name", "default": ""}, 
+        {"field": "name", "default": ""},
+        {"field": "refresh_rate", "default": 0},
         {"field": "legend_graphic", "default": ""},
         {"field": "geom_type", "default": "unknown"},
         {"field": "min_scale", "default": 1000}, 
@@ -32,7 +33,7 @@ magic.classes.creator.LayerUpdater = function(prefix) {
         "wms": [
             {"field": "wms_source", "default": ""}, 
             {"field": "feature_name", "default": ""}, 
-            {"field": "style_name", "default": ""}, 
+            {"field": "style_name", "default": ""},            
             {"field": "is_base", "default": false}, 
             {"field": "is_singletile", "default": false}, 
             {"field": "is_dem", "default": false}, 
@@ -141,7 +142,7 @@ magic.classes.creator.LayerUpdater.prototype.saveContext = function() {
 magic.classes.creator.LayerUpdater.prototype.validate = function() {    
     var ok = true;
     jQuery("#t2-layer-form")[0].checkValidity();
-    var checks = ["name", "min_scale", "max_scale", "opacity"];
+    var checks = ["name", "refresh_rate", "min_scale", "max_scale", "opacity"];
     jQuery.each(checks, function(idx, chk) {
         var input = jQuery("#t2-layer-" + chk);
         var vState = input.prop("validity");

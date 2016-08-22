@@ -341,7 +341,7 @@
                                                                 "type": "null"
                                                             }
                                                         ]			                                                       
-                                                    },
+                                                    },                                                    
                                                     "is_base": {
                                                         "description": "Is this a base (i.e. backdrop) layer?",
                                                         "type": "boolean"
@@ -436,7 +436,11 @@
 										"description": "URL feed serving legend graphic information (different from wms if cascading, and allows non-WMS feeds)",
 										"type": "string",
 										"format": "uri"
-									},															
+									},
+                                                                        "refresh_rate": {
+                                                                            "description": "Elapsed minutes until data is auto-refreshed",
+                                                                            "type": "number"
+                                                                        },
 									"min_scale": {
 										"description": "Minimum scale denominator for layer to be visible",
 										"type": "number"

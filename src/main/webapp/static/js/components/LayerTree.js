@@ -170,7 +170,8 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
             var isWms = "wms_source" in nd.source;
             var isSingleTile = isWms ? nd.source.is_singletile === true : false;
             var isBase = isWms ? nd.source.is_base === true : false;
-            var isInteractive = nd.is_interactive === true;                        
+            var isInteractive = nd.is_interactive === true;
+            var refreshRate = nd.refresh_rate || 0;
             var name = nd.name, /* Save name as we may insert ellipsis into name text for presentation purposes */
                     ellipsisName = magic.modules.Common.ellipsis(nd.name, 30),
                     infoTitle = "Get layer legend/metadata",
@@ -251,7 +252,7 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                         source: wmsSource,
                         minResolution: minRes,
                         maxResolution: maxRes
-                    });
+                    });                    
                 } else {
                     /* Non-point layer */
                     var wmsVersion = "1.3.0";
@@ -282,7 +283,7 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                         source: wmsSource
                     });
                 }
-                this.layersBySource[isBase ? "base" : "wms"].push(layer);
+                this.layersBySource[isBase ? "base" : "wms"].push(layer);                                
             } else if (nd.source.geojson_source) {
                 /* GeosJSON layer */
                 var format = new ol.format.GeoJSON();
@@ -382,8 +383,30 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
             }
             nd.layer = layer;
             this.nodeLayerTranslation[nd.id] = layer;
+            if (refreshRate > 0) {
+                console.log("Non-zero refresh rate " + refreshRate + " for " + layer.get("name"));
+                setInterval(this.refreshLayer, 1000*60*refreshRate, layer);
+            }
         }
     }, this));
+};
+
+/**
+ * Refresh a WMS layer
+ * @param {ol.Layer} layer
+ */
+magic.classes.LayerTree.prototype.refreshLayer = function(layer) {
+    console.log("Entered refreshLayer...");
+    if (typeof layer.getSource().updateParams === "function") {
+        console.log("Refreshing WMS-type layer " + layer.get("name"));
+        var params = layer.getSource().getParams();
+        params.t = new Date().getMilliseconds();
+        layer.getSource().updateParams(params);
+        console.log("Done");
+    } else if (typeof layer.getSource().refresh == "function") {
+        console.log("Refreshing vector-type layer " + layer.get("name"));
+        layer.getSource().refresh();
+    }
 };
 
 /**

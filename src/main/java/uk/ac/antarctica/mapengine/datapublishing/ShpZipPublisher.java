@@ -24,7 +24,7 @@ public class ShpZipPublisher extends DataPublisher {
      * @return String
      */
     @Override
-    public String publish(UploadedFileMetadata md) {
+    public String publish(UploadedFileMetadata md) throws Exception {
         
         String message = "";
         
@@ -84,6 +84,9 @@ public class ShpZipPublisher extends DataPublisher {
             message = "Database error occurred during SHP to PostGIS conversion - message was " + dae.getMessage();
         } catch (IOException ioe) {
             message = "Failed to start conversion process from SHP to PostGIS - error was " + ioe.getMessage();
+        }
+        if (!message.isEmpty()) {
+            throw new Exception(message);
         }
         return (message);
     }       

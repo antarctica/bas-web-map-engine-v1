@@ -26,7 +26,7 @@ public class CsvPublisher extends DataPublisher {
      * @return String
      */
     @Override
-    public String publish(UploadedFileMetadata md) {
+    public String publish(UploadedFileMetadata md) throws Exception {
         
         String message = "";
         
@@ -66,6 +66,9 @@ public class CsvPublisher extends DataPublisher {
             message = "Failed to parse uploaded CSV file " + md.getName() + " - error was: " + ioe.getMessage();
         } catch (DataAccessException dae) {               
             message = "Database error when populating PostgreSQL table - error was: " + dae.getMessage();
+        }
+        if (!message.isEmpty()) {
+            throw new Exception(message);
         }
         return (message);
     }

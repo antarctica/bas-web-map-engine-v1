@@ -21,7 +21,7 @@ public class GpxKmlPublisher extends DataPublisher {
      * @return String
      */
     @Override
-    public String publish(UploadedFileMetadata md) {
+    public String publish(UploadedFileMetadata md) throws Exception {
         
         String message = "";
         String uploadedExtension = FilenameUtils.getExtension(md.getUploaded().getName());
@@ -70,6 +70,9 @@ public class GpxKmlPublisher extends DataPublisher {
         } finally {
             /* Delete the temporary schema and all contents */
             getMagicDataTpl().execute("DROP SCHEMA IF EXISTS " + pgTempSchema + " CASCADE");      
+        }
+        if (!message.isEmpty()) {
+            throw new Exception(message);
         }
         return (message);
     }
