@@ -147,6 +147,10 @@ magic.classes.AircraftPositionButton.prototype.getData = function() {
             if (!this.geoJson) {
                 return;
             }
+            this.data = {
+                inside: [],
+                outside: []
+            };   
             var feats = this.geoJson.readFeatures(data);
             var projExtent = magic.modules.GeoUtils.projectionLatLonExtent(magic.runtime.viewdata.projection.getCode());
             jQuery.each(feats, jQuery.proxy(function(idx, f) {

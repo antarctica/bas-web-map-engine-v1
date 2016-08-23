@@ -124,9 +124,11 @@ magic.classes.publisher.FilePublisherPanel = function () {
                 case "application/x-zip-compressed":
                     break;
                 case "":
-                    /* Do some more work - GPX files routinely get uploaded without a type */
+                    /* Do some more work - GPX (and sometimes KML) files routinely get uploaded without a type */
                     if (file.name.match(/\.gpx$/) != null) {
                         file.type = "application/gpx+xml";
+                    } else if (file.name.match(/\.kml$/) != null) {
+                        file.type = "application/vnd.google-earth.kml+xml";
                     } else {
                         done(this.options.dictInvalidFileType);
                         return;
