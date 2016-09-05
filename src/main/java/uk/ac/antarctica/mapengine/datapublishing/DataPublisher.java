@@ -71,7 +71,7 @@ public abstract class DataPublisher {
     public DataPublisher() {
     }
 
-    @Transactional(rollbackFor = java.lang.Exception.class)
+    @Transactional
     public abstract String publish(UploadedFileMetadata md) throws Exception;
     
     /**

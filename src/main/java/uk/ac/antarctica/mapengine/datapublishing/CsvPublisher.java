@@ -28,48 +28,37 @@ public class CsvPublisher extends DataPublisher {
     @Override
     public String publish(UploadedFileMetadata md) throws Exception {
         
-        String message = "";
-        
+        String message = "";        
         String pgTable = getEnv().getProperty("datasource.magic.userUploadSchema") + "." + standardiseName(md.getName());
-        try {                    
-            /* Deduce table column types from CSV values and create the table */
-            LinkedHashMap<String, String> columnTypes = getColumnTypeDictionary(md.getUploaded());
-            archiveExistingTable(pgTable);
-            StringBuilder ctSql = new StringBuilder("CREATE TABLE " + pgTable + " (\n");
-            ctSql.append("pgid serial,\n");
-            for (String key : columnTypes.keySet()) {
-                ctSql.append("\"");
-                ctSql.append(key);
-                ctSql.append("\"");
-                ctSql.append(" ");
-                ctSql.append(columnTypes.get(key));
-                ctSql.append(",\n");
-            }
-            ctSql.append("wkb_geometry geometry(Point, 4326)\n");
-            ctSql.append(") WITH(OIDS=FALSE)");
-            getMagicDataTpl().execute(ctSql.toString());
-            getMagicDataTpl().execute("ALTER TABLE " + pgTable + " OWNER TO " + getEnv().getProperty("datasource.magic.username"));
-            getMagicDataTpl().execute("ALTER TABLE " + pgTable + " ADD PRIMARY KEY (pgid)");
-            populateTable(md.getUploaded(), columnTypes, pgTable);
-            /* Now publish to Geoserver */                                                      
-            if (!getGrp().publishDBLayer(
-                getEnv().getProperty("geoserver.local.userWorkspace"), 
-                getEnv().getProperty("geoserver.local.userPostgis"), 
-                configureFeatureType(md, pgTable), 
-                configureLayer("point")
-            )) {
-                message = "Publishing PostGIS table " + pgTable + " to Geoserver failed";
-            }
-        } catch (FileNotFoundException fnfe) {
-            message = "Uploaded CSV file " + md.getName() + " not found - error was: " + fnfe.getMessage();
-        } catch (IOException ioe) {
-            message = "Failed to parse uploaded CSV file " + md.getName() + " - error was: " + ioe.getMessage();
-        } catch (DataAccessException dae) {               
-            message = "Database error when populating PostgreSQL table - error was: " + dae.getMessage();
+
+        /* Deduce table column types from CSV values and create the table */
+        LinkedHashMap<String, String> columnTypes = getColumnTypeDictionary(md.getUploaded());
+        archiveExistingTable(pgTable);
+        StringBuilder ctSql = new StringBuilder("CREATE TABLE " + pgTable + " (\n");
+        ctSql.append("pgid serial,\n");
+        for (String key : columnTypes.keySet()) {
+            ctSql.append("\"");
+            ctSql.append(key);
+            ctSql.append("\"");
+            ctSql.append(" ");
+            ctSql.append(columnTypes.get(key));
+            ctSql.append(",\n");
         }
-        if (!message.isEmpty()) {
-            throw new Exception(message);
-        }
+        ctSql.append("wkb_geometry geometry(Point, 4326)\n");
+        ctSql.append(") WITH(OIDS=FALSE)");
+        getMagicDataTpl().execute(ctSql.toString());
+        getMagicDataTpl().execute("ALTER TABLE " + pgTable + " OWNER TO " + getEnv().getProperty("datasource.magic.username"));
+        getMagicDataTpl().execute("ALTER TABLE " + pgTable + " ADD PRIMARY KEY (pgid)");
+        populateTable(md.getUploaded(), columnTypes, pgTable);
+        /* Now publish to Geoserver */                                                      
+        if (!getGrp().publishDBLayer(
+            getEnv().getProperty("geoserver.local.userWorkspace"), 
+            getEnv().getProperty("geoserver.local.userPostgis"), 
+            configureFeatureType(md, pgTable), 
+            configureLayer("point")
+        )) {
+            message = "Publishing PostGIS table " + pgTable + " to Geoserver failed";
+        }        
         return (message);
     }
     

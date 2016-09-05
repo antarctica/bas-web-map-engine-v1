@@ -647,3 +647,21 @@ magic.classes.LayerTree.prototype.getVectorStyle = function(styleDef, labelField
         return([style]);
     });
 };
+
+/**
+ * For the embedded Apex maps primarily - d a longhand find of an ol layer by feature name
+ * @param {String} fname
+ * @returns {ol.Layer}
+ */
+magic.classes.LayerTree.prototype.getLayerByFeatureName = function(fname) {
+    var targetLayer = null;
+    jQuery.each(this.nodeLayerTranslation, jQuery.proxy(function(uuid, layer) {
+        var md = layer.get("metadata");
+        if (md && md.source && md.source.feature_name ) {
+            targetLayer = layer;
+            return(false);
+        }
+        return(true);
+    }, this));
+    return(targetLayer);
+};

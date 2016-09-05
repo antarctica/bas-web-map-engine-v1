@@ -13,8 +13,9 @@ magic.classes.embedded.AppContainer = function (opts) {
      */ 
     
     this.target = opts.target || "map";
-    this.width = opts.width || 300;
-    this.height = opts.height || 300;   
+    this.width = opts.width || "100%";
+    this.height = opts.height || "100%";
+    this.iframe = opts.iframe || false;
     
     /* Set container sizes */
     this.fitMapToViewport(); 
@@ -88,6 +89,21 @@ magic.classes.embedded.AppContainer = function (opts) {
     jQuery(window).on("resize", jQuery.proxy(function () {
         this.fitMapToViewport();
     }, this));
+    
+    if (this.iframe) {
+        jQuery(window).on("message onmessage", function(evt) {
+            console.log("Event origin was : " + evt.originalEvent.origin);
+            console.log("Event data was : " + evt.originalEvent.data);
+            var json = JSON.parse(evt.originalEvent.data);
+            if (json) {
+                var layer = magic.runtime.layertree.getLayerByFeatureName(json["layer"]);
+                layer.getSource().updateParams(jQuery.extend({}, 
+                    this.layer.getSource().getParams(), 
+                    {"cql_filter": json["cql"]}
+            ));
+            }
+        });
+    }
         
 };
 

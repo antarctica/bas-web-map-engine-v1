@@ -91,7 +91,7 @@ div.button-ribbon span {
     position: absolute;
 }
 
-.custom-scale-line-top {
+/*.custom-scale-line-top {
     background: transparent;
     bottom: 35px;
     left: 10px;
@@ -125,6 +125,45 @@ div.button-ribbon span {
     border-top: none;
     color: #3a3f44;
     font-size: 11px;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}*/
+
+.custom-scale-line-top {
+    background: transparent;
+    bottom: 26px;
+    left: 10px;
+    padding: 0;
+    margin: 0;
+    position: absolute;
+}
+
+.custom-scale-line-top-inner {
+    border: 1px solid #3a3f44;
+    border-top: none;
+    color: #3a3f44;
+    font-size: 12px;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+.custom-scale-line-bottom {
+    background: transparent;
+    bottom: 9px;
+    left: 10px;
+    padding: 0;
+    margin: 0;
+    position: absolute;
+}
+
+.custom-scale-line-bottom-inner {
+    border: 1px solid #3a3f44;
+    border-bottom: none;
+    border-top: 1px solid #3a3f44;
+    color: #3a3f44;
+    font-size: 12px;
     text-align: center;
     margin: 0;
     padding: 0;

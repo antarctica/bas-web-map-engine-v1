@@ -95,7 +95,7 @@ magic.classes.ControlButtonRibbon = function(config) {
     .on("click", jQuery.proxy(function(evt) {
         var shown = this.ribbonDiv, hidden = this.maximiseDiv;
         hidden.toggleClass("hidden");
-        shown.toggleClass("hidden");       
+        shown.toggleClass("hidden");
     }, this));
     /* Add a maximise ribbon button */    
     this.createControlButton("maximise-control-ribbon", "fa fa-caret-right", -1, "Maximise control toolbar", this.maximiseDiv)
