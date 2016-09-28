@@ -15,6 +15,9 @@ magic.classes.MosaicTimeSeriesPlayer = function(options) {
     /* Image granules */
     this.granules = null;
     
+    /* Movie interval handle */
+    this.movie = null;
+    
     /* Get the GeoJSON for the mosaic time series */
     var wmsUrl = this.layer.getSource().getUrls()[0];
     if (wmsUrl) {
@@ -76,7 +79,7 @@ magic.classes.MosaicTimeSeriesPlayer.prototype.showCurrentState = function() {
     var btns = this.target.find("button");
     jQuery(btns[0]).on("click", {pointer: "0"}, jQuery.proxy(this.showImage, this));
     jQuery(btns[1]).on("click", {pointer: "-"}, jQuery.proxy(this.showImage, this));
-    jQuery(btns[2]).on("click", jQuery.proxy(this.playMovie, this));
+    jQuery(btns[2]).on("click", jQuery.proxy(this.changeMovieState, this));
     jQuery(btns[3]).on("click",{pointer: "+"}, jQuery.proxy(this.showImage, this));
     jQuery(btns[4]).on("click",{pointer: "1"}, jQuery.proxy(this.showImage, this));
     this.syncButtons();
@@ -109,47 +112,37 @@ magic.classes.MosaicTimeSeriesPlayer.prototype.showImage = function(evt) {
 };
 
 /**
- * Play a movie from the current time
- * @param {jQuery.Event} evt
+ * Alter movie play status
  */
-magic.classes.MosaicTimeSeriesPlayer.prototype.playMovie = function(evt) {
+magic.classes.MosaicTimeSeriesPlayer.prototype.changeMovieState = function(evt) {
     evt.stopPropagation();
-    var playBtn = jQuery(this.target.children("button")[2]);
-    this.movie = setInterval(
-        jQuery.proxy(function() {
-            if (this.imagePointer < this.granules.length - 1) {
-                if (playBtn.hasClass("fa-play")) {
-                    playBtn.removeClass("fa-play").addClass("fa-pause");
-                    playBtn.attr("data-original-title", "Pause movie").tooltip("fixTitle");
-                    playBtn.off("click").on("click", jQuery.proxy(this.pauseMovie, this));                    
-                }
-                this.imagePointer++;
-                this.updateLayer();
-            } else {
-                clearInterval(this.movie);
-                if (playBtn.hasClass("fa-pause")) {
+    var playBtn = jQuery(this.target.find("button")[2]);
+    if (playBtn.hasClass("fa-play")) {
+        playBtn.removeClass("fa-play").addClass("fa-pause");
+        playBtn.attr("data-original-title", "Pause movie").tooltip("fixTitle");
+        if (this.movie == null) {
+            this.movie = setInterval(jQuery.proxy(function() {
+                if (this.imagePointer < this.granules.length - 1) {
+                    this.imagePointer++;
+                    this.updateLayer();
+                } else {
                     playBtn.removeClass("fa-pause").addClass("fa-play");
                     playBtn.attr("data-original-title", "Play movie of mosaic images").tooltip("fixTitle");
+                    clearInterval(this.movie);
+                    this.movie = null;
                 }
-            }
-            this.syncButtons(); 
-        }, this), 2000
-    );          
-};
-
-/**
- * Pause a movie
- * @param {jQuery.Event} evt
- */
-magic.classes.MosaicTimeSeriesPlayer.prototype.pauseMovie = function(evt) {
-    evt.stopPropagation();
-    var playBtn = jQuery(this.target.children("button")[2]);
-    clearInterval(this.movie);
-    if (playBtn.hasClass("fa-pause")) {
+                this.syncButtons();
+            }, this), 2000);
+        }
+    } else if (playBtn.hasClass("fa-pause")) {
         playBtn.removeClass("fa-pause").addClass("fa-play");
         playBtn.attr("data-original-title", "Play movie of mosaic images").tooltip("fixTitle");
+        if (this.movie != null) {
+            clearInterval(this.movie);
+            this.movie = null;
+        }
     }
-    playBtn.off("click").on("click", jQuery.proxy(this.playMovie, this));    
+    this.syncButtons();    
 };
 
 /**

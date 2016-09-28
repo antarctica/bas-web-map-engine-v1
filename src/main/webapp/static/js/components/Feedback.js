@@ -92,6 +92,7 @@ magic.classes.Feedback = function(options) {
     }).on("shown.bs.popover", jQuery.proxy(function() {
         /* Set button handlers */
         jQuery("#" + this.id + "-go").click(jQuery.proxy(function(evt) {
+            jQuery(evt.currentTarget).tooltip("hide");  /* Get rid of annoying persistent tooltip - not sure why... */
             var formdata = {
                 payload: this.mapPayload()
             };

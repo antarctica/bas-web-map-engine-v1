@@ -28,7 +28,7 @@ magic.classes.MapSwitcher = function(options) {
                                     '<select id="' + this.target + '-view-list" class="form-control">' +                               
                                     '</select>' + 
                                     '<span class="input-group-btn">' +
-                                        '<button id="' + this.target + '-view-list-go" class="btn btn-default btn-sm" type="button" title="Load view">' + 
+                                        '<button id="' + this.target + '-view-list-go" class="btn btn-primary btn-sm" type="button" title="Load view">' + 
                                             '<span class="fa fa-arrow-circle-right"></span>' + 
                                         '</button>' +
                                     '</span>' +

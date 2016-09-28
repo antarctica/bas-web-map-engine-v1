@@ -28,21 +28,24 @@ public class ProxyController {
     private static final HashMap<String, Boolean> ALLOWED_URLS = new HashMap();
     static {
         ALLOWED_URLS.put("https://gis.ccamlr.org", true);
+        ALLOWED_URLS.put("http://bslgisa.nerc-bas.ac.uk", true);
+        ALLOWED_URLS.put("https://maps.bas.ac.uk", true);
+        ALLOWED_URLS.put("http://bslbatgis.nerc-bas.ac.uk", true);
     }
     
     private static final String REDMINE = "http://redmine.nerc-bas.ac.uk";
    
    /**
-	 * Proxy for an authorised URL
-	 * @param HttpServletRequest request
+     * Proxy for an authorised URL
+     * @param HttpServletRequest request
      * @param HttpServletResponse response
-	 * @param String url
-	 * @return String
-	 * @throws ServletException
-	 * @throws IOException 
-	 */
-	@RequestMapping(value="/proxy", method=RequestMethod.GET)	
-	public void proxy(HttpServletRequest request, HttpServletResponse response, @RequestParam(value="url", required=true) String url) 
+     * @param String url
+     * @return String
+     * @throws ServletException
+     * @throws IOException 
+     */
+    @RequestMapping(value="/proxy", method=RequestMethod.GET)	
+    public void proxy(HttpServletRequest request, HttpServletResponse response, @RequestParam(value="url", required=true) String url) 
         throws ServletException, IOException {
         boolean proxied = false;
         for (String key : ALLOWED_URLS.keySet()) {
@@ -62,7 +65,7 @@ public class ProxyController {
         if (!proxied) {
             throw new ServletException("Not allowed to proxy " + url);
         }
-	}
+    }
     
     /**
      * Get JSON data on issue <id> from Redmine

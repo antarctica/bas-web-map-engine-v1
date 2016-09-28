@@ -606,6 +606,7 @@ magic.classes.LayerTree.prototype.getVectorStyle = function(styleDef, labelField
                     fill: new ol.style.Fill({
                         color: textColor
                     }),
+                    rotation: -magic.runtime.map.getView().getRotation(),
                     stroke: new ol.style.Stroke({
                         color: "#ffffff",
                         width: 1

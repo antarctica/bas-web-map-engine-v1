@@ -43,8 +43,16 @@ magic.classes.creator.LayerAttributeMap.prototype.vectorLoadContext = function(c
             feature = context.source.feature_name;
             if (source) {
                 if (source.indexOf("/wfs") > 0 && feature) {
-                    /* WFS */
-                    this.ogcLoadContext(source, feature, context.attribute_map, context.id);
+                    /* WFS - fetch a feature rather than using DescribeFeatureType - reason (28/09/2016) is that 
+                     * the geometry field in the description comes back as gml:geometryPropertyType which tells us
+                     * absolutely nothing about whether we have a point, line or polygon.  This is probably because
+                     * of automated import systems using wkb_geometry fields rather than wkt - David */
+                    format = new ol.format.GeoJSON();
+                    source = source + "?service=wfs&request=getfeature&outputFormat=application/json&" + 
+                                "typename=" + feature + "&" + 
+                                "srsname=" + context.source.srs + "&" + 
+                                "count=1";
+                    //this.ogcLoadContext(source, feature, context.attribute_map, context.id);
                     return;
                 } else {
                     /* GeoJSON e.g. from API */
