@@ -8,6 +8,7 @@ magic.modules.Endpoints = function () {
             "default_host": {
                 "EPSG:3031": [
                     {"name": "Antarctic Digital Database", bandwidth: "high", "wms": "https://maps.bas.ac.uk/antarctic/wms", "coast": ["add:antarctic_coastline", "add:sub_antarctic_coastline"], "graticule": "add:antarctic_graticule"},
+                    {"name": "Antarctic Digital Database (OpsGIS local server)", bandwidth: "high", "wms": "http://bslgisa.nerc-bas.ac.uk/geoserver/add/wms"},
                     {"name": "Operations GIS", bandwidth: "high", "wms": "http://bslgisa.nerc-bas.ac.uk/geoserver/opsgis/wms"},                
                     {"name": "Antarctic Peninsula Information Portal (APIP)", bandwidth: "high", "wms": "http://bslbatgis.nerc-bas.ac.uk/geoserver/apip/wms"},
                     {"name": "ASPA CIR imagery", bandwidth: "high", "wms": "http://bslbatgis.nerc-bas.ac.uk/geoserver/iws_aspa/wms"},

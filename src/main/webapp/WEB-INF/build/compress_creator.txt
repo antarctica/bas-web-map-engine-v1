@@ -4,6 +4,7 @@ css/prettify.css
 css/nav.css
 css/creator.css
 css/font-awesome.min.css
+js/xmlToJSON.min.js
 js/ol.min.js
 js/jquery.js
 js/tv4.min.js

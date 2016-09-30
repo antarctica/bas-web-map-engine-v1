@@ -53,7 +53,7 @@ magic.classes.creator.LayerAttributeMap.prototype.vectorLoadContext = function(c
                                 "srsname=" + context.source.srs + "&" + 
                                 "count=1";
                     //this.ogcLoadContext(source, feature, context.attribute_map, context.id);
-                    return;
+                    //return;
                 } else {
                     /* GeoJSON e.g. from API */
                     format = new ol.format.GeoJSON();
@@ -62,7 +62,27 @@ magic.classes.creator.LayerAttributeMap.prototype.vectorLoadContext = function(c
         } else if (sourceType == "gpx") {
             /* GPX file */
             source = context.source.gpx_source;
-            format = new ol.format.GPX({readExtensions: function(){}});        
+            format = new ol.format.GPX({readExtensions: function(f, enode){
+                //console.log(f);
+                //console.log(enode);
+                try {
+                    var json = xmlToJSON.parseString(enode.outerHTML.trim());
+                    if ("extensions" in json && jQuery.isArray(json.extensions) && json.extensions.length == 1) {
+                        var eo = json.extensions[0];
+                        for (var eok in eo) {
+                            if (eok.indexOf("_") != 0) {
+                                if (jQuery.isArray(eo[eok]) && eo[eok].length == 1) {
+                                    var value = eo[eok][0]["_text"];
+                                    f.set(eok, value, true);
+                                }
+                            }
+                        }
+                    }
+                } catch (e) {
+                    //console.log("Failed to parse extension node");
+                }
+                return(f);
+            }});        
         } else if (sourceType == "kml") {
             /* KML file */
             source = context.source.kml_source;

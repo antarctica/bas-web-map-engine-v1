@@ -286,6 +286,7 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                 this.layersBySource[isBase ? "base" : "wms"].push(layer);                                
             } else if (nd.source.geojson_source) {
                 /* GeosJSON layer */
+                var labelRotation = nd.source.feature_name ? 0.0 : -magic.runtime.viewdata.rotation;
                 var format = new ol.format.GeoJSON();
                 var vectorSource = new ol.source.Vector({
                     format: format,
@@ -336,7 +337,7 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                     name: nd.name,
                     visible: isVisible,
                     source: vectorSource,
-                    style: this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map)),
+                    style: this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map), labelRotation),
                     metadata: nd,
                     minResolution: minRes,
                     maxResolution: maxRes
@@ -344,16 +345,37 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                 this.layersBySource["geojson"].push(layer);
             } else if (nd.source.gpx_source) {
                 /* GPX layer */
+                var labelRotation = -magic.runtime.viewdata.rotation;
                 layer = new ol.layer.Image({
                     name: nd.name,
                     visible: isVisible,
                     metadata: nd,    
                     source: new ol.source.ImageVector({
                         source: new ol.source.Vector({
-                            format: new ol.format.GPX(),
+                            format: new ol.format.GPX({readExtensions: function(f, enode){
+                                //console.log(f);
+                                //console.log(enode);
+                                try {
+                                    var json = xmlToJSON.parseString(enode.outerHTML.trim());
+                                    if ("extensions" in json && jQuery.isArray(json.extensions) && json.extensions.length == 1) {
+                                        var eo = json.extensions[0];
+                                        for (var eok in eo) {
+                                            if (eok.indexOf("_") != 0) {
+                                                if (jQuery.isArray(eo[eok]) && eo[eok].length == 1) {
+                                                    var value = eo[eok][0]["_text"];
+                                                    f.set(eok, value, true);
+                                                }
+                                            }
+                                        }
+                                    }
+                                } catch (e) {
+                                    //console.log("Failed to parse extension node");
+                                }
+                                return(f);
+                            }}),
                             url: nd.source.gpx_source
                         }),
-                        style: this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map))
+                        style: this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map), labelRotation)
                     }),
                     minResolution: minRes,
                     maxResolution: maxRes
@@ -361,7 +383,8 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                 this.layersBySource["gpx"].push(layer);
             } else if (nd.source.kml_source) {
                 /* KML source */
-                var kmlStyle = this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map));
+                var labelRotation = -magic.runtime.viewdata.rotation;
+                var kmlStyle = this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map), labelRotation);
                 layer = new ol.layer.Image({
                     name: nd.name,
                     visible: isVisible,
@@ -384,7 +407,7 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
             nd.layer = layer;
             this.nodeLayerTranslation[nd.id] = layer;
             if (refreshRate > 0) {
-                console.log("Non-zero refresh rate " + refreshRate + " for " + layer.get("name"));
+                //console.log("Non-zero refresh rate " + refreshRate + " for " + layer.get("name"));
                 setInterval(this.refreshLayer, 1000*60*refreshRate, layer);
             }
         }
@@ -396,15 +419,15 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
  * @param {ol.Layer} layer
  */
 magic.classes.LayerTree.prototype.refreshLayer = function(layer) {
-    console.log("Entered refreshLayer...");
+    //console.log("Entered refreshLayer...");
     if (typeof layer.getSource().updateParams === "function") {
-        console.log("Refreshing WMS-type layer " + layer.get("name"));
+        //console.log("Refreshing WMS-type layer " + layer.get("name"));
         var params = layer.getSource().getParams();
         params.t = new Date().getMilliseconds();
         layer.getSource().updateParams(params);
-        console.log("Done");
+        //console.log("Done");
     } else if (typeof layer.getSource().refresh == "function") {
-        console.log("Refreshing vector-type layer " + layer.get("name"));
+        //console.log("Refreshing vector-type layer " + layer.get("name"));
         layer.getSource().refresh();
     }
 };
@@ -521,9 +544,10 @@ magic.classes.LayerTree.prototype.refreshTreeIndicators = function(branchHierarc
  * Translate style definition object to OL style
  * @param {object} styleDef
  * @param {string} labelField
+ * @param {float} labelRotation (in radians)
  * @returns {ol.style}
  */
-magic.classes.LayerTree.prototype.getVectorStyle = function(styleDef, labelField) {
+magic.classes.LayerTree.prototype.getVectorStyle = function(styleDef, labelField, labelRotation) {
     return(function(feature, resolution) {
         var style = null;
         /* Determine feature type */
@@ -606,7 +630,7 @@ magic.classes.LayerTree.prototype.getVectorStyle = function(styleDef, labelField
                     fill: new ol.style.Fill({
                         color: textColor
                     }),
-                    rotation: -magic.runtime.map.getView().getRotation(),
+                    rotation: labelRotation,
                     stroke: new ol.style.Stroke({
                         color: "#ffffff",
                         width: 1

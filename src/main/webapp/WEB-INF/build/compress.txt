@@ -6,6 +6,7 @@ css/nav.css
 css/map.css
 css/font-awesome.min.css
 css/whhg-reduced.min.css
+js/xmlToJSON.min.js
 js/cookie.min.js
 js/ol.min.js
 js/jquery.js
