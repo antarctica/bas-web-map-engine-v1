@@ -18,6 +18,7 @@ magic.classes.creator.LayerAttributeMap = function(div) {
 /**
  * Load attribute map
  * @param {object} context
+ * @param {String} sourceType
  */
 magic.classes.creator.LayerAttributeMap.prototype.loadContext = function(context, sourceType) {
     if (sourceType == "wms") {        
