@@ -87,7 +87,7 @@ magic.classes.AircraftPositionButton.prototype.isActive = function () {
  */
 magic.classes.AircraftPositionButton.prototype.activate = function () {
     this.active = true;
-    this.timer = window.setInterval(this.getData, 600000);
+    this.timer = window.setInterval(jQuery.proxy(this.getData, this), 600000);
     if (!this.geoJson) {
         this.geoJson = new ol.format.GeoJSON({
             geometryName: "geom"
