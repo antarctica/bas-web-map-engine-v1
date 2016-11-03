@@ -190,10 +190,13 @@ magic.classes.FeaturePopup.prototype.basicMarkup = function() {
                                 nDisplayed++;
                             }                            
                         } else { 
-                            if (feat[attrdata.name]) {
+                            if (feat[attrdata.name] || jQuery.isNumeric(feat[attrdata.name])) {
                                 /* Attribute has a non-null value, so worth displaying */
-                                content += '<tr><td>' + nameStr + '</td><td align="right">' + this.attributeValue(attrdata.name, feat[attrdata.name]) + '</td></tr>';
-                                nDisplayed++;
+                                var attrOut = this.attributeValue(attrdata.name, feat[attrdata.name]);
+                                if (attrOut != "") {
+                                    content += '<tr><td>' + nameStr + '</td><td align="right">' + this.attributeValue(attrdata.name, feat[attrdata.name]) + '</td></tr>';
+                                    nDisplayed++;
+                                }
                             }
                         }                        
                     }
@@ -283,23 +286,23 @@ magic.classes.FeaturePopup.prototype.selectFeature = function() {
             var content = '<table class="table table-striped table-condensed feature-popup-table">';
             jQuery.each(keys.sort(), function(idx, key) {
                 var value = attrdata[key];
-                if (value) {
-                    if (jQuery.isNumeric(value)) {                        
-                        content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td align="right">' + value + '</td></tr>';
-                    } else if (key.toLowerCase().indexOf("geom") == -1) {
-                        /* Test for Redmine markup-style link with alias of form "<alias>":<url> which should be translated */
-                        var finalValue = "";
-                        if (value) {
-                            var quote1 = value.indexOf("\"");
-                            var quote2 = value.lastIndexOf("\"");
-                            if (quote1 != -1 && quote2 != -1) {
-                                finalValue = magic.modules.Common.linkify(value.substring(quote2+2), value.substring(quote1+1, quote2));
-                            } else {
-                                finalValue = magic.modules.Common.linkify(value);
-                            }     
-                        }
-                        content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td>' + finalValue + '</td></tr>';
+                if (jQuery.isNumeric(value)) { 
+                    /* Changed 2016-11-02 David - should show zero values in e.g. speed attributes */
+                    content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td align="right">' + value + '</td></tr>';
+                } else if (value && key.toLowerCase().indexOf("geom") == -1) {
+                    /* Test for Redmine markup-style link with alias of form "<alias>":<url> which should be translated */
+                    /* NOTE: David 2016-11-02 - suppress null non-numeric values in the pop-up */
+                    var finalValue = "";
+                    if (value) {
+                        var quote1 = value.indexOf("\"");
+                        var quote2 = value.lastIndexOf("\"");
+                        if (quote1 != -1 && quote2 != -1) {
+                            finalValue = magic.modules.Common.linkify(value.substring(quote2+2), value.substring(quote1+1, quote2));
+                        } else {
+                            finalValue = magic.modules.Common.linkify(value);
+                        }     
                     }
+                    content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td>' + finalValue + '</td></tr>';
                 }
             });
             content += '</table>';
@@ -377,9 +380,11 @@ magic.classes.FeaturePopup.prototype.attributeValue = function(key, value) {
     var newValue = "";
     if (value != null && value != "" && value != undefined) {
         if (magic.modules.Common.isLongitudeLike(key)) {
-            newValue = magic.runtime.preferences.applyPref("coordinates", parseFloat(value).toFixed(4), "lon");
+            value = value.replace(/&[^;]+;\s?/g, " ");  /* Tracker co-ordinates have HTML escapes in them - sigh */
+            newValue = magic.runtime.preferences.applyPref("coordinates", value, "lon");
         } else if (magic.modules.Common.isLatitudeLike(key)) {
-            newValue = magic.runtime.preferences.applyPref("coordinates", parseFloat(value).toFixed(4), "lat");
+            value = value.replace(/&[^;]+;\s?/g, " ");  /* Tracker co-ordinates have HTML escapes in them - sigh */
+            newValue = magic.runtime.preferences.applyPref("coordinates", value, "lat");
         } else if (magic.modules.Common.isDatetimeLike(key)) {
             newValue = magic.runtime.preferences.applyPref("dates", value);
         } else {

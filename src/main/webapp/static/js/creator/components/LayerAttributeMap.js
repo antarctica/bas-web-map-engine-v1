@@ -326,7 +326,7 @@ magic.classes.creator.LayerAttributeMap.prototype.featureGeomType = function(fea
     if (g) {
         if (g instanceof ol.geom.Point || g instanceof ol.geom.MultiPoint) {
             type = "point";
-        } else if (g instanceof ol.geom.LineString || g instanceof ol.geom.MultiLineString || g instanceof ol.geom.LinearRing) {
+        } else if (g instanceof ol.geom.LineString || g instanceof ol.geom.MultiLineString) {
             type = "line";
         } else if (g instanceof ol.geom.Polygon || g instanceof ol.geom.MultiPolygon) {
             type = "polygon";

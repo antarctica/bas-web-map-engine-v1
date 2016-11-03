@@ -25,10 +25,8 @@ magic.modules.GeoUtils = function() {
             var formattedValue = null;
             if (!dp && dp != 0) {
                 dp = 4;
-            }
-            var rangeLo = axis == "lat" ? -90.0 : -180.0;
-            var rangeHi = axis == "lat" ? 90.0 : 180.0;                
-            if (magic.modules.Common.floatInRange(coordinate, rangeLo, rangeHi, 1e-08)) {
+            }                   
+            if (this.validCoordinate(coordinate, axis == "lat", false)) {
                 /* Quick sanity check that it's a sensible number passes */
                 var dd = this.toDecDegrees(coordinate);
                 if (!isNaN(dd)) {
