@@ -137,7 +137,8 @@ magic.classes.LayerFilter.prototype.setFilterOptions = function(changed, to) {
         var adata = jQuery.grep(this.attribute_map, function(elt) {
             return(elt.name == to);
         })[0];
-        if (adata.type == "xsd:string") {
+        var theType = adata.type.toLowerCase().replace(/^xsd:/, "");
+        if (theType == "string") {
             /* String compare */
             inputComparison.val("string");
             this.showFormFields(form, "string");           
@@ -145,7 +146,7 @@ magic.classes.LayerFilter.prototype.setFilterOptions = function(changed, to) {
                 /* This will fetch the unique attribute values, and if successful show the appropriate inputs */
                 this.getUniqueValues(adata.name, null);
             }
-        } else if (adata.type == "xsd:dateTime") {
+        } else if (theType == "datetime") {
             /* Date/time */
             inputComparison.val("date"); 
             this.showFormFields(form, "date");            
@@ -286,8 +287,9 @@ magic.classes.LayerFilter.prototype.loadExistingFilter = function() {
             return(elt.filterable);
         }, this));
         if (filterables.length > 0) {
+            var theType = filterables[0].type.toLowerCase().replace(/^xsd:/, "");
             this.attr = filterables[0].name;
-            this.comparison = filterables[0].type == "xsd:string" ? "string" : (filterables[0].type == "xsd:dateTime" ? "date" : "number");
+            this.comparison = theType == "string" ? "string" : (theType == "datetime" ? "date" : "number");
             this.op = "eq";
             this.val1 = "";
             this.val2 = "";
@@ -341,7 +343,7 @@ magic.classes.LayerFilter.prototype.getUniqueValues = function(attrName, attrVal
                             var vals = jQuery.map(arr, function(elt, idx) {
                                 var eltAttrVal = elt.split(",")[attrPos];
                                 if (eltAttrVal) {
-                                    eltAttrVal = eltAttrVal.trim();                                
+                                    eltAttrVal = eltAttrVal.trim().replace(/\"/, "");                                
                                     if (foundDict[eltAttrVal] !== true) {
                                         foundDict[eltAttrVal] = true;
                                         return(eltAttrVal);
@@ -358,7 +360,21 @@ magic.classes.LayerFilter.prototype.getUniqueValues = function(attrName, attrVal
                 }, this));  
         } else {
             /* Unique values from the source features */
-            var vals = jQuery.map(this.layer.getSource().getSource().getFeatures(), jQuery.proxy(function(idx, feat) {return(feat.get(attrName))}, this));
+            var source = null;
+            if (jQuery.isFunction(this.layer.getSource().getSource && this.layer.getSource().getSource() instanceof ol.source.Vector)) {
+                source = this.layer.getSource().getSource();
+            } else if (this.layer.getSource() instanceof ol.source.Vector) {
+                source = this.layer.getSource();
+            }
+            var foundDict = {};
+            var vals = jQuery.map(source.getFeatures(), jQuery.proxy(function(feat, idx) {
+                var eltAttrVal = feat.get(attrName);
+                if (foundDict[eltAttrVal] !== true) {
+                    foundDict[eltAttrVal] = true;
+                    return(eltAttrVal);
+                }
+                return(null);
+            }, this));
             this.populateUniqueValueSelection(vals, attrVal);            
         }
     }
@@ -484,10 +500,10 @@ magic.classes.LayerFilter.prototype.applyFilter = function() {
             ));
         } else if (sourceMd.geojson_source) {
             /* WFS/GeoJson source */
-            this.filterVectorSource(this.layer.getSource().getSource());           
+            this.filterVectorSource(this.layer.getSource(), false);           
         } else {
             /* GPX/KML */
-            this.filterVectorSource(this.layer.getSource().getSource());
+            this.filterVectorSource(this.layer.getSource().getSource(), false);
         }
         jQuery("#ftr-btn-reset-" + this.nodeid).removeClass("disabled");
         /* Show filter badge */
@@ -520,17 +536,12 @@ magic.classes.LayerFilter.prototype.resetFilter = function() {
             {"cql_filter": null}
         ));
     } else if (sourceMd.geojson_source) {
-        if (sourceMd.feature_name) {
-            /* WFS source */                
-            this.layer.getSource().getSource().clear();
-        } else {
-            /* Other GeoJSON */
-            this.layer.getSource().getSource().clear();
-        }
+        /* WFS/GeoJSON */
+        this.filterVectorSource(this.layer.getSource(), true);
     } else {
         /* GPX/KML */
-        this.layer.getSource().getSource().clear(); /* Why this resets the filter and doesn't clear the layer is beyond me - must be an OL bug! */
-    }    
+        this.filterVectorSource(this.layer.getSource().getSource(), true);
+    }
     jQuery("#ftr-btn-reset-" + this.nodeid).addClass("disabled");    
     /* Hide filter badge */
     jQuery("#layer-filter-badge-" + this.nodeid).removeClass("show").addClass("hidden");
@@ -538,44 +549,31 @@ magic.classes.LayerFilter.prototype.resetFilter = function() {
 };
 
 /**
- * Reload a vector layer, applying the current filter
+ * Reload a vector layer, applying the current filter (done via comparing individual feature attributes against the filter value)
  * @param {ol.source.Vector} source
- * @param {string} url
- * @param {ol.format} format
+ * @param {boolean} reset
  */
-magic.classes.LayerFilter.prototype.filterVectorSource = function(source, url, format) {            
+magic.classes.LayerFilter.prototype.filterVectorSource = function(source, reset) {   
+    var emptyImgStyle = new ol.style.Style({image: ""});
     jQuery.each(source.getFeatures(), jQuery.proxy(function(idx, feat) {
-        var addIt = false;
-        if (this.attr != null) {
-            var attrVal = feat.get(this.attr);                
-            switch(this.op) {
-                case "ilike":
-                    addIt = attrVal.toLowerCase().indexOf(this.val1.toLowerCase()) == 0;
-                    break;
-                case "=":
-                    addIt = attrVal == this.val1;
-                    break;
-                case ">":
-                    addIt = attrVal > this.val1;
-                    break;
-                case "<":
-                    addIt = attrVal < this.val1;
-                    break;
-                case ">=":
-                    addIt = attrVal >= this.val1;
-                    break;
-                case "<=":
-                    addIt = attrVal <= this.val1;
-                    break;
-                case "between":
-                    addIt = attrVal >= this.val1 && attrVal <= this.val2;
-                    break;
-                default: 
-                    break;                        
+        if (reset) {
+            feat.setStyle(null);
+        } else {
+            var addIt = false;
+            if (this.attr != null) {
+                var attrVal = feat.get(this.attr);                
+                switch(this.op) {
+                    case "ilike": addIt = attrVal.toLowerCase().indexOf(this.val1.toLowerCase()) == 0; break;
+                    case "=": addIt = attrVal == this.val1; break;
+                    case ">": addIt = attrVal > this.val1; break;
+                    case "<": addIt = attrVal < this.val1; break;
+                    case ">=": addIt = attrVal >= this.val1; break;
+                    case "<=": addIt = attrVal <= this.val1; break;
+                    case "between": addIt = attrVal >= this.val1 && attrVal <= this.val2; break;
+                    default: break;                        
+                }
             }
-        }
-        if (!addIt) {
-            source.removeFeature(feat);
+            feat.setStyle(addIt ? null : emptyImgStyle);
         }
     }, this));        
 };

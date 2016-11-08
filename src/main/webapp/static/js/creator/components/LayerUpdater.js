@@ -273,7 +273,7 @@ magic.classes.creator.LayerUpdater.prototype.populateWmsSourceSelector = functio
             .done(jQuery.proxy(function(data) {
                 if (data.workspaces && jQuery.isArray(data.workspaces.workspace)) {
                     jQuery.each(data.workspaces.workspace, function(idx, ws) {
-                        if ("assets|opsgis|sggis|arctic|add".indexOf(ws.name) == -1) {
+                        if ("assets|opsgis|sggis|arctic|add|user".indexOf(ws.name) == -1) {
                             eps.unshift({
                                 wms: magic.config.paths.baseurl + "/geoserver/" + ws.name + "/wms",
                                 name: "Local Geoserver " + ws.name + " space"

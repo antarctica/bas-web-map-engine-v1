@@ -261,6 +261,42 @@ magic.classes.AppContainer = function () {
         title: "",
         trigger: "hover"
     });
+    
+    /* Allow mouseover labels for point vector layers */
+    magic.runtime.map.on("pointermove", jQuery.proxy(function(evt) {
+        for (var i = 0; i < magic.runtime.highlighted.length; i++) {
+            magic.runtime.highlighted[i].setStyle(null);
+            magic.runtime.highlighted[i].changed();
+        }
+        magic.runtime.highlighted = [];
+        evt.map.forEachFeatureAtPixel(evt.pixel, function(feat, layer) {
+            var layerStyle = null;
+            var styleFn = layer.getStyleFunction();
+            if (styleFn) {
+                layerStyle = layer.getStyleFunction()(feat, 0)[0];
+            } else if (layer.getStyle()) {
+                layerStyle = layer.getStyle();
+            }
+            if (layerStyle && layerStyle.getText()) {            
+                var sclone = layerStyle.clone();
+                var label = sclone.getText();
+                if (label) {
+                    /* Found a feature whose label needs to be hovered => make text opaque */
+                    var stroke = label.getStroke();
+                    var scolor = stroke.getColor(); /* Will be of form rgba(255, 255, 255, 0.0) */                   
+                    stroke.setColor(scolor.substring(0, scolor.lastIndexOf(",")+1) + "1.0)");
+                    var fill = label.getFill();
+                    var fcolor = fill.getColor();
+                    fill.setColor(fcolor.substring(0, fcolor.lastIndexOf(",")+1) + "1.0)");                    
+                    feat.setStyle(sclone);
+                    feat.changed();
+                    magic.runtime.highlighted.push(feat);
+                    return(true);
+                }                
+            }
+            return(false);
+        }, this);        
+    }, this));
 };
 
 /**
@@ -365,4 +401,20 @@ magic.classes.AppContainer.prototype.constructStyle = function(feat) {
         }
     });
     return(magic.modules.Common.fetchStyle(geomType, paletteEntry, label));        
+};
+
+/**
+ * Set the visibility of a text label within a style
+ * @param {ol.style.Text} label
+ * @param {boolean} vis
+ */
+magic.classes.AppContainer.prototype.setLabelVisibility = function(label, vis) {
+    var stroke = label.getStroke();
+    var scolor = stroke.getColor();
+    scolor[3] = vis ? 1.0 : 0.0;
+    stroke.setColor(scolor);
+    var fill = label.getFill();
+    var fcolor = fill.getColor();
+    fcolor[3] = vis ? 1.0 : 0.0;
+    fill.setColor(fcolor);
 };

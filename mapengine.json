@@ -50,6 +50,8 @@
     "ol.geom.MultiLineString#*",
     "ol.geom.LineString",
     "ol.geom.LineString#*",
+    "ol.geom.GeometryCollection",
+    "ol.geom.GeometryCollection#*",
     "ol.source.TileWMS",
     "ol.source.TileWMS#*",
     "ol.geom.Polygon",

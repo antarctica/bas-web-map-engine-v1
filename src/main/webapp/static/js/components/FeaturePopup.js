@@ -380,10 +380,14 @@ magic.classes.FeaturePopup.prototype.attributeValue = function(key, value) {
     var newValue = "";
     if (value != null && value != "" && value != undefined) {
         if (magic.modules.Common.isLongitudeLike(key)) {
-            value = value.replace(/&[^;]+;\s?/g, " ");  /* Tracker co-ordinates have HTML escapes in them - sigh */
+            if (!jQuery.isNumeric(value)) {
+                value = value.replace(/&[^;]+;\s?/g, " ");  /* Tracker co-ordinates have HTML escapes in them - sigh */
+            }
             newValue = magic.runtime.preferences.applyPref("coordinates", value, "lon");
         } else if (magic.modules.Common.isLatitudeLike(key)) {
-            value = value.replace(/&[^;]+;\s?/g, " ");  /* Tracker co-ordinates have HTML escapes in them - sigh */
+            if (!jQuery.isNumeric(value)) {
+                value = value.replace(/&[^;]+;\s?/g, " ");  /* Tracker co-ordinates have HTML escapes in them - sigh */
+            }
             newValue = magic.runtime.preferences.applyPref("coordinates", value, "lat");
         } else if (magic.modules.Common.isDatetimeLike(key)) {
             newValue = magic.runtime.preferences.applyPref("dates", value);

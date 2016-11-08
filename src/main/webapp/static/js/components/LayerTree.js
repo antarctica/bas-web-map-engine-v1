@@ -288,50 +288,16 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                 /* GeosJSON layer */
                 var labelRotation = nd.source.feature_name ? 0.0 : -magic.runtime.viewdata.rotation;
                 var format = new ol.format.GeoJSON();
+                var url = nd.source.geojson_source;
+                if (nd.source.feature_name) {                           
+                    /* WFS */
+                    url += "?service=wfs&request=getfeature&outputFormat=application/json&" + 
+                        "typename=" + nd.source.feature_name + "&" + 
+                        "srsname=" + (nd.source.srs || "EPSG:4326");                    
+                }
                 var vectorSource = new ol.source.Vector({
                     format: format,
-                    loader: function(extent, resolution, projection) {
-                        var url = nd.source.geojson_source;
-                        if (nd.source.feature_name) {                           
-                            /* WFS */
-                            url = nd.source.geojson_source + "?service=wfs&request=getfeature&outputFormat=application/json&" + 
-                                "typename=" + nd.source.feature_name + "&" + 
-                                "srsname=" + projection.getCode() + "&";
-                            if (magic.runtime.filters[nd.name]) {
-                                url += "cql_filter=" + magic.runtime.filters[nd.name] + " AND BBOX(geom," + extent.join(",") + ")";
-                            } else {
-                                url += "bbox=" + extent.join(",");
-                            }     
-                            url = magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(url);
-                        }
-                        jQuery.ajax({
-                            url: url,
-                            method: "GET",
-                            dataType: "text"
-                        }).done(function(response) {
-                            var json = JSON.parse(response);
-                            if (json.type && json.type == "FeatureCollection") {
-                                /* This is a sensible response at least - discover data projection */
-                                var projCode = magic.runtime.map.getView().getProjection().getCode();
-                                var dataProjection = "EPSG:4326";
-                                if (!nd.source.srs) {
-                                    try {
-                                        var crs = json.crs.properties.name;
-                                        if (crs.indexOf(":" + projCode.replace(/^EPSG:/, "")) != -1) {
-                                            dataProjection = projCode;
-                                        }
-                                    } catch(e){}
-                                } else {
-                                    dataProjection = nd.source.srs;
-                                }                              
-                                vectorSource.addFeatures(format.readFeatures(response, {
-                                    dataProjection: dataProjection,
-                                    featureProjection: projCode
-                                }));
-                            }
-                        })                        
-                    },                        
-                    projection: magic.runtime.view.getProjection()
+                    url: magic.modules.Common.proxyUrl(url)
                 });
                 layer = new ol.layer.Vector({
                     name: nd.name,
@@ -373,7 +339,7 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                                 }
                                 return(f);
                             }}),
-                            url: nd.source.gpx_source
+                            url: magic.modules.Common.proxyUrl(nd.source.gpx_source)
                         }),
                         style: this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map), labelRotation)
                     }),
@@ -395,7 +361,7 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                                 extractStyles: false,
                                 showPointNames: false
                             }),
-                            url: nd.source.kml_source
+                            url: magic.modules.Common.proxyUrl(nd.source.kml_source)
                         }),
                         style: kmlStyle
                     }),
@@ -407,29 +373,42 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
             nd.layer = layer;
             this.nodeLayerTranslation[nd.id] = layer;
             if (refreshRate > 0) {
-                //console.log("Non-zero refresh rate " + refreshRate + " for " + layer.get("name"));
-                setInterval(this.refreshLayer, 1000*60*refreshRate, layer);
+                setInterval(jQuery.proxy(this.refreshLayer, this), 1000*60*refreshRate, layer);
             }
         }
     }, this));
 };
 
 /**
- * Refresh a WMS layer
+ * setInterval handler to refresh a layer
  * @param {ol.Layer} layer
  */
 magic.classes.LayerTree.prototype.refreshLayer = function(layer) {
-    //console.log("Entered refreshLayer...");
     if (typeof layer.getSource().updateParams === "function") {
-        //console.log("Refreshing WMS-type layer " + layer.get("name"));
+        /* Add time parameter to force refresh of WMS layer */
         var params = layer.getSource().getParams();
         params.t = new Date().getMilliseconds();
         layer.getSource().updateParams(params);
-        //console.log("Done");
-    } else if (typeof layer.getSource().refresh == "function") {
-        //console.log("Refreshing vector-type layer " + layer.get("name"));
-        layer.getSource().refresh();
+    } else if (layer.getSource() instanceof ol.source.Vector) {
+        /* WFS/GeoJSON layer */
+        this.reloadVectorSource(layer.getSource());
+    } else if (jQuery.isFunction(layer.getSource().getSource) && layer.getSource().getSource() instanceof ol.source.Vector) {
+        /* GPX/KML layers */
+        this.reloadVectorSource(layer.getSource().getSource());
     }
+};
+
+/**
+ * Reload the data from a vector source (layer refresh)
+ * See: https://github.com/openlayers/ol3/issues/2683
+ * @param {ol.source.Vector} source
+ */
+magic.classes.LayerTree.prototype.reloadVectorSource = function(source) {
+    jQuery.ajax(source.getUrl(), function(response) {
+        var format = source.getFormat();
+        source.clear(true);
+        source.addFeatures(format.readFeatures(response));
+    });
 };
 
 /**
@@ -549,14 +528,9 @@ magic.classes.LayerTree.prototype.refreshTreeIndicators = function(branchHierarc
  */
 magic.classes.LayerTree.prototype.getVectorStyle = function(styleDef, labelField, labelRotation) {
     return(function(feature, resolution) {
-        var style = null;
+        var returnedStyles = [];
         /* Determine feature type */
-        var geomType = "point";
-        if (feature.getGeometry() instanceof ol.geom.LineString || feature.getGeometry() instanceof ol.geom.MultiLineString) {
-            geomType = "line";
-        } else if (feature.getGeometry() instanceof ol.geom.Polygon || feature.getGeometry() instanceof ol.geom.MultiPolygon) {
-            geomType = "polygon";
-        }        
+        var geomType = magic.modules.Common.getGeometryType(feature.getGeometry());
         var defaultFill =  {color: "rgba(255, 0, 0, 0.6)"};
         var defaultStroke = {color: "rgba(255, 0, 0, 1.0)", width: 1};   
         var fill = null, stroke = null, graphic = null, text = null;
@@ -619,8 +593,8 @@ magic.classes.LayerTree.prototype.getVectorStyle = function(styleDef, labelField
             }
             text = undefined;
             if (labelField) {
-                var textColor = stroke.getColor();
-                textColor[3] = 1.0; /* Opaque text */
+                /* Transparent text, made opaque on mouseover */
+                var textColor = magic.modules.Common.rgbToDec(styleDef.stroke.color, 0.0)
                 text = new ol.style.Text({
                     font: "Arial",
                     scale: 1.2,
@@ -632,7 +606,7 @@ magic.classes.LayerTree.prototype.getVectorStyle = function(styleDef, labelField
                     }),
                     rotation: labelRotation,
                     stroke: new ol.style.Stroke({
-                        color: "#ffffff",
+                        color: "rgba(255, 255, 255, 0.0)",
                         width: 1
                     })
                 });                
@@ -650,26 +624,53 @@ magic.classes.LayerTree.prototype.getVectorStyle = function(styleDef, labelField
         }
         switch (geomType) {
             case "polygon":
-                style = new ol.style.Style({
+                returnedStyles.push(new ol.style.Style({
                     fill: fill,
                     stroke: stroke,
                     text: text
-                });
+                }));
                 break;
             case "line":
-                style = new ol.style.Style({
+                returnedStyles.push(new ol.style.Style({
                     stroke: stroke,
                     text: text
-                });
+                }));
+                break;
+            case "collection":
+                var geoms = feature.getGeometry().getGeometries();
+                for (var i = 0; i < geoms.length; i++) {
+                    var gtype = magic.modules.Common.getGeometryType(geoms[i]);
+                    if (gtype == "point") {
+                        returnedStyles.push(new ol.style.Style({
+                            geometry: geoms[i],
+                            image: graphic,                    
+                            text: text
+                        }));
+                    /* Originally for AAD demonstrator - they export tracks which are monotonically increasing in size and look a real mess rendered */
+                    } /*else if (gtype == "line") {
+                        returnedStyles.push(new ol.style.Style({
+                            geometry: geoms[i],
+                            stroke: stroke,
+                            text: text
+                        }));
+                    } else if (gtype == "polygon") {
+                        returnedStyles.push(new ol.style.Style({
+                            geometry: geoms[i],
+                            fill: fill,
+                            stroke: stroke,
+                            text: text
+                        }));
+                    }*/
+                }
                 break;
             default: 
-                style = new ol.style.Style({
+                returnedStyles.push(new ol.style.Style({
                     image: graphic,                    
                     text: text
-                });
+                }));
                 break;                   
         }
-        return([style]);
+        return(returnedStyles);
     });
 };
 

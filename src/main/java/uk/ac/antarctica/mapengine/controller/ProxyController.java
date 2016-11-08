@@ -46,8 +46,13 @@ public class ProxyController {
     static {
         ALLOWED_URLS.put("https://gis.ccamlr.org", "");
         ALLOWED_URLS.put("http://bslgisa.nerc-bas.ac.uk", "");
+        ALLOWED_URLS.put("http://opsgis.web.bas.ac.uk", "");
+        ALLOWED_URLS.put("http://rolgis.rothera.nerc-bas.ac.uk", "");
+        ALLOWED_URLS.put("http://halgis.halley.nerc-bas.ac.uk", "");
+        ALLOWED_URLS.put("http://jrlgis.jcr.nerc-bas.ac.uk", "");
         ALLOWED_URLS.put("https://maps.bas.ac.uk", "");
         ALLOWED_URLS.put("http://bslbatgis.nerc-bas.ac.uk", "");
+        ALLOWED_URLS.put("http://www.polarview.aq", "");
         ALLOWED_URLS.put("http://tracker.aad.gov.au", "tracker:ur3jeeFo:Tracker");
     }
     

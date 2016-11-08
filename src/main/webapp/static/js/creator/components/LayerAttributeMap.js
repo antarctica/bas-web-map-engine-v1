@@ -63,9 +63,7 @@ magic.classes.creator.LayerAttributeMap.prototype.vectorLoadContext = function(c
         } else if (sourceType == "gpx") {
             /* GPX file */
             source = context.source.gpx_source;
-            format = new ol.format.GPX({readExtensions: function(f, enode){
-                //console.log(f);
-                //console.log(enode);
+            format = new ol.format.GPX({readExtensions: function(f, enode){              
                 try {
                     var json = xmlToJSON.parseString(enode.outerHTML.trim());
                     if ("extensions" in json && jQuery.isArray(json.extensions) && json.extensions.length == 1) {
@@ -80,7 +78,6 @@ magic.classes.creator.LayerAttributeMap.prototype.vectorLoadContext = function(c
                         }
                     }
                 } catch (e) {
-                    //console.log("Failed to parse extension node");
                 }
                 return(f);
             }});        
@@ -91,7 +88,7 @@ magic.classes.creator.LayerAttributeMap.prototype.vectorLoadContext = function(c
         }
         if (source && format) {
             var jqXhr = jQuery.ajax({
-                url: source,
+                url: magic.modules.Common.proxyUrl(source),
                 method: "GET",
                 dataType: "text"
             });

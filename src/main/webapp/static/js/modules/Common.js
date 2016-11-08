@@ -76,7 +76,7 @@ magic.modules.Common = function () {
          */
         rgbToDec: function(rgb, opacity) {
             rgb = rgb || "#000000";
-            opacity = opacity || 1.0;
+            opacity = jQuery.isNumeric(opacity) ? opacity : 1.0;
             rgb = eval("0x" + rgb.replace(/#/, ""));
             var components = {
                 r: (rgb & 0xff0000) >> 16, 
@@ -249,6 +249,34 @@ magic.modules.Common = function () {
                     })
                 }));
             }
+        },
+        /**
+         * Get geometry type
+         * @param {ol.Geometry} geom
+         * @returns {String point|line|polygon|collection}
+         */
+        getGeometryType: function(geom) {
+            var geomType = "point";
+            if (geom instanceof ol.geom.LineString || geom instanceof ol.geom.MultiLineString) {
+                geomType = "line";
+            } else if (geom instanceof ol.geom.Polygon || geom instanceof ol.geom.MultiPolygon) {
+                geomType = "polygon";
+            } else if (geom instanceof ol.geom.GeometryCollection) {
+                geomType = "collection";
+            }  
+            return(geomType);
+        },
+        /**
+         * Apply proxying to a URL (e.g. a vector feed) unless it's from the same host
+         * @param {String} url
+         * @returns {String}
+         */
+        proxyUrl: function(url) {
+            var proxyUrl = url;
+            if (url.indexOf(window.location.protocol + "//" + window.location.hostname) != 0) {
+                proxyUrl = magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(url);
+            }
+            return(proxyUrl);
         },
         /**
          * Construct a WxS URL for the specified operation from a WMS URL
