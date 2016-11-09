@@ -535,82 +535,88 @@ magic.classes.LayerTree.prototype.getVectorStyle = function(styleDef, labelField
         var defaultStroke = {color: "rgba(255, 0, 0, 1.0)", width: 1};   
         var fill = null, stroke = null, graphic = null, text = null;
         if (styleDef) {
-            if (styleDef.fill) {
-                fill = new ol.style.Fill({
-                    color: magic.modules.Common.rgbToDec(styleDef.fill.color, styleDef.fill.opacity)
-                });
+            if (styleDef.predefined) {
+                /* Canned vector style */
+                returnedStyles = [(magic.modules.VectorStyles[styleDef.predefined] || null)];
             } else {
-                fill = jQuery.extend({}, defaultFill);
-            }
-            if (styleDef.stroke) {
-                var lineStyle = styleDef.stroke.style == "dashed" ? [3, 3] : (styleDef.stroke.style == "dotted" ? [1, 1] : undefined);
-                stroke = new ol.style.Stroke({
-                    color: magic.modules.Common.rgbToDec(styleDef.stroke.color, styleDef.stroke.opacity),
-                    lineDash: lineStyle,
-                    width: styleDef.stroke.width || 1
-                });
-            } else {
-                stroke = jQuery.extend({}, defaultStroke);
-            }
-            if (styleDef.graphic) {
-                if (styleDef.graphic.marker == "circle") {
-                    graphic = new ol.style.Circle({
-                        radius: styleDef.graphic.radius || 5,
-                        fill: fill,
-                        stroke: stroke
-                    });
-                } else if (styleDef.graphic.marker == "star") {
-                    var r1 = styleDef.graphic.radius || 7;
-                    var r2 = (r1 < 7 ? 2 : r1-5);
-                    graphic = new ol.style.RegularShape({
-                        radius1: r1,
-                        radius2: r2,
-                        points: 5,
-                        fill: fill,
-                        stroke: stroke
+                /* Unpack symbology */
+                if (styleDef.fill) {
+                    fill = new ol.style.Fill({
+                        color: magic.modules.Common.rgbToDec(styleDef.fill.color, styleDef.fill.opacity)
                     });
                 } else {
-                    var points;
-                    switch(styleDef.graphic.marker) {
-                        case "triangle": points = 3; break;
-                        case "pentagon": points = 5; break;
-                        case "hexagon": points = 6; break;
-                        default: points = 4; break;                                    
+                    fill = jQuery.extend({}, defaultFill);
+                }
+                if (styleDef.stroke) {
+                    var lineStyle = styleDef.stroke.style == "dashed" ? [3, 3] : (styleDef.stroke.style == "dotted" ? [1, 1] : undefined);
+                    stroke = new ol.style.Stroke({
+                        color: magic.modules.Common.rgbToDec(styleDef.stroke.color, styleDef.stroke.opacity),
+                        lineDash: lineStyle,
+                        width: styleDef.stroke.width || 1
+                    });
+                } else {
+                    stroke = jQuery.extend({}, defaultStroke);
+                }
+                if (styleDef.graphic) {
+                    if (styleDef.graphic.marker == "circle") {
+                        graphic = new ol.style.Circle({
+                            radius: styleDef.graphic.radius || 5,
+                            fill: fill,
+                            stroke: stroke
+                        });
+                    } else if (styleDef.graphic.marker == "star") {
+                        var r1 = styleDef.graphic.radius || 7;
+                        var r2 = (r1 < 7 ? 2 : r1-5);
+                        graphic = new ol.style.RegularShape({
+                            radius1: r1,
+                            radius2: r2,
+                            points: 5,
+                            fill: fill,
+                            stroke: stroke
+                        });
+                    } else {
+                        var points;
+                        switch(styleDef.graphic.marker) {
+                            case "triangle": points = 3; break;
+                            case "pentagon": points = 5; break;
+                            case "hexagon": points = 6; break;
+                            default: points = 4; break;                                    
+                        }
+                        graphic = new ol.style.RegularShape({
+                            radius: styleDef.graphic.radius || 5,
+                            points: points,
+                            fill: fill,
+                            stroke: stroke
+                        });
                     }
-                    graphic = new ol.style.RegularShape({
-                        radius: styleDef.graphic.radius || 5,
-                        points: points,
+                } else {
+                    graphic = new ol.style.Circle({
+                        radius: 5, 
                         fill: fill,
                         stroke: stroke
                     });
                 }
-            } else {
-                graphic = new ol.style.Circle({
-                    radius: 5, 
-                    fill: fill,
-                    stroke: stroke
-                });
+                text = undefined;
+                if (labelField) {
+                    /* Transparent text, made opaque on mouseover */
+                    var textColor = magic.modules.Common.rgbToDec(styleDef.stroke.color, 0.0)
+                    text = new ol.style.Text({
+                        font: "Arial",
+                        scale: 1.2,
+                        offsetX: 10,
+                        text: feature.get(labelField) + "",
+                        textAlign: "left",
+                        fill: new ol.style.Fill({
+                            color: textColor
+                        }),
+                        rotation: labelRotation,
+                        stroke: new ol.style.Stroke({
+                            color: "rgba(255, 255, 255, 0.0)",
+                            width: 1
+                        })
+                    });                
+                }         
             }
-            text = undefined;
-            if (labelField) {
-                /* Transparent text, made opaque on mouseover */
-                var textColor = magic.modules.Common.rgbToDec(styleDef.stroke.color, 0.0)
-                text = new ol.style.Text({
-                    font: "Arial",
-                    scale: 1.2,
-                    offsetX: 10,
-                    text: feature.get(labelField) + "",
-                    textAlign: "left",
-                    fill: new ol.style.Fill({
-                        color: textColor
-                    }),
-                    rotation: labelRotation,
-                    stroke: new ol.style.Stroke({
-                        color: "rgba(255, 255, 255, 0.0)",
-                        width: 1
-                    })
-                });                
-            }            
         } else {
             /* Default style */
             fill = jQuery.extend({}, defaultFill);
