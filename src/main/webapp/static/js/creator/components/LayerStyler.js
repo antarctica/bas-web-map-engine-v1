@@ -5,6 +5,9 @@ magic.classes.creator.LayerStyler = function(prefix) {
     this.prefix = prefix + "-style";
     
     this.style_form_fields = {
+        "predefined": [
+            {"field": "key", "default": ""}
+        ],
         "graphic": [
             {"field": "marker", "default": "circle"},
             {"field": "radius", "default": 5}
@@ -20,7 +23,13 @@ magic.classes.creator.LayerStyler = function(prefix) {
             {"field": "opacity", "default": 1}
         ]
     };
-   
+    
+    /* Load the values of any predefined vector styles */
+    var predefKeys = [];
+    jQuery.each(magic.modules.VectorStyles, function(key, value) {
+        predefKeys.push({key: key, value: key});
+    });
+    magic.modules.Common.populateSelect(jQuery("#" + this.prefix + "-predefined-key"), predefKeys, "key", "value", "", false);
 };
 
 /**

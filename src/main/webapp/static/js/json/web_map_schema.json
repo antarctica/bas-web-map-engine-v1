@@ -5,10 +5,14 @@
             "description": "Style for vector layers",
             "type": "object",
             "properties": {
+                "predefined": {
+                    "description": "Predefined vector style",
+                    "type": "string"
+                },
                 "graphic": {
                     "description": "Graphic marker specification",
                     "type": "object",
-                    "properties": {
+                    "properties": {                        
                         "marker": {
                             "description": "Type of graphic",
                             "type": "string",
@@ -26,7 +30,7 @@
                             "type": "number",
                             "minimum": 3,
                             "maximum": 20
-                        }					
+                        }
                     }
                 },
                 "stroke": {
@@ -42,10 +46,10 @@
                         "color": {
                             "description": "Outline colour",
                             "type": "string",
-                            "pattern": "#[0-9A-Fa-f]{6}"                            
+                            "pattern": "#[0-9A-Fa-f]{6}"
                         },
                         "style": {
-                            "description": "Outline style", 
+                            "description": "Outline style",
                             "type": "string",
                             "enum": ["dotted", "dashed", "solid"]
                         },
@@ -60,12 +64,12 @@
                 "fill": {
                     "description": "Fill specification",
                     "type": "object",
-                    "properties": {                        
+                    "properties": {
                         "color": {
                             "description": "Fill colour",
                             "type": "string",
-                            "pattern": "#[0-9A-Fa-f]{6}"                            
-                        },                       
+                            "pattern": "#[0-9A-Fa-f]{6}"
+                        },
                         "opacity": {
                             "description": "Fill opacity",
                             "type": "number",
@@ -81,45 +85,45 @@
     "type": "object",
     "properties": {
         "id": {
-			"description": "Unique map identifier (UUID)",
-			"anyOf": [
+            "description": "Unique map identifier (UUID)",
+            "anyOf": [
                 {
                     "type": "string",
                     "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
                 },
                 {
-                    "type": ["string", ""]                    
+                    "type": ["string", ""]
                 }
-            ]					
+            ]
         },
-		"name": {
-			"type": "string",
-			"pattern": "^[a-z0-9_]+$"
-		},
+        "name": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]+$"
+        },
         "title": {
             "description": "Brief human-friendly title of map",
             "type": "string"
         },
-		"description": {
-			"description": "Long description of map",
-			"type": "string"
-		},
-		"version": {
-			"description": "version",
-			"type": ["string", "null"]
-		},
-		"logo": {
-			"description": "Path to logo image (png)",			
+        "description": {
+            "description": "Long description of map",
+            "type": "string"
+        },
+        "version": {
+            "description": "version",
+            "type": ["string", "null"]
+        },
+        "logo": {
+            "description": "Path to logo image (png)",
             "type": "string",
-            "format": "uri"             
-		},
-		"favicon": {
-			"description": "Path to favicon .ico image",
+            "format": "uri"
+        },
+        "favicon": {
+            "description": "Path to favicon .ico image",
             "type": "string",
-            "format": "uri" 			
-		},
-		"repository": {
-			"description": "URL of accompanying data repository in Ramadda",
+            "format": "uri"
+        },
+        "repository": {
+            "description": "URL of accompanying data repository in Ramadda",
             "anyOf": [
                 {
                     "type": "string",
@@ -128,10 +132,10 @@
                 {
                     "type": ["string", "null"]
                 }
-            ]						
-		},
-		"creation_date": {
-			"description": "ISO date of map creation",
+            ]
+        },
+        "creation_date": {
+            "description": "ISO date of map creation",
             "anyOf": [
                 {
                     "type": "string",
@@ -140,11 +144,11 @@
                 {
                     "type": "null"
                 }
-            ]						
-		},
-		"modified_date": {
-			"description": "ISO date of last map modification",
-			"anyOf": [
+            ]
+        },
+        "modified_date": {
+            "description": "ISO date of last map modification",
+            "anyOf": [
                 {
                     "type": "string",
                     "format": "date-time"
@@ -152,19 +156,19 @@
                 {
                     "type": "null"
                 }
-            ]			
-		},
-		"owner_name": {
-			"description": "Name/username of the map owner",
-			"type": "string"
-		},
-		"owner_email": {
-			"description": "Contact email address of the map owner",
-			"type": "string",
-			"format": "email"
-		},
-		"metadata_url": {
-			"description": "Metadata URL",
+            ]
+        },
+        "owner_name": {
+            "description": "Name/username of the map owner",
+            "type": "string"
+        },
+        "owner_email": {
+            "description": "Contact email address of the map owner",
+            "type": "string",
+            "format": "email"
+        },
+        "metadata_url": {
+            "description": "Metadata URL",
             "anyOf": [
                 {
                     "type": "string",
@@ -173,143 +177,143 @@
                 {
                     "type": "null"
                 }
-            ]			
-		},
-		"data": {
-			"description": "Web map data",
-			"type": "object",
-			"properties": {
-				"projection": {
-					"description": "Map projection as an EPSG code",
-					"type": "string",
-					"pattern": "^EPSG:\\d{4,6}$"
-				},
+            ]
+        },
+        "data": {
+            "description": "Web map data",
+            "type": "object",
+            "properties": {
+                "projection": {
+                    "description": "Map projection as an EPSG code",
+                    "type": "string",
+                    "pattern": "^EPSG:\\d{4,6}$"
+                },
                 "proj_extent": {
-					"description": "Extent of projection in projected coordinates",
-					"type": "array",
-					"items": {
-						"type": "number"
-					},
-					"minItems": 4,
-					"maxItems": 4
-				},
-				"center": {
-					"description": "Centre of map in projected coordinates",
-					"type": "array",
-					"items": {
-						"type": "number"
-					},
-					"minItems": 2,
-					"maxItems": 2
-				},
-				"zoom": {
-					"description": "Default zoom level of map",
-					"type": "integer",
-					"minimum": 0,
-					"maximum": 20
-				},
+                    "description": "Extent of projection in projected coordinates",
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    },
+                    "minItems": 4,
+                    "maxItems": 4
+                },
+                "center": {
+                    "description": "Centre of map in projected coordinates",
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    },
+                    "minItems": 2,
+                    "maxItems": 2
+                },
+                "zoom": {
+                    "description": "Default zoom level of map",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 20
+                },
                 "rotation": {
-					"description": "Rotation of map, clockwise positive, in degrees",
-					"type": "number",
-					"minimum": -180,
-					"maximum": 180
-				},				
-				"resolutions": {
-					"description": "Array of resolutions allowed for the map (total possible zoom levels - fixed for v1)",
-					"type": "array",
-					"items": {
-						"type": "number"
-					},
-					"minItems": 0
-				},
-				"controls": {
-					"description": "Array of names of controls for the map",
-					"type": "array",
-					"items": {
-						"type": "string",
-						"enum": [
-							"zoom_world",
-							"zoom_in",
-							"zoom_out",
-							"box_zoom",
-							"full_screen",
-							"rotation",
-							"graticule",
+                    "description": "Rotation of map, clockwise positive, in degrees",
+                    "type": "number",
+                    "minimum": -180,
+                    "maximum": 180
+                },
+                "resolutions": {
+                    "description": "Array of resolutions allowed for the map (total possible zoom levels - fixed for v1)",
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    },
+                    "minItems": 0
+                },
+                "controls": {
+                    "description": "Array of names of controls for the map",
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": [
+                            "zoom_world",
+                            "zoom_in",
+                            "zoom_out",
+                            "box_zoom",
+                            "full_screen",
+                            "rotation",
+                            "graticule",
                             "geolocation",
-                            "overview_map",							
-							"geosearch",
+                            "overview_map",
+                            "geosearch",
                             "feedback",
-							"download_data",
-							"measurement",
-							"feature_info",
+                            "download_data",
+                            "measurement",
+                            "feature_info",
                             "aircraft",
                             "ships"
-						]
-					}
-				},
-				"gazetteers": {
-					"description": "Array of gazetteer codes for geosearch (only CGA, Arctic and South Georgia used in v1)",
-					"type": "array",
-					"items": {
-						"type": "string",
-						"enum": ["bat", "cga", "arctic", "sgssi"]
-					}
-				},				
-				"layers": {
-					"id": "layer_array",
-					"description": "Layer and layer group specifications",
-					"type": "array",
-					"items": {						
-						"anyOf": [
-							{
+                        ]
+                    }
+                },
+                "gazetteers": {
+                    "description": "Array of gazetteer codes for geosearch (only CGA, Arctic and South Georgia used in v1)",
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": ["bat", "cga", "arctic", "sgssi"]
+                    }
+                },
+                "layers": {
+                    "id": "layer_array",
+                    "description": "Layer and layer group specifications",
+                    "type": "array",
+                    "items": {
+                        "anyOf": [
+                            {
                                 "type": "object",
-								"id": "layer_group",
-								"description": "Layer group",
-								"properties": {
-									"id": {
-										"description": "Layer group identifier (UUID)",
+                                "id": "layer_group",
+                                "description": "Layer group",
+                                "properties": {
+                                    "id": {
+                                        "description": "Layer group identifier (UUID)",
                                         "type": "string",
                                         "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$",
                                         "required": "true"
-									},
-									"name": {
-										"description": "Display name for layer group",
+                                    },
+                                    "name": {
+                                        "description": "Display name for layer group",
                                         "pattern": "^[A-Za-z0-9_ ]+$",
                                         "required": "true"
-									},
-									"expanded": {
-										"description": "Whether layer group starts out expanded or not",
-										"type": "boolean",
+                                    },
+                                    "expanded": {
+                                        "description": "Whether layer group starts out expanded or not",
+                                        "type": "boolean",
                                         "required": "true"
-									},
+                                    },
                                     "base": {
-										"description": "If this is a base layer group (layer tree will enable radio button selection)",
-										"type": "boolean"										
-									},
-									"layers": {
-										"type": "array",
-										"$ref": "layer_array",
+                                        "description": "If this is a base layer group (layer tree will enable radio button selection)",
+                                        "type": "boolean"
+                                    },
+                                    "layers": {
+                                        "type": "array",
+                                        "$ref": "layer_array",
                                         "required": "true"
-									}
-								}
-							},
-							{
+                                    }
+                                }
+                            },
+                            {
                                 "type": "object",
-								"id": "layer",
-								"description": "Layer",
-								"properties": {
-									"id": {
-										"description": "Layer identifier (UUID)",
-										"type": "string",
+                                "id": "layer",
+                                "description": "Layer",
+                                "properties": {
+                                    "id": {
+                                        "description": "Layer identifier (UUID)",
+                                        "type": "string",
                                         "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$",
                                         "required": "true"
-									},
-									"name": {
-										"description": "Display name for layer",
-										"type": "string",
+                                    },
+                                    "name": {
+                                        "description": "Display name for layer",
+                                        "type": "string",
                                         "pattern": "^[A-Za-z0-9_ ]+$",
                                         "required": "true"
-									},
+                                    },
                                     "source": {
                                         "description": "Data source for layer",
                                         "type": "object",
@@ -340,8 +344,8 @@
                                                             {
                                                                 "type": "null"
                                                             }
-                                                        ]			                                                       
-                                                    },                                                    
+                                                        ]
+                                                    },
                                                     "is_base": {
                                                         "description": "Is this a base (i.e. backdrop) layer?",
                                                         "type": "boolean"
@@ -425,119 +429,119 @@
                                                 },
                                                 "required": ["kml_source"]
                                             }
-                                        ]                                        
+                                        ]
                                     },
                                     "geom_type": {
                                         "description": "Type of layer geometry (point|layer|polygon|raster|unknown",
                                         "type": "string",
                                         "enum": ["point", "line", "polygon", "raster", "unknown"]
                                     },
-									"legend_graphic": {
-										"description": "URL feed serving legend graphic information (different from wms if cascading, and allows non-WMS feeds)",
-										"type": "string",
-										"format": "uri"
-									},
-                                                                        "refresh_rate": {
-                                                                            "description": "Elapsed minutes until data is auto-refreshed",
-                                                                            "type": "number"
-                                                                        },
-									"min_scale": {
-										"description": "Minimum scale denominator for layer to be visible",
-										"type": "number"
-									},
-									"max_scale": {
-										"description": "Maximum scale denominator for layer to be visible",
-										"type": "number"
-									},
-									"opacity": {
-										"description": "Layer opacity",
-										"type": "number",
-										"minimum": 0.0,
-										"maximum": 1.0
-									},
+                                    "legend_graphic": {
+                                        "description": "URL feed serving legend graphic information (different from wms if cascading, and allows non-WMS feeds)",
+                                        "type": "string",
+                                        "format": "uri"
+                                    },
+                                    "refresh_rate": {
+                                        "description": "Elapsed minutes until data is auto-refreshed",
+                                        "type": "number"
+                                    },
+                                    "min_scale": {
+                                        "description": "Minimum scale denominator for layer to be visible",
+                                        "type": "number"
+                                    },
+                                    "max_scale": {
+                                        "description": "Maximum scale denominator for layer to be visible",
+                                        "type": "number"
+                                    },
+                                    "opacity": {
+                                        "description": "Layer opacity",
+                                        "type": "number",
+                                        "minimum": 0.0,
+                                        "maximum": 1.0
+                                    },
                                     "is_visible": {
-										"description": "Is this layer visible by default?",
-										"type": "boolean"
-									},
-									"is_interactive": {
-										"description": "Is this an interactive (popup-enabled) layer?",
-										"type": "boolean"
-									},
+                                        "description": "Is this layer visible by default?",
+                                        "type": "boolean"
+                                    },
+                                    "is_interactive": {
+                                        "description": "Is this an interactive (popup-enabled) layer?",
+                                        "type": "boolean"
+                                    },
                                     "is_filterable": {
                                         "description": "Is this layer filterable by attribute?",
                                         "type": "boolean"
-                                    },																											                                    
-									"attribute_map": {
-										"description": "Array of the layer attributes",
-										"type": "array",
-										"items": {
-											"type": "object",
-											"properties": {
-												"name": {
-													"description": "Attribute name",
-													"type": "string"													
-												},
+                                    },
+                                    "attribute_map": {
+                                        "description": "Array of the layer attributes",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "name": {
+                                                    "description": "Attribute name",
+                                                    "type": "string"
+                                                },
                                                 "type": {
-													"description": "Type of attribute",
-													"type": "string",
-													"enum": [
-														"string", "double", "int", "boolean", "date", "time"
-													]													
-												},
+                                                    "description": "Type of attribute",
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "string", "double", "int", "boolean", "date", "time"
+                                                    ]
+                                                },
                                                 "label": {
-													"description": "Display this attribute value as a map feature label",
-													"type": "boolean"
-												},	
+                                                    "description": "Display this attribute value as a map feature label",
+                                                    "type": "boolean"
+                                                },
                                                 "displayed": {
-													"description": "Whether attribute is displayed in a pop-up",
-													"type": "boolean"
-												},	
-												"nillable": {
-													"description": "Whether attribute can be null (comes through a hidden field not a checkbox, hence string type)",
-													"type": "string",
+                                                    "description": "Whether attribute is displayed in a pop-up",
+                                                    "type": "boolean"
+                                                },
+                                                "nillable": {
+                                                    "description": "Whether attribute can be null (comes through a hidden field not a checkbox, hence string type)",
+                                                    "type": "string",
                                                     "enum": ["true", "false"]
-												},
+                                                },
                                                 "filterable": {
-													"description": "Whether attribute can be filtered according to its values",
-													"type": "boolean"
-												},																								
-												"alias": {
-													"description": "Human-friendly alias for this attribute name",
-													"type": "string"
-												},
+                                                    "description": "Whether attribute can be filtered according to its values",
+                                                    "type": "boolean"
+                                                },
+                                                "alias": {
+                                                    "description": "Human-friendly alias for this attribute name",
+                                                    "type": "string"
+                                                },
                                                 "ordinal": {
-													"description": "Attribute appears at this ordering position in a pop-up",
-													"anyOf": [
+                                                    "description": "Attribute appears at this ordering position in a pop-up",
+                                                    "anyOf": [
                                                         {
                                                             "type": "number",
                                                             "minimum": 1,
                                                             "maximum": 99
                                                         },
                                                         {
-                                                            "type": "null"                    
+                                                            "type": "null"
                                                         }
-                                                    ]		
-												},
-												"unique_values": {
-													"description": "Whether to present unique values of attr in a drop-down (not implemented in v1)",
-													"type": "boolean"
-												}
-											},
-											"required": [
-												"name", "type"
-											]
-										}
-									}
-								}
-							}
-						]
-					}
-				}
-			},
-			"required": [
-				"projection", "center", "zoom", "resolutions"
-			]
-		},
+                                                    ]
+                                                },
+                                                "unique_values": {
+                                                    "description": "Whether to present unique values of attr in a drop-down (not implemented in v1)",
+                                                    "type": "boolean"
+                                                }
+                                            },
+                                            "required": [
+                                                "name", "type"
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                }
+            },
+            "required": [
+                "projection", "center", "zoom", "resolutions"
+            ]
+        },
         "allowed_usage": {
             "description": "Who is allowed to use this map",
             "type": "string",
@@ -553,8 +557,8 @@
             "type": "string",
             "enum": ["public", "login", "nobody"]
         },
-		"required": [
-			"name", "description", "owner_name", "owner_email"
-		]
+        "required": [
+            "name", "description", "owner_name", "owner_email"
+        ]
     }
 }

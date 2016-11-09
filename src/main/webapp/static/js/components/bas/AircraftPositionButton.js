@@ -155,57 +155,16 @@ magic.classes.AircraftPositionButton.prototype.getData = function() {
             var projExtent = magic.modules.GeoUtils.projectionLatLonExtent(magic.runtime.viewdata.projection.getCode());
             jQuery.each(feats, jQuery.proxy(function(idx, f) {
                 var props = jQuery.extend({}, f.getProperties());
-                var colour = props.speed > 5 ? "green" : "red";                        
+                //var colour = props.speed > 5 ? "green" : "red";                        
                 var fclone = f.clone();
                 fclone.setProperties(props);
                 if (f.getGeometry().intersectsExtent(projExtent)) {                            
                     fclone.getGeometry().transform("EPSG:4326", magic.runtime.viewdata.projection);
-                    var style = new ol.style.Style({
-                        image: new ol.style.Icon({
-                            rotateWithView: true,
-                            rotation: magic.modules.Common.toRadians(magic.modules.GeoUtils.headingWrtTrueNorth(fclone.getGeometry(), props.heading)),
-                            src: magic.config.paths.baseurl + "/static/images/airplane_" + colour + "_roundel.png"
-                        }),
-                        text: new ol.style.Text({
-                            font: "Arial",
-                            scale: 1.2,
-                            offsetX: 14,
-                            text: props.callsign,
-                            textAlign: "left",
-                            fill: new ol.style.Fill({
-                                color: colour == "red" ? "#e50000" : "#008000"
-                            }),
-                            stroke: new ol.style.Stroke({
-                                color: "#ffffff",
-                                width: 1
-                            })
-                        })
-                    });
-                    fclone.setStyle(style);
+                    fclone.setStyle(magic.modules.VectorStyles.aircraft("callsign", "speed", "heading", magic.runtime.viewdata.projection));
                     this.data.inside.push(fclone);
                 } else {
                     fclone.getGeometry().transform("EPSG:4326", "EPSG:3857");
-                    var style = new ol.style.Style({
-                        image: new ol.style.Icon({
-                            rotation: magic.modules.Common.toRadians(props.heading),
-                            src: magic.config.paths.baseurl + "/static/images/airplane_" + colour + "_roundel.png"
-                        }),
-                        text: new ol.style.Text({
-                            font: "Arial",
-                            scale: 1.2,
-                            offsetX: 14,
-                            text: props.callsign,
-                            textAlign: "left",
-                            fill: new ol.style.Fill({
-                                color: colour == "red" ? "#e50000" : "#008000"
-                            }),
-                            stroke: new ol.style.Stroke({
-                                color: "#ffffff",
-                                width: 1
-                            })
-                        })
-                    });
-                    fclone.setStyle(style);
+                    fclone.setStyle(magic.modules.VectorStyles.aircraft("callsign", "speed", "heading", "EPSG:3857"));
                     this.data.outside.push(fclone);
                 }                        
             }, this));

@@ -251,6 +251,46 @@ magic.modules.Common = function () {
             }
         },
         /**
+         * Set a vector feature label visibility to 'vis'
+         * @param {ol.Feature} feat
+         * @param {ol.Layer} layer
+         * @param {boolean} vis
+         * @param {int} fcount number of features at this pixel location
+         */
+        labelVisibility: function(feat, layer, vis, fcount) {
+            var style = null;
+            if (feat.getStyleFunction()) {
+                style = (jQuery.proxy(feat.getStyleFunction(), feat))()[0];
+            } else if (feat.getStyle()) {
+                style = feat.getStyle();
+            } else if (layer.getStyleFunction()) {
+                style = layer.getStyleFunction()(feat, 0)[0];
+            } else if (layer.getStyle()) {
+                style = layer.getStyle();
+            }
+            if (style && style.getText()) {            
+                var sclone = style.clone();
+                var label = sclone.getText();
+                if (label) {
+                    /* Found a feature whose label needs to be hovered => make text opaque */
+                    var text = label.getText();
+                    if (vis) {
+                        label.setText(text + (fcount > 1 ? " (+" + (fcount-1) + ")" : ""));
+                    } else {
+                        label.setText(text.replace(/\s+\(\+\d+\)$/, ""));
+                    }
+                    var stroke = label.getStroke();
+                    var scolor = stroke.getColor(); /* Will be of form rgba(255, 255, 255, 0.0) */                   
+                    stroke.setColor(scolor.substring(0, scolor.lastIndexOf(",")+1) + (vis ? "1.0" : "0.0") + ")");
+                    var fill = label.getFill();
+                    var fcolor = fill.getColor();
+                    fill.setColor(fcolor.substring(0, fcolor.lastIndexOf(",")+1) + (vis ? "1.0" : "0.0") + ")");                    
+                    feat.setStyle(sclone);
+                    feat.changed();           
+                }                
+            }
+        },
+        /**
          * Get geometry type
          * @param {ol.Geometry} geom
          * @returns {String point|line|polygon|collection}

@@ -263,40 +263,22 @@ magic.classes.AppContainer = function () {
     });
     
     /* Allow mouseover labels for point vector layers */
-    magic.runtime.map.on("pointermove", jQuery.proxy(function(evt) {
-        for (var i = 0; i < magic.runtime.highlighted.length; i++) {
-            magic.runtime.highlighted[i].setStyle(null);
-            magic.runtime.highlighted[i].changed();
-        }
+    magic.runtime.map.on("pointermove", function(evt) {
+        jQuery.each(magic.runtime.highlighted, function(idx, hl) {
+            magic.modules.Common.labelVisibility(hl.feature, hl.layer, false, 1);
+        });        
         magic.runtime.highlighted = [];
+        var fcount = 0;
         evt.map.forEachFeatureAtPixel(evt.pixel, function(feat, layer) {
-            var layerStyle = null;
-            var styleFn = layer.getStyleFunction();
-            if (styleFn) {
-                layerStyle = layer.getStyleFunction()(feat, 0)[0];
-            } else if (layer.getStyle()) {
-                layerStyle = layer.getStyle();
+            if (fcount == 0) {
+                magic.runtime.highlighted.push({feature: feat, layer: layer});
             }
-            if (layerStyle && layerStyle.getText()) {            
-                var sclone = layerStyle.clone();
-                var label = sclone.getText();
-                if (label) {
-                    /* Found a feature whose label needs to be hovered => make text opaque */
-                    var stroke = label.getStroke();
-                    var scolor = stroke.getColor(); /* Will be of form rgba(255, 255, 255, 0.0) */                   
-                    stroke.setColor(scolor.substring(0, scolor.lastIndexOf(",")+1) + "1.0)");
-                    var fill = label.getFill();
-                    var fcolor = fill.getColor();
-                    fill.setColor(fcolor.substring(0, fcolor.lastIndexOf(",")+1) + "1.0)");                    
-                    feat.setStyle(sclone);
-                    feat.changed();
-                    magic.runtime.highlighted.push(feat);
-                    return(true);
-                }                
-            }
-            return(false);
-        }, this);        
-    }, this));
+            fcount++;
+        }, this);
+        if (fcount > 0) {
+            magic.modules.Common.labelVisibility(magic.runtime.highlighted[0].feature, magic.runtime.highlighted[0].layer, true, fcount);
+        }
+    });
 };
 
 /**

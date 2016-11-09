@@ -6,7 +6,25 @@
     </head>    
     <body th:fragment="layout">
         <div class="alert alert-info">
-            Note that symbology entered here is <strong>ignored</strong> for WMS layers - these will use styles defined by the WMS
+            Note that symbology entered here (including selection of a style key) is <strong>ignored</strong> for WMS layers - 
+            these will always use styles defined by the WMS itself
+        </div>
+        <div class="panel panel-default" id="t2-layer-style-predefined">
+            <div class="panel-heading">
+                <h3 class="panel-title">Select a pre-defined style</h3>
+            </div>
+            <div class="panel-body">                    
+                <div class="form-group">
+                    <label class="col-sm-3 control-label" for="t2-layer-style-predefined-key">
+                        Identifier
+                    </label>
+                    <div class="col-sm-9">
+                        <select class="form-control map-creator-control-sm" id="t2-layer-style-predefined-key"                                           
+                                data-toggle="tooltip" data-placement="left" title="Choose a predefined style by name" required="required">                             
+                        </select>
+                    </div>
+                </div>                        
+            </div>
         </div>
         <div class="panel panel-default" id="t2-layer-style-graphic">
             <div class="panel-heading">

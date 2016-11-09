@@ -62,7 +62,7 @@ magic.classes.InsetMap.prototype.activate = function() {
     if (!this.active) {
         this.target.removeClass("hidden").addClass("show");
         this.target.popover("show");
-        this.active = true;
+        this.active = true;        
     }
 };
 
@@ -123,6 +123,23 @@ magic.classes.InsetMap.prototype.initMap = function() {
         mapdiv: "inset-map"
     });   
     this.map.on("singleclick", this.featureAtPixelHandler, this);
+    /* Allow mouseover labels for point vector layers */
+    this.map.on("pointermove", function(evt) {
+        jQuery.each(magic.runtime.highlighted_inset, function(idx, hl) {
+            magic.modules.Common.labelVisibility(hl.feature, hl.layer, false, 1);
+        });        
+        magic.runtime.highlighted_inset = [];
+        var fcount = 0;
+        evt.map.forEachFeatureAtPixel(evt.pixel, function(feat, layer) {
+            if (fcount == 0) {
+                magic.runtime.highlighted_inset.push({feature: feat, layer: layer});
+            }
+            fcount++;
+        }, this);
+        if (fcount > 0) {
+            magic.modules.Common.labelVisibility(magic.runtime.highlighted_inset[0].feature, magic.runtime.highlighted_inset[0].layer, true, fcount);
+        }
+    });
 };
 
 /**

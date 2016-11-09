@@ -193,8 +193,10 @@ magic.classes.ShipPositionButton.prototype.getData = function() {
                         })
                     }));
                     if (inside) {
+                        feat.setStyle(magic.modules.VectorStyles.ship("callsign", null, null, magic.runtime.viewdata.projection))
                         this.data.inside.push(feat);
                     } else {
+                        feat.setStyle(magic.modules.VectorStyles.ship("callsign", null, null, "EPSG:3857"))
                         this.data.outside.push(feat);
                     }                      
                 }, this));   
