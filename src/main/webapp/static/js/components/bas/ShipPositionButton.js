@@ -140,7 +140,6 @@ magic.classes.ShipPositionButton.prototype.deactivate = function () {
 
 magic.classes.ShipPositionButton.prototype.getData = function() {
     /* Aircraft positional API */
-    //var shipApi = "https://legacy.bas.ac.uk/webteam/api/ship/position/";
     var shipApi = "https://api.bas.ac.uk/marine/v1/vessels/position/";        
     jQuery.ajax({
         url: shipApi,
@@ -172,31 +171,12 @@ magic.classes.ShipPositionButton.prototype.getData = function() {
                     } else {
                         geom.transform("EPSG:4326", "EPSG:3857");
                     }
-                    feat.setGeometry(geom);
-                    feat.setStyle(new ol.style.Style({
-                        image: new ol.style.Icon({
-                            src: magic.config.paths.baseurl + "/static/images/ship_red_roundel.png"
-                        }),
-                        text: new ol.style.Text({
-                            font: "Arial",
-                            scale: 1.2,
-                            offsetX: 14,
-                            text: attrs.name,
-                            textAlign: "left",
-                            fill: new ol.style.Fill({
-                                color: "#ff0000"
-                            }),
-                            stroke: new ol.style.Stroke({
-                                color: "#ffffff",
-                                width: 1
-                            })
-                        })
-                    }));
+                    feat.setGeometry(geom);                    
                     if (inside) {
-                        feat.setStyle(magic.modules.VectorStyles.ship("callsign", null, null, magic.runtime.viewdata.projection))
+                        feat.setStyle(magic.modules.VectorStyles["bas_ship"](magic.runtime.viewdata.projection));
                         this.data.inside.push(feat);
                     } else {
-                        feat.setStyle(magic.modules.VectorStyles.ship("callsign", null, null, "EPSG:3857"))
+                        feat.setStyle(magic.modules.VectorStyles["bas_ship"]("EPSG:3857"));
                         this.data.outside.push(feat);
                     }                      
                 }, this));   

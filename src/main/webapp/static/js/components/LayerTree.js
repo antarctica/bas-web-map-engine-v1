@@ -524,7 +524,7 @@ magic.classes.LayerTree.prototype.refreshTreeIndicators = function(branchHierarc
  * @param {object} styleDef
  * @param {string} labelField
  * @param {float} labelRotation (in radians)
- * @returns {ol.style}
+ * @returns {Array[ol.style]}
  */
 magic.classes.LayerTree.prototype.getVectorStyle = function(styleDef, labelField, labelRotation) {
     return(function(feature, resolution) {
@@ -535,9 +535,9 @@ magic.classes.LayerTree.prototype.getVectorStyle = function(styleDef, labelField
         var defaultStroke = {color: "rgba(255, 0, 0, 1.0)", width: 1};   
         var fill = null, stroke = null, graphic = null, text = null;
         if (styleDef) {
-            if (styleDef.predefined) {
+            if (!jQuery.isEmptyObject(styleDef.predefined) && styleDef.predefined.key) {
                 /* Canned vector style */
-                returnedStyles = [(magic.modules.VectorStyles[styleDef.predefined] || null)];
+                return(jQuery.proxy(magic.modules.VectorStyles[styleDef.predefined.key](), feature)());
             } else {
                 /* Unpack symbology */
                 if (styleDef.fill) {

@@ -155,16 +155,15 @@ magic.classes.AircraftPositionButton.prototype.getData = function() {
             var projExtent = magic.modules.GeoUtils.projectionLatLonExtent(magic.runtime.viewdata.projection.getCode());
             jQuery.each(feats, jQuery.proxy(function(idx, f) {
                 var props = jQuery.extend({}, f.getProperties());
-                //var colour = props.speed > 5 ? "green" : "red";                        
                 var fclone = f.clone();
                 fclone.setProperties(props);
                 if (f.getGeometry().intersectsExtent(projExtent)) {                            
                     fclone.getGeometry().transform("EPSG:4326", magic.runtime.viewdata.projection);
-                    fclone.setStyle(magic.modules.VectorStyles.aircraft("callsign", "speed", "heading", magic.runtime.viewdata.projection));
+                    fclone.setStyle(magic.modules.VectorStyles["bas_aircraft"](magic.runtime.viewdata.projection));
                     this.data.inside.push(fclone);
                 } else {
                     fclone.getGeometry().transform("EPSG:4326", "EPSG:3857");
-                    fclone.setStyle(magic.modules.VectorStyles.aircraft("callsign", "speed", "heading", "EPSG:3857"));
+                    fclone.setStyle(magic.modules.VectorStyles["bas_aircraft"]("EPSG:3857"));
                     this.data.outside.push(fclone);
                 }                        
             }, this));
