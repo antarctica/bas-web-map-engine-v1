@@ -20,12 +20,20 @@ magic.modules.creator.Common = function () {
                     var current = index + 1;
                     var percent = (current / total) * 100;
                     jQuery("#rootwizard").find(".progress-bar").css({width: percent + "%"});
-                    if (index >= total-1) {
+                    if (index == total-1) {
                         /* Need to load the map into the final tab */
                         this.tabs[index].loadMap(this.map_context.getContext());
                         jQuery("ul.pager li.finish").removeClass("hidden");
+                        jQuery("ul.pager li.previous").removeClass("hidden");
+                        jQuery("ul.pager li.next").addClass("hidden");
                     } else {
                         jQuery("ul.pager li.finish").addClass("hidden");
+                        jQuery("ul.pager li.next").removeClass("hidden");
+                        if (index == 0) {
+                            jQuery("ul.pager li.previous").addClass("hidden");
+                        } else {
+                            jQuery("ul.pager li.previous").removeClass("hidden");
+                        }
                     }
                 }, this),
                 onNext: jQuery.proxy(function (tab, navigation, index) {
