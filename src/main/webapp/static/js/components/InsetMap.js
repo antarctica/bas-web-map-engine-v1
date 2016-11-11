@@ -131,10 +131,12 @@ magic.classes.InsetMap.prototype.initMap = function() {
         magic.runtime.highlighted_inset = [];
         var fcount = 0;
         evt.map.forEachFeatureAtPixel(evt.pixel, function(feat, layer) {
-            if (fcount == 0) {
-                magic.runtime.highlighted_inset.push({feature: feat, layer: layer});
+            if (layer != null) {
+                if (fcount == 0) {
+                    magic.runtime.highlighted_inset.push({feature: feat, layer: layer});
+                }
+                fcount++;
             }
-            fcount++;
         }, this);
         if (fcount > 0) {
             magic.modules.Common.labelVisibility(magic.runtime.highlighted_inset[0].feature, magic.runtime.highlighted_inset[0].layer, true, fcount);

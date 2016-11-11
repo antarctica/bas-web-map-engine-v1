@@ -23,6 +23,7 @@ magic.classes.ShipPositionButton = function (name, ribbon) {
         inside: [],
         outside: []
     };
+    this.lastFix = {};
     
     this.attribute_map = [
         {name: "callsign", alias: "Call sign", displayed: true},
@@ -113,6 +114,7 @@ magic.classes.ShipPositionButton.prototype.activate = function () {
     if (this.insetLayer) {
         this.insetLayer.setVisible(true);
     }
+    this.lastFix = {};
     this.getData();
     this.btn.toggleClass("active");
     this.btn.attr("data-original-title", this.activeTitle).tooltip("fixTitle");    
@@ -162,21 +164,25 @@ magic.classes.ShipPositionButton.prototype.getData = function() {
                         lon: elt.latest_position.longitude,
                         lat: elt.latest_position.latitude,
                         timestamp: elt.latest_position.datetime
-                    };
-                    var feat = new ol.Feature(attrs)
+                    };                    
                     var geom = new ol.geom.Point([attrs.lon, attrs.lat]);
                     var inside = geom.intersectsExtent(projExtent);
-                    if (inside) {
-                        geom.transform("EPSG:4326", magic.runtime.viewdata.projection);                        
-                    } else {
-                        geom.transform("EPSG:4326", "EPSG:3857");
+                    var toProj = inside ? magic.runtime.viewdata.projection : "EPSG:3857";
+                    geom.transform("EPSG:4326", toProj); 
+                    var feat = new ol.Feature(jQuery.extend(
+                        attrs, 
+                        this.approximateSpeedAndHeading(attrs.callsign, geom, attrs.timestamp, toProj), 
+                        {geometry: geom}
+                    ));
+                    feat.setStyle(magic.modules.VectorStyles["bas_ship"](toProj));
+                    this.lastFix[attrs.callsign] = {
+                        geom: geom.clone(),
+                        tstamp: attrs.timestamp, 
+                        proj: toProj                       
                     }
-                    feat.setGeometry(geom);                    
-                    if (inside) {
-                        feat.setStyle(magic.modules.VectorStyles["bas_ship"](magic.runtime.viewdata.projection));
+                    if (inside) {                        
                         this.data.inside.push(feat);
                     } else {
-                        feat.setStyle(magic.modules.VectorStyles["bas_ship"]("EPSG:3857"));
                         this.data.outside.push(feat);
                     }                      
                 }, this));   
@@ -207,5 +213,41 @@ magic.classes.ShipPositionButton.prototype.getData = function() {
                 bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to get ship positional data - potential network outage?</div>');                
             }      
         }
-    });        
+    }); 
+    
+    /**
+     * Get a heading from the last and current positions of the ship
+     * @param {String} callsign
+     * @param {ol.geom.Point} geom
+     * @param {String} tstamp
+     * @param {String} proj
+     * @returns {Number}
+     */
+    magic.classes.ShipPositionButton.prototype.approximateSpeedAndHeading = function(callsign, geom, tstamp, proj) {
+        var heading = 0, speed = 0;
+        if (this.lastFix[callsign] && this.lastFix[callsign].tstamp != tstamp) {
+            if (this.lastFix[callsign].proj != proj) {
+                /* Gone from an inset map to main map => reproject location */
+                this.lastFix[callsign].geom.transform(this.lastFix[callsign].proj, proj);
+            }
+            var c0 = geom.getCoordinates();
+            var c1 = this.lastFix[callsign].geom.getCoordinates();
+            var v01 = new Vector(c1[0]-c0[0], c1[1]-c0[1]);            
+            var v0n = new Vector(0, 1);
+            heading = Math.acos(v01.unit().dot(v0n));
+            try {
+                var nm = 0.000539957 * parseFloat(v01.length());
+                var d0 = new Date(this.lastFix[callsign].tstamp);
+                var d1 = new Date(tstamp);
+                var hours = parseFloat((d1.getTime() - d0.getTime()))/(1000.0*60.0*60.0);
+                console.log("Travelled " + nm + " nautical miles in " + hours + " hours");
+                speed = nm/hours;
+            } catch(e) {}
+        }
+        return({
+            heading: heading,
+            speed: speed
+        });
+    };
+    
 };

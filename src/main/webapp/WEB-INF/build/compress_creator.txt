@@ -22,4 +22,5 @@ js/init.js
 js/creator/components
 js/modules/Endpoints.js
 js/modules/Common.js
+js/modules/VectorStyles.js
 js/creator/modules

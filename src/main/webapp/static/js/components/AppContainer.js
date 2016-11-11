@@ -270,10 +270,12 @@ magic.classes.AppContainer = function () {
         magic.runtime.highlighted = [];
         var fcount = 0;
         evt.map.forEachFeatureAtPixel(evt.pixel, function(feat, layer) {
-            if (fcount == 0) {
-                magic.runtime.highlighted.push({feature: feat, layer: layer});
+            if (layer != null) {                
+                if (fcount == 0) {
+                    magic.runtime.highlighted.push({feature: feat, layer: layer});
+                }
+                fcount++;
             }
-            fcount++;
         }, this);
         if (fcount > 0) {
             magic.modules.Common.labelVisibility(magic.runtime.highlighted[0].feature, magic.runtime.highlighted[0].layer, true, fcount);
@@ -383,20 +385,4 @@ magic.classes.AppContainer.prototype.constructStyle = function(feat) {
         }
     });
     return(magic.modules.Common.fetchStyle(geomType, paletteEntry, label));        
-};
-
-/**
- * Set the visibility of a text label within a style
- * @param {ol.style.Text} label
- * @param {boolean} vis
- */
-magic.classes.AppContainer.prototype.setLabelVisibility = function(label, vis) {
-    var stroke = label.getStroke();
-    var scolor = stroke.getColor();
-    scolor[3] = vis ? 1.0 : 0.0;
-    stroke.setColor(scolor);
-    var fill = label.getFill();
-    var fcolor = fill.getColor();
-    fcolor[3] = vis ? 1.0 : 0.0;
-    fill.setColor(fcolor);
 };

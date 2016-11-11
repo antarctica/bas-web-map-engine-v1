@@ -1,26 +1,6 @@
 /* Canned styles for vector layers */
 
 magic.modules.VectorStyles = function () {
-    
-    /**
-     * Get an approximate asset heading from a COMNAP track
-     * @param {ol.geom.LineString} track
-     * @returns {double}
-     */
-    function headingFromTrackGeometry(track) {
-        var heading = 0;
-        var coords = track.getCoordinates();
-        console.log(coords);
-        if (jQuery.isArray(coords) && coords.length >= 2) {
-            /* This is a simple linestring with enough points to do the calculation */
-            var c0 = coords[coords.length-2];
-            var c1 = coords[coords.length-1];
-            var v01 = new Vector(c1[0]-c0[0], c1[1]-c0[1]);
-            var v0n = new Vector(0, 1);
-            heading = Math.acos(v01.unit().dot(v0n));
-        }
-        return(heading);
-    }
 
     return({
         
@@ -56,11 +36,12 @@ magic.modules.VectorStyles = function () {
                 var props = this.getProperties();
                 var name = props["callsign"] || "unknown ship";
                 var speed = props["speed"] || 0;
-                var colour = speed > 0 ? "green" : "red";               
+                var colour = speed > 0 ? "green" : "red"; 
+                var heading = props["heading"] || 0;
                 return([new ol.style.Style({
                     image: new ol.style.Icon({
-                        rotateWithView: false,
-                        rotation: 0,
+                        rotateWithView: true,
+                        rotation: heading,
                         src: magic.config.paths.baseurl + "/static/images/ship_" + colour + "_roundel.png"
                     }),
                     text: new ol.style.Text({
@@ -87,11 +68,17 @@ magic.modules.VectorStyles = function () {
                 for (var i = 0; i < geoms.length; i++) {
                     var gtype = magic.modules.Common.getGeometryType(geoms[i]);
                     if (gtype == "line") {
-                        rotation = headingFromTrackGeometry(geoms[i]);
+                        rotation = magic.modules.Common.headingFromTrackGeometry(geoms[i]);
                     }
                 }
-                var roundel = magic.config.paths.baseurl + "/static/images/" + 
-                    (props["type"].toLowerCase() == "ship" ? "ship" : "airplane") + "_" + colour + "_roundel.png"
+                var type = "unknown";
+                switch(props["type"].toLowerCase()) {
+                    case "ship": type = "ship"; break;
+                    case "aeroplane": type = "airplane"; break;
+                    case "helicopter": type = "helicopter"; break;
+                    default: break;
+                }
+                var roundel = magic.config.paths.baseurl + "/static/images/" + type + "_" + colour + "_roundel.png"
                 for (var i = 0; i < geoms.length; i++) {
                     var gtype = magic.modules.Common.getGeometryType(geoms[i]);
                     if (gtype == "point") {
@@ -122,6 +109,31 @@ magic.modules.VectorStyles = function () {
                     }
                 }
                 return(styles);
+            });
+        },
+        antarctic_facility: function() {
+            return(function() {
+                var props = this.getProperties();
+                var fillColor = "rgba(255, 0, 0, 0.4)";
+                if (props["current_status"].toLowerCase() == "seasonal") {
+                    fillColor = "rgba(255, 255, 255, 0.8)";
+                }
+                return([new ol.style.Style({
+                    image: new ol.style.Circle({
+                        radius: 4.5, 
+                        fill: new ol.style.Fill({color: fillColor}),
+                        stroke: new ol.style.Stroke({color: "rgba(255, 0, 0, 1.0)", width: 1.5})
+                    }),                    
+                    text: new ol.style.Text({
+                        font: "Arial",
+                        scale: 1.2,
+                        offsetX: 7,
+                        text: props["facility_name"],
+                        textAlign: "left",
+                        fill: new ol.style.Fill({color: "rgba(255, 0, 0, 0.0)"}),
+                        stroke: new ol.style.Stroke({color: "rgba(255, 255, 255, 0.0)"})
+                    })
+                })]);
             });
         }
 
