@@ -53,7 +53,7 @@ public class ProxyController {
         ALLOWED_URLS.put("https://maps.bas.ac.uk", "");
         ALLOWED_URLS.put("http://bslbatgis.nerc-bas.ac.uk", "");
         ALLOWED_URLS.put("http://www.polarview.aq", "");
-        ALLOWED_URLS.put("http://tracker.aad.gov.au", "tracker:ur3jeeFo:Tracker");
+        ALLOWED_URLS.put("http://tracker.aad.gov.au", "comnap:Koma5vudri:Tracker");
     }
     
     private static final String REDMINE = "http://redmine.nerc-bas.ac.uk";

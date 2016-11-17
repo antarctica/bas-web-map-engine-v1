@@ -10,7 +10,10 @@ magic.modules.VectorStyles = function () {
                 var name = props["callsign"] || "unknown aircraft";
                 var speed = props["speed"] || 0;
                 var heading = props["heading"] || 0;
-                var colour = speed > 5 ? "green" : "red";
+                var tstamp = new Date(props["utc"]).getTime();
+                var now = new Date().getTime();
+                var tstampAge = parseFloat(now - tstamp)/(1000.0*60.0*60.0);
+                var colour = (speed >= 10 && tstampAge <= 1) ? "green" : "red";
                 var rotateWithView = !(proj == "EPSG:4326" || proj == "EPSG:3857");
                 var rotation = rotateWithView ? magic.modules.GeoUtils.headingWrtTrueNorth(this.getGeometry(), heading) : heading;
                 return([new ol.style.Style({
@@ -77,6 +80,9 @@ magic.modules.VectorStyles = function () {
                     case "aeroplane": type = "airplane"; break;
                     case "helicopter": type = "helicopter"; break;
                     default: break;
+                }
+                if (name != "unknown asset" && props["description"]) {
+                    name = props["description"] + " (" + name + ")";
                 }
                 var roundel = magic.config.paths.baseurl + "/static/images/" + type + "_" + colour + "_roundel.png"
                 for (var i = 0; i < geoms.length; i++) {
