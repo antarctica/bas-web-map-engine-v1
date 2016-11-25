@@ -5,9 +5,13 @@ package uk.ac.antarctica.mapengine.controller;
 
 import it.geosolutions.geoserver.rest.HTTPUtils;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.security.Principal;
+import java.util.HashMap;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -21,6 +25,9 @@ public class HomeController {
     
     private static final String REDMINE = "http://redmine.nerc-bas.ac.uk";
     
+    @Autowired
+    Environment env;
+    
     /**
      * Render top level page (this may need to be changed for different servers)   
      * @param HttpServletRequest request,
@@ -31,8 +38,16 @@ public class HomeController {
      * @throws IOException
      */
     @RequestMapping(value = "/", method = RequestMethod.GET)
-    public String topLevel(HttpServletRequest request) throws ServletException, IOException {
-        return "redirect:/home/add7";
+    public String topLevel(HttpServletRequest request, ModelMap model) throws ServletException, IOException {
+        String username = getUserName(request);
+        String hostname = InetAddress.getLocalHost().getHostName();
+        String map = env.getProperty("default.map");
+        request.getSession().setAttribute("map", map);       
+        model.addAttribute("map", map);
+        model.addAttribute("username", username);
+        model.addAttribute("issuedata", getIssueData(null));
+        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Public map " + map + " requested");
+        return("map");
     }        
     
     /**
