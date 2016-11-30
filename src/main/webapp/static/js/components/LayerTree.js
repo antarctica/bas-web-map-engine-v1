@@ -11,7 +11,7 @@ magic.classes.LayerTree = function (target, embedded) {
     /* Dictionary mapping from a node UUID to an OL layer */
     this.nodeLayerTranslation = {};
 
-    /* Dictionary of layers by source type, for stacking purposes */
+    /* Dictionary of layers by source type, for stacking purposes on map */
     this.layersBySource = {
         "base": [],
         "wms": [],
