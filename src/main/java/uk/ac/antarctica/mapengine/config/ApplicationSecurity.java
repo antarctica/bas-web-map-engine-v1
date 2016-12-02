@@ -117,7 +117,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 //            .contextSource(this.contextSource);  
         
         /* Attempt to authenticate against Ramadda if present */
-        auth.authenticationProvider(new RamaddaAuthenticationProvider("/repository/user/login"));
+//        auth.authenticationProvider(new RamaddaAuthenticationProvider("/repository/user/login"));
         
     }
 
