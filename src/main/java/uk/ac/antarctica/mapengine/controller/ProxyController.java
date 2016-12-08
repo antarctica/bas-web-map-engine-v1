@@ -163,7 +163,11 @@ public class ProxyController {
     @ResponseBody
     public void redmineIssue(HttpServletRequest request, HttpServletResponse response, @PathVariable("id") Integer id)
         throws ServletException, IOException, ServiceException {
-        String content = HTTPUtils.get(env.getProperty("redmine.local") + "/issues/" + id + ".json", "magic_auto", "magic123");
+        String content = HTTPUtils.get(
+            env.getProperty("redmine.local.url") + "/issues/" + id + ".json", 
+            env.getProperty("redmine.local.username"), 
+            env.getProperty("redmine.local.password")
+        );
         IOUtils.copy(IOUtils.toInputStream(content), response.getOutputStream());         
     }
     

@@ -338,7 +338,11 @@ public class HomeController {
         String data = "{}";
         if (issue != null) {
             try {
-                data = HTTPUtils.get(env.getProperty("redmine.local") + "/issues/" + issue + ".json", "magic_auto", "magic123");
+                data = HTTPUtils.get(
+                    env.getProperty("redmine.local.url") + "/issues/" + issue + ".json", 
+                    env.getProperty("redmine.local.username"), 
+                    env.getProperty("redmine.local.password")
+                );
                 if (data == null || data.isEmpty()) {
                     data = "{}";
                 }
