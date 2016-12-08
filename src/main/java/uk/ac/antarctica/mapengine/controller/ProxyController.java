@@ -32,6 +32,8 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.geotools.ows.ServiceException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -41,6 +43,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 public class ProxyController {
+    
+    @Autowired
+    Environment env;
     
     private static final HashMap<String, String> ALLOWED_URLS = new HashMap();
     static {
@@ -55,9 +60,7 @@ public class ProxyController {
         ALLOWED_URLS.put("http://www.polarview.aq", "");
         ALLOWED_URLS.put("http://tracker.aad.gov.au", "comnap:Koma5vudri:Tracker");
     }
-    
-    private static final String REDMINE = "http://redmine.nerc-bas.ac.uk";
-   
+       
    /**
      * Proxy for an authorised URL
      * @param HttpServletRequest request
@@ -160,7 +163,7 @@ public class ProxyController {
     @ResponseBody
     public void redmineIssue(HttpServletRequest request, HttpServletResponse response, @PathVariable("id") Integer id)
         throws ServletException, IOException, ServiceException {
-        String content = HTTPUtils.get(REDMINE + "/issues/" + id + ".json", "magic_auto", "magic123");
+        String content = HTTPUtils.get(env.getProperty("redmine.local") + "/issues/" + id + ".json", "magic_auto", "magic123");
         IOUtils.copy(IOUtils.toInputStream(content), response.getOutputStream());         
     }
     

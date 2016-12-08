@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.geotools.ows.ServiceException;
 import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.http.HttpStatus;
@@ -36,8 +37,8 @@ import uk.ac.antarctica.mapengine.util.PackagingUtils;
 @RestController
 public class MapController {
     
-    /* Database table where the map definitions are stored */
-    private static final String MAPDEFS = "webmap.maps";
+    @Autowired
+    Environment env;
    
     @Autowired
     private JdbcTemplate magicDataTpl;
@@ -95,14 +96,14 @@ public class MapController {
             if (username == null) {
                 ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to delete maps");
             } else {
-                userMapData = magicDataTpl.queryForList("SELECT name, title FROM " +  MAPDEFS + " WHERE owner_name=? ORDER BY title", username);
+                userMapData = magicDataTpl.queryForList("SELECT name, title FROM " +  env.getProperty("postgres.local.mapsTable") + " WHERE owner_name=? ORDER BY title", username);
             }
         } else if (action.equals("edit")) {
             /* Users can edit maps they own, or those allowed to be edited by logged in users */
             if (username == null) {
                 ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to edit maps");
             } else {
-                userMapData = magicDataTpl.queryForList("SELECT name, title FROM " +  MAPDEFS + " WHERE owner_name=? OR allowed_edit='login' ORDER BY title", username);
+                userMapData = magicDataTpl.queryForList("SELECT name, title FROM " +  env.getProperty("postgres.local.mapsTable") + " WHERE owner_name=? OR allowed_edit='login' ORDER BY title", username);
             }
         } else if (action.equals("clone")) {
             if (username == null) {
@@ -110,16 +111,16 @@ public class MapController {
             } else {
                 /* Logged in users can clone public, login-restricted maps and ones they own */
                 String where = "allowed_usage='public' OR allowed_usage='login' OR (allowed_usage='owner' AND owner_name=?)";
-                userMapData = magicDataTpl.queryForList("SELECT name, title FROM " +  MAPDEFS + " WHERE " + where + " ORDER BY title", username);
+                userMapData = magicDataTpl.queryForList("SELECT name, title FROM " +  env.getProperty("postgres.local.mapsTable") + " WHERE " + where + " ORDER BY title", username);
             }
         } else if (action.equals("view")) {
             if (username == null) {
                 /* Guests can view public maps */
-                userMapData = magicDataTpl.queryForList("SELECT allowed_usage || ':' || name as name, title FROM " +  MAPDEFS + " WHERE allowed_usage='public' ORDER BY title");
+                userMapData = magicDataTpl.queryForList("SELECT allowed_usage || ':' || name as name, title FROM " +  env.getProperty("postgres.local.mapsTable") + " WHERE allowed_usage='public' ORDER BY title");
             } else {
                 /* Logged in users can view public, login-restricted maps and ones they own */
                 String where = "allowed_usage='public' OR allowed_usage='login' OR (allowed_usage='owner' AND owner_name=?)";
-                userMapData = magicDataTpl.queryForList("SELECT allowed_usage || ':' || name as name, title FROM " +  MAPDEFS + " WHERE " + where + " ORDER BY title", username);
+                userMapData = magicDataTpl.queryForList("SELECT allowed_usage || ':' || name as name, title FROM " +  env.getProperty("postgres.local.mapsTable") + " WHERE " + where + " ORDER BY title", username);
             }
         } else {
             ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Unrecognised action " + action);
@@ -181,10 +182,10 @@ public class MapController {
             Map<String, Object> userMapData = null;
             if (username == null) {
                 where = "allowed_usage='public'";
-                userMapData = magicDataTpl.queryForMap("SELECT * FROM " +  MAPDEFS + " WHERE " + attr + "=? AND " + where, value);
+                userMapData = magicDataTpl.queryForMap("SELECT * FROM " +  env.getProperty("postgres.local.mapsTable") + " WHERE " + attr + "=? AND " + where, value);
             } else {
                 where = "(allowed_usage='public' OR allowed_usage='login' OR (allowed_usage='owner' AND owner_name=?))";
-                userMapData = magicDataTpl.queryForMap("SELECT * FROM " +  MAPDEFS + " WHERE " + attr + "=? AND " + where, value, username);
+                userMapData = magicDataTpl.queryForMap("SELECT * FROM " +  env.getProperty("postgres.local.mapsTable") + " WHERE " + attr + "=? AND " + where, value, username);
             }
             ret = PackagingUtils.packageResults(HttpStatus.OK, mapper.toJsonTree(userMapData).toString(), null);
         } catch (IncorrectResultSizeDataAccessException irsdae) {
@@ -218,7 +219,7 @@ public class MapController {
                 PGobject dataObject = new PGobject();
                 dataObject.setType("json");
                 dataObject.setValue(jo.get("data").toString());
-                String sql = "INSERT INTO " + MAPDEFS + " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                String sql = "INSERT INTO " + env.getProperty("postgres.local.mapsTable") + " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
                 magicDataTpl.update(sql, new Object[] {
                     UUID.randomUUID().toString(),
                     jo.get("name").getAsString(),
@@ -278,7 +279,7 @@ public class MapController {
                 dataObject.setValue(jo.get("data").toString());
                 /* Assemble UPDATE query (UNIQUE constraint will weed out duplicate names) */
                 try {
-                    String sql = "UPDATE " + MAPDEFS + " SET " + 
+                    String sql = "UPDATE " + env.getProperty("postgres.local.mapsTable") + " SET " + 
                         "name=?, " + 
                         "title=?, " +
                         "description=?, " + 
@@ -369,7 +370,7 @@ public class MapController {
                 } else {
                     /* Do deletion */                
                     try {
-                        magicDataTpl.update("DELETE FROM " + MAPDEFS + " WHERE id=?", new Object[]{id});                        
+                        magicDataTpl.update("DELETE FROM " + env.getProperty("postgres.local.mapsTable") + " WHERE id=?", new Object[]{id});                        
                         ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Successfully deleted");
                     } catch(DataAccessException dae) {
                         ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Error deleting data, message was: " + dae.getMessage());
@@ -387,7 +388,7 @@ public class MapController {
     private String idFromName(String name) {
         String id = null;
         try {
-            id = magicDataTpl.queryForObject("SELECT id FROM " + MAPDEFS + " WHERE name=?", new Object[]{name}, String.class);              
+            id = magicDataTpl.queryForObject("SELECT id FROM " + env.getProperty("postgres.local.mapsTable") + " WHERE name=?", new Object[]{name}, String.class);              
         } catch(DataAccessException dae) {                
         }
         return(id);
@@ -402,7 +403,7 @@ public class MapController {
     private boolean canWrite(String username, String id) {
         int recs = 0;
         try {
-            recs = magicDataTpl.queryForObject("SELECT owner_name FROM " + MAPDEFS + " WHERE id=? AND (owner_name=? OR allowed_edit='login')", 
+            recs = magicDataTpl.queryForObject("SELECT owner_name FROM " + env.getProperty("postgres.local.mapsTable") + " WHERE id=? AND (owner_name=? OR allowed_edit='login')", 
                 new Object[]{id, username},
                 Integer.class
             );              
@@ -419,7 +420,7 @@ public class MapController {
     private String recordOwner(String id) {
         String owner = null;
         try {
-            owner = magicDataTpl.queryForObject("SELECT owner_name FROM " + MAPDEFS + " WHERE id=?", new Object[]{id}, String.class);              
+            owner = magicDataTpl.queryForObject("SELECT owner_name FROM " + env.getProperty("postgres.local.mapsTable") + " WHERE id=?", new Object[]{id}, String.class);              
         } catch(DataAccessException dae) {                
         }
         return(owner);

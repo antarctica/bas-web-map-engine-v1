@@ -7,7 +7,6 @@ import it.geosolutions.geoserver.rest.HTTPUtils;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.security.Principal;
-import java.util.HashMap;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,16 +21,13 @@ import uk.ac.antarctica.mapengine.util.ActivityLogger;
 
 @Controller
 public class HomeController {
-    
-    private static final String REDMINE = "http://redmine.nerc-bas.ac.uk";
-    
+        
     @Autowired
     Environment env;
     
     /**
      * Render top level page (this may need to be changed for different servers)   
      * @param HttpServletRequest request,
-     * @param String map
      * @param ModelMap model
      * @return
      * @throws ServletException
@@ -53,7 +49,6 @@ public class HomeController {
     /**
      * Render home page    
      * @param HttpServletRequest request,
-     * @param String map
      * @param ModelMap model
      * @return
      * @throws ServletException
@@ -343,7 +338,7 @@ public class HomeController {
         String data = "{}";
         if (issue != null) {
             try {
-                data = HTTPUtils.get(REDMINE + "/issues/" + issue + ".json", "magic_auto", "magic123");
+                data = HTTPUtils.get(env.getProperty("redmine.local") + "/issues/" + issue + ".json", "magic_auto", "magic123");
                 if (data == null || data.isEmpty()) {
                     data = "{}";
                 }

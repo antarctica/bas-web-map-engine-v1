@@ -8,6 +8,7 @@ import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.http.HttpStatus;
@@ -23,8 +24,9 @@ import uk.ac.antarctica.mapengine.util.PackagingUtils;
 @RestController
 public class UserPreferencesController {
     
-    private static final String PREFS = "webmap.preferences";
-    
+    @Autowired
+    Environment env;
+        
     @Autowired
     private JdbcTemplate magicDataTpl;
     
@@ -49,8 +51,8 @@ public class UserPreferencesController {
         } else {
             /* Get set from db */
             try {
-                String table = PREFS.substring(PREFS.indexOf(".")+1);
-                String jsonRow = magicDataTpl.queryForObject("SELECT row_to_json(" + table + ") FROM " + PREFS + " WHERE username=?", String.class, userName);
+                String table = env.getProperty("postgres.local.prefsTable").substring(env.getProperty("postgres.local.prefsTable").indexOf(".")+1);
+                String jsonRow = magicDataTpl.queryForObject("SELECT row_to_json(" + table + ") FROM " + env.getProperty("postgres.local.prefsTable") + " WHERE username=?", String.class, userName);
                 ret = PackagingUtils.packageResults(HttpStatus.OK, jsonRow, "");
             } catch(IncorrectResultSizeDataAccessException irsdae) {
                 ret = PackagingUtils.packageResults(HttpStatus.OK, defaultPreferenceSet(), "");
@@ -80,9 +82,9 @@ public class UserPreferencesController {
             /* Save to db */
             try {
                 try {
-                    int id = magicDataTpl.queryForObject("SELECT id FROM " + PREFS + " WHERE username=?", new Object[]{userName}, Integer.class); 
+                    int id = magicDataTpl.queryForObject("SELECT id FROM " + env.getProperty("postgres.local.prefsTable") + " WHERE username=?", new Object[]{userName}, Integer.class); 
                     /* Update existing record */
-                    magicDataTpl.update("UPDATE " + PREFS + " SET distance=?, area=?, elevation=?, coordinates=?, dates=? WHERE id=?",
+                    magicDataTpl.update("UPDATE " + env.getProperty("postgres.local.prefsTable") + " SET distance=?, area=?, elevation=?, coordinates=?, dates=? WHERE id=?",
                         new Object[] {                            
                             prefs.getDistance(),
                             prefs.getArea(),
@@ -95,7 +97,7 @@ public class UserPreferencesController {
                     ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Updated successfully");
                 } catch(IncorrectResultSizeDataAccessException irsdae) {
                     /* Insert new record */
-                    magicDataTpl.update("INSERT INTO " + PREFS + " (distance, area, elevation, coordinates, dates) VALUES(?,?,?,?,?)",
+                    magicDataTpl.update("INSERT INTO " + env.getProperty("postgres.local.prefsTable") + " (distance, area, elevation, coordinates, dates) VALUES(?,?,?,?,?)",
                         new Object[]{
                             prefs.getDistance(),
                             prefs.getArea(),
