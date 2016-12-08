@@ -21,6 +21,9 @@ VALUES('Arctic Open Data', 'https://opsgis.web.bas.ac.uk/arctic/wms', 'cambridge
 INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, admin_user, admin_pass, srs) 
 VALUES('South Georgia GIS', 'https://opsgis.web.bas.ac.uk/southgeorgia/wms', 'cambridge', FALSE, 'sggis:sg_coastline','ol', NULL, NULL, NULL, 'EPSG:3762')
 
+INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, admin_user, admin_pass, srs) 
+VALUES('Midlatitude Data', 'osm', 'cambridge', FALSE, 'osm', 'ol', NULL, NULL, NULL, 'EPSG:3857')
+
 /* Rothera OpsGIS */
 
 INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, admin_user, admin_pass, srs) 
@@ -34,6 +37,9 @@ VALUES('Arctic Open Data', 'http://rolgis.rothera.nerc-bas.ac.uk/geoserver/arcti
 
 INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, admin_user, admin_pass, srs) 
 VALUES('South Georgia GIS', 'http://rolgis.rothera.nerc-bas.ac.uk/geoserver/sggis/wms', 'rothera', TRUE, 'sggis:sg_coastline','ol', NULL, NULL, NULL, 'EPSG:3762')
+
+INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, admin_user, admin_pass, srs) 
+VALUES('Midlatitude Data', 'http://rolgis.rothera.nerc-bas.ac.uk/geoserver/opsgis/wms', 'rothera', TRUE, 'opsgis:natearth_world_10m_land', 'ol', NULL, NULL, NULL, 'EPSG:3857')
 
 /* Halley OpsGIS */
 
@@ -49,6 +55,9 @@ VALUES('Arctic Open Data', 'http://halgis.halley.nerc-bas.ac.uk/geoserver/arctic
 INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, admin_user, admin_pass, srs) 
 VALUES('South Georgia GIS', 'http://halgis.halley.nerc-bas.ac.uk/geoserver/sggis/wms', 'halley', TRUE, 'sggis:sg_coastline','ol', NULL, NULL, NULL, 'EPSG:3762')
 
+INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, admin_user, admin_pass, srs) 
+VALUES('Midlatitude Data', 'http://halgis.halley.nerc-bas.ac.uk/geoserver/opsgis/wms', 'halley', TRUE, 'opsgis:natearth_world_10m_land', 'ol', NULL, NULL, NULL, 'EPSG:3857')
+
 /* JCR OpsGIS */
 
 INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, admin_user, admin_pass, srs) 
@@ -62,3 +71,6 @@ VALUES('Arctic Open Data', 'http://jrlgis.jcr.nerc-bas.ac.uk/geoserver/arctic/wm
 
 INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, admin_user, admin_pass, srs) 
 VALUES('South Georgia GIS', 'http://jrlgis.jcr.nerc-bas.ac.uk/geoserver/sggis/wms', 'jcr', TRUE, 'sggis:sg_coastline','ol', NULL, NULL, NULL, 'EPSG:3762')
+
+INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, admin_user, admin_pass, srs) 
+VALUES('Midlatitude Data', 'http://jrlgis.jcr.nerc-bas.ac.uk/geoserver/opsgis/wms', 'jcr', TRUE, 'opsgis:natearth_world_10m_land', 'ol', NULL, NULL, NULL, 'EPSG:3857')
