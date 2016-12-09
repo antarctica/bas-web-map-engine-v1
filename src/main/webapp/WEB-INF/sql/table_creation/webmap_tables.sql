@@ -6,7 +6,7 @@ COMMENT ON SCHEMA webmap
 
 CREATE TABLE webmap.endpoints
 (
-  id integer NOT NULL DEFAULT nextval('endpoints_id_seq'::regclass),
+  id serial,
   name character varying(255), -- Name of endpoint
   url character varying(255), -- WMS URL endpoint
   location character varying(10), -- Location of server cambridge|rothera|halley|jcr|es|bi|kep|signy
@@ -67,7 +67,7 @@ ALTER TABLE webmap.maps
 
 CREATE TABLE webmap.preferences
 (
-  id integer NOT NULL DEFAULT nextval('preferences_id_seq'::regclass),
+  id serial,
   username character varying(150),
   distance character varying(10),
   area character varying(10),

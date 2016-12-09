@@ -187,6 +187,11 @@ public class MapController {
                 where = "(allowed_usage='public' OR allowed_usage='login' OR (allowed_usage='owner' AND owner_name=?))";
                 userMapData = magicDataTpl.queryForMap("SELECT * FROM " +  env.getProperty("postgres.local.mapsTable") + " WHERE " + attr + "=? AND " + where, value, username);
             }
+            List<Map<String, Object>> endpointData = getDataEndpoints();
+            if (endpointData != null && endpointData.size() > 0) {
+                /* Some endpoints retrieved */
+                userMapData.put("endpoints", endpointData);
+            }
             ret = PackagingUtils.packageResults(HttpStatus.OK, mapper.toJsonTree(userMapData).toString(), null);
         } catch (IncorrectResultSizeDataAccessException irsdae) {
             ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "No maps found that you are allowed to access");
@@ -424,6 +429,38 @@ public class MapController {
         } catch(DataAccessException dae) {                
         }
         return(owner);
+    }
+
+    /**
+     * Retrieve the WMS data endpoints appropriate to the current host
+     * @return List<Map<String, Object>>
+     */
+    private List<Map<String, Object>> getDataEndpoints() {
+        List<Map<String, Object>> eps = magicDataTpl.queryForList(
+            "SELECT name, url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs FROM " + 
+            env.getProperty("postgres.local.endpointsTable") + 
+            "WHERE location=?", hostLocator()
+        );
+        return(eps);
+    }
+    
+    /**
+     * Examine the hostname to deduce the location so that appropriate bandwidth WxS endpoints can be used (BAS-specific)
+     * @return String
+     */
+    private String hostLocator() {
+        String location = "cambridge";
+        String hostname = System.getenv("HOSTNAME");
+        if (hostname != null && !hostname.isEmpty()) {
+            String[] lowBandwidthLocations = new String[]{"rothera", "halley", "jcr", "es", "bi", "kep", "signy"};
+            for (String lbl : lowBandwidthLocations) {
+                if (hostname.contains("." + lbl + ".")) {
+                    location = lbl;
+                    break;
+                }
+            }
+        }
+        return(location);
     }
 
 }
