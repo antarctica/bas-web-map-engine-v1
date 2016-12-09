@@ -35,6 +35,7 @@ magic.classes.AppContainer = function () {
     magic.runtime.userlayers = [];
     magic.runtime.mapdata = magic.runtime.map_context.data;
     magic.runtime.repository = magic.runtime.map_context.repository;
+    magic.runtime.endpoints = magic.runtime.map_context.endpoints;
     magic.runtime.layertree = new magic.classes.LayerTree("layer-tree", false);
     
     /* User unit preferences */

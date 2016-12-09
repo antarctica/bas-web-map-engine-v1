@@ -268,35 +268,13 @@ magic.classes.creator.LayerUpdater.prototype.populateWmsSourceSelector = functio
         /* Get the WMS endpoints available for this projection on this server platform */
         var currentSource = this.data.source.wms_source;
         var sourceSelect = jQuery("select[name='" + this.prefix + "-wms-wms_source']");       
-        var eps = magic.modules.Endpoints.getWmsEndpoints(proj).slice(0);
-        var jqXhr = jQuery.ajax(magic.config.paths.baseurl + "/geoserver/rest/workspaces.json")
-            .done(jQuery.proxy(function(data) {
-                if (data.workspaces && jQuery.isArray(data.workspaces.workspace)) {
-                    jQuery.each(data.workspaces.workspace, function(idx, ws) {
-                        if ("assets|opsgis|sggis|arctic|add|user".indexOf(ws.name) == -1) {
-                            eps.unshift({
-                                wms: magic.config.paths.baseurl + "/geoserver/" + ws.name + "/wms",
-                                name: "Local Geoserver " + ws.name + " space"
-                            });
-                        }
-                    });
-                }                         
-                magic.modules.Common.populateSelect(sourceSelect, eps, "wms", "name", currentSource, true);
-                this.populateWmsFeatureSelector(currentSource);       
-                sourceSelect.off("change").on("change", jQuery.proxy(function(evt) {
-                    /* WMS source selector has changed, update the features available */
-                    this.populateWmsFeatureSelector(jQuery(evt.currentTarget).val());
-                }, this));
-            }, this))
-            .fail(jQuery.proxy(function(jqXhr, status, err) {
-                /* This mode will be frequently used e.g. if the local server isn't Geoserver */
-                magic.modules.Common.populateSelect(sourceSelect, eps, "wms", "name", currentSource, true);
-                this.populateWmsFeatureSelector(currentSource);       
-                sourceSelect.off("change").on("change", jQuery.proxy(function(evt) {
-                    /* WMS source selector has changed, update the features available */
-                    this.populateWmsFeatureSelector(jQuery(evt.currentTarget).val());
-                }, this));
-            }, this));        
+        var eps = magic.modules.Endpoints.getEndpointsBy("srs", proj);
+        magic.modules.Common.populateSelect(sourceSelect, eps, "url", "name", currentSource, true);
+        this.populateWmsFeatureSelector(currentSource);       
+        sourceSelect.off("change").on("change", jQuery.proxy(function(evt) {
+            /* WMS source selector has changed, update the features available */
+            this.populateWmsFeatureSelector(jQuery(evt.currentTarget).val());
+        }, this));        
     } else {
         /* No projection defined - abort */
         bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">No projection defined for map</div>');

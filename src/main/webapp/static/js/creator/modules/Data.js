@@ -48,7 +48,7 @@ magic.modules.creator.Data = function () {
                                     "id": null,
                                     "name": "Hillshade and bathymetry",
                                     "source": {
-                                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database", "EPSG:3031"),
+                                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database"),
                                         "feature_name": "add:antarctic_hillshade_and_bathymetry",
                                         "is_base": true
                                     },
@@ -65,7 +65,7 @@ magic.modules.creator.Data = function () {
                                     "id": null,
                                     "name": "Coastline",
                                     "source": {
-                                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database", "EPSG:3031"),
+                                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database"),
                                         "feature_name": "add:antarctic_coastline"
                                     },     
                                     "is_visible": true
@@ -74,7 +74,7 @@ magic.modules.creator.Data = function () {
                                     "id": null,
                                     "name": "Sub-Antarctic coastline",
                                     "source": {
-                                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database", "EPSG:3031"),
+                                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database"),
                                         "feature_name": "add:sub_antarctic_coastline"
                                     },     
                                     "is_visible": true
@@ -90,7 +90,7 @@ magic.modules.creator.Data = function () {
                                     "id": null,
                                     "name": "Graticule",
                                     "source": {
-                                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database", "EPSG:3031"),
+                                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database"),
                                         "feature_name": "add:antarctic_graticule",
                                         "is_singletile": true
                                     },   
@@ -122,7 +122,7 @@ magic.modules.creator.Data = function () {
                                     "id": null,
                                     "name": "Hillshade and bathymetry",
                                     "source": {
-                                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Arctic Open Data", "EPSG:3995"),
+                                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Arctic Open Data"),
                                         "feature_name": "arctic:arctic_hillshade_and_bathymetry",
                                         "is_base": true,
                                         "is_dem": true
@@ -141,7 +141,7 @@ magic.modules.creator.Data = function () {
                                     "id": null,
                                     "name": "Coastline",
                                     "source": {
-                                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Arctic Open Data", "EPSG:3995"),
+                                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Arctic Open Data"),
                                         "feature_name": "arctic:arctic_coastline"
                                     },   
                                     "is_visible": true
@@ -157,7 +157,7 @@ magic.modules.creator.Data = function () {
                                     "id": null,
                                     "name": "Graticule",
                                     "source": {
-                                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Arctic Open Data", "EPSG:3995"),
+                                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Arctic Open Data"),
                                         "feature_name": "arctic:arctic_graticule",
                                         "is_singletile": true
                                     },   
@@ -189,7 +189,7 @@ magic.modules.creator.Data = function () {
                                     "id": null,
                                     "name": "Hillshade and bathymetry",
                                     "source": {
-                                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("South Georgia GIS", "EPSG:3762"),
+                                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("South Georgia GIS"),
                                         "feature_name": "sggis:sg_hillshade_and_bathymetry",
                                         "is_base": true,
                                         "is_dem": true
@@ -207,7 +207,7 @@ magic.modules.creator.Data = function () {
                                     "id": null,
                                     "name": "Coastline",
                                     "source": {
-                                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("South Georgia GIS", "EPSG:3762"),
+                                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("South Georgia GIS"),
                                         "feature_name": "sggis:sg_coastline"
                                     },   
                                     "is_visible": true

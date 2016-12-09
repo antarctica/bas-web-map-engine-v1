@@ -45,8 +45,12 @@ magic.modules.creator.Tab4 = function () {
                 }
                 jQuery("#t4-rotation").val(context.data.rotation);
                 var layers = [];
-                var wms = magic.modules.Endpoints.getWmsEndpoints(context.data.projection)[0]["wms"];
-                if (wms == "osm") {
+                var projEp = magic.modules.Endpoints.getEndpointBy("srs", context.data.projection);
+                if (!projEp) {
+                    bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">No endpoint service defined for projection ' + context.data.projection + '</div>');
+                    return;
+                }
+                if (projEp.url == "osm") {
                     /* OpenStreetMap is used for mid-latitude maps */
                     layers.push(magic.modules.Endpoints.getMidLatitudeCoastLayer());
                     view = new ol.View({                        
@@ -61,7 +65,7 @@ magic.modules.creator.Tab4 = function () {
                     /* Other WMS */
                     proj.setExtent(context.data.proj_extent);   /* Don't do this for OSM - bizarre ~15km shifts happen! */
                     proj.setWorldExtent(context.data.proj_extent);
-                    var coasts = magic.modules.Endpoints.getWmsEndpoints(context.data.projection)[0]["coast"];                    
+                    var coasts = projEp.coast_layers.split(",");                    
                     jQuery.each(coasts, function(idx, cl) {
                         var wmsSource = new ol.source.TileWMS({
                             url: wms,
@@ -96,7 +100,7 @@ magic.modules.creator.Tab4 = function () {
                         })
                     ];
                     var olGrat = null;
-                    var graticule = magic.modules.Endpoints.getWmsEndpoints(context.data.projection)[0]["graticule"];
+                    var graticule = projEp.graticule_layer;
                     if (graticule) {
                         if (graticule == "ol") {
                             /* Use the native OL graticule control - hangs badly in Chrome 28/01/2016 - obviously buggy */

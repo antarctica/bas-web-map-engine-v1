@@ -356,7 +356,7 @@ magic.modules.Common = function () {
                 default:
                     break;
             }
-            if (magic.modules.Endpoints.proxy[wmsUrl]) {
+            if (magic.modules.Endpoints.getProxiedUrl(wmsUrl)) {
                 /* Apply proxy */
                 requestUrl = magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(requestUrl);
             }

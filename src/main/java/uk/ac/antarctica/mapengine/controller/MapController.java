@@ -438,8 +438,8 @@ public class MapController {
     private List<Map<String, Object>> getDataEndpoints() {
         List<Map<String, Object>> eps = magicDataTpl.queryForList(
             "SELECT name, url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs FROM " + 
-            env.getProperty("postgres.local.endpointsTable") + 
-            "WHERE location=?", hostLocator()
+            env.getProperty("postgres.local.endpointsTable") + " " +  
+            "WHERE location=? ORDER BY name", hostLocator()
         );
         return(eps);
     }

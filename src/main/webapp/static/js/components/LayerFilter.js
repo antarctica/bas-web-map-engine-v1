@@ -315,9 +315,9 @@ magic.classes.LayerFilter.prototype.getUniqueValues = function(attrName, attrVal
             /* WMS source */
             var url = sourceMd.wms_source;
             var qry = "?service=wfs&version=1.1.0&request=GetFeature&outputFormat=CSV&typeName=" + sourceMd.feature_name + "&propertyName=" + attrName;
-            if (magic.modules.Endpoints.proxy[url]) {
-                url = magic.modules.Endpoints.proxy[url];
-                url = magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(url.replace(/wms$/, "wfs") + qry);
+            var proxiedUrl = magic.modules.Endpoints.getProxiedUrl(url);
+            if (proxiedUrl != null) {
+                url = magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(proxiedUrl.replace(/wms$/, "wfs") + qry);
             } else {
                 url = url.replace(/wms$/, "wfs") + qry;
             }            
