@@ -187,6 +187,7 @@ public class MapController {
                 where = "(allowed_usage='public' OR allowed_usage='login' OR (allowed_usage='owner' AND owner_name=?))";
                 userMapData = magicDataTpl.queryForMap("SELECT * FROM " +  env.getProperty("postgres.local.mapsTable") + " WHERE " + attr + "=? AND " + where, value, username);
             }
+            /* Tag on the list of data endpoints to the payload */
             List<Map<String, Object>> endpointData = getDataEndpoints();
             if (endpointData != null && endpointData.size() > 0) {
                 /* Some endpoints retrieved */
@@ -197,6 +198,28 @@ public class MapController {
             ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "No maps found that you are allowed to access");
         } catch (DataAccessException dae) {
             ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Error occurred, message was: " + dae.getMessage());
+        }
+        return(ret);
+    }
+    
+    /**
+     * Get data endpoints for this server
+     * @param HttpServletRequest request,
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/maps/endpoints", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
+    @ResponseBody
+    public ResponseEntity<String> dataEndpoints(HttpServletRequest request)
+        throws ServletException, IOException, ServiceException {
+        ResponseEntity<String> ret = null;
+        List<Map<String, Object>> endpointData = getDataEndpoints();
+        if (endpointData != null && endpointData.size() > 0) {
+            /* Some endpoints retrieved */
+            ret = PackagingUtils.packageResults(HttpStatus.OK, mapper.toJsonTree(endpointData).toString(), null);
+        } else {
+            ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "No data endpoints found - check endpoints table has been populated for server");
         }
         return(ret);
     }

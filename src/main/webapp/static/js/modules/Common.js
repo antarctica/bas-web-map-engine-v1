@@ -356,11 +356,11 @@ magic.modules.Common = function () {
                 default:
                     break;
             }
-            if (magic.modules.Endpoints.getProxiedUrl(wmsUrl)) {
-                /* Apply proxy */
-                requestUrl = magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(requestUrl);
+            var origUrl = magic.modules.Endpoints.getProxiedUrl(wmsUrl);
+            if (origUrl) {
+                requestUrl = requestUrl.replace(wmsUrl, origUrl);
             }
-            return(requestUrl);
+            return(this.proxyUrl(requestUrl));            
         },
         /**
          * Retrieve a WMS GetCapabilities document for the URL, calling the given callback with the supplied arguments
