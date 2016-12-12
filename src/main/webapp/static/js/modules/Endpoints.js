@@ -35,7 +35,7 @@ magic.modules.Endpoints = function () {
         getEndpointsBy: function(filterName, filterValue) {
             return(jQuery.grep(magic.runtime.endpoints, function(ep) {
                 return(ep[filterName].toLowerCase().indexOf(filterValue) == 0);
-            });
+            }));
         },        
         /**
          * Get a suitable mid-latitudes coast layer (OSM, except if in a low bandwidth location, in which case default to Natural Earth)
@@ -80,7 +80,7 @@ magic.modules.Endpoints = function () {
                "name": "Mid-latitude data",
                "source": {
                     "wms_source": (midlats && midlats.url != "osm") ? midlats.url : "osm", 
-                    "feature_name": (midlats && midlats.url != "osm") ? midlats.coast_layers : "osm"), 
+                    "feature_name": (midlats && midlats.url != "osm") ? midlats.coast_layers : "osm", 
                     "is_base": true
                },
                "is_visible": true
