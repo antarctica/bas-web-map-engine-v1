@@ -60,7 +60,7 @@ public class ProxyController {
         ALLOWED_URLS.put("http://www.polarview.aq", "");
         ALLOWED_URLS.put("http://tracker.aad.gov.au", "comnap:Koma5vudri:Tracker");
     }
-       
+    
    /**
      * Proxy for an authorised URL
      * @param HttpServletRequest request

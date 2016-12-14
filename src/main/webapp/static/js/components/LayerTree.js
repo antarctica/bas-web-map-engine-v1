@@ -257,7 +257,7 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                     /* Non-point layer */
                     var wmsVersion = "1.3.0";
                     var wmsSource = new ol.source.TileWMS({
-                        url: nd.source.wms_source,
+                        url: magic.modules.Common.proxyUrl(nd.source.wms_source),
                         params: {
                             "LAYERS": nd.source.feature_name,
                             "STYLES": nd.source.style_name ? (nd.source.style_name == "default" ? "" : nd.source.style_name) : "",
