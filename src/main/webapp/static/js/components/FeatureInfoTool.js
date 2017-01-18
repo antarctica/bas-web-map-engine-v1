@@ -63,12 +63,10 @@ magic.classes.FeatureInfoTool.prototype.queryFeatures = function(evt) {
                         "INFO_FORMAT": "application/json", 
                         "FEATURE_COUNT": 10
                     }
-                );
-                if (magic.modules.Endpoints.proxy[md.source.wms_source] === true) {
-                    url = magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(url);
-                }
+                );              
                 if (url) {
-                    deferreds.push(jQuery.get(url).success(function(data) {
+                    deferreds.push(jQuery.get(magic.modules.Common.proxyUrl(url)).success(function(data) {
+                        data = JSON.parse(data);
                         if (jQuery.isArray(data.features) && data.features.length > 0) {
                             jQuery.each(data.features, function(idx, f) {
                                 if (f.geometry) {
