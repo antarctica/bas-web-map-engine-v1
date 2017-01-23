@@ -34,7 +34,7 @@ magic.modules.Endpoints = function () {
          */
         getEndpointsBy: function(filterName, filterValue) {
             return(jQuery.grep(magic.runtime.endpoints, function(ep) {
-                return(ep[filterName].toLowerCase().indexOf(filterValue) == 0);
+                return(ep[filterName].toLowerCase().indexOf(filterValue.toLowerCase()) == 0);
             }));
         },        
         /**

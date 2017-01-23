@@ -356,7 +356,7 @@ magic.modules.Common = function () {
                 default:
                     break;
             }
-            var origUrl = magic.modules.Endpoints.getProxiedUrl(wmsUrl);
+            var origUrl = magic.modules.Endpoints.getWmsProxiedUrl(wmsUrl);
             if (origUrl) {
                 requestUrl = requestUrl.replace(wmsUrl, origUrl);
             }
