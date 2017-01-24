@@ -105,14 +105,14 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
         auth.authenticationProvider(new GeoserverAuthenticationProvider(geoserverUrl));
         
         /* Attempt to authenticate against LDAP */
-//        try {
-//            BindAuthenticator ba = new BindAuthenticator(this.contextSource);
-//            ba.setUserDnPatterns(new String[]{"uid={0},ou=People"});
-//            auth.authenticationProvider(new LdapAuthenticationProvider(ba));
-//        } catch(Exception ex) {
-//            /* Failing to contact the LDAP server should not invalidate the other authentication options */
-//            System.out.println(ex.getMessage() + " " + ex.getClass().toString());
-//        }
+        try {
+            BindAuthenticator ba = new BindAuthenticator(this.contextSource);
+            ba.setUserDnPatterns(new String[]{"uid={0},ou=People"});
+            auth.authenticationProvider(new LdapAuthenticationProvider(ba));
+        } catch(Exception ex) {
+            /* Failing to contact the LDAP server should not invalidate the other authentication options */
+            System.out.println(ex.getMessage() + " " + ex.getClass().toString());
+        }
 // NOTE: it would appear that this syntax only works in a standalone mode where it is the only authentication provider used
 // it will not operate properly alongside a Spring Security Filter Chain of other providers, as we have here - David 31/05/2016
 //        auth
