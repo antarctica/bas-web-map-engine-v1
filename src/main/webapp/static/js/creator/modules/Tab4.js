@@ -68,7 +68,7 @@ magic.modules.creator.Tab4 = function () {
                     var coasts = projEp.coast_layers.split(",");                    
                     jQuery.each(coasts, function(idx, cl) {
                         var wmsSource = new ol.source.TileWMS({
-                            url: wms,
+                            url: projEp.url,
                             params: {
                                 "LAYERS": cl, 
                                 "CRS": proj.getCode(),
@@ -111,7 +111,7 @@ magic.modules.creator.Tab4 = function () {
                         } else {
                             /* Use prepared data for Polar Stereographic as OL control does not work */
                             var wmsSource = new ol.source.ImageWMS(({
-                                url: wms,
+                                url: projEp.url,
                                 params: {"LAYERS": graticule},
                                 projection: proj
                             }));

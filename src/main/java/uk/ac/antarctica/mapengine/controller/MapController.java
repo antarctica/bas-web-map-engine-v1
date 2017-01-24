@@ -168,29 +168,6 @@ public class MapController {
     }
     
     /**
-     * Get endpoint data for this mapping profile
-     * @param HttpServletRequest request,
-     * @param String name
-     * @return
-     * @throws ServletException
-     * @throws IOException
-     */
-    @RequestMapping(value = "/maps/endpoints", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
-    @ResponseBody
-    public ResponseEntity<String> endpointData(HttpServletRequest request)
-        throws ServletException, IOException, ServiceException {
-        ResponseEntity<String> ret = null;
-        List<Map<String, Object>> data = getDataEndpoints();
-        if (data != null && data.size() > 0) {
-            /* Some endpoints retrieved */
-            ret = PackagingUtils.packageResults(HttpStatus.OK, mapper.toJsonTree(data).toString(), null);
-        } else {
-            ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "No endpoints define for this mapping profile");
-        }
-        return(ret);
-    }
-    
-    /**
      * Get full map data by attribute/value
      * @param HttpServletRequest request
      * @param String attr

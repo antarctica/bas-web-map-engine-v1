@@ -3,6 +3,7 @@
  */
 package uk.ac.antarctica.mapengine.model;
 
+import java.util.Date;
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotEmpty;
 
@@ -74,5 +75,29 @@ public class Feedback {
 	public void setReporter(String reporter) {
 		this.reporter = reporter;
 	}
+    
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("------------------------\n");
+        sb.append("User feedback payload\n");
+        sb.append("------------------------\n");
+        sb.append("Reported : ");
+        sb.append(new Date().toString());
+        sb.append("\n");
+        sb.append("Subject : ");
+        sb.append(getSubject());
+        sb.append("\n");
+        sb.append("Description : ");
+        sb.append(getDescription());
+        sb.append("\n");
+        sb.append("Reporter : ");
+        sb.append(getReporter());
+        sb.append("\n");
+        sb.append("------------------------\n");
+        sb.append("End of feedback payload\n");
+        sb.append("------------------------\n");
+        return(sb.toString());
+    }
     
 }

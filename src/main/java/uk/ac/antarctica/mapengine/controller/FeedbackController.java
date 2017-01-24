@@ -58,6 +58,8 @@ public class FeedbackController {
                     .addParameter("description", feedback.getDescription())
                     .build();                 
                 HTTPUtils.get(uri.toURL().toString(), "magic_auto", "magic123");
+                /* Output the email address to the system log as there is a bug in the Redmine API which means it isn't getting captured as of 2017-01-24 */
+                System.out.println(feedback.toString());
                 ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Successfully added issue to tracking system");                
 			} catch(Exception ex) {
 				ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Error entering data into tracker, message was: " + ex.getMessage());                
