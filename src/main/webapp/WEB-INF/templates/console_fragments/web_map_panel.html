@@ -4,84 +4,18 @@
         <title></title>
     </head>
     <body th:fragment="layout">
-        <!-- Web maps panel -->
-        <div class="panel-heading" role="tab">
-            <h3 class="panel-title">
-                <a data-toggle="collapse" data-parent="#accordion" href="#web-map-panel">Web mapping services</a>
-            </h3>
-        </div>
-        <div id="web-map-panel" class="panel-collapse collapse in" role="tabpanel">
-            <div class="panel-body">
-                <div th:switch="${#httpServletRequest.remoteUser}">
-                    <div th:case="null">
-                        <div class="alert alert-info">
-                            <strong>
-                                You are not currently logged in.  The list of maps below is therefore, restricted to those available for public viewing, and creating a new map will
-                                require you to authenticate.  BAS users can do so with their SOUTH/Photo Database passwords.  Other users will be advised of their credentials
-                            </strong>
-                        </div>
-                        <form class="form-inline" style="margin-bottom:10px">
-                            <div class="form-group">
-                                <label for="select-map">
-                                    Select a map
-                                </label>                                
-                                <select class="form-control" id="select-map">                                                      
-                                </select>
-                            </div>
-                            <button id="select-map-go" type="button" class="btn btn-primary" data-toggle="tooltip" data-placement="bottom" title="Load the selected map">Load</button>                            
-                        </form>
-                        <button id="login-map-go" type="button" class="btn btn-primary" data-toggle="tooltip" data-placement="bottom" title="Log in to access other services">Log in for other services</button>
-                    </div>
-                    <div th:case="*">
-                        <div class="alert alert-info">
-                            <strong>You are currently logged in as <span th:text="${#httpServletRequest.remoteUser}"></span> - select an option below:</strong>
-                        </div>
-                        <form>
-                            <div class="form-inline" style="margin-bottom:10px">
-                                <div class="form-group">
-                                    <label style="width:100px" for="select-map">
-                                        Load a map
-                                    </label>                                
-                                    <select class="form-control" id="select-map">                                                      
-                                    </select>
-                                </div>
-                                <button id="select-map-go" type="button" class="btn btn-primary" style="width:70px" data-toggle="tooltip" data-placement="bottom" title="Load the selected map">Load</button>                            
-                            </div>
-                            <div class="form-inline" style="margin-bottom:10px">
-                                <div class="form-group">
-                                    <label style="width:100px" for="edit-map">
-                                        Edit a map
-                                    </label>                                
-                                    <select class="form-control" id="edit-map">                                                      
-                                    </select>
-                                </div>
-                                <button id="edit-map-go" type="button" class="btn btn-primary" style="width:70px" data-toggle="tooltip" data-placement="bottom" title="Edit the selected map">Edit</button>                            
-                            </div>
-                            <div class="form-inline" style="margin-bottom:10px">
-                                <div class="form-group">
-                                    <label style="width:100px" for="delete-map">
-                                        Delete a map
-                                    </label>                                
-                                    <select class="form-control" id="delete-map">                                                      
-                                    </select>
-                                </div>
-                                <button id="delete-map-go" type="button" class="btn btn-danger" style="width:70px" data-toggle="tooltip" data-placement="bottom" title="Delete the selected map">Delete</button>                            
-                            </div>
-                            <div class="form-inline" style="margin-bottom:10px">
-                                <div class="form-group">
-                                    <label style="width:100px" for="redmine-map">
-                                        Load issue
-                                    </label>                                
-                                    <input type="number" class="form-control" id="redmine-map" placeholder="Redmine issue number"></input>
-                                </div>
-                                <button id="redmine-map-go" type="button" class="btn btn-primary" style="width:70px" data-toggle="tooltip" data-placement="bottom" title="Load this Redmine issue into map">Replay</button>                            
-                            </div>
-                        </form>
-                        <button id="create-map-go" type="button" class="btn btn-primary" data-toggle="tooltip" data-placement="bottom" title="Create a new map">Create a new map</button> 
-                    </div>
-                </div>                        
+        <div class="container">
+            <div class="row">
+                <div class="col-md-3 col-sm-4 col-xs-6"><img src="/static/images/thumbnail_cache/bas.jpg" /></div>
+                <div class="col-md-3 col-sm-4 col-xs-6"><img src="/static/images/thumbnail_cache/bas.jpg" /></div>
+                <div class="col-md-3 col-sm-4 col-xs-6"><img src="/static/images/thumbnail_cache/bas.jpg" /></div>
+            </div>
+            <div class="row">
+                <div class="col-md-3 col-sm-4 col-xs-6"><img src="/static/images/thumbnail_cache/bas.jpg" /></div>
+                <div class="col-md-3 col-sm-4 col-xs-6"><img src="/static/images/thumbnail_cache/bas.jpg" /></div>
+                <div class="col-md-3 col-sm-4 col-xs-6"><img src="/static/images/thumbnail_cache/bas.jpg" /></div>
+                <div class="col-md-3 col-sm-4 col-xs-6"><img src="/static/images/thumbnail_cache/bas.jpg" /></div>
             </div>
         </div>
-        <!-- End of web maps panel -->
     </body>
 </html>

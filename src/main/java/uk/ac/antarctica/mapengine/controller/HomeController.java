@@ -5,7 +5,6 @@ package uk.ac.antarctica.mapengine.controller;
 
 import it.geosolutions.geoserver.rest.HTTPUtils;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.security.Principal;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -35,15 +34,7 @@ public class HomeController {
      */
     @RequestMapping(value = "/", method = RequestMethod.GET)
     public String topLevel(HttpServletRequest request, ModelMap model) throws ServletException, IOException {
-        String username = getUserName(request);
-        String hostname = InetAddress.getLocalHost().getHostName();
-        String map = env.getProperty("default.map");
-        request.getSession().setAttribute("map", map);       
-        model.addAttribute("map", map);
-        model.addAttribute("username", username);
-        model.addAttribute("issuedata", getIssueData(null));
-        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Public map " + map + " requested");
-        return("map");
+        return(renderPage(request, model, "map", env.getProperty("default.map"), null, false));        
     }        
     
     /**
@@ -55,9 +46,8 @@ public class HomeController {
      * @throws IOException
      */
     @RequestMapping(value = "/home", method = RequestMethod.GET)
-    public String home(HttpServletRequest request) throws ServletException, IOException {
-        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "MAGIC Web Mapping Home requested");
-        return("home");        
+    public String home(HttpServletRequest request, ModelMap model) throws ServletException, IOException {
+        return(renderPage(request, model, "home", null, null, false));       
     }        
     
     /**
@@ -69,12 +59,8 @@ public class HomeController {
      * @throws IOException
      */
     @RequestMapping(value = "/homed", method = RequestMethod.GET)
-    public String homeDebug(HttpServletRequest request, ModelMap model) throws ServletException, IOException {        
-        String username = getUserName(request);
-        model.addAttribute("username", username);
-        model.addAttribute("debug", true);
-        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "MAGIC Web Mapping Home (debug) requested");
-        return("home");        
+    public String homeDebug(HttpServletRequest request, ModelMap model) throws ServletException, IOException {   
+        return(renderPage(request, model, "home", null, null, true));          
     }        
         
     /**
@@ -88,13 +74,7 @@ public class HomeController {
      */
     @RequestMapping(value = "/home/{map}", method = RequestMethod.GET)
     public String mapHome(HttpServletRequest request, @PathVariable("map") String map, ModelMap model) throws ServletException, IOException {    
-        request.getSession().setAttribute("map", map);
-        String username = getUserName(request);
-        model.addAttribute("map", map);
-        model.addAttribute("username", username);
-        model.addAttribute("issuedata", getIssueData(null));
-        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Public map " + map + " requested");
-        return("map");
+        return(renderPage(request, model, "map", map, null, false));
     }        
     
     /**
@@ -108,48 +88,11 @@ public class HomeController {
      */
     @RequestMapping(value = "/homed/{map}", method = RequestMethod.GET)
     public String mapHomeDebug(HttpServletRequest request, @PathVariable("map") String map, ModelMap model) throws ServletException, IOException {    
-        request.getSession().setAttribute("map", map);
-        String username = getUserName(request);
-        model.addAttribute("map", map);
-        model.addAttribute("username", username);
-        model.addAttribute("issuedata", getIssueData(null));
-        model.addAttribute("debug", true);
-        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Public map " + map + " (debug) requested");
-        return("map");
+        return(renderPage(request, model, "map", map, null, true));
     }     
-    
-    /**
-     * Render home page (restricted version)  
-     * @param HttpServletRequest request,
-     * @param String map
-     * @param ModelMap model
-     * @return
-     * @throws ServletException
-     * @throws IOException
-     */
-    @RequestMapping(value = "/restricted", method = RequestMethod.GET)
-    public String restricted(HttpServletRequest request) throws ServletException, IOException {
-        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "MAGIC Web Mapping Restricted Home requested");
-        return("home");        
-    }        
-    
-    /**
-     * Render home page (restricted version - debug)  
-     * @param HttpServletRequest request,
-     * @param ModelMap model
-     * @return
-     * @throws ServletException
-     * @throws IOException
-     */
-    @RequestMapping(value = "/restrictedd", method = RequestMethod.GET)
-    public String restrictedd(HttpServletRequest request, ModelMap model) throws ServletException, IOException {
-        model.addAttribute("debug", true);
-        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "MAGIC Web Mapping Restricted Home (debug) requested");
-        return("home");        
-    }        
         
     /**
-     * Render user-defined public map     
+     * Render user-defined private map     
      * @param HttpServletRequest request,
      * @param String map
      * @param ModelMap model
@@ -159,17 +102,11 @@ public class HomeController {
      */
     @RequestMapping(value = "/restricted/{map}", method = RequestMethod.GET)
     public String mapRestricted(HttpServletRequest request, @PathVariable("map") String map, ModelMap model) throws ServletException, IOException {    
-        request.getSession().setAttribute("map", map);
-        String username = getUserName(request);
-        model.addAttribute("map", map);
-        model.addAttribute("username", username);
-        model.addAttribute("issuedata", getIssueData(null));
-        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Restricted map " + map + " requested");
-        return("map");
+        return(renderPage(request, model, "map", map, null, false));
     }    
     
     /**
-     * Render user-defined public map with attached issue number   
+     * Render user-defined public or restricted map with attached issue number   
      * @param HttpServletRequest request,
      * @param String map
      * @param Integer issue
@@ -180,17 +117,11 @@ public class HomeController {
      */
     @RequestMapping(value = "/restricted/{map}/{issue}", method = RequestMethod.GET)
     public String mapRestrictedIssue(HttpServletRequest request, @PathVariable("map") String map, @PathVariable("issue") Integer issue, ModelMap model) throws ServletException, IOException {    
-        request.getSession().setAttribute("map", map);
-        String username = getUserName(request);
-        model.addAttribute("map", map);
-        model.addAttribute("username", username);
-        model.addAttribute("issuedata", getIssueData(issue));
-        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Restricted map " + map + " requested with issue " + issue);
-        return("map");
+        return(renderPage(request, model, "map", map, issue, false));
     }    
     
     /**
-     * Render user-defined public map (debug)  
+     * Render user-defined private map (debug)  
      * @param HttpServletRequest request,
      * @param String map
      * @param ModelMap model
@@ -200,14 +131,7 @@ public class HomeController {
      */
     @RequestMapping(value = "/restrictedd/{map}", method = RequestMethod.GET)
     public String mapRestrictedDebug(HttpServletRequest request, @PathVariable("map") String map, ModelMap model) throws ServletException, IOException {    
-        request.getSession().setAttribute("map", map);
-        String username = getUserName(request);
-        model.addAttribute("map", map);
-        model.addAttribute("username", username);
-        model.addAttribute("issuedata", getIssueData(null));
-        model.addAttribute("debug", true);
-        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Restricted map " + map + " (debug) requested");
-        return("map");
+        return(renderPage(request, model, "map", map, null, true));
     }       
     
     /**
@@ -222,14 +146,7 @@ public class HomeController {
      */
     @RequestMapping(value = "/restrictedd/{map}/{issue}", method = RequestMethod.GET)
     public String mapRestrictedDebugIssue(HttpServletRequest request, @PathVariable("map") String map, @PathVariable("issue") Integer issue, ModelMap model) throws ServletException, IOException {    
-        request.getSession().setAttribute("map", map);
-        String username = getUserName(request);
-        model.addAttribute("map", map);
-        model.addAttribute("username", username);
-        model.addAttribute("issuedata", getIssueData(issue));
-        model.addAttribute("debug", true);
-        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Restricted map " + map + " (debug) requested with issue " + issue);
-        return("map");
+        return(renderPage(request, model, "map", map, issue, true));
     }       
         
     /**
@@ -242,8 +159,7 @@ public class HomeController {
      */
     @RequestMapping(value = "/creator", method = RequestMethod.GET)
     public String creator(HttpServletRequest request, ModelMap model) throws ServletException, IOException {
-        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "MAGIC Web Map Creator requested");
-        return("creator");
+        return(renderPage(request, model, "creator", null, null, false));
     }
     
     /**
@@ -256,9 +172,7 @@ public class HomeController {
      */
     @RequestMapping(value = "/creatord", method = RequestMethod.GET)
     public String creatorDebug(HttpServletRequest request, ModelMap model) throws ServletException, IOException {
-        model.addAttribute("debug", true);
-        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "MAGIC Web Map Creator (debug) requested");
-        return("creator");
+        return(renderPage(request, model, "creator", null, null, true));
     }
     
     /**
@@ -271,8 +185,7 @@ public class HomeController {
      */
     @RequestMapping(value = "/publisher", method = RequestMethod.GET)
     public String publisher(HttpServletRequest request, ModelMap model) throws ServletException, IOException {
-        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Data publisher requested");
-        return("publisher");
+        return(renderPage(request, model, "publisher", null, null, false));
     }
     
     /**
@@ -285,37 +198,63 @@ public class HomeController {
      */
     @RequestMapping(value = "/publisherd", method = RequestMethod.GET)
     public String publisherDebug(HttpServletRequest request, ModelMap model) throws ServletException, IOException {
-        model.addAttribute("debug", true);
-        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", "Data publisher (debug) requested");
-        return("publisher");
-    }
-    
-    /* Legacy redirects - URLs which have been given out and will be expected to work, but which aren't convenient to export in the new world  */
-    
-    /**
-     * Ops GIS home
-     * @return
-     * @throws ServletException
-     * @throws IOException
-     */
-    @RequestMapping(value = "/opsgis", method = RequestMethod.GET)
-    public String opsgis() throws ServletException, IOException {
-        return "redirect:/restricted/opsgis";
+        return(renderPage(request, model, "publisher", null, null, true));
     }
     
     /**
-     * Ops GIS Halley home
-     * @return
-     * @throws ServletException
-     * @throws IOException
+     * Page renderer
+     * @param HttpServletRequest request
+     * @param ModelMap model
+     * @param String tplname
+     * @param String mapName
+     * @param Integer issueNumber
+     * @param boolean debug
+     * @return 
      */
-    @RequestMapping(value = "/opsgis/halley", method = RequestMethod.GET)
-    public String opsgisHalley() throws ServletException, IOException {
-        return "redirect:/restricted/halley";
-    }   
-    
-    /* End of legacy redirects */    
- 
+    private String renderPage(HttpServletRequest request, ModelMap model, String tplName, String mapName, Integer issueNumber, boolean debug) {
+        /* Set username */
+        String message = "";
+        String username = getUserName(request);
+        model.addAttribute("username", username);
+        model.addAttribute("profile", getActiveProfile());
+        switch (tplName) {
+            case "home":
+                message = "Public home page requested by " + username;
+                break;
+            case "map":
+                /* Map-specifics */
+                if (mapName == null || mapName.isEmpty()) {
+                    /* No map is set, render the gallery home page */
+                    tplName = "home";
+                    message = "Public home page requested by " + username;
+                } else {
+                    request.getSession().setAttribute("map", mapName);
+                    model.addAttribute("map", mapName);
+                    /* Issue data */
+                    if (issueNumber != null) {
+                        model.addAttribute("issuedata", getIssueData(issueNumber));
+                    }
+                    message = "Map " + mapName + " requested by " + username;
+                }   
+                break;
+            case "creator":
+                message = "Map creator requested by " + username;
+                break;
+            case "publisher":
+                message = "Data publisher requested by " + username;
+                break;
+            default:
+                message = "Unknown page " + tplName + " requested by " + username;
+                break;
+        }
+        if (debug) {
+            model.addAttribute("debug", true);
+            message += " (debug)";
+        }
+        ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", message);
+        return(tplName);        
+    }
+  
     /**
      * Get user name
      * @param HttpServletRequest request
@@ -349,6 +288,19 @@ public class HomeController {
             } catch(Exception ex) {}            
         }
         return(data);
+    }
+    
+    /**
+     * Get the current active profile
+     * @return 
+     */
+    private String getActiveProfile() {
+        String[] profiles = env.getActiveProfiles();
+        String activeProfile = "add";
+        if (profiles != null && profiles.length > 0) {
+            activeProfile = profiles[0];
+        }
+        return(activeProfile);
     }
 
 }

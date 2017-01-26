@@ -5,12 +5,13 @@
     <body>
         <div id="wrapper">
             <div th:include="fragments/nav :: layout(strap='MAGIC Web Console Home')"></div>
-            <div class="container">                
+            <div th:include="console_fragments/web_map_panel :: layout"></div>
+            <!--<div class="container">                
                 <div class="panel-group" id="accordion" role="tablist">
                     <div class="panel panel-default" th:include="console_fragments/web_map_panel :: layout"></div>
                     <div class="panel panel-default" th:include="console_fragments/place_names_panel :: layout"></div>                           
                 </div>
-            </div>
+            </div>-->
         </div>
         <script type="text/javascript">
 

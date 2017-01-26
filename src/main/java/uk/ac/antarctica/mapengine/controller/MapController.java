@@ -144,7 +144,7 @@ public class MapController implements ServletContextAware {
                 jm.addProperty("d", canDelete);
                 /* Get the thumbnail for public sites - restricted ones can have a thumbnail uploaded or use a placeholder */                
                 String thumbUrl = THUMBNAIL_CACHE + "/bas.jpg"; 
-                if (allowedUsage.equals("public")) {
+                if (allowedUsage.equals("public") && !server.equals("localhost")) {
                     /* This is a publically-viewable map */
                     String genThumbUrl = THUMBNAIL_CACHE + "/" + mapName + ".jpg";
                     String genThumbPath = context.getRealPath(genThumbUrl);
