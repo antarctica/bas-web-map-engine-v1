@@ -8,13 +8,18 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.client.fluent.Request;
 import org.geotools.ows.ServiceException;
 import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,10 +37,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.ServletContextAware;
 import uk.ac.antarctica.mapengine.util.PackagingUtils;
 
 @RestController
-public class MapController {
+public class MapController implements ServletContextAware {
+    
+    /* Thumbnail location */
+    private static final String THUMBNAIL_CACHE = "/static/images/thumbnail_cache";
+    
+    /* Thumbnailing service */
+    private static final String SHRINKTHEWEB = "https://images.shrinktheweb.com/xino.php?stwembed=1&stwaccesskeyid=2aa21387d887a28&stwsize=200x150&stwadv=json&stwurl=";
     
     @Autowired
     Environment env;
@@ -45,6 +57,9 @@ public class MapController {
 
     /* JSON mapper */
     private final Gson mapper = new Gson();
+    
+    /* Servlet context */
+    private ServletContext context;
 
     @InitBinder
     protected void initBinder(WebDataBinder binder) {        
@@ -79,6 +94,87 @@ public class MapController {
     public ResponseEntity<String> mapViews(HttpServletRequest request, @PathVariable("action") String action)
         throws ServletException, IOException, ServiceException {
         return(mapDropdownData(request, action));
+    }
+    
+    /**
+     * Get all the data necessary for displaying gallery of all available map thumbnails
+     * @param HttpServletRequest request,
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/maps/thumbnaildata", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
+    @ResponseBody
+    public ResponseEntity<String> thumbnailData(HttpServletRequest request)
+        throws ServletException, IOException, ServiceException {
+        ResponseEntity<String> ret = null;
+        
+        String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
+        int port = request.getServerPort();
+        String server = request.getScheme() + "://" + request.getServerName() + (port != 80 ? (":" + port) : "");
+        
+        List<Map<String, Object>> mapData = magicDataTpl.queryForList(
+            "SELECT name, title, description, modified_date, version, allowed_usage, allowed_edit, owner FROM " + 
+            env.getProperty("postgres.local.mapsTable") + " " + 
+            "ORDER BY title"
+        );        
+        if (mapData != null && !mapData.isEmpty()) {
+            /* Package map data as JSON array - note we want to list all maps regardless of whether login required */
+            JsonArray ja = new JsonArray();
+            for (Map m : mapData) {
+                String mapName = (String)m.get("name");
+                String allowedUsage = (String)m.get("allowed_usage");
+                String allowedEdit = (String)m.get("allowed_edit");
+                String owner = (String)m.get("owner");
+                boolean canView = 
+                    allowedUsage.equals("public") || 
+                    (username != null && allowedUsage.equals("login")) ||
+                    owner.equals(username);
+                boolean canEdit = 
+                    allowedEdit.equals("public") ||
+                    (username != null && allowedEdit.equals("login")) ||
+                    owner.equals(username);
+                boolean canDelete = owner.equals(username);
+                JsonObject jm = mapper.toJsonTree(m).getAsJsonObject();
+                jm.remove("allowed_usage");
+                jm.remove("allowed_edit");
+                jm.remove("owner");
+                jm.addProperty("r", canView);
+                jm.addProperty("w", canEdit);
+                jm.addProperty("d", canDelete);
+                /* Get the thumbnail for public sites - restricted ones can have a thumbnail uploaded or use a placeholder */                
+                String thumbUrl = THUMBNAIL_CACHE + "/bas.jpg"; 
+                if (allowedUsage.equals("public")) {
+                    /* This is a publically-viewable map */
+                    String genThumbUrl = THUMBNAIL_CACHE + "/" + mapName + ".jpg";
+                    String genThumbPath = context.getRealPath(genThumbUrl);
+                    if (genThumbPath == null) {
+                        /* Retrieve an image from shrinktheweb.com and write it to the thumbnail cache */
+                        try {
+                            String mapUrl = server + "/" + (allowedUsage.equals("public") ? "home" : "restricted") + "/" + mapName;
+                            FileOutputStream fos = new FileOutputStream(context.getRealPath(genThumbUrl));
+                            InputStream content = Request.Get(SHRINKTHEWEB + mapUrl)                    
+                                .connectTimeout(5000)
+                                .socketTimeout(10000)
+                                .execute()
+                                .returnResponse().getEntity().getContent();
+                            IOUtils.copy(content, fos);
+                            IOUtils.closeQuietly(content);
+                            IOUtils.closeQuietly(fos);
+                            thumbUrl = genThumbUrl;
+                        } catch(IOException | UnsupportedOperationException ex) {
+                        }                      
+                    }                    
+                }
+                jm.addProperty("thumburl", server + thumbUrl);
+                ja.add(jm);
+            }
+            ret = PackagingUtils.packageResults(HttpStatus.OK, ja.toString(), null);
+        } else {
+            /* No data is fine - simply return empty results array */
+            ret = PackagingUtils.packageResults(HttpStatus.OK, "[]", null);
+        }
+        return(ret);
     }
     
     /**
@@ -484,6 +580,11 @@ public class MapController {
             }
         }
         return(location);
+    }
+
+    @Override
+    public void setServletContext(ServletContext sc) {
+        this.context = sc;
     }
 
 }
