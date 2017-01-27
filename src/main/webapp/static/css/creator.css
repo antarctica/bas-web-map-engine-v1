@@ -115,3 +115,8 @@ button.layer-name-button {
     margin: 0;
     padding: 0;
 }
+
+img.applogo {
+    float: left; 
+    margin-left: 5px
+}

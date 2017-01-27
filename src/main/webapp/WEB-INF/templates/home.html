@@ -14,6 +14,11 @@
                  data-toggle="tooltip" data-placement="right" title="Open map creation interface (new tab)">Create a new map</button>                
             </div>
         </div>
+        <script th:inline="javascript">
+            /*<![CDATA[*/
+            var bg = [[${background}]];           
+            /*]]>*/
+        </script>
         <script type="text/javascript">
 
             jQuery(document).ready(function () {
@@ -46,7 +51,9 @@
                         window.open(magic.config.paths.baseurl + "/creator", "_blank");
                     });
                 }
-
+                
+                /* Background colour */
+                jQuery("body").css("background-color", bg);
                 
                 magic.runtime.webmap_panel = new magic.classes.console.WebMapPanel();
                                 

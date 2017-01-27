@@ -244,6 +244,9 @@ public class HomeController {
         model.addAttribute("username", username);
         model.addAttribute("profile", getActiveProfile());
         String pageTitle = env.getProperty("default.title") != null ? env.getProperty("default.title") : "";
+        String logo = env.getProperty("default.logo") != null ? env.getProperty("default.logo") : "/static/images/1x1.png";
+        String logoUrl = env.getProperty("default.logoUrl") != null ? env.getProperty("default.logoUrl") : "Javascript:void(0)";
+        String backgroundColor = env.getProperty("default.backgroundColor") != null ? env.getProperty("default.backgroundColor") : "#ffffff";
         switch (tplName) {
             case "home":                
                 message = "Public home page requested by " + username;
@@ -266,11 +269,11 @@ public class HomeController {
                 break;
             case "creator":
                 message = "Map creator requested by " + username;
-                pageTitle += " Map Creator";
+                pageTitle += " - Map Creation Wizard";
                 break;
             case "publisher":
                 message = "Data publisher requested by " + username;
-                pageTitle += " Easy Data Publisher";
+                pageTitle += " - Easy Data Publisher";
                 break;
             default:
                 message = "Unknown page " + tplName + " requested by " + username;
@@ -281,6 +284,9 @@ public class HomeController {
             message += " (debug)";
         }
         model.addAttribute("pagetitle", pageTitle);
+        model.addAttribute("logo", logo);
+        model.addAttribute("logourl", logoUrl);
+        model.addAttribute("background", backgroundColor);
         ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", message);
         return(tplName);        
     }

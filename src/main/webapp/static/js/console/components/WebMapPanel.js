@@ -35,7 +35,7 @@ magic.classes.console.WebMapPanel = function () {
                             '</div>'
                         );
                         rowDiv.append(thumbDiv);                            
-                        var deleteAnchor = thumbDiv.find("a").last();
+                        var deleteAnchor = thumbDiv.find("span").last().children().last();
                         if (deleteAnchor) {
                             deleteAnchor.click(data[i+j].name, function(evt) {
                                 bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">Are you sure you want to delete ' + evt.data + '</div>', function (result) {

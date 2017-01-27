@@ -69,6 +69,11 @@
             <!-- /.container -->
         </div>
         <!-- /#wrapper -->
+        <script th:inline="javascript">
+            /*<![CDATA[*/
+            var bg = [[${background}]];           
+            /*]]>*/
+        </script>
         <script type="text/javascript">
 
             jQuery(document).ready(function () {                
@@ -111,6 +116,9 @@
                 .fail(function () {
                     bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to get WMS endpoints for this mapping profile</div>');
                 });
+                
+                /* Background colour */
+                jQuery("body").css("background-color", bg);
                                 
             });
 

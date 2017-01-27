@@ -146,7 +146,7 @@ public class MapController implements ServletContextAware {
                 String thumbUrl = THUMBNAIL_CACHE + "/bas.jpg"; 
                 if (allowedUsage.equals("public") && !server.equals("localhost")) {
                     /* This is a publically-viewable map */
-                    String genThumbUrl = THUMBNAIL_CACHE + "/" + mapName + ".jpg";
+                    String genThumbUrl = THUMBNAIL_CACHE + "/" + getActiveProfile() + "/" + mapName + ".jpg";
                     String genThumbPath = context.getRealPath(genThumbUrl);
                     if (genThumbPath == null) {
                         /* Retrieve an image from shrinktheweb.com and write it to the thumbnail cache */
@@ -580,6 +580,19 @@ public class MapController implements ServletContextAware {
             }
         }
         return(location);
+    }
+    
+    /**
+     * Get the current active profile
+     * @return 
+     */
+    private String getActiveProfile() {
+        String[] profiles = env.getActiveProfiles();
+        String activeProfile = "add";
+        if (profiles != null && profiles.length > 0) {
+            activeProfile = profiles[0];
+        }
+        return(activeProfile);
     }
 
     @Override
