@@ -97,29 +97,27 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
         /* Attempt to authenticate an in-memory user, useful when LDAP and other providers are not available   */      
         auth
             .inMemoryAuthentication()
-            .withUser("user")
-            .password("password")
+            .withUser("darb1")
+            .password("oypsmaj")
             .roles("USER");                   
         
         /* Attempt to authenticate against a local Geoserver instance */
         auth.authenticationProvider(new GeoserverAuthenticationProvider(geoserverUrl));
         
         /* Attempt to authenticate against LDAP */
-        try {
-            BindAuthenticator ba = new BindAuthenticator(this.contextSource);
-            ba.setUserDnPatterns(new String[]{"uid={0},ou=People"});
-            auth.authenticationProvider(new LdapAuthenticationProvider(ba));
-        } catch(Exception ex) {
-            /* Failing to contact the LDAP server should not invalidate the other authentication options */
-            System.out.println(ex.getMessage() + " " + ex.getClass().toString());
+        String catalinaBase = System.getProperty("catalina.base");
+        boolean isDevEnvironment = catalinaBase.contains("Application Support") || catalinaBase.contains("NetBeans");
+        if (!isDevEnvironment) {
+            /* Temporary fix for Tomcat aborting operations because of being unable to see BAS LDAP server - fixed by VPN */
+            try {
+                BindAuthenticator ba = new BindAuthenticator(this.contextSource);
+                ba.setUserDnPatterns(new String[]{"uid={0},ou=People"});
+                auth.authenticationProvider(new LdapAuthenticationProvider(ba));
+            } catch(Exception ex) {
+                /* Failing to contact the LDAP server should not invalidate the other authentication options */
+                System.out.println(ex.getMessage() + " " + ex.getClass().toString());
+            }
         }
-// NOTE: it would appear that this syntax only works in a standalone mode where it is the only authentication provider used
-// it will not operate properly alongside a Spring Security Filter Chain of other providers, as we have here - David 31/05/2016
-//        auth
-//            .ldapAuthentication()
-//            .userDnPatterns("uid={0},ou=People")
-//            .groupSearchBase(null)
-//            .contextSource(this.contextSource);  
         
         /* Attempt to authenticate against Ramadda if present */
 //        auth.authenticationProvider(new RamaddaAuthenticationProvider("/repository/user/login"));

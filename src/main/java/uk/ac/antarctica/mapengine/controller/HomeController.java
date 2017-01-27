@@ -89,7 +89,33 @@ public class HomeController {
     @RequestMapping(value = "/homed/{map}", method = RequestMethod.GET)
     public String mapHomeDebug(HttpServletRequest request, @PathVariable("map") String map, ModelMap model) throws ServletException, IOException {    
         return(renderPage(request, model, "map", map, null, true));
-    }     
+    }   
+    
+    /**
+     * Render home page (logged in)    
+     * @param HttpServletRequest request,
+     * @param ModelMap model
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/restricted", method = RequestMethod.GET)
+    public String homeRestricted(HttpServletRequest request, ModelMap model) throws ServletException, IOException {
+        return(renderPage(request, model, "home", null, null, false));       
+    }        
+    
+    /**
+     * Render home page (logged in, debug)    
+     * @param HttpServletRequest request,
+     * @param ModelMap model
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/restrictedd", method = RequestMethod.GET)
+    public String homeRestrictedDebug(HttpServletRequest request, ModelMap model) throws ServletException, IOException {   
+        return(renderPage(request, model, "home", null, null, true));          
+    }        
         
     /**
      * Render user-defined private map     
@@ -218,7 +244,7 @@ public class HomeController {
         model.addAttribute("username", username);
         model.addAttribute("profile", getActiveProfile());
         switch (tplName) {
-            case "home":
+            case "home":                
                 message = "Public home page requested by " + username;
                 break;
             case "map":
@@ -233,7 +259,7 @@ public class HomeController {
                     /* Issue data */
                     if (issueNumber != null) {
                         model.addAttribute("issuedata", getIssueData(issueNumber));
-                    }
+                    }                    
                     message = "Map " + mapName + " requested by " + username;
                 }   
                 break;
@@ -250,6 +276,9 @@ public class HomeController {
         if (debug) {
             model.addAttribute("debug", true);
             message += " (debug)";
+        }
+        if (env.getProperty("default.title") != null) {
+            model.addAttribute("pagetitle", env.getProperty("default.title"));
         }
         ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", message);
         return(tplName);        

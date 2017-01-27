@@ -4,21 +4,17 @@
     </head>
     <body>
         <div id="wrapper">
-            <div th:include="fragments/nav :: layout(strap='MAGIC Web Console Home')"></div>
-            <div th:include="console_fragments/web_map_panel :: layout"></div>
-            <!--<div class="container">                
-                <div class="panel-group" id="accordion" role="tablist">
-                    <div class="panel panel-default" th:include="console_fragments/web_map_panel :: layout"></div>
-                    <div class="panel panel-default" th:include="console_fragments/place_names_panel :: layout"></div>                           
-                </div>
-            </div>-->
+            <div th:include="fragments/nav :: layout"></div>
+            <div class="container" id="map-gallery"></div>            
         </div>
         <script type="text/javascript">
 
             jQuery(document).ready(function () {
 
                 jQuery('[data-toggle="tooltip"]').tooltip({container: 'body'});
-                
+                /* For dynamic tooltips - http://stackoverflow.com/questions/9958825/how-do-i-bind-twitter-bootstrap-tooltips-to-dynamically-created-elements */
+                jQuery("body").tooltip({ selector: '[data-toggle="tooltip"]'});
+               
                 /* Login behaviour */
                 jQuery("#log-in-user").click(function (evt) {
                     window.location = magic.config.paths.baseurl + "/restricted";
@@ -31,7 +27,6 @@
                 });
                 
                 magic.runtime.webmap_panel = new magic.classes.console.WebMapPanel();
-                magic.runtime.placenames_panel = new magic.classes.console.PlaceNamesPanel();
                                 
             });
             

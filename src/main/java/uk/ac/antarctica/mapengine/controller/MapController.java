@@ -114,7 +114,7 @@ public class MapController implements ServletContextAware {
         String server = request.getScheme() + "://" + request.getServerName() + (port != 80 ? (":" + port) : "");
         
         List<Map<String, Object>> mapData = magicDataTpl.queryForList(
-            "SELECT name, title, description, modified_date, version, allowed_usage, allowed_edit, owner FROM " + 
+            "SELECT name, title, description, modified_date, version, allowed_usage, allowed_edit, owner_name FROM " + 
             env.getProperty("postgres.local.mapsTable") + " " + 
             "ORDER BY title"
         );        
@@ -125,7 +125,7 @@ public class MapController implements ServletContextAware {
                 String mapName = (String)m.get("name");
                 String allowedUsage = (String)m.get("allowed_usage");
                 String allowedEdit = (String)m.get("allowed_edit");
-                String owner = (String)m.get("owner");
+                String owner = (String)m.get("owner_name");
                 boolean canView = 
                     allowedUsage.equals("public") || 
                     (username != null && allowedUsage.equals("login")) ||
@@ -138,7 +138,7 @@ public class MapController implements ServletContextAware {
                 JsonObject jm = mapper.toJsonTree(m).getAsJsonObject();
                 jm.remove("allowed_usage");
                 jm.remove("allowed_edit");
-                jm.remove("owner");
+                jm.remove("owner_name");
                 jm.addProperty("r", canView);
                 jm.addProperty("w", canEdit);
                 jm.addProperty("d", canDelete);
