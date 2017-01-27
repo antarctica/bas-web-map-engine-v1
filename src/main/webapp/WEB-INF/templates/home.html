@@ -1,11 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head th:include="console_fragments/header :: ${debug} ? 'debug_layout' : 'layout'">       
+    <head th:include="console_fragments/header :: ${debug} ? 'debug_layout' : 'layout'">        
     </head>
     <body>
+        <div id="background"></div>
         <div id="wrapper">
             <div th:include="fragments/nav :: layout"></div>
-            <div class="container" id="map-gallery"></div>            
+            <div class="container" id="map-gallery"></div>
+            <div class="container" style="margin-top: 10px" th:switch="${#httpServletRequest.remoteUser}">
+                <button id="console-log-in-create" th:case="null" type="button" class="btn btn-primary"
+                 data-toggle="tooltip" data-placement="right" title="Go to login page to create or edit maps">Log in</button>
+                <button id="console-create-new-map" th:case="*" type="button" class="btn btn-primary"
+                 data-toggle="tooltip" data-placement="right" title="Open map creation interface (new tab)">Create a new map</button>                
+            </div>
         </div>
         <script type="text/javascript">
 
@@ -19,12 +26,27 @@
                 jQuery("#log-in-user").click(function (evt) {
                     window.location = magic.config.paths.baseurl + "/restricted";
                 });
+                var btnLoginCreate = jQuery("#console-log-in-create");
+                if (btnLoginCreate.length > 0) {
+                    btnLoginCreate.click(function(evt) {
+                        window.location = magic.config.paths.baseurl + "/restricted";
+                    });
+                }
 
                 /* Logout behaviour */
                 jQuery("#log-out-user").click(function (evt) {
                     evt.preventDefault();
                     jQuery("#logout-form").submit();
                 });
+                
+                /* Create a new map */
+                var btnCreateNew = jQuery("#console-create-new-map");
+                if (btnCreateNew.length > 0) {
+                    btnCreateNew.click(function(evt) {
+                        window.open(magic.config.paths.baseurl + "/creator", "_blank");
+                    });
+                }
+
                 
                 magic.runtime.webmap_panel = new magic.classes.console.WebMapPanel();
                                 

@@ -243,6 +243,7 @@ public class HomeController {
         String username = getUserName(request);
         model.addAttribute("username", username);
         model.addAttribute("profile", getActiveProfile());
+        String pageTitle = env.getProperty("default.title") != null ? env.getProperty("default.title") : "";
         switch (tplName) {
             case "home":                
                 message = "Public home page requested by " + username;
@@ -265,9 +266,11 @@ public class HomeController {
                 break;
             case "creator":
                 message = "Map creator requested by " + username;
+                pageTitle += " Map Creator";
                 break;
             case "publisher":
                 message = "Data publisher requested by " + username;
+                pageTitle += " Easy Data Publisher";
                 break;
             default:
                 message = "Unknown page " + tplName + " requested by " + username;
@@ -277,9 +280,7 @@ public class HomeController {
             model.addAttribute("debug", true);
             message += " (debug)";
         }
-        if (env.getProperty("default.title") != null) {
-            model.addAttribute("pagetitle", env.getProperty("default.title"));
-        }
+        model.addAttribute("pagetitle", pageTitle);
         ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", message);
         return(tplName);        
     }
