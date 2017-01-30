@@ -200,7 +200,10 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                             'style="cursor:pointer">' +
                             '</span>' +
                             cb +
-                            '<span id="layer-filter-badge-' + nd.id + '" class="badge filter-badge hidden" data-toggle="tooltip" data-placement="right" title="">filter</span>' +
+                            '<a href="Javascript:void(0)">' + 
+                                '<span id="layer-filter-badge-' + nd.id + '" class="badge filter-badge hidden" ' + 
+                                'data-toggle="tooltip" data-placement="right" title="">filter</span>' +
+                            '</a>' + 
                             nameSpan +
                         '</span>' +
                         '<span style="float:right">' +

@@ -43,6 +43,7 @@ magic.classes.LayerFilter = function(options) {
                             '<option id="ftr-op-str-sw-' + this.nodeid + '" value="sw">starts with (case-insensitive)</option>' +
                             '<option id="ftr-op-str-ew-' + this.nodeid + '" value="ew">Ends with (case-insensitive)</option>' +
                             '<option id="ftr-op-str-ct-' + this.nodeid + '" value="ct">Contains (case-insensitive)</option>' +
+                            '<option id="ftr-op-str-nn-' + this.nodeid + '" value="nn">Has a non-null value</option>' +
                         '</select>' +                            
                     '</div>' +
                     '<div class="form-group form-group-sm col-sm-12 hidden">' +
@@ -200,18 +201,25 @@ magic.classes.LayerFilter.prototype.setFilterOptions = function(changed, to) {
                     /* Value will have % characters to indicate wildcards depending on the operation */
                     var selectOpStr = jQuery("#ftr-op-str-" + this.nodeid);
                     var inputValStr = jQuery("#ftr-val-str-" + this.nodeid);
-                    var startPc = this.val1.indexOf("%") == 0;
-                    var endPc = this.val && (this.val1.lastIndexOf("%") == this.val1.length-1);
-                    if (startPc && endPc) {
-                        selectOpStr.val("ct"); 
-                    } else if (startPc) {
-                        selectOpStr.val("ew"); 
-                    } else if (endPc) {
-                        selectOpStr.val("sw"); 
+                    if (this.val1 == "IS NOT NULL") {
+                        /* Has a value filter */
+                        selectOpStr.val("nn");
+                        inputValStr.val("");
                     } else {
-                        selectOpStr.val("eq"); 
+                        /* More complex filter */
+                        var startPc = this.val1.indexOf("%") == 0;
+                        var endPc = this.val && (this.val1.lastIndexOf("%") == this.val1.length-1);
+                        if (startPc && endPc) {
+                            selectOpStr.val("ct"); 
+                        } else if (startPc) {
+                            selectOpStr.val("ew"); 
+                        } else if (endPc) {
+                            selectOpStr.val("sw"); 
+                        } else {
+                            selectOpStr.val("eq"); 
+                        }
+                        inputValStr.val(this.val1.replace(/%/g, ""));
                     }
-                    inputValStr.val(this.val1.replace(/%/g, ""));
                 }
             } else if (this.comparison == "number") {
                 /* Numeric */
@@ -414,25 +422,29 @@ magic.classes.LayerFilter.prototype.applyFilter = function() {
             inputValStr = jQuery("#ftr-val-str-unique-" + this.nodeid);
         }
         var ciOp = selectOpStr.val();
-        fval1 = inputValStr.val();
-        if (fval1 != null && fval1 != "") {
-            switch(ciOp) {                
-                case "sw":
-                    fval1 = fval1 + "%";
-                    break;
-                case "ew":
-                    fval1 = "%" + fval1;
-                    break;
-                case "ct":
-                    fval1 = "%" + fval1 + "%";
-                    break;
-                default:
-                    break;
-            }
-            filterString = fattr + " " + fop + " '" + fval1 + "'";
+        if (ciOp == "nn") {
+            filterString = fattr + " IS NOT NULL";
         } else {
-            magic.modules.Common.flagInputError(inputValStr);
-        }        
+            fval1 = inputValStr.val().replace(/\'/g, "''");
+            if (fval1 != null && fval1 != "") {
+                switch(ciOp) {                
+                    case "sw":
+                        fval1 = fval1 + "%";
+                        break;
+                    case "ew":
+                        fval1 = "%" + fval1;
+                        break;
+                    case "ct":
+                        fval1 = "%" + fval1 + "%";
+                        break;                
+                    default:
+                        break;
+                }
+                filterString = fattr + " " + fop + " '" + fval1 + "'";
+            } else {
+                magic.modules.Common.flagInputError(inputValStr);
+            }
+        }
     } else if (comparisonType == "number") {
         fop = selectOpNum.val();
         fval1 = inputValNum1.val();
@@ -507,7 +519,9 @@ magic.classes.LayerFilter.prototype.applyFilter = function() {
         }
         jQuery("#ftr-btn-reset-" + this.nodeid).removeClass("disabled");
         /* Show filter badge */
-        jQuery("#layer-filter-badge-" + this.nodeid).removeClass("hidden").addClass("show").attr("data-original-title", filterString).tooltip("fixTitle");        
+        var filterBadge = jQuery("#layer-filter-badge-" + this.nodeid);
+        filterBadge.removeClass("hidden").addClass("show").attr("data-original-title", filterString + " (click to remove filter)").tooltip("fixTitle");
+        filterBadge.closest("a").click(jQuery.proxy(this.resetFilter, this));
         /* Reset the errors */
         jQuery("div.layer-filter-panel").find("div.form-group").removeClass("has-error");        
     }
