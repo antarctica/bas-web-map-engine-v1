@@ -23,34 +23,39 @@ magic.classes.LayerTree = function (target, embedded) {
     var targetElement = jQuery("#" + this.target);
     /* Layer search form */
     targetElement.append(
-        '<div class="layersearch-form form-group form-group-sm hidden">' + 
-            '<div class="input-group">' + 
-                '<input id="' + this.id + '-layersearch" class="form-control typeahead border-lh-round" type="text" placeholder="Search for data layer" ' + 
-                'required="required" autofocus="true"></input>' + 
-                '<span class="input-group-btn">' +
-                    '<button id="' + this.id + '-layersearch-go" class="btn btn-default btn-sm" type="button" ' + 
-                        'data-toggle="tooltip" data-placement="right" title="Locate data layer in tree">' + 
-                        '<span class="glyphicon glyphicon-search"></span>' + 
-                    '</button>' +
-                '</span>' +
-                '<span><button type="button" class="close">&times;</button></span>' + 
-            '</div>'+
+        '<div class="layersearch-panel panel panel-info hidden" style="margin-bottom:0px">' + 
+            '<div class="panel-heading" style="padding-bottom:0px">' + 
+                '<div class="layersearch-form form-group form-group-sm">' + 
+                    '<div class="input-group">' + 
+                        '<input id="' + this.id + '-layersearch-ta" class="form-control typeahead border-lh-round" type="text" placeholder="Name of layer" ' + 
+                        'required="required" autofocus="true"></input>' + 
+                        '<span class="input-group-btn">' +
+                            '<button id="' + this.id + '-layersearch-go" class="btn btn-default btn-sm" type="button" ' + 
+                                'data-toggle="tooltip" data-placement="right" title="Locate data layer in tree">' + 
+                                '<span class="glyphicon glyphicon-search"></span>' + 
+                            '</button>' +
+                        '</span>' +
+                        '<span><button type="button" style="padding-bottom:10px" class="close">&times;</button></span>' + 
+                    '</div>'+
+                '</div>' + 
+            '</div>' + 
         '</div>'
     );
 
     this.initTree(this.treedata, targetElement, 0);
+    this.initLayerSearchTypeahead();
 
     this.collapsed = false;
 
     if (!this.embedded) {
         /* Layer tree is visible => assign all the necessary handlers  */
-        var expanderLocation = jQuery("#" + this.target).find("div.panel-heading:first");
+        var expanderLocation = jQuery("#" + this.target).find("div.panel-heading").eq(1);
         if (expanderLocation) {
-            expanderLocation.append(
-                '<span data-toggle="tooltip" data-placement="bottom" title="Search for a data layer" ' +
-                    'class="layer-tree-search fa fa-search"></span>' + 
+            expanderLocation.append(                
                 '<span data-toggle="tooltip" data-placement="bottom" title="Collapse layer tree" ' + 
-                    'class="layer-tree-collapse fa fa-angle-double-left hidden-xs"></span>'
+                    'class="layer-tree-collapse fa fa-angle-double-left hidden-xs"></span>' + 
+                '<span data-toggle="tooltip" data-placement="bottom" title="Search for a data layer" ' +
+                    'class="layer-tree-search fa fa-search"></span>'
             );
         }
 
@@ -71,13 +76,13 @@ magic.classes.LayerTree = function (target, embedded) {
         /* Expand search form */
         jQuery("span.layer-tree-search").on("click", function (evt) {
             evt.stopPropagation();
-            jQuery(".layersearch-form").removeClass("hidden").addClass("show");
+            jQuery(".layersearch-panel").removeClass("hidden").addClass("show");
         });
         
         /* Collapse search form */
         jQuery(".layersearch-form").find(".close").on("click", function (evt) {
             evt.stopPropagation();
-            jQuery(".layersearch-form").removeClass("show").addClass("hidden");
+            jQuery(".layersearch-panel").removeClass("show").addClass("hidden");
         });
 
         /* Assign layer visibility handlers */
@@ -420,6 +425,46 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
 };
 
 /**
+ * Initialise typeahead handlers and config for layer search 
+ */
+magic.classes.LayerTree.prototype.initLayerSearchTypeahead = function() {
+    var nlData = [];
+    jQuery.each(this.nodeLayerTranslation, function(nodeId, layer) {
+        nlData.push({"id": nodeId, "layer": layer.get("name")});
+    });
+    nlData.sort(function(a, b) {
+        return(a.layer.localeCompare(b.layer));
+    });
+    jQuery("#" + this.id + "-layersearch-ta").typeahead(
+        {minLength: 2, highlight: true}, 
+        {
+            limit: 100,
+            async: true,
+            source: this.layerMatcher(nlData),
+            templates: {
+                notFound: '<p class="suggestion">No results</p>',
+                header: '<div class="suggestion-group-header">Data layers</div>',
+                suggestion: function(value) {                    
+                    return('<p class="suggestion">' + value + '</p>');
+                }
+            }
+        }
+    )
+    .on("typeahead:autocompleted", jQuery.proxy(this.layerSearchSuggestionSelectHandler, this))
+    .on("typeahead:selected", jQuery.proxy(this.layerSearchSuggestionSelectHandler, this));
+};
+
+/**
+ * Handler for an autocompleted selection of layer name
+ * @param {jQuery.Event} evt
+ * @param {Object} sugg
+ */
+magic.classes.LayerTree.prototype.layerSearchSuggestionSelectHandler = function(evt, sugg) {
+    console.log(sugg);
+    //TODO    
+};
+
+/**
  * setInterval handler to refresh a layer
  * @param {ol.Layer} layer
  */
@@ -736,4 +781,22 @@ magic.classes.LayerTree.prototype.getLayerByFeatureName = function(fname) {
         return(true);
     }, this));
     return(targetLayer);
+};
+
+/**
+ * Typeahead handler for layer search
+ * @param {Array} data
+ * @return {Function}
+ */
+magic.classes.LayerTree.prototype.layerMatcher = function(data) {
+    return(function(query, callback) {
+        var matches = [];
+        var re = new RegExp(query, "i");
+        $.each(data, function(itemno, item) {
+            if (re.test(item.layer)) {
+                matches.push(item.layer);
+            }
+        });
+        callback(matches);
+    });
 };

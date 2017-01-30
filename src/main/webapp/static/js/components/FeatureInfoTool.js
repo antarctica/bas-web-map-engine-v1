@@ -66,7 +66,9 @@ magic.classes.FeatureInfoTool.prototype.queryFeatures = function(evt) {
                 );              
                 if (url) {
                     deferreds.push(jQuery.get(magic.modules.Common.proxyUrl(url)).success(function(data) {
-                        data = JSON.parse(data);
+                        if (typeof data == "string") {
+                            data = JSON.parse(data);
+                        }
                         if (jQuery.isArray(data.features) && data.features.length > 0) {
                             jQuery.each(data.features, function(idx, f) {
                                 if (f.geometry) {
