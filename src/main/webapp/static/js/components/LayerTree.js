@@ -19,8 +19,26 @@ magic.classes.LayerTree = function (target, embedded) {
         "gpx": [],
         "kml": []
     };
+    
+    var targetElement = jQuery("#" + this.target);
+    /* Layer search form */
+    targetElement.append(
+        '<div class="layersearch-form form-group form-group-sm hidden">' + 
+            '<div class="input-group">' + 
+                '<input id="' + this.id + '-layersearch" class="form-control typeahead border-lh-round" type="text" placeholder="Search for data layer" ' + 
+                'required="required" autofocus="true"></input>' + 
+                '<span class="input-group-btn">' +
+                    '<button id="' + this.id + '-layersearch-go" class="btn btn-default btn-sm" type="button" ' + 
+                        'data-toggle="tooltip" data-placement="right" title="Locate data layer in tree">' + 
+                        '<span class="glyphicon glyphicon-search"></span>' + 
+                    '</button>' +
+                '</span>' +
+                '<span><button type="button" class="close">&times;</button></span>' + 
+            '</div>'+
+        '</div>'
+    );
 
-    this.initTree(this.treedata, jQuery("#" + this.target), 0);
+    this.initTree(this.treedata, targetElement, 0);
 
     this.collapsed = false;
 
@@ -28,7 +46,12 @@ magic.classes.LayerTree = function (target, embedded) {
         /* Layer tree is visible => assign all the necessary handlers  */
         var expanderLocation = jQuery("#" + this.target).find("div.panel-heading:first");
         if (expanderLocation) {
-            expanderLocation.append('<span data-toggle="tooltip" data-placement="bottom" title="Collapse layer tree" class="layer-tree-collapse fa fa-angle-double-left hidden-xs"></span>');
+            expanderLocation.append(
+                '<span data-toggle="tooltip" data-placement="bottom" title="Search for a data layer" ' +
+                    'class="layer-tree-search fa fa-search"></span>' + 
+                '<span data-toggle="tooltip" data-placement="bottom" title="Collapse layer tree" ' + 
+                    'class="layer-tree-collapse fa fa-angle-double-left hidden-xs"></span>'
+            );
         }
 
         /* Collapse layer tree handler */
@@ -42,6 +65,20 @@ magic.classes.LayerTree = function (target, embedded) {
             evt.stopPropagation();
             this.setCollapsed(false);
         }, this));
+        
+        /* Search layer tree for data layer handler */
+        
+        /* Expand search form */
+        jQuery("span.layer-tree-search").on("click", function (evt) {
+            evt.stopPropagation();
+            jQuery(".layersearch-form").removeClass("hidden").addClass("show");
+        });
+        
+        /* Collapse search form */
+        jQuery(".layersearch-form").find(".close").on("click", function (evt) {
+            evt.stopPropagation();
+            jQuery(".layersearch-form").removeClass("show").addClass("hidden");
+        });
 
         /* Assign layer visibility handlers */
         jQuery("input.layer-vis-selector").change(jQuery.proxy(this.layerVisibilityHandler, this));        

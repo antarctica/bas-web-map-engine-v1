@@ -196,6 +196,13 @@ img.applogo {
     }
 }
 
+span.layer-tree-search {
+    /* Search for layer button */
+    float: right;
+    font-size: 20px;
+    cursor: pointer;
+}
+
 .clickable {    
     color: #c9302c;
 }
