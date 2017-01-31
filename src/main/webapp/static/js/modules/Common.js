@@ -86,28 +86,23 @@ magic.modules.Common = function () {
             return("rgba(" + components.r + "," + components.g + "," + components.b + "," + opacity + ")");
         },
         /**
-         * 
+         * Scroll target into view if needed
+         * http://stackoverflow.com/questions/5685589/scroll-to-element-only-if-not-in-view-jquery
+         * @param {object} target
          */
-        blinkElement: function(elt, cls, number) {    
-        var i = 0;
-        if (!number) {
-            number = 4;
-        }
-        var obj = setInterval(function(){
-            if (i == number)
-            {
-                elt.removeClass(cls);
-                clearInterval(obj);
-            }else{
-                elt.toggleClass(cls);
+        scrollViewportToElement: function(target) {
+            var rect = target.getBoundingClientRect();
+            if (rect.bottom > window.innerHeight) {
+                target.scrollIntoView(false);
             }
-            i++;
-         },100)
-    }
+            if (rect.top < 0) {
+                target.scrollIntoView();
+            } 
+        },
         /**
          * Create a set of buttons suitable for giving feedback on a POST/PUT/DELETE operation
-         * @param {type} btnBaseId
-         * @param {type} msg
+         * @param {string} btnBaseId
+         * @param {string} msg
          * @returns {String}
          */
         buttonFeedbackSet: function(btnBaseId, msg) {

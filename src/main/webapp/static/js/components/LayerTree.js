@@ -76,7 +76,13 @@ magic.classes.LayerTree = function (target, embedded) {
         /* Expand search form */
         jQuery("span.layer-tree-search").on("click", function (evt) {
             evt.stopPropagation();
-            jQuery(".layersearch-panel").removeClass("hidden").addClass("show");
+            var pnl = jQuery(".layersearch-panel");
+            pnl.removeClass("hidden").addClass("show");
+            /* To work round the time lag with showing the typeahead in the previously hidden form
+             * see: https://github.com/twitter/typeahead.js/issues/712 */          
+            setTimeout(function() {
+                pnl.find("input").focus();
+            }, 100);            
         });
         
         /* Collapse search form */
@@ -479,9 +485,15 @@ magic.classes.LayerTree.prototype.layerSearchSuggestionSelectHandler = function(
                 pnl.collapse("toggle");
             }
         });
-        /* Should now be able to see the layer control */
-        layerControl[0].scrollIntoView(true);
-        layerControl.slideUp(300).delay(800).fadeIn(400);
+        /* Timeout works around the need to queue up shown.bs.collapse handlers and act once all have completed */
+        setTimeout(function() {
+            magic.modules.Common.scrollViewportToElement(layerControl[0]);
+            layerControl.css("background-color", "#ff0000");
+            setTimeout(function() {
+                layerControl.css("background-color", "#ffffff");
+            }, 1000);
+        }, 200);        
+        
     }
 };
 
