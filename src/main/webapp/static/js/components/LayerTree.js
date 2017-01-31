@@ -477,23 +477,38 @@ magic.classes.LayerTree.prototype.layerSearchSuggestionSelectHandler = function(
         /* Got the layer - get the node id */
         var nodeId = theLayer.get("metadata").id;
         var layerControl = jQuery("#layer-item-" + nodeId);
-        var enclosingGroups = layerControl.parents("[id^='layer-group-panel']");
-        enclosingGroups.each(function(idx, elt) {
+        var context = {nopened: 0, ntotal: 0};         
+        var enclosingUnopenedGroups = jQuery.grep(layerControl.parents("[id^='layer-group-panel']"), function(elt, idx) {
             var pnl = jQuery(elt);
             if (!pnl.hasClass("in")) {
                 /* This group is not open, so open it */
-                pnl.collapse("toggle");
+                pnl.on("shown.bs.collapse", jQuery.proxy(function(e) {
+                    this.nopened++;
+                    if (this.nopened == this.ntotal) {
+                        magic.modules.Common.scrollViewportToElement(layerControl[0]);
+                        layerControl.css("background-color", "#ff0000");
+                        setTimeout(function() {
+                            layerControl.css("background-color", "#ffffff");
+                        }, 1000);
+                    }
+                }, context));
+                return(true);
             }
         });
-        /* Timeout works around the need to queue up shown.bs.collapse handlers and act once all have completed */
-        setTimeout(function() {
+        context.ntotal = enclosingUnopenedGroups.length;
+        if (context.ntotal == 0) {
+            /* Nothing to open - just scroll to element */
             magic.modules.Common.scrollViewportToElement(layerControl[0]);
             layerControl.css("background-color", "#ff0000");
             setTimeout(function() {
                 layerControl.css("background-color", "#ffffff");
             }, 1000);
-        }, 200);        
-        
+        } else {
+            /* Open layer groups that need it */
+            jQuery.each(enclosingUnopenedGroups, function(idx, elt) {
+                jQuery(elt).collapse("toggle");            
+            });  
+        }
     }
 };
 
