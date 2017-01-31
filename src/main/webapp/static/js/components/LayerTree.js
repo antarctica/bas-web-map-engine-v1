@@ -460,8 +460,29 @@ magic.classes.LayerTree.prototype.initLayerSearchTypeahead = function() {
  * @param {Object} sugg
  */
 magic.classes.LayerTree.prototype.layerSearchSuggestionSelectHandler = function(evt, sugg) {
-    console.log(sugg);
-    //TODO    
+    /* sugg will contain the name of the layer, from which we can deduce the node id */
+    var theLayer = null;
+    magic.runtime.map.getLayers().forEach(function (layer) {
+        if (layer.get("name") == sugg) {
+            theLayer = layer;
+        }
+    });
+    if (theLayer != null && theLayer.get("metadata")) {
+        /* Got the layer - get the node id */
+        var nodeId = theLayer.get("metadata").id;
+        var layerControl = jQuery("#layer-item-" + nodeId);
+        var enclosingGroups = layerControl.parents("[id^='layer-group-panel']");
+        enclosingGroups.each(function(idx, elt) {
+            var pnl = jQuery(elt);
+            if (!pnl.hasClass("in")) {
+                /* This group is not open, so open it */
+                pnl.collapse("toggle");
+            }
+        });
+        /* Should now be able to see the layer control */
+        layerControl[0].scrollIntoView(true);
+        layerControl.slideUp(300).delay(800).fadeIn(400);
+    }
 };
 
 /**
@@ -766,7 +787,7 @@ magic.classes.LayerTree.prototype.getVectorStyle = function(styleDef, labelField
 };
 
 /**
- * For the embedded Apex maps primarily - d a longhand find of an ol layer by feature name
+ * For the embedded Apex maps primarily - do a longhand find of an ol layer by feature name
  * @param {String} fname
  * @returns {ol.Layer}
  */

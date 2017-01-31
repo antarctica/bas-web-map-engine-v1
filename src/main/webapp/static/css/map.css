@@ -204,6 +204,10 @@ span.layer-tree-search {
     cursor: pointer;
 }
 
+.layer-tree-search-result {
+    background-color: #ff0000 !important;
+}
+
 .clickable {    
     color: #c9302c;
 }

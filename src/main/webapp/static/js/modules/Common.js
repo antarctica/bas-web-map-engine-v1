@@ -86,6 +86,25 @@ magic.modules.Common = function () {
             return("rgba(" + components.r + "," + components.g + "," + components.b + "," + opacity + ")");
         },
         /**
+         * 
+         */
+        blinkElement: function(elt, cls, number) {    
+        var i = 0;
+        if (!number) {
+            number = 4;
+        }
+        var obj = setInterval(function(){
+            if (i == number)
+            {
+                elt.removeClass(cls);
+                clearInterval(obj);
+            }else{
+                elt.toggleClass(cls);
+            }
+            i++;
+         },100)
+    }
+        /**
          * Create a set of buttons suitable for giving feedback on a POST/PUT/DELETE operation
          * @param {type} btnBaseId
          * @param {type} msg
