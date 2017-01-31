@@ -8,7 +8,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import java.io.FileOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
@@ -18,7 +18,7 @@ import java.util.UUID;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.http.client.fluent.Request;
 import org.geotools.ows.ServiceException;
 import org.postgresql.util.PGobject;
@@ -142,27 +142,32 @@ public class MapController implements ServletContextAware {
                 jm.addProperty("r", canView);
                 jm.addProperty("w", canEdit);
                 jm.addProperty("d", canDelete);
+                System.out.println(jm.toString());
                 /* Get the thumbnail for public sites - restricted ones can have a thumbnail uploaded or use a placeholder */                
                 String thumbUrl = THUMBNAIL_CACHE + "/bas.jpg"; 
+                System.out.println(server);
                 if (allowedUsage.equals("public") && !server.equals("localhost")) {
                     /* This is a publically-viewable map */
                     String genThumbUrl = THUMBNAIL_CACHE + "/" + getActiveProfile() + "/" + mapName + ".jpg";
                     String genThumbPath = context.getRealPath(genThumbUrl);
-                    if (genThumbPath == null) {
+                    System.out.println(genThumbUrl);
+                    System.out.println(genThumbPath);
+                    File thumbnail = new File(genThumbPath);
+                    if (!thumbnail.exists()) {
                         /* Retrieve an image from shrinktheweb.com and write it to the thumbnail cache */
                         try {
                             String mapUrl = server + "/" + (allowedUsage.equals("public") ? "home" : "restricted") + "/" + mapName;
-                            FileOutputStream fos = new FileOutputStream(context.getRealPath(genThumbUrl));
                             InputStream content = Request.Get(SHRINKTHEWEB + mapUrl)                    
                                 .connectTimeout(5000)
                                 .socketTimeout(10000)
                                 .execute()
                                 .returnResponse().getEntity().getContent();
-                            IOUtils.copy(content, fos);
-                            IOUtils.closeQuietly(content);
-                            IOUtils.closeQuietly(fos);
+                            FileUtils.copyInputStreamToFile(content, thumbnail);                            
                             thumbUrl = genThumbUrl;
+                            System.out.println("Completed");
                         } catch(IOException | UnsupportedOperationException ex) {
+                            System.out.println("Exception");
+                            System.out.println(ex.getMessage());
                         }                      
                     }                    
                 }

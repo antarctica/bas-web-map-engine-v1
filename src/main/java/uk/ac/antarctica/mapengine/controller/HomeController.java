@@ -249,14 +249,14 @@ public class HomeController {
         String backgroundColor = env.getProperty("default.backgroundColor") != null ? env.getProperty("default.backgroundColor") : "#ffffff";
         switch (tplName) {
             case "home":                
-                message = "Public home page requested by " + username;
+                message = "Public home page";
                 break;
             case "map":
                 /* Map-specifics */
                 if (mapName == null || mapName.isEmpty()) {
                     /* No map is set, render the gallery home page */
                     tplName = "home";
-                    message = "Public home page requested by " + username;
+                    message = "Public home page";
                 } else {
                     request.getSession().setAttribute("map", mapName);
                     model.addAttribute("map", mapName);
@@ -264,19 +264,19 @@ public class HomeController {
                     if (issueNumber != null) {
                         model.addAttribute("issuedata", getIssueData(issueNumber));
                     }                    
-                    message = "Map " + mapName + " requested by " + username;
+                    message = "Map " + mapName;
                 }   
                 break;
             case "creator":
-                message = "Map creator requested by " + username;
+                message = "Map creator";
                 pageTitle += " - Map Creation Wizard";
                 break;
             case "publisher":
-                message = "Data publisher requested by " + username;
+                message = "Data publisher";
                 pageTitle += " - Easy Data Publisher";
                 break;
             default:
-                message = "Unknown page " + tplName + " requested by " + username;
+                message = "Unknown page " + tplName;
                 break;
         }
         if (debug) {
