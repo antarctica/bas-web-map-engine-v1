@@ -11,15 +11,22 @@ import com.google.gson.JsonParser;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
+import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.io.FileUtils;
-import org.apache.http.client.fluent.Request;
 import org.geotools.ows.ServiceException;
 import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -157,15 +164,38 @@ public class MapController implements ServletContextAware {
                         /* Retrieve an image from shrinktheweb.com and write it to the thumbnail cache */
                         try {
                             String mapUrl = server + "/" + (allowedUsage.equals("public") ? "home" : "restricted") + "/" + mapName;
-                            InputStream content = Request.Get(SHRINKTHEWEB + mapUrl)                    
-                                .connectTimeout(5000)
-                                .socketTimeout(10000)
-                                .execute()
-                                .returnResponse().getEntity().getContent();
+                            URL stwUrl = new URL(SHRINKTHEWEB + mapUrl);
+                            /* Override SSL checking
+                             * See http://stackoverflow.com/questions/13626965/how-to-ignore-pkix-path-building-failed-sun-security-provider-certpath-suncertp */
+                            TrustManager[] trustAllCerts = new TrustManager[] {new X509TrustManager() {
+                                public java.security.cert.X509Certificate[] getAcceptedIssuers() {return null;}
+                                public void checkClientTrusted(X509Certificate[] certs, String authType) {}
+                                public void checkServerTrusted(X509Certificate[] certs, String authType) {}
+                            }};
+
+                            SSLContext sc = SSLContext.getInstance("SSL");
+                            sc.init(null, trustAllCerts, new java.security.SecureRandom());
+                            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+
+                            // Create all-trusting host name verifier
+                            HostnameVerifier allHostsValid = new HostnameVerifier() {
+                                public boolean verify(String hostname, SSLSession session) {return true;}
+                            };
+                            // Install the all-trusting host verifier
+                            HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+                            HttpsURLConnection con = (HttpsURLConnection)stwUrl.openConnection();
+                            con.setConnectTimeout(5000);
+                            con.setReadTimeout(10000);
+                            InputStream content = con.getInputStream();
+//                            InputStream content = Request.Get(SHRINKTHEWEB + mapUrl)                    
+//                                .connectTimeout(5000)
+//                                .socketTimeout(10000)
+//                                .execute()
+//                                .returnResponse().getEntity().getContent();
                             FileUtils.copyInputStreamToFile(content, thumbnail);                            
                             thumbUrl = genThumbUrl;
                             System.out.println("Completed");
-                        } catch(IOException | UnsupportedOperationException ex) {
+                        } catch(Exception ex) {
                             System.out.println("Exception");
                             System.out.println(ex.getMessage());
                         }                      
