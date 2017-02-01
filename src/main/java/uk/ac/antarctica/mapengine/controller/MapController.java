@@ -9,8 +9,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
 import java.security.cert.X509Certificate;
 import java.util.Date;
@@ -26,7 +28,6 @@ import javax.net.ssl.X509TrustManager;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
-import org.apache.commons.io.FileUtils;
 import org.geotools.ows.ServiceException;
 import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +55,7 @@ public class MapController implements ServletContextAware {
     private static final String THUMBNAIL_CACHE = "/static/images/thumbnail_cache";
     
     /* Thumbnailing service */
-    private static final String SHRINKTHEWEB = "https://images.shrinktheweb.com/xino.php?stwembed=1&stwaccesskeyid=2aa21387d887a28&stwsize=200x150&stwadv=json&stwurl=";
+    private static final String SHRINKTHEWEB = "https://images.shrinktheweb.com/xino.php?stwembed=0&stwaccesskeyid=2aa21387d887a28&stwsize=200x150&stwadv=json&stwurl=";
     
     @Autowired
     Environment env;
@@ -162,43 +163,48 @@ public class MapController implements ServletContextAware {
                     File thumbnail = new File(genThumbPath);
                     if (!thumbnail.exists()) {
                         /* Retrieve an image from shrinktheweb.com and write it to the thumbnail cache */
-                        try {
-                            String mapUrl = server + "/" + (allowedUsage.equals("public") ? "home" : "restricted") + "/" + mapName;
-                            URL stwUrl = new URL(SHRINKTHEWEB + mapUrl);
-                            /* Override SSL checking
-                             * See http://stackoverflow.com/questions/13626965/how-to-ignore-pkix-path-building-failed-sun-security-provider-certpath-suncertp */
-                            TrustManager[] trustAllCerts = new TrustManager[] {new X509TrustManager() {
-                                public java.security.cert.X509Certificate[] getAcceptedIssuers() {return null;}
-                                public void checkClientTrusted(X509Certificate[] certs, String authType) {}
-                                public void checkServerTrusted(X509Certificate[] certs, String authType) {}
-                            }};
-
-                            SSLContext sc = SSLContext.getInstance("SSL");
-                            sc.init(null, trustAllCerts, new java.security.SecureRandom());
-                            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-
-                            // Create all-trusting host name verifier
-                            HostnameVerifier allHostsValid = new HostnameVerifier() {
-                                public boolean verify(String hostname, SSLSession session) {return true;}
-                            };
-                            // Install the all-trusting host verifier
-                            HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
-                            HttpsURLConnection con = (HttpsURLConnection)stwUrl.openConnection();
-                            con.setConnectTimeout(5000);
-                            con.setReadTimeout(10000);
-                            InputStream content = con.getInputStream();
-//                            InputStream content = Request.Get(SHRINKTHEWEB + mapUrl)                    
-//                                .connectTimeout(5000)
-//                                .socketTimeout(10000)
-//                                .execute()
-//                                .returnResponse().getEntity().getContent();
-                            FileUtils.copyInputStreamToFile(content, thumbnail);                            
-                            thumbUrl = genThumbUrl;
-                            System.out.println("Completed");
-                        } catch(Exception ex) {
-                            System.out.println("Exception");
-                            System.out.println(ex.getMessage());
-                        }                      
+                        /* Note: 2017-02-01 David - Need to use the STW advanced API which is a two-step process
+                        https://support.shrinktheweb.com/Knowledgebase/Article/View/128/0/best-practice-method-to-get-screenshot-requests-as-soon-as-ready
+                        https://shrinktheweb.com/uploads/STW_API_Documentation.pdf */
+                        System.out.println("STW thumbnail generation not yet implemented");
+//                        try {
+//                            String mapUrl = server + "/" + (allowedUsage.equals("public") ? "home" : "restricted") + "/" + mapName;
+//                            URL stwUrl = new URL(SHRINKTHEWEB + mapUrl);
+//                            /* Override SSL checking
+//                             * See http://stackoverflow.com/questions/13626965/how-to-ignore-pkix-path-building-failed-sun-security-provider-certpath-suncertp */
+//                            TrustManager[] trustAllCerts = new TrustManager[] {new X509TrustManager() {
+//                                public java.security.cert.X509Certificate[] getAcceptedIssuers() {return null;}
+//                                public void checkClientTrusted(X509Certificate[] certs, String authType) {}
+//                                public void checkServerTrusted(X509Certificate[] certs, String authType) {}
+//                            }};
+//
+//                            SSLContext sc = SSLContext.getInstance("SSL");
+//                            sc.init(null, trustAllCerts, new java.security.SecureRandom());
+//                            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+//
+//                            // Create all-trusting host name verifier
+//                            HostnameVerifier allHostsValid = new HostnameVerifier() {
+//                                public boolean verify(String hostname, SSLSession session) {return true;}
+//                            };
+//                            // Install the all-trusting host verifier
+//                            HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+//                            HttpsURLConnection con = (HttpsURLConnection)stwUrl.openConnection();
+//                            con.setConnectTimeout(5000);
+//                            con.setReadTimeout(10000);
+//                            InputStream content = con.getInputStream();
+//                            byte[] buffer = new byte[4096];
+//                            int n = -1;
+//                            OutputStream fos = new FileOutputStream(thumbnail);
+//                            while ((n = content.read(buffer)) != -1) {
+//                                fos.write(buffer, 0, n);
+//                            }
+//                            fos.close();                            
+//                            thumbUrl = genThumbUrl;
+//                            System.out.println("Completed");
+//                        } catch(Exception ex) {
+//                            System.out.println("Exception");
+//                            System.out.println(ex.getMessage());
+//                        }                      
                     }                    
                 }
                 jm.addProperty("thumburl", server + thumbUrl);
