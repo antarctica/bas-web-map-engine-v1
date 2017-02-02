@@ -20,6 +20,9 @@ magic.classes.LayerTree = function (target, embedded) {
         "kml": []
     };
     
+    /* Groups which require an autoload (keyed by uuid) */
+    this.autoloadGroups = {};
+    
     var targetElement = jQuery("#" + this.target);
     /* Layer search form */
     targetElement.append(
@@ -212,222 +215,269 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                     ((element.length > 0 && element[0].tagName.toLowerCase() == "ul") ? '</li>' : "")
                     );
             this.initTree(nd.layers, jQuery("#layer-group-" + nd.id), depth + 1);
+            if (nd.autoload === true) {
+                /* Layers to be autoloaded from local server later */
+                this.autoloadGroups[nd.id] = nd.autoload_filter;
+            }
         } else {
             /* Style a data node */
-            var cb;
-            var isWms = "wms_source" in nd.source;
-            var isSingleTile = isWms ? nd.source.is_singletile === true : false;
-            var isBase = isWms ? nd.source.is_base === true : false;
-            var isInteractive = nd.is_interactive === true;
-            var refreshRate = nd.refresh_rate || 0;
-            var name = nd.name, /* Save name as we may insert ellipsis into name text for presentation purposes */
-                    ellipsisName = magic.modules.Common.ellipsis(nd.name, 30),
-                    infoTitle = "Get layer legend/metadata",
-                    nameSpan = ellipsisName;
-            if (name != ellipsisName) {
-                /* Tooltip to give the full version of any shortened name */
-                nameSpan = '<span data-toggle="tooltip" data-placement="top" title="' + name + '">' + ellipsisName + '</span>';
-            }
-            /* Determine visibility */
-            var isVisible = nd.is_visible;
-            if (magic.runtime.search && magic.runtime.search.visible && magic.runtime.search.visible[name]) {
-                isVisible = magic.runtime.search.visible[name];
-            }
-            if (isBase) {
-                cb = '<input class="layer-vis-selector" name="base-layers-rb" id="base-layer-rb-' + nd.id + '" type="radio" ' + (isVisible ? "checked" : "") + '/>';
-            } else {
-                cb = '<input class="layer-vis-selector" id="layer-cb-' + nd.id + '" type="checkbox" ' + (isVisible ? "checked" : "") + '/>';
-            }           
-            element.append(
-                    '<li class="list-group-item layer-list-group-item" id="layer-item-' + nd.id + '">' +
-                        '<span style="float:left">' +
-                            '<span id="layer-info-' + nd.id + '" ' +
-                            'class="fa fa-info-circle' + (isInteractive ? ' clickable' : ' non-clickable') + '" ' +
-                            'data-toggle="tooltip" data-placement="right" data-html="true" ' +
-                            'title="' + (isInteractive ? infoTitle + "<br />Click on map features for info" : infoTitle) + '" ' +
-                            'style="cursor:pointer">' +
-                            '</span>' +
-                            cb +
-                            '<a href="Javascript:void(0)">' + 
-                                '<span id="layer-filter-badge-' + nd.id + '" class="badge filter-badge hidden" ' + 
-                                'data-toggle="tooltip" data-placement="right" title="">filter</span>' +
-                            '</a>' + 
-                            nameSpan +
-                        '</span>' +
-                        '<span style="float:right">' +
-                            '<a class="layer-tool" id="layer-opts-' + nd.id + '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
-                                '<span class="fa fa-bars"></span><b class="caret"></b>' +
-                            '</a>' +
-                            '<ul id="layer-opts-dm-' + nd.id + '" aria-labelled-by="layer-opts-' + nd.id + '" class="dropdown-menu dropdown-menu-right">' +
-                            '</ul>' +
-                        '</span>' +
-                    '</li>'
-                    );            
-            /* Create a data layer */
-            var layer = null;
-            var proj = magic.runtime.viewdata.projection;            
-            /* Get min/max resolution */  
-            var minRes = undefined, maxRes = undefined;
-            if (!(nd.source.wms_source && nd.source.wms_source == "osm")) {
-                if (magic.runtime.viewdata.resolutions) {
-                    minRes = magic.runtime.viewdata.resolutions[magic.runtime.viewdata.resolutions.length-1];
-                    maxRes = magic.runtime.viewdata.resolutions[0]+1;   /* Note: OL applies this one exclusively, whereas minRes is inclusive - duh! */  
-                    if (jQuery.isNumeric(nd.minScale)) {
-                        minRes = magic.modules.GeoUtils.getResolutionFromScale(nd.min_scale);
-                    }
-                    if (jQuery.isNumeric(nd.maxScale)) {
-                        maxRes = magic.modules.GeoUtils.getResolutionFromScale(nd.max_scale);
-                    }
-                }
-            }
-            if (isWms) {
-                if (nd.source.wms_source == "osm") {
-                    /* OpenStreetMap layer */
-                    layer = magic.modules.Endpoints.getMidLatitudeCoastLayer();
-                    layer.set("metadata", nd);
-                } else if (isSingleTile) {
-                    /* Render point layers with a single tile for labelling free of tile boundary effects */
-                    var wmsSource = new ol.source.ImageWMS(({
-                        url: nd.source.wms_source,
-                        params: {
-                            "LAYERS": nd.source.feature_name,
-                            "STYLES": nd.source.style_name ? (nd.source.style_name == "default" ? "" : nd.source.style_name) : ""
-                        },
-                        projection: proj
-                    }));
-                    layer = new ol.layer.Image({
-                        name: name,
-                        visible: isVisible,
-                        opacity: nd.opacity || 1.0,
-                        metadata: nd,
-                        source: wmsSource,
-                        minResolution: minRes,
-                        maxResolution: maxRes
-                    });                    
-                } else {
-                    /* Non-point layer */
-                    var wmsVersion = "1.3.0";
-                    var wmsSource = new ol.source.TileWMS({
-                        url: nd.source.wms_source,
-                        params: {
-                            "LAYERS": nd.source.feature_name,
-                            "STYLES": nd.source.style_name ? (nd.source.style_name == "default" ? "" : nd.source.style_name) : "",
-                            "TRANSPARENT": true,
-                            "CRS": proj.getCode(),
-                            "SRS": proj.getCode(),
-                            "VERSION": wmsVersion,
-                            "TILED": true
-                        },
-                        tileGrid: new ol.tilegrid.TileGrid({
-                            resolutions: magic.runtime.viewdata.resolutions,
-                            origin: proj.getExtent().slice(0, 2)
-                        }),
-                        projection: proj
-                    });
-                    layer = new ol.layer.Tile({
-                        name: name,
-                        visible: isVisible,
-                        opacity: nd.opacity || 1.0,
-                        minResolution: minRes,
-                        maxResolution: maxRes,
-                        metadata: nd,
-                        source: wmsSource
-                    });
-                }
-                this.layersBySource[isBase ? "base" : "wms"].push(layer);                                
-            } else if (nd.source.geojson_source) {
-                /* GeosJSON layer */
-                var labelRotation = nd.source.feature_name ? 0.0 : -magic.runtime.viewdata.rotation;
-                var format = new ol.format.GeoJSON();
-                var url = nd.source.geojson_source;
-                if (nd.source.feature_name) {                           
-                    /* WFS */
-                    url += "?service=wfs&request=getfeature&outputFormat=application/json&" + 
-                        "typename=" + nd.source.feature_name + "&" + 
-                        "srsname=" + (nd.source.srs || "EPSG:4326");                    
-                }
-                var vectorSource = new ol.source.Vector({
-                    format: format,
-                    url: magic.modules.Common.proxyUrl(url)
-                });
-                layer = new ol.layer.Vector({
-                    name: nd.name,
-                    visible: isVisible,
-                    source: vectorSource,
-                    style: this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map), labelRotation),
-                    metadata: nd,
-                    minResolution: minRes,
-                    maxResolution: maxRes
-                });
-                this.layersBySource["geojson"].push(layer);
-            } else if (nd.source.gpx_source) {
-                /* GPX layer */
-                var labelRotation = -magic.runtime.viewdata.rotation;
-                layer = new ol.layer.Image({
-                    name: nd.name,
-                    visible: isVisible,
-                    metadata: nd,    
-                    source: new ol.source.ImageVector({
-                        source: new ol.source.Vector({
-                            format: new ol.format.GPX({readExtensions: function(f, enode){
-                                //console.log(f);
-                                //console.log(enode);
-                                try {
-                                    var json = xmlToJSON.parseString(enode.outerHTML.trim());
-                                    if ("extensions" in json && jQuery.isArray(json.extensions) && json.extensions.length == 1) {
-                                        var eo = json.extensions[0];
-                                        for (var eok in eo) {
-                                            if (eok.indexOf("_") != 0) {
-                                                if (jQuery.isArray(eo[eok]) && eo[eok].length == 1) {
-                                                    var value = eo[eok][0]["_text"];
-                                                    f.set(eok, value, true);
-                                                }
-                                            }
-                                        }
-                                    }
-                                } catch (e) {
-                                    //console.log("Failed to parse extension node");
-                                }
-                                return(f);
-                            }}),
-                            url: magic.modules.Common.proxyUrl(nd.source.gpx_source)
-                        }),
-                        style: this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map), labelRotation)
-                    }),
-                    minResolution: minRes,
-                    maxResolution: maxRes
-                });
-                this.layersBySource["gpx"].push(layer);
-            } else if (nd.source.kml_source) {
-                /* KML source */
-                var labelRotation = -magic.runtime.viewdata.rotation;
-                var kmlStyle = this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map), labelRotation);
-                layer = new ol.layer.Image({
-                    name: nd.name,
-                    visible: isVisible,
-                    metadata: nd,
-                    source: new ol.source.ImageVector({
-                        source: new ol.source.Vector({
-                            format: new ol.format.KML({
-                                extractStyles: false,
-                                showPointNames: false
-                            }),
-                            url: magic.modules.Common.proxyUrl(nd.source.kml_source)
-                        }),
-                        style: kmlStyle
-                    }),
-                    minResolution: minRes,
-                    maxResolution: maxRes
-                });
-                this.layersBySource["kml"].push(layer);
-            }
-            nd.layer = layer;
-            this.nodeLayerTranslation[nd.id] = layer;
-            if (refreshRate > 0) {
-                setInterval(jQuery.proxy(this.refreshLayer, this), 1000*60*refreshRate, layer);
-            }
+            this.addDataNode(nd, element);            
         }
     }, this));
+};
+
+/**
+ * Create layer corresponding to a data node
+ * @param {object} nd
+ */
+magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
+    var cb;
+    var isWms = "wms_source" in nd.source;
+    var isSingleTile = isWms ? nd.source.is_singletile === true : false;
+    var isBase = isWms ? nd.source.is_base === true : false;
+    var isInteractive = nd.is_interactive === true;
+    var refreshRate = nd.refresh_rate || 0;
+    var name = nd.name, /* Save name as we may insert ellipsis into name text for presentation purposes */
+            ellipsisName = magic.modules.Common.ellipsis(nd.name, 30),
+            infoTitle = "Get layer legend/metadata",
+            nameSpan = ellipsisName;
+    if (name != ellipsisName) {
+        /* Tooltip to give the full version of any shortened name */
+        nameSpan = '<span data-toggle="tooltip" data-placement="top" title="' + name + '">' + ellipsisName + '</span>';
+    }
+    /* Determine visibility */
+    var isVisible = nd.is_visible;
+    if (magic.runtime.search && magic.runtime.search.visible && magic.runtime.search.visible[name]) {
+        isVisible = magic.runtime.search.visible[name];
+    }
+    if (isBase) {
+        cb = '<input class="layer-vis-selector" name="base-layers-rb" id="base-layer-rb-' + nd.id + '" type="radio" ' + (isVisible ? "checked" : "") + '/>';
+    } else {
+        cb = '<input class="layer-vis-selector" id="layer-cb-' + nd.id + '" type="checkbox" ' + (isVisible ? "checked" : "") + '/>';
+    }           
+    element.append(
+            '<li class="list-group-item layer-list-group-item" id="layer-item-' + nd.id + '">' +
+                '<span style="float:left">' +
+                    '<span id="layer-info-' + nd.id + '" ' +
+                    'class="fa fa-info-circle' + (isInteractive ? ' clickable' : ' non-clickable') + '" ' +
+                    'data-toggle="tooltip" data-placement="right" data-html="true" ' +
+                    'title="' + (isInteractive ? infoTitle + "<br />Click on map features for info" : infoTitle) + '" ' +
+                    'style="cursor:pointer">' +
+                    '</span>' +
+                    cb +
+                    '<a href="Javascript:void(0)">' + 
+                        '<span id="layer-filter-badge-' + nd.id + '" class="badge filter-badge hidden" ' + 
+                        'data-toggle="tooltip" data-placement="right" title="">filter</span>' +
+                    '</a>' + 
+                    nameSpan +
+                '</span>' +
+                '<span style="float:right">' +
+                    '<a class="layer-tool" id="layer-opts-' + nd.id + '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
+                        '<span class="fa fa-bars"></span><b class="caret"></b>' +
+                    '</a>' +
+                    '<ul id="layer-opts-dm-' + nd.id + '" aria-labelled-by="layer-opts-' + nd.id + '" class="dropdown-menu dropdown-menu-right">' +
+                    '</ul>' +
+                '</span>' +
+            '</li>'
+            );            
+    /* Create a data layer */
+    var layer = null;
+    var proj = magic.runtime.viewdata.projection;            
+    /* Get min/max resolution */  
+    var minRes = undefined, maxRes = undefined;
+    if (!(nd.source.wms_source && nd.source.wms_source == "osm")) {
+        if (magic.runtime.viewdata.resolutions) {
+            minRes = magic.runtime.viewdata.resolutions[magic.runtime.viewdata.resolutions.length-1];
+            maxRes = magic.runtime.viewdata.resolutions[0]+1;   /* Note: OL applies this one exclusively, whereas minRes is inclusive - duh! */  
+            if (jQuery.isNumeric(nd.minScale)) {
+                minRes = magic.modules.GeoUtils.getResolutionFromScale(nd.min_scale);
+            }
+            if (jQuery.isNumeric(nd.maxScale)) {
+                maxRes = magic.modules.GeoUtils.getResolutionFromScale(nd.max_scale);
+            }
+        }
+    }
+    if (isWms) {
+        if (nd.source.wms_source == "osm") {
+            /* OpenStreetMap layer */
+            layer = magic.modules.Endpoints.getMidLatitudeCoastLayer();
+            layer.set("metadata", nd);
+        } else if (isSingleTile) {
+            /* Render point layers with a single tile for labelling free of tile boundary effects */
+            var wmsSource = new ol.source.ImageWMS(({
+                url: nd.source.wms_source,
+                params: {
+                    "LAYERS": nd.source.feature_name,
+                    "STYLES": nd.source.style_name ? (nd.source.style_name == "default" ? "" : nd.source.style_name) : ""
+                },
+                projection: proj
+            }));
+            layer = new ol.layer.Image({
+                name: name,
+                visible: isVisible,
+                opacity: nd.opacity || 1.0,
+                metadata: nd,
+                source: wmsSource,
+                minResolution: minRes,
+                maxResolution: maxRes
+            });                    
+        } else {
+            /* Non-point layer */
+            var wmsVersion = "1.3.0";
+            var wmsSource = new ol.source.TileWMS({
+                url: nd.source.wms_source,
+                params: {
+                    "LAYERS": nd.source.feature_name,
+                    "STYLES": nd.source.style_name ? (nd.source.style_name == "default" ? "" : nd.source.style_name) : "",
+                    "TRANSPARENT": true,
+                    "CRS": proj.getCode(),
+                    "SRS": proj.getCode(),
+                    "VERSION": wmsVersion,
+                    "TILED": true
+                },
+                tileGrid: new ol.tilegrid.TileGrid({
+                    resolutions: magic.runtime.viewdata.resolutions,
+                    origin: proj.getExtent().slice(0, 2)
+                }),
+                projection: proj
+            });
+            layer = new ol.layer.Tile({
+                name: name,
+                visible: isVisible,
+                opacity: nd.opacity || 1.0,
+                minResolution: minRes,
+                maxResolution: maxRes,
+                metadata: nd,
+                source: wmsSource
+            });
+        }
+        layer.setZIndex(isBase ? 0 : 50);
+        this.layersBySource[isBase ? "base" : "wms"].push(layer);                                
+    } else if (nd.source.geojson_source) {
+        /* GeosJSON layer */
+        var labelRotation = nd.source.feature_name ? 0.0 : -magic.runtime.viewdata.rotation;
+        var format = new ol.format.GeoJSON();
+        var url = nd.source.geojson_source;
+        if (nd.source.feature_name) {                           
+            /* WFS */
+            url += "?service=wfs&request=getfeature&outputFormat=application/json&" + 
+                "typename=" + nd.source.feature_name + "&" + 
+                "srsname=" + (nd.source.srs || "EPSG:4326");                    
+        }
+        var vectorSource = new ol.source.Vector({
+            format: format,
+            url: magic.modules.Common.proxyUrl(url)
+        });
+        layer = new ol.layer.Vector({
+            name: nd.name,
+            visible: isVisible,
+            source: vectorSource,
+            style: this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map), labelRotation),
+            metadata: nd,
+            minResolution: minRes,
+            maxResolution: maxRes
+        });
+        layer.setZIndex(200);
+        this.layersBySource["geojson"].push(layer);
+    } else if (nd.source.gpx_source) {
+        /* GPX layer */
+        var labelRotation = -magic.runtime.viewdata.rotation;
+        layer = new ol.layer.Image({
+            name: nd.name,
+            visible: isVisible,
+            metadata: nd,    
+            source: new ol.source.ImageVector({
+                source: new ol.source.Vector({
+                    format: new ol.format.GPX({readExtensions: function(f, enode){                       
+                        try {
+                            var json = xmlToJSON.parseString(enode.outerHTML.trim());
+                            if ("extensions" in json && jQuery.isArray(json.extensions) && json.extensions.length == 1) {
+                                var eo = json.extensions[0];
+                                for (var eok in eo) {
+                                    if (eok.indexOf("_") != 0) {
+                                        if (jQuery.isArray(eo[eok]) && eo[eok].length == 1) {
+                                            var value = eo[eok][0]["_text"];
+                                            f.set(eok, value, true);
+                                        }
+                                    }
+                                }
+                            }
+                        } catch (e) {
+                        }
+                        return(f);
+                    }}),
+                    url: magic.modules.Common.proxyUrl(nd.source.gpx_source)
+                }),
+                style: this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map), labelRotation)
+            }),
+            minResolution: minRes,
+            maxResolution: maxRes
+        });
+        layer.setZIndex(200);
+        this.layersBySource["gpx"].push(layer);
+    } else if (nd.source.kml_source) {
+        /* KML source */
+        var labelRotation = -magic.runtime.viewdata.rotation;
+        var kmlStyle = this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map), labelRotation);
+        layer = new ol.layer.Image({
+            name: nd.name,
+            visible: isVisible,
+            metadata: nd,
+            source: new ol.source.ImageVector({
+                source: new ol.source.Vector({
+                    format: new ol.format.KML({
+                        extractStyles: false,
+                        showPointNames: false
+                    }),
+                    url: magic.modules.Common.proxyUrl(nd.source.kml_source)
+                }),
+                style: kmlStyle
+            }),
+            minResolution: minRes,
+            maxResolution: maxRes
+        });
+        layer.setZIndex(200);
+        this.layersBySource["kml"].push(layer);
+    }
+    nd.layer = layer;
+    this.nodeLayerTranslation[nd.id] = layer;
+    if (refreshRate > 0) {
+        setInterval(jQuery.proxy(this.refreshLayer, this), 1000*60*refreshRate, layer);
+    }
+};
+
+/**
+ * Fetch the data for all autoload layers
+ */
+magic.classes.LayerTree.prototype.initAutoLoadGroups = function() {
+    $.each(this.autoloadGroups, function(grpid, grpftr) {
+        jQuery.ajax({
+            url: magic.config.paths.baseurl + "/gs/layers/filter/" + grpftr, 
+            method: "GET",
+            dataType: "json",
+            contentType: "application/json"
+        }).done(jQuery.proxy(function(data) {
+            if (jQuery.isArray(data)) {
+                for (var i = 0; i < data.length; i++) {
+                    var fname = data[i];
+                    jQuery.ajax({
+                        url: magic.config.paths.baseurl + "/gs/attributes/" + fname, 
+                        method: "GET",
+                        dataType: "json",
+                        contentType: "application/json"
+                    }).done(jQuery.proxy(function(attrData) {
+                                   
+                    }, this));
+                }
+            }                   
+        }, this)).fail(jQuery.proxy(function(xhr) {
+            bootbox.alert(
+                '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                    '<p>' + JSON.parse(xhr.responseText)["detail"] + '</p>' + 
+                '</div>'
+            );
+        }, this));
+    });
 };
 
 /**

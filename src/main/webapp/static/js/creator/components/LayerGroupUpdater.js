@@ -10,7 +10,9 @@ magic.classes.creator.LayerGroupUpdater = function(prefix) {
         {"field": "id", "default": ""},
         {"field": "name", "default": ""},
         {"field": "expanded", "default": false},
-        {"field": "base", "default": false}
+        {"field": "base", "default": false},
+        {"field": "autoload", "default": false},
+        {"field": "autoload_filter", "default": ""}    
     ];   
     
     /* Context object */
@@ -41,7 +43,12 @@ magic.classes.creator.LayerGroupUpdater = function(prefix) {
         if (this.data) {
             this.confirmDeleteEntry(this.data.id, "Really delete group : " + this.data.name + "?");
         }
-    }, this));    
+    }, this));
+    
+    /* Add handler for autoload checkbox click */
+    jQuery("#" + this.prefix + "-autoload").change(function(evt) {
+        jQuery("#" + evt.currentTarget.id + "_filter").closest("div.form-group").toggleClass("hidden");
+    });
             
 };
 
@@ -53,11 +60,23 @@ magic.classes.creator.LayerGroupUpdater.prototype.loadContext = function(context
     /* Disable delete button if the group has any sub-layers or groups */
     jQuery("#" + this.prefix + "-delete").prop("disabled", jQuery("#" + this.data.id).find("ul").find("li").length > 0);
     
+    /* Display the filter input if the autoload checkbox is ticked */
+    var alFilterDiv = jQuery("#" + this.prefix + "-autoload_filter").closest("div.form-group");
+    if (this.data["autoload"]) {
+        alFilterDiv.removeClass("hidden").addClass("show");
+    } else {
+        alFilterDiv.removeClass("show").addClass("hidden");
+    }
+    
     /* Populate form snippet from data */
     magic.modules.creator.Common.dictToForm(this.form_fields, this.data, this.prefix);            
 };
 
 magic.classes.creator.LayerGroupUpdater.prototype.saveContext = function() {
+    if (!jQuery("#" + this.prefix + "-autoload").prop("checked")) {
+        /* Nullify the filter string if the autoload box is not ticked, so we don't save a spurious value */
+        jQuery("#" + this.prefix + "-autoload_filter").val("");
+    }
     magic.modules.creator.Common.formToDict(this.form_fields, this.data, this.prefix);           
 };
 

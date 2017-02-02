@@ -74,6 +74,10 @@ magic.classes.AppContainer = function () {
         target: "map",
         view: magic.runtime.view
     });
+    
+    magic.runtime.map.getLayers().forEach(function(lyr, idx) {
+        console.log("Layer " + lyr.get("name") + " at z-index " + lyr.getZIndex());
+    });
 
     /* List of interactive map tools, to ensure only one can listen to map clicks/pointer moves at any one time */
     magic.runtime.map_interaction_tools = [];

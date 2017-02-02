@@ -576,6 +576,11 @@ magic.modules.Common = function () {
             }
             
             if (typeof value == "string") {
+                
+                if (value.indexOf("<a") != -1) {
+                    /* Already deemed to be linkified - don't try again! */
+                    return(value);
+                }
 
                 /* http://, https://, ftp:// */
                 var urlPattern = /\b(?:https?|ftp):\/\/[a-z0-9-+&@#\/%?=~_|!:,.;]*[a-z0-9-+&@#\/%=~_|]/gim;

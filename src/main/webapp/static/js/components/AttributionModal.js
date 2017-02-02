@@ -17,7 +17,7 @@ magic.classes.AttributionModal = function(options) {
         {name: "bboxsrs", caption: "Bounds (SRS)", type: "text"},
         {name: "bboxwgs84", caption: "Bounds (WGS84)", type: "text"},
         {name: "attribution", caption: "Attribution", type: "text"},
-        {name: "metadataurl", caption: "Metadata URL", type: "text"}        
+        {name: "metadataurl", caption: "Metadata URL", type: "text"}
     ];
     var attributionMarkup = jQuery("#attribution-modal");
     if (attributionMarkup.length == 0) {
@@ -227,7 +227,7 @@ magic.classes.AttributionModal.prototype.populateRecordWms = function(getCaps, f
         }
         /* Read WMS feed */
         var wmsSource = this.layer.get("metadata")["source"]["wms_source"];
-        rec["wms"] = wmsSource + "?" + 
+        rec["wmsfeed"] = wmsSource + "?" + 
             "SERVICE=WMS&" + 
             "VERSION=1.3.0&" + 
             "REQUEST=GetMap&" + 
@@ -297,7 +297,7 @@ magic.classes.AttributionModal.prototype.tabulate = function(rec) {
                 if (mf.type == "long_text") {
                     content += '<tr><td colspan="2" class="metadata" style="background-color: inherit">' + heading + '<div>' + magic.modules.Common.linkify(value) + '</div></td></tr>';
                 } else {
-                    content += '<tr><td valign="top" style="width:120px">' + heading + '</td><td class="metadata" style="width:270px">' + value + '</td></tr>';
+                    content += '<tr><td valign="top" style="width:120px">' + heading + '</td><td class="metadata" style="width:270px">' + magic.modules.Common.linkify(value) + '</td></tr>';
                 }                
             }
         }, this));

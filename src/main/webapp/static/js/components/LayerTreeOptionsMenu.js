@@ -15,10 +15,20 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
             '<a href="Javascript:void(0)" id="ztl-' + this.nodeid + '">Zoom to layer extent</a>' + 
         '</li>' + 
         '<li>' + 
+            '<a href="Javascript:void(0)" id="sty-' + this.nodeid + '">Apply alternate style</a>' +
+            '<div class="layer-options-dd-entry hidden" id="wrapper-sty-' + this.nodeid + '">' + 
+                '<form class="form-inline">' + 
+                    '<div class="form-group form-group-sm col-sm-12">' + 
+                        '<select class="form-control" id="sty-alts-' + this.nodeid +'"></select>' + 
+                    '</div>' + 
+                '</form>' + 
+            '</div>' + 
+        '</li>' + 
+        '<li>' + 
             '<a href="Javascript:void(0)" id="ftr-' + this.nodeid + '">Filter by attribute</a>' +
             '<div class="hidden" id="wrapper-ftr-' + this.nodeid + '">' +                                    
             '</div>' + 
-        '</li>' + 
+        '</li>' +         
         '<li>' + 
             '<a href="Javascript:void(0)" id="opc-' + this.nodeid + '">Change layer transparency</a>' + 
             '<div class="layer-options-dd-entry layer-options-slider hidden" id="wrapper-opc-' + this.nodeid + '">' + 
@@ -47,10 +57,8 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
     if (this.layer) {
         /* Add handlers */
 
-        /* Zoom to layer extent */
-        var md = this.layer.get("metadata");
-        var layerVis = this.layer.getVisible();
-        if (layerVis && !(md && md.source && md.source.wms_source == "osm")) {
+        /* Zoom to layer extent */        
+        if (this.canZoomToExtent()) {
             /* Layer is visible on the map, and this is not an OSM layer */        
             jQuery("#ztl-" + this.nodeid).off("click").on("click", jQuery.proxy(this.zoomToExtent, this));        
         } else {
@@ -58,8 +66,22 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
             jQuery("#ztl-" + this.nodeid).parent().addClass("disabled");
         }
         
+        /* Apply an alternate style */
+        if (this.canApplyAlternateStyles()) {
+            /* Layer is visible on the map, and this is a non-OSM WMS layer */        
+            jQuery("#sty-" + this.nodeid).off("click").on("click", jQuery.proxy(function(evt) {
+                evt.stopPropagation();
+                /* Allow clicking on the inputs without the dropdown going away */
+                jQuery(evt.currentTarget).next("div").find("form").click(function(evt2) {evt2.stopPropagation()});
+                this.applyAlternateStyle();
+            }, this));
+        } else {
+            /* Layer invisible (or OSM/non-WMS), so option is unavailable */
+            jQuery("#sty-" + this.nodeid).parent().addClass("disabled");
+        }
+        
         /* Filter layer */
-        if (layerVis && md && md.is_filterable === true && jQuery.isArray(md.attribute_map)) {
+        if (this.canFilter()) {
             jQuery("#ftr-" + this.nodeid).off("click").on("click", jQuery.proxy(function(evt) {
                 evt.stopPropagation();
                 new magic.classes.LayerFilter({               
@@ -71,10 +93,10 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
         } else {
             /* Hide filter link for layer where it isn't possible */
             jQuery("#ftr-" + this.nodeid).parent().addClass("disabled");        
-        }
+        }                
         
         /* Time series movie player, if layer supports the time dimension */
-        if (layerVis && md && md.source && md.source.is_time_dependent === true) {
+        if (this.canViewTimeSeries()) {
             jQuery(".tooltip").attr("container", "body");
             jQuery("#tss-" + this.nodeid).off("click").on("click", jQuery.proxy(function(evt) {
                 evt.stopPropagation();
@@ -178,7 +200,7 @@ magic.classes.LayerTreeOptionsMenu.prototype.zoomToWmsExtent = function(caps, fe
 };
 
 /**
- * Extract a layer extent in the map SRS
+ * Zoom to a layer extent in the map SRS
  */
 magic.classes.LayerTreeOptionsMenu.prototype.zoomToExtent = function() {
     var md = this.layer.get("metadata");
@@ -204,4 +226,79 @@ magic.classes.LayerTreeOptionsMenu.prototype.zoomToExtent = function() {
         /* Default to projection extent */
         magic.runtime.map.getView().fit(magic.runtime.viewdata.proj_extent, magic.runtime.map.getSize());
     }   
+};
+
+/**
+ * Extract and offer a list of alternate styles for a layer
+ */
+magic.classes.LayerTreeOptionsMenu.prototype.applyAlternateStyle = function() {
+    var choices = jQuery("#sty-alts-" + this.nodeid);
+    var wrapperDiv = jQuery("#wrapper-sty-" + this.nodeid);
+    wrapperDiv.toggleClass("hidden");
+    var feature = null;
+    try {
+        feature = this.layer.get("metadata").source.feature_name;
+    } catch(e) {}
+    if (feature != null) {
+        jQuery.ajax({
+            url: magic.config.paths.baseurl + "/gs/styles/" + feature, 
+            method: "GET",
+            dataType: "json",
+            contentType: "application/json"
+        }).done(jQuery.proxy(function(data) {
+            if (data.styles && typeof data.styles == "object" && jQuery.isArray(data.styles.style)) {
+                if (data.styles.style.length > 0) {
+                    magic.modules.Common.populateSelect(choices, data.styles.style, "name", "name", false);
+                    choices.change(jQuery.proxy(function(evt) {
+                        this.layer.getSource().updateParams(jQuery.extend({}, 
+                            this.layer.getSource().getParams(), 
+                            {"STYLES": choices.val()}
+                        ));
+                    }, this));
+                } else {
+                    magic.modules.Common.populateSelect(choices, [{"name": "Default only"}], "name", "name", false);
+                }
+            } else {
+                magic.modules.Common.populateSelect(choices, [{"name": "Default only"}], "name", "name", false);
+            }                                       
+        }, this)).fail(jQuery.proxy(function(xhr) {
+            magic.modules.Common.populateSelect(choices, [{"name": JSON.parse(xhr.responseText)["detail"]}], "name", "name", false);                
+        }, this));
+    }
+};
+
+/**
+ * Determine if zoom to layer extent is possible (ok for all visible non-OSM layers)
+ * @return {Boolean}
+ */
+magic.classes.LayerTreeOptionsMenu.prototype.canZoomToExtent = function() {
+    var md = this.layer.get("metadata");
+    return(this.layer.getVisible() && !(md && md.source && md.source.wms_source == "osm"));
+};
+
+/**
+ * Determine if applying an alternate style is possible (ok for all visible non-OSM WMS layers)
+ * @return {Boolean}
+ */
+magic.classes.LayerTreeOptionsMenu.prototype.canApplyAlternateStyles = function() {
+    var md = this.layer.get("metadata");
+    return(this.layer.getVisible() && md && md.source && md.source.wms_source && md.source.wms_source != "osm");
+};
+
+/**
+ * Determine if filtering a layer by attribute is possible (ok for all visible layers specifically tagged as filterable in metadata)
+ * @return {Boolean}
+ */
+magic.classes.LayerTreeOptionsMenu.prototype.canFilter = function() {
+    var md = this.layer.get("metadata");
+    return(this.layer.getVisible() && md && md.is_filterable === true && jQuery.isArray(md.attribute_map));
+};
+
+/**
+ * Determine if viewing a layer time series is possible (ok for all visible layers specifically tagged as time-dependent in metadata)
+ * @return {Boolean}
+ */
+magic.classes.LayerTreeOptionsMenu.prototype.canViewTimeSeries = function() {
+    var md = this.layer.get("metadata");
+    return(this.layer.getVisible() && md && md.source && md.source.is_time_dependent === true);
 };

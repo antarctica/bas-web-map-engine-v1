@@ -290,6 +290,14 @@
                                         "description": "If this is a base layer group (layer tree will enable radio button selection)",
                                         "type": "boolean"
                                     },
+                                    "autoload": {
+                                        "description": "Load layers from local Geoserver whose names contain the following filter string",
+                                        "type": "boolean"
+                                    },
+                                    "autoload_filter": {
+                                        "description": "Autoload filter string",
+                                        "type": "string"
+                                    },
                                     "layers": {
                                         "type": "array",
                                         "$ref": "layer_array",
