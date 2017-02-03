@@ -526,8 +526,8 @@ magic.classes.LayerTree.prototype.initAutoLoadGroups = function(map) {
     var defaultNodeAttrs = {
         legend_graphic: null,
         refresh_rate: 0,
-        min_scale: null,
-        max_scale: null,
+        min_scale: 1,
+        max_scale: 50000000,
         opacity: 1.0,
         is_visible: false,
         is_interactive: false,
@@ -572,7 +572,7 @@ magic.classes.LayerTree.prototype.initAutoLoadGroups = function(map) {
                         nd.is_interactive = grpo.popups === true;
                         if (jQuery.isArray(nd.attribute_map)) {
                             for (var j = 0; j < nd.attribute_map.length; j++) {
-                                nd.attribute_map = jQuery.extend({}, nd.attribute_map, defaultAttributeAttrs);
+                                nd.attribute_map[j] = jQuery.extend({}, nd.attribute_map[j], defaultAttributeAttrs);
                             }
                             /* Should now have a node from which to create a WMS layer */
                             this.addDataNode(nd, element);
@@ -580,11 +580,7 @@ magic.classes.LayerTree.prototype.initAutoLoadGroups = function(map) {
                         } else {
                             nd.is_interactive = false;
                         }
-                        if (map) {
-                            console.log(nd);
-                            console.log(nd.layer.get("name"));
-                            console.log(nd.layer.getZIndex());
-                            console.log(map);
+                        if (map) {                            
                             map.addLayer(nd.layer);
                         }
                     }

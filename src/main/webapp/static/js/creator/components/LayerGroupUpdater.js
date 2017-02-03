@@ -90,9 +90,9 @@ magic.classes.creator.LayerGroupUpdater.prototype.saveContext = function() {
  * Validate form inputs
  */
 magic.classes.creator.LayerGroupUpdater.prototype.validate = function() {    
-    var ok = jQuery("#t2-group-form")[0].checkValidity();
+    var ok = jQuery("#" + this.prefix + "-form")[0].checkValidity();
     /* Indicate invalid fields */
-    jQuery.each(jQuery("#t2-group-form").find("input"), function(idx, ri) {
+    jQuery.each(jQuery("#" + this.prefix + "-form").find("input"), function(idx, ri) {
         var riEl = jQuery(ri);
         var fg = riEl.closest("div.form-group");
         var vState = riEl.prop("validity");
@@ -102,6 +102,18 @@ magic.classes.creator.LayerGroupUpdater.prototype.validate = function() {
             fg.removeClass("has-success").addClass("has-error");
         }
     });
+    if (ok) {
+        /* Check filter is specified if autoload box is ticked */
+        if (jQuery("#" + this.prefix + "-autoload").is(":checked")) {
+            var filterInput = jQuery("#" + this.prefix + "-autoload_filter");
+            if (!filterInput.val()) {                
+                filterInput.closest("div.form-group").removeClass("hidden has-success").addClass("show has-error");
+                ok = false;
+            } else {
+                filterInput.closest("div.form-group").removeClass("has-error").addClass("has-success");
+            }            
+        }
+    }
     return(ok);
 };
 
