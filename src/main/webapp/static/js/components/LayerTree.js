@@ -23,6 +23,9 @@ magic.classes.LayerTree = function (target, embedded) {
     /* Groups which require an autoload (keyed by uuid) */
     this.autoloadGroups = {};
     
+    /* Z-index stacking (used to insert autoload WMS groups in the right place) */
+    this.zIndexWmsStack = 0;
+    
     var targetElement = jQuery("#" + this.target);
     /* Layer search form */
     targetElement.append(
@@ -217,7 +220,11 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
             this.initTree(nd.layers, jQuery("#layer-group-" + nd.id), depth + 1);
             if (nd.autoload === true) {
                 /* Layers to be autoloaded from local server later */
-                this.autoloadGroups[nd.id] = nd.autoload_filter;
+                this.autoloadGroups[nd.id] = {
+                    filter: nd.autoload_filter,
+                    insert: this.zIndexWmsStack
+                };
+                this.zIndexWmsStack++;  /* Make an insert point for the auto layers */
             }
         } else {
             /* Style a data node */
@@ -351,7 +358,8 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                 source: wmsSource
             });
         }
-        layer.setZIndex(isBase ? 0 : 50);
+        layer.setZIndex(isBase ? 0 : this.zIndexWmsStack);
+        this.zIndexWmsStack++;
         this.layersBySource[isBase ? "base" : "wms"].push(layer);                                
     } else if (nd.source.geojson_source) {
         /* GeosJSON layer */
@@ -450,34 +458,75 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
  * Fetch the data for all autoload layers
  */
 magic.classes.LayerTree.prototype.initAutoLoadGroups = function() {
-    $.each(this.autoloadGroups, function(grpid, grpftr) {
-        jQuery.ajax({
-            url: magic.config.paths.baseurl + "/gs/layers/filter/" + grpftr, 
-            method: "GET",
-            dataType: "json",
-            contentType: "application/json"
-        }).done(jQuery.proxy(function(data) {
-            if (jQuery.isArray(data)) {
-                for (var i = 0; i < data.length; i++) {
-                    var fname = data[i];
-                    jQuery.ajax({
-                        url: magic.config.paths.baseurl + "/gs/attributes/" + fname, 
-                        method: "GET",
-                        dataType: "json",
-                        contentType: "application/json"
-                    }).done(jQuery.proxy(function(attrData) {
-                                   
-                    }, this));
-                }
-            }                   
-        }, this)).fail(jQuery.proxy(function(xhr) {
-            bootbox.alert(
-                '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                    '<p>' + JSON.parse(xhr.responseText)["detail"] + '</p>' + 
-                '</div>'
-            );
-        }, this));
-    });
+    var defaultNodeAttrs = {
+        legend_graphic: null,
+        refresh_rate: 0,
+        min_scale: null,
+        max_scale: null,
+        opacity: 1.0,
+        is_visible: false,
+        is_interactive: true,
+        is_filterable: false        
+    };
+    var defaultSourceAttrs = {
+        style_name: null,
+        is_base: false,
+        is_singletile: false,
+        is_dem: false,
+        is_time_dependent: false
+    };
+    var defaultAttributeAttrs = {
+        displayed: true,
+        nillable: true,
+        filterable: false,
+        alias: "",
+        ordinal: j+1,
+        unique_values: false
+    };
+    var autoloadLayers = [];
+    $.each(this.autoloadGroups, jQuery.proxy(function(grpid, grpo) {
+        var element = jQuery("layer-group-" + grpid);
+        if (element.length > 0) {
+            jQuery.ajax({
+                url: magic.config.paths.baseurl + "/gs/layers/filter/" + grpo.filter, 
+                method: "GET",
+                dataType: "json",
+                contentType: "application/json"
+            }).done(jQuery.proxy(function(data) {
+                if (jQuery.isArray(data)) {
+                    for (var i = 0; i < data.length; i++) {
+                        var nd = jQuery.extend({}, {
+                            id: magic.modules.Common.uuid(),
+                            geom_type: data[i].geom_type,
+                            attribute_map: data[i].attribute_map
+                        }, defaultNodeAttrs);
+                        nd.source = jQuery.extend({}, {
+                            wms_source: data[i].wms_source, 
+                            feature_name: data[i].feature_name
+                        }, defaultSourceAttrs);
+                        if (jQuery.isArray(nd.attribute_map)) {
+                            for (var j = 0; j < nd.attribute_map.length; j++) {
+                                nd.attribute_map = jQuery.extend({}, nd.attribute_map, defaultAttributeAttrs);
+                            }
+                            /* Should now have a node from which to create a WMS layer */
+                            this.addDataNode(nd, element);
+                            nd.layer.setZIndex(grpo.insert);
+                            autoloadLayers.push(nd.layer);
+                        } else {
+                            nd.is_interactive = false;
+                        }
+                    }
+                }                   
+            }, this)).fail(jQuery.proxy(function(xhr) {
+                bootbox.alert(
+                    '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                        '<p>' + JSON.parse(xhr.responseText)["detail"] + '</p>' + 
+                    '</div>'
+                );
+            }, this));
+        }
+    }, this));
+    return(autoloadLayers);
 };
 
 /**

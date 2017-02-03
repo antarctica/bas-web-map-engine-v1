@@ -286,6 +286,12 @@ magic.classes.AppContainer = function () {
             magic.modules.Common.labelVisibility(magic.runtime.highlighted[0].feature, magic.runtime.highlighted[0].layer, true, fcount);
         }
     });
+    
+    /* Add all the autoload layers to the map */
+    jQuery.each(magic.runtime.layertree.initAutoLoadGroups(), function(idx, lyr) {
+        magic.runtime.map.addLayer(lyr);
+    });
+    
 };
 
 /**

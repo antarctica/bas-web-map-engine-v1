@@ -4,15 +4,7 @@
 
 package uk.ac.antarctica.mapengine.controller;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
-import it.geosolutions.geoserver.rest.GeoServerRESTReader;
 import it.geosolutions.geoserver.rest.HTTPUtils;
-import it.geosolutions.geoserver.rest.decoder.RESTFeatureType;
-import it.geosolutions.geoserver.rest.decoder.RESTLayer;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -177,126 +169,6 @@ public class ProxyController {
             env.getProperty("redmine.local.password")
         );
         IOUtils.copy(IOUtils.toInputStream(content), response.getOutputStream());         
-    }
-    
-    /**
-     * Proxy Geoserver REST API call to get filtered list of layers
-     * @param HttpServletRequest request,
-     * @param String filter
-     * @return
-     * @throws ServletException
-     * @throws IOException
-     */
-    @RequestMapping(value = "/gs/layers/filter/{filter}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
-    @ResponseBody
-    public void geoserverFilteredLayerList(HttpServletRequest request, HttpServletResponse response, @PathVariable("filter") String filter)
-        throws ServletException, IOException, ServiceException {
-        String content = HTTPUtils.get(
-            env.getProperty("geoserver.local.url") + "/rest/layers.json", 
-            env.getProperty("geoserver.local.username"), 
-            env.getProperty("geoserver.local.password")
-        );
-        if (content == null) { 
-            content = "{layers: []}";
-        } else {
-            /* Filter layer list */
-            JsonObject layerContainer = (JsonObject)new JsonParser().parse(content);
-            JsonObject layers = layerContainer.getAsJsonObject("layers");
-            if (layers != null) {
-                JsonArray layerList = layers.getAsJsonArray("layer");
-                if (layerList != null) {
-                    JsonArray filteredList = new JsonArray();
-                    String lcFilter = filter.toLowerCase();
-                    for (int i = 0; i < layerList.size(); i++) {
-                        JsonObject layerData = (JsonObject)layerList.get(i);
-                        String name = layerData.getAsJsonPrimitive("name").getAsString();
-                        if (name != null && name.toLowerCase().contains(lcFilter)) {
-                            filteredList.add(new JsonPrimitive(name));
-                        }
-                    }
-                    content = filteredList.toString();
-                }
-            }
-        }
-        IOUtils.copy(IOUtils.toInputStream(content), response.getOutputStream());       
-    }
-    
-    /**
-     * Proxy Geoserver REST API call to get all defined styles for a layer
-     * @param HttpServletRequest request,
-     * @param String layer
-     * @return
-     * @throws ServletException
-     * @throws IOException
-     */
-    @RequestMapping(value = "/gs/styles/{layer}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
-    @ResponseBody
-    public void geoserverStylesForLayer(HttpServletRequest request, HttpServletResponse response, @PathVariable("layer") String layer)
-        throws ServletException, IOException, ServiceException {
-        String content = HTTPUtils.get(
-            env.getProperty("geoserver.local.url") + "/rest/layers/" + layer + "/styles.json", 
-            env.getProperty("geoserver.local.username"), 
-            env.getProperty("geoserver.local.password")
-        );
-        if (content == null) { 
-            content = "{styles: \"\"}";
-        }
-        IOUtils.copy(IOUtils.toInputStream(content), response.getOutputStream());       
-    }
-    
-    /**
-     * Proxy Geoserver REST API call to get all defined styles for a layer
-     * @param HttpServletRequest request,
-     * @param String layer
-     * @return
-     * @throws ServletException
-     * @throws IOException
-     */
-    @RequestMapping(value = "/gs/attributes/{layer}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
-    @ResponseBody
-    public void geoserverMetadataForLayer(HttpServletRequest request, HttpServletResponse response, @PathVariable("layer") String layer)
-        throws ServletException, IOException, ServiceException {
-        String content = "{\"feature_name\": \"null\"}";
-        GeoServerRESTReader gs = new GeoServerRESTReader(
-            env.getProperty("geoserver.local.url"), 
-            env.getProperty("geoserver.local.username"), 
-            env.getProperty("geoserver.local.password")
-        );
-        RESTLayer gsl = gs.getLayer(layer);
-        if (gsl != null) {
-            RESTFeatureType gsf = gs.getFeatureType(gsl);
-            if (gsf != null) {
-                /* Translate longhand to JSON (Gson has trouble with circular refs) */
-                JsonObject jo = new JsonObject();
-                jo.addProperty("feature_name", gsf.getNameSpace() + ":" + gsf.getNativeName());               
-                JsonArray attrs = new JsonArray();
-                for (RESTFeatureType.Attribute attr : gsf.getAttributes()) {                    
-                    String binding = attr.getBinding();
-                    if (binding.contains("geom")) {
-                        /* Geometry field - extract type */
-                        jo.addProperty("geom_type", decodeGeomType(binding));
-                    } else {
-                        /* Ordinary attribute */
-                        JsonObject attrData = new JsonObject();
-                        attrData.addProperty("name", attr.getName());                    
-                        attrData.addProperty("type", binding.endsWith("String") ? "string" : "decimal");
-                        attrs.add(attrData);
-                    }                                        
-                }
-                jo.add("attributes", attrs);
-                content = jo.toString();
-            }
-        }        
-        IOUtils.copy(IOUtils.toInputStream(content), response.getOutputStream());       
-    }
-
-    /**
-     * Take a binding string like 'com.vividsolutions.jts.geom.Point' and deduce the geometry type
-     * @param String binding
-     * @return String
-     */
-    private String decodeGeomType(String binding) {
-        return(binding.substring(binding.lastIndexOf(".")+1).toLowerCase());
     }
     
 }
