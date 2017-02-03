@@ -64,7 +64,7 @@ public class GeoserverRestController {
                         JsonObject layerData = (JsonObject)layerList.get(i);
                         String name = layerData.getAsJsonPrimitive("name").getAsString();
                         if (name != null && name.toLowerCase().contains(lcFilter)) {
-                            JsonObject attrData = getLayerAttributes(name);
+                            JsonObject attrData = getLayerAttributes(request, name);
                             if (attrData.has("feature_name")) {
                                 filteredList.add(attrData);
                             }
@@ -112,16 +112,17 @@ public class GeoserverRestController {
     @ResponseBody
     public void geoserverMetadataForLayer(HttpServletRequest request, HttpServletResponse response, @PathVariable("layer") String layer)
         throws ServletException, IOException, ServiceException {        
-        IOUtils.copy(IOUtils.toInputStream(getLayerAttributes(layer).toString()), response.getOutputStream());       
+        IOUtils.copy(IOUtils.toInputStream(getLayerAttributes(request, layer).toString()), response.getOutputStream());       
     }
     
     /**
      * Retrieve layer attribues, feature name/workspace and geometry type
+     * @param HttpServletRequest request
      * @param String layer
      * @return JsonObject
      * @throws MalformedURLException 
      */
-    private JsonObject getLayerAttributes(String layer) throws MalformedURLException {
+    private JsonObject getLayerAttributes(HttpServletRequest request, String layer) throws MalformedURLException {
         JsonObject jo = new JsonObject();
         GeoServerRESTReader gs = new GeoServerRESTReader(
             env.getProperty("geoserver.local.url"), 
@@ -133,8 +134,17 @@ public class GeoserverRestController {
             RESTFeatureType gsf = gs.getFeatureType(gsl);
             if (gsf != null) {
                 /* Translate longhand to JSON (Gson has trouble with circular refs) */
-                jo.addProperty("wms_source", env.getProperty("geoserver.local.url") + "/" + gsf.getNameSpace() + "/wms");
-                jo.addProperty("feature_name", gsf.getNameSpace() + ":" + gsf.getNativeName());               
+                int port = request.getServerPort();
+                String serverName = request.getServerName();
+                String geoserverUrl = "";
+                if (serverName.equals("localhost")) {
+                    geoserverUrl = env.getProperty("geoserver.local.url") + "/wms";
+                } else {
+                    geoserverUrl = request.getScheme() + "://" + serverName + (port != 80 ? (":" + port) : "") + "/geoserver/wms";
+                }
+                jo.addProperty("wms_source", geoserverUrl);
+                jo.addProperty("feature_name", gsf.getNameSpace() + ":" + gsf.getNativeName());
+                jo.addProperty("name", gsf.getTitle());
                 JsonArray attrs = new JsonArray();
                 for (RESTFeatureType.Attribute attr : gsf.getAttributes()) {                    
                     String binding = attr.getBinding();

@@ -75,6 +75,7 @@ magic.classes.AppContainer = function () {
         view: magic.runtime.view
     });
     
+    /* Trace: layers and z-indices before autoloads added */
     magic.runtime.map.getLayers().forEach(function(lyr, idx) {
         console.log("Layer " + lyr.get("name") + " at z-index " + lyr.getZIndex());
     });
@@ -285,12 +286,10 @@ magic.classes.AppContainer = function () {
         if (fcount > 0) {
             magic.modules.Common.labelVisibility(magic.runtime.highlighted[0].feature, magic.runtime.highlighted[0].layer, true, fcount);
         }
-    });
+    }); 
     
-    /* Add all the autoload layers to the map */
-    jQuery.each(magic.runtime.layertree.initAutoLoadGroups(), function(idx, lyr) {
-        magic.runtime.map.addLayer(lyr);
-    });
+    /* Add all the markup and layers for autoload groups */
+    magic.runtime.layertree.initAutoLoadGroups(magic.runtime.map);
     
 };
 

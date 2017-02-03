@@ -76,65 +76,10 @@ magic.classes.LayerTree = function (target, embedded) {
             evt.stopPropagation();
             this.setCollapsed(false);
         }, this));
-        
-        /* Search layer tree for data layer handler */
-        
-        /* Expand search form */
-        jQuery("span.layer-tree-search").on("click", function (evt) {
-            evt.stopPropagation();
-            var pnl = jQuery(".layersearch-panel");
-            pnl.removeClass("hidden").addClass("show");
-            /* To work round the time lag with showing the typeahead in the previously hidden form
-             * see: https://github.com/twitter/typeahead.js/issues/712 */          
-            setTimeout(function() {
-                pnl.find("input").focus();
-            }, 100);            
-        });
-        
-        /* Collapse search form */
-        jQuery(".layersearch-form").find(".close").on("click", function (evt) {
-            evt.stopPropagation();
-            jQuery(".layersearch-panel").removeClass("show").addClass("hidden");
-        });
-
-        /* Assign layer visibility handlers */
-        jQuery("input.layer-vis-selector").change(jQuery.proxy(this.layerVisibilityHandler, this));        
-
-        /* Assign layer group visibility handlers */
-        jQuery("input.layer-vis-group-selector").change(jQuery.proxy(this.groupVisibilityHandler, this));        
-
-        /* The get layer info buttons */
-        jQuery("span[id^='layer-info-']").on("click", jQuery.proxy(function (evt) {
-            var id = evt.currentTarget.id;
-            var nodeid = this.getNodeId(id);
-            magic.runtime.attribution.show(this.nodeLayerTranslation[nodeid]);
-        }, this));
-    
-        /* Layer dropdown handlers */
-        jQuery("a.layer-tool").click(jQuery.proxy(function (evt) {
-            var id = evt.currentTarget.id;
-            var nodeid = this.getNodeId(id);
-            new magic.classes.LayerTreeOptionsMenu({
-                nodeid: nodeid,
-                layer: this.nodeLayerTranslation[nodeid]
-            });
-        }, this));   
-
-        /* Change tooltip for collapsible panels */
-        jQuery("div[id^='layer-group-panel-']")
-        .on("shown.bs.collapse", jQuery.proxy(function (evt) {       
-            jQuery(evt.currentTarget).parent().first().find("span.panel-title").attr("data-original-title", "Collapse this group").tooltip("fixTitle");
-            evt.stopPropagation();
-        }, this))
-        .on("hidden.bs.collapse", jQuery.proxy(function (evt) {        
-            jQuery(evt.currentTarget).parent().first().find("span.panel-title").attr("data-original-title", "Expand this group").tooltip("fixTitle");
-            evt.stopPropagation();
-        }, this));
-
-        /* Initialise checked indicator badges in layer groups */
-        jQuery("input[id^='layer-cb-']:checked").each(jQuery.proxy(function(idx, elt) {
-            this.setLayerVisibility(jQuery(elt));
-        }, this));
+                
+        this.assignLayerSearchFormHandlers();
+        this.assignLayerGroupHandlers(null);
+        this.assignLayerHandlers(null);        
         this.refreshTreeIndicators();
     }    
 };
@@ -183,6 +128,119 @@ magic.classes.LayerTree.prototype.setCollapsed = function (collapsed) {
 };
 
 /**
+ * Add handlers for operations on layer groups, optionally only under the specified element
+ * @param {jQuery.object} belowElt
+ */
+magic.classes.LayerTree.prototype.assignLayerGroupHandlers = function(belowElt) {
+    
+    /* Assign layer group visibility handlers */
+    var groupVis = null;
+    if (belowElt) {
+        groupVis = belowElt.find("input.layer-vis-group-selector");
+    } else {
+        groupVis = jQuery("input.layer-vis-group-selector");
+    }        
+    groupVis.change(jQuery.proxy(this.groupVisibilityHandler, this)); 
+
+    /* Change tooltip for collapsible panels */
+    var groupPanel = null;
+    if (belowElt) {
+        groupPanel = belowElt.find("div[id^='layer-group-panel-']");
+    } else {
+        groupPanel = jQuery("div[id^='layer-group-panel-']");
+    }    
+    groupPanel
+    .on("shown.bs.collapse", jQuery.proxy(function (evt) {       
+        jQuery(evt.currentTarget).parent().first().find("span.panel-title").attr("data-original-title", "Collapse this group").tooltip("fixTitle");
+        evt.stopPropagation();
+    }, this))
+    .on("hidden.bs.collapse", jQuery.proxy(function (evt) {        
+        jQuery(evt.currentTarget).parent().first().find("span.panel-title").attr("data-original-title", "Expand this group").tooltip("fixTitle");
+        evt.stopPropagation();
+    }, this));
+};
+
+/**
+ * Add handlers for operations on layers, optionally only under the specified element
+ * @param {jQuery.object} belowElt
+ */
+magic.classes.LayerTree.prototype.assignLayerHandlers = function(belowElt) {
+    
+    /* Assign layer visibility handlers */
+    var layerVis = null;
+    if (belowElt) {
+        layerVis = belowElt.find("input.layer-vis-selector");
+    } else {
+        layerVis = jQuery("input.layer-vis-selector");
+    }                
+    layerVis.change(jQuery.proxy(this.layerVisibilityHandler, this));
+    
+    /* The get layer info buttons */
+    var layerInfo = null;
+    if (belowElt) {
+        layerInfo = belowElt.find("span[id^='layer-info-']");
+    } else {
+        layerInfo = jQuery("span[id^='layer-info-']");
+    }    
+    layerInfo.on("click", jQuery.proxy(function (evt) {
+        var id = evt.currentTarget.id;
+        var nodeid = this.getNodeId(id);
+        magic.runtime.attribution.show(this.nodeLayerTranslation[nodeid]);
+    }, this));
+
+    /* Layer dropdown handlers */
+    var layerDropdown = null;
+    if (belowElt) {
+        layerDropdown = belowElt.find("a.layer-tool");
+    } else {
+        layerDropdown = jQuery("a.layer-tool");
+    }    
+    layerDropdown.click(jQuery.proxy(function (evt) {
+        var id = evt.currentTarget.id;
+        var nodeid = this.getNodeId(id);
+        new magic.classes.LayerTreeOptionsMenu({
+            nodeid: nodeid,
+            layer: this.nodeLayerTranslation[nodeid]
+        });
+    }, this));          
+
+    /* Initialise checked indicator badges in layer groups */
+    var layerBadgeCount = null;
+    if (belowElt) {
+        layerBadgeCount = belowElt.find("input[id^='layer-cb-']:checked");
+    } else {
+        layerBadgeCount = jQuery("input[id^='layer-cb-']:checked");
+    }    
+    layerBadgeCount.each(jQuery.proxy(function(idx, elt) {
+        this.setLayerVisibility(jQuery(elt));
+    }, this));
+};
+
+/**
+ * Add handlers for "search for data layer" form
+ */
+magic.classes.LayerTree.prototype.assignLayerSearchFormHandlers = function() {
+        
+    /* Expand search form */
+    jQuery("span.layer-tree-search").on("click", function (evt) {
+        evt.stopPropagation();
+        var pnl = jQuery(".layersearch-panel");
+        pnl.removeClass("hidden").addClass("show");
+        /* To work round the time lag with showing the typeahead in the previously hidden form
+         * see: https://github.com/twitter/typeahead.js/issues/712 */          
+        setTimeout(function() {
+            pnl.find("input").focus();
+        }, 100);            
+    });
+
+    /* Collapse search form */
+    jQuery(".layersearch-form").find(".close").on("click", function (evt) {
+        evt.stopPropagation();
+        jQuery(".layersearch-panel").removeClass("show").addClass("hidden");
+    });      
+};
+
+/**
  * Insert per-node properties and styling into layer tree structure, as well as creating OL layers where needed
  * @param {array} nodes
  * @param {jQuery,Object} element
@@ -222,6 +280,7 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                 /* Layers to be autoloaded from local server later */
                 this.autoloadGroups[nd.id] = {
                     filter: nd.autoload_filter,
+                    popups: nd.autoload_popups === true,
                     insert: this.zIndexWmsStack
                 };
                 this.zIndexWmsStack++;  /* Make an insert point for the auto layers */
@@ -358,9 +417,14 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                 source: wmsSource
             });
         }
-        layer.setZIndex(isBase ? 0 : this.zIndexWmsStack);
-        this.zIndexWmsStack++;
-        this.layersBySource[isBase ? "base" : "wms"].push(layer);                                
+        if (isBase) {
+            layer.setZIndex(0);
+            this.layersBySource["base"].push(layer);
+        } else {
+            layer.setZIndex(this.zIndexWmsStack);
+            this.zIndexWmsStack++;
+            this.layersBySource["wms"].push(layer); 
+        }                                               
     } else if (nd.source.geojson_source) {
         /* GeosJSON layer */
         var labelRotation = nd.source.feature_name ? 0.0 : -magic.runtime.viewdata.rotation;
@@ -456,8 +520,9 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
 
 /**
  * Fetch the data for all autoload layers
+ * @param {ol.Map} map
  */
-magic.classes.LayerTree.prototype.initAutoLoadGroups = function() {
+magic.classes.LayerTree.prototype.initAutoLoadGroups = function(map) {
     var defaultNodeAttrs = {
         legend_graphic: null,
         refresh_rate: 0,
@@ -465,7 +530,7 @@ magic.classes.LayerTree.prototype.initAutoLoadGroups = function() {
         max_scale: null,
         opacity: 1.0,
         is_visible: false,
-        is_interactive: true,
+        is_interactive: false,
         is_filterable: false        
     };
     var defaultSourceAttrs = {
@@ -480,12 +545,11 @@ magic.classes.LayerTree.prototype.initAutoLoadGroups = function() {
         nillable: true,
         filterable: false,
         alias: "",
-        ordinal: j+1,
+        ordinal: null,
         unique_values: false
     };
-    var autoloadLayers = [];
-    $.each(this.autoloadGroups, jQuery.proxy(function(grpid, grpo) {
-        var element = jQuery("layer-group-" + grpid);
+    jQuery.each(this.autoloadGroups, jQuery.proxy(function(grpid, grpo) {
+        var element = jQuery("#layer-group-" + grpid);
         if (element.length > 0) {
             jQuery.ajax({
                 url: magic.config.paths.baseurl + "/gs/layers/filter/" + grpo.filter, 
@@ -497,6 +561,7 @@ magic.classes.LayerTree.prototype.initAutoLoadGroups = function() {
                     for (var i = 0; i < data.length; i++) {
                         var nd = jQuery.extend({}, {
                             id: magic.modules.Common.uuid(),
+                            name: data[i].name,
                             geom_type: data[i].geom_type,
                             attribute_map: data[i].attribute_map
                         }, defaultNodeAttrs);
@@ -504,6 +569,7 @@ magic.classes.LayerTree.prototype.initAutoLoadGroups = function() {
                             wms_source: data[i].wms_source, 
                             feature_name: data[i].feature_name
                         }, defaultSourceAttrs);
+                        nd.is_interactive = grpo.popups === true;
                         if (jQuery.isArray(nd.attribute_map)) {
                             for (var j = 0; j < nd.attribute_map.length; j++) {
                                 nd.attribute_map = jQuery.extend({}, nd.attribute_map, defaultAttributeAttrs);
@@ -511,11 +577,20 @@ magic.classes.LayerTree.prototype.initAutoLoadGroups = function() {
                             /* Should now have a node from which to create a WMS layer */
                             this.addDataNode(nd, element);
                             nd.layer.setZIndex(grpo.insert);
-                            autoloadLayers.push(nd.layer);
                         } else {
                             nd.is_interactive = false;
                         }
+                        if (map) {
+                            console.log(nd);
+                            console.log(nd.layer.get("name"));
+                            console.log(nd.layer.getZIndex());
+                            console.log(map);
+                            map.addLayer(nd.layer);
+                        }
                     }
+                    this.assignLayerHandlers(element);
+                    this.refreshTreeIndicators();
+                    
                 }                   
             }, this)).fail(jQuery.proxy(function(xhr) {
                 bootbox.alert(
@@ -523,10 +598,9 @@ magic.classes.LayerTree.prototype.initAutoLoadGroups = function() {
                         '<p>' + JSON.parse(xhr.responseText)["detail"] + '</p>' + 
                     '</div>'
                 );
-            }, this));
+            }, this));                                
         }
     }, this));
-    return(autoloadLayers);
 };
 
 /**

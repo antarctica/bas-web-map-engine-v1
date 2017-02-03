@@ -12,7 +12,8 @@ magic.classes.creator.LayerGroupUpdater = function(prefix) {
         {"field": "expanded", "default": false},
         {"field": "base", "default": false},
         {"field": "autoload", "default": false},
-        {"field": "autoload_filter", "default": ""}    
+        {"field": "autoload_filter", "default": ""},
+        {"field": "autoload_popups", "default": false}
     ];   
     
     /* Context object */
@@ -48,6 +49,7 @@ magic.classes.creator.LayerGroupUpdater = function(prefix) {
     /* Add handler for autoload checkbox click */
     jQuery("#" + this.prefix + "-autoload").change(function(evt) {
         jQuery("#" + evt.currentTarget.id + "_filter").closest("div.form-group").toggleClass("hidden");
+        jQuery("#" + evt.currentTarget.id + "_popups").closest("div.form-group").toggleClass("hidden");
     });
             
 };
@@ -60,12 +62,15 @@ magic.classes.creator.LayerGroupUpdater.prototype.loadContext = function(context
     /* Disable delete button if the group has any sub-layers or groups */
     jQuery("#" + this.prefix + "-delete").prop("disabled", jQuery("#" + this.data.id).find("ul").find("li").length > 0);
     
-    /* Display the filter input if the autoload checkbox is ticked */
+    /* Display the filter and popup choice inputs if the autoload checkbox is ticked */
     var alFilterDiv = jQuery("#" + this.prefix + "-autoload_filter").closest("div.form-group");
+    var alPopupsDiv = jQuery("#" + this.prefix + "-autoload_popups").closest("div.form-group");
     if (this.data["autoload"]) {
         alFilterDiv.removeClass("hidden").addClass("show");
+        alPopupsDiv.removeClass("hidden").addClass("show");
     } else {
         alFilterDiv.removeClass("show").addClass("hidden");
+        alPopupsDiv.removeClass("show").addClass("hidden");
     }
     
     /* Populate form snippet from data */
@@ -74,8 +79,9 @@ magic.classes.creator.LayerGroupUpdater.prototype.loadContext = function(context
 
 magic.classes.creator.LayerGroupUpdater.prototype.saveContext = function() {
     if (!jQuery("#" + this.prefix + "-autoload").prop("checked")) {
-        /* Nullify the filter string if the autoload box is not ticked, so we don't save a spurious value */
+        /* Nullify the filter string and uncheck popup bvox if the autoload box is not ticked, so we don't save spurious values */
         jQuery("#" + this.prefix + "-autoload_filter").val("");
+        jQuery("#" + this.prefix + "-autoload_popups").prop("checked", false);
     }
     magic.modules.creator.Common.formToDict(this.form_fields, this.data, this.prefix);           
 };

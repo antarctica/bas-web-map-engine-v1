@@ -291,12 +291,16 @@
                                         "type": "boolean"
                                     },
                                     "autoload": {
-                                        "description": "Load layers from local Geoserver whose names contain the following filter string",
+                                        "description": "Load layers from local Geoserver whose feature names contain the following filter string",
                                         "type": "boolean"
                                     },
                                     "autoload_filter": {
                                         "description": "Autoload filter string",
                                         "type": "string"
+                                    },
+                                    "autoload_popups": {
+                                        "description": "Allow pop-ups on all autoloaded layers",
+                                        "type": "boolean"
                                     },
                                     "layers": {
                                         "type": "array",
