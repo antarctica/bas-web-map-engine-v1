@@ -108,7 +108,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
         String catalinaBase = System.getProperty("catalina.base");
         boolean isDevEnvironment = catalinaBase.contains("Application Support") || catalinaBase.contains("NetBeans");
         if (!isDevEnvironment) {
-            /* Temporary fix for Tomcat aborting operations because of being unable to see BAS LDAP server - fixed by VPN */
+            /* Temporary fix for Tomcat aborting operations because of being unable to see BAS LDAP server - will be fixed by VPN */
             try {
                 BindAuthenticator ba = new BindAuthenticator(this.contextSource);
                 ba.setUserDnPatterns(new String[]{"uid={0},ou=People"});

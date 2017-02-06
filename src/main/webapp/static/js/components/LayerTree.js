@@ -573,13 +573,13 @@ magic.classes.LayerTree.prototype.initAutoLoadGroups = function(map) {
                         if (jQuery.isArray(nd.attribute_map)) {
                             for (var j = 0; j < nd.attribute_map.length; j++) {
                                 nd.attribute_map[j] = jQuery.extend({}, nd.attribute_map[j], defaultAttributeAttrs);
-                            }
-                            /* Should now have a node from which to create a WMS layer */
-                            this.addDataNode(nd, element);
-                            nd.layer.setZIndex(grpo.insert);
+                            }                            
                         } else {
                             nd.is_interactive = false;
                         }
+                        /* Should now have a node from which to create a WMS layer */
+                        this.addDataNode(nd, element);
+                        nd.layer.setZIndex(grpo.insert);
                         if (map) {                            
                             map.addLayer(nd.layer);
                         }

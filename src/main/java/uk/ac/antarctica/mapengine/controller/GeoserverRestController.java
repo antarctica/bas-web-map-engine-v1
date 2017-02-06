@@ -9,6 +9,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import it.geosolutions.geoserver.rest.GeoServerRESTReader;
 import it.geosolutions.geoserver.rest.HTTPUtils;
+import it.geosolutions.geoserver.rest.decoder.RESTCoverage;
 import it.geosolutions.geoserver.rest.decoder.RESTFeatureType;
 import it.geosolutions.geoserver.rest.decoder.RESTLayer;
 import java.io.IOException;
@@ -63,6 +64,7 @@ public class GeoserverRestController {
                     for (int i = 0; i < layerList.size(); i++) {
                         JsonObject layerData = (JsonObject)layerList.get(i);
                         String name = layerData.getAsJsonPrimitive("name").getAsString();
+                        System.out.println(name);
                         if (name != null && name.toLowerCase().contains(lcFilter)) {
                             JsonObject attrData = getLayerAttributes(request, name);
                             if (attrData.has("feature_name")) {
@@ -123,7 +125,19 @@ public class GeoserverRestController {
      * @throws MalformedURLException 
      */
     private JsonObject getLayerAttributes(HttpServletRequest request, String layer) throws MalformedURLException {
+        
         JsonObject jo = new JsonObject();
+        
+        int port = request.getServerPort();
+        String serverName = request.getServerName();
+        String geoserverUrl;            
+        if (serverName.equals("localhost")) {
+            geoserverUrl = env.getProperty("geoserver.local.url") + "/wms";
+        } else {
+            geoserverUrl = request.getScheme() + "://" + serverName + (port != 80 ? (":" + port) : "") + "/geoserver/wms";
+        }
+        jo.addProperty("wms_source", geoserverUrl);
+        
         GeoServerRESTReader gs = new GeoServerRESTReader(
             env.getProperty("geoserver.local.url"), 
             env.getProperty("geoserver.local.username"), 
@@ -131,37 +145,37 @@ public class GeoserverRestController {
         );
         RESTLayer gsl = gs.getLayer(layer);
         if (gsl != null) {
-            RESTFeatureType gsf = gs.getFeatureType(gsl);
-            if (gsf != null) {
-                /* Translate longhand to JSON (Gson has trouble with circular refs) */
-                int port = request.getServerPort();
-                String serverName = request.getServerName();
-                String geoserverUrl = "";
-                if (serverName.equals("localhost")) {
-                    geoserverUrl = env.getProperty("geoserver.local.url") + "/wms";
-                } else {
-                    geoserverUrl = request.getScheme() + "://" + serverName + (port != 80 ? (":" + port) : "") + "/geoserver/wms";
+            try {
+                /* Test for a vector layer */
+                RESTFeatureType gsf = gs.getFeatureType(gsl);
+                if (gsf != null) {
+                    /* Translate longhand to JSON (Gson has trouble with circular refs) */                                        
+                    jo.addProperty("feature_name", gsf.getNameSpace() + ":" + gsf.getNativeName());
+                    jo.addProperty("name", gsf.getTitle());
+                    JsonArray attrs = new JsonArray();
+                    for (RESTFeatureType.Attribute attr : gsf.getAttributes()) {                    
+                        String binding = attr.getBinding();
+                        if (binding.contains("geom")) {
+                            /* Geometry field - extract type */
+                            jo.addProperty("geom_type", decodeGeomType(binding));
+                        } else {
+                            /* Ordinary attribute */
+                            JsonObject attrData = new JsonObject();
+                            attrData.addProperty("name", attr.getName());                    
+                            attrData.addProperty("type", binding.endsWith("String") ? "string" : "decimal");                        
+                            attrs.add(attrData);
+                        }                                        
+                    }
+                    jo.add("attribute_map", attrs);
                 }
-                jo.addProperty("wms_source", geoserverUrl);
-                jo.addProperty("feature_name", gsf.getNameSpace() + ":" + gsf.getNativeName());
-                jo.addProperty("name", gsf.getTitle());
-                JsonArray attrs = new JsonArray();
-                for (RESTFeatureType.Attribute attr : gsf.getAttributes()) {                    
-                    String binding = attr.getBinding();
-                    if (binding.contains("geom")) {
-                        /* Geometry field - extract type */
-                        jo.addProperty("geom_type", decodeGeomType(binding));
-                    } else {
-                        /* Ordinary attribute */
-                        JsonObject attrData = new JsonObject();
-                        attrData.addProperty("name", attr.getName());                    
-                        attrData.addProperty("type", binding.endsWith("String") ? "string" : "decimal");                        
-                        attrs.add(attrData);
-                    }                                        
-                }
-                jo.add("attribute_map", attrs);
+            } catch(RuntimeException rte) {
+                /* Must be a coverage */
+                RESTCoverage gsc = gs.getCoverage(gsl);
+                jo.addProperty("feature_name", gsc.getNameSpace() + ":" + gsc.getNativeName());
+                jo.addProperty("name", gsc.getTitle());
+                jo.addProperty("geom_type", "raster");
             }
-        }        
+        }
         return(jo);
     }
 
