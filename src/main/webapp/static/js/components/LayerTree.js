@@ -558,6 +558,10 @@ magic.classes.LayerTree.prototype.initAutoLoadGroups = function(map) {
                 contentType: "application/json"
             }).done(jQuery.proxy(function(data) {
                 if (jQuery.isArray(data)) {
+                    /* Alphabetical order of name */
+                    data.sort(function(a, b) {
+                        return(a.name.localeCompare(b.name));
+                    });
                     for (var i = 0; i < data.length; i++) {
                         var nd = jQuery.extend({}, {
                             id: magic.modules.Common.uuid(),
