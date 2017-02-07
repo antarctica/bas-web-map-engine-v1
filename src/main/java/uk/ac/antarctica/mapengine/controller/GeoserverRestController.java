@@ -6,12 +6,13 @@ package uk.ac.antarctica.mapengine.controller;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import it.geosolutions.geoserver.rest.GeoServerRESTReader;
-import it.geosolutions.geoserver.rest.HTTPUtils;
 import it.geosolutions.geoserver.rest.decoder.RESTCoverage;
 import it.geosolutions.geoserver.rest.decoder.RESTFeatureType;
 import it.geosolutions.geoserver.rest.decoder.RESTLayer;
+import it.geosolutions.geoserver.rest.decoder.RESTLayerList;
+import it.geosolutions.geoserver.rest.decoder.RESTStyleList;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import javax.servlet.ServletException;
@@ -33,6 +34,8 @@ public class GeoserverRestController {
     @Autowired
     Environment env;
     
+    GeoServerRESTReader gs = null;
+    
     /**
      * Proxy Geoserver REST API call to get filtered list of layers with attributes
      * @param HttpServletRequest request,
@@ -45,37 +48,23 @@ public class GeoserverRestController {
     @ResponseBody
     public void geoserverFilteredLayerList(HttpServletRequest request, HttpServletResponse response, @PathVariable("filter") String filter)
         throws ServletException, IOException, ServiceException {
-        String content = HTTPUtils.get(
-            env.getProperty("geoserver.local.url") + "/rest/layers.json", 
-            env.getProperty("geoserver.local.username"), 
-            env.getProperty("geoserver.local.password")
-        );
-        if (content == null) { 
-            content = "[]";
-        } else {
-            /* Filter layer list */
-            JsonObject layerContainer = (JsonObject)new JsonParser().parse(content);
-            JsonObject layers = layerContainer.getAsJsonObject("layers");
-            if (layers != null) {
-                JsonArray layerList = layers.getAsJsonArray("layer");
-                if (layerList != null) {
-                    JsonArray filteredList = new JsonArray();
-                    String lcFilter = filter.toLowerCase();
-                    for (int i = 0; i < layerList.size(); i++) {
-                        JsonObject layerData = (JsonObject)layerList.get(i);
-                        String name = layerData.getAsJsonPrimitive("name").getAsString();
-                        System.out.println(name);
-                        if (name != null && name.toLowerCase().contains(lcFilter)) {
-                            JsonObject attrData = getLayerAttributes(request, name);
-                            if (attrData.has("feature_name")) {
-                                filteredList.add(attrData);
-                            }
-                        }
+        
+        String content = "[]";
+        
+        RESTLayerList layers = getReader().getLayers();
+        if (layers != null) {
+            String lcFilter = filter.toLowerCase();
+            JsonArray filteredList = new JsonArray();
+            for (String name : layers.getNames()) {
+                if (name != null && name.toLowerCase().contains(lcFilter)) {
+                    JsonObject attrData = getLayerAttributes(request, name);
+                    if (attrData.has("feature_name")) {
+                        filteredList.add(attrData);
                     }
-                    content = filteredList.toString();
                 }
             }
-        }
+            content = filteredList.toString();
+        }        
         IOUtils.copy(IOUtils.toInputStream(content), response.getOutputStream());       
     }
     
@@ -91,14 +80,17 @@ public class GeoserverRestController {
     @ResponseBody
     public void geoserverStylesForLayer(HttpServletRequest request, HttpServletResponse response, @PathVariable("layer") String layer)
         throws ServletException, IOException, ServiceException {
-        String content = HTTPUtils.get(
-            env.getProperty("geoserver.local.url") + "/rest/layers/" + layer + "/styles.json", 
-            env.getProperty("geoserver.local.username"), 
-            env.getProperty("geoserver.local.password")
-        );
-        if (content == null) { 
-            content = "{styles: \"\"}";
-        }
+        
+        String content = "[]";
+        
+        RESTStyleList styles = getReader().getStyles();
+        if (styles != null) {
+            JsonArray styleList = new JsonArray();
+            for (String name : styles.getNames()) {
+                styleList.add(new JsonPrimitive(name));                
+            }
+            content = styleList.toString();
+        }        
         IOUtils.copy(IOUtils.toInputStream(content), response.getOutputStream());       
     }
     
@@ -138,12 +130,7 @@ public class GeoserverRestController {
         }
         jo.addProperty("wms_source", geoserverUrl);
         
-        GeoServerRESTReader gs = new GeoServerRESTReader(
-            env.getProperty("geoserver.local.url"), 
-            env.getProperty("geoserver.local.username"), 
-            env.getProperty("geoserver.local.password")
-        );
-        RESTLayer gsl = gs.getLayer(layer);
+        RESTLayer gsl = getReader().getLayer(layer);
         if (gsl != null) {
             try {
                 /* Test for a vector layer */
@@ -177,6 +164,20 @@ public class GeoserverRestController {
             }
         }
         return(jo);
+    }
+    
+    /**
+     * Lazily allocate a Geoserver REST reader, thereby not creating a connection unless needed 
+     */
+    private GeoServerRESTReader getReader() throws MalformedURLException {
+        if (gs == null) {
+            gs = new GeoServerRESTReader(
+                env.getProperty("geoserver.local.url"), 
+                env.getProperty("geoserver.local.username"), 
+                env.getProperty("geoserver.local.password")
+            );
+        }
+        return(gs);
     }
 
     /**
