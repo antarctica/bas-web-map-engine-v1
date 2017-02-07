@@ -6,13 +6,12 @@ package uk.ac.antarctica.mapengine.controller;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import it.geosolutions.geoserver.rest.GeoServerRESTReader;
+import it.geosolutions.geoserver.rest.HTTPUtils;
 import it.geosolutions.geoserver.rest.decoder.RESTCoverage;
 import it.geosolutions.geoserver.rest.decoder.RESTFeatureType;
 import it.geosolutions.geoserver.rest.decoder.RESTLayer;
 import it.geosolutions.geoserver.rest.decoder.RESTLayerList;
-import it.geosolutions.geoserver.rest.decoder.RESTStyleList;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import javax.servlet.ServletException;
@@ -80,17 +79,14 @@ public class GeoserverRestController {
     @ResponseBody
     public void geoserverStylesForLayer(HttpServletRequest request, HttpServletResponse response, @PathVariable("layer") String layer)
         throws ServletException, IOException, ServiceException {
-        
-        String content = "[]";
-        
-        RESTStyleList styles = getReader().getStyles();
-        if (styles != null) {
-            JsonArray styleList = new JsonArray();
-            for (String name : styles.getNames()) {
-                styleList.add(new JsonPrimitive(name));                
-            }
-            content = styleList.toString();
-        }        
+        String content = HTTPUtils.get(
+            env.getProperty("geoserver.local.url") + "/rest/layers/" + layer + "/styles.json", 
+            env.getProperty("geoserver.local.username"), 
+            env.getProperty("geoserver.local.password")
+        );
+        if (content == null) { 
+            content = "{styles: \"\"}";
+        }
         IOUtils.copy(IOUtils.toInputStream(content), response.getOutputStream());       
     }
     
