@@ -77,7 +77,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
         http
             .authorizeRequests()
             .antMatchers("/*.ico", "/static/**", "/appconfig/**", "/ping", "/home/**", "/homed/**", "/apex/**", "/apexd/**", "/maps/dropdown/**", "/maps/name/**", "/maps/id/**", "/maps/thumbnaildata", "/prefs/get").permitAll()
-            .antMatchers("/creator", "/creatord", "/opsgis/**", "/restricted/**", "/restrictedd/**", "/publisher", "/publisherd", "/publish_postgis", "/prefs/set", "/maps/save", "/maps/update/**", "/maps/delete/**", "/maps/deletebyname/**")
+            .antMatchers("/creator", "/creatord", "/embedded_creator", "/embedded_creatord", "/restricted/**", "/restrictedd/**", "/publisher", "/publisherd", "/publish_postgis", "/prefs/set", "/maps/save", "/maps/update/**", "/maps/delete/**", "/maps/deletebyname/**")
             .fullyAuthenticated()
             .and()
             .formLogin()

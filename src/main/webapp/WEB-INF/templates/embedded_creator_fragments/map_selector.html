@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title></title>
+    </head>    
+    <body th:fragment="layout">                                    
+        <div class="form-group">
+            <label class="col-md-3" for="em-map-new-rb">
+                <input type="radio" name="_em-map-action-rb" id="em-map-new-rb" value="new" checked="checked"></input>
+                Create a new map of
+            </label>
+            <div class="col-md-9">
+                <select class="form-control" id="em-map-new">
+                    <option value="">Select region</option>
+                    <option value="antarctic">Antarctica</option> 
+                    <option value="arctic">Arctic</option> 
+                    <option value="southgeorgia">South Georgia</option> 
+                    <option value="midlatitudes">World (mid-latitudes)</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-md-3" for="em-map-clone-rb">
+                <input type="radio" name="_em-map-action-rb" id="em-map-clone-rb" value="clone"></input>
+                Clone existing map
+            </label>
+            <div class="col-md-9">
+                <select class="form-control" id="em-map-clone" disabled="disabled">
+                    <option value="">Select a map</option>                       
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-md-3" for="em-map-edit-rb">
+                <input type="radio" name="_em-map-action-rb" id="em-map-edit-rb" value="edit"></input>
+                Edit existing map
+            </label>
+            <div class="col-md-9">
+                <select class="form-control" id="em-map-edit" disabled="disabled">
+                    <option value="">Select a map</option>                        
+                </select>
+            </div>
+        </div>                       
+    </body>
+</html>

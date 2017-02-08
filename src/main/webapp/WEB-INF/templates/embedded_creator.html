@@ -2,14 +2,12 @@
 <html lang="en"
       xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="http://www.thymeleaf.org">
-
     <head th:include="embedded_fragments/header :: ${debug} ? 'debug_layout' : 'layout'">
     </head>
-
     <body>
-        <div id="map-container">            
-            <div id="map"></div>
+        <div id="wrapper">
+            <div th:include="fragments/nav :: layout"></div>
+            <div class="container" th:include="embedded_fragments/content :: layout"></div>
         </div>
     </body>
-
 </html>

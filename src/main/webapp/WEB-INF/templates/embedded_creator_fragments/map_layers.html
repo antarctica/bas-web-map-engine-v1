@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title></title>
+    </head>    
+    <body th:fragment="layout">
+        <div class="form-group">
+            <label class="col-md-3 control-label" for="em-map-layer-wms-wms_source">
+                WMS endpoint
+            </label>
+            <div class="col-md-9">
+                <select class="form-control" id="em-map-layer-wms-wms_source" name="em-map-layer-wms-wms_source"
+                        data-toggle="tooltip" data-placement="left" title="Choose a WMS service from which to fetch data" required="required">
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-md-3 control-label" for="em-map-layer-wms-feature_name">
+                Feature
+            </label>
+            <div class="col-md-9">
+                <select class="form-control" id="em-map-layer-wms-feature_name" name="em-map-layer-wms-feature_name"
+                        data-toggle="tooltip" data-placement="left" title="Choose a dataset served by above WMS" required="required">
+                </select>
+            </div>
+        </div>                       
+        <div class="form-group">
+            <div class="col-md-offset-3 col-md-9">
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" id="em-map-layer-wms-is_singletile" name="em-map-layer-wms-is_singletile" value="singletile"
+                               data-toggle="tooltip" data-placement="left" title="Tick to use a single tile (for large rasters, or layers like place-names that need wide area labelling)">                                
+                        </input> Render as one large tile
+                    </label>
+                </div>
+            </div>
+        </div>                
+    </body>
+</html>

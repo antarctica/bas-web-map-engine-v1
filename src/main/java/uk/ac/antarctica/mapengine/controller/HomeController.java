@@ -202,6 +202,32 @@ public class HomeController {
     }
     
     /**
+     * Render embedded map creator home page     
+     * @param HttpServletRequest request
+     * @param ModelMap model
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/embedded_creator", method = RequestMethod.GET)
+    public String embeddedCreator(HttpServletRequest request, ModelMap model) throws ServletException, IOException {
+        return(renderPage(request, model, "embedded_creator", null, null, false));
+    }
+    
+    /**
+     * Render embedded map creator home page (debug)    
+     * @param HttpServletRequest request
+     * @param ModelMap model
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/embedded_creatord", method = RequestMethod.GET)
+    public String embeddedCreatorDebug(HttpServletRequest request, ModelMap model) throws ServletException, IOException {
+        return(renderPage(request, model, "embedded_creator", null, null, true));
+    }
+    
+    /**
      * Render data publisher home page     
      * @param HttpServletRequest request
      * @param ModelMap model 
