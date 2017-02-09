@@ -86,7 +86,7 @@ public class MapController implements ServletContextAware {
     @ResponseBody
     public ResponseEntity<String> mapViews(HttpServletRequest request)
         throws ServletException, IOException, ServiceException {
-        return(mapDropdownData(request, "view"));
+        return(mapDropdownData(request, "view", false));
     }
     
     /**
@@ -101,7 +101,36 @@ public class MapController implements ServletContextAware {
     @ResponseBody
     public ResponseEntity<String> mapViews(HttpServletRequest request, @PathVariable("action") String action)
         throws ServletException, IOException, ServiceException {
-        return(mapDropdownData(request, action));
+        return(mapDropdownData(request, action, false));
+    }
+    
+    /**
+     * Get {id: <uuid>, name: <name>} for all embedded maps the logged in user can view (default action)
+     * @param HttpServletRequest request,    
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/embedded_maps/dropdown", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
+    @ResponseBody
+    public ResponseEntity<String> embeddedMapViews(HttpServletRequest request)
+        throws ServletException, IOException, ServiceException {
+        return(mapDropdownData(request, "view", true));
+    }
+    
+    /**
+     * Get {id: <uuid>, name: <name>} for all embedded maps the logged in user can do the specified action (view|edit|clone|delete)
+     * @param HttpServletRequest request,
+     * @param String action
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/embedded_maps/dropdown/{action}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
+    @ResponseBody
+    public ResponseEntity<String> embeddedMapViews(HttpServletRequest request, @PathVariable("action") String action)
+        throws ServletException, IOException, ServiceException {
+        return(mapDropdownData(request, action, true));
     }
     
     /**
@@ -222,45 +251,49 @@ public class MapController implements ServletContextAware {
      * Get {id: <uuid>, name: <name>} dropdown populator for a particular action
      * @param HttpServletRequest request
      * @param String action view|clone|edit
+     * @param boolean embedded
      * @return ResponseEntity<String>
      */
-    private ResponseEntity<String> mapDropdownData(HttpServletRequest request, String action) {
+    private ResponseEntity<String> mapDropdownData(HttpServletRequest request, String action, boolean embedded) {
         ResponseEntity<String> ret = null;
         String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
         List<Map<String, Object>> userMapData = null;
-        if (action.equals("delete")) {
-            /* Users can delete only maps they own */
-            if (username == null) {
-                ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to delete maps");
-            } else {
-                userMapData = magicDataTpl.queryForList("SELECT name, title FROM " +  env.getProperty("postgres.local.mapsTable") + " WHERE owner_name=? ORDER BY title", username);
-            }
-        } else if (action.equals("edit")) {
-            /* Users can edit maps they own, or those allowed to be edited by logged in users */
-            if (username == null) {
-                ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to edit maps");
-            } else {
-                userMapData = magicDataTpl.queryForList("SELECT name, title FROM " +  env.getProperty("postgres.local.mapsTable") + " WHERE owner_name=? OR allowed_edit='login' ORDER BY title", username);
-            }
-        } else if (action.equals("clone")) {
-            if (username == null) {
-                ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to clone maps");
-            } else {
-                /* Logged in users can clone public, login-restricted maps and ones they own */
-                String where = "allowed_usage='public' OR allowed_usage='login' OR (allowed_usage='owner' AND owner_name=?)";
-                userMapData = magicDataTpl.queryForList("SELECT name, title FROM " +  env.getProperty("postgres.local.mapsTable") + " WHERE " + where + " ORDER BY title", username);
-            }
-        } else if (action.equals("view")) {
-            if (username == null) {
-                /* Guests can view public maps */
-                userMapData = magicDataTpl.queryForList("SELECT allowed_usage || ':' || name as name, title FROM " +  env.getProperty("postgres.local.mapsTable") + " WHERE allowed_usage='public' ORDER BY title");
-            } else {
-                /* Logged in users can view public, login-restricted maps and ones they own */
-                String where = "allowed_usage='public' OR allowed_usage='login' OR (allowed_usage='owner' AND owner_name=?)";
-                userMapData = magicDataTpl.queryForList("SELECT allowed_usage || ':' || name as name, title FROM " +  env.getProperty("postgres.local.mapsTable") + " WHERE " + where + " ORDER BY title", username);
-            }
-        } else {
-            ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Unrecognised action " + action);
+        String tableName = env.getProperty("postgres.local." + (embedded ? "embeddedMaps" : "maps") + "Table");
+        switch (action) {
+            case "delete":
+                /* Users can delete only maps they own */
+                if (username == null) {
+                    ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to delete maps");
+                } else {
+                    userMapData = magicDataTpl.queryForList("SELECT name, title FROM " +  tableName + " WHERE owner_name=? ORDER BY title", username);
+                }   break;
+            case "edit":
+                /* Users can edit maps they own, or those allowed to be edited by logged in users */
+                if (username == null) {
+                    ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to edit maps");
+                } else {
+                    userMapData = magicDataTpl.queryForList("SELECT name, title FROM " +  tableName + " WHERE owner_name=? OR allowed_edit='login' ORDER BY title", username);
+                }   break;
+            case "clone":
+                if (username == null) {
+                    ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to clone maps");
+                } else {
+                    /* Logged in users can clone public, login-restricted maps and ones they own */
+                    String where = "allowed_usage='public' OR allowed_usage='login' OR (allowed_usage='owner' AND owner_name=?)";
+                    userMapData = magicDataTpl.queryForList("SELECT name, title FROM " +  tableName + " WHERE " + where + " ORDER BY title", username);
+                }   break;
+            case "view":
+                if (username == null) {
+                    /* Guests can view public maps */
+                    userMapData = magicDataTpl.queryForList("SELECT allowed_usage || ':' || name as name, title FROM " +  tableName + " WHERE allowed_usage='public' ORDER BY title");
+                } else {
+                    /* Logged in users can view public, login-restricted maps and ones they own */
+                    String where = "allowed_usage='public' OR allowed_usage='login' OR (allowed_usage='owner' AND owner_name=?)";
+                    userMapData = magicDataTpl.queryForList("SELECT allowed_usage || ':' || name as name, title FROM " +  tableName + " WHERE " + where + " ORDER BY title", username);
+                }   break;
+            default:
+                ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Unrecognised action " + action);
+                break;
         }
         if (userMapData != null && !userMapData.isEmpty()) {
             JsonArray views = mapper.toJsonTree(userMapData).getAsJsonArray();
@@ -286,7 +319,7 @@ public class MapController implements ServletContextAware {
     @ResponseBody
     public ResponseEntity<String> mapById(HttpServletRequest request, @PathVariable("id") String id)
         throws ServletException, IOException, ServiceException {
-        return(mapDataBy(request, "id", id));
+        return(mapDataBy(request, "id", id, false));
     }
     
     /**
@@ -301,7 +334,22 @@ public class MapController implements ServletContextAware {
     @ResponseBody
     public ResponseEntity<String> mapByName(HttpServletRequest request, @PathVariable("name") String name)
         throws ServletException, IOException, ServiceException {
-        return(mapDataBy(request, "name", name));
+        return(mapDataBy(request, "name", name, false));
+    }
+    
+    /**
+     * Get full data for embedded map with given name
+     * @param HttpServletRequest request,
+     * @param String name
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/embedded_maps/name/{name}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
+    @ResponseBody
+    public ResponseEntity<String> embeddedMapByName(HttpServletRequest request, @PathVariable("name") String name)
+        throws ServletException, IOException, ServiceException {
+        return(mapDataBy(request, "name", name, true));
     }
     
     /**
@@ -309,20 +357,22 @@ public class MapController implements ServletContextAware {
      * @param HttpServletRequest request
      * @param String attr
      * @param String value
+     * @param boolean embedded
      * @return 
      */
-    private ResponseEntity<String> mapDataBy(HttpServletRequest request, String attr, String value) {
+    private ResponseEntity<String> mapDataBy(HttpServletRequest request, String attr, String value, boolean embedded) {
         ResponseEntity<String> ret = null;
         String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
+        String tableName = env.getProperty("postgres.local." + (embedded ? "embeddedMaps" : "maps") + "Table");
         try {
             String where = "";
             Map<String, Object> userMapData = null;
             if (username == null) {
                 where = "allowed_usage='public'";
-                userMapData = magicDataTpl.queryForMap("SELECT * FROM " +  env.getProperty("postgres.local.mapsTable") + " WHERE " + attr + "=? AND " + where, value);
+                userMapData = magicDataTpl.queryForMap("SELECT * FROM " +  tableName + " WHERE " + attr + "=? AND " + where, value);
             } else {
                 where = "(allowed_usage='public' OR allowed_usage='login' OR (allowed_usage='owner' AND owner_name=?))";
-                userMapData = magicDataTpl.queryForMap("SELECT * FROM " +  env.getProperty("postgres.local.mapsTable") + " WHERE " + attr + "=? AND " + where, value, username);
+                userMapData = magicDataTpl.queryForMap("SELECT * FROM " +  tableName + " WHERE " + attr + "=? AND " + where, value, username);
             }
             /* Tag on the list of data endpoints to the payload */
             List<Map<String, Object>> endpointData = getDataEndpoints();

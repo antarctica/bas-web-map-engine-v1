@@ -1,0 +1,163 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",    
+    "title": "Web map specification",
+    "type": "object",
+    "properties": {
+        "id": {
+            "description": "Unique map identifier (UUID)",
+            "anyOf": [
+                {
+                    "type": "string",
+                    "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+                },
+                {
+                    "type": ["string", ""]
+                }
+            ]
+        },
+        "name": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]+$"
+        },
+        "title": {
+            "description": "Brief human-friendly title of map",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description of map",
+            "type": "string"
+        },        
+        "creation_date": {
+            "description": "ISO date of map creation",
+            "anyOf": [
+                {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                {
+                    "type": "null"
+                }
+            ]
+        },
+        "modified_date": {
+            "description": "ISO date of last map modification",
+            "anyOf": [
+                {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                {
+                    "type": "null"
+                }
+            ]
+        },        
+        "owner_email": {
+            "description": "Contact email address of the map owner",
+            "type": "string",
+            "format": "email"
+        },
+        "width": {
+            "description": "Width of map in pixels",
+            "type": "integer",
+            "minimum": 100,
+            "maximum": 1200
+        },
+        "height": {
+            "description": "Height of map in pixels",
+            "type": "integer",
+            "minimum": 100,
+            "maximum": 1200
+        },
+        "embed": {
+            "description": "Id of div map should be embedded in",
+            "type": "string",
+            "pattern": "^[a-z0-9_-]+$"
+        },
+        "center": {
+            "description": "Centre of map in projected coordinates",
+            "type": "array",
+            "items": {
+                "type": "number"
+            },
+            "minItems": 2,
+            "maxItems": 2
+        },
+        "zoom": {
+            "description": "Default zoom level of map",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 20
+        },
+        "rotation": {
+            "description": "Rotation of map, clockwise positive, in degrees",
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180
+        },
+        "projection": {
+            "description": "Map projection as an EPSG code",
+            "type": "string",
+            "pattern": "^EPSG:\\d{4,6}$"
+        },        
+        "allowed_usage": {
+            "description": "Who is allowed to use this map",
+            "type": "string",
+            "enum": ["public", "login", "owner"]
+        },
+        "allowed_edit": {
+            "description": "Who is allowed to edit this map",
+            "type": "string",
+            "enum": ["login", "owner"]
+        },
+        "data": {
+            "description": "Web map data",
+            "type": "object",
+            "properties": {                
+                "layers": {
+                    "id": "layer_array",
+                    "description": "Layer and layer group specifications",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "id": "layer",
+                        "description": "Layer",
+                        "properties": {
+                            "id": {
+                                "description": "Layer identifier (UUID)",
+                                "type": "string",
+                                "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$",
+                                "required": "true"
+                            },
+                            "wms_source": {
+                                "description": "WMS feed serving layer",
+                                "type": "string",
+                                "format": "uri"
+                            },
+                            "feature_name": {
+                                "description": "Data feature name defined on server (<ws:name> for Geoserver)",
+                                "type": "string",
+                                "pattern": "^[a-zA-Z0-9_:]+$"
+                            },  
+                            "opacity": {
+                                "description": "Layer opacity",
+                                "type": "number",
+                                "minimum": 0.0,
+                                "maximum": 1.0
+                            },
+                            "is_singletile": {
+                                "description": "Is this a single tiled layer (for wide-area rasters, place-names etc)?",
+                                "type": "boolean"
+                            },
+                            "required": [
+                                "wms_source", "feature_name"
+                            ]
+                        }
+                    }
+                }
+            }            
+        },
+        "required": [
+            "name", "title", "description", "owner_email", "width", "height", "embed", "projection"
+        ]
+    }
+}

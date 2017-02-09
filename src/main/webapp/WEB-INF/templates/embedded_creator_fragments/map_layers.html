@@ -24,7 +24,17 @@
                         data-toggle="tooltip" data-placement="left" title="Choose a dataset served by above WMS" required="required">
                 </select>
             </div>
-        </div>                       
+        </div>
+        <div class="form-group">
+            <label class="col-md-3 control-label" for="em-map-layer-wms-opacity">Opacity</label>
+            <div class="col-md-9">
+                <input type="number" class="form-control" id="em-map-layer-wms-opacity" name="em-map-layer-wms-opacity" 
+                       placeholder="Layer opacity (0->1)"
+                       min="0" max="1" step="0.1"
+                       data-toggle="tooltip" data-placement="left" title="Layer opacity (0.0 = transparent, 1.0 = opaque)">                                   
+                </input>
+            </div>
+        </div>
         <div class="form-group">
             <div class="col-md-offset-3 col-md-9">
                 <div class="checkbox">
@@ -35,6 +45,8 @@
                     </label>
                 </div>
             </div>
-        </div>                
+        </div>
+        <button id="em-map-layer-wms-save" type="button" class="btn btn-primary">Add data layer</button>
+        <table id="em-map-layerlist" class="table table-sortable hidden"></table>
     </body>
 </html>

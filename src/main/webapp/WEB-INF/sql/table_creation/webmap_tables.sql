@@ -65,6 +65,34 @@ WITH (
 ALTER TABLE webmap.maps
   OWNER TO add;
 
+CREATE TABLE webmap.embedded_maps
+(
+  id character varying(40) NOT NULL,
+  name character varying(50) NOT NULL,
+  title character varying(100),
+  description text, 
+  creation_date timestamp without time zone,
+  modified_date timestamp without time zone,
+  owner_email character varying(150),
+  width integer,
+  height integer,
+  embed character varying(100),
+  center character varying(100),
+  zoom integer,
+  rotation decimal,
+  projection character varying(20),
+  data json,
+  allowed_usage character varying(10),
+  allowed_edit character varying(10),
+  CONSTRAINT embedded_maps_pkey PRIMARY KEY (id),
+  CONSTRAINT embedded_maps_name_unique UNIQUE (name)
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE webmap.embedded_maps
+  OWNER TO add;
+
 CREATE TABLE webmap.preferences
 (
   id serial,

@@ -6,6 +6,8 @@
     </head>    
     <body th:fragment="layout">
         <input type="hidden" name="em-map-id" id="em-map-id"></input>
+        <input type="hidden" name="em-map-allowed-usage" id="em-map-allowed-usage" value="public"></input>
+        <input type="hidden" name="em-map-allowed-edit" id="em-map-allowed-edit" value="login"></input>
         <div class="form-group">
             <label for="em-map-name" class="col-md-3 control-label">Name of map</label>
             <div class="col-md-9">
@@ -40,9 +42,9 @@
             </div>
         </div>
         <div class="form-group">
-            <label for="em-map-size-x" class="col-md-3 control-label">Map width (px)</label>
+            <label for="em-map-width" class="col-md-3 control-label">Map width (px)</label>
             <div class="col-md-9">
-                <input type="number" class="form-control" id="em-map-size-x" name="em-map-size-x" 
+                <input type="number" class="form-control" id="em-map-width" name="em-map-width" 
                        placeholder="Width of map in pixels" 
                        min="100" max="1200" step="25"
                        data-toggle="tooltip" data-placement="right" title="Width of the map on the page, in pixels" required="required">                                   
@@ -50,9 +52,9 @@
             </div>
         </div>
         <div class="form-group">
-            <label for="em-map-size-y" class="col-md-3 control-label">Map height (px)</label>
+            <label for="em-map-height" class="col-md-3 control-label">Map height (px)</label>
             <div class="col-md-9">
-                <input type="number" class="form-control" id="em-map-size-y" name="em-map-size-y" 
+                <input type="number" class="form-control" id="em-map-height" name="em-map-height" 
                        placeholder="Height of map in pixels" 
                        min="100" max="1200" step="25"
                        data-toggle="tooltip" data-placement="right" title="Height of the map on the page, in pixels" required="required">                                   
@@ -63,7 +65,7 @@
             <label for="em-map-embed" class="col-md-3 control-label">Where to embed map</label>
             <div class="col-md-9">
                 <input type="text" class="form-control" id="em-map-embed" name="em-map-embed" placeholder="Embed map in div with this id" 
-                       maxlength="100" data-toggle="tooltip" data-placement="right" title="id of <div> element in page which should contain the map" required="required">                                   
+                       maxlength="100" data-toggle="tooltip" data-placement="right" title="id of div element in page which should contain the map" required="required">                                   
                 </input>
             </div>
         </div>

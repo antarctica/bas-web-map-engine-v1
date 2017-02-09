@@ -2,12 +2,71 @@
 <html lang="en"
       xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="http://www.thymeleaf.org">
-    <head th:include="embedded_fragments/header :: ${debug} ? 'debug_layout' : 'layout'">
+    <head th:include="embedded_creator_fragments/header :: ${debug} ? 'debug_layout' : 'layout'">
     </head>
     <body>
         <div id="wrapper">
             <div th:include="fragments/nav :: layout"></div>
-            <div class="container" th:include="embedded_fragments/content :: layout"></div>
+            <div class="container" th:include="embedded_creator_fragments/content :: layout"></div>
         </div>
+        <script th:inline="javascript">
+            /*<![CDATA[*/
+            var bg = [[${background}]];           
+            /*]]>*/
+        </script>
+        <script type="text/javascript">
+
+            jQuery(document).ready(function () {                
+                jQuery.ajax({
+                    url: magic.config.paths.baseurl + "/maps/endpoints",
+                    method: "GET",
+                    dataType: "json"
+                })
+                .done(function (epdata) {
+                    /* Zap events on the return key (spuriously submits forms in a non-intuitive way) 
+                     * http://stackoverflow.com/questions/895171/prevent-users-from-submitting-form-by-hitting-enter */
+                    jQuery(document).keydown(function(evt) {
+                        if (evt.keyCode == 13) {
+                            evt.preventDefault();
+                            return(false);
+                        }
+                    });
+                    /* Zap events on the backspace key to prevent back navigation and losing data                 
+                     * http://stackoverflow.com/questions/11112127/prevent-backspace-from-navigating-back-with-jquery-like-googles-homepage */
+                    jQuery(document).keydown(function(evt) {
+                        /* CDATA block prevents Thymeleaf's brain dead template engine from choking on ampersands... */
+                        /*<![CDATA[*/
+                        if (evt.which === 8 && !jQuery(evt.target).is("input, textarea")) {
+                            evt.preventDefault();
+                            return(false);
+                        }
+                        /*]]>*/
+                    });
+                    /* Logout behaviour */
+                    var lo = jQuery("#log-out-user");
+                    if (lo.length > 0) {
+                        lo.click(function (evt) {
+                            evt.preventDefault();
+                            jQuery("#logout-form").submit();
+                        });
+                    }
+                    magic.runtime.endpoints = epdata;
+                    /* Tooltips */
+                    jQuery('[data-toggle="tooltip"]').tooltip();
+                    /* For dynamic tooltips - http://stackoverflow.com/questions/9958825/how-do-i-bind-twitter-bootstrap-tooltips-to-dynamically-created-elements */
+                    jQuery("body").tooltip({ selector: '[data-toggle="tooltip"]'});
+                })
+                .fail(function () {
+                    bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to get WMS endpoints for this mapping profile</div>');
+                });
+                
+                /* Background colour */
+                jQuery("body").css("background-color", bg);
+                                
+            });
+
+        </script>
+        <form id="logout-form" method="POST" th:action="@{/logout}">
+        </form>
     </body>
 </html>

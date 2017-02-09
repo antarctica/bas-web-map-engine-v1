@@ -10,7 +10,14 @@ magic.classes.creator.MapContext = function() {
         
 };
 
-magic.classes.creator.MapContext.prototype.load = function(action, name, callback) {
+/**
+ * Load a map context
+ * @param {string} action (new|edit|clone)
+ * @param {string} name
+ * @param {boolean} embedded
+ * @param {Function} callback
+ */
+magic.classes.creator.MapContext.prototype.load = function(action, name, embedded, callback) {
     if (action == "new") {
         /* New blank map context */
         this.context = jQuery.extend(true, {}, magic.modules.creator.Data.BLANK_MAP_CORE, {"data": magic.modules.creator.Data.BLANK_MAP_DATA(name)});
@@ -18,8 +25,12 @@ magic.classes.creator.MapContext.prototype.load = function(action, name, callbac
         callback(this.context);
     } else {
         /* Clone or edit implies a fetch of map with id */
-        jQuery.getJSON(magic.config.paths.baseurl + "/maps/name/" + name, jQuery.proxy(function (response) {
+        var fetchUrl = magic.config.paths.baseurl + "/" + (embedded ? "embedded_" : "") + "maps/name/" + name;
+        jQuery.getJSON(fetchUrl, jQuery.proxy(function (response) {
             this.context = jQuery.extend({}, response);
+            if (action == "clone") {
+                this.context.name += "_copy";
+            }
             this.context.data = JSON.parse(response.data.value);
             this.id = action == "edit" ? this.context.id : "";
             callback(this.context);
