@@ -90,12 +90,13 @@ magic.modules.embedded_creator.Tab1 = function () {
                     var fselect = jQuery("#" + this.prefix + "-layer-wms-feature_name");
                     this.appendLayer(table, {
                         id: magic.modules.Common.uuid(),
-                        name: fselect("option:selected").text(),
+                        name: jQuery("#" + this.prefix + "-layer-wms-feature_name option:selected").text(),
                         wms_source: jQuery("#" + this.prefix + "-layer-wms-wms_source").val(),
                         feature_name: fselect.val(),
                         opacity: jQuery("#" + this.prefix + "-layer-wms-opacity").val(),
                         is_singletile: jQuery("#" + this.prefix + "-layer-wms-is_singletile").prop("checked")
                     });
+                    jQuery(".table-sortable tbody").sortable("destroy").sortable();
                 }
             }, this));
         },
@@ -115,14 +116,14 @@ magic.modules.embedded_creator.Tab1 = function () {
             var ok = true;
             jQuery.each(this.form_fields, jQuery.proxy(function(idx, fld) {
                 var jqFld = jQuery("#" + this.prefix + "-" + fld);
-                if (jqFld[0].checkValidity() === false) {
-                    var fg = jqFld.closest("div.form-group");
-                    fg.removeClass("has-success").addClass("has-error");
+                var fg = jqFld.closest("div.form-group");
+                if (jqFld[0].checkValidity() === false) {                    
+                    fg.addClass("has-error");
                     ok = false;
                 } else {
-                    fg.removeClass("has-error").addClass("has-success");
+                    fg.removeClass("has-error");
                 }
-            }, this));           
+            }, this));            
             return(ok);
         },
         /**
@@ -131,14 +132,29 @@ magic.modules.embedded_creator.Tab1 = function () {
         validateLayerData: function() {
             var ok = true;
             jQuery("[id^='" + this.prefix + "-layer-wms']").each(function(idx, elt) {
-                if (elt.checkValidity() === false) {
-                    var fg = jQuery(elt).closest("div.form-group");
-                    fg.removeClass("has-success").addClass("has-error");
+                var fg = jQuery(elt).closest("div.form-group");
+                if (elt.checkValidity() === false) {                    
+                    fg.addClass("has-error");
                     ok = false;
                 } else {
-                    fg.removeClass("has-error").addClass("has-success");
+                    fg.removeClass("has-error");
                 }
             });
+            if (ok) {
+                /* Check this layer is not already in the list */
+                var fname = jQuery("#" + this.prefix + "-layer-wms-feature_name");
+                jQuery.each(this.layerdata, function(layerId, data) {
+                    if (data.feature_name == fname.val()) {
+                        ok = false;
+                        return(false);
+                    }
+                    return(true);
+                });
+                if (!ok) {
+                    fname.closest("div.form-group").addClass("has-error");
+                    fname[0].setCustomValidity("Layer is already on map");
+                }
+            }
             return(ok);
         },
         /**
@@ -148,6 +164,31 @@ magic.modules.embedded_creator.Tab1 = function () {
             magic.modules.creator.Common.dictToForm(this.form_fields, context, this.prefix);
             this.loadMap(context);
             this.loadLayers(context);
+            var eps = magic.modules.Endpoints.getEndpointsBy("srs", context.projection);
+            var wmsSourceSelect = jQuery("#" + this.prefix + "-layer-wms-wms_source");
+            magic.modules.Common.populateSelect(wmsSourceSelect, eps, "url", "name", null, true);
+            wmsSourceSelect.change(jQuery.proxy(function(evt) {
+                magic.modules.Common.getCapabilities(wmsSourceSelect.val(), jQuery.proxy(this.populateFeatureSelect, this), "");
+            }, this));
+        },
+        /**
+         * Populate a feature select dropdown from a capabilities response from a WMS source
+         * @param {Object} caps
+         * @param {string} fname
+         */
+        populateFeatureSelect: function(caps, fname) {
+            var fopts = [];
+            jQuery.each(caps, function(feat, data) {
+                fopts.push({
+                    name: data["Name"],
+                    title: data["Title"]
+                });
+            });
+            fopts.sort(function(a, b) {
+                return(a["title"].localeCompare(b["title"]));
+            });
+            var wmsFeatureSelect = jQuery("#" + this.prefix + "-layer-wms-feature_name");
+            magic.modules.Common.populateSelect(wmsFeatureSelect, fopts, "name", "title", fname, true);
         },
         /**
          * Populate data from tab form
@@ -293,15 +334,17 @@ magic.modules.embedded_creator.Tab1 = function () {
             if (context.data && jQuery.isArray(context.data.layers)) {
                 var layers = context.data.layers;
                 var table = jQuery("#" + this.prefix + "-layerlist");
-                var rows = table.find("tr");
+                var rows = table.find("tbody tr");
                 if (rows.length > 0) {
                     rows.remove();
                 }
                 if (layers.length > 0) {                    
                     table.removeClass("hidden");                    
                     for (var i = 0; i < layers.length; i++) {
-                        this.appendLayer(table, layers[i])
+                        this.appendLayer(table, layers[i]);
                     }
+                    /* Enable sortable layers table */
+                    jQuery(".table-sortable tbody").sortable();
                 } else {
                     table.addClass("hidden");
                 }
@@ -325,18 +368,18 @@ magic.modules.embedded_creator.Tab1 = function () {
             this.layerdata[layerId] = data;
             var tbody = table.find("tbody");
             tbody.append(
-                '<tr id="' + this.prefix + '-row-' + layerId + '>' + 
+                '<tr id="' + this.prefix + '-row-' + layerId + '">' + 
                     '<td><span class="glyphicon glyphicon-move"></span></td>' + 
                     '<td>' + serviceName + '</td>' + 
                     '<td>' + data.name + '</td>' + 
-                    '<td align="right">' + data.opacity + '</td>' + 
-                    '<td align="right">' + data.is_singletile + '</td>' + 
+                    '<td align="right">' + (data.opacity || 1.0) + '</td>' + 
+                    '<td align="right">' + (data.is_singletile === true ? "Y" : "N") + '</td>' + 
                     '<td>' + 
                         '<span style="display:block; margin-bottom: 5px">' + 
-                            '<a href="Javascript:void(0)" title="Edit layer data" target="_blank">' + 
+                            '<a href="Javascript:void(0)" data-toggle="tooltip" data-placement="top" title="Edit layer data" target="_blank">' + 
                                 '<i style="font-size: 20px; color: #286090; margin-right: 5px" class="fa fa-pencil"></i>' + 
                             '</a>' + 
-                            '<a href="Javascript:void(0)" title="Remove layer from map">' +
+                            '<a href="Javascript:void(0)" data-toggle="tooltip" data-placement="top" title="Remove layer from map">' +
                                 '<i style="font-size: 20px; color: #d9534f" class="fa fa-trash"></i>' + 
                             '</a>' + 
                         '</span>' + 

@@ -35,34 +35,36 @@ magic.modules.embedded_creator.Data = function () {
                     "center": [0, 0],
                     "zoom": 0,
                     "rotation": 0,                    
-                    "resolutions": [11200, 5600, 2800, 1400, 560, 280, 140, 56, 28, 14, 5.6, 2.8, 1.4, 0.56],                  
-                    "layers": [
-                        {
-                            "id": null,
-                            "name": "Hillshade and bathymetry",
-                            "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database"),
-                            "feature_name": "add:antarctic_hillshade_and_bathymetry"
-                        },
-                        {
-                            "id": null,
-                            "name": "Coastline",
-                            "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database"),
-                            "feature_name": "add:antarctic_coastline"
-                        },
-                        {
-                            "id": null,
-                            "name": "Sub-Antarctic coastline",
-                            "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database"),
-                            "feature_name": "add:sub_antarctic_coastline"
-                        },
-                        {
-                            "id": null,
-                            "name": "Graticule",
-                            "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database"),
-                            "feature_name": "add:antarctic_graticule",
-                            "is_singletile": true
-                        }
-                    ]
+                    "resolutions": [11200, 5600, 2800, 1400, 560, 280, 140, 56, 28, 14, 5.6, 2.8, 1.4, 0.56], 
+                    "data": {
+                        "layers": [
+                            {
+                                "id": null,
+                                "name": "Hillshade and bathymetry",
+                                "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database"),
+                                "feature_name": "add:antarctic_hillshade_and_bathymetry"
+                            },
+                            {
+                                "id": null,
+                                "name": "Coastline",
+                                "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database"),
+                                "feature_name": "add:antarctic_coastline"
+                            },
+                            {
+                                "id": null,
+                                "name": "Sub-Antarctic coastline",
+                                "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database"),
+                                "feature_name": "add:sub_antarctic_coastline"
+                            },
+                            {
+                                "id": null,
+                                "name": "Graticule",
+                                "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database"),
+                                "feature_name": "add:antarctic_graticule",
+                                "is_singletile": true
+                            }
+                        ]
+                    }
                 },
                 "arctic": {
                     "projection": "EPSG:3995",
@@ -71,27 +73,29 @@ magic.modules.embedded_creator.Data = function () {
                     "zoom": 0,
                     "rotation": 0,                    
                     "resolutions": [11200, 5600, 2800, 1400, 560, 280, 140],                    
-                    "layers": [
-                        {
-                            "id": null,
-                            "name": "Hillshade and bathymetry",
-                            "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Arctic Open Data"),
-                            "feature_name": "arctic:arctic_hillshade_and_bathymetry"
-                        },
-                        {
-                            "id": null,
-                            "name": "Coastline",
-                            "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Arctic Open Data"),
-                            "feature_name": "arctic:arctic_coastline"
-                        },
-                        {
-                            "id": null,
-                            "name": "Graticule",
-                            "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Arctic Open Data"),
-                            "feature_name": "arctic:arctic_graticule",
-                            "is_singletile": true
-                        }
-                    ]
+                    "data": {
+                        "layers": [
+                            {
+                                "id": null,
+                                "name": "Hillshade and bathymetry",
+                                "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Arctic Open Data"),
+                                "feature_name": "arctic:arctic_hillshade_and_bathymetry"
+                            },
+                            {
+                                "id": null,
+                                "name": "Coastline",
+                                "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Arctic Open Data"),
+                                "feature_name": "arctic:arctic_coastline"
+                            },
+                            {
+                                "id": null,
+                                "name": "Graticule",
+                                "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Arctic Open Data"),
+                                "feature_name": "arctic:arctic_graticule",
+                                "is_singletile": true
+                            }
+                        ]
+                    }
                 },
                 "southgeorgia": {
                     "projection": "EPSG:3762",
@@ -100,20 +104,22 @@ magic.modules.embedded_creator.Data = function () {
                     "zoom": 4,
                     "rotation": 0,                    
                     "resolutions": [3360, 1680, 840, 420, 210, 105, 42, 21, 10.5, 4.2, 2.1, 1.12, 0.56, 0.28, 0.14],
-                    "layers": [
-                        {
-                            "id": null,
-                            "name": "Hillshade and bathymetry",
-                            "wms_source": magic.modules.Endpoints.getWmsServiceUrl("South Georgia GIS"),
-                            "feature_name": "sggis:sg_hillshade_and_bathymetry"
-                        },
-                        {
-                            "id": null,
-                            "name": "Coastline",
-                            "wms_source": magic.modules.Endpoints.getWmsServiceUrl("South Georgia GIS"),
-                            "feature_name": "sggis:sg_coastline"
-                        }
-                    ]
+                    "data": {
+                        "layers": [
+                            {
+                                "id": null,
+                                "name": "Hillshade and bathymetry",
+                                "wms_source": magic.modules.Endpoints.getWmsServiceUrl("South Georgia GIS"),
+                                "feature_name": "sggis:sg_hillshade_and_bathymetry"
+                            },
+                            {
+                                "id": null,
+                                "name": "Coastline",
+                                "wms_source": magic.modules.Endpoints.getWmsServiceUrl("South Georgia GIS"),
+                                "feature_name": "sggis:sg_coastline"
+                            }
+                        ]
+                    }
                 },
                 "midlatitudes": {
                     "projection": "EPSG:3857",  /* Spherical Mercator as per OSM/Google */
@@ -122,7 +128,9 @@ magic.modules.embedded_creator.Data = function () {
                     "zoom": 0,
                     "rotation": 0,                   
                     "resolutions": [],
-                    "layers": magic.modules.Endpoints.getMidLatitudeCoastSource()
+                    "data": {
+                        "layers": magic.modules.Endpoints.getMidLatitudeCoastSource()
+                    }
                 }
             })[name];
         },
