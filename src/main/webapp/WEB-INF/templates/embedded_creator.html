@@ -55,6 +55,8 @@
                     jQuery('[data-toggle="tooltip"]').tooltip();
                     /* For dynamic tooltips - http://stackoverflow.com/questions/9958825/how-do-i-bind-twitter-bootstrap-tooltips-to-dynamically-created-elements */
                     jQuery("body").tooltip({ selector: '[data-toggle="tooltip"]'});
+                    
+                    magic.modules.embedded_creator.Tab1.init();
                 })
                 .fail(function () {
                     bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to get WMS endpoints for this mapping profile</div>');

@@ -73,6 +73,7 @@ CREATE TABLE webmap.embedded_maps
   description text, 
   creation_date timestamp without time zone,
   modified_date timestamp without time zone,
+  owner_name character varying(50),
   owner_email character varying(150),
   width integer,
   height integer,

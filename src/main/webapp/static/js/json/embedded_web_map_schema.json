@@ -50,7 +50,11 @@
                     "type": "null"
                 }
             ]
-        },        
+        }, 
+        "owner_name": {
+            "description": "Name/username of the map owner",
+            "type": "string"
+        },
         "owner_email": {
             "description": "Contact email address of the map owner",
             "type": "string",

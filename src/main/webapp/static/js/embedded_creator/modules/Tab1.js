@@ -25,8 +25,7 @@ magic.modules.embedded_creator.Tab1 = function () {
                     if (action == rb.val()) {
                         /* Checked one */
                         var select = jQuery("#" + this.prefix + "-" + action);
-                        select.prop("disabled", false);
-                        select.find("option").remove();
+                        select.prop("disabled", false);                        
                         var mapName = "";
                         if (action == "edit") {
                             var search = window.location.search;
@@ -37,6 +36,7 @@ magic.modules.embedded_creator.Tab1 = function () {
                         } 
                         if (action == "edit" || action == "clone") {
                             /* Service returns [{name: <name>, title: <title>},...] */
+                            select.find("option").remove();
                             jQuery.getJSON(magic.config.paths.baseurl + "/embedded_maps/dropdown/" + action, jQuery.proxy(function (data) {
                                 magic.modules.Common.populateSelect(select, data, "name", "title", mapName, true); 
                                 magic.modules.creator.Common.resetFormIndicators();
@@ -57,7 +57,8 @@ magic.modules.embedded_creator.Tab1 = function () {
                 var action = sel.attr("id").split("-").pop();
                 var mapName = sel.val();
                 magic.modules.creator.Common.resetFormIndicators();
-                magic.modules.creator.Common.map_context.load(action, mapName, true, jQuery.proxy(magic.modules.creator.Common.loadContext, magic.modules.creator.Common));
+                jQuery("div.hidden").removeClass("hidden");
+                magic.modules.creator.Common.map_context.load(action, mapName, true, jQuery.proxy(magic.modules.creator.Common.loadContext, magic.modules.creator.Common));                
             }); 
             /* If there is a search string, assume a map edit */
             var search = window.location.search;
