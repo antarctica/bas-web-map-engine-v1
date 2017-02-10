@@ -9,7 +9,7 @@ magic.modules.embedded_creator.Tab1 = function () {
         map: null,
         
         /* List of user layers */
-        layerdata = {};
+        layerdata: {},
         
         prefix: "em-map",
                
@@ -82,7 +82,26 @@ magic.modules.embedded_creator.Tab1 = function () {
                     this.map.getView().setRotation(rotationRad);
                 }
             }, this));
+            /* Handle add layer event */
+            jQuery("#" + this.prefix + "-layer-wms-save").click(jQuery.proxy(function(evt) {
+                if (this.validateLayerData()) {
+                    var table = jQuery("#" + this.prefix + "-layerlist");
+                    table.removeClass("hidden");
+                    var fselect = jQuery("#" + this.prefix + "-layer-wms-feature_name");
+                    this.appendLayer(table, {
+                        id: magic.modules.Common.uuid(),
+                        name: fselect("option:selected").text(),
+                        wms_source: jQuery("#" + this.prefix + "-layer-wms-wms_source").val(),
+                        feature_name: fselect.val(),
+                        opacity: jQuery("#" + this.prefix + "-layer-wms-opacity").val(),
+                        is_singletile: jQuery("#" + this.prefix + "-layer-wms-is_singletile").prop("checked")
+                    });
+                }
+            }, this));
         },
+        /**
+         * Validate all top-level (i.e. not individual layer level) user form inputs
+         */
         validate: function() {
             /* Make sure a map source selection has been made */
             var checkRb = jQuery("input[type='radio'][name='_" + this.prefix + "-action-rb']:checked");
@@ -93,23 +112,37 @@ magic.modules.embedded_creator.Tab1 = function () {
                 return(false);
             }
             /* Check form inputs */
-            var form = jQuery("#" + this.prefix + "-form");
-            var ok = form[0].checkValidity();
-            /* Indicate invalid fields */
-            jQuery.each(form.find("input[required='required'],textarea[required='required'],input[type='url']"), function(idx, ri) {
-                var riEl = jQuery(ri);
-                var fg = riEl.closest("div.form-group");
-                var vState = riEl.prop("validity");
-                if (vState.valid) {
-                    fg.removeClass("has-error").addClass("has-success");
-                } else {
+            var ok = true;
+            jQuery.each(this.form_fields, jQuery.proxy(function(idx, fld) {
+                var jqFld = jQuery("#" + this.prefix + "-" + fld);
+                if (jqFld[0].checkValidity() === false) {
+                    var fg = jqFld.closest("div.form-group");
                     fg.removeClass("has-success").addClass("has-error");
+                    ok = false;
+                } else {
+                    fg.removeClass("has-error").addClass("has-success");
+                }
+            }, this));           
+            return(ok);
+        },
+        /**
+         * Validate layer level data
+         */
+        validateLayerData: function() {
+            var ok = true;
+            jQuery("[id^='" + this.prefix + "-layer-wms']").each(function(idx, elt) {
+                if (elt.checkValidity() === false) {
+                    var fg = jQuery(elt).closest("div.form-group");
+                    fg.removeClass("has-success").addClass("has-error");
+                    ok = false;
+                } else {
+                    fg.removeClass("has-error").addClass("has-success");
                 }
             });
             return(ok);
         },
         /**
-         * Populate tab form from data
+         * Populate form, map and layer table from payload data
          */
         loadContext: function (context) {        
             magic.modules.creator.Common.dictToForm(this.form_fields, context, this.prefix);
@@ -252,6 +285,10 @@ magic.modules.embedded_creator.Tab1 = function () {
                 }
             }
         },
+        /**
+         * Load context data into the sortable layers table
+         * @param {object} context
+         */
         loadLayers: function (context) {
             if (context.data && jQuery.isArray(context.data.layers)) {
                 var layers = context.data.layers;
@@ -261,38 +298,52 @@ magic.modules.embedded_creator.Tab1 = function () {
                     rows.remove();
                 }
                 if (layers.length > 0) {                    
-                    table.removeClass("hidden");
-                    var tbody = table.find("tbody");
+                    table.removeClass("hidden");                    
                     for (var i = 0; i < layers.length; i++) {
-                        var service = magic.modules.Endpoints.getEndpointBy("url", layers[i].wms_source);
-                        var serviceName = layers[i].wms_source;
-                        if (service) {
-                            serviceName = service.name;
-                        }
-                        tbody.append(
-                            '<tr id="' + this.prefix + '-row-' + layers[i].id + '>' + 
-                                '<td>' + serviceName + '</td>' + 
-                                '<td>' + layers[i].name + '</td>' + 
-                                '<td align="right">' + layers[i].opacity + '</td>' + 
-                                '<td align="right">' + layers[i].is_singletile + '</td>' + 
-                                '<td>' + 
-                                    '<span style="display:block; margin-bottom: 5px">' + 
-                                        '<a href="Javascript:void(0)" title="Edit layer data" target="_blank">' + 
-                                            '<i style="font-size: 20px; color: #286090; margin-right: 5px" class="fa fa-pencil"></i>' + 
-                                        '</a>' + 
-                                        '<a href="Javascript:void(0)" title="Remove layer from map">' +
-                                            '<i style="font-size: 20px; color: #d9534f" class="fa fa-trash"></i>' + 
-                                        '</a>' + 
-                                    '</span>' + 
-                                '</td>' + 
-                            '</tr>'
-                        );
+                        this.appendLayer(table, layers[i])
                     }
                 } else {
                     table.addClass("hidden");
                 }
             }
-        }                
+        },
+        /**
+         * Append data for a map layer to the given table
+         * @param {jQuery.object} table
+         * @param {object} data
+         */
+        appendLayer: function(table, data) {
+            var service = magic.modules.Endpoints.getEndpointBy("url", data.wms_source);
+            var serviceName = data.wms_source;
+            if (service) {
+                serviceName = service.name;
+            }
+            var layerId = data.id;
+            if (!layerId) {
+                layerId = magic.modules.Common.uuid();
+            }
+            this.layerdata[layerId] = data;
+            var tbody = table.find("tbody");
+            tbody.append(
+                '<tr id="' + this.prefix + '-row-' + layerId + '>' + 
+                    '<td><span class="glyphicon glyphicon-move"></span></td>' + 
+                    '<td>' + serviceName + '</td>' + 
+                    '<td>' + data.name + '</td>' + 
+                    '<td align="right">' + data.opacity + '</td>' + 
+                    '<td align="right">' + data.is_singletile + '</td>' + 
+                    '<td>' + 
+                        '<span style="display:block; margin-bottom: 5px">' + 
+                            '<a href="Javascript:void(0)" title="Edit layer data" target="_blank">' + 
+                                '<i style="font-size: 20px; color: #286090; margin-right: 5px" class="fa fa-pencil"></i>' + 
+                            '</a>' + 
+                            '<a href="Javascript:void(0)" title="Remove layer from map">' +
+                                '<i style="font-size: 20px; color: #d9534f" class="fa fa-trash"></i>' + 
+                            '</a>' + 
+                        '</span>' + 
+                    '</td>' + 
+                '</tr>'
+            );
+        }
 
     });
 
