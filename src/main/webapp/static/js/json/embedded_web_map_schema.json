@@ -102,7 +102,24 @@
             "description": "Map projection as an EPSG code",
             "type": "string",
             "pattern": "^EPSG:\\d{4,6}$"
-        },        
+        }, 
+        "proj_extent": {
+            "description": "Extent of projection in projected coordinates",
+            "type": "array",
+            "items": {
+                "type": "number"
+            },
+            "minItems": 4,
+            "maxItems": 4
+        },
+        "resolutions": {
+            "description": "Array of resolutions allowed for the map (total possible zoom levels)",
+            "type": "array",
+            "items": {
+                "type": "number"
+            },
+            "minItems": 0
+        },
         "allowed_usage": {
             "description": "Who is allowed to use this map",
             "type": "string",

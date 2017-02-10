@@ -20,7 +20,11 @@ magic.classes.creator.MapContext = function() {
 magic.classes.creator.MapContext.prototype.load = function(action, name, embedded, callback) {
     if (action == "new") {
         /* New blank map context */
-        this.context = jQuery.extend(true, {}, magic.modules.creator.Data.BLANK_MAP_CORE, {"data": magic.modules.creator.Data.BLANK_MAP_DATA(name)});
+        if (embedded) {
+            this.context = jQuery.extend(true, {}, magic.modules.embedded_creator.Data.BLANK_MAP_DATA(name));
+        } else {
+            this.context = jQuery.extend(true, {}, magic.modules.creator.Data.BLANK_MAP_CORE, {"data": magic.modules.creator.Data.BLANK_MAP_DATA(name)});
+        }
         this.id = "";
         callback(this.context);
     } else {

@@ -1,15 +1,9 @@
-/*!
- * Start Bootstrap - SB Admin Bootstrap Admin Template (http://startbootstrap.com)
- * Code licensed under the Apache License v2.0.
- * For details, see http://www.apache.org/licenses/LICENSE-2.0.
- */
+/* Map creator CSS */
 
 /* OL control custom styles */
 .custom-mouse-position {
     right: 8px;
     bottom: 8px;
-    font-size: 10px;
-    font-weight: bold;
     position: absolute;
 }
 
@@ -34,7 +28,7 @@
 
 .custom-scale-line-bottom {
     background: transparent;
-    bottom: 9px;
+    bottom: 10px;
     left: 10px;
     padding: 0;
     margin: 0;
@@ -44,7 +38,7 @@
 .custom-scale-line-bottom-inner {
     border: 1px solid #3a3f44;
     border-bottom: none;
-    border-top: 1px solid #3a3f44;
+    border-top: none;
     color: #3a3f44;
     font-size: 12px;
     text-align: center;
@@ -56,26 +50,31 @@
     top: 8px;
     left: auto;
     right: 8px;
-    background-color: rgba(255,69,0,0.2);
+    background-color: rgba(52,122,182,0.2);
     width: 200px;
     height: 15px;
     padding: 0;
-    box-shadow: 0 0 5px rgb(255,69,0);
+    box-shadow: 0 0 5px rgb(52,122,182);
     border-radius: 20px;
 }
 
 .ol-zoomslider:hover {
-    background-color: rgba(255,69,0,0.3);
+    background-color: rgba(52,122,182,0.3);
 }
 
 .ol-zoomslider-thumb {
-    height: 15px;
-    width: 15px;
-    margin: 0;
-    filter: none;
-    background-color: rgba(255,69,0,0.6);
-    border-radius: 20px;
+    height: 15px !important;
+    width: 15px !important;
+    margin: 0 !important;
+    filter: none !important;
+    background-color: rgba(52,122,182,0.6) !important;
+    border-radius: 20px !important;
 }
 a.ol-zoomslider-handle:hover {
-    background-color: rgba(255,69,0,0.7);
+    background-color: rgba(52,122,182,0.7);
+}
+
+img.applogo {
+    float: left; 
+    margin-left: 5px
 }
