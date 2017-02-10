@@ -8,6 +8,9 @@ magic.modules.embedded_creator.Tab1 = function () {
         
         map: null,
         
+        /* List of user layers */
+        layerdata = {};
+        
         prefix: "em-map",
                
         form_fields: [
@@ -111,13 +114,27 @@ magic.modules.embedded_creator.Tab1 = function () {
         loadContext: function (context) {        
             magic.modules.creator.Common.dictToForm(this.form_fields, context, this.prefix);
             this.loadMap(context);
+            this.loadLayers(context);
         },
         /**
          * Populate data from tab form
          */
         saveContext: function (context) {
             magic.modules.creator.Common.formToDict(this.form_fields, context, this.prefix);
+            /* Read center, zoom and projection details from the map */
+            var mapView = this.map.getView();
+            context.center = mapView.getCenter();
+            context.zoom = mapView.getZoom();
+            context.projection = mapView.getProjection().getCode();
+            context.proj_extent = mapView.getProjection().getExtent();
+            context.resolutions = mapView.getResolutions();
+            /* Read the data layers */
+            
         },
+        /**
+         * Load up selector map
+         * @param {object} context
+         */
         loadMap: function (context) {
             var resetMap = false;
             if (this.map) {
@@ -234,7 +251,48 @@ magic.modules.embedded_creator.Tab1 = function () {
                     olGrat.setMap(this.map);
                 }
             }
-        }
+        },
+        loadLayers: function (context) {
+            if (context.data && jQuery.isArray(context.data.layers)) {
+                var layers = context.data.layers;
+                var table = jQuery("#" + this.prefix + "-layerlist");
+                var rows = table.find("tr");
+                if (rows.length > 0) {
+                    rows.remove();
+                }
+                if (layers.length > 0) {                    
+                    table.removeClass("hidden");
+                    var tbody = table.find("tbody");
+                    for (var i = 0; i < layers.length; i++) {
+                        var service = magic.modules.Endpoints.getEndpointBy("url", layers[i].wms_source);
+                        var serviceName = layers[i].wms_source;
+                        if (service) {
+                            serviceName = service.name;
+                        }
+                        tbody.append(
+                            '<tr id="' + this.prefix + '-row-' + layers[i].id + '>' + 
+                                '<td>' + serviceName + '</td>' + 
+                                '<td>' + layers[i].name + '</td>' + 
+                                '<td align="right">' + layers[i].opacity + '</td>' + 
+                                '<td align="right">' + layers[i].is_singletile + '</td>' + 
+                                '<td>' + 
+                                    '<span style="display:block; margin-bottom: 5px">' + 
+                                        '<a href="Javascript:void(0)" title="Edit layer data" target="_blank">' + 
+                                            '<i style="font-size: 20px; color: #286090; margin-right: 5px" class="fa fa-pencil"></i>' + 
+                                        '</a>' + 
+                                        '<a href="Javascript:void(0)" title="Remove layer from map">' +
+                                            '<i style="font-size: 20px; color: #d9534f" class="fa fa-trash"></i>' + 
+                                        '</a>' + 
+                                    '</span>' + 
+                                '</td>' + 
+                            '</tr>'
+                        );
+                    }
+                } else {
+                    table.addClass("hidden");
+                }
+            }
+        }                
 
     });
 

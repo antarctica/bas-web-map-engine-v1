@@ -149,6 +149,12 @@
                                 "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$",
                                 "required": "true"
                             },
+                            "name": {
+                                "description": "Display name for layer",
+                                "type": "string",
+                                "pattern": "^[A-Za-z0-9_ ]+$",
+                                "required": "true"
+                            },
                             "wms_source": {
                                 "description": "WMS feed serving layer",
                                 "type": "string",
