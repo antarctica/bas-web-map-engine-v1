@@ -367,16 +367,21 @@ magic.modules.embedded_creator.Tab1 = function () {
             }
             this.layerdata[layerId] = data;
             var tbody = table.find("tbody");
+            var layerInfo = 
+                'Opacity: ' + data.opacity + '<br/>' + 
+                'One tile: ' + (data.is_singletile === true ? "Y" : "N") + '<br/>' + 
+                'Interactive: ' + (data.is_interactive === true ? "Y" : "N");
             tbody.append(
                 '<tr id="' + this.prefix + '-row-' + layerId + '">' + 
                     '<td><span class="glyphicon glyphicon-move"></span></td>' + 
                     '<td>' + serviceName + '</td>' + 
-                    '<td>' + data.name + '</td>' + 
-                    '<td align="right">' + (data.opacity || 1.0) + '</td>' + 
-                    '<td align="right">' + (data.is_singletile === true ? "Y" : "N") + '</td>' + 
+                    '<td>' + data.name + '</td>' +                     
                     '<td>' + 
                         '<span style="display:block; margin-bottom: 5px">' + 
-                            '<a href="Javascript:void(0)" data-toggle="tooltip" data-placement="top" title="Edit layer data" target="_blank">' + 
+                            '<a href="Javascript:void(0)" data-toggle="tooltip" data-html="true" data-placement="top" title="' + layerInfo + '">' + 
+                                '<i style="font-size: 20px; color: #286090; margin-right: 5px" class="fa fa-info-circle"></i>' + 
+                            '</a>' +
+                            '<a href="Javascript:void(0)" data-toggle="tooltip" data-placement="top" title="Edit layer data">' + 
                                 '<i style="font-size: 20px; color: #286090; margin-right: 5px" class="fa fa-pencil"></i>' + 
                             '</a>' + 
                             '<a href="Javascript:void(0)" data-toggle="tooltip" data-placement="top" title="Remove layer from map">' +

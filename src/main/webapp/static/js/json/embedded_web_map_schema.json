@@ -175,6 +175,10 @@
                                 "description": "Is this a single tiled layer (for wide-area rasters, place-names etc)?",
                                 "type": "boolean"
                             },
+                            "is_interactive": {
+                                "description": "Is this an interactive layer that can be filtered?",
+                                "type": "boolean"
+                            },
                             "required": [
                                 "wms_source", "feature_name"
                             ]
