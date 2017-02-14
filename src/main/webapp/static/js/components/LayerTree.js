@@ -253,13 +253,14 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
             var title = (nd.expanded ? "Collapse" : "Expand") + " this group";
             var hbg = depth == 0 ? "panel-primary" : (depth == 1 ? "panel-info" : "");
             var topMargin = i == 0 ? "margin-top:5px" : "";
+            var oneOnly = (nd.base === true || nd.one_only === true);
             element.append(
                     ((element.length > 0 && element[0].tagName.toLowerCase() == "ul") ? '<li class="list-group-item layer-list-group-group" id="layer-item-' + nd.id + '">' : "") +
                     '<div class="panel ' + hbg + ' center-block layer-group" style="' + topMargin + '">' +
                         '<div class="panel-heading" id="layer-group-heading-' + nd.id + '">' +
                             '<span class="icon-layers"></span>' +
-                            (nd.base ? '<span style="margin:5px"></span>' : '<input class="layer-vis-group-selector" id="group-cb-' + nd.id + '" type="checkbox" />') +
-                            (nd.base ? '' : '<span class="badge checked-indicator-badge hidden"><span class="fa fa-eye">&nbsp;</span>0</span>') + 
+                            (oneOnly ? '<span style="margin:5px"></span>' : '<input class="layer-vis-group-selector" id="group-cb-' + nd.id + '" type="checkbox" />') +
+                            (oneOnly ? '' : '<span class="badge checked-indicator-badge hidden"><span class="fa fa-eye">&nbsp;</span>0</span>') + 
                             '<span class="panel-title layer-group-panel-title" data-toggle="tooltip" data-placement="right" title="' + title + '">' +
                                 '<a class="layer-group-tool" role="button" data-toggle="collapse" href="#layer-group-panel-' + nd.id + '">' +
                                     '<span style="font-weight:bold">' + nd.name + '</span>' +
@@ -268,7 +269,7 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                         '</div>' +
                         '<div id="layer-group-panel-' + nd.id + '" class="panel-collapse collapse' + (nd.expanded ? " in" : "") + '">' +
                             '<div class="panel-body" style="padding:0px">' +
-                                '<ul class="list-group layer-list-group" id="layer-group-' + nd.id + '">' +
+                                '<ul class="list-group layer-list-group ' + (oneOnly ? 'one-only' : '') + '" id="layer-group-' + nd.id + '">' +
                                 '</ul>' +
                             '</div>' +
                         '</div>' +
@@ -295,6 +296,7 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
 /**
  * Create layer corresponding to a data node
  * @param {object} nd
+ * @param {jQuery.Object} element
  */
 magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
     var cb;
@@ -318,6 +320,9 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
     }
     if (isBase) {
         cb = '<input class="layer-vis-selector" name="base-layers-rb" id="base-layer-rb-' + nd.id + '" type="radio" ' + (isVisible ? "checked" : "") + '/>';
+    } else if (element.hasClass("one-only")) {
+        var eltId = element.attr("id");
+        cb = '<input class="layer-vis-selector" name="layer-rb-' + eltId + '" id="layer-rb-' + nd.id + '" type="radio" ' + (isVisible ? "checked" : "") + '/>';
     } else {
         cb = '<input class="layer-vis-selector" id="layer-cb-' + nd.id + '" type="checkbox" ' + (isVisible ? "checked" : "") + '/>';
     }           
@@ -743,7 +748,7 @@ magic.classes.LayerTree.prototype.setLayerVisibility = function(chk) {
     var id = chk.prop("id");
     var nodeid = this.getNodeId(id);
     var layer = this.nodeLayerTranslation[nodeid];
-    if (id.indexOf("base-layer-rb") != -1) {
+    if (id.indexOf("base-layer-rb") == 0) {
         /* Base layer visibility change */
         jQuery.each(this.layersBySource["base"], jQuery.proxy(function (bli, bl) {                
             bl.setVisible(bl.get("metadata")["id"] == nodeid);
@@ -753,7 +758,14 @@ magic.classes.LayerTree.prototype.setLayerVisibility = function(chk) {
             type: "baselayerchanged",
             layer: layer
         });
-    } else {
+    } else if (id.indexOf("layer-rb") == 0) {
+        /* Layer visibility change in a one-only display group - http://redmine.nerc-bas.ac.uk/issues/4538 */
+        var rbName = chk.prop("name");
+        jQuery("input[name='" + rbName + "']").each(jQuery.proxy(function(idx, elt) {
+            var bl = this.nodeLayerTranslation[this.getNodeId(jQuery(elt).prop("id"))];
+            bl.setVisible(bl.get("metadata")["id"] == nodeid);
+        }, this));                      
+    }else {
         /* Overlay layer visibility change */        
         layer.setVisible(chk.prop("checked"));
     }  

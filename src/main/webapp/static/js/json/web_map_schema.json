@@ -302,6 +302,10 @@
                                         "description": "Allow pop-ups on all autoloaded layers",
                                         "type": "boolean"
                                     },
+                                    "one_only": {
+                                        "description": "Whether only one layer in the group can be on at a time",
+                                        "type": "boolean"
+                                    },
                                     "layers": {
                                         "type": "array",
                                         "$ref": "layer_array",

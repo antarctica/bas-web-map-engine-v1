@@ -13,7 +13,8 @@ magic.classes.creator.LayerGroupUpdater = function(prefix) {
         {"field": "base", "default": false},
         {"field": "autoload", "default": false},
         {"field": "autoload_filter", "default": ""},
-        {"field": "autoload_popups", "default": false}
+        {"field": "autoload_popups", "default": false},
+        {"field": "one_only", "default": false}
     ];   
     
     /* Context object */
