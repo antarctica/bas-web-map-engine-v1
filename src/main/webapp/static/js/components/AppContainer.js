@@ -12,10 +12,9 @@ magic.classes.AppContainer = function () {
      * magic.runtime.preferencedata
      */ 
     
-    /* Global map container (contains the map div for a non-embedded map) */
+    /* Global map container (contains the map div) */
     magic.runtime.map_container = jQuery("#map-container");
     magic.runtime.map_div = magic.runtime.map_container.children(":first");
-    magic.runtime.map_embedded = false;
     
     /* Set container sizes */
     this.fitMapToViewport(); 
@@ -36,7 +35,7 @@ magic.classes.AppContainer = function () {
     magic.runtime.mapdata = magic.runtime.map_context.data;
     magic.runtime.repository = magic.runtime.map_context.repository;
     magic.runtime.endpoints = magic.runtime.map_context.endpoints;
-    magic.runtime.layertree = new magic.classes.LayerTree("layer-tree", false);
+    magic.runtime.layertree = new magic.classes.LayerTree("layer-tree");
     
     /* User unit preferences */
     magic.runtime.preferences = new magic.classes.UserPreferences({target: "unit-prefs", preferences: magic.runtime.preferencedata});

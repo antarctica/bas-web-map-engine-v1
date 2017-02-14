@@ -112,9 +112,11 @@ magic.modules.creator.Common = function () {
             jQuery.each(this.tabs, jQuery.proxy(function(idx, tab) {
                 tab.saveContext(data);
             }, this));   
-            var layerHierarchy = jQuery("ul.layertree").sortableListsToHierarchy();           
+            var layerHierarchy = jQuery("ul.layertree").sortableListsToHierarchy();          
             var layerTree = [];           
+            console.log(layerHierarchy);
             this.sortLayers(layerTree, layerHierarchy);
+            console.log(layerTree);
             this.map_context.setLayers(layerTree);
             var finalContext = this.map_context.getContext();
             var existingId = this.map_context.getMapId();
@@ -190,7 +192,14 @@ magic.modules.creator.Common = function () {
                     tree.push(this.layer_dictionary.get(node.id));
                 } else {
                     /* Is a layer (i.e. leaf) node */
-                    tree.push(this.layer_dictionary.get(node.id));
+                    var ldo = this.layer_dictionary.get(node.id);
+                    /* Ensure we don't include deleted layers */
+                    if (ldo.layers) {
+                        ldo.layers = jQuery.grep(ldo.layers, jQuery.proxy(function(lyr, idx) {
+                            return(!jQuery.isEmptyObject(this.layer_dictionary.get(lyr.id)));
+                        }, this));
+                    }
+                    tree.push(ldo);
                 }
             }  
         },        

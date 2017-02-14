@@ -1,11 +1,9 @@
 /* Layer tree */
 
-magic.classes.LayerTree = function (target, embedded) {
+magic.classes.LayerTree = function (target) {
 
     this.target = target || "layer-tree";
-    
-    this.embedded = embedded === true;
-
+   
     this.treedata = magic.runtime.mapdata.layers || [];
 
     /* Dictionary mapping from a node UUID to an OL layer */
@@ -53,35 +51,33 @@ magic.classes.LayerTree = function (target, embedded) {
 
     this.collapsed = false;
 
-    if (!this.embedded) {
-        /* Layer tree is visible => assign all the necessary handlers  */
-        var expanderLocation = jQuery("#" + this.target).find("div.panel-heading").eq(1);
-        if (expanderLocation) {
-            expanderLocation.append(                
-                '<span data-toggle="tooltip" data-placement="bottom" title="Collapse layer tree" ' + 
-                    'class="layer-tree-collapse fa fa-angle-double-left hidden-xs"></span>' + 
-                '<span data-toggle="tooltip" data-placement="bottom" title="Search for a data layer" ' +
-                    'class="layer-tree-search fa fa-search"></span>'
-            );
-        }
+    /* Layer tree is visible => assign all the necessary handlers  */
+    var expanderLocation = jQuery("#" + this.target).find("div.panel-heading").eq(1);
+    if (expanderLocation) {
+        expanderLocation.append(                
+            '<span data-toggle="tooltip" data-placement="bottom" title="Collapse layer tree" ' + 
+                'class="layer-tree-collapse fa fa-angle-double-left hidden-xs"></span>' + 
+            '<span data-toggle="tooltip" data-placement="bottom" title="Search for a data layer" ' +
+                'class="layer-tree-search fa fa-search"></span>'
+        );
+    }
 
-        /* Collapse layer tree handler */
-        jQuery("span.layer-tree-collapse").on("click", jQuery.proxy(function (evt) {
-            evt.stopPropagation();
-            this.setCollapsed(true);
-        }, this));
+    /* Collapse layer tree handler */
+    jQuery("span.layer-tree-collapse").on("click", jQuery.proxy(function (evt) {
+        evt.stopPropagation();
+        this.setCollapsed(true);
+    }, this));
 
-        /* Expand layer tree handler */
-        jQuery("button.layer-tree-expand").on("click", jQuery.proxy(function (evt) {
-            evt.stopPropagation();
-            this.setCollapsed(false);
-        }, this));
-                
-        this.assignLayerSearchFormHandlers();
-        this.assignLayerGroupHandlers(null);
-        this.assignLayerHandlers(null);        
-        this.refreshTreeIndicators();
-    }    
+    /* Expand layer tree handler */
+    jQuery("button.layer-tree-expand").on("click", jQuery.proxy(function (evt) {
+        evt.stopPropagation();
+        this.setCollapsed(false);
+    }, this));
+
+    this.assignLayerSearchFormHandlers();
+    this.assignLayerGroupHandlers(null);
+    this.assignLayerHandlers(null);        
+    this.refreshTreeIndicators();
 };
 
 magic.classes.LayerTree.prototype.getTarget = function () {
@@ -999,7 +995,7 @@ magic.classes.LayerTree.prototype.getVectorStyle = function(styleDef, labelField
 };
 
 /**
- * For the embedded Apex maps primarily - do a longhand find of an ol layer by feature name
+ * Do a longhand find of an ol layer by feature name
  * @param {String} fname
  * @returns {ol.Layer}
  */
