@@ -47,7 +47,10 @@ magic.classes.LayerTree = function (target) {
     );
 
     this.initTree(this.treedata, targetElement, 0);
-    this.initLayerSearchTypeahead();
+    if (jQuery.isEmptyObject(this.autoloadGroups)) {
+        this.initLayerSearchTypeahead();
+        this.assignLayerSearchFormHandlers();
+    }
 
     this.collapsed = false;
 
@@ -73,8 +76,7 @@ magic.classes.LayerTree = function (target) {
         evt.stopPropagation();
         this.setCollapsed(false);
     }, this));
-
-    this.assignLayerSearchFormHandlers();
+    
     this.assignLayerGroupHandlers(null);
     this.assignLayerHandlers(null);        
     this.refreshTreeIndicators();
@@ -549,6 +551,7 @@ magic.classes.LayerTree.prototype.initAutoLoadGroups = function(map) {
         ordinal: null,
         unique_values: false
     };
+    var maxAttrs = 10;
     jQuery.each(this.autoloadGroups, jQuery.proxy(function(grpid, grpo) {
         var element = jQuery("#layer-group-" + grpid);
         if (element.length > 0) {
@@ -577,7 +580,8 @@ magic.classes.LayerTree.prototype.initAutoLoadGroups = function(map) {
                         nd.is_interactive = grpo.popups === true;
                         if (jQuery.isArray(nd.attribute_map)) {
                             for (var j = 0; j < nd.attribute_map.length; j++) {
-                                nd.attribute_map[j] = jQuery.extend({}, nd.attribute_map[j], defaultAttributeAttrs);
+                                /* Allow only 'maxAttrs' attributes to be displayed - http://redmine.nerc-bas.ac.uk/issues/4540 */
+                                nd.attribute_map[j] = jQuery.extend({}, nd.attribute_map[j], defaultAttributeAttrs, {displayed: j < maxAttrs});
                             }                            
                         } else {
                             nd.is_interactive = false;
@@ -591,7 +595,8 @@ magic.classes.LayerTree.prototype.initAutoLoadGroups = function(map) {
                     }
                     this.assignLayerHandlers(element);
                     this.refreshTreeIndicators();
-                    
+                    this.initLayerSearchTypeahead();
+                    this.assignLayerSearchFormHandlers();
                 }                   
             }, this)).fail(jQuery.proxy(function(xhr) {
                 bootbox.alert(

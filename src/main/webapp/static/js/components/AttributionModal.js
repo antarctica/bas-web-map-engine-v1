@@ -103,8 +103,9 @@ magic.classes.AttributionModal.prototype.legendMarkup = function() {
                     wmsUrl = md.source.wms_source;
                 } 
                 if (isWms) {
+                   var styles = this.layer.getSource().getParams()["STYLES"];
                    legendUrl = wmsUrl + 
-                        "?service=WMS&request=GetLegendGraphic&format=image/png&width=20&height=20&layer=" + md.source.feature_name + 
+                        "?service=WMS&request=GetLegendGraphic&format=image/png&width=20&height=20" + (styles ? "&styles=" + styles : "") + "&layer=" + md.source.feature_name + 
                         "&legend_options=fontName:Lucida Sans Regular;fontAntiAliasing:true;fontColor:0xffffff;fontSize:6;bgColor:0x272b30;dpi:180";
                 }
             } else if (md.legend_graphic) {

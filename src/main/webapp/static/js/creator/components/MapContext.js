@@ -27,7 +27,7 @@ magic.classes.creator.MapContext.prototype.load = function(action, name, embedde
         }
         this.id = "";
         callback(this.context);
-    } else {
+    } else if (name) {
         /* Clone or edit implies a fetch of map with id */
         var fetchUrl = magic.config.paths.baseurl + "/" + (embedded ? "embedded_" : "") + "maps/name/" + name;
         jQuery.getJSON(fetchUrl, jQuery.proxy(function (response) {
