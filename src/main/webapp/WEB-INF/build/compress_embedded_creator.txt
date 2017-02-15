@@ -1,0 +1,11 @@
+css/ol.css
+css/prettify.css
+css/nav.css
+css/embedded_creator.css
+js/proj4.js
+js/proj4defs
+js/embedded/init.js
+js/modules
+js/creator/modules/Common.js
+js/creator/components/MapContext.js
+js/embedded_creator/modules

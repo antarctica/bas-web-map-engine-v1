@@ -262,7 +262,7 @@ magic.classes.LayerTreeOptionsMenu.prototype.applyAlternateStyle = function() {
                 magic.modules.Common.populateSelect(choices, [{"name": "Default only"}], "name", "name", false);
             }                                       
         }, this)).fail(jQuery.proxy(function(xhr) {
-            magic.modules.Common.populateSelect(choices, [{"name": JSON.parse(xhr.responseText)["detail"]}], "name", "name", false);                
+            magic.modules.Common.populateSelect(choices, [{"name": "Default only"}], "name", "name", false);                
         }, this));
     }
 };
