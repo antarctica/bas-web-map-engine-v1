@@ -18,6 +18,9 @@ magic.classes.LayerTree = function (target) {
         "kml": []
     };
     
+    /* Performance - avoid a DOM-wide search whenever tree refreshed to show visibilities */
+    this.layerGroupDivs = [];
+    
     /* Groups which require an autoload (keyed by uuid) */
     this.autoloadGroups = {};
     
@@ -50,6 +53,11 @@ magic.classes.LayerTree = function (target) {
     if (jQuery.isEmptyObject(this.autoloadGroups)) {
         this.initLayerSearchTypeahead();
         this.assignLayerSearchFormHandlers();
+        this.layerGroupDivs = jQuery("#" + this.target).find("div.layer-group");
+        this.assignLayerGroupHandlers(null);
+        this.assignLayerHandlers(null);  
+        this.assignOneOnlyLayerGroupHandlers();
+        this.refreshTreeIndicators();
     }
 
     this.collapsed = false;
@@ -76,10 +84,7 @@ magic.classes.LayerTree = function (target) {
         evt.stopPropagation();
         this.setCollapsed(false);
     }, this));
-    
-    this.assignLayerGroupHandlers(null);
-    this.assignLayerHandlers(null);        
-    this.refreshTreeIndicators();
+        
 };
 
 magic.classes.LayerTree.prototype.getTarget = function () {
@@ -155,7 +160,7 @@ magic.classes.LayerTree.prototype.assignLayerGroupHandlers = function(belowElt) 
     .on("hidden.bs.collapse", jQuery.proxy(function (evt) {        
         jQuery(evt.currentTarget).parent().first().find("span.panel-title").attr("data-original-title", "Expand this group").tooltip("fixTitle");
         evt.stopPropagation();
-    }, this));
+    }, this));        
 };
 
 /**
@@ -215,6 +220,25 @@ magic.classes.LayerTree.prototype.assignLayerHandlers = function(belowElt) {
 };
 
 /**
+ * Radio button layer groups - assign handlers for the "turn all layers off" button  
+ */
+magic.classes.LayerTree.prototype.assignOneOnlyLayerGroupHandlers = function() {        
+    jQuery("a[id^='group-rb-off-']").each(jQuery.proxy(function(idx, elt) {
+        var allOff = jQuery(elt);
+        allOff.click(jQuery.proxy(function(evt) {
+            var groupsDone = {};
+            allOff.closest("div.layer-group").find("input[type='radio']").each(jQuery.proxy(function(idx2, rbElt) {
+                if (!groupsDone[rbElt.name]) {
+                    jQuery("input[name='" + rbElt.name + "']").prop("checked", false);                    
+                    groupsDone[rbElt.name] = true;
+                }
+                this.setLayerVisibility(jQuery(rbElt), true);
+            }, this));
+        }, this));                
+    }, this));  
+};
+
+/**
  * Add handlers for "search for data layer" form
  */
 magic.classes.LayerTree.prototype.assignLayerSearchFormHandlers = function() {
@@ -257,7 +281,11 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                     '<div class="panel ' + hbg + ' center-block layer-group" style="' + topMargin + '">' +
                         '<div class="panel-heading" id="layer-group-heading-' + nd.id + '">' +
                             '<span class="icon-layers"></span>' +
-                            (oneOnly ? '<span style="margin:5px"></span>' : '<input class="layer-vis-group-selector" id="group-cb-' + nd.id + '" type="checkbox" />') +
+                            (nd.base ? '<span style="margin:5px"></span>' : 
+                             nd.one_only ? '<a id="group-rb-off-' + nd.id + '" style="color:white" href="Javascript:void(0)" ' + 
+                             'data-toggle="tooltip" data-placement="right" title="Turn all layers off">' + 
+                             '<span style="margin:5px" class="fa fa-eye-slash">&nbsp;</span></a>' :
+                             '<input class="layer-vis-group-selector" id="group-cb-' + nd.id + '" type="checkbox" />') +
                             (oneOnly ? '' : '<span class="badge checked-indicator-badge hidden"><span class="fa fa-eye">&nbsp;</span>0</span>') + 
                             '<span class="panel-title layer-group-panel-title" data-toggle="tooltip" data-placement="right" title="' + title + '">' +
                                 '<a class="layer-group-tool" role="button" data-toggle="collapse" href="#layer-group-panel-' + nd.id + '">' +
@@ -593,10 +621,13 @@ magic.classes.LayerTree.prototype.initAutoLoadGroups = function(map) {
                             map.addLayer(nd.layer);
                         }
                     }
-                    this.assignLayerHandlers(element);
-                    this.refreshTreeIndicators();
                     this.initLayerSearchTypeahead();
                     this.assignLayerSearchFormHandlers();
+                    this.layerGroupDivs = jQuery("#" + this.target).find("div.layer-group");
+                    this.assignLayerGroupHandlers(null);
+                    this.assignLayerHandlers(null);  
+                    this.assignOneOnlyLayerGroupHandlers();
+                    this.refreshTreeIndicators();              
                 }                   
             }, this)).fail(jQuery.proxy(function(xhr) {
                 bootbox.alert(
@@ -744,8 +775,9 @@ magic.classes.LayerTree.prototype.getLabelField = function(attrMap) {
 /**
  * Set layer visibility
  * @param {jQuery.Object} chk
+ * @param {boolean} forceOff
  */
-magic.classes.LayerTree.prototype.setLayerVisibility = function(chk) {
+magic.classes.LayerTree.prototype.setLayerVisibility = function(chk, forceOff) {   
     var id = chk.prop("id");
     var nodeid = this.getNodeId(id);
     var layer = this.nodeLayerTranslation[nodeid];
@@ -764,7 +796,11 @@ magic.classes.LayerTree.prototype.setLayerVisibility = function(chk) {
         var rbName = chk.prop("name");
         jQuery("input[name='" + rbName + "']").each(jQuery.proxy(function(idx, elt) {
             var bl = this.nodeLayerTranslation[this.getNodeId(jQuery(elt).prop("id"))];
-            bl.setVisible(bl.get("metadata")["id"] == nodeid);
+            if (forceOff === true) {
+                bl.setVisible(false);
+            } else {
+                bl.setVisible(bl.get("metadata")["id"] == nodeid);
+            }
         }, this));                      
     }else {
         /* Overlay layer visibility change */        
@@ -799,7 +835,7 @@ magic.classes.LayerTree.prototype.groupVisibilityHandler = function(evt) {
             jqCb.off("change").prop("checked", checked).change(jQuery.proxy(this.groupVisibilityHandler, this));
         }
     }, this)); 
-    this.refreshTreeIndicators(jQuery(evt.currentTarget).parents("div.layer-group"));
+    this.refreshTreeIndicators(chk.parents("div.layer-group"));
 };
 
 /**
@@ -807,7 +843,7 @@ magic.classes.LayerTree.prototype.groupVisibilityHandler = function(evt) {
  * @param {Array} branchHierarchy
  */
 magic.classes.LayerTree.prototype.refreshTreeIndicators = function(branchHierarchy) {    
-    jQuery("#" + this.target).find("div.layer-group").each(jQuery.proxy(function(idx, elt) {
+    this.layerGroupDivs.each(jQuery.proxy(function(idx, elt) {
         if (!jQuery.isArray(branchHierarchy) || (jQuery.isArray(branchHierarchy) && jQuery.inArray(elt, branchHierarchy) != -1)) {
             var jqp = jQuery(elt);
             var cbs = jqp.find("input[id^='layer-cb-']");
