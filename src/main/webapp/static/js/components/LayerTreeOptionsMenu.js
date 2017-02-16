@@ -40,19 +40,6 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
             '<div class="layer-options-dd-entry hidden" id="wrapper-tss-' + this.nodeid + '">' +                                    
             '</div>' + 
         '</li>'
-/* Awaiting a more effective WebGL implementation in OL3 - David 22/07/15 */        
-//        '<li>' + 
-//            '<a href="Javascript:void(0)" id="brt-' + this.nodeid + '">Change layer brightness</a>' + 
-//            '<div class="layer-options-slider hidden" id="wrapper-brt-' + this.nodeid + '" style="">' + 
-//                '<input id="brt-slider-' + this.nodeid + '" data-slider-id="brt-slider-' + this.nodeid + '" data-slider-min="-1" data-slider-max="1" data-slider-step="0.2" data-slider-value="0">' + 
-//            '</div>' + 
-//        '</li>' + 
-//        '<li>' + 
-//            '<a href="Javascript:void(0)" id="ctr-' + this.nodeid + '">Change layer contrast</a>' + 
-//            '<div class="layer-options-slider hidden" id="wrapper-ctr-' + this.nodeid + '" style="">' + 
-//                '<input id="ctr-slider-' + this.nodeid + '" data-slider-id="ctr-slider-' + this.nodeid + '" data-slider-min="0" data-slider-max="10" data-slider-step="1" data-slider-value="5">' + 
-//            '</div>' +
-//        '</li>'  
     );        
     if (this.layer) {
         /* Add handlers */
@@ -118,13 +105,7 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
         }
         
         /* Transparency control */
-        this.addWebglSliderHandler("opc", 0.0, 1.0, 0.1);
-        
-        /* Awaiting a more effective WebGL implementation in OL3 - David 22/07/15 */
-        /* Brightness control */
-        //this.addWebglSliderHandler("brt", -1.0, 1.0, 0.2);
-        /* Contrast control */
-        //this.addWebglSliderHandler("ctr", 0.0, 10.0, 1.0);
+        this.addWebglSliderHandler("opc", 0.0, 1.0, 0.1);        
     }
 };
 
@@ -147,6 +128,7 @@ magic.classes.LayerTreeOptionsMenu.prototype.addWebglSliderHandler = function(id
                 var startValue = 0.0;
                 switch(idbase) {
                     case "opc": startValue = layer.getOpacity(); break;
+                    /* These have been removed from OL3 - may be other means to do them */
                     case "brt": startValue = layer.getBrightness(); break;
                     case "ctr": startValue = layer.getContrast(); break;        
                 }
@@ -159,10 +141,11 @@ magic.classes.LayerTreeOptionsMenu.prototype.addWebglSliderHandler = function(id
                     var newVal = evt.value;
                     switch(idbase) {
                         case "opc": layer.setOpacity(newVal); break;
+                         /* These have been removed from OL3 - may be other means to do them */
                         case "brt": layer.setBrightness(newVal); break;
                         case "ctr": layer.setContrast(newVal); break;        
                     }
-                }).relayout();
+                });
             } else {
                 wrapper.removeClass("show").addClass("hidden");
             }                        
