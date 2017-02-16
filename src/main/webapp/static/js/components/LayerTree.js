@@ -50,18 +50,7 @@ magic.classes.LayerTree = function (target) {
     );
 
     this.initTree(this.treedata, targetElement, 0);
-    if (jQuery.isEmptyObject(this.autoloadGroups)) {
-        this.initLayerSearchTypeahead();
-        this.assignLayerSearchFormHandlers();
-        this.layerGroupDivs = jQuery("#" + this.target).find("div.layer-group");
-        this.assignLayerGroupHandlers(null);
-        this.assignLayerHandlers(null);  
-        this.assignOneOnlyLayerGroupHandlers();
-        this.refreshTreeIndicators();
-    }
-
-    this.collapsed = false;
-
+    
     /* Layer tree is visible => assign all the necessary handlers  */
     var expanderLocation = jQuery("#" + this.target).find("div.panel-heading").eq(1);
     if (expanderLocation) {
@@ -84,6 +73,18 @@ magic.classes.LayerTree = function (target) {
         evt.stopPropagation();
         this.setCollapsed(false);
     }, this));
+    
+    this.collapsed = false;
+    
+    if (jQuery.isEmptyObject(this.autoloadGroups)) {
+        this.initLayerSearchTypeahead();
+        this.assignLayerSearchFormHandlers();
+        this.layerGroupDivs = jQuery("#" + this.target).find("div.layer-group");
+        this.assignLayerGroupHandlers(null);
+        this.assignLayerHandlers(null);  
+        this.assignOneOnlyLayerGroupHandlers();
+        this.refreshTreeIndicators();
+    }
         
 };
 
