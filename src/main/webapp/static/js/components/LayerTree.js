@@ -282,9 +282,9 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                         '<div class="panel-heading" id="layer-group-heading-' + nd.id + '">' +
                             '<span class="icon-layers"></span>' +
                             (nd.base ? '<span style="margin:5px"></span>' : 
-                             nd.one_only ? '<a id="group-rb-off-' + nd.id + '" style="color:white" href="Javascript:void(0)" ' + 
-                             'data-toggle="tooltip" data-placement="right" title="Turn all layers off">' + 
-                             '<span style="margin:5px" class="fa fa-eye-slash">&nbsp;</span></a>' :
+                             nd.one_only ? '<a id="group-rb-off-' + nd.id + '" href="Javascript:void(0)" role="button" ' + 
+                             'data-toggle="tooltip" data-placement="right" title="Turn all radio button controlled layers off">' + 
+                             '<span style="margin:5px; color:white" class="fa fa-eye-slash">&nbsp;</span></a>' :
                              '<input class="layer-vis-group-selector" id="group-cb-' + nd.id + '" type="checkbox" />') +
                             (oneOnly ? '' : '<span class="badge checked-indicator-badge hidden"><span class="fa fa-eye">&nbsp;</span>0</span>') + 
                             '<span class="panel-title layer-group-panel-title" data-toggle="tooltip" data-placement="right" title="' + title + '">' +
