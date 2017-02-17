@@ -91,6 +91,7 @@ magic.classes.console.WebMapPanel = function () {
                                     },
                                     success: function(data) {
                                         if (data.delivered) {
+                                            console.log("Delivered - setting source");
                                             tn.src = data.thumburl;
                                             thumbnailsDone[tn.id] = true;
                                         }
@@ -102,7 +103,7 @@ magic.classes.console.WebMapPanel = function () {
                        if (attempts == 3) {
                            window.clearInterval(intId);
                        }
-                    }, 1000);
+                    }, 4000);
                 }
             }
         })

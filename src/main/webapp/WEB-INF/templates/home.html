@@ -10,10 +10,12 @@
             <div class="container" style="margin-top: 10px" th:switch="${#httpServletRequest.remoteUser}">
                 <button id="console-log-in-create" th:case="null" type="button" class="btn btn-primary"
                  data-toggle="tooltip" data-placement="right" title="Go to login page to create or edit maps">Log in</button>
-                <button id="console-create-new-map" th:case="*" type="button" class="btn btn-primary"
-                 data-toggle="tooltip" data-placement="right" title="Open map creation interface (new tab)">Create a new map</button>
-                <button id="console-clear-tn-cache" th:case="*" type="button" class="btn btn-primary"
-                 data-toggle="tooltip" data-placement="right" title="Clear the cache of map thumbnail images - recompute on next reload">Delete map thumbnails</button>                
+                <div th:case="*">
+                    <button id="console-create-new-map"  type="button" class="btn btn-primary"
+                     data-toggle="tooltip" data-placement="top" title="Open map creation interface (new tab)">Create a new map</button>
+                    <button id="console-clear-tn-cache" type="button" class="btn btn-primary"
+                     data-toggle="tooltip" data-placement="top" title="Clear the cache of map thumbnail images - recompute on next reload">Delete map thumbnails</button>                
+                </div>
             </div>
         </div>
         <script th:inline="javascript">

@@ -48,7 +48,7 @@ public class MapThumbnailController implements ServletContextAware {
     private static final String THUMBNAIL_CACHE = "/static/images/thumbnail_cache";
     
     /* Thumbnailing service */
-    private static final String SHRINKTHEWEB = "https://images.shrinktheweb.com/xino.php?stwembed=0&stwaccesskeyid=2aa21387d887a28&stwsize=200x150&stwadv=json&stwurl=";
+    private static final String SHRINKTHEWEB = "https://images.shrinktheweb.com/xino.php?stwembed=0&stwaccesskeyid=2aa21387d887a28&stwu=e3492&stwsize=200x150&stwadv=json&stwurl=";
     
     @Autowired
     Environment env;
@@ -85,7 +85,7 @@ public class MapThumbnailController implements ServletContextAware {
 
         /* Get the thumbnail for public sites - restricted ones can have a thumbnail uploaded or use a placeholder */                
         String thumbUrl = THUMBNAIL_CACHE + "/bas.jpg";                 
-        if (!server.equals("localhost")) {
+        if (!request.getServerName().equals("localhost") || mapname.equals("add7")) {   // TEST - please delete the mapname.equals("add7") bit
             /* Use STW for non-local server */            
             thumbUrl = THUMBNAIL_CACHE + "/" + getActiveProfile() + "/" + mapname + ".jpg";
             String genThumbPath = context.getRealPath(thumbUrl);
@@ -103,6 +103,10 @@ public class MapThumbnailController implements ServletContextAware {
                 System.out.println("Using STW thumbnail generation service");
                 try {
                     String mapUrl = server + "/home/" + mapname;
+                    if (mapname.equals("add7")) {
+                        // TEST - please delete the mapname.equals("add7") bit
+                        mapUrl = "http://www.add.scar.org/home/add7";
+                    }
                     URL stwUrl = new URL(SHRINKTHEWEB + mapUrl);
                     /* Override SSL checking
                      * See http://stackoverflow.com/questions/13626965/how-to-ignore-pkix-path-building-failed-sun-security-provider-certpath-suncertp */
@@ -125,16 +129,20 @@ public class MapThumbnailController implements ServletContextAware {
                     HttpsURLConnection con = (HttpsURLConnection)stwUrl.openConnection();
                     con.setConnectTimeout(5000);
                     con.setReadTimeout(10000);
+                    String content = IOUtils.toString(con.getInputStream());
+                    System.out.println("-------------------------------");
+                    System.out.println("STW call : " + stwUrl.toString());
+                    System.out.println("Returned content : " + content);
+                    System.out.println("-------------------------------");
                     /* Parse STW API JSON output */
                     JsonParser jp = new JsonParser();
-                    JsonObject stwOut = jp.parse(IOUtils.toString(con.getInputStream())).getAsJsonObject();
+                    JsonObject stwOut = jp.parse(content).getAsJsonObject();
                     boolean exists = stwOut.getAsJsonPrimitive("exists").getAsBoolean();
-                    boolean delivered = stwOut.getAsJsonPrimitive("delivered").getAsBoolean();
                     String actionMsg = stwOut.getAsJsonPrimitive("actionmsg").getAsString();
                     String responseStatus = stwOut.getAsJsonPrimitive("responsestatus").getAsString();
                     if (responseStatus.equalsIgnoreCase("success")) {
                         System.out.println("Successful call to STW");
-                        if (exists && delivered) {
+                        if (exists && actionMsg.equalsIgnoreCase("delivered")) {
                             System.out.println("Exists and delivered");
                             setJsonPayload(resultPayload, thumbUrl, true, false); 
                             /* Now get the actual thumbnail image */
@@ -150,7 +158,7 @@ public class MapThumbnailController implements ServletContextAware {
                             fos.close();  
                             System.out.println("Completed thumbnail image write");
                         } else if (!actionMsg.equalsIgnoreCase("noretry")) {
-                            System.out.println("STW reported image still on the way - have another ttry in a while");
+                            System.out.println("STW reported image still on the way - have another try in a while");
                             setJsonPayload(resultPayload, thumbUrl, false, true);
                         } else {
                             System.out.println("STW indicated not worth retrying");
@@ -187,11 +195,13 @@ public class MapThumbnailController implements ServletContextAware {
         throws ServletException, IOException, ServiceException {        
         ResponseEntity<String> ret = null;            
         try {
-            File tnDir = new File(THUMBNAIL_CACHE + "/" + getActiveProfile());
-            FileUtils.cleanDirectory(tnDir);
-            ret = PackagingUtils.packageResults(HttpStatus.OK, "{\"status\",\"ok\"}", null);
+            File tnDir = new File(context.getRealPath(THUMBNAIL_CACHE + "/" + getActiveProfile()));
+            if (tnDir.exists() && tnDir.isDirectory()) {
+                FileUtils.cleanDirectory(tnDir);
+            }
+            ret = PackagingUtils.packageResults(HttpStatus.OK, "{\"status\":\"ok\"}", null);
         } catch (IOException ex) {
-            ret = PackagingUtils.packageResults(HttpStatus.OK, "{\"status\",\"" + ex.getMessage() + "\"}", null);
+            ret = PackagingUtils.packageResults(HttpStatus.OK, "{\"status\":\"" + ex.getMessage() + "\"}", null);
         }
         return(ret);
     }
