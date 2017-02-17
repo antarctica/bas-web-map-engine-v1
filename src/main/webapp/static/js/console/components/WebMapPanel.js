@@ -79,7 +79,8 @@ magic.classes.console.WebMapPanel = function () {
                 if (thumbnailsToDo.length > 0) {
                     var intId = setInterval(function () {
                         thumbnailsToDo.each(function(tni, tn) {
-                            if (!thumbnailsDone[tn.id]) {
+                            var restricted = jQuery(tn).closest("a").attr("href").indexOf("/restricted") > 0;
+                            if (!restricted && !thumbnailsDone[tn.id]) {
                                 var mapName = tn.id.replace(/^tn-/, "");
                                 jQuery.ajax({
                                     url: magic.config.paths.baseurl + "/thumbnail/" + mapName, 
