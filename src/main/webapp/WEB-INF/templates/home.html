@@ -13,7 +13,7 @@
                 <div th:case="*">
                     <button id="console-create-new-map"  type="button" class="btn btn-primary"
                      data-toggle="tooltip" data-placement="top" title="Open map creation interface (new tab)">Create a new map</button>
-                    <button id="console-clear-tn-cache" type="button" class="btn btn-primary"
+                    <button id="console-gen-thumbnails" type="button" class="btn btn-primary"
                      data-toggle="tooltip" data-placement="top" title="Clear the cache of map thumbnail images - recompute on next reload">Delete map thumbnails</button>                
                 </div>
             </div>
@@ -57,24 +57,42 @@
                 }
                 
                 /* Clear map thumbnail cache */
-                var btnClearTn = jQuery("#console-clear-tn-cache");
+                var btnClearTn = jQuery("#console-gen-thumbnails");
                 if (btnClearTn.length > 0) {
                     btnClearTn.click(function(evt) {
-                        jQuery.getJSON(magic.config.paths.baseurl + "/clearthumbnailcache", function(data) {
-                            if (data.status == "ok") {
-                                bootbox.alert(
-                                    '<div class="alert alert-info" style="margin-bottom:0">' + 
-                                        '<p>Successfully deleted thumbnails - will recompute all on next page reload</p>' + 
-                                    '</div>'
-                                );
-                            } else {
-                                bootbox.alert(
-                                    '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                                        '<p>Failed to delete thumbnails - error was ' + data.status + '</p>' + 
-                                    '</div>'
-                                );
-                            }
-                        });
+                        /* Load the thumbnails for each available site - try 3 times in case ShrinkTheWeb is slow */
+                        var attempts = 0;
+                        var thumbnailsDone = {};
+                        var thumbnailsToDo = jQuery("img[id^='tn-']");
+                        var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content");
+                        if (thumbnailsToDo.length > 0) {
+                            var intId = setInterval(function () {
+                                thumbnailsToDo.each(function(tni, tn) {
+                                    var restricted = jQuery(tn).closest("a").attr("href").indexOf("/restricted") > 0;
+                                    if (!restricted && !thumbnailsDone[tn.id]) {
+                                        var mapName = tn.id.replace(/^tn-/, "");
+                                        jQuery.ajax({
+                                            url: magic.config.paths.baseurl + "/thumbnail/" + mapName, 
+                                            method: "GET",
+                                            contentType: "application/json",
+                                            headers: {
+                                                "X-CSRF-TOKEN": csrfHeaderVal
+                                            },
+                                            success: function(data) {
+                                                if (data.delivered) {
+                                                    tn.src = data.thumburl;
+                                                    thumbnailsDone[tn.id] = true;
+                                                }
+                                            }
+                                        });
+                                    }
+                                });                        
+                               attempts++;
+                               if (attempts == 10) {
+                                   window.clearInterval(intId);
+                               }
+                            }, 2000);
+                        }
                     });
                 }
                 

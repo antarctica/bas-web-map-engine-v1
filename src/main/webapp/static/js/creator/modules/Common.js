@@ -114,9 +114,7 @@ magic.modules.creator.Common = function () {
             }, this));   
             var layerHierarchy = jQuery("ul.layertree").sortableListsToHierarchy();          
             var layerTree = [];           
-            console.log(layerHierarchy);
             this.sortLayers(layerTree, layerHierarchy);
-            console.log(layerTree);
             this.map_context.setLayers(layerTree);
             var finalContext = this.map_context.getContext();
             var existingId = this.map_context.getMapId();

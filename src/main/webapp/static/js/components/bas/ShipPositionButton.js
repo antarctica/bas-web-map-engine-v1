@@ -240,7 +240,7 @@ magic.classes.ShipPositionButton.prototype.getData = function() {
                 var d0 = new Date(this.lastFix[callsign].tstamp);
                 var d1 = new Date(tstamp);
                 var hours = parseFloat((d1.getTime() - d0.getTime()))/(1000.0*60.0*60.0);
-                console.log("Travelled " + nm + " nautical miles in " + hours + " hours");
+                //console.log("Travelled " + nm + " nautical miles in " + hours + " hours");
                 speed = nm/hours;
             } catch(e) {}
         }
