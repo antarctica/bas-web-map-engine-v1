@@ -14,7 +14,7 @@
                     <button id="console-create-new-map"  type="button" class="btn btn-primary"
                      data-toggle="tooltip" data-placement="top" title="Open map creation interface (new tab)">Create a new map</button>
                     <button id="console-gen-thumbnails" type="button" class="btn btn-primary"
-                     data-toggle="tooltip" data-placement="top" title="Clear the cache of map thumbnail images - recompute on next reload">Delete map thumbnails</button>                
+                     data-toggle="tooltip" data-placement="top" title="Generate map thumbnail images from external service">Generate map thumbnails</button>                
                 </div>
             </div>
         </div>
@@ -69,6 +69,8 @@
                             var intId = setInterval(function () {
                                 thumbnailsToDo.each(function(tni, tn) {
                                     var restricted = jQuery(tn).closest("a").attr("href").indexOf("/restricted") > 0;
+                                    /* CDATA block prevents Thymeleaf's brain dead template engine from choking on ampersands... */
+                                    /*<![CDATA[*/
                                     if (!restricted && !thumbnailsDone[tn.id]) {
                                         var mapName = tn.id.replace(/^tn-/, "");
                                         jQuery.ajax({
@@ -80,12 +82,13 @@
                                             },
                                             success: function(data) {
                                                 if (data.delivered) {
-                                                    tn.src = data.thumburl;
+                                                    jQuery(tn).attr("src", data.thumburl);
                                                     thumbnailsDone[tn.id] = true;
                                                 }
                                             }
                                         });
                                     }
+                                    /*]]>*/
                                 });                        
                                attempts++;
                                if (attempts == 10) {

@@ -3,6 +3,7 @@
 magic.classes.console.WebMapPanel = function () {
     
     var ROW_SIZE = 4;
+    var DEFAULT_IMG = magic.config.paths.baseurl + "/static/images/thumbnail_cache/bas.jpg";
     
     /* Assemble gallery of available maps */
     jQuery.getJSON(magic.config.paths.baseurl + "/maps/thumbnaildata")
@@ -18,7 +19,7 @@ magic.classes.console.WebMapPanel = function () {
                         var thumbDiv = jQuery(
                             '<div class="col-md-3 col-sm-4 col-xs-6">' + 
                                 '<a href="' + magic.config.paths.baseurl + (data[i+j].r ? '/home/' : '/restricted/') + data[i+j].name + '">' +                                     
-                                    '<img id="tn-' + data[i+j].name + '" src="' + data[i+j].thumburl + '" ' + 
+                                    '<img id="tn-' + data[i+j].name + '" src="' + data[i+j].thumburl + '" onerror="this.src=\'' + DEFAULT_IMG + '\'" ' + 
                                     'data-toggle="tooltip" data-placement="bottom" title="' + data[i+j].description + '"/>' + 
                                 '</a>' + 
                                 '<span style="display:block">' + data[i+j].title + '</span>' + 

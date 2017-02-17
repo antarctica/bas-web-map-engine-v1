@@ -25,7 +25,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.io.IOUtils;
-import org.apache.tomcat.util.http.fileupload.FileUtils;
+import org.apache.commons.io.FileUtils;
 import org.geotools.ows.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -148,6 +148,8 @@ public class MapThumbnailController implements ServletContextAware {
                             /* Now get the actual thumbnail image */
                             URL imageUrl = new URL(stwOut.getAsJsonPrimitive("image").getAsString().replaceAll("\\\\", ""));
                             InputStream is = imageUrl.openStream();
+                            FileUtils.forceMkdir(thumbnail.getParentFile());
+                            thumbnail.createNewFile();
                             OutputStream fos = new FileOutputStream(thumbnail);
                             byte[] buffer = new byte[4096];
                             int n = -1;
