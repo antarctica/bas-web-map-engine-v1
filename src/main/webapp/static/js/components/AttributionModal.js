@@ -104,9 +104,11 @@ magic.classes.AttributionModal.prototype.legendMarkup = function() {
                 } 
                 if (isWms) {
                    var styles = this.layer.getSource().getParams()["STYLES"];
+                   /* May have changed the style of the layer, so important that we don't retrieve from browser cache - David 17/02/2017 */
+                   var cacheBuster = "&buster=" + new Date().getTime();
                    legendUrl = wmsUrl + 
                         "?service=WMS&request=GetLegendGraphic&format=image/png&width=20&height=20" + (styles ? "&styles=" + styles : "") + "&layer=" + md.source.feature_name + 
-                        "&legend_options=fontName:Lucida Sans Regular;fontAntiAliasing:true;fontColor:0xffffff;fontSize:6;bgColor:0x272b30;dpi:180";
+                        "&legend_options=fontName:Lucida Sans Regular;fontAntiAliasing:true;fontColor:0xffffff;fontSize:6;bgColor:0x272b30;dpi:180" + cacheBuster;
                 }
             } else if (md.legend_graphic) {
                 /* Non-WMS derived legend graphic e.g. a canned image */
