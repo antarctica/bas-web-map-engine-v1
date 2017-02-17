@@ -11,7 +11,9 @@
                 <button id="console-log-in-create" th:case="null" type="button" class="btn btn-primary"
                  data-toggle="tooltip" data-placement="right" title="Go to login page to create or edit maps">Log in</button>
                 <button id="console-create-new-map" th:case="*" type="button" class="btn btn-primary"
-                 data-toggle="tooltip" data-placement="right" title="Open map creation interface (new tab)">Create a new map</button>                
+                 data-toggle="tooltip" data-placement="right" title="Open map creation interface (new tab)">Create a new map</button>
+                <button id="console-clear-tn-cache" th:case="*" type="button" class="btn btn-primary"
+                 data-toggle="tooltip" data-placement="right" title="Clear the cache of map thumbnail images - recompute on next reload">Delete map thumbnails</button>                
             </div>
         </div>
         <script th:inline="javascript">
@@ -49,6 +51,28 @@
                 if (btnCreateNew.length > 0) {
                     btnCreateNew.click(function(evt) {
                         window.open(magic.config.paths.baseurl + "/creator", "_blank");
+                    });
+                }
+                
+                /* Clear map thumbnail cache */
+                var btnClearTn = jQuery("#console-clear-tn-cache");
+                if (btnClearTn.length > 0) {
+                    btnClearTn.click(function(evt) {
+                        jQuery.getJSON(magic.config.paths.baseurl + "/clearthumbnailcache", function(data) {
+                            if (data.status == "ok") {
+                                bootbox.alert(
+                                    '<div class="alert alert-info" style="margin-bottom:0">' + 
+                                        '<p>Successfully deleted thumbnails - will recompute all on next page reload</p>' + 
+                                    '</div>'
+                                );
+                            } else {
+                                bootbox.alert(
+                                    '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                                        '<p>Failed to delete thumbnails - error was ' + data.status + '</p>' + 
+                                    '</div>'
+                                );
+                            }
+                        });
                     });
                 }
                 

@@ -9,6 +9,7 @@ import com.google.gson.JsonParser;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import java.security.KeyManagementException;
@@ -24,6 +25,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.io.IOUtils;
+import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.geotools.ows.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -62,14 +64,14 @@ public class MapThumbnailController implements ServletContextAware {
     }
     
     /**
-     * Get all the data necessary for displaying gallery of all available map thumbnails
+     * Negotiate getting the thumbnail for a given map from STW services
      * @param HttpServletRequest request,
      * @param String mapname
      * @return
      * @throws ServletException
      * @throws IOException
      */
-    @RequestMapping(value = "/thumbnail", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
+    @RequestMapping(value = "/thumbnail/{mapname}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
     @ResponseBody
     public ResponseEntity<String> thumbnailData(HttpServletRequest request, @PathVariable("mapname") String mapname)
         throws ServletException, IOException, ServiceException {
@@ -131,29 +133,35 @@ public class MapThumbnailController implements ServletContextAware {
                     String actionMsg = stwOut.getAsJsonPrimitive("actionmsg").getAsString();
                     String responseStatus = stwOut.getAsJsonPrimitive("responsestatus").getAsString();
                     if (responseStatus.equalsIgnoreCase("success")) {
+                        System.out.println("Successful call to STW");
                         if (exists && delivered) {
+                            System.out.println("Exists and delivered");
                             setJsonPayload(resultPayload, thumbUrl, true, false); 
                             /* Now get the actual thumbnail image */
+                            URL imageUrl = new URL(stwOut.getAsJsonPrimitive("image").getAsString().replaceAll("\\\\", ""));
+                            InputStream is = imageUrl.openStream();
+                            OutputStream fos = new FileOutputStream(thumbnail);
+                            byte[] buffer = new byte[4096];
+                            int n = -1;
+                            while ((n = is.read(buffer)) != -1) {
+                                fos.write(buffer, 0, n);
+                            }
+                            is.close();
+                            fos.close();  
+                            System.out.println("Completed thumbnail image write");
                         } else if (!actionMsg.equalsIgnoreCase("noretry")) {
+                            System.out.println("STW reported image still on the way - have another ttry in a while");
                             setJsonPayload(resultPayload, thumbUrl, false, true);
                         } else {
+                            System.out.println("STW indicated not worth retrying");
                             setJsonPayload(resultPayload, THUMBNAIL_CACHE + "/bas.jpg", false, false);
                         }
                     } else {
                         /* Give up - something wrong at the STW end */
+                        System.out.println("Problems at the STW end - giving up");
                         setJsonPayload(resultPayload, THUMBNAIL_CACHE + "/bas.jpg", false, false);  
-                    }
-                    
-                    byte[] buffer = new byte[4096];
-                    int n = -1;
-                    OutputStream fos = new FileOutputStream(thumbnail);
-                    while ((n = content.read(buffer)) != -1) {
-                        fos.write(buffer, 0, n);
-                    }
-                    fos.close();                            
-                        System.out.println("Completed");
-                    } 
-                catch(IOException | KeyManagementException | NoSuchAlgorithmException ex) {
+                    }                                                                              
+                } catch(IOException | KeyManagementException | NoSuchAlgorithmException ex) {
                     System.out.println("Exception : " + ex.getMessage());
                     setJsonPayload(resultPayload, THUMBNAIL_CACHE + "/bas.jpg", false, false);                    
                 }
@@ -163,6 +171,28 @@ public class MapThumbnailController implements ServletContextAware {
             setJsonPayload(resultPayload, thumbUrl, true, false);
         }
         ret = PackagingUtils.packageResults(HttpStatus.OK, resultPayload.toString(), null);        
+        return(ret);
+    }
+    
+    /**
+     * Negotiate getting the thumbnail for a given map from STW services
+     * @param HttpServletRequest request,
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/clearthumbnailcache", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
+    @ResponseBody
+    public ResponseEntity<String> thumbnailData(HttpServletRequest request)
+        throws ServletException, IOException, ServiceException {        
+        ResponseEntity<String> ret = null;            
+        try {
+            File tnDir = new File(THUMBNAIL_CACHE + "/" + getActiveProfile());
+            FileUtils.cleanDirectory(tnDir);
+            ret = PackagingUtils.packageResults(HttpStatus.OK, "{\"status\",\"ok\"}", null);
+        } catch (IOException ex) {
+            ret = PackagingUtils.packageResults(HttpStatus.OK, "{\"status\",\"" + ex.getMessage() + "\"}", null);
+        }
         return(ret);
     }
     
