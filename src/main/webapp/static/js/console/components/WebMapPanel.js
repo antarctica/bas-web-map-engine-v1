@@ -18,7 +18,7 @@ magic.classes.console.WebMapPanel = function () {
                         var thumbDiv = jQuery(
                             '<div class="col-md-3 col-sm-4 col-xs-6">' + 
                                 '<a href="' + magic.config.paths.baseurl + (data[i+j].r ? '/home/' : '/restricted/') + data[i+j].name + '">' +                                     
-                                    '<img src="/static/images/thumbnail_cache/bas.jpg" ' + 
+                                    '<img id="tn-' + data[i+j].name + '" src="/static/images/thumbnail_cache/bas.jpg" ' + 
                                     'data-toggle="tooltip" data-placement="bottom" title="' + data[i+j].description + '"/>' + 
                                 '</a>' + 
                                 '<span style="display:block">' + data[i+j].title + '</span>' + 
@@ -70,6 +70,38 @@ magic.classes.console.WebMapPanel = function () {
                             });
                         }
                     }
+                }
+                /* Load the thumbnails for each available site - try 3 times in case ShrinkTheWeb is slow */
+                var attempts = 0;
+                var thumbnailsDone = {};
+                var thumbnailsToDo = jQuery("img[id^='tn-']");
+                var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content");
+                if (thumbnailsToDo.length > 0) {
+                    var intId = setInterval(function () {
+                        thumbnailsToDo.each(function(tni, tn) {
+                            if (!thumbnailsDone[tn.id]) {
+                                var mapName = tn.id.replace(/^tn-/, "");
+                                jQuery.ajax({
+                                    url: magic.config.paths.baseurl + "/thumbnail/" + mapName, 
+                                    method: "GET",
+                                    contentType: "application/json",
+                                    headers: {
+                                        "X-CSRF-TOKEN": csrfHeaderVal
+                                    },
+                                    success: function(data) {
+                                        if (data.delivered) {
+                                            tn.src = data.thumburl;
+                                            thumbnailsDone[tn.id] = true;
+                                        }
+                                    }
+                                });
+                            }
+                        });                        
+                       attempts++;
+                       if (attempts == 3) {
+                           window.clearInterval(intId);
+                       }
+                    }, 1000);
                 }
             }
         })

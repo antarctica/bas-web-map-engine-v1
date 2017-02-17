@@ -8,23 +8,11 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URL;
-import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -185,56 +173,7 @@ public class MapController implements ServletContextAware {
                 System.out.println(server);
                 if (allowedUsage.equals("public") && !server.equals("localhost")) {
                     /* This is a publically-viewable map */
-                    String genThumbUrl = THUMBNAIL_CACHE + "/" + getActiveProfile() + "/" + mapName + ".jpg";
-                    String genThumbPath = context.getRealPath(genThumbUrl);
-                    System.out.println(genThumbUrl);
-                    System.out.println(genThumbPath);
-                    File thumbnail = new File(genThumbPath);
-                    if (!thumbnail.exists()) {
-                        /* Retrieve an image from shrinktheweb.com and write it to the thumbnail cache */
-                        /* Note: 2017-02-01 David - Need to use the STW advanced API which is a two-step process
-                        https://support.shrinktheweb.com/Knowledgebase/Article/View/128/0/best-practice-method-to-get-screenshot-requests-as-soon-as-ready
-                        https://shrinktheweb.com/uploads/STW_API_Documentation.pdf */
-                        System.out.println("STW thumbnail generation not yet implemented");
-//                        try {
-//                            String mapUrl = server + "/" + (allowedUsage.equals("public") ? "home" : "restricted") + "/" + mapName;
-//                            URL stwUrl = new URL(SHRINKTHEWEB + mapUrl);
-//                            /* Override SSL checking
-//                             * See http://stackoverflow.com/questions/13626965/how-to-ignore-pkix-path-building-failed-sun-security-provider-certpath-suncertp */
-//                            TrustManager[] trustAllCerts = new TrustManager[] {new X509TrustManager() {
-//                                public java.security.cert.X509Certificate[] getAcceptedIssuers() {return null;}
-//                                public void checkClientTrusted(X509Certificate[] certs, String authType) {}
-//                                public void checkServerTrusted(X509Certificate[] certs, String authType) {}
-//                            }};
-//
-//                            SSLContext sc = SSLContext.getInstance("SSL");
-//                            sc.init(null, trustAllCerts, new java.security.SecureRandom());
-//                            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-//
-//                            // Create all-trusting host name verifier
-//                            HostnameVerifier allHostsValid = new HostnameVerifier() {
-//                                public boolean verify(String hostname, SSLSession session) {return true;}
-//                            };
-//                            // Install the all-trusting host verifier
-//                            HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
-//                            HttpsURLConnection con = (HttpsURLConnection)stwUrl.openConnection();
-//                            con.setConnectTimeout(5000);
-//                            con.setReadTimeout(10000);
-//                            InputStream content = con.getInputStream();
-//                            byte[] buffer = new byte[4096];
-//                            int n = -1;
-//                            OutputStream fos = new FileOutputStream(thumbnail);
-//                            while ((n = content.read(buffer)) != -1) {
-//                                fos.write(buffer, 0, n);
-//                            }
-//                            fos.close();                            
-//                            thumbUrl = genThumbUrl;
-//                            System.out.println("Completed");
-//                        } catch(Exception ex) {
-//                            System.out.println("Exception");
-//                            System.out.println(ex.getMessage());
-//                        }                      
-                    }                    
+                    thumbUrl = THUMBNAIL_CACHE + "/" + getActiveProfile() + "/" + mapName + ".jpg";                    
                 }
                 jm.addProperty("thumburl", server + thumbUrl);
                 ja.add(jm);
