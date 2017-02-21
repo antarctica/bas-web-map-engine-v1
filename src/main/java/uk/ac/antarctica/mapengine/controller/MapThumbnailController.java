@@ -96,10 +96,10 @@ public class MapThumbnailController implements ServletContextAware {
                 System.out.println("Using ScreenShotMachine thumbnail generation service");
                 String mapUrl = server + "/home/" + mapname;
                 try {
-                    String hash = DigestUtils.md5Hex(SECRET_PHRASE + mapUrl);
+                    String hash = DigestUtils.md5Hex(mapUrl + SECRET_PHRASE);
                     HttpResponse resp = Request.Get(SCREENSHOTMACHINE + "&hash=" + hash + "&url=" + mapUrl)                    
-                        .connectTimeout(60000)
-                        .socketTimeout(60000)
+                        .connectTimeout(10000)
+                        .socketTimeout(5000)
                         .execute()
                         .returnResponse();
                     if (resp.containsHeader("X-Screenshotmachine-Response")) {
