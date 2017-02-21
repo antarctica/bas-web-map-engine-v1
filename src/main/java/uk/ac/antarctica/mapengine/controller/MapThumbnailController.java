@@ -85,7 +85,7 @@ public class MapThumbnailController implements ServletContextAware {
 
         /* Get the thumbnail for public sites - restricted ones can have a thumbnail uploaded or use a placeholder */                
         String thumbUrl = THUMBNAIL_CACHE + "/bas.jpg";                 
-        if (!request.getServerName().equals("localhost") || mapname.equals("add7")) {   // TEST - please delete the mapname.equals("add7") bit
+        if (!request.getServerName().equals("localhost")) {
             /* Use STW for non-local server */            
             thumbUrl = THUMBNAIL_CACHE + "/" + getActiveProfile() + "/" + mapname + ".jpg";
             String genThumbPath = context.getRealPath(thumbUrl);
@@ -102,11 +102,7 @@ public class MapThumbnailController implements ServletContextAware {
                 https://shrinktheweb.com/uploads/STW_API_Documentation.pdf */
                 System.out.println("Using STW thumbnail generation service");
                 try {
-                    String mapUrl = server + "/home/" + mapname;
-                    if (mapname.equals("add7")) {
-                        // TEST - please delete the mapname.equals("add7") bit
-                        mapUrl = "http://www.add.scar.org/home/add7";
-                    }
+                    String mapUrl = server + "/home/" + mapname;                    
                     URL stwUrl = new URL(SHRINKTHEWEB + mapUrl);
                     /* Override SSL checking
                      * See http://stackoverflow.com/questions/13626965/how-to-ignore-pkix-path-building-failed-sun-security-provider-certpath-suncertp */

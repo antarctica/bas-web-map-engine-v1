@@ -13,7 +13,7 @@
                 <div th:case="*">
                     <button id="console-create-new-map"  type="button" class="btn btn-primary"
                      data-toggle="tooltip" data-placement="top" title="Open map creation interface (new tab)">Create a new map</button>
-                    <button id="console-gen-thumbnails" type="button" class="btn btn-primary"
+                    <button id="console-gen-thumbnails" type="button" class="btn btn-primary hidden"
                      data-toggle="tooltip" data-placement="top" title="Generate map thumbnail images from external service">Generate map thumbnails</button>                
                 </div>
             </div>
@@ -61,6 +61,10 @@
                 if (btnClearTn.length > 0) {
                     btnClearTn.click(function(evt) {
                         /* Load the thumbnails for each available site - try 3 times in case ShrinkTheWeb is slow */
+                        /* Update 21/02/2017 David - it appears that STW considers URLs such as we have constructed for 
+                         * maps to be "internal pages".  At which point we're into the PRO version at $10 per month, so
+                         * have abandoned the idea of using STW.  Will manually create thumbnails if required
+                         */
                         var attempts = 0;
                         var thumbnailsDone = {};
                         var thumbnailsToDo = jQuery("img[id^='tn-']");
