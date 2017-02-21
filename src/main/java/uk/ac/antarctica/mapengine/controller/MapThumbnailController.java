@@ -5,27 +5,19 @@ package uk.ac.antarctica.mapengine.controller;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URL;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.X509Certificate;
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.http.Header;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.fluent.Request;
 import org.geotools.ows.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -47,8 +39,12 @@ public class MapThumbnailController implements ServletContextAware {
     /* Thumbnail location */
     private static final String THUMBNAIL_CACHE = "/static/images/thumbnail_cache";
     
-    /* Thumbnailing service */
+    /* Thumbnailing services */
     private static final String SHRINKTHEWEB = "https://images.shrinktheweb.com/xino.php?stwembed=0&stwaccesskeyid=2aa21387d887a28&stwu=e3492&stwsize=200x150&stwadv=json&stwurl=";
+    private static final String SCREENSHOTMACHINE = "http://api.screenshotmachine.com/?key=35cb36&size=S&format=JPG&timeout=200";
+    
+    /* ScreenShotMNachine secret phrase for safeguarding account */
+    private static final String SECRET_PHRASE = "The Song Is You";
     
     @Autowired
     Environment env;
@@ -96,81 +92,121 @@ public class MapThumbnailController implements ServletContextAware {
             System.out.println("-------------------------------");
             File thumbnail = new File(genThumbPath);
             if (!thumbnail.exists()) {
-                /* Retrieve an image from shrinktheweb.com and write it to the thumbnail cache */
-                /* Note: 2017-02-01 David - Need to use the STW advanced API which is a two-step process
-                https://support.shrinktheweb.com/Knowledgebase/Article/View/128/0/best-practice-method-to-get-screenshot-requests-as-soon-as-ready
-                https://shrinktheweb.com/uploads/STW_API_Documentation.pdf */
-                System.out.println("Using STW thumbnail generation service");
+                /* ScreenShotMachine version of code - free service can manage internal pages */
+                System.out.println("Using ScreenShotMachine thumbnail generation service");
+                String mapUrl = server + "/home/" + mapname;
                 try {
-                    String mapUrl = server + "/home/" + mapname;                    
-                    URL stwUrl = new URL(SHRINKTHEWEB + mapUrl);
-                    /* Override SSL checking
-                     * See http://stackoverflow.com/questions/13626965/how-to-ignore-pkix-path-building-failed-sun-security-provider-certpath-suncertp */
-                    TrustManager[] trustAllCerts = new TrustManager[] {new X509TrustManager() {
-                        public java.security.cert.X509Certificate[] getAcceptedIssuers() {return null;}
-                        public void checkClientTrusted(X509Certificate[] certs, String authType) {}
-                        public void checkServerTrusted(X509Certificate[] certs, String authType) {}
-                    }};
-
-                    SSLContext sc = SSLContext.getInstance("SSL");
-                    sc.init(null, trustAllCerts, new java.security.SecureRandom());
-                    HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-
-                    /* Create all-trusting host name verifier */
-                    HostnameVerifier allHostsValid = new HostnameVerifier() {
-                        public boolean verify(String hostname, SSLSession session) {return true;}
-                    };
-                    /* Install the all-trusting host verifier */
-                    HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
-                    HttpsURLConnection con = (HttpsURLConnection)stwUrl.openConnection();
-                    con.setConnectTimeout(5000);
-                    con.setReadTimeout(10000);
-                    String content = IOUtils.toString(con.getInputStream());
-                    System.out.println("-------------------------------");
-                    System.out.println("STW call : " + stwUrl.toString());
-                    System.out.println("Returned content : " + content);
-                    System.out.println("-------------------------------");
-                    /* Parse STW API JSON output */
-                    JsonParser jp = new JsonParser();
-                    JsonObject stwOut = jp.parse(content).getAsJsonObject();
-                    boolean exists = stwOut.getAsJsonPrimitive("exists").getAsBoolean();
-                    String actionMsg = stwOut.getAsJsonPrimitive("actionmsg").getAsString();
-                    String responseStatus = stwOut.getAsJsonPrimitive("responsestatus").getAsString();
-                    if (responseStatus.equalsIgnoreCase("success")) {
-                        System.out.println("Successful call to STW");
-                        if (exists && actionMsg.equalsIgnoreCase("delivered")) {
-                            System.out.println("Exists and delivered");
-                            setJsonPayload(resultPayload, thumbUrl, true, false); 
-                            /* Now get the actual thumbnail image */
-                            URL imageUrl = new URL(stwOut.getAsJsonPrimitive("image").getAsString().replaceAll("\\\\", ""));
-                            InputStream is = imageUrl.openStream();
-                            FileUtils.forceMkdir(thumbnail.getParentFile());
-                            thumbnail.createNewFile();
-                            OutputStream fos = new FileOutputStream(thumbnail);
-                            byte[] buffer = new byte[4096];
-                            int n = -1;
-                            while ((n = is.read(buffer)) != -1) {
-                                fos.write(buffer, 0, n);
+                    String hash = DigestUtils.md5Hex(SECRET_PHRASE + mapUrl);
+                    HttpResponse resp = Request.Get(SCREENSHOTMACHINE + "&hash=" + hash + "&url=" + mapUrl)                    
+                        .connectTimeout(60000)
+                        .socketTimeout(60000)
+                        .execute()
+                        .returnResponse();
+                    if (resp.containsHeader("X-Screenshotmachine-Response")) {
+                        /* Some kind of service error response */
+                        for (Header hdr : resp.getAllHeaders()) {
+                            if (hdr.getName().equals("X-Screenshotmachine-Response")) {
+                                setJsonPayload(resultPayload, THUMBNAIL_CACHE + "/bas.jpg", false, false); 
+                                System.out.println("**** Unexpected SSM return value : " + hdr.getValue());
+                                break;
                             }
-                            is.close();
-                            fos.close();  
-                            System.out.println("Completed thumbnail image write");
-                        } else if (!actionMsg.equalsIgnoreCase("noretry")) {
-                            System.out.println("STW reported image still on the way - have another try in a while");
-                            setJsonPayload(resultPayload, thumbUrl, false, true);
-                        } else {
-                            System.out.println("STW indicated not worth retrying");
-                            setJsonPayload(resultPayload, THUMBNAIL_CACHE + "/bas.jpg", false, false);
                         }
                     } else {
-                        /* Give up - something wrong at the STW end */
-                        System.out.println("Problems at the STW end - giving up");
-                        setJsonPayload(resultPayload, THUMBNAIL_CACHE + "/bas.jpg", false, false);  
-                    }                                                                              
-                } catch(IOException | KeyManagementException | NoSuchAlgorithmException ex) {
+                        /* Can expect we have a thumbnail image */
+                        InputStream is = resp.getEntity().getContent();
+                        FileUtils.forceMkdir(thumbnail.getParentFile());
+                        thumbnail.createNewFile();
+                        OutputStream fos = new FileOutputStream(thumbnail);
+                        byte[] buffer = new byte[4096];
+                        int n = -1;
+                        while ((n = is.read(buffer)) != -1) {
+                            fos.write(buffer, 0, n);
+                        }
+                        is.close();
+                        fos.close();
+                        setJsonPayload(resultPayload, thumbUrl, true, false); 
+                        System.out.println("Completed thumbnail image write");
+                    }    
+                } catch(IOException | UnsupportedOperationException ex) {
                     System.out.println("Exception : " + ex.getMessage());
-                    setJsonPayload(resultPayload, THUMBNAIL_CACHE + "/bas.jpg", false, false);                    
+                    setJsonPayload(resultPayload, THUMBNAIL_CACHE + "/bas.jpg", false, false);    
                 }
+// ShrinkTheWeb version of code - the service is not suitable for "internal pages" (like our maps) and costs                
+//                /* Retrieve an image from shrinktheweb.com and write it to the thumbnail cache */
+//                /* Note: 2017-02-01 David - Need to use the STW advanced API which is a two-step process
+//                https://support.shrinktheweb.com/Knowledgebase/Article/View/128/0/best-practice-method-to-get-screenshot-requests-as-soon-as-ready
+//                https://shrinktheweb.com/uploads/STW_API_Documentation.pdf */
+//                System.out.println("Using STW thumbnail generation service");
+//                try {
+//                    String mapUrl = server + "/home/" + mapname;                    
+//                    URL stwUrl = new URL(SHRINKTHEWEB + mapUrl);
+//                    /* Override SSL checking
+//                     * See http://stackoverflow.com/questions/13626965/how-to-ignore-pkix-path-building-failed-sun-security-provider-certpath-suncertp */
+//                    TrustManager[] trustAllCerts = new TrustManager[] {new X509TrustManager() {
+//                        public java.security.cert.X509Certificate[] getAcceptedIssuers() {return null;}
+//                        public void checkClientTrusted(X509Certificate[] certs, String authType) {}
+//                        public void checkServerTrusted(X509Certificate[] certs, String authType) {}
+//                    }};
+//
+//                    SSLContext sc = SSLContext.getInstance("SSL");
+//                    sc.init(null, trustAllCerts, new java.security.SecureRandom());
+//                    HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+//
+//                    /* Create all-trusting host name verifier */
+//                    HostnameVerifier allHostsValid = new HostnameVerifier() {
+//                        public boolean verify(String hostname, SSLSession session) {return true;}
+//                    };
+//                    /* Install the all-trusting host verifier */
+//                    HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+//                    HttpsURLConnection con = (HttpsURLConnection)stwUrl.openConnection();
+//                    con.setConnectTimeout(5000);
+//                    con.setReadTimeout(10000);
+//                    String content = IOUtils.toString(con.getInputStream());
+//                    System.out.println("-------------------------------");
+//                    System.out.println("STW call : " + stwUrl.toString());
+//                    System.out.println("Returned content : " + content);
+//                    System.out.println("-------------------------------");
+//                    /* Parse STW API JSON output */
+//                    JsonParser jp = new JsonParser();
+//                    JsonObject stwOut = jp.parse(content).getAsJsonObject();
+//                    boolean exists = stwOut.getAsJsonPrimitive("exists").getAsBoolean();
+//                    String actionMsg = stwOut.getAsJsonPrimitive("actionmsg").getAsString();
+//                    String responseStatus = stwOut.getAsJsonPrimitive("responsestatus").getAsString();
+//                    if (responseStatus.equalsIgnoreCase("success")) {
+//                        System.out.println("Successful call to STW");
+//                        if (exists && actionMsg.equalsIgnoreCase("delivered")) {
+//                            System.out.println("Exists and delivered");
+//                            setJsonPayload(resultPayload, thumbUrl, true, false); 
+//                            /* Now get the actual thumbnail image */
+//                            URL imageUrl = new URL(stwOut.getAsJsonPrimitive("image").getAsString().replaceAll("\\\\", ""));
+//                            InputStream is = imageUrl.openStream();
+//                            FileUtils.forceMkdir(thumbnail.getParentFile());
+//                            thumbnail.createNewFile();
+//                            OutputStream fos = new FileOutputStream(thumbnail);
+//                            byte[] buffer = new byte[4096];
+//                            int n = -1;
+//                            while ((n = is.read(buffer)) != -1) {
+//                                fos.write(buffer, 0, n);
+//                            }
+//                            is.close();
+//                            fos.close();  
+//                            System.out.println("Completed thumbnail image write");
+//                        } else if (!actionMsg.equalsIgnoreCase("noretry")) {
+//                            System.out.println("STW reported image still on the way - have another try in a while");
+//                            setJsonPayload(resultPayload, thumbUrl, false, true);
+//                        } else {
+//                            System.out.println("STW indicated not worth retrying");
+//                            setJsonPayload(resultPayload, THUMBNAIL_CACHE + "/bas.jpg", false, false);
+//                        }
+//                    } else {
+//                        /* Give up - something wrong at the STW end */
+//                        System.out.println("Problems at the STW end - giving up");
+//                        setJsonPayload(resultPayload, THUMBNAIL_CACHE + "/bas.jpg", false, false);  
+//                    }                                                                              
+//                } catch(IOException | KeyManagementException | NoSuchAlgorithmException ex) {
+//                    System.out.println("Exception : " + ex.getMessage());
+//                    setJsonPayload(resultPayload, THUMBNAIL_CACHE + "/bas.jpg", false, false);                    
+//                }
             }              
         } else {
             /* Return the defaults for localhost */
