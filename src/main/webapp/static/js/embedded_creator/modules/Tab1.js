@@ -125,6 +125,9 @@ magic.modules.embedded_creator.Tab1 = function () {
             }, this));
             
             /* Handle final map save */
+            jQuery("#em-save-context").click(jQuery.proxy(function(evt) {
+                this.saveContext({});
+            }, this));
         },
         /**
          * Validate all top-level (i.e. not individual layer level) user form inputs
@@ -206,6 +209,9 @@ magic.modules.embedded_creator.Tab1 = function () {
          */
         saveContext: function (context) {
             magic.modules.creator.Common.formToDict(this.form_fields, context, this.prefix);
+            if (!context.id) {
+                context.id = magic.modules.Common.uuid();
+            }
             /* Read center, zoom and projection details from the map */
             var mapView = this.map.getView();
             context.center = mapView.getCenter();
@@ -214,7 +220,7 @@ magic.modules.embedded_creator.Tab1 = function () {
             context.proj_extent = mapView.getProjection().getExtent();
             context.resolutions = mapView.getResolutions();
             /* Read the data layers */
-            
+            console.log(context);
         },
         /**
          * Load up selector map
