@@ -24,6 +24,15 @@ magic.modules.embedded_creator.Tab1 = function () {
             {"field": "embed", "default": "map"},
             {"field": "rotation", "default": 0}
         ],
+        
+        layer_fields: [
+            {"field": "wms_source", "default": ""},
+            {"field": "feature_name", "default": ""},
+            {"field": "opacity", "default": 1.0},
+            {"field": "wms_source", "default": ""},
+            {"field": "is_singletile", "default": false},
+            {"field": "is_interactive", "default": false}
+        ],
                 
         init: function () {
             this.map_context = new magic.classes.creator.MapContext();
@@ -94,10 +103,15 @@ magic.modules.embedded_creator.Tab1 = function () {
                         wms_source: jQuery("#" + this.prefix + "-layer-wms-wms_source").val(),
                         feature_name: fselect.val(),
                         opacity: jQuery("#" + this.prefix + "-layer-wms-opacity").val(),
-                        is_singletile: jQuery("#" + this.prefix + "-layer-wms-is_singletile").prop("checked")
+                        is_singletile: jQuery("#" + this.prefix + "-layer-wms-is_singletile").prop("checked"),
+                        is_interactive: jQuery("#" + this.prefix + "-layer-wms-is_interactive").prop("checked")
                     });
                     jQuery(".table-sortable tbody").sortable("destroy").sortable();
                 }
+            }, this));
+            /* Handle reset layer form event */
+            jQuery("#" + this.prefix + "-layer-wms-reset").click(jQuery.proxy(function(evt) {
+                magic.modules.creator.Common.dictToForm(this.layer_fields, {}, "em-map-layer-wms");
             }, this));
         },
         /**
@@ -373,7 +387,11 @@ magic.modules.embedded_creator.Tab1 = function () {
                 'Interactive: ' + (data.is_interactive === true ? "Y" : "N");
             tbody.append(
                 '<tr id="' + this.prefix + '-row-' + layerId + '">' + 
-                    '<td><span class="glyphicon glyphicon-move"></span></td>' + 
+                    '<td>' + 
+                        '<a href="Javascript:void(0) data-toggle="tooltip" data-placement="top" title="Click and drag to re-order layer stack">' + 
+                            '<span class="glyphicon glyphicon-move"></span>' + 
+                        '</a>' + 
+                    '</td>' + 
                     '<td>' + serviceName + '</td>' + 
                     '<td>' + data.name + '</td>' +                     
                     '<td>' + 
@@ -391,6 +409,25 @@ magic.modules.embedded_creator.Tab1 = function () {
                     '</td>' + 
                 '</tr>'
             );
+            var buttons = tbody.children().last().find("a");
+            if (buttons.length == 3) {
+                /* Assign edit layer button handler */
+                jQuery(buttons[1]).click(function(evt) {
+                    
+                });
+                /* Assign delete layer button handler */
+                jQuery(buttons[2]).click(function(evt) {
+                    bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">Ok to remove this layer?</div>', function(result) {
+                        if (result) {
+                            /* Do the deletion */
+                            jQuery(evt.currentTarget).closest("tr").remove();
+                            bootbox.hideAll();
+                        } else {
+                            bootbox.hideAll();
+                        }                            
+                    });                       
+                });
+            }
         }
 
     });
