@@ -26,6 +26,7 @@ magic.modules.embedded_creator.Tab1 = function () {
         ],
         
         layer_fields: [
+            {"field": "id", "default": ""},
             {"field": "wms_source", "default": ""},
             {"field": "feature_name", "default": ""},
             {"field": "opacity", "default": 1.0},
@@ -69,6 +70,7 @@ magic.modules.embedded_creator.Tab1 = function () {
                     }
                 }, this));
             }, this));
+            
             /* Load a map definition depending on the selection */
             jQuery("select.map-select").change(jQuery.proxy(function (evt) {
                 var sel = jQuery(evt.currentTarget);
@@ -78,11 +80,13 @@ magic.modules.embedded_creator.Tab1 = function () {
                 jQuery("div.hidden").removeClass("hidden");
                 this.map_context.load(action, mapName, true, jQuery.proxy(this.loadContext, this));                
             }, this)); 
+            
             /* If there is a search string, assume a map edit */
             var search = window.location.search;
             if (search && search.match(/\?name=[a-z0-9_]+$/)) {
                 jQuery("#" + this.prefix + "-edit-rb").trigger("click");                
             }
+            
             /* Set rotation button should rotate the map */
             jQuery("#" + this.prefix + "-rotation-set").click(jQuery.proxy(function(evt) {
                 var rotationDeg = jQuery("#" + this.prefix + "-rotation").val();
@@ -91,14 +95,15 @@ magic.modules.embedded_creator.Tab1 = function () {
                     this.map.getView().setRotation(rotationRad);
                 }
             }, this));
+            
             /* Handle add layer event */
-            jQuery("#" + this.prefix + "-layer-wms-save").click(jQuery.proxy(function(evt) {
+            jQuery("#" + this.prefix + "-layer-wms-go").click(jQuery.proxy(function(evt) {
                 if (this.validateLayerData()) {
                     var table = jQuery("#" + this.prefix + "-layerlist");
                     table.removeClass("hidden");
                     var fselect = jQuery("#" + this.prefix + "-layer-wms-feature_name");
                     this.appendLayer(table, {
-                        id: magic.modules.Common.uuid(),
+                        id: jQuery("#" + this.prefix + "-layer-wms-id").val(),
                         name: jQuery("#" + this.prefix + "-layer-wms-feature_name option:selected").text(),
                         wms_source: jQuery("#" + this.prefix + "-layer-wms-wms_source").val(),
                         feature_name: fselect.val(),
@@ -107,12 +112,19 @@ magic.modules.embedded_creator.Tab1 = function () {
                         is_interactive: jQuery("#" + this.prefix + "-layer-wms-is_interactive").prop("checked")
                     });
                     jQuery(".table-sortable tbody").sortable("destroy").sortable();
+                    magic.modules.Common.buttonClickFeedback("em-map-layer-wms", true, "Saved successfully");
+                    magic.modules.creator.Common.dictToForm(this.layer_fields, {}, "em-map-layer-wms");
+                } else {
+                    magic.modules.Common.buttonClickFeedback("em-map-layer-wms", false, "Please correct the fields indicated");
                 }
             }, this));
+            
             /* Handle reset layer form event */
             jQuery("#" + this.prefix + "-layer-wms-reset").click(jQuery.proxy(function(evt) {
                 magic.modules.creator.Common.dictToForm(this.layer_fields, {}, "em-map-layer-wms");
             }, this));
+            
+            /* Handle final map save */
         },
         /**
          * Validate all top-level (i.e. not individual layer level) user form inputs
@@ -153,22 +165,7 @@ magic.modules.embedded_creator.Tab1 = function () {
                 } else {
                     fg.removeClass("has-error");
                 }
-            });
-            if (ok) {
-                /* Check this layer is not already in the list */
-                var fname = jQuery("#" + this.prefix + "-layer-wms-feature_name");
-                jQuery.each(this.layerdata, function(layerId, data) {
-                    if (data.feature_name == fname.val()) {
-                        ok = false;
-                        return(false);
-                    }
-                    return(true);
-                });
-                if (!ok) {
-                    fname.closest("div.form-group").addClass("has-error");
-                    fname[0].setCustomValidity("Layer is already on map");
-                }
-            }
+            });            
             return(ok);
         },
         /**
@@ -378,14 +375,16 @@ magic.modules.embedded_creator.Tab1 = function () {
             var layerId = data.id;
             if (!layerId) {
                 layerId = magic.modules.Common.uuid();
-            }
+                data.id = layerId;
+            }            
             this.layerdata[layerId] = data;
             var tbody = table.find("tbody");
+            var trReplace = tbody.find("#" + this.prefix + "-row-" + layerId);
             var layerInfo = 
                 'Opacity: ' + data.opacity + '<br/>' + 
                 'One tile: ' + (data.is_singletile === true ? "Y" : "N") + '<br/>' + 
                 'Interactive: ' + (data.is_interactive === true ? "Y" : "N");
-            tbody.append(
+            var rowContent = 
                 '<tr id="' + this.prefix + '-row-' + layerId + '">' + 
                     '<td>' + 
                         '<a href="Javascript:void(0) data-toggle="tooltip" data-placement="top" title="Click and drag to re-order layer stack">' + 
@@ -407,14 +406,22 @@ magic.modules.embedded_creator.Tab1 = function () {
                             '</a>' + 
                         '</span>' + 
                     '</td>' + 
-                '</tr>'
-            );
-            var buttons = tbody.children().last().find("a");
+                '</tr>';
+            if (trReplace.length > 0) {
+                /* Row exists, so data layer already in the table => this is an edit */
+                trReplace.replaceWith(rowContent);
+            } else {
+                /* Row not in table => new layer */
+                tbody.append(rowContent);
+            }
+            var buttons = tbody.find("#" + this.prefix + "-row-" + layerId).find("td span a");
             if (buttons.length == 3) {
                 /* Assign edit layer button handler */
-                jQuery(buttons[1]).click(function(evt) {
-                    
-                });
+                jQuery(buttons[1]).click(jQuery.proxy(function(evt) {     
+                    magic.modules.creator.Common.dictToForm(this.layer_fields, this.layerdata[layerId], "em-map-layer-wms");
+                    /* Ensure the corect value set in the feature name selector */
+                    magic.modules.Common.getCapabilities(this.layerdata[layerId].wms_source, jQuery.proxy(this.populateFeatureSelect, this), this.layerdata[layerId].feature_name);
+                }, this));
                 /* Assign delete layer button handler */
                 jQuery(buttons[2]).click(function(evt) {
                     bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">Ok to remove this layer?</div>', function(result) {

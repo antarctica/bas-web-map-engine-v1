@@ -6,6 +6,7 @@
     </head>    
     <body th:fragment="layout">
         <div class="form-group">
+            <input type="hidden" name="em-map-layer-wms-id" id="em-map-layer-wms-id" value=""></input>
             <label class="col-md-3 control-label" for="em-map-layer-wms-wms_source">
                 WMS endpoint
             </label>
@@ -58,8 +59,20 @@
             </div>
         </div>
         <div>
-            <button id="em-map-layer-wms-save" type="button" class="btn btn-primary">Add data layer</button>
-            <button id="em-map-layer-wms-reset" type="button" class="btn btn-warning">Reset</button>
+            <button id="em-map-layer-wms-go" class="btn btn-primary" type="button" 
+                data-toggle="tooltip" data-placement="top" title="Save data">
+                <span class="fa fa-floppy-o"></span>Save
+            </button>
+            <button id="em-map-layer-wms-fb-ok" class="btn btn-success" style="display:none;" type="button"
+                data-toggle="tooltip" data-placement="top" title="Ok">                
+                <span class="glyphicon glyphicon-ok post-ok"></span>Ok
+            </button>
+            <button id="em-map-layer-wms-fb-error" class="btn btn-danger" style="display:none" type="button"
+                data-toggle="tooltip" data-placement="top" title="Error">
+                <span class="glyphicon glyphicon-remove post-error">Error</span>
+            </button>            
+            <button id="em-map-layer-wms-reset" type="button" class="btn btn-danger"
+                data-toggle="tooltip" data-placement="top" title="Clear layer data form">Reset</button>
         </div>
         <table id="em-map-layerlist" class="table table-sortable hidden" style="margin-top:10px">
             <thead>
