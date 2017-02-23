@@ -42,9 +42,6 @@ public class MapController implements ServletContextAware {
     /* Thumbnail location */
     private static final String THUMBNAIL_CACHE = "/static/images/thumbnail_cache";
     
-    /* Thumbnailing service */
-    private static final String SHRINKTHEWEB = "https://images.shrinktheweb.com/xino.php?stwembed=0&stwaccesskeyid=2aa21387d887a28&stwsize=200x150&stwadv=json&stwurl=";
-    
     @Autowired
     Environment env;
    
@@ -586,7 +583,7 @@ public class MapController implements ServletContextAware {
      */
     private List<Map<String, Object>> getDataEndpoints() {
         List<Map<String, Object>> eps = magicDataTpl.queryForList(
-            "SELECT name, url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs FROM " + 
+            "SELECT name, url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs, has_wfs FROM " + 
             env.getProperty("postgres.local.endpointsTable") + " " +  
             "WHERE location=? ORDER BY name", hostLocator()
         );

@@ -52,29 +52,35 @@ magic.classes.FeatureInfoTool.prototype.queryFeatures = function(evt) {
         /* Find the WMS interactive layers */
         if (layer.getVisible() === true) {
             var md = layer.get("metadata");
-            if (md && md.source && md.source.wms_source && md.is_interactive === true) {               
-                var bxw = magic.runtime.map.getView().getResolution()*10;
-                var bxc = evt.coordinate;
-                var bbox = [(bxc[0] - bxw), (bxc[1] - bxw), (bxc[0] + bxw), (bxc[1] + bxw)].join(",");
-                var url = md.source.wms_source.replace("wms", "wfs") + "?service=wfs&version=2.0.0&request=getfeature&typename=" + md.source.feature_name + "&srsName=" + 
-                        magic.runtime.map.getView().getProjection().getCode() + "&bbox=" + bbox + "&outputFormat=application/json";
-// GetFeatureInfo version of interactivity - needs unacceptable user precision in some cases, and it isn't possible to override Geoserver's
-// use of the SLD to determine the size of buffer to the click in all cases. Have implemented a WFS version of the same interactivity which
-// uses a bounding box computed from a 10 pixel radius around the click.  This works well for all layers natively in the map projection - it
-// fails for those in e.g. EPSG:4326 unless the map projection is declared in the layer definition, and "reproject native to declared" is 
-// selected in the Geoserver admin GUI - David 16/02/2017.
-//                var url = layer.getSource().getGetFeatureInfoUrl(
-//                    evt.coordinate, 
-//                    magic.runtime.map.getView().getResolution(), 
-//                    magic.runtime.map.getView().getProjection(),
-//                    {
-//                        "LAYERS": md.source.feature_name,
-//                        "QUERY_LAYERS": md.source.feature_name,
-//                        "INFO_FORMAT": "application/json", 
-//                        "FEATURE_COUNT": 10,
-//                        "buffer": 20
-//                    }
-//                );              
+            if (md && md.source && md.source.wms_source && md.is_interactive === true) {
+                var url = null;
+                var service = magic.modules.Endpoints.getEndpointBy("url", md.source.wms_source);
+                if (service.has_wfs === true) {
+                    /* Use WFS version of handling click - a much better use experience */
+                    var bxw = magic.runtime.map.getView().getResolution()*10;
+                    var bxc = evt.coordinate;
+                    var bbox = [(bxc[0] - bxw), (bxc[1] - bxw), (bxc[0] + bxw), (bxc[1] + bxw)].join(",");
+                    url = md.source.wms_source.replace("wms", "wfs") + "?service=wfs&version=2.0.0&request=getfeature&typename=" + md.source.feature_name + "&srsName=" + 
+                            magic.runtime.map.getView().getProjection().getCode() + "&bbox=" + bbox + "&outputFormat=application/json";
+                } else {
+                    /* GetFeatureInfo version of interactivity - needs unacceptable user precision in some cases, and it isn't possible to override Geoserver's
+                    use of the SLD to determine the size of buffer to the click in all cases. Have implemented a WFS version of the same interactivity which
+                    uses a bounding box computed from a 10 pixel radius around the click.  This works well for all layers natively in the map projection - it
+                    fails for those in e.g. EPSG:4326 unless the map projection is declared in the layer definition, and "reproject native to declared" is 
+                    selected in the Geoserver admin GUI - David 16/02/2017. */
+                    url = layer.getSource().getGetFeatureInfoUrl(
+                        evt.coordinate, 
+                        magic.runtime.map.getView().getResolution(), 
+                        magic.runtime.map.getView().getProjection(),
+                        {
+                            "LAYERS": md.source.feature_name,
+                            "QUERY_LAYERS": md.source.feature_name,
+                            "INFO_FORMAT": "application/json", 
+                            "FEATURE_COUNT": 10,
+                            "buffer": 20
+                        }
+                    );  
+                }
                 if (url) {
                     deferreds.push(jQuery.get(magic.modules.Common.proxyUrl(url)).success(function(data) {
                         if (typeof data == "string") {
