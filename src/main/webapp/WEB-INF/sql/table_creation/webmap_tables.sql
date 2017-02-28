@@ -115,4 +115,19 @@ ALTER TABLE webmap.preferences
 COMMENT ON TABLE webmap.preferences
   IS 'User unit preferences';
 
-
+CREATE TABLE webmap.usermaps
+(
+  id serial,
+  username character varying(150),
+  basemap character varying(50),
+  title character varying(100),
+  data json,
+  CONSTRAINT usermaps_pkey PRIMARY KEY (id)
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE webmap.usermaps
+  OWNER TO add;
+COMMENT ON TABLE webmap.usermaps
+  IS 'User saved maps';

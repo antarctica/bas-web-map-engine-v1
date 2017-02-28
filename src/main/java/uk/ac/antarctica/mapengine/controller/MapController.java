@@ -255,7 +255,7 @@ public class MapController implements ServletContextAware {
     @ResponseBody
     public ResponseEntity<String> mapById(HttpServletRequest request, @PathVariable("id") String id)
         throws ServletException, IOException, ServiceException {
-        return(mapDataBy(request, "id", id, false));
+        return(mapDataBy(request, "id", id, false, null));
     }
     
     /**
@@ -270,7 +270,23 @@ public class MapController implements ServletContextAware {
     @ResponseBody
     public ResponseEntity<String> mapByName(HttpServletRequest request, @PathVariable("name") String name)
         throws ServletException, IOException, ServiceException {
-        return(mapDataBy(request, "name", name, false));
+        return(mapDataBy(request, "name", name, false, null));
+    }
+    
+    /**
+     * Get full data for a user saved map based on the one with the given name
+     * @param HttpServletRequest request,
+     * @param String name
+     * @param Integer usermapid
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/maps/name/{name}/{usermapid}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
+    @ResponseBody
+    public ResponseEntity<String> userMapByName(HttpServletRequest request, @PathVariable("name") String name, @PathVariable("usermapid") Integer usermapid)
+        throws ServletException, IOException, ServiceException {
+        return(mapDataBy(request, "name", name, false, usermapid));
     }
     
     /**
@@ -285,7 +301,7 @@ public class MapController implements ServletContextAware {
     @ResponseBody
     public ResponseEntity<String> embeddedMapByName(HttpServletRequest request, @PathVariable("name") String name)
         throws ServletException, IOException, ServiceException {
-        return(mapDataBy(request, "name", name, true));
+        return(mapDataBy(request, "name", name, true, null));
     }
     
     /**
@@ -296,7 +312,7 @@ public class MapController implements ServletContextAware {
      * @param boolean embedded
      * @return 
      */
-    private ResponseEntity<String> mapDataBy(HttpServletRequest request, String attr, String value, boolean embedded) {
+    private ResponseEntity<String> mapDataBy(HttpServletRequest request, String attr, String value, boolean embedded, Integer usermapid) {
         ResponseEntity<String> ret = null;
         String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
         String tableName = env.getProperty("postgres.local." + (embedded ? "embeddedMaps" : "maps") + "Table");
@@ -315,6 +331,16 @@ public class MapController implements ServletContextAware {
             if (endpointData != null && endpointData.size() > 0) {
                 /* Some endpoints retrieved */
                 userMapData.put("endpoints", endpointData);
+            }
+            if (usermapid != null) {
+                /* Additional payload of extra user settings */
+                String usermapTable = env.getProperty("postgres.local.usermapTable");
+                try {
+                    Map<String, Object> bookmarkData = magicDataTpl.queryForMap("SELECT * FROM " + usermapTable + " WHERE username=? AND id=?", username, usermapid);
+                    userMapData.put("userdata", bookmarkData);
+                } catch (IncorrectResultSizeDataAccessException irsdae2) {
+                    /* Don't care about non-existence of user map data - just serve the default base map */
+                }
             }
             ret = PackagingUtils.packageResults(HttpStatus.OK, mapper.toJsonTree(userMapData).toString(), null);
         } catch (IncorrectResultSizeDataAccessException irsdae) {
