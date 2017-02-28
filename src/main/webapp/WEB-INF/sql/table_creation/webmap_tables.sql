@@ -123,7 +123,10 @@ CREATE TABLE webmap.usermaps
   title character varying(100),
   data json,
   modified date,
-  CONSTRAINT usermaps_pkey PRIMARY KEY (id)
+  CONSTRAINT usermaps_pkey PRIMARY KEY (id),
+  CONSTRAINT basemap_name_fkey FOREIGN KEY (basemap)
+  REFERENCES webmap.maps (name) MATCH SIMPLE
+  ON UPDATE NO ACTION ON DELETE CASCADE
 )
 WITH (
   OIDS=FALSE

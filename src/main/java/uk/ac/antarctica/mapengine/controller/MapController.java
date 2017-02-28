@@ -119,6 +119,37 @@ public class MapController implements ServletContextAware {
     }
     
     /**
+     * Get {id: <id>, title: <title>} for all user bookmarkable maps the logged in user can view
+     * @param HttpServletRequest request,    
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/usermaps/dropdown", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
+    @ResponseBody
+    public ResponseEntity<String> userMapViews(HttpServletRequest request)
+        throws ServletException, IOException, ServiceException {
+        ResponseEntity<String> ret = null;
+        String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;        
+        String tableName = env.getProperty("postgres.local.usermapsTable");
+        try {
+            List<Map<String, Object>> userMapData = magicDataTpl.queryForList(
+                "SELECT id, title FROM " + tableName + " WHERE username=? ORDER BY title", username
+            );
+            if (userMapData != null && !userMapData.isEmpty()) {
+                JsonArray views = mapper.toJsonTree(userMapData).getAsJsonArray();
+                ret = PackagingUtils.packageResults(HttpStatus.OK, views.toString(), null);
+            } else {
+                /* No data is fine - simply return empty results array */
+                ret = PackagingUtils.packageResults(HttpStatus.OK, "[]", null);
+            }
+        } catch(DataAccessException dae) {
+            ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Exception fetching saved map data - error was : " + dae.getMessage());
+        }
+        return(ret);
+    }
+    
+    /**
      * Get all the data necessary for displaying gallery of all available map thumbnails
      * @param HttpServletRequest request,
      * @return

@@ -76,8 +76,16 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
             .authorizeRequests()
-            .antMatchers("/*.ico", "/static/**", "/appconfig/**", "/ping", "/home/**", "/homed/**", "/apex/**", "/apexd/**", "/maps/dropdown/**", "/maps/name/**", "/maps/id/**", "/maps/thumbnaildata", "/thumbnail/**", "/prefs/get", "/gs/**").permitAll()
-            .antMatchers("/creator", "/creatord", "/embedded_creator", "/embedded_creatord", "/restricted/**", "/restrictedd/**", "/publisher", "/publisherd", "/publish_postgis", "/prefs/set", "/maps/save", "/maps/update/**", "/maps/delete/**", "/maps/deletebyname/**", "/clearthumbnailcache")
+            .antMatchers("/*.ico", "/static/**", "/appconfig/**", "/ping", "/home/**", "/homed/**", 
+                "/maps/dropdown/**", "/maps/name/**", "/maps/id/**", "/maps/thumbnaildata", 
+                "/usermaps/dropdown",
+                "/thumbnail/**", "/prefs/get", "/gs/**").permitAll()
+            .antMatchers("/creator", "/creatord", "/embedded_creator", "/embedded_creatord", 
+                "/restricted/**", "/restrictedd/**", 
+                "/publisher", "/publisherd", "/publish_postgis", "/prefs/set", 
+                "/maps/save", "/maps/update/**", "/maps/delete/**", "/maps/deletebyname/**", 
+                "/usermaps/save", "/usermaps/update/**", "/usermaps/delete/**",
+                "/clearthumbnailcache")
             .fullyAuthenticated()
             .and()
             .formLogin()
