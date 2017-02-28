@@ -32,8 +32,14 @@
         <script type="text/javascript">
             /* <![CDATA[*/
             function fetchPayload() {
+                var lastSl = window.location.pathname.lastIndexOf("/");
+                var usermapId = parseInt(window.location.pathname.substring(lastSl+1));
+                var payloadUrl = magic.config.paths.baseurl + "/maps/name/" + magic.runtime.mapname;
+                if (!isNaN(usermapId)) {
+                    payloadUrl += "/" + usermapId;
+                }
                 var payloadRequest = jQuery.ajax({
-                    url: magic.config.paths.baseurl + "/maps/name/" + magic.runtime.mapname,
+                    url: payloadUrl,
                     method: "GET",
                     dataType: "json"
                 }), 
@@ -180,8 +186,14 @@
         <script type="text/javascript">
             /* <![CDATA[*/
             function fetchPayload() {
+                var lastSl = window.location.pathname.lastIndexOf("/");
+                var usermapId = parseInt(window.location.pathname.substring(lastSl+1));
+                var payloadUrl = magic.config.paths.baseurl + "/maps/name/" + magic.runtime.mapname;
+                if (!isNaN(usermapId)) {
+                    payloadUrl += "/" + usermapId;
+                }
                 var payloadRequest = jQuery.ajax({
-                    url: magic.config.paths.baseurl + "/maps/name/" + magic.runtime.mapname,
+                    url: payloadUrl,
                     method: "GET",
                     dataType: "json"
                 }), 

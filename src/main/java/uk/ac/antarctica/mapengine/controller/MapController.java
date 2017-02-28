@@ -335,11 +335,13 @@ public class MapController implements ServletContextAware {
             if (usermapid != null) {
                 /* Additional payload of extra user settings */
                 String usermapTable = env.getProperty("postgres.local.usermapTable");
-                try {
-                    Map<String, Object> bookmarkData = magicDataTpl.queryForMap("SELECT * FROM " + usermapTable + " WHERE username=? AND id=?", username, usermapid);
-                    userMapData.put("userdata", bookmarkData);
-                } catch (IncorrectResultSizeDataAccessException irsdae2) {
-                    /* Don't care about non-existence of user map data - just serve the default base map */
+                if (usermapTable != null && !usermapTable.isEmpty()) {
+                    try {
+                        Map<String, Object> bookmarkData = magicDataTpl.queryForMap("SELECT * FROM " + usermapTable + " WHERE username=? AND id=?", username, usermapid);
+                        userMapData.put("userdata", bookmarkData);
+                    } catch (IncorrectResultSizeDataAccessException irsdae2) {
+                        /* Don't care about non-existence of user map data - just serve the default base map */
+                    }
                 }
             }
             ret = PackagingUtils.packageResults(HttpStatus.OK, mapper.toJsonTree(userMapData).toString(), null);
@@ -501,6 +503,108 @@ public class MapController implements ServletContextAware {
         return (ret);
     }
     
+    /**
+     * Save a new bookmarkable map view whose data is POST-ed (use PUT for updating)
+     * @param String payload   
+     * @throws Exception
+     */
+    @RequestMapping(value = "/usermaps/save", method = RequestMethod.POST, headers = {"Content-type=application/json"})
+    public ResponseEntity<String> saveUserMap(HttpServletRequest request,
+        @RequestBody String payload) throws Exception {
+        ResponseEntity<String> ret = null;
+        String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;        
+        if (username != null) {
+            /* Logged in user */
+            JsonElement je = new JsonParser().parse(payload);
+            JsonObject jo = je.getAsJsonObject();                       
+            /* Assemble INSERT query (UNIQUE constraint will weed out duplicate names) */
+            try {                
+                /* Check the base map exists and this user is allowed access */                
+                if (basemapExists(username, jo.get("basemap").getAsString())) {
+                    Date now = new Date();
+                    /* A bit of "cargo-cult" programming from https://github.com/denishpatel/java/blob/master/PgJSONExample.java - what a palaver! */
+                    PGobject dataObject = new PGobject();
+                    dataObject.setType("json");
+                    dataObject.setValue(jo.get("data").toString());
+                    String sql = "INSERT INTO " + env.getProperty("postgres.local.usermapsTable") + "(username, basemap, title, data, modified) VALUES(?,?,?,?,?)";
+                    magicDataTpl.update(sql, new Object[] {                    
+                        username,
+                        jo.get("basemap").getAsString(),
+                        jo.get("title").getAsString(),
+                        dataObject,
+                        now                    
+                    });
+                    ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Successfully saved");
+                } else {
+                    ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Base map " + jo.get("basemap").getAsString() + " does not exist or is not accessible");
+                }                
+            } catch(DataAccessException dae) {
+                ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Error saving data, message was: " + dae.getMessage());
+            }            
+        } else {
+            ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to perform this action");
+        }        
+        return (ret);
+    }
+    
+    /**
+     * Update an existing bookmarkable map view whose data is PUT (Note: uses POST as PUT is broken in Tomcat 8)
+     * @param String id
+     * @param String payload   
+     * @throws Exception
+     */
+    @RequestMapping(value = "/usermaps/update/{id}", method = RequestMethod.POST, headers = {"Content-type=application/json"})
+    public ResponseEntity<String> updateUserMap(HttpServletRequest request,
+        @PathVariable("id") String id,
+        @RequestBody String payload) throws Exception {
+        ResponseEntity<String> ret = null;
+        String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
+        if (username != null) {
+            /* Check logged in user is the owner of the map */
+            if (canWrite(username, id)) {                
+                /* Does not have write permission */
+                ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "You do not have permission to edit record with name " + id);
+            } else {
+                /* Default the non-completed fields */
+                JsonElement je = new JsonParser().parse(payload);
+                JsonObject jo = je.getAsJsonObject();                       
+                Date now = new Date(); 
+                if (basemapExists(username, jo.get("basemap").getAsString())) {
+                    /* A bit of "cargo-cult" programming from https://github.com/denishpatel/java/blob/master/PgJSONExample.java - what a palaver! */
+                    PGobject dataObject = new PGobject();
+                    dataObject.setType("json");
+                    dataObject.setValue(jo.get("data").toString());
+                    /* Assemble UPDATE query */
+                    try {
+                        String sql = "UPDATE " + env.getProperty("postgres.local.usermapsTable") + " SET " + 
+                            "username=?, " + 
+                            "basemap=?, " + 
+                            "title=?, " +
+                            "data=?, " + 
+                            "modified=? " + 
+                            "WHERE id=?";
+                        magicDataTpl.update(sql, new Object[] {
+                            username,
+                            jo.get("basemap").getAsString(),
+                            jo.get("title").getAsString(),                            
+                            dataObject,
+                            now,
+                            id
+                        });
+                        ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Successfully updated");
+                    } catch(DataAccessException dae) {
+                        ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Error updating data, message was: " + dae.getMessage());
+                    }
+                } else {
+                    ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Base map " + jo.get("basemap").getAsString() + " does not exist or is not accessible");
+                }                                                                                                
+           }
+        } else {
+            ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to perform this action");
+        }        
+        return (ret);
+    }
+    
     /*---------------------------------------------------------------- Delete map data ----------------------------------------------------------------*/
     
     /**
@@ -651,6 +755,25 @@ public class MapController implements ServletContextAware {
     @Override
     public void setServletContext(ServletContext sc) {
         this.context = sc;
+    }
+
+    /**
+     * Decide whether a writable map of the given name exists for the given user
+     * @param String username
+     * @param String basemap
+     * @return boolean
+     */    
+    private boolean basemapExists(String username, String basemap) {
+        int nbase = magicDataTpl.queryForObject
+            (
+                "SELECT count(id) FROM " + 
+                env.getProperty("postgres.local.mapsTable") + " " + 
+                "WHERE username=? AND basemap=?", 
+                Integer.class,
+                username,
+                basemap
+            );
+        return(nbase > 0);
     }
 
 }

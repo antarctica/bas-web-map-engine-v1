@@ -5,6 +5,23 @@ magic.classes.LayerTree = function (target) {
     this.target = target || "layer-tree";
    
     this.treedata = magic.runtime.mapdata.layers || [];
+    
+    /* User saved map payload of form:
+     * {
+     *     center: [<x>, <y>],
+     *     zoom: <level>,
+     *     layers: {
+     *         <nodeid>: {
+     *             visibility: <t|f>,
+     *             opacity: <opacity>
+     *         }
+     *     },
+     *     groups: {
+     *         <nodeid>: <t|f>
+     *     }
+     * }
+     */
+    this.userdata = magic.runtime.map_context.userdata || null;
 
     /* Dictionary mapping from a node UUID to an OL layer */
     this.nodeLayerTranslation = {};
@@ -273,6 +290,10 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
     jQuery.each(nodes, jQuery.proxy(function (i, nd) {
         if (jQuery.isArray(nd.layers)) {
             /* Style a group */
+            var groupExpanded = nd.expanded;
+            if (this.userdata != null && nd.id in this.userdata.groups) {
+                groupExpanded = this.userdata.groups[nd.id];
+            }
             var title = (nd.expanded ? "Collapse" : "Expand") + " this group";
             var hbg = depth == 0 ? "panel-primary" : (depth == 1 ? "panel-info" : "");
             var topMargin = i == 0 ? "margin-top:5px" : "";
@@ -294,7 +315,7 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                                 '</a>' +
                             '</span>' +
                         '</div>' +
-                        '<div id="layer-group-panel-' + nd.id + '" class="panel-collapse collapse' + (nd.expanded ? " in" : "") + '">' +
+                        '<div id="layer-group-panel-' + nd.id + '" class="panel-collapse collapse' + (groupExpanded ? " in" : "") + '">' +
                             '<div class="panel-body" style="padding:0px">' +
                                 '<ul class="list-group layer-list-group ' + (oneOnly ? 'one-only' : '') + '" id="layer-group-' + nd.id + '">' +
                                 '</ul>' +
@@ -342,8 +363,16 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
     }
     /* Determine visibility */
     var isVisible = nd.is_visible;
+    if (this.userdata != null && nd.id in this.userdata.layers) {
+        isVisible = this.userdata.layers[nd.id]["visibility"];
+    }
     if (magic.runtime.search && magic.runtime.search.visible && magic.runtime.search.visible[name]) {
         isVisible = magic.runtime.search.visible[name];
+    }
+    /* Determine opacity */
+    var layerOpacity = nd.opacity;
+    if (this.userdata != null && nd.id in this.userdata.layers) {
+        layerOpacity = this.userdata.layers[nd.id]["opacity"] || 1.0;
     }
     if (isBase) {
         cb = '<input class="layer-vis-selector" name="base-layers-rb" id="base-layer-rb-' + nd.id + '" type="radio" ' + (isVisible ? "checked" : "") + '/>';
@@ -413,7 +442,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
             layer = new ol.layer.Image({
                 name: name,
                 visible: isVisible,
-                opacity: nd.opacity || 1.0,
+                opacity: layerOpacity || 1.0,
                 metadata: nd,
                 source: wmsSource,
                 minResolution: minRes,
@@ -442,7 +471,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
             layer = new ol.layer.Tile({
                 name: name,
                 visible: isVisible,
-                opacity: nd.opacity || 1.0,
+                opacity: layerOpacity || 1.0,
                 minResolution: minRes,
                 maxResolution: maxRes,
                 metadata: nd,

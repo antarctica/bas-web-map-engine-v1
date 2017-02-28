@@ -122,6 +122,7 @@ CREATE TABLE webmap.usermaps
   basemap character varying(50),
   title character varying(100),
   data json,
+  modified date,
   CONSTRAINT usermaps_pkey PRIMARY KEY (id)
 )
 WITH (
