@@ -119,13 +119,13 @@ public class MapController implements ServletContextAware {
     }
     
     /**
-     * Get {id: <id>, title: <title>} for all user bookmarkable maps the logged in user can view
+     * Get all user bookmarkable maps the logged in user can view
      * @param HttpServletRequest request,    
      * @return
      * @throws ServletException
      * @throws IOException
      */
-    @RequestMapping(value = "/usermaps/dropdown", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
+    @RequestMapping(value = "/usermaps/data", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
     @ResponseBody
     public ResponseEntity<String> userMapViews(HttpServletRequest request)
         throws ServletException, IOException, ServiceException {
@@ -134,7 +134,7 @@ public class MapController implements ServletContextAware {
         String tableName = env.getProperty("postgres.local.usermapsTable");
         try {
             List<Map<String, Object>> userMapData = magicDataTpl.queryForList(
-                "SELECT id, title FROM " + tableName + " WHERE username=? ORDER BY title", username
+                "SELECT * FROM " + tableName + " WHERE username=? ORDER BY title", username
             );
             if (userMapData != null && !userMapData.isEmpty()) {
                 JsonArray views = mapper.toJsonTree(userMapData).getAsJsonArray();
@@ -658,6 +658,25 @@ public class MapController implements ServletContextAware {
     public ResponseEntity<String> deleteMapByName(HttpServletRequest request,
         @PathVariable("name") String name) throws Exception {
         return(deleteById(request, idFromName(name)));
+    }      
+    
+    /**
+     * Delete a bookmarkable user map view by id
+     * @param Integer id
+     * @throws Exception
+     */
+    @RequestMapping(value = "/usermaps/delete/{id}", method = RequestMethod.DELETE, produces = "application/json; charset=utf-8")
+    public ResponseEntity<String> deleteUserMap(HttpServletRequest request,
+        @PathVariable("id") Integer id) throws Exception {
+        ResponseEntity<String> ret = null;
+        String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
+        try {
+            magicDataTpl.update("DELETE FROM " + env.getProperty("postgres.local.usermapsTable") + " WHERE username=? AND id=?", username, id);                        
+            ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Successfully deleted");
+        } catch(DataAccessException dae) {
+            ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Error deleting data, message was: " + dae.getMessage());
+        }
+        return(ret);
     }      
     
     /**

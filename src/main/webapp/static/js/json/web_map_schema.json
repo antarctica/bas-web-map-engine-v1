@@ -242,6 +242,7 @@
                             "geolocation",
                             "overview_map",
                             "geosearch",
+                            "favourites",
                             "feedback",
                             "download_data",
                             "measurement",

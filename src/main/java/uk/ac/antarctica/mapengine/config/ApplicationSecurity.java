@@ -78,7 +78,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
             .authorizeRequests()
             .antMatchers("/*.ico", "/static/**", "/appconfig/**", "/ping", "/home/**", "/homed/**", 
                 "/maps/dropdown/**", "/maps/name/**", "/maps/id/**", "/maps/thumbnaildata", 
-                "/usermaps/dropdown",
+                "/usermaps/data",
                 "/thumbnail/**", "/prefs/get", "/gs/**").permitAll()
             .antMatchers("/creator", "/creatord", "/embedded_creator", "/embedded_creatord", 
                 "/restricted/**", "/restrictedd/**", 
