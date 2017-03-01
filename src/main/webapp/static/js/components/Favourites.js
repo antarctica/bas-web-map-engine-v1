@@ -83,7 +83,7 @@ magic.classes.Favourites = function(options) {
         }).done(jQuery.proxy(function(data) {
             this.user_map_data = data;
             /* Populate dropdown list of available maps */
-            magic.modules.Common.populateSelect(jQuery("#" + this.id + "-list"), data, "id", "name", false);            
+            magic.modules.Common.populateSelect(jQuery("#" + this.id + "-list"), data, "id", "title", false);            
             /* Assign handlers */
             var dd = jQuery("#" + this.id + "-list");
             var idHid = jQuery("#" + this.id + "-id"),
@@ -99,6 +99,8 @@ magic.classes.Favourites = function(options) {
             /* Changing dropdown value*/
             dd.change(jQuery.proxy(function() {
                 idHid.val(dd.val());
+                editBtn.prop("disabled", false);
+                loadBtn.prop("disabled", false);
             }, this));
             /* Load map button */
             loadBtn.click(jQuery.proxy(function() {
@@ -130,7 +132,8 @@ magic.classes.Favourites = function(options) {
                     var formdata = {
                         id: idHid.val(),
                         title: ttInp.val(),
-                        basemap: bmHid.val() || magic.runtime.mapname
+                        basemap: bmHid.val() || magic.runtime.mapname,
+                        data: this.mapPayload()
                     };
                     var saveUrl = magic.config.paths.baseurl + "/usermaps/" + (formdata.id ? "update/" + formdata.id : "save");                
                     var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content");               
@@ -162,8 +165,8 @@ magic.classes.Favourites = function(options) {
                 this.target.popover("hide");
             }, this));
             /* Disable irrelevant buttons */
-            loadBtn.prop("disabled", data.length > 0);
-            editBtn.prop("disabled", data.length > 0);
+            loadBtn.prop("disabled", data.length == 0);
+            editBtn.prop("disabled", data.length == 0);
         }, this)).fail(function(data) {
             
         });
@@ -182,11 +185,13 @@ magic.classes.Favourites.prototype.mapPayload = function() {
         payload.zoom = this.map.getView().getZoom();
         /* Save layer visibility states */
         payload.layers = {};
-        magic.runtime.map.getLayers().forEach(function (layer) {
+        this.map.getLayers().forEach(function (layer) {
             if (layer.get("metadata")) {
                 var layerId = layer.get("metadata").id;
-                payload.layers[layerId]["visibility"] = layer.getVisible();
-                payload.layers[layerId]["opacity"] = layer.getOpacity();
+                payload.layers[layerId] = {
+                    "visibility": layer.getVisible(),
+                    "opacity": layer.getOpacity()
+                }
             }
         });
         /* Save group expanded states */

@@ -341,6 +341,7 @@ public class MapController implements ServletContextAware {
      * @param String attr
      * @param String value
      * @param boolean embedded
+     * @param Integer usermapid
      * @return 
      */
     private ResponseEntity<String> mapDataBy(HttpServletRequest request, String attr, String value, boolean embedded, Integer usermapid) {
@@ -372,6 +373,7 @@ public class MapController implements ServletContextAware {
                         userMapData.put("userdata", bookmarkData);
                     } catch (IncorrectResultSizeDataAccessException irsdae2) {
                         /* Don't care about non-existence of user map data - just serve the default base map */
+                        System.out.println(irsdae2.getMessage());
                     }
                 }
             }
@@ -580,25 +582,25 @@ public class MapController implements ServletContextAware {
     
     /**
      * Update an existing bookmarkable map view whose data is PUT (Note: uses POST as PUT is broken in Tomcat 8)
-     * @param String id
+     * @param Integer id
      * @param String payload   
      * @throws Exception
      */
     @RequestMapping(value = "/usermaps/update/{id}", method = RequestMethod.POST, headers = {"Content-type=application/json"})
     public ResponseEntity<String> updateUserMap(HttpServletRequest request,
-        @PathVariable("id") String id,
+        @PathVariable("id") Integer id,
         @RequestBody String payload) throws Exception {
         ResponseEntity<String> ret = null;
         String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
         if (username != null) {
             /* Check logged in user is the owner of the map */
-            if (canWrite(username, id)) {                
+            JsonElement je = new JsonParser().parse(payload);
+            JsonObject jo = je.getAsJsonObject();
+            if (canWrite(username, idFromName(jo.get("basemap").getAsString()))) {                
                 /* Does not have write permission */
                 ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "You do not have permission to edit record with name " + id);
             } else {
-                /* Default the non-completed fields */
-                JsonElement je = new JsonParser().parse(payload);
-                JsonObject jo = je.getAsJsonObject();                       
+                /* Default the non-completed fields */                                       
                 Date now = new Date(); 
                 if (basemapExists(username, jo.get("basemap").getAsString())) {
                     /* A bit of "cargo-cult" programming from https://github.com/denishpatel/java/blob/master/PgJSONExample.java - what a palaver! */
@@ -808,7 +810,7 @@ public class MapController implements ServletContextAware {
     }
 
     /**
-     * Decide whether a writable map of the given name exists for the given user
+     * Decide whether a readable map of the given name exists for the given user
      * @param String username
      * @param String basemap
      * @return boolean
@@ -818,10 +820,10 @@ public class MapController implements ServletContextAware {
             (
                 "SELECT count(id) FROM " + 
                 env.getProperty("postgres.local.mapsTable") + " " + 
-                "WHERE owner_name=? AND name=?", 
+                "WHERE name=? AND (allowed_usage = 'public' OR allowed_usage = 'login' OR (allowed_usage='owner' AND owner_name=?))", 
                 Integer.class,
-                username,
-                basemap
+                basemap,
+                username
             );
         return(nbase > 0);
     }
