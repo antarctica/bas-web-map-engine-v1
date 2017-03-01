@@ -34,7 +34,7 @@ public class HomeController {
      */
     @RequestMapping(value = "/", method = RequestMethod.GET)
     public String topLevel(HttpServletRequest request, ModelMap model) throws ServletException, IOException {
-        return(renderPage(request, model, "map", env.getProperty("default.map"), null, false));        
+        return(renderPage(request, model, "map", env.getProperty("default.map"), null, null, false));        
     }        
     
     /**
@@ -47,7 +47,7 @@ public class HomeController {
      */
     @RequestMapping(value = "/home", method = RequestMethod.GET)
     public String home(HttpServletRequest request, ModelMap model) throws ServletException, IOException {
-        return(renderPage(request, model, "home", null, null, false));       
+        return(renderPage(request, model, "home", null, null, null, false));       
     }        
     
     /**
@@ -60,7 +60,7 @@ public class HomeController {
      */
     @RequestMapping(value = "/homed", method = RequestMethod.GET)
     public String homeDebug(HttpServletRequest request, ModelMap model) throws ServletException, IOException {   
-        return(renderPage(request, model, "home", null, null, true));          
+        return(renderPage(request, model, "home", null, null, null, true));          
     }        
         
     /**
@@ -74,7 +74,7 @@ public class HomeController {
      */
     @RequestMapping(value = "/home/{map}", method = RequestMethod.GET)
     public String mapHome(HttpServletRequest request, @PathVariable("map") String map, ModelMap model) throws ServletException, IOException {    
-        return(renderPage(request, model, "map", map, null, false));
+        return(renderPage(request, model, "map", map, null, null, false));
     }        
     
     /**
@@ -88,7 +88,37 @@ public class HomeController {
      */
     @RequestMapping(value = "/homed/{map}", method = RequestMethod.GET)
     public String mapHomeDebug(HttpServletRequest request, @PathVariable("map") String map, ModelMap model) throws ServletException, IOException {    
-        return(renderPage(request, model, "map", map, null, true));
+        return(renderPage(request, model, "map", map, null, null, true));
+    }   
+    
+    /**
+     * Render user-defined public map with user defined state data    
+     * @param HttpServletRequest request,
+     * @param String map
+     * @param Integer usermapid
+     * @param ModelMap model
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/home/{map}/{usermapid}", method = RequestMethod.GET)
+    public String mapHomeUser(HttpServletRequest request, @PathVariable("map") String map, @PathVariable("usermapid") Integer usermapid, ModelMap model) throws ServletException, IOException {    
+        return(renderPage(request, model, "map", map, null, usermapid, false));
+    }        
+    
+    /**
+     * Render user-defined public map with user defined state data (debug)  
+     * @param HttpServletRequest request,
+     * @param String map
+     * @param Integer usermapid
+     * @param ModelMap model
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/homed/{map}/{usermapid}", method = RequestMethod.GET)
+    public String mapHomeUserDebug(HttpServletRequest request, @PathVariable("map") String map, @PathVariable("usermapid") Integer usermapid, ModelMap model) throws ServletException, IOException {    
+        return(renderPage(request, model, "map", map, null, usermapid, true));
     }   
     
     /**
@@ -101,7 +131,7 @@ public class HomeController {
      */
     @RequestMapping(value = "/restricted", method = RequestMethod.GET)
     public String homeRestricted(HttpServletRequest request, ModelMap model) throws ServletException, IOException {
-        return(renderPage(request, model, "home", null, null, false));       
+        return(renderPage(request, model, "home", null, null, null, false));       
     }        
     
     /**
@@ -114,7 +144,7 @@ public class HomeController {
      */
     @RequestMapping(value = "/restrictedd", method = RequestMethod.GET)
     public String homeRestrictedDebug(HttpServletRequest request, ModelMap model) throws ServletException, IOException {   
-        return(renderPage(request, model, "home", null, null, true));          
+        return(renderPage(request, model, "home", null, null, null, true));          
     }        
         
     /**
@@ -128,8 +158,23 @@ public class HomeController {
      */
     @RequestMapping(value = "/restricted/{map}", method = RequestMethod.GET)
     public String mapRestricted(HttpServletRequest request, @PathVariable("map") String map, ModelMap model) throws ServletException, IOException {    
-        return(renderPage(request, model, "map", map, null, false));
+        return(renderPage(request, model, "map", map, null, null, false));
     }    
+    
+    /**
+     * Render user-defined private map with extra map state information   
+     * @param HttpServletRequest request,
+     * @param String map
+     * @param Integer usermapid
+     * @param ModelMap model
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/restricted/{map}/{usermapid}", method = RequestMethod.GET)
+    public String mapRestrictedUser(HttpServletRequest request, @PathVariable("map") String map, @PathVariable("usermapid") Integer usermapid, ModelMap model) throws ServletException, IOException {    
+        return(renderPage(request, model, "map", map, null, usermapid, false));
+    }   
     
     /**
      * Render user-defined public or restricted map with attached issue number   
@@ -143,7 +188,7 @@ public class HomeController {
      */
     @RequestMapping(value = "/restricted/{map}/{issue}", method = RequestMethod.GET)
     public String mapRestrictedIssue(HttpServletRequest request, @PathVariable("map") String map, @PathVariable("issue") Integer issue, ModelMap model) throws ServletException, IOException {    
-        return(renderPage(request, model, "map", map, issue, false));
+        return(renderPage(request, model, "map", map, issue, null, false));
     }    
     
     /**
@@ -157,8 +202,23 @@ public class HomeController {
      */
     @RequestMapping(value = "/restrictedd/{map}", method = RequestMethod.GET)
     public String mapRestrictedDebug(HttpServletRequest request, @PathVariable("map") String map, ModelMap model) throws ServletException, IOException {    
-        return(renderPage(request, model, "map", map, null, true));
-    }       
+        return(renderPage(request, model, "map", map, null, null, true));
+    }  
+    
+    /**
+     * Render user-defined private map with extra map state information (debug) 
+     * @param HttpServletRequest request,
+     * @param String map
+     * @param Integer usermapid
+     * @param ModelMap model
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/restrictedd/{map}/{usermapid}", method = RequestMethod.GET)
+    public String mapRestrictedUserDebug(HttpServletRequest request, @PathVariable("map") String map, @PathVariable("usermapid") Integer usermapid, ModelMap model) throws ServletException, IOException {    
+        return(renderPage(request, model, "map", map, null, usermapid, true));
+    }   
     
     /**
      * Render user-defined public map (debug) with attached issue 
@@ -172,7 +232,7 @@ public class HomeController {
      */
     @RequestMapping(value = "/restrictedd/{map}/{issue}", method = RequestMethod.GET)
     public String mapRestrictedDebugIssue(HttpServletRequest request, @PathVariable("map") String map, @PathVariable("issue") Integer issue, ModelMap model) throws ServletException, IOException {    
-        return(renderPage(request, model, "map", map, issue, true));
+        return(renderPage(request, model, "map", map, issue, null, true));
     }       
         
     /**
@@ -185,7 +245,7 @@ public class HomeController {
      */
     @RequestMapping(value = "/creator", method = RequestMethod.GET)
     public String creator(HttpServletRequest request, ModelMap model) throws ServletException, IOException {
-        return(renderPage(request, model, "creator", null, null, false));
+        return(renderPage(request, model, "creator", null, null, null, false));
     }
     
     /**
@@ -198,7 +258,7 @@ public class HomeController {
      */
     @RequestMapping(value = "/creatord", method = RequestMethod.GET)
     public String creatorDebug(HttpServletRequest request, ModelMap model) throws ServletException, IOException {
-        return(renderPage(request, model, "creator", null, null, true));
+        return(renderPage(request, model, "creator", null, null, null, true));
     }
     
     /**
@@ -211,7 +271,7 @@ public class HomeController {
      */
     @RequestMapping(value = "/embedded_creator", method = RequestMethod.GET)
     public String embeddedCreator(HttpServletRequest request, ModelMap model) throws ServletException, IOException {
-        return(renderPage(request, model, "embedded_creator", null, null, false));
+        return(renderPage(request, model, "embedded_creator", null, null, null, false));
     }
     
     /**
@@ -224,7 +284,7 @@ public class HomeController {
      */
     @RequestMapping(value = "/embedded_creatord", method = RequestMethod.GET)
     public String embeddedCreatorDebug(HttpServletRequest request, ModelMap model) throws ServletException, IOException {
-        return(renderPage(request, model, "embedded_creator", null, null, true));
+        return(renderPage(request, model, "embedded_creator", null, null, null, true));
     }
     
     /**
@@ -237,7 +297,7 @@ public class HomeController {
      */
     @RequestMapping(value = "/publisher", method = RequestMethod.GET)
     public String publisher(HttpServletRequest request, ModelMap model) throws ServletException, IOException {
-        return(renderPage(request, model, "publisher", null, null, false));
+        return(renderPage(request, model, "publisher", null, null, null, false));
     }
     
     /**
@@ -250,7 +310,7 @@ public class HomeController {
      */
     @RequestMapping(value = "/publisherd", method = RequestMethod.GET)
     public String publisherDebug(HttpServletRequest request, ModelMap model) throws ServletException, IOException {
-        return(renderPage(request, model, "publisher", null, null, true));
+        return(renderPage(request, model, "publisher", null, null, null, true));
     }
     
     /**
@@ -260,10 +320,11 @@ public class HomeController {
      * @param String tplName
      * @param String mapName
      * @param Integer issueNumber
+     * @param Integer userMapId
      * @param boolean debug
      * @return 
      */
-    private String renderPage(HttpServletRequest request, ModelMap model, String tplName, String mapName, Integer issueNumber, boolean debug) {
+    private String renderPage(HttpServletRequest request, ModelMap model, String tplName, String mapName, Integer issueNumber, Integer userMapId, boolean debug) {
         /* Set username */
         String message = "";
         String username = getUserName(request);
@@ -290,7 +351,11 @@ public class HomeController {
                     /* Issue data */
                     if (issueNumber != null) {
                         model.addAttribute("issuedata", getIssueData(issueNumber));
-                    }                    
+                    }  
+                    /* User state information */
+                    if (userMapId != null) {
+                        model.addAttribute("usermapid", userMapId);
+                    }  
                     message = "Map " + mapName;
                 }   
                 break;
