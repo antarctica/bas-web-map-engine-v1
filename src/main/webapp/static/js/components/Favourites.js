@@ -40,40 +40,37 @@ magic.classes.Favourites = function(options) {
                 '<div class="form-group form-group-sm col-sm-12">' +
                     '<button id="' + this.id + '-add" class="btn btn-primary" type="button" ' + 
                         'data-toggle="tooltip" data-placement="right" title="Add current map to favourites">' + 
-                        '<span class="fa fa-star"></span>' + 
+                        '<span class="fa fa-star"></span> Add' + 
                     '</button>' +          
-                    '<button id="' + this.id + '-edit" class="btn btn-primary" type="button" ' + 
+                    '<button id="' + this.id + '-edit" class="btn btn-warning" type="button" style="margin-left:5px" ' + 
                         'data-toggle="tooltip" data-placement="right" title="Update title of selected map">' + 
-                        '<span class="fa fa-pencil"></span>' + 
+                        '<span class="fa fa-pencil"></span> Edit' + 
                     '</button>' + 
                 '</div>' +  
-                '<div class="edit-favourite-form hidden">' + 
+                '<div class="edit-favourite-fs hidden" style="width:100% !important">' + 
                     '<input type="hidden" id="' + this.id + '-id"></input>' + 
                     '<input type="hidden" id="' + this.id + '-basemap"></input>' +
-                    '<div class="form-group form-group-sm col-sm-12 hidden">' +
-                        '<label class="col-sm-4" for="' + this.id + '-title">Title</label>' + 
-                        '<div class="col-sm-8">' + 
-                            '<input type="text" name="' + this.id + '-title" id="' + this.id + '-title" class="form-control" ' + 
-                                'placeholder="New title" maxlength="100" ' + 
-                                'data-toggle="tooltip" data-placement="right" ' + 
-                                'title="Caption for favourite map (required)" ' + 
-                                'required="required">' +
-                            '</input>' +                        
-                        '</div>' + 
+                    '<div class="form-group form-group-sm col-sm-12">' +
+                        '<input type="text" name="' + this.id + '-title" id="' + this.id + '-title" class="form-control" ' + 
+                            'placeholder="Caption for favourite map" maxlength="100" ' + 
+                            'data-toggle="tooltip" data-placement="right" ' + 
+                            'title="Caption for favourite map (required)" ' + 
+                            'required="required">' +
+                        '</input>' +                        
                     '</div>' +
-                    '<div class="form-group form-group-sm col-sm-12" style="padding-left:30px">' +
+                    '<div class="form-group form-group-sm col-sm-12">' +
                         magic.modules.Common.buttonFeedbackSet(this.id, "Save map state") +                         
                         '<button id="' + this.id + '-cancel" class="btn btn-default btn-danger" type="button" ' + 
                             'data-toggle="tooltip" data-placement="right" title="Cancel">' + 
-                            '<span class="fa fa-times-circle"></span>Cancel' + 
+                            '<span class="fa fa-times-circle"></span> Cancel' + 
                         '</button>' +                        
-                    '</div>' +   
+                    '</div>' +  
                 '</div>' + 
             '</form>' +               
         '</div>';
     this.target.popover({
         template: this.template,
-        title: '<span><big><strong>Favourites</strong></big><button type="button" class="close">&times;</button></span>',
+        title: '<span><big><strong>Favourite maps</strong></big><button type="button" class="close">&times;</button></span>',
         container: "body",
         html: true,            
         content: this.content
@@ -86,7 +83,7 @@ magic.classes.Favourites = function(options) {
         }).done(jQuery.proxy(function(data) {
             this.user_map_data = data;
             /* Populate dropdown list of available maps */
-            magic.modules.Common.populateSelect(jQuery("#" + this.id + "-list"), data, "id", "name", false);
+            magic.modules.Common.populateSelect(jQuery("#" + this.id + "-list"), data, "id", "name", false);            
             /* Assign handlers */
             var dd = jQuery("#" + this.id + "-list");
             var idHid = jQuery("#" + this.id + "-id"),
@@ -98,7 +95,7 @@ magic.classes.Favourites = function(options) {
                 saveBtn = jQuery("#" + this.id + "-go"),
                 cancBtn = jQuery("#" + this.id + "-cancel"),
                 favFrm = jQuery("#" + this.id + "-form"),
-                editForm = jQuery("div.edit-favourite-form");
+                editForm = jQuery(".edit-favourite-fs");            
             /* Changing dropdown value*/
             dd.change(jQuery.proxy(function() {
                 idHid.val(dd.val());
@@ -126,10 +123,18 @@ magic.classes.Favourites = function(options) {
             }, this));
             /* Save button */
             jQuery("#" + this.id + "-go").click(jQuery.proxy(function() {
+//                var jqFld = jQuery("#" + this.prefix + "-" + fld);
+//                var fg = jqFld.closest("div.form-group");
+//                if (jqFld[0].checkValidity() === false) {                    
+//                    fg.addClass("has-error");
+//                    ok = false;
+//                } else {
+//                    fg.removeClass("has-error");
+//                }
                 var formdata = {
                     id: idHid.val(),
                     title: ttInp.val(),
-                    basemap: bmHid.val()
+                    basemap: bmHid.val() || magic.runtime.mapname
                 };
                 var saveUrl = magic.config.paths.baseurl + "/usermaps/" + (formdata.id ? "update/" + formdata.id : "save");                
                 var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content");               
@@ -159,6 +164,9 @@ magic.classes.Favourites = function(options) {
             jQuery(".favourites-popover").find("button.close").click(jQuery.proxy(function() { 
                 this.target.popover("hide");
             }, this));
+            /* Disable irrelevant buttons */
+            loadBtn.prop("disabled", data.length > 0);
+            editBtn.prop("disabled", data.length > 0);
         }, this)).fail(function(data) {
             
         });

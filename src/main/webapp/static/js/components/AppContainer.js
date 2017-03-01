@@ -151,6 +151,16 @@ magic.classes.AppContainer = function () {
         /* Hide the user feedback button */
         jQuery("#feedback-tool").closest("li").hide();
     }
+    
+    /* User favourites tool */
+    magic.runtime.favourites = null;
+    if (jQuery.inArray("favourites", magic.runtime.mapdata.controls) != -1) {
+        /* Activate user feedback tool */
+        magic.runtime.favourites = new magic.classes.Favourites({target: "favourites-tool"});
+    } else {
+        /* Hide the user feedback button */
+        jQuery("#favourites-tool").closest("li").hide();
+    }
 
     /* Updates height of map when window resizes */
     jQuery(window).on("resize", jQuery.proxy(function () {

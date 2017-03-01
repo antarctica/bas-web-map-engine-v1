@@ -818,7 +818,7 @@ public class MapController implements ServletContextAware {
             (
                 "SELECT count(id) FROM " + 
                 env.getProperty("postgres.local.mapsTable") + " " + 
-                "WHERE username=? AND basemap=?", 
+                "WHERE owner_name=? AND name=?", 
                 Integer.class,
                 username,
                 basemap
