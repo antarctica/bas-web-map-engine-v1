@@ -123,34 +123,31 @@ magic.classes.Favourites = function(options) {
             }, this));
             /* Save button */
             jQuery("#" + this.id + "-go").click(jQuery.proxy(function() {
-//                var jqFld = jQuery("#" + this.prefix + "-" + fld);
-//                var fg = jqFld.closest("div.form-group");
-//                if (jqFld[0].checkValidity() === false) {                    
-//                    fg.addClass("has-error");
-//                    ok = false;
-//                } else {
-//                    fg.removeClass("has-error");
-//                }
-                var formdata = {
-                    id: idHid.val(),
-                    title: ttInp.val(),
-                    basemap: bmHid.val() || magic.runtime.mapname
-                };
-                var saveUrl = magic.config.paths.baseurl + "/usermaps/" + (formdata.id ? "update/" + formdata.id : "save");                
-                var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content");               
-                jQuery.ajax({
-                    url: saveUrl, 
-                    data: JSON.stringify(formdata), 
-                    method: "POST",
-                    dataType: "json",
-                    contentType: "application/json",
-                    headers: {
-                        "X-CSRF-TOKEN": csrfHeaderVal
-                    },
-                    success: jQuery.proxy(function(response) {
-                        magic.modules.Common.buttonClickFeedback(this.id, response.status < 400, response.detail);                        
-                    }, this)
-                });
+                if (ttInp[0].checkValidity() === false) {
+                    ttInp.closest("div.form-group").addClass("has-error");
+                } else {
+                    ttInp.closest("div.form-group").removeClass("has-error");
+                    var formdata = {
+                        id: idHid.val(),
+                        title: ttInp.val(),
+                        basemap: bmHid.val() || magic.runtime.mapname
+                    };
+                    var saveUrl = magic.config.paths.baseurl + "/usermaps/" + (formdata.id ? "update/" + formdata.id : "save");                
+                    var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content");               
+                    jQuery.ajax({
+                        url: saveUrl, 
+                        data: JSON.stringify(formdata), 
+                        method: "POST",
+                        dataType: "json",
+                        contentType: "application/json",
+                        headers: {
+                            "X-CSRF-TOKEN": csrfHeaderVal
+                        },
+                        success: jQuery.proxy(function(response) {
+                            magic.modules.Common.buttonClickFeedback(this.id, response.status < 400, response.detail);                        
+                        }, this)
+                    });
+                }                
             }, this));
             /* Cancel button */
             cancBtn.click(jQuery.proxy(function() {
@@ -170,67 +167,6 @@ magic.classes.Favourites = function(options) {
         }, this)).fail(function(data) {
             
         });
-        
-        /* Set button handlers */
-        
-        
-        
-//        jQuery("#" + this.id + "-go").click(jQuery.proxy(function(evt) {
-//            jQuery(evt.currentTarget).tooltip("hide");  /* Get rid of annoying persistent tooltip - not sure why... */
-//            var formdata = {
-//                data: this.mapPayload()
-//            };
-//            var ok = true;
-//            jQuery("#" + this.id + "-payload").val(formdata.payload);
-//            jQuery("#" + this.id + "-feedback-form")[0].checkValidity();
-//            jQuery.each(["trackerId", "subject", "description", "reporter"], jQuery.proxy(function(idx, elt) {
-//                var fip = jQuery("#" + this.id + "-" + elt);
-//                var fg = fip.closest("div.form-group");
-//                var fstate = fip.prop("validity");
-//                if (fstate.valid) {
-//                    if (elt == "description") {
-//                        formdata[elt] = JSON.stringify(jQuery.extend({}, this.mapPayload(), {"description": fip.val()}));
-//                    } else {
-//                        formdata[elt] = fip.val();
-//                    }
-//                    fg.removeClass("has-error").addClass("has-success");
-//                } else {
-//                    ok = false;
-//                    fg.removeClass("has-success").addClass("has-error");
-//                }
-//            }, this));
-//            if (ok) {                
-//                var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content"); 
-//                this.target.popover("hide");
-//                var jqXhr = jQuery.ajax({
-//                        url: magic.config.paths.baseurl + "/feedback",
-//                        method: "POST",
-//                        processData: false,
-//                        data: JSON.stringify(formdata),
-//                        headers: {
-//                            "Content-Type": "application/json",
-//                            "X-CSRF-TOKEN": csrfHeaderVal
-//                        }
-//                    });
-//                    jqXhr.done(jQuery.proxy(function(response) {                        
-//                        bootbox.alert(
-//                            '<div class="alert alert-info" style="margin-bottom:0">' + 
-//                                '<p>Successfully sent your feedback</p>' + 
-//                            '</div>'
-//                        );
-//                    }, this));
-//                    jqXhr.fail(function(xhr, status, err) {
-//                        var detail = JSON.parse(xhr.responseText)["detail"];
-//                        bootbox.alert(
-//                            '<div class="alert alert-warning" style="margin-bottom:0">' + 
-//                                '<p>Error occurred - details below:</p>' + 
-//                                '<p>' + detail + '</p>' + 
-//                            '</div>'
-//                        );
-//                    });                
-//            }
-//        }, this));
-        
     }, this));           
 };
 
