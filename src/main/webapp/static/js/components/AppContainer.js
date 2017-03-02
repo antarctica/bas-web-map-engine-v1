@@ -323,12 +323,26 @@ magic.classes.AppContainer.prototype.initView = function() {
     var viewData = magic.runtime.map_context.data;
     var proj = ol.proj.get(viewData.projection);    
     var viewDefaults;
+    /* Determine centre of map - could come from basic view, a search string or user map data */
+    var mapCenter = magic.runtime.search.center || viewData.center;
+    if (!jQuery.isEmptyObject(magic.runtime.userdata)) {
+        mapCenter = magic.runtime.userdata.center;
+    }
+    /* Determine zoom of map - could come from basic view, a search string or user map data */
+    var mapZoom = magic.runtime.search.zoom || viewData.zoom;
+    if (!jQuery.isEmptyObject(magic.runtime.userdata)) {
+        mapZoom = magic.runtime.userdata.zoom;
+    }
+    var mapRotation = viewData.rotation ? magic.modules.Common.toRadians(viewData.rotation) : 0.0;
+    if (!jQuery.isEmptyObject(magic.runtime.userdata)) {
+        mapRotation = magic.runtime.userdata.rotation || 0.0;
+    }
     if (viewData.projection == "EPSG:3857") {
         /* Spherical Mercator (OSM/Google) - note DON'T set projection extent as bizarre 15km shifts */
         viewDefaults = {
-            center: magic.runtime.search.center || viewData.center,        
-            rotation: viewData.rotation ? magic.modules.Common.toRadians(viewData.rotation) : 0.0,
-            zoom: magic.runtime.search.zoom || viewData.zoom,
+            center: mapCenter,        
+            rotation: mapRotation,
+            zoom: mapZoom,
             projection: proj,
             minZoom: 1, 
             maxZoom: 20
@@ -338,9 +352,9 @@ magic.classes.AppContainer.prototype.initView = function() {
         proj.setExtent(viewData.proj_extent);
         proj.setWorldExtent(viewData.proj_extent);   
         viewDefaults = {
-            center: magic.runtime.search.center || viewData.center,        
-            rotation: viewData.rotation ? magic.modules.Common.toRadians(viewData.rotation) : 0.0,
-            zoom: magic.runtime.search.zoom || viewData.zoom,
+            center: mapCenter,        
+            rotation: mapRotation,
+            zoom: mapZoom,
             projection: proj,
             proj_extent: viewData.proj_extent,
             extent: viewData.proj_extent,

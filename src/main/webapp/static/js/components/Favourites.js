@@ -183,6 +183,7 @@ magic.classes.Favourites.prototype.mapPayload = function() {
         /* Save view parameters */
         payload.center = this.map.getView().getCenter();
         payload.zoom = this.map.getView().getZoom();
+        payload.rotation = this.map.getView().getRotation();
         /* Save layer visibility states */
         payload.layers = {};
         this.map.getLayers().forEach(function (layer) {

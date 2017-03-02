@@ -21,7 +21,7 @@ magic.classes.LayerTree = function (target) {
      *     }
      * }
      */
-    this.userdata = magic.runtime.map_context.userdata ? JSON.parse(magic.runtime.map_context.userdata.data.value) : {};
+    this.userdata = magic.runtime.userdata;
 
     /* Dictionary mapping from a node UUID to an OL layer */
     this.nodeLayerTranslation = {};
