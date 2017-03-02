@@ -48,7 +48,7 @@ magic.classes.console.WebMapPanel = function () {
                                             beforeSend: function (xhr) {
                                                 var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content");
                                                 var csrfHeader = jQuery("meta[name='_csrf_header']").attr("content");
-                                                xhr.setRequestHeader(csrfHeader, csrfHeaderVal)
+                                                xhr.setRequestHeader(csrfHeader, csrfHeaderVal);
                                             }
                                         })
                                         .done(function () {

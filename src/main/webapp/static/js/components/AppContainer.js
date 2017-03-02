@@ -154,7 +154,7 @@ magic.classes.AppContainer = function () {
     
     /* User favourites tool */
     magic.runtime.favourites = null;
-    if (jQuery.inArray("favourites", magic.runtime.mapdata.controls) != -1) {
+    if (magic.runtime.username != "guest" && jQuery.inArray("favourites", magic.runtime.mapdata.controls) != -1) {
         /* Activate user feedback tool */
         magic.runtime.favourites = new magic.classes.Favourites({target: "favourites-tool"});
     } else {

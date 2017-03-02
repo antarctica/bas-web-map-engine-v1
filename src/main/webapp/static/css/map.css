@@ -753,3 +753,9 @@ div.watermark {
     filter: alpha(opacity=20); /* For IE8 and earlier */
     pointer-events: none;
 }
+
+/* Make bootbox dialogs appear above other Bootstrap modals */
+/* http://stackoverflow.com/questions/31187708/show-bootbox-over-modal-dialog */
+.bootbox.modal {
+    z-index: 9999 !important;
+}
