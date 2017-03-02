@@ -21,7 +21,7 @@ magic.classes.LayerTree = function (target) {
      *     }
      * }
      */
-    this.userdata = magic.runtime.map_context.userdata || null;
+    this.userdata = magic.runtime.map_context.userdata ? JSON.parse(magic.runtime.map_context.userdata.data.value) : {};
 
     /* Dictionary mapping from a node UUID to an OL layer */
     this.nodeLayerTranslation = {};
@@ -65,6 +65,8 @@ magic.classes.LayerTree = function (target) {
             '</div>' + 
         '</div>'
     );
+    
+    console.log(this.userdata);
 
     this.initTree(this.treedata, targetElement, 0);
     
@@ -290,11 +292,8 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
     jQuery.each(nodes, jQuery.proxy(function (i, nd) {
         if (jQuery.isArray(nd.layers)) {
             /* Style a group */
-            var groupExpanded = nd.expanded;
-            if (this.userdata != null && nd.id in this.userdata.groups) {
-                groupExpanded = this.userdata.groups[nd.id];
-            }
-            var title = (nd.expanded ? "Collapse" : "Expand") + " this group";
+            var groupExpanded = this.userGroupExpanded(nd.id, nd.expanded);             
+            var title = (groupExpanded ? "Collapse" : "Expand") + " this group";
             var hbg = depth == 0 ? "panel-primary" : (depth == 1 ? "panel-info" : "");
             var topMargin = i == 0 ? "margin-top:5px" : "";
             var oneOnly = (nd.base === true || nd.one_only === true);
@@ -362,18 +361,12 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
         nameSpan = '<span data-toggle="tooltip" data-placement="top" title="' + name + '">' + ellipsisName + '</span>';
     }
     /* Determine visibility */
-    var isVisible = nd.is_visible;
-    if (this.userdata != null && nd.id in this.userdata.layers) {
-        isVisible = this.userdata.layers[nd.id]["visibility"];
-    }
+    var isVisible = this.userLayerAttribute(nd.id, "visibility", nd.is_visible);   
     if (magic.runtime.search && magic.runtime.search.visible && magic.runtime.search.visible[name]) {
         isVisible = magic.runtime.search.visible[name];
     }
     /* Determine opacity */
-    var layerOpacity = nd.opacity;
-    if (this.userdata != null && nd.id in this.userdata.layers) {
-        layerOpacity = this.userdata.layers[nd.id]["opacity"] || 1.0;
-    }
+    var layerOpacity = this.userLayerAttribute(nd.id, "opacity", nd.opacity);   
     if (isBase) {
         cb = '<input class="layer-vis-selector" name="base-layers-rb" id="base-layer-rb-' + nd.id + '" type="radio" ' + (isVisible ? "checked" : "") + '/>';
     } else if (element.hasClass("one-only")) {
@@ -1099,4 +1092,37 @@ magic.classes.LayerTree.prototype.layerMatcher = function(data) {
         });
         callback(matches);
     });
+};
+
+/**
+ * Get layer attribute from the user data payload
+ * @param {String} layerId
+ * @param {String} attrName
+ * @param {Number|Boolean} defVal
+ * @return {Number|Boolean|.magic.runtime.map_context.userdata..layers}
+ */
+magic.classes.LayerTree.prototype.userLayerAttribute = function(layerId, attrName, defVal) {
+    var attrVal = null;
+    if (this.userdata != null && "layers" in this.userdata && layerId in this.userdata.layers) {        
+        attrVal = this.userdata.layers[layerId][attrName];
+    } else {
+        attrVal = defVal;
+    }
+    return(attrVal);
+};
+
+/**
+ * Get layer group expanded state from user data payload
+ * @param {String} groupId
+ * @param {boolean} defVal
+ * @return {boolean}
+ */
+magic.classes.LayerTree.prototype.userGroupExpanded = function(groupId, defVal) {
+    var attrVal = false;
+    if (this.userdata != null && "groups" in this.userdata && groupId in this.userdata.groups) {        
+        attrVal = this.userdata.groups[groupId];
+    } else {
+        attrVal = defVal;
+    }
+    return(attrVal);
 };

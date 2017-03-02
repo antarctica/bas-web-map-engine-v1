@@ -366,7 +366,7 @@ public class MapController implements ServletContextAware {
             }
             if (usermapid != null) {
                 /* Additional payload of extra user settings */
-                String usermapTable = env.getProperty("postgres.local.usermapTable");
+                String usermapTable = env.getProperty("postgres.local.usermapsTable");
                 if (usermapTable != null && !usermapTable.isEmpty()) {
                     try {
                         Map<String, Object> bookmarkData = magicDataTpl.queryForMap("SELECT * FROM " + usermapTable + " WHERE username=? AND id=?", username, usermapid);
