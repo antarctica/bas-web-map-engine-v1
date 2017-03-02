@@ -198,11 +198,10 @@ magic.classes.Favourites = function(options) {
                         },
                         success: jQuery.proxy(function(response) {
                             magic.modules.Common.buttonClickFeedback(this.id, response.status < 400, response.detail); 
-                            editForm.addClass("hidden");
+                            loadBtn.prop("disabled", false);
                             editBtn.prop("disabled", false);
                             delBtn.prop("disabled", false);
-                            dd.prop("disabled", false);
-                            loadBtn.prop("disabled", false);
+                            dd.prop("disabled", false);                            
                         }, this)
                     });
                 }                
@@ -211,11 +210,10 @@ magic.classes.Favourites = function(options) {
             cancBtn.click(jQuery.proxy(function() {
                 favFrm[0].reset();
                 editForm.addClass("hidden");
+                loadBtn.prop("disabled", false);
                 editBtn.prop("disabled", false);
                 delBtn.prop("disabled", false);
-                dd.prop("disabled", false);
-                loadBtn.prop("disabled", false);
-                editForm.addClass("hidden");
+                dd.prop("disabled", false);                
             }, this));
             /* Close button */
             jQuery(".favourites-popover").find("button.close").click(jQuery.proxy(function() { 
