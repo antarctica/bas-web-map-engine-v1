@@ -81,7 +81,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
                 "/usermaps/data",
                 "/thumbnail/**", "/prefs/get", "/gs/**").permitAll()
             .antMatchers("/creator", "/creatord", "/embedded_creator", "/embedded_creatord", 
-                "/restricted/**", "/restrictedd/**", 
+                "/restricted", "/restricted/**", "/restrictedd/**", 
                 "/publisher", "/publisherd", "/publish_postgis", "/prefs/set", 
                 "/maps/save", "/maps/update/**", "/maps/delete/**", "/maps/deletebyname/**", 
                 "/usermaps/save", "/usermaps/update/**", "/usermaps/delete/**",

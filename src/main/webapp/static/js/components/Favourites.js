@@ -201,7 +201,10 @@ magic.classes.Favourites = function(options) {
                             loadBtn.prop("disabled", false);
                             editBtn.prop("disabled", false);
                             delBtn.prop("disabled", false);
-                            dd.prop("disabled", false);                            
+                            dd.prop("disabled", false);
+                            setTimeout(function() {
+                                editForm.addClass("hidden");
+                            }, 1000);
                         }, this)
                     });
                 }                

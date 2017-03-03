@@ -214,9 +214,9 @@ magic.classes.AppContainer = function () {
         });
     }
     /* Activate login */
-    var li = jQuery("#log-in-user");
-    if (li.length > 0) {
-        li.click(function (evt) {
+    var loginAnch = jQuery("#log-in-user");
+    if (loginAnch.length > 0) {
+        loginAnch.click(function (evt) {
             evt.preventDefault();
             window.location.assign(window.location.href.replace("/home", "/restricted"));
         });
