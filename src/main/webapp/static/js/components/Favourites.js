@@ -246,7 +246,6 @@ magic.classes.Favourites.prototype.mapPayload = function() {
         payload.layers = {};
         this.map.getLayers().forEach(function (layer) {
             if (layer.get("metadata")) {
-                console.log(layer.get("metadata"));
                 var layerId = layer.get("metadata").id;
                 if (layerId) {
                     payload.layers[layerId] = {
