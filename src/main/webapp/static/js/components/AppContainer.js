@@ -217,8 +217,10 @@ magic.classes.AppContainer = function () {
     var loginAnch = jQuery("#log-in-user");
     if (loginAnch.length > 0) {
         loginAnch.click(function (evt) {
-            evt.preventDefault();
-            window.location.assign(window.location.href.replace("/home", "/restricted"));
+            if (window.location.href.indexOf("/home") >= 0) {
+                evt.preventDefault();
+                window.location.assign(window.location.href.replace("/home", "/restricted"));
+            }            
         });
     }
     
