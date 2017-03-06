@@ -66,8 +66,6 @@ magic.classes.LayerTree = function (target) {
         '</div>'
     );
     
-    console.log(this.userdata);
-
     this.initTree(this.treedata, targetElement, 0);
     
     /* Layer tree is visible => assign all the necessary handlers  */
