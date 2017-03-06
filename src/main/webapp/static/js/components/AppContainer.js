@@ -217,10 +217,19 @@ magic.classes.AppContainer = function () {
     var loginAnch = jQuery("#log-in-user");
     if (loginAnch.length > 0) {
         loginAnch.click(function (evt) {
-            if (window.location.href.indexOf("/home") >= 0) {
-                evt.preventDefault();
-                window.location.assign(window.location.href.replace("/home", "/restricted"));
-            }            
+            evt.preventDefault();
+            var pn = window.location.pathname.substring(1);     /* Strip leading '/' */
+            if (pn == "") {
+                pn = "/restricted" + (magic.runtime.debug ? "d" : "");
+            } else {
+                var fp = pn.substring(0, pn.indexOf("/"));
+                if (fp.indexOf("home") >= 0) {
+                    window.location.assign(window.location.href.replace("/home", "/restricted"));
+                } else {
+                    /* Legacy URL like /opsgis, retained to make old bookmarks go somewhere */
+                    window.location.assign(window.location.href.replace("/" + fp, "/restricted" + (magic.runtime.debug ? "d" : "") + "/" + fp));
+                }
+            }
         });
     }
     

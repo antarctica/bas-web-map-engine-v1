@@ -51,6 +51,19 @@ public class HomeController {
     }        
     
     /**
+     * Render Operations GIS home page (ugly hack to make legacy bookmarks work)
+     * @param HttpServletRequest request,
+     * @param ModelMap model
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/opsgis", method = RequestMethod.GET)
+    public String opsgis(HttpServletRequest request, ModelMap model) throws ServletException, IOException {
+        return("redirect:/restricted/opsgis");       
+    }        
+    
+    /**
      * Render home page (debug)    
      * @param HttpServletRequest request,
      * @param ModelMap model

@@ -107,6 +107,7 @@ magic.classes.ShipPositionButton.prototype.activate = function () {
                 attribute_map: this.attribute_map
             }
         });
+        this.layer.setZIndex(500);
         magic.runtime.map.addLayer(this.layer);
     }  else {
         this.layer.setVisible(true);

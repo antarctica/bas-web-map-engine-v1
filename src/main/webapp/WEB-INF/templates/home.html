@@ -20,7 +20,8 @@
         </div>
         <script th:inline="javascript">
             /*<![CDATA[*/
-            var bg = [[${background}]];           
+            var bg = [[${background}]];
+            magic.runtime.debug = [[${debug}]];
             /*]]>*/
         </script>
         <script type="text/javascript">
@@ -33,12 +34,13 @@
                
                 /* Login behaviour */
                 jQuery("#log-in-user").click(function (evt) {
-                    window.location = magic.config.paths.baseurl + "/restricted";
+                    evt.preventDefault();
+                    window.location = magic.config.paths.baseurl + "/restricted" + (magic.runtime.debug ? "d" : "");
                 });
                 var btnLoginCreate = jQuery("#console-log-in-create");
                 if (btnLoginCreate.length > 0) {
                     btnLoginCreate.click(function(evt) {
-                        window.location = magic.config.paths.baseurl + "/restricted";
+                        window.location = magic.config.paths.baseurl + "/restricted" + (magic.runtime.debug ? "d" : "");
                     });
                 }
 
@@ -52,7 +54,7 @@
                 var btnCreateNew = jQuery("#console-create-new-map");
                 if (btnCreateNew.length > 0) {
                     btnCreateNew.click(function(evt) {
-                        window.open(magic.config.paths.baseurl + "/creator", "_blank");
+                        window.open(magic.config.paths.baseurl + "/creator" + (magic.runtime.debug ? "d" : ""), "_blank");
                     });
                 }
                 
