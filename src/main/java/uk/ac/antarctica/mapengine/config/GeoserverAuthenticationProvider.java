@@ -45,14 +45,13 @@ public class GeoserverAuthenticationProvider implements AuthenticationProvider {
                 .bodyString("username=" + name + "&password=" + password, ContentType.APPLICATION_FORM_URLENCODED);                
             response = Executor.newInstance(client).execute(request).returnResponse();
             String content = IOUtils.toString(response.getEntity().getContent());
-            if (content.contains("Invalid username/password combination")) {
-                throw new GeoserverAuthenticationException("Invalid credentials");
+            if (content.contains("<span class=\"username\">Logged in as <span>" + name + "</span>.</span>")) {
+                return(new UsernamePasswordAuthenticationToken(name, password, null));
             } else {
                 throw new GeoserverAuthenticationException("Unable to authenticate against local Geoserver");
             }
         } catch(ClientProtocolException cpe) {
-            /* 302 redirection will come here, apparently because of a circular redirect detected - means we have authenticated ok! */
-            return(new UsernamePasswordAuthenticationToken(name, password, null));
+            throw new GeoserverAuthenticationException("Unable to authenticate against local Geoserver - ClientProtocolException was: " + cpe.getMessage());            
         } catch (IOException ioe) {
             throw new GeoserverAuthenticationException("Unable to authenticate against local Geoserver - IOException was: " + ioe.getMessage());
         } catch (ParseException pe) {
