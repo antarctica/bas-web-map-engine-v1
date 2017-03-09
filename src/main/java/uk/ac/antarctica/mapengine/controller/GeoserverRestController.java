@@ -39,13 +39,14 @@ public class GeoserverRestController {
     
     /**
      * Proxy Geoserver REST API call to get filtered list of layers with attributes
+     * http://stackoverflow.com/questions/16332092/spring-mvc-pathvariable-with-dot-is-getting-truncated explains the :.+ in the path variable 'filter'
      * @param HttpServletRequest request,
      * @param String filter
      * @return
      * @throws ServletException
      * @throws IOException
      */
-    @RequestMapping(value = "/gs/layers/filter/{filter}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
+    @RequestMapping(value = "/gs/layers/filter/{filter:.+}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
     @ResponseBody
     public void geoserverFilteredLayerList(HttpServletRequest request, HttpServletResponse response, @PathVariable("filter") String filter)
         throws ServletException, IOException, ServiceException {
