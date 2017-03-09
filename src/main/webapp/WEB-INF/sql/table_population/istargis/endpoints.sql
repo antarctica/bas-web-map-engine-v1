@@ -15,3 +15,6 @@ VALUES('Continent-wide mosaics', 'http://bslmagb.nerc-bas.ac.uk/erdas-iws/ogc/wm
 
 INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, admin_user, admin_pass, srs, has_wfs) 
 VALUES('Polar View', 'http://geos.polarview.aq/geoserver/wms', 'cambridge', FALSE, NULL, NULL, NULL, NULL, NULL, 'EPSG:3031', TRUE);
+
+INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, admin_user, admin_pass, srs, has_wfs) 
+VALUES('Marine Geoscience Data System', 'http://www.marine-geo.org/services/wms_SP_mask', 'cambridge', FALSE, NULL, NULL, NULL, NULL, NULL, 'EPSG:3031', FALSE);

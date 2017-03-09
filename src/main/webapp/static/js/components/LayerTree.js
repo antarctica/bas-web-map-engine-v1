@@ -605,7 +605,7 @@ magic.classes.LayerTree.prototype.initAutoLoadGroups = function(map) {
         var element = jQuery("#layer-group-" + grpid);
         if (element.length > 0) {
             jQuery.ajax({
-                url: magic.config.paths.baseurl + "/gs/layers/filter/" + grpo.filter, 
+                url: magic.config.paths.baseurl + "/gs/layers/filter/" + encodeURIComponent(grpo.filter), 
                 method: "GET",
                 dataType: "json",
                 contentType: "application/json"

@@ -111,7 +111,15 @@ magic.classes.creator.LayerGroupUpdater.prototype.validate = function() {
                 filterInput.closest("div.form-group").removeClass("hidden has-success").addClass("show has-error");
                 ok = false;
             } else {
-                filterInput.closest("div.form-group").removeClass("has-error").addClass("has-success");
+                /* Add the capability to use a RegExp - David 09/03/2017 */
+                var fval = filterInput.val();
+                try {
+                    var re = new RegExp(fval);
+                    filterInput.closest("div.form-group").removeClass("has-error").addClass("has-success");
+                } catch(e) {
+                    filterInput.closest("div.form-group").removeClass("hidden has-success").addClass("show has-error");
+                    ok = false;
+                }                
             }            
         }
     }

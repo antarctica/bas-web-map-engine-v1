@@ -14,6 +14,8 @@ import it.geosolutions.geoserver.rest.decoder.RESTLayer;
 import it.geosolutions.geoserver.rest.decoder.RESTLayerList;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -52,13 +54,16 @@ public class GeoserverRestController {
         
         RESTLayerList layers = getReader().getLayers();
         if (layers != null) {
-            String lcFilter = filter.toLowerCase();
+            Pattern reFilter = Pattern.compile(filter, Pattern.CASE_INSENSITIVE);
             JsonArray filteredList = new JsonArray();
             for (String name : layers.getNames()) {
-                if (name != null && name.toLowerCase().contains(lcFilter)) {
-                    JsonObject attrData = getLayerAttributes(request, name);
-                    if (attrData.has("feature_name")) {
-                        filteredList.add(attrData);
+                if (name != null) {
+                    Matcher m = reFilter.matcher(name);
+                    if (m.matches()) {
+                        JsonObject attrData = getLayerAttributes(request, name);
+                        if (attrData.has("feature_name")) {
+                            filteredList.add(attrData);
+                        }
                     }
                 }
             }
