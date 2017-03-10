@@ -174,9 +174,9 @@ magic.classes.Measurement = function(options) {
         /* Add go button handlers */
         jQuery("button[id$='-go']").click(jQuery.proxy(function(evt) {
             if (this.measuring) {
-                this.deactivate(evt);
+                this.deactivate();
             } else {
-                this.activate(evt);
+                this.activate();
             }
         }, this));
 

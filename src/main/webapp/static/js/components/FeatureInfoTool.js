@@ -32,7 +32,7 @@ magic.classes.FeatureInfoTool.prototype.activate = function () {
 magic.classes.FeatureInfoTool.prototype.deactivate = function () {
     this.active = false;        
     /* Remove map click handler */
-    magic.runtime.featureinfo.hide();
+    this.featureinfo.hide();
     magic.runtime.map_container.css("cursor", "default");
     magic.runtime.map.un("singleclick", this.queryFeatures, this);        
 };

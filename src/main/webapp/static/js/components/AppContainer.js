@@ -221,6 +221,7 @@ magic.classes.AppContainer = function () {
             var pn = window.location.pathname.substring(1);     /* Strip leading '/' */
             if (pn == "") {
                 pn = "/restricted" + (magic.runtime.debug ? "d" : "");
+                window.location.assign(pn);
             } else {
                 var fp = pn.substring(0, pn.indexOf("/"));
                 if (fp.indexOf("home") >= 0) {
