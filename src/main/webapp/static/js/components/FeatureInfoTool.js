@@ -56,7 +56,7 @@ magic.classes.FeatureInfoTool.prototype.queryFeatures = function(evt) {
                 var url = null;
                 var service = magic.modules.Endpoints.getEndpointBy("url", md.source.wms_source);
                 if (service.has_wfs === true) {
-                    /* Use WFS version of handling click - a much better use experience */
+                    /* Use WFS version of handling click - a much better user experience */
                     var bxw = magic.runtime.map.getView().getResolution()*10;
                     var bxc = evt.coordinate;
                     var bbox = [(bxc[0] - bxw), (bxc[1] - bxw), (bxc[0] + bxw), (bxc[1] + bxw)].join(",");

@@ -150,42 +150,49 @@ magic.classes.creator.LayerAttributeMap.prototype.ogcLoadContext = function(wms,
         } else {
             /* Get the feature type attributes from DescribeFeatureType */
             this.attribute_dictionary[id] = [];
-            this.type_dictionary[id] = null;            
-            jQuery.ajax({
-                url: magic.modules.Common.getWxsRequestUrl(wms, "DescribeFeatureType", feature),
-                method: "GET",
-                dataType: "xml"
-            })
-            .done(jQuery.proxy(function(response) {
-                /* Oh hell - thought this kind of stuff was a thing of the past... David 15/04/2016 */
-                var elts = [];
-                if (navigator.userAgent.match(/chrome/i) != null) {
-                    /* Google Chrome */
-                    elts = jQuery(response).find("sequence").find("element");
-                } else {
-                    /* Mozilla Firefox, MSIE and the rest */
-                    /* The \\ escapes the colon - needed to work in FF - see http://stackoverflow.com/questions/853740/jquery-xml-parsing-with-namespaces */
-                    elts = jQuery(response).find("xsd\\:sequence").find("xsd\\:element");
-                }               
-                var geomType = "unknown";
-                jQuery.each(elts, jQuery.proxy(function(idx, elt) {
-                    var attrs = {};
-                    jQuery.each(elt.attributes, jQuery.proxy(function(i, a) {                        
-                        if (a.value.indexOf("gml:") == 0) {                           
-                            geomType = this.computeOgcGeomType(a.value);
-                            this.type_dictionary[id] = geomType;
-                        }
-                        attrs[a.name] = a.value;
+            this.type_dictionary[id] = null;
+            var dftUrl = magic.modules.Common.getWxsRequestUrl(wms, "DescribeFeatureType", feature);
+            if (dftUrl == "") {
+                /* No way of determining the attributes, so bomb now */
+                this.displayInteractivityDiv("unknown", "");
+            } else {
+                /* Issue DescribeFeatureType request via WFS */
+                jQuery.ajax({
+                    url: dftUrl,
+                    method: "GET",
+                    dataType: "xml"
+                })
+                .done(jQuery.proxy(function(response) {
+                    /* Oh hell - thought this kind of stuff was a thing of the past... David 15/04/2016 */
+                    var elts = [];
+                    if (navigator.userAgent.match(/chrome/i) != null) {
+                        /* Google Chrome */
+                        elts = jQuery(response).find("sequence").find("element");
+                    } else {
+                        /* Mozilla Firefox, MSIE and the rest */
+                        /* The \\ escapes the colon - needed to work in FF - see http://stackoverflow.com/questions/853740/jquery-xml-parsing-with-namespaces */
+                        elts = jQuery(response).find("xsd\\:sequence").find("xsd\\:element");
+                    }               
+                    var geomType = "unknown";
+                    jQuery.each(elts, jQuery.proxy(function(idx, elt) {
+                        var attrs = {};
+                        jQuery.each(elt.attributes, jQuery.proxy(function(i, a) {                        
+                            if (a.value.indexOf("gml:") == 0) {                           
+                                geomType = this.computeOgcGeomType(a.value);
+                                this.type_dictionary[id] = geomType;
+                            }
+                            attrs[a.name] = a.value;
+                        }, this));
+                        this.attribute_dictionary[id].push(attrs);                    
                     }, this));
-                    this.attribute_dictionary[id].push(attrs);                    
+                    this.type_dictionary[id] = geomType;
+                    if (geomType == "unknown") {
+                        this.displayInteractivityDiv("no", "");
+                    } else {
+                        this.displayInteractivityDiv("yes", this.toForm(id, attrMap, this.attribute_dictionary[id]));
+                    }
                 }, this));
-                this.type_dictionary[id] = geomType;
-                if (geomType == "unknown") {
-                    this.displayInteractivityDiv("no", "");
-                } else {
-                    this.displayInteractivityDiv("yes", this.toForm(id, attrMap, this.attribute_dictionary[id]));
-                }
-            }, this));
+            }            
         }
     } else {
         this.displayInteractivityDiv("unknown", "");

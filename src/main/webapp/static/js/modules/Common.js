@@ -361,11 +361,17 @@ magic.modules.Common = function () {
             var requestUrl = "";
             switch(operation.toLowerCase()) {
                 case "getcapabilities":
-                    requestUrl = wmsUrl + "?request=GetCapabilities&service=wms"
+                    /* Watch out for UMN Mapserver URLs which alrady contain the '?' */
+                    requestUrl = wmsUrl + (wmsUrl.indexOf("?") != -1 ? "&" : "?") + "request=GetCapabilities&service=wms";
                     break;
                 case "describefeaturetype":
-                    /* Note: version set to 1.0.0 here as certain attributes do NOT get picked up by later versions - is a Geoserver bug */
-                    requestUrl = wmsUrl.replace("wms", "wfs") + "?version=1.0.0&request=DescribeFeatureType&typename=" + feature;                    
+                    var service = magic.modules.Endpoints.getEndpointBy("url", wmsUrl);
+                    if (service.has_wfs === true) {
+                        /* Note: version set to 1.0.0 here as certain attributes do NOT get picked up by later versions - is a Geoserver bug */
+                        requestUrl = wmsUrl.replace("wms", "wfs") + "?version=1.0.0&request=DescribeFeatureType&typename=" + feature;
+                    } else {
+                        return("");
+                    }
                     break;
                 default:
                     break;
@@ -392,6 +398,7 @@ magic.modules.Common = function () {
                         var capsJson = jQuery.parseJSON(JSON.stringify(parser.read(response)));
                         if (capsJson) {
                             var ftypes = null;
+                            // TODO 10/03/2017 - needs a rewrite to recurse to the leaf 'Layer' nodes, which may be at arbitrary depth
                             if ("Capability" in capsJson && "Layer" in capsJson.Capability && "Layer" in capsJson.Capability.Layer && jQuery.isArray(capsJson.Capability.Layer.Layer)) {
                                 var layers = capsJson.Capability.Layer.Layer;
                                 ftypes = {};
@@ -420,6 +427,7 @@ magic.modules.Common = function () {
          * @param {Array} layers
          */
         getFeatureTypes: function(ftypes, layers) {
+            // TODO 10/03/2017 - needs a rewrite to recurse to the leaf 'Layer' nodes, which may be at arbitrary depth
             jQuery.each(layers, jQuery.proxy(function(idx, layer) {
                 if ("Name" in layer) {
                     /* Leaf node - a named layer */

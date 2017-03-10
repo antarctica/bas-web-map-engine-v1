@@ -17,4 +17,4 @@ INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers
 VALUES('Polar View', 'http://geos.polarview.aq/geoserver/wms', 'cambridge', FALSE, NULL, NULL, NULL, NULL, NULL, 'EPSG:3031', TRUE);
 
 INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, admin_user, admin_pass, srs, has_wfs) 
-VALUES('Marine Geoscience Data System', 'http://www.marine-geo.org/services/wms_SP_mask', 'cambridge', FALSE, NULL, NULL, NULL, NULL, NULL, 'EPSG:3031', FALSE);
+VALUES('Marine Geoscience Data System', 'http://gmrt.marine-geo.org/cgi-bin/mapserv?map=/public/mgg/web/gmrt.marine-geo.org/htdocs/services/map/wms_sp_mask.map', 'cambridge', FALSE, NULL, NULL, NULL, NULL, NULL, 'EPSG:3031', FALSE);
