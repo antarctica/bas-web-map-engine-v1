@@ -226,7 +226,6 @@ magic.classes.creator.LayerUpdater.prototype.setActiveSourceTab = function(sourc
  * @returns {Array}
  */
 magic.classes.creator.LayerUpdater.prototype.extractFeatureTypes = function(getCaps) {
-    // TODO 10/03/2017 - needs a rewrite to recurse to the leaf 'Layer' nodes, which may be at arbitrary depth
     var ftypes = [];
     if ("Capability" in getCaps && "Layer" in getCaps.Capability && "Layer" in getCaps.Capability.Layer && jQuery.isArray(getCaps.Capability.Layer.Layer)) {
         var layers = getCaps.Capability.Layer.Layer;
@@ -243,7 +242,6 @@ magic.classes.creator.LayerUpdater.prototype.extractFeatureTypes = function(getC
  * @param {Array} layers
  */
 magic.classes.creator.LayerUpdater.prototype.getFeatures = function(ftypes, layers) {
-    // TODO 10/03/2017 - needs a rewrite to recurse to the leaf 'Layer' nodes, which may be at arbitrary depth
     jQuery.each(layers, jQuery.proxy(function(idx, layer) {
         if ("Name" in layer) {
             /* Leaf node - a named layer */

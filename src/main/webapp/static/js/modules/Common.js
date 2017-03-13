@@ -398,7 +398,6 @@ magic.modules.Common = function () {
                         var capsJson = jQuery.parseJSON(JSON.stringify(parser.read(response)));
                         if (capsJson) {
                             var ftypes = null;
-                            // TODO 10/03/2017 - needs a rewrite to recurse to the leaf 'Layer' nodes, which may be at arbitrary depth
                             if ("Capability" in capsJson && "Layer" in capsJson.Capability && "Layer" in capsJson.Capability.Layer && jQuery.isArray(capsJson.Capability.Layer.Layer)) {
                                 var layers = capsJson.Capability.Layer.Layer;
                                 ftypes = {};
@@ -427,7 +426,6 @@ magic.modules.Common = function () {
          * @param {Array} layers
          */
         getFeatureTypes: function(ftypes, layers) {
-            // TODO 10/03/2017 - needs a rewrite to recurse to the leaf 'Layer' nodes, which may be at arbitrary depth
             jQuery.each(layers, jQuery.proxy(function(idx, layer) {
                 if ("Name" in layer) {
                     /* Leaf node - a named layer */
