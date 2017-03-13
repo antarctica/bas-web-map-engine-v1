@@ -55,7 +55,11 @@ public class GeoserverRestController {
         
         RESTLayerList layers = getReader().getLayers();
         if (layers != null) {
-            Pattern reFilter = Pattern.compile(filter, Pattern.CASE_INSENSITIVE);
+            /* Replace pseudo-wildcards in the filter string */
+            filter = filter.replaceAll("\\?", ".?");
+            filter = filter.replaceAll("\\*", ".*");            
+            filter = filter.replaceAll("\\+", ".+");
+            Pattern reFilter = Pattern.compile("^" + filter + "$", Pattern.CASE_INSENSITIVE);
             JsonArray filteredList = new JsonArray();
             for (String name : layers.getNames()) {
                 if (name != null) {

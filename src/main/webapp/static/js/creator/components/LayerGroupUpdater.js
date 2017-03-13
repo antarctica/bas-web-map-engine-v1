@@ -111,12 +111,11 @@ magic.classes.creator.LayerGroupUpdater.prototype.validate = function() {
                 filterInput.closest("div.form-group").removeClass("hidden has-success").addClass("show has-error");
                 ok = false;
             } else {
-                /* Add the capability to use a RegExp - David 09/03/2017 */
+                /* Add the capability to use wildcards ? (0-1 chars), * (0 or more chars), + (1 or more chars) - David 13/03/2017 */
                 var fval = filterInput.val();
-                try {
-                    var re = new RegExp(fval);
+                if (fval.match(/[A-Za-z0-9+*?-_]+/)) {                
                     filterInput.closest("div.form-group").removeClass("has-error").addClass("has-success");
-                } catch(e) {
+                } else {
                     filterInput.closest("div.form-group").removeClass("hidden has-success").addClass("show has-error");
                     ok = false;
                 }                

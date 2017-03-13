@@ -55,13 +55,13 @@ magic.classes.FeatureInfoTool.prototype.queryFeatures = function(evt) {
             if (md && md.source && md.source.wms_source && md.is_interactive === true) {
                 var url = null;
                 var service = magic.modules.Endpoints.getEndpointBy("url", md.source.wms_source);
-                if (service.has_wfs === true) {
+                if (service.has_wfs === true && !(md.geom_type == "unknown" || md.geom_type == "raster" || md.geom_type == "polygon")) {
                     /* Use WFS version of handling click - a much better user experience */
                     var bxw = magic.runtime.map.getView().getResolution()*10;
                     var bxc = evt.coordinate;
                     var bbox = [(bxc[0] - bxw), (bxc[1] - bxw), (bxc[0] + bxw), (bxc[1] + bxw)].join(",");
                     url = md.source.wms_source.replace("wms", "wfs") + "?service=wfs&version=2.0.0&request=getfeature&typename=" + md.source.feature_name + "&srsName=" + 
-                            magic.runtime.map.getView().getProjection().getCode() + "&bbox=" + bbox + "&outputFormat=application/json";
+                            magic.runtime.map.getView().getProjection().getCode() + "&bbox=" + bbox + "&outputFormat=application/json&count=10";
                 } else {
                     /* GetFeatureInfo version of interactivity - needs unacceptable user precision in some cases, and it isn't possible to override Geoserver's
                     use of the SLD to determine the size of buffer to the click in all cases. Have implemented a WFS version of the same interactivity which
@@ -86,9 +86,10 @@ magic.classes.FeatureInfoTool.prototype.queryFeatures = function(evt) {
                         if (typeof data == "string") {
                             data = JSON.parse(data);
                         }
+                        console.log(data);
                         if (jQuery.isArray(data.features) && data.features.length > 0) {
                             jQuery.each(data.features, function(idx, f) {
-                                if (f.geometry) {
+                                if (f.geometry) {                                    
                                     var capBits = f.id.split(/[^A-Za-z0-9]/);
                                     capBits = capBits.slice(0, capBits.length-1);
                                     var caption = magic.modules.Common.initCap(capBits.join(" "));                        

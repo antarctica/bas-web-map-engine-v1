@@ -39,3 +39,6 @@ VALUES('South Georgia GIS', 'https://maps.bas.ac.uk/southgeorgia/wms', 'cambridg
 
 INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, admin_user, admin_pass, srs, has_wfs) 
 VALUES('Midlatitude Data', 'osm', 'cambridge', FALSE, 'osm', 'ol', NULL, NULL, NULL, 'EPSG:3857', FALSE);
+
+INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, admin_user, admin_pass, srs, has_wfs) 
+VALUES('Polar Code Geoserver', 'http://bslmagl.nerc-bas.ac.uk/geoserver/polarcode/wms', 'cambridge', FALSE, NULL, NULL, NULL, 'admin', 'P0L4rC063', 'EPSG:3031', TRUE)
