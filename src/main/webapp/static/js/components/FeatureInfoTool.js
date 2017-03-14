@@ -55,8 +55,8 @@ magic.classes.FeatureInfoTool.prototype.queryFeatures = function(evt) {
             if (md && md.source && md.source.wms_source && md.is_interactive === true) {
                 var url = null;
                 var service = magic.modules.Endpoints.getEndpointBy("url", md.source.wms_source);
-                if (service.has_wfs === true && !(md.geom_type == "unknown" || md.geom_type == "raster" || md.geom_type == "polygon")) {
-                    /* Use WFS version of handling click - a much better user experience */
+                if (service.has_wfs === true && (md.geom_type == "point" || md.geom_type == "line")) {
+                    /* Use WFS version of handling click for points or lines - a much better user experience */
                     var bxw = magic.runtime.map.getView().getResolution()*10;
                     var bxc = evt.coordinate;
                     var bbox = [(bxc[0] - bxw), (bxc[1] - bxw), (bxc[0] + bxw), (bxc[1] + bxw)].join(",");
@@ -86,7 +86,6 @@ magic.classes.FeatureInfoTool.prototype.queryFeatures = function(evt) {
                         if (typeof data == "string") {
                             data = JSON.parse(data);
                         }
-                        console.log(data);
                         if (jQuery.isArray(data.features) && data.features.length > 0) {
                             jQuery.each(data.features, function(idx, f) {
                                 if (f.geometry) {                                    
