@@ -29,15 +29,15 @@ magic.classes.console.WebMapPanel = function () {
                                         '<i style="font-size: 20px; color: #286090; margin-right: 5px" class="fa fa-pencil"></i>' + 
                                     '</a>' : "") + 
                                     (data[i+j].d ? 
-                                    '<a href="Javascript:void(0)" title="Delete this map from the gallery">' +
+                                    '<a class="map-delete-button" href="Javascript:void(0)" title="Delete this map from the gallery">' +
                                         '<i style="font-size: 20px; color: #d9534f" class="fa fa-trash"></i>' + 
                                     '</a>' : "") + 
                                 '</span>' + 
                             '</div>'
                         );
                         rowDiv.append(thumbDiv);                            
-                        var deleteAnchor = thumbDiv.find("span").last().children().last();
-                        if (deleteAnchor) {
+                        var deleteAnchor = thumbDiv.find("a.map-delete-button");
+                        if (deleteAnchor.length > 0) {
                             deleteAnchor.click(data[i+j].name, function(evt) {
                                 bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">Are you sure you want to delete ' + evt.data + '</div>', function (result) {
                                     if (result) {
