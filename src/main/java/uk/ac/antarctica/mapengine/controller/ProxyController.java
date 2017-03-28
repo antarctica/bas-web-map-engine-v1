@@ -47,6 +47,7 @@ public class ProxyController {
     @Autowired
     Environment env;
     
+    /* Note - migrate this to a concise set of regexes */
     private static final HashMap<String, String> ALLOWED_URLS = new HashMap();
     static {
         ALLOWED_URLS.put("https://gis.ccamlr.org", "");
@@ -60,6 +61,7 @@ public class ProxyController {
         ALLOWED_URLS.put("http://www.polarview.aq", "");
         ALLOWED_URLS.put("http://www.marine-geo.org", "");
         ALLOWED_URLS.put("http://gmrt.marine-geo.org", "");
+        ALLOWED_URLS.put("https://polarcode.data.bas.ac.uk", "");
         ALLOWED_URLS.put("http://tracker.aad.gov.au", "comnap:Koma5vudri:Tracker");
     }
     

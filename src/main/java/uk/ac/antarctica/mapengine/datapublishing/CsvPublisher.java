@@ -21,7 +21,7 @@ import uk.ac.antarctica.mapengine.util.CoordinateConversionUtils;
 public class CsvPublisher extends DataPublisher {
 
     /**
-     * Publishing workflow for uploaded GPX or KML file
+     * Publishing workflow for uploaded CSV file
      * @param UploadedFileMetadata md
      * @return String
      */

@@ -89,8 +89,12 @@ public class GeoserverRestController {
     @ResponseBody
     public void geoserverStylesForLayer(HttpServletRequest request, HttpServletResponse response, @PathVariable("layer") String layer)
         throws ServletException, IOException, ServiceException {
+        String restUrl = env.getProperty("geoserver.local.resturl");
+        if (restUrl == null || restUrl.isEmpty()) {
+            restUrl = env.getProperty("geoserver.local.url");
+        }
         String content = HTTPUtils.get(
-            env.getProperty("geoserver.local.url") + "/rest/layers/" + layer + "/styles.json", 
+            restUrl + "/rest/layers/" + layer + "/styles.json", 
             env.getProperty("geoserver.local.username"), 
             env.getProperty("geoserver.local.password")
         );
@@ -130,9 +134,10 @@ public class GeoserverRestController {
         String serverName = request.getServerName();
         String geoserverUrl;            
         if (serverName.equals("localhost")) {
-            geoserverUrl = env.getProperty("geoserver.local.url") + "/wms";
+            /* For testing on local VMs */
+            geoserverUrl = "http://localhost:8080/geoserver/wms";
         } else {
-            geoserverUrl = request.getScheme() + "://" + serverName + (port != 80 ? (":" + port) : "") + "/geoserver/wms";
+            geoserverUrl = env.getProperty("geoserver.local.url") + "/wms";
         }
         jo.addProperty("wms_source", geoserverUrl);
         
@@ -177,8 +182,12 @@ public class GeoserverRestController {
      */
     private GeoServerRESTReader getReader() throws MalformedURLException {
         if (gs == null) {
+            String restUrl = env.getProperty("geoserver.local.resturl");
+            if (restUrl == null || restUrl.isEmpty()) {
+                restUrl = env.getProperty("geoserver.local.url");
+            }
             gs = new GeoServerRESTReader(
-                env.getProperty("geoserver.local.url"), 
+                restUrl, 
                 env.getProperty("geoserver.local.username"), 
                 env.getProperty("geoserver.local.password")
             );
