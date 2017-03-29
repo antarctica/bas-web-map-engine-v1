@@ -4,17 +4,31 @@
 
 package uk.ac.antarctica.mapengine.controller;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import it.geosolutions.geoserver.rest.HTTPUtils;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -47,22 +61,13 @@ public class ProxyController {
     @Autowired
     Environment env;
     
-    /* Note - migrate this to a concise set of regexes */
-    private static final HashMap<String, String> ALLOWED_URLS = new HashMap();
-    static {
-        ALLOWED_URLS.put("https://gis.ccamlr.org", "");
-        ALLOWED_URLS.put("http://bslgisa.nerc-bas.ac.uk", "");
-        ALLOWED_URLS.put("http://opsgis.web.bas.ac.uk", "");
-        ALLOWED_URLS.put("http://rolgis.rothera.nerc-bas.ac.uk", "");
-        ALLOWED_URLS.put("http://halgis.halley.nerc-bas.ac.uk", "");
-        ALLOWED_URLS.put("http://jrlgis.jcr.nerc-bas.ac.uk", "");
-        ALLOWED_URLS.put("https://maps.bas.ac.uk", "");
-        ALLOWED_URLS.put("http://bslbatgis.nerc-bas.ac.uk", "");
-        ALLOWED_URLS.put("http://www.polarview.aq", "");
-        ALLOWED_URLS.put("http://www.marine-geo.org", "");
-        ALLOWED_URLS.put("http://gmrt.marine-geo.org", "");
-        ALLOWED_URLS.put("https://polarcode.data.bas.ac.uk", "");
-        ALLOWED_URLS.put("http://tracker.aad.gov.au", "comnap:Koma5vudri:Tracker");
+    private static final String[] ALLOWED_HOSTS = new String[]{
+        "ccamlr.org", "polarview.aq", "marine-geo.org", "bluehabitats.org", "gov.gs", "aad.gov.au", "ac.uk"
+    };
+    
+    private static final HashMap<String, String> CREDENTIALS = new HashMap();
+    static {        
+        CREDENTIALS.put("http://tracker.aad.gov.au", "comnap:Koma5vudri:Tracker");
     }
     
    /**
@@ -77,80 +82,130 @@ public class ProxyController {
     @RequestMapping(value="/proxy", method=RequestMethod.GET)	
     public void proxy(HttpServletRequest request, HttpServletResponse response, @RequestParam(value="url", required=true) String url) 
         throws ServletException, IOException {
+        
         boolean proxied = false;
-        InputStream content = null;
-        for (String key : ALLOWED_URLS.keySet()) {
-            if (url.startsWith(key)) {
+        String errorMessage = "";
+        
+        URL u = new URL(url);      
+        
+        for (String key : ALLOWED_HOSTS) {
+            if (u.getHost().endsWith(key)) {
                 /* Allowed to call this URL from here */
-                String creds = ALLOWED_URLS.get(key);
-                if (creds.isEmpty()) {
-                    /* No authentication required => GET data */
-                    content = Request.Get(url)                    
-                        .connectTimeout(60000)
-                        .socketTimeout(60000)
-                        .execute()
-                        .returnResponse().getEntity().getContent();
-                } else {
-                    /* Apply some form of authentication */
-                    String[] credParts = creds.split(":");
-                    if (credParts.length == 2) {
-                        /* Apply HTTP Basic Auth */
-                        Executor executor = Executor.newInstance()                        
-                            .auth(new HttpHost(key), credParts[0], credParts[1]);                        
-                        content = executor.execute(Request.Get(url)
-                            .connectTimeout(60000)
-                            .socketTimeout(60000))
-                            .returnResponse().getEntity().getContent();
-                    } else if (credParts.length == 3) {
-                        /* Apply HTTP Digest Auth */
-                        URL obj = new URL(url);
-                        URLConnection conn = obj.openConnection();
-                        Map<String, List<String>> map = conn.getHeaderFields();
-                        if (map.containsKey("WWW-Authenticate")) {
-                            String wwwAuth = map.get("WWW-Authenticate").get(0);
-                            if (!wwwAuth.isEmpty()) {
-                                /* Server returned a plausible header giving information on how to authenticate */
-                                System.out.println("Got WWW-Authenticate header : " + wwwAuth);
-                                HttpHost targetHost = new HttpHost(obj.getHost(), obj.getPort(), obj.getProtocol());
-                                CloseableHttpClient httpClient = HttpClients.createDefault();
-                                HttpClientContext context = HttpClientContext.create();
-                                CredentialsProvider credsProvider = new BasicCredentialsProvider();
-                                credsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(credParts[0], credParts[1]));
-                                AuthCache authCache = new BasicAuthCache();
-                                DigestScheme digestScheme = new DigestScheme();
-                                /* Extract the digest parameters */
-                                String[] kvps = wwwAuth.split(",\\s?");
-                                for (String kvp : kvps) {
-                                    String[] kvArr = kvp.split("=");
-                                    if (kvArr.length == 2) {
-                                        String k = kvArr[0].replace("\\\\\"", "");
-                                        String v = kvArr[1].replace("\\\\\"", "");
-                                        if (k.toLowerCase().equals("digest realm")) {
-                                            k = "realm";
+                switch(u.getProtocol()) {
+                    case "http":
+                        /* Non-SSL */
+                        if (CREDENTIALS.containsKey(url)) {
+                            /* Attempt authentication (basic/digest) */
+                            String[] credParts = CREDENTIALS.get(url).split(":");
+                            if (credParts.length == 2) {
+                                /* Apply HTTP Basic Auth */
+                                Executor executor = Executor.newInstance()                        
+                                    .auth(new HttpHost(key), credParts[0], credParts[1]);                        
+                                IOUtils.copy(executor.execute(Request.Get(url)
+                                    .connectTimeout(60000)
+                                    .socketTimeout(60000))
+                                    .returnResponse().getEntity().getContent(), response.getOutputStream());
+                                proxied = true;
+                            } else if (credParts.length == 3) {
+                                /* Apply HTTP Digest Auth */
+                                URL obj = new URL(url);
+                                URLConnection conn = obj.openConnection();
+                                Map<String, List<String>> map = conn.getHeaderFields();
+                                if (map.containsKey("WWW-Authenticate")) {
+                                    String wwwAuth = map.get("WWW-Authenticate").get(0);
+                                    if (!wwwAuth.isEmpty()) {
+                                        /* Server returned a plausible header giving information on how to authenticate */
+                                        System.out.println("Got WWW-Authenticate header : " + wwwAuth);
+                                        HttpHost targetHost = new HttpHost(obj.getHost(), obj.getPort(), obj.getProtocol());
+                                        CloseableHttpClient httpClient = HttpClients.createDefault();
+                                        HttpClientContext context = HttpClientContext.create();
+                                        CredentialsProvider credsProvider = new BasicCredentialsProvider();
+                                        credsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(credParts[0], credParts[1]));
+                                        AuthCache authCache = new BasicAuthCache();
+                                        DigestScheme digestScheme = new DigestScheme();
+                                        /* Extract the digest parameters */
+                                        String[] kvps = wwwAuth.split(",\\s?");
+                                        for (String kvp : kvps) {
+                                            String[] kvArr = kvp.split("=");
+                                            if (kvArr.length == 2) {
+                                                String k = kvArr[0].replace("\\\\\"", "");
+                                                String v = kvArr[1].replace("\\\\\"", "");
+                                                if (k.toLowerCase().equals("digest realm")) {
+                                                    k = "realm";
+                                                }
+                                                System.out.println("Set digest override parameter " + k + " to " + v);
+                                                digestScheme.overrideParamter(k, v);
+                                            }
                                         }
-                                        System.out.println("Set digest override parameter " + k + " to " + v);
-                                        digestScheme.overrideParamter(k, v);
+                                        authCache.put(new HttpHost(key), digestScheme);
+                                        context.setCredentialsProvider(credsProvider);
+                                        context.setAuthCache(authCache);
+                                        HttpGet httpget = new HttpGet(url);
+                                        CloseableHttpResponse httpResp = httpClient.execute(targetHost, httpget, context);
+                                        IOUtils.copy(httpResp.getEntity().getContent(), response.getOutputStream());
+                                        proxied = true;
                                     }
-                                }
-                                authCache.put(new HttpHost(key), digestScheme);
-                                context.setCredentialsProvider(credsProvider);
-                                context.setAuthCache(authCache);
-                                HttpGet httpget = new HttpGet(url);
-                                CloseableHttpResponse httpResp = httpClient.execute(targetHost, httpget, context);
-                                content = httpResp.getEntity().getContent();
+                                }                                
                             }
-                        }                                               
-                    }
+                        } else {
+                            /* No authentication required */
+                            IOUtils.copy(Request.Get(url)                    
+                                .connectTimeout(60000)
+                                .socketTimeout(60000)
+                                .execute()
+                                .returnResponse().getEntity().getContent(), response.getOutputStream());
+                            proxied = true;
+                        }
+                        break;
+                    case "https":
+                        /* Note: authentication not implemented */
+                        System.out.println("Proxy via https");
+                        HttpsURLConnection conn = null;
+                        try {                            
+                            /* Override SSL checking
+                             * See http://stackoverflow.com/questions/13626965/how-to-ignore-pkix-path-building-failed-sun-security-provider-certpath-suncertp */
+                            TrustManager[] trustAllCerts = new TrustManager[] {new X509TrustManager() {
+                                public java.security.cert.X509Certificate[] getAcceptedIssuers() {return null;}
+                                public void checkClientTrusted(X509Certificate[] certs, String authType) {}
+                                public void checkServerTrusted(X509Certificate[] certs, String authType) {}
+                            }};
+
+                            SSLContext sc = SSLContext.getInstance("SSL");
+                            sc.init(null, trustAllCerts, new java.security.SecureRandom());
+                            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+
+                            /* Create all-trusting host name verifier */
+                            HostnameVerifier allHostsValid = new HostnameVerifier() {
+                                public boolean verify(String hostname, SSLSession session) {return true;}
+                            };
+                            /* Install the all-trusting host verifier */
+                            HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+                            conn = (HttpsURLConnection)u.openConnection();
+                            conn.setConnectTimeout(5000);
+                            conn.setReadTimeout(10000);
+                            IOUtils.copy(conn.getInputStream(), response.getOutputStream());
+                            proxied = true;
+                        } catch(IOException | KeyManagementException | NoSuchAlgorithmException ex) {
+                            errorMessage = "Exception : " + ex.getMessage();
+                        } finally {
+                            if (conn != null) {
+                                conn.disconnect();
+                            }
+                        }
+                        break;
+                    default:
+                        errorMessage = "Unsupported URL protocol : " + u.getProtocol();
+                }                                
+                if (proxied) {                
+                    break;
                 }
-                if (content != null) {
-                    IOUtils.copy(content, response.getOutputStream());                
-                    proxied = true;
-                }
-                break;
             }     
         }
         if (!proxied) {
-            throw new ServletException("Not allowed to proxy " + url);
+            if (errorMessage.isEmpty()) {
+                errorMessage = "Not allowed to proxy : " + url;
+            }
+            throw new ServletException(errorMessage);
         }
     }
     
