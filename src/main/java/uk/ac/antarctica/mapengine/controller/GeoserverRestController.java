@@ -89,7 +89,7 @@ public class GeoserverRestController {
     @ResponseBody
     public void geoserverStylesForLayer(HttpServletRequest request, HttpServletResponse response, @PathVariable("layer") String layer)
         throws ServletException, IOException, ServiceException {
-        String restUrl = env.getProperty("geoserver.local.resturl");
+        String restUrl = env.getProperty("geoserver.local.adminUrl");
         if (restUrl == null || restUrl.isEmpty()) {
             restUrl = env.getProperty("geoserver.local.url");
         }
@@ -182,7 +182,7 @@ public class GeoserverRestController {
      */
     private GeoServerRESTReader getReader() throws MalformedURLException {
         if (gs == null) {
-            String restUrl = env.getProperty("geoserver.local.resturl");
+            String restUrl = env.getProperty("geoserver.local.adminUrl");
             if (restUrl == null || restUrl.isEmpty()) {
                 restUrl = env.getProperty("geoserver.local.url");
             }

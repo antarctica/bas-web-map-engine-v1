@@ -70,6 +70,12 @@ public class ProxyController {
         CREDENTIALS.put("http://tracker.aad.gov.au", "comnap:Koma5vudri:Tracker");
     }
     
+    /* Cope with haproxy reverse proxying mess where some https:// URLs give Java "unrecognized_name" errors due to broken SSL implementation - David 2017-03-30 */
+    private static final HashMap<String, String> ALIASES = new HashMap();
+    static {
+        ALIASES.put("https://polarcode.data.bas.ac.uk", "http://bslmagl.nerc-bas.ac.uk");
+    }
+    
    /**
      * Proxy for an authorised URL
      * @param HttpServletRequest request
@@ -85,6 +91,13 @@ public class ProxyController {
         
         boolean proxied = false;
         String errorMessage = "";
+        
+        /* test for alias substitution */
+        for (String a : ALIASES.keySet()) {
+            if (url.startsWith(a)) {
+                url = url.replace(a, ALIASES.get(a));
+            }
+        }
         
         URL u = new URL(url);      
         
@@ -164,6 +177,7 @@ public class ProxyController {
                         try {                            
                             /* Override SSL checking
                              * See http://stackoverflow.com/questions/13626965/how-to-ignore-pkix-path-building-failed-sun-security-provider-certpath-suncertp */
+                            System.setProperty ("jsse.enableSNIExtension", "false");
                             TrustManager[] trustAllCerts = new TrustManager[] {new X509TrustManager() {
                                 public java.security.cert.X509Certificate[] getAcceptedIssuers() {return null;}
                                 public void checkClientTrusted(X509Certificate[] certs, String authType) {}
