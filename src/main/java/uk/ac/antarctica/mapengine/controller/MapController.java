@@ -38,9 +38,7 @@ import uk.ac.antarctica.mapengine.util.PackagingUtils;
 
 @RestController
 public class MapController implements ServletContextAware {
-    
-    /* Thumbnail location */
-    private static final String THUMBNAIL_CACHE = "/static/images/thumbnail_cache";
+       
     
     @Autowired
     Environment env;
@@ -197,13 +195,8 @@ public class MapController implements ServletContextAware {
                 jm.addProperty("d", canDelete);
                 System.out.println(jm.toString());
                 /* Get the thumbnail for public sites - restricted ones can have a thumbnail uploaded or use a placeholder */                
-                String thumbUrl = THUMBNAIL_CACHE + "/bas.jpg"; 
-                System.out.println(server);
-                if (allowedUsage.equals("public") && !server.equals("localhost")) {
-                    /* This is a publically-viewable map */
-                    thumbUrl = THUMBNAIL_CACHE + "/" + getActiveProfile() + "/" + mapName + ".jpg";                    
-                }
-                jm.addProperty("thumburl", server + thumbUrl);
+                System.out.println(server);                
+                jm.addProperty("thumburl", server + "/thumbnail/" + mapName);
                 ja.add(jm);
             }
             ret = PackagingUtils.packageResults(HttpStatus.OK, ja.toString(), null);
