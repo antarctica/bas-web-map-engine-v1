@@ -67,6 +67,24 @@ WITH (
 ALTER TABLE webmap.maps
   OWNER TO add;
 
+CREATE TABLE webmap.thumbnails
+(
+  id serial,
+  name character varying(50),
+  thumbnail bytea,
+  CONSTRAINT thumbnails_pkey PRIMARY KEY (id),
+  CONSTRAINT thumbnails_maps_name_fkey FOREIGN KEY (name)
+      REFERENCES webmap.maps (name) MATCH SIMPLE
+      ON UPDATE CASCADE ON DELETE CASCADE
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE webmap.thumbnails
+  OWNER TO add;
+COMMENT ON TABLE webmap.thumbnails
+  IS 'Repository for map thumbnails.';
+
 CREATE TABLE webmap.embedded_maps
 (
   id character varying(40) NOT NULL,
