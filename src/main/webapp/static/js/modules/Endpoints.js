@@ -32,9 +32,15 @@ magic.modules.Endpoints = function () {
          * @param {string} filterValue
          * @returns {Array}
          */
-        getEndpointsBy: function(filterName, filterValue) {
+        getEndpointsBy: function(filterName, filterValue) {            
             return(jQuery.grep(magic.runtime.endpoints, function(ep) {
-                return(ep[filterName].toLowerCase().indexOf(filterValue.toLowerCase()) == 0);
+                if (filterName == "srs") {
+                    /* Projections can be a comma-separated list */
+                    var srsList = ep[filterName].toLowerCase().split(",");
+                    return(srsList.indexOf(filterValue.toLowerCase()) >= 0);
+                } else {
+                    return(ep[filterName].toLowerCase().indexOf(filterValue.toLowerCase()) == 0);
+                }
             }));
         },        
         /**
