@@ -39,7 +39,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
     @Autowired
     private LdapContextSource contextSource;
     
-    @Value("${geoserver.local.url}")
+    @Value("${geoserver.local.adminUrl}")
     private String geoserverUrl;
                
     @Bean
