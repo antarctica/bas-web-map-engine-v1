@@ -1,10 +1,12 @@
 css/ol.css
 css/bootstrap.min.css
+css/dropzone.min.css
 css/nav.css
 css/font-awesome.min.css
 css/console.css
 js/jquery.js
 js/bootstrap.min.js
+js/dropzone.min.js
 js/bootbox.min.js
 js/ol.min.js
 js/init.js

@@ -12,9 +12,7 @@
                  data-toggle="tooltip" data-placement="right" title="Go to login page to create or edit maps">Log in</button>
                 <div th:case="*">
                     <button id="console-create-new-map"  type="button" class="btn btn-primary"
-                     data-toggle="tooltip" data-placement="top" title="Open map creation interface (new tab)">Create a new map</button>
-                    <button id="console-gen-thumbnails" type="button" class="btn btn-primary hidden"
-                     data-toggle="tooltip" data-placement="top" title="Generate map thumbnail images from external service">Generate map thumbnails</button>                
+                     data-toggle="tooltip" data-placement="top" title="Open map creation interface (new tab)">Create a new map</button>                          
                 </div>
             </div>
         </div>
@@ -55,53 +53,6 @@
                 if (btnCreateNew.length > 0) {
                     btnCreateNew.click(function(evt) {
                         window.open(magic.config.paths.baseurl + "/creator" + (magic.runtime.debug ? "d" : ""), "_blank");
-                    });
-                }
-                
-                /* Clear map thumbnail cache */
-                var btnClearTn = jQuery("#console-gen-thumbnails");
-                if (btnClearTn.length > 0) {
-                    btnClearTn.click(function(evt) {
-                        /* Load the thumbnails for each available site - try 3 times in case ShrinkTheWeb is slow */
-                        /* Update 21/02/2017 David - it appears that STW considers URLs such as we have constructed for 
-                         * maps to be "internal pages".  At which point we're into the PRO version at $10 per month, so
-                         * have abandoned the idea of using STW.  Will manually create thumbnails if required
-                         */
-                        var attempts = 0;
-                        var thumbnailsDone = {};
-                        var thumbnailsToDo = jQuery("img[id^='tn-']");
-                        var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content");
-                        if (thumbnailsToDo.length > 0) {
-                            var intId = setInterval(function () {
-                                thumbnailsToDo.each(function(tni, tn) {
-                                    var restricted = jQuery(tn).closest("a").attr("href").indexOf("/restricted") > 0;
-                                    /* CDATA block prevents Thymeleaf's brain dead template engine from choking on ampersands... */
-                                    /*<![CDATA[*/
-                                    if (!restricted && !thumbnailsDone[tn.id]) {
-                                        var mapName = tn.id.replace(/^tn-/, "");
-                                        jQuery.ajax({
-                                            url: magic.config.paths.baseurl + "/thumbnail/" + mapName, 
-                                            method: "GET",
-                                            contentType: "application/json",
-                                            headers: {
-                                                "X-CSRF-TOKEN": csrfHeaderVal
-                                            },
-                                            success: function(data) {
-                                                if (data.delivered) {
-                                                    jQuery(tn).attr("src", data.thumburl);
-                                                    thumbnailsDone[tn.id] = true;
-                                                }
-                                            }
-                                        });
-                                    }
-                                    /*]]>*/
-                                });                        
-                               attempts++;
-                               if (attempts == 10) {
-                                   window.clearInterval(intId);
-                               }
-                            }, 2000);
-                        }
                     });
                 }
                 
