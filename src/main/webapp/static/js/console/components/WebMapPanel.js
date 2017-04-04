@@ -30,23 +30,25 @@ magic.classes.console.WebMapPanel = function () {
                     galleryContainer.append(rowDiv);
                     var thumbsInRow = (data.length - i) >= ROW_SIZE ? ROW_SIZE : data.length - i;
                     for (var j = 0; j < thumbsInRow; j++) {
+                        var tdata = data[i+j];
                         var thumbDiv = jQuery(
                             '<div class="col-md-3 col-sm-4 col-xs-6">' + 
-                                '<a href="' + magic.config.paths.baseurl + (data[i+j].r ? '/home/' : '/restricted/') + data[i+j].name + '">' +                                     
-                                    '<img id="tn-' + data[i+j].name + '" src="' + data[i+j].thumburl + '" onerror="this.src=\'' + DEFAULT_IMG + '\'" ' + 
-                                    'data-toggle="tooltip" data-placement="bottom" title="' + data[i+j].description + '"/>' + 
+                                '<a href="' + magic.config.paths.baseurl + (tdata.r ? '/home/' : '/restricted/') + tdata.name + '">' +                                     
+                                    '<img id="tn-' + tdata.name + '" src="' + tdata.thumburl + '" onerror="this.src=\'' + DEFAULT_IMG + '\'" ' + 
+                                    'data-toggle="tooltip" data-placement="bottom" title="' + tdata.description + '" ' + 
+                                    'width="' + THUMBNAIL_WIDTH + '" height="' + THUMBNAIL_HEIGHT + '"/>' + 
                                 '</a>' + 
-                                '<span style="display:block">' + data[i+j].title + '</span>' + 
+                                '<span style="display:block">' + tdata.title + '</span>' + 
                                 '<span style="display:block; margin-bottom: 5px">' + 
-                                    (data[i+j].w ? 
-                                    '<a href="' + magic.config.paths.baseurl + '/creator?name=' + data[i+j].name + '" title="Edit map in new tab" target="_blank">' + 
+                                    (tdata.w ? 
+                                    '<a href="' + magic.config.paths.baseurl + '/creator?name=' + tdata.name + '" title="Edit map in new tab" target="_blank">' + 
                                         '<i style="font-size: 20px; color: #286090; margin-right: 5px" class="fa fa-pencil"></i>' + 
                                     '</a>' : "") + 
-                                    (data[i+j].w ? 
+                                    (tdata.w ? 
                                     '<a class="map-remove-thumbnail-button" href="Javascript:void(0)" title="Remove map thumbnail">' + 
-                                        '<i style="font-size: 20px; color: #d9534f; margin-right: 5px" class="fa fa-image-o"></i>' + 
+                                        '<i style="font-size: 20px; color: #d9534f; margin-right: 5px" class="fa fa-file-image-o"></i>' + 
                                     '</a>' : "") + 
-                                    (data[i+j].d ? 
+                                    (tdata.d ? 
                                     '<a class="map-delete-button" href="Javascript:void(0)" title="Delete this map from the gallery">' +
                                         '<i style="font-size: 20px; color: #d9534f" class="fa fa-trash"></i>' + 
                                     '</a>' : "") + 
@@ -55,25 +57,31 @@ magic.classes.console.WebMapPanel = function () {
                         );
                         rowDiv.append(thumbDiv);
                         /* Add a drag-drop capability to thumbnail image */
-                        jQuery("#tn-" + data[i+j].name).dropzone({
-                            url: magic.config.paths.baseurl + "/thumbnail/" + data[i+j].name,
+                        var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content");
+                        jQuery("#tn-" + tdata.name).dropzone({
+                            url: magic.config.paths.baseurl + "/thumbnail/save/" + tdata.name,
                             method: "post",
+                            headers: { "X-CSRF-TOKEN": csrfHeaderVal },
                             maxFileSize: 1,
                             maxFiles: 1,
                             autoProcessQueue: true,
+                            createImageThumbnails: true,
                             thumbnailWidth: THUMBNAIL_WIDTH,
                             thumbnailHeight: THUMBNAIL_HEIGHT,
                             acceptedFiles: "image/jpg,image/jpeg,image/png,image/gif",
                             init: function() {
                                 this.on("success", function() {
                                     /* Display thumbnail */
-                                    jQuery("#tn-" + data[i+j].name).attr("src", magic.config.paths.baseurl + "/thumbnail/" + data[i+j].name);
+                                    var img = jQuery("#tn-" + tdata.name)[0];
+                                    img.onload = function() {
+                                        img.src = magic.config.paths.baseurl + "/thumbnail/show/" + tdata.name;
+                                    };
                                 });
-                                this.on("error", function(dzevt, ) {
+                                this.on("error", function(dzevt, msg) {
                                     bootbox.alert(
                                         '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                                            '<p>Failed to upload thumbnail for map ' + evt.data + ' - details below:</p>' + 
-                                            '<p>' + detail + '</p>' + 
+                                            '<p>Failed to upload thumbnail for map ' + tdata.name + ' - details below:</p>' + 
+                                            '<p>' + msg + '</p>' + 
                                         '</div>'
                                     );
                                 });
@@ -82,12 +90,12 @@ magic.classes.console.WebMapPanel = function () {
                         /* Add handler for removing a map thumbnail image */
                         var delTnAnchor = thumbDiv.find("a.map-remove-thumbnail-button");
                         if (delTnAnchor.length > 0) {
-                            delTnAnchor.click(data[i+j].name, function(evt) {
+                            delTnAnchor.click(tdata.name, function(evt) {
                                 bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">Really delete thumbnail for ' + evt.data + '</div>', function (result) {
                                     if (result) {
                                         /* Do the thumbnail removal */
                                         var jqxhr = jQuery.ajax({
-                                            url: magic.config.paths.baseurl + "/thumbnail/" + evt.data,
+                                            url: magic.config.paths.baseurl + "/thumbnail/delete/" + evt.data,
                                             method: "DELETE",
                                             beforeSend: function (xhr) {
                                                 var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content");
@@ -113,10 +121,11 @@ magic.classes.console.WebMapPanel = function () {
                                     }
                                 });
                             });
+                        }
                         /* Add handler for map deletion */
                         var deleteAnchor = thumbDiv.find("a.map-delete-button");
                         if (deleteAnchor.length > 0) {
-                            deleteAnchor.click(data[i+j].name, function(evt) {
+                            deleteAnchor.click(tdata.name, function(evt) {
                                 bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">Are you sure you want to delete ' + evt.data + '</div>', function (result) {
                                     if (result) {
                                         /* Do the deletion */

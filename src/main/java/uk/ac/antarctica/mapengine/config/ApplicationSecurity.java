@@ -79,13 +79,13 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
             .antMatchers("/*.ico", "/static/**", "/appconfig/**", "/ping", "/home/**", "/homed/**", 
                 "/maps/dropdown/**", "/maps/name/**", "/maps/id/**", "/maps/thumbnaildata", 
                 "/usermaps/data",
-                "/thumbnail/**", "/prefs/get", "/gs/**").permitAll()
+                "/thumbnail/show/**", "/prefs/get", "/gs/**").permitAll()
             .antMatchers("/creator", "/creatord", "/embedded_creator", "/embedded_creatord", 
                 "/restricted/**", "/restrictedd/**",
                 "/publisher", "/publisherd", "/publish_postgis", "/prefs/set", 
                 "/maps/save", "/maps/update/**", "/maps/delete/**", "/maps/deletebyname/**", 
                 "/usermaps/save", "/usermaps/update/**", "/usermaps/delete/**",
-                "/clearthumbnailcache")
+                "/thumbnail/save/**", "/thumbnail/delete/**")
             .fullyAuthenticated()
             .and()
             .formLogin()

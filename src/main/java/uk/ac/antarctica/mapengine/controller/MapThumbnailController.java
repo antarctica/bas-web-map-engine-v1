@@ -66,17 +66,17 @@ public class MapThumbnailController implements ServletContextAware {
      * @throws ServletException
      * @throws IOException
      */
-    @RequestMapping(value = "/thumbnail/{mapname}", method = RequestMethod.GET, produces = {"image/jpg", "image/jpeg", "image/png", "image/gif"})
+    @RequestMapping(value = "/thumbnail/show/{mapname}", method = RequestMethod.GET, produces = {"image/jpg", "image/jpeg", "image/png", "image/gif"})
     @ResponseBody
     public void thumbnailData(HttpServletRequest request, HttpServletResponse response, @PathVariable("mapname") String mapname)
-        throws ServletException, IOException, ServiceException {
+        throws ServletException, IOException, ServiceException, SQLException {
         
         String contentType = "image/jpg";
         InputStream is = null;
         File defaultThumb = new File(context.getRealPath(DEFAULT_THUMBNAIL));
                 
-        try {
-            Connection conn = magicDataTpl.getDataSource().getConnection();
+        Connection conn = magicDataTpl.getDataSource().getConnection();
+        try {            
             PreparedStatement ps = conn.prepareStatement("SELECT mime_type, thumbnail FROM " + env.getProperty("postgres.local.thumbnailsTable") + " WHERE \"name\" = ?");
             ps.setString(1, mapname);
             ResultSet rs = ps.executeQuery();
@@ -90,6 +90,8 @@ public class MapThumbnailController implements ServletContextAware {
             ps.close();               
         } catch (SQLException ex) {
             is = new FileInputStream(defaultThumb);
+        } finally {
+            conn.close();
         }
         response.setContentType(contentType);
         IOUtils.copy(is, response.getOutputStream());
@@ -103,7 +105,7 @@ public class MapThumbnailController implements ServletContextAware {
      * @throws ServletException
      * @throws IOException
      */
-    @RequestMapping(value = "/thumbnail/{mapname}", method = RequestMethod.POST, consumes = "multipart/form-data", produces = {"application/json"})
+    @RequestMapping(value = "/thumbnail/save/{mapname}", method = RequestMethod.POST, consumes = "multipart/form-data", produces = {"application/json"})
     public ResponseEntity<String> saveThumbnailData(MultipartHttpServletRequest request, @PathVariable("mapname") String mapname) throws Exception {
         ResponseEntity<String> ret = null;
         Connection conn = magicDataTpl.getDataSource().getConnection();
@@ -116,25 +118,27 @@ public class MapThumbnailController implements ServletContextAware {
                 );
                 String contentType = "image/jpg";
                 InputStream img = null;
+                long imgLen = 0;
                 MultipartFile mpf = null;
                 Map<String, MultipartFile> mpfm = request.getFileMap();
                 if (mpfm != null && mpfm.size() == 1) {
                     /* A single file, so a sensible user upload */
                     for (String key : mpfm.keySet()) {
                         mpf = mpfm.get(key);
+                        imgLen = mpf.getBytes().length;
                         img = new ByteArrayInputStream(mpf.getBytes());
                         contentType = mpf.getContentType();
                     }
                     PreparedStatement ps = null;
                     try {
                         /* Current user is the owner and is therefore allowed to add a thumbnail */
-                        Integer existingId = magicDataTpl.queryForObject("SELECT count(id) FROM " + env.getProperty("postgres.local.thumbnailsTable") + " " + 
+                        Integer existingId = magicDataTpl.queryForObject("SELECT id FROM " + env.getProperty("postgres.local.thumbnailsTable") + " " + 
                             "WHERE \"name\"=?", Integer.class, mapname);                    
                         ps = conn.prepareStatement("UPDATE " + env.getProperty("postgres.local.thumbnailsTable") + " " + 
                             "SET mime_type=?, thumbnail=? WHERE id=?"
                         );
                         ps.setString(1, contentType);
-                        ps.setBinaryStream(2, img);
+                        ps.setBinaryStream(2, img, imgLen);
                         ps.setInt(3, existingId);
                     } catch (IncorrectResultSizeDataAccessException irsdae) {
                         /* This is an insert */
@@ -144,7 +148,7 @@ public class MapThumbnailController implements ServletContextAware {
                         );
                         ps.setString(1, mapname);
                         ps.setString(2, contentType);
-                        ps.setBinaryStream(3, img);                    
+                        ps.setBinaryStream(3, img, imgLen);                    
                     }
                     ps.executeUpdate();
                     ps.close();
@@ -157,7 +161,9 @@ public class MapThumbnailController implements ServletContextAware {
                 }                
             } catch (IncorrectResultSizeDataAccessException irsdae) {
                 ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "Only the map owner can add thumbnails");
-            }                                         
+            } finally {
+                conn.close();
+            }                                        
         } else {
             ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to perform this action");
         }
@@ -172,7 +178,7 @@ public class MapThumbnailController implements ServletContextAware {
      * @throws ServletException
      * @throws IOException
      */
-    @RequestMapping(value = "/thumbnail/{mapname}", method = RequestMethod.DELETE, produces = {"application/json"})
+    @RequestMapping(value = "/thumbnail/delete/{mapname}", method = RequestMethod.DELETE, produces = {"application/json"})
     public ResponseEntity<String> saveThumbnailData(HttpServletRequest request, @PathVariable("mapname") String mapname) throws Exception {
         ResponseEntity<String> ret;
         String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
@@ -180,11 +186,11 @@ public class MapThumbnailController implements ServletContextAware {
             /* Check logged in user is the owner of the map */
             try {
                 Integer count = magicDataTpl.queryForObject(
-                    "SELECT count(id) FROM " + env.getProperty("postgres.local.mapsTable") + " WHERE \"name\"=? AND owner_name=?", 
+                    "SELECT count(id) FROM " + env.getProperty("postgres.local.thumbnailsTable") + " WHERE \"name\"=? AND owner_name=?", 
                     Integer.class, mapname, username
                 );               
                 /* Do deletion as we have the owner */                
-                magicDataTpl.update("DELETE FROM " + env.getProperty("postgres.local.mapsTable") + " WHERE \"name\"=?", mapname);                        
+                magicDataTpl.update("DELETE FROM " + env.getProperty("postgres.local.thumbnailsTable") + " WHERE \"name\"=?", mapname);                        
                 ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Successfully deleted");
             } catch (IncorrectResultSizeDataAccessException irsdae) {
                 /* Unable to determine if owner */

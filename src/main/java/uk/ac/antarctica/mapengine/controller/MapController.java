@@ -196,7 +196,7 @@ public class MapController implements ServletContextAware {
                 System.out.println(jm.toString());
                 /* Get the thumbnail for public sites - restricted ones can have a thumbnail uploaded or use a placeholder */                
                 System.out.println(server);                
-                jm.addProperty("thumburl", server + "/thumbnail/" + mapName);
+                jm.addProperty("thumburl", server + "/thumbnail/show/" + mapName);
                 ja.add(jm);
             }
             ret = PackagingUtils.packageResults(HttpStatus.OK, ja.toString(), null);

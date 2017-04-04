@@ -74,9 +74,7 @@ CREATE TABLE webmap.thumbnails
   mime_type character varying(50),
   thumbnail bytea,
   CONSTRAINT thumbnails_pkey PRIMARY KEY (id),
-  CONSTRAINT thumbnails_maps_name_fkey FOREIGN KEY (name)
-      REFERENCES webmap.maps (name) MATCH SIMPLE
-      ON UPDATE CASCADE ON DELETE CASCADE
+  CONSTRAINT thumbnails_name_unique UNIQUE (name)
 )
 WITH (
   OIDS=FALSE
