@@ -71,6 +71,7 @@ CREATE TABLE webmap.thumbnails
 (
   id serial,
   name character varying(50),
+  mime_type character varying(50),
   thumbnail bytea,
   CONSTRAINT thumbnails_pkey PRIMARY KEY (id),
   CONSTRAINT thumbnails_maps_name_fkey FOREIGN KEY (name)

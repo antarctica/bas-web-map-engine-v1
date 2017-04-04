@@ -3,9 +3,17 @@
  */
 package uk.ac.antarctica.mapengine.controller;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -58,10 +66,30 @@ public class MapThumbnailController implements ServletContextAware {
     @RequestMapping(value = "/thumbnail/{mapname}", method = RequestMethod.GET, produces = {"image/jpg", "image/jpeg", "image/png", "image/gif"})
     @ResponseBody
     public void thumbnailData(HttpServletRequest request, HttpServletResponse response, @PathVariable("mapname") String mapname)
-        throws ServletException, IOException, ServiceException {        
+        throws ServletException, IOException, ServiceException {
+        
+        String contentType = "image/jpg";
+        InputStream is = null;
         File defaultThumb = new File(context.getRealPath(DEFAULT_THUMBNAIL));
-        response.setContentType("image/jpg");
-        IOUtils.copy(new FileInputStream(defaultThumb), response.getOutputStream());        
+        
+        try {
+            Connection conn = magicDataTpl.getDataSource().getConnection();
+            PreparedStatement ps = conn.prepareStatement("SELECT mime_type, thumbnail FROM " + env.getProperty("postgres.local.thumbnailsTable") + " WHERE \"name\" = ?");
+            ps.setString(1, mapname);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                contentType = rs.getString(1);
+                is = new ByteArrayInputStream(rs.getBytes(2));                
+            } else {
+                is = new FileInputStream(defaultThumb);
+            }           
+            rs.close();
+            ps.close();               
+        } catch (SQLException ex) {
+            is = new FileInputStream(defaultThumb);
+        }
+        response.setContentType(contentType);
+        IOUtils.copy(is, response.getOutputStream());
     }
     
     @RequestMapping(value = "/thumbnail", method = RequestMethod.POST, consumes = "multipart/form-data", produces = {"application/json"})
