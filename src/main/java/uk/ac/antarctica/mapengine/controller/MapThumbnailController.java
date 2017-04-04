@@ -184,7 +184,7 @@ public class MapThumbnailController implements ServletContextAware {
                     Integer.class, mapname, username
                 );               
                 /* Do deletion as we have the owner */                
-                magicDataTpl.update("DELETE FROM " + env.getProperty("postgres.local.mapsTable") + " WHERE id=?", new Object[]{id});                        
+                magicDataTpl.update("DELETE FROM " + env.getProperty("postgres.local.mapsTable") + " WHERE \"name\"=?", mapname);                        
                 ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Successfully deleted");
             } catch (IncorrectResultSizeDataAccessException irsdae) {
                 /* Unable to determine if owner */
