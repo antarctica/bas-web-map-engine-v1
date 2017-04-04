@@ -41,7 +41,8 @@ magic.classes.console.WebMapPanel = function () {
                                 '<span style="display:block">' + tdata.title + '</span>' + 
                                 '<span style="display:block; margin-bottom: 5px">' + 
                                     (tdata.w ? 
-                                    '<a href="' + magic.config.paths.baseurl + '/creator?name=' + tdata.name + '" title="Edit map in new tab" target="_blank">' + 
+                                    '<a href="' + magic.config.paths.baseurl + '/creator?name=' + tdata.name + '" ' + 
+                                        'title="Edit map in new tab. Set a map thumbnail by drag/drop of an image file above" target="_blank">' + 
                                         '<i style="font-size: 20px; color: #286090; margin-right: 5px" class="fa fa-pencil"></i>' + 
                                     '</a>' : "") + 
                                     (tdata.w ? 
@@ -62,6 +63,7 @@ magic.classes.console.WebMapPanel = function () {
                             url: magic.config.paths.baseurl + "/thumbnail/save/" + tdata.name,
                             method: "post",
                             headers: { "X-CSRF-TOKEN": csrfHeaderVal },
+                            clickable: false,
                             maxFileSize: 1,
                             maxFiles: 1,
                             autoProcessQueue: true,
@@ -70,21 +72,21 @@ magic.classes.console.WebMapPanel = function () {
                             thumbnailHeight: THUMBNAIL_HEIGHT,
                             acceptedFiles: "image/jpg,image/jpeg,image/png,image/gif",
                             init: function() {
-                                this.on("success", function() {
+                                this.on("success", jQuery.proxy(function() {
                                     /* Display thumbnail */
-                                    var img = jQuery("#tn-" + tdata.name)[0];
-                                    img.onload = function() {
-                                        img.src = magic.config.paths.baseurl + "/thumbnail/show/" + tdata.name;
-                                    };
+                                    jQuery("#tn-" + this.name).attr("src", magic.config.paths.baseurl + "/thumbnail/show/" + this.name);
+                                },tdata));
+                                this.on("complete", function(file) {
+                                    this.removeFile(file);
                                 });
-                                this.on("error", function(dzevt, msg) {
+                                this.on("error", jQuery.proxy(function(dzevt, msg) {
                                     bootbox.alert(
                                         '<div class="alert alert-warning" style="margin-bottom:0">' + 
                                             '<p>Failed to upload thumbnail for map ' + tdata.name + ' - details below:</p>' + 
                                             '<p>' + msg + '</p>' + 
                                         '</div>'
                                     );
-                                });
+                                }, tdata));
                             }
                         });
                         /* Add handler for removing a map thumbnail image */

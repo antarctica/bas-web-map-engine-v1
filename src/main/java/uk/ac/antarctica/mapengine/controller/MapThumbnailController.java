@@ -113,7 +113,7 @@ public class MapThumbnailController implements ServletContextAware {
         if (username != null) {
             try {
                 Integer count = magicDataTpl.queryForObject(
-                    "SELECT count(id) FROM " + env.getProperty("postgres.local.mapsTable") + " WHERE \"name\"=? AND owner_name=?", 
+                    "SELECT count(id) FROM " + env.getProperty("postgres.local.mapsTable") + " WHERE \"name\"=? AND (owner_name=? OR allowed_edit='login')", 
                     Integer.class, mapname, username
                 );
                 String contentType = "image/jpg";
@@ -186,7 +186,7 @@ public class MapThumbnailController implements ServletContextAware {
             /* Check logged in user is the owner of the map */
             try {
                 Integer count = magicDataTpl.queryForObject(
-                    "SELECT count(id) FROM " + env.getProperty("postgres.local.thumbnailsTable") + " WHERE \"name\"=? AND owner_name=?", 
+                    "SELECT count(id) FROM " + env.getProperty("postgres.local.mapsTable") + " WHERE \"name\"=? AND owner_name=?", 
                     Integer.class, mapname, username
                 );               
                 /* Do deletion as we have the owner */                
