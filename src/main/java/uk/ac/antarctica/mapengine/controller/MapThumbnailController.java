@@ -21,6 +21,7 @@ import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.geotools.ows.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -160,12 +161,42 @@ public class MapThumbnailController implements ServletContextAware {
         } else {
             ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to perform this action");
         }
-        return(new ResponseEntity<>("Not implemented", HttpStatus.NOT_IMPLEMENTED));
+        return(ret);
     }
     
+    /**
+     * Delete thumbnail image for the map with the given name
+     * @param HttpServletRequest request,
+     * @param String mapname
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
     @RequestMapping(value = "/thumbnail/{mapname}", method = RequestMethod.DELETE, produces = {"application/json"})
     public ResponseEntity<String> saveThumbnailData(HttpServletRequest request, @PathVariable("mapname") String mapname) throws Exception {
-        return(new ResponseEntity<>("Not implemented", HttpStatus.NOT_IMPLEMENTED));
+        ResponseEntity<String> ret;
+        String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
+        if (username != null) {
+            /* Check logged in user is the owner of the map */
+            try {
+                Integer count = magicDataTpl.queryForObject(
+                    "SELECT count(id) FROM " + env.getProperty("postgres.local.mapsTable") + " WHERE \"name\"=? AND owner_name=?", 
+                    Integer.class, mapname, username
+                );               
+                /* Do deletion as we have the owner */                
+                magicDataTpl.update("DELETE FROM " + env.getProperty("postgres.local.mapsTable") + " WHERE id=?", new Object[]{id});                        
+                ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Successfully deleted");
+            } catch (IncorrectResultSizeDataAccessException irsdae) {
+                /* Unable to determine if owner */
+               ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "You are not authorised to delete this thumbnail");
+            } catch(DataAccessException dae) {
+                /* Database error */
+                ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Error deleting data, message was: " + dae.getMessage());
+            }
+        } else {
+            ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to perform this action");
+        }     
+        return (ret);
     }
 
      @Override
