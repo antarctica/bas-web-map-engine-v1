@@ -12,8 +12,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Map;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -22,6 +21,7 @@ import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.geotools.ows.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -33,7 +33,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.ServletContextAware;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
+import uk.ac.antarctica.mapengine.util.PackagingUtils;
 
 @RestController
 public class MapThumbnailController implements ServletContextAware {
@@ -71,7 +73,7 @@ public class MapThumbnailController implements ServletContextAware {
         String contentType = "image/jpg";
         InputStream is = null;
         File defaultThumb = new File(context.getRealPath(DEFAULT_THUMBNAIL));
-        
+                
         try {
             Connection conn = magicDataTpl.getDataSource().getConnection();
             PreparedStatement ps = conn.prepareStatement("SELECT mime_type, thumbnail FROM " + env.getProperty("postgres.local.thumbnailsTable") + " WHERE \"name\" = ?");
@@ -92,8 +94,77 @@ public class MapThumbnailController implements ServletContextAware {
         IOUtils.copy(is, response.getOutputStream());
     }
     
-    @RequestMapping(value = "/thumbnail", method = RequestMethod.POST, consumes = "multipart/form-data", produces = {"application/json"})
-    public ResponseEntity<String> publishToPostGIS(MultipartHttpServletRequest request) throws Exception {
+    /**
+     * Save thumbnail image for the map with the given name
+     * @param HttpServletRequest request,
+     * @param String mapname
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/thumbnail/{mapname}", method = RequestMethod.POST, consumes = "multipart/form-data", produces = {"application/json"})
+    public ResponseEntity<String> saveThumbnailData(MultipartHttpServletRequest request, @PathVariable("mapname") String mapname) throws Exception {
+        ResponseEntity<String> ret = null;
+        Connection conn = magicDataTpl.getDataSource().getConnection();
+        String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
+        if (username != null) {
+            try {
+                Integer count = magicDataTpl.queryForObject(
+                    "SELECT count(id) FROM " + env.getProperty("postgres.local.mapsTable") + " WHERE \"name\"=? AND owner_name=?", 
+                    Integer.class, mapname, username
+                );
+                String contentType = "image/jpg";
+                InputStream img = null;
+                MultipartFile mpf = null;
+                Map<String, MultipartFile> mpfm = request.getFileMap();
+                if (mpfm != null && mpfm.size() == 1) {
+                    /* A single file, so a sensible user upload */
+                    for (String key : mpfm.keySet()) {
+                        mpf = mpfm.get(key);
+                        img = new ByteArrayInputStream(mpf.getBytes());
+                        contentType = mpf.getContentType();
+                    }
+                    PreparedStatement ps = null;
+                    try {
+                        /* Current user is the owner and is therefore allowed to add a thumbnail */
+                        Integer existingId = magicDataTpl.queryForObject("SELECT count(id) FROM " + env.getProperty("postgres.local.thumbnailsTable") + " " + 
+                            "WHERE \"name\"=?", Integer.class, mapname);                    
+                        ps = conn.prepareStatement("UPDATE " + env.getProperty("postgres.local.thumbnailsTable") + " " + 
+                            "SET mime_type=?, thumbnail=? WHERE id=?"
+                        );
+                        ps.setString(1, contentType);
+                        ps.setBinaryStream(2, img);
+                        ps.setInt(3, existingId);
+                    } catch (IncorrectResultSizeDataAccessException irsdae) {
+                        /* This is an insert */
+                        ps = conn.prepareStatement("INSERT INTO " + env.getProperty("postgres.local.thumbnailsTable") + " " + 
+                            "(\"name\", mime_type, thumbnail) " + 
+                            "VALUES(?, ?, ?)"
+                        );
+                        ps.setString(1, mapname);
+                        ps.setString(2, contentType);
+                        ps.setBinaryStream(3, img);                    
+                    }
+                    ps.executeUpdate();
+                    ps.close();
+                    if (img != null) {
+                        img.close();
+                    }  
+                    ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Successfully uploaded thumbnail");
+                } else {
+                    ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "No file was uploaded");
+                }                
+            } catch (IncorrectResultSizeDataAccessException irsdae) {
+                ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "Only the map owner can add thumbnails");
+            }                                         
+        } else {
+            ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to perform this action");
+        }
+        return(new ResponseEntity<>("Not implemented", HttpStatus.NOT_IMPLEMENTED));
+    }
+    
+    @RequestMapping(value = "/thumbnail/{mapname}", method = RequestMethod.DELETE, produces = {"application/json"})
+    public ResponseEntity<String> saveThumbnailData(HttpServletRequest request, @PathVariable("mapname") String mapname) throws Exception {
         return(new ResponseEntity<>("Not implemented", HttpStatus.NOT_IMPLEMENTED));
     }
 
