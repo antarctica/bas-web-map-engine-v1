@@ -151,7 +151,7 @@ magic.classes.AppContainer = function () {
     
     /* Switch map tool */
     magic.runtime.mapswitcher = null;
-    if (magic.runtime.username != "guest") && jQuery.inArray("mapswitcher", magic.runtime.mapdata.controls) != -1) {
+    if (magic.runtime.username != "guest" && jQuery.inArray("mapswitcher", magic.runtime.mapdata.controls) != -1) {
         /* Activate map switcher tool */
         magic.runtime.mapswitcher = new magic.classes.MapSwitcher({target: "map-switcher-tool"});
     } else {

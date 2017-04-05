@@ -79,156 +79,164 @@ magic.classes.Favourites = function(options) {
         html: true,            
         content: this.content
     }).on("shown.bs.popover", jQuery.proxy(function() {
-        /* Fetch data on bookmarked maps */
-        jQuery.ajax({
-            url: magic.config.paths.baseurl + "/usermaps/data",
-            method: "GET",
-            dataType: "json"
-        }).done(jQuery.proxy(function(data) {
-            this.user_map_data = data;
-            /* Populate dropdown list of available maps */
-            magic.modules.Common.populateSelect(jQuery("#" + this.id + "-list"), data, "id", "title", false);            
-            /* Assign handlers */
-            var dd = jQuery("#" + this.id + "-list");
-            var idHid = jQuery("#" + this.id + "-id"),
-                bmHid = jQuery("#" + this.id + "-basemap"),
-                ttInp = jQuery("#" + this.id + "-title"),
-                loadBtn = jQuery("#" + this.id + "-list-go"),
-                addBtn = jQuery("#" + this.id + "-add"),
-                editBtn = jQuery("#" + this.id + "-edit"),
-                delBtn = jQuery("#" + this.id + "-delete"),
-                saveBtn = jQuery("#" + this.id + "-go"),
-                cancBtn = jQuery("#" + this.id + "-cancel"),
-                favFrm = jQuery("#" + this.id + "-form"),
-                editForm = jQuery(".edit-favourite-fs");            
-            /* Changing dropdown value*/
-            dd.change(jQuery.proxy(function() {
-                idHid.val(dd.val());
-                editBtn.prop("disabled", false);
-                loadBtn.prop("disabled", false);
-            }, this));
-            /* Load map button */
-            loadBtn.click(jQuery.proxy(function() {
-                var mapData = this.user_map_data[dd.prop("selectedIndex")];
-                window.location = magic.config.paths.baseurl + "/home/" + mapData.basemap + "/" + mapData.id;
-            }, this));
-            /* New map button */
-            addBtn.click(jQuery.proxy(function() {
-                editForm.removeClass("hidden");
-                favFrm[0].reset();                
-                editBtn.prop("disabled", true);
-                dd.prop("disabled", true);
-                loadBtn.prop("disabled", true);
-                ttInp.focus();
-            }, this));
-            /* Edit map button */
-            editBtn.click(jQuery.proxy(function() {
-                editForm.removeClass("hidden");
-                var mapData = this.user_map_data[dd.prop("selectedIndex")];
-                idHid.val(mapData.id);
-                bmHid.val(mapData.basemap);
-                ttInp.val(mapData.title); 
-                ttInp.focus();
-            }, this));
-             /* Delete map button */
-            delBtn.click(jQuery.proxy(function() {
-                bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">Are you sure?</div>', function(result) {
-                    if (result) {
-                        /* Do the deletion */
-                        var jqxhr = jQuery.ajax({
-                            url: magic.config.paths.baseurl + "/usermaps/delete/" + dd.val(),
-                            method: "DELETE",
-                            beforeSend: function (xhr) {
-                                var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content");
-                                var csrfHeader = jQuery("meta[name='_csrf_header']").attr("content");
-                                xhr.setRequestHeader(csrfHeader, csrfHeaderVal)
-                            }
-                        })
-                        .done(function () {
-                            /* Reload the list of maps for the dropdown */
-                            jQuery.ajax({
-                                url: magic.config.paths.baseurl + "/usermaps/data",
-                                method: "GET",
-                                dataType: "json"
-                            }).done(jQuery.proxy(function(ud) {
-                                magic.modules.Common.populateSelect(jQuery("#" + this.id + "-list"), ud, "id", "title", false);
-                                /* Disable irrelevant buttons */
-                                loadBtn.prop("disabled", ud.length == 0);
-                                editBtn.prop("disabled", ud.length == 0);
-                                delBtn.prop("disabled", ud.length == 0);
-                            }, this));
-                        })
-                        .fail(function (xhr, status) {
-                            var detail = JSON.parse(xhr.responseText)["detail"];
-                            bootbox.alert(
-                                '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                                    '<p>Failed to delete user map - details below:</p>' + 
-                                    '<p>' + detail + '</p>' + 
-                                '</div>'
-                            );
-                        });                   
-                        bootbox.hideAll();
-                    } else {
-                        bootbox.hideAll();
-                    }                            
-                });               
-            }, this));
-            /* Save button */
-            jQuery("#" + this.id + "-go").click(jQuery.proxy(function() {
-                if (ttInp[0].checkValidity() === false) {
-                    ttInp.closest("div.form-group").addClass("has-error");
+        /* Fetch maps */
+        this.fetchMaps();
+        /* Assign handlers */
+        var dd = jQuery("#" + this.id + "-list");
+        var idHid = jQuery("#" + this.id + "-id"),
+            bmHid = jQuery("#" + this.id + "-basemap"),
+            ttInp = jQuery("#" + this.id + "-title"),
+            loadBtn = jQuery("#" + this.id + "-list-go"),
+            addBtn = jQuery("#" + this.id + "-add"),
+            editBtn = jQuery("#" + this.id + "-edit"),
+            delBtn = jQuery("#" + this.id + "-delete"),
+            saveBtn = jQuery("#" + this.id + "-go"),
+            cancBtn = jQuery("#" + this.id + "-cancel"),
+            favFrm = jQuery("#" + this.id + "-form"),
+            editForm = jQuery(".edit-favourite-fs");            
+        /* Changing dropdown value*/
+        dd.change(jQuery.proxy(function() {
+            idHid.val(dd.val());
+            editBtn.prop("disabled", false);
+            loadBtn.prop("disabled", false);
+        }, this));
+        /* Load map button */
+        loadBtn.click(jQuery.proxy(function() {
+            var mapData = this.user_map_data[dd.prop("selectedIndex")];
+            window.location = magic.config.paths.baseurl + "/home/" + mapData.basemap + "/" + mapData.id;
+        }, this));
+        /* New map button */
+        addBtn.click(jQuery.proxy(function() {
+            editForm.removeClass("hidden");
+            favFrm[0].reset();                
+            editBtn.prop("disabled", true);
+            dd.prop("disabled", true);
+            loadBtn.prop("disabled", true);
+            ttInp.focus();
+        }, this));
+        /* Edit map button */
+        editBtn.click(jQuery.proxy(function() {
+            editForm.removeClass("hidden");
+            var mapData = this.user_map_data[dd.prop("selectedIndex")];
+            idHid.val(mapData.id);
+            bmHid.val(mapData.basemap);
+            ttInp.val(mapData.title); 
+            ttInp.focus();
+        }, this));
+         /* Delete map button */
+        delBtn.click(jQuery.proxy(function() {
+            bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">Are you sure?</div>', function(result) {
+                if (result) {
+                    /* Do the deletion */
+                    var jqxhr = jQuery.ajax({
+                        url: magic.config.paths.baseurl + "/usermaps/delete/" + dd.val(),
+                        method: "DELETE",
+                        beforeSend: function (xhr) {
+                            var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content");
+                            var csrfHeader = jQuery("meta[name='_csrf_header']").attr("content");
+                            xhr.setRequestHeader(csrfHeader, csrfHeaderVal)
+                        }
+                    })
+                    .done(function () {
+                        /* Reload the list of maps for the dropdown */
+                        jQuery.ajax({
+                            url: magic.config.paths.baseurl + "/usermaps/data",
+                            method: "GET",
+                            dataType: "json"
+                        }).done(jQuery.proxy(function(ud) {
+                            magic.modules.Common.populateSelect(jQuery("#" + this.id + "-list"), ud, "id", "title", false);
+                            /* Disable irrelevant buttons */
+                            loadBtn.prop("disabled", ud.length == 0);
+                            editBtn.prop("disabled", ud.length == 0);
+                            delBtn.prop("disabled", ud.length == 0);
+                        }, this));
+                    })
+                    .fail(function (xhr, status) {
+                        var detail = JSON.parse(xhr.responseText)["detail"];
+                        bootbox.alert(
+                            '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                                '<p>Failed to delete user map - details below:</p>' + 
+                                '<p>' + detail + '</p>' + 
+                            '</div>'
+                        );
+                    });                   
+                    bootbox.hideAll();
                 } else {
-                    ttInp.closest("div.form-group").removeClass("has-error");
-                    var formdata = {
-                        id: idHid.val(),
-                        title: ttInp.val(),
-                        basemap: bmHid.val() || magic.runtime.mapname,
-                        data: this.mapPayload()
-                    };
-                    var saveUrl = magic.config.paths.baseurl + "/usermaps/" + (formdata.id ? "update/" + formdata.id : "save");                
-                    var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content");               
-                    jQuery.ajax({
-                        url: saveUrl, 
-                        data: JSON.stringify(formdata), 
-                        method: "POST",
-                        dataType: "json",
-                        contentType: "application/json",
-                        headers: {
-                            "X-CSRF-TOKEN": csrfHeaderVal
-                        },
-                        success: jQuery.proxy(function(response) {
-                            magic.modules.Common.buttonClickFeedback(this.id, response.status < 400, response.detail); 
-                            loadBtn.prop("disabled", false);
-                            editBtn.prop("disabled", false);
-                            delBtn.prop("disabled", false);
-                            dd.prop("disabled", false);
-                            setTimeout(function() {
-                                editForm.addClass("hidden");
-                            }, 1000);
-                        }, this)
-                    });
-                }                
-            }, this));
-            /* Cancel button */
-            cancBtn.click(jQuery.proxy(function() {
-                favFrm[0].reset();
-                editForm.addClass("hidden");
-                loadBtn.prop("disabled", false);
-                editBtn.prop("disabled", false);
-                delBtn.prop("disabled", false);
-                dd.prop("disabled", false);                
-            }, this));
-            /* Close button */
-            jQuery(".favourites-popover").find("button.close").click(jQuery.proxy(function() { 
-                this.target.popover("hide");
-            }, this));
-            /* Disable irrelevant buttons */
-            loadBtn.prop("disabled", data.length == 0);
-            editBtn.prop("disabled", data.length == 0);
-            delBtn.prop("disabled", data.length == 0);
-        }, this)).fail(function(data) {            
-        });
+                    bootbox.hideAll();
+                }                            
+            });               
+        }, this));
+        /* Save button */
+        jQuery("#" + this.id + "-go").click(jQuery.proxy(function() {
+            if (ttInp[0].checkValidity() === false) {
+                ttInp.closest("div.form-group").addClass("has-error");
+            } else {
+                ttInp.closest("div.form-group").removeClass("has-error");
+                var formdata = {
+                    id: idHid.val(),
+                    title: ttInp.val(),
+                    basemap: bmHid.val() || magic.runtime.mapname,
+                    data: this.mapPayload()
+                };
+                var saveUrl = magic.config.paths.baseurl + "/usermaps/" + (formdata.id ? "update/" + formdata.id : "save");                
+                var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content");               
+                jQuery.ajax({
+                    url: saveUrl, 
+                    data: JSON.stringify(formdata), 
+                    method: "POST",
+                    dataType: "json",
+                    contentType: "application/json",
+                    headers: {
+                        "X-CSRF-TOKEN": csrfHeaderVal
+                    },
+                    success: jQuery.proxy(function(response) {
+                        magic.modules.Common.buttonClickFeedback(this.id, response.status < 400, response.detail); 
+                        loadBtn.prop("disabled", false);
+                        editBtn.prop("disabled", false);
+                        delBtn.prop("disabled", false);
+                        dd.prop("disabled", false);
+                        setTimeout(function() {
+                            editForm.addClass("hidden");
+                        }, 1000);
+                        this.fetchMaps();
+                    }, this)
+                });
+            }                
+        }, this));
+        /* Cancel button */
+        cancBtn.click(jQuery.proxy(function() {
+            favFrm[0].reset();
+            editForm.addClass("hidden");
+            loadBtn.prop("disabled", false);
+            editBtn.prop("disabled", false);
+            delBtn.prop("disabled", false);
+            dd.prop("disabled", false);                
+        }, this));
+        /* Close button */
+        jQuery(".favourites-popover").find("button.close").click(jQuery.proxy(function() { 
+            this.target.popover("hide");
+        }, this));                
     }, this));           
+};
+
+/**
+ * Fetch data on bookmarked maps 
+ */
+magic.classes.Favourites.prototype.fetchMaps = function() {
+    jQuery.ajax({
+        url: magic.config.paths.baseurl + "/usermaps/data",
+        method: "GET",
+        dataType: "json"
+    }).done(jQuery.proxy(function(data) {
+        this.user_map_data = data;
+        /* Populate dropdown list of available maps */
+        magic.modules.Common.populateSelect(jQuery("#" + this.id + "-list"), data, "id", "title", false);                        
+        /* Disable irrelevant buttons */
+        loadBtn.prop("disabled", data.length == 0);
+        editBtn.prop("disabled", data.length == 0);
+        delBtn.prop("disabled", data.length == 0);
+    }, this)).fail(function(data) {            
+    });
 };
 
 /**
