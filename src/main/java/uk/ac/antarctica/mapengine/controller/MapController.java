@@ -424,7 +424,7 @@ public class MapController implements ServletContextAware {
                 PGobject dataObject = new PGobject();
                 dataObject.setType("json");
                 dataObject.setValue(jo.get("data").toString());
-                String sql = "INSERT INTO " + env.getProperty("postgres.local.mapsTable") + " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                String sql = "INSERT INTO " + env.getProperty("postgres.local.mapsTable") + " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
                 magicDataTpl.update(sql, new Object[] {
                     UUID.randomUUID().toString(),
                     jo.get("name").getAsString(),
@@ -444,7 +444,10 @@ public class MapController implements ServletContextAware {
                     dataObject,
                     jo.get("allowed_usage").getAsString(),
                     jo.get("allowed_download").getAsString(),
-                    jo.get("allowed_edit").getAsString()
+                    jo.get("allowed_edit").getAsString(),
+                    jo.get("infolink").getAsString(),
+                    jo.get("newslink").getAsString(),
+                    jo.get("watermark").getAsString()
                 });
                 ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Successfully saved");
             } catch(DataAccessException dae) {
@@ -498,7 +501,11 @@ public class MapController implements ServletContextAware {
                         "data=?, " + 
                         "allowed_usage=?, " +
                         "allowed_download=?, " +
-                        "allowed_edit=? WHERE id=?";
+                        "allowed_edit=?, " + 
+                        "infolink=?, " + 
+                        "newslink=?, " + 
+                        "watermark=? " + 
+                        "WHERE id=?";
                     magicDataTpl.update(sql, new Object[] {
                         jo.get("name").getAsString(),
                         jo.get("title").getAsString(),
@@ -516,6 +523,9 @@ public class MapController implements ServletContextAware {
                         jo.get("allowed_usage").getAsString(),
                         jo.get("allowed_download").getAsString(),
                         jo.get("allowed_edit").getAsString(),
+                        jo.get("infolink").getAsString(),
+                        jo.get("newslink").getAsString(),
+                        jo.get("watermark").getAsString(),
                         id
                     });
                     ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Successfully updated");

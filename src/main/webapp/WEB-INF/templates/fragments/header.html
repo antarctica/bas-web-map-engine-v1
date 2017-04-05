@@ -27,7 +27,6 @@
             magic.runtime.username = [[${username}]];
             magic.runtime.usermapid = [[${usermapid}]];
             magic.runtime.issuedata = JSON.parse([[${issuedata}]]);
-            magic.runtime.watermark = [[${watermark}]];
             /*]]>*/
         </script>
         <script type="text/javascript">
@@ -69,12 +68,7 @@
             }
 
             jQuery(document).ready(function () {                
-                fetchPayload();
-                /* Display watermark */
-                var wmkDiv = jQuery("div.watermark"); 
-                if (wmkDiv.length > 0) {
-                    wmkDiv.append('<img src="' + magic.config.paths.baseurl + "/static/images/watermarks/" + magic.runtime.watermark + '" alt="watermark" />');
-                }
+                fetchPayload();               
             });
             /*]]>*/
         </script>
@@ -158,7 +152,6 @@
             magic.runtime.username = [[${username}]];
             magic.runtime.usermapid = [[${usermapid}]];
             magic.runtime.issuedata = JSON.parse([[${issuedata}]]);
-            magic.runtime.watermark = [[${watermark}]];
             magic.runtime.debug = [[${debug}]];
             /*]]>*/
         </script>
@@ -195,12 +188,7 @@
             }
 
             jQuery(document).ready(function () {                
-                fetchPayload();
-                /* Display watermark */
-                var wmkDiv = jQuery("div.watermark"); 
-                if (wmkDiv.length > 0) {
-                    wmkDiv.append('<img src="' + magic.config.paths.baseurl + "/static/images/watermarks/" + magic.runtime.watermark + '" alt="watermark" />');
-                }
+                fetchPayload();                
             });
             /*]]>*/
         </script>

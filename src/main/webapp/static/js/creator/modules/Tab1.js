@@ -14,6 +14,7 @@ magic.modules.creator.Tab1 = function () {
             {"field": "infolink", "default": "http://"},
             {"field": "newslink", "default": "http://"},
             {"field": "logo", "default": "http://"},
+            {"field": "watermark", "default": "http://"},
             {"field": "metadata_url", "default": "http://"},
             {"field": "version", "default": "1.0"},
             {"field": "owner_email", "default": "mapowner@bas.ac.uk"}

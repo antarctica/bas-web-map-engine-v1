@@ -347,7 +347,6 @@ public class HomeController {
         String logo = env.getProperty("default.logo") != null ? env.getProperty("default.logo") : "/static/images/1x1.png";
         String logoUrl = env.getProperty("default.logoUrl") != null ? env.getProperty("default.logoUrl") : "Javascript:void(0)";
         String backgroundColor = env.getProperty("default.backgroundColor") != null ? env.getProperty("default.backgroundColor") : "#ffffff";
-        String watermark = env.getProperty("default.watermark") != null ? env.getProperty("default.watermark") : "1x1.png";
         switch (tplName) {
             case "home":                
                 message = "Public home page";
@@ -392,7 +391,6 @@ public class HomeController {
         model.addAttribute("logo", logo);
         model.addAttribute("logourl", logoUrl);
         model.addAttribute("background", backgroundColor);
-        model.addAttribute("watermark", watermark);
         ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", message);
         return(tplName);        
     }

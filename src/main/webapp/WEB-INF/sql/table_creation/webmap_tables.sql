@@ -58,6 +58,9 @@ CREATE TABLE webmap.maps
   allowed_usage character varying(10),
   allowed_download character varying(10),
   allowed_edit character varying(10),
+  infolink character varying(255),   
+  newslink character varying(255),
+  watermark character varying(255),
   CONSTRAINT maps_pkey PRIMARY KEY (id),
   CONSTRAINT maps_name_unique UNIQUE (name)
 )

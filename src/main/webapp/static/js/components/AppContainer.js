@@ -319,6 +319,15 @@ magic.classes.AppContainer = function () {
     /* Add all the markup and layers for autoload groups */
     magic.runtime.layertree.initAutoLoadGroups(magic.runtime.map);
     
+    /* Display watermark if required */
+    var wmkUrl = magic.runtime.map_context.watermark;
+    if (wmkUrl) {
+        var wmkDiv = jQuery("div.watermark"); 
+        if (wmkDiv.length > 0) {
+            wmkDiv.append('<img src="' + wmkUrl + '" alt="watermark" />');
+        }
+    }
+    
     /* Display any announcement required */
     var announce_content = magic.runtime.map_context.newslink;
     if (announce_content) {
