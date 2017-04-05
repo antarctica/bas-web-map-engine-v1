@@ -68,33 +68,9 @@
                 });
             }
 
-            jQuery(document).ready(function () {
-                /* Test whether general announcement is needed for all applications */
-                var announcement = jQuery("#announcement-all");
-                var cookieName = "announcement_seen_all";
-                if (announcement.length == 0) {
-                    var qry = window.location.href.indexOf("?");
-                    var app = window.location.href.substring(window.location.href.lastIndexOf("/")+1, qry == -1 ? window.location.href.length : qry);
-                    announcement = jQuery("#announcement-" + app);
-                    cookieName = "announcement_seen_" + app;
-                }
-                if (announcement.length != 0) {
-                    /* Need to display an announcement */
-                    var announceModal = jQuery("#announcement-modal");
-                    if (announceModal.length > 0 && getCookie(cookieName) == "") {
-                        announcement.removeClass("hidden");
-                        announceModal.find(".modal-body").prepend(announcement);
-                        jQuery("#announcement-close").on("click", function(evt) {
-                            if (jQuery("#announcement-dismiss").prop("checked")) {
-                                setCookie(cookieName, "yes", 1000);
-                            }
-                            announceModal.modal("hide");
-                        });
-                        announceModal.modal("show");
-                    }
-                }
+            jQuery(document).ready(function () {                
                 fetchPayload();
-                /* Display watermnark */
+                /* Display watermark */
                 var wmkDiv = jQuery("div.watermark"); 
                 if (wmkDiv.length > 0) {
                     wmkDiv.append('<img src="' + magic.config.paths.baseurl + "/static/images/watermarks/" + magic.runtime.watermark + '" alt="watermark" />');
@@ -218,33 +194,9 @@
                 });
             }
 
-            jQuery(document).ready(function () {
-                /* Test whether general announcement is needed for all applications */
-                var announcement = jQuery("#announcement-all");
-                var cookieName = "announcement_seen_all";
-                if (announcement.length == 0) {
-                    var qry = window.location.href.indexOf("?");
-                    var app = window.location.href.substring(window.location.href.lastIndexOf("/")+1, qry == -1 ? window.location.href.length : qry);
-                    announcement = jQuery("#announcement-" + app);
-                    cookieName = "announcement_seen_" + app;
-                }
-                if (announcement.length != 0) {
-                    /* Need to display an announcement */
-                    var announceModal = jQuery("#announcement-modal");
-                    if (announceModal.length > 0 && getCookie(cookieName) == "") {
-                        announcement.removeClass("hidden");
-                        announceModal.find(".modal-body").prepend(announcement);
-                        jQuery("#announcement-close").on("click", function(evt) {
-                            if (jQuery("#announcement-dismiss").prop("checked")) {
-                                setCookie(cookieName, "yes", 1000);
-                            }
-                            announceModal.modal("hide");
-                        });
-                        announceModal.modal("show");
-                    }
-                }
+            jQuery(document).ready(function () {                
                 fetchPayload();
-                /* Display watermnark */
+                /* Display watermark */
                 var wmkDiv = jQuery("div.watermark"); 
                 if (wmkDiv.length > 0) {
                     wmkDiv.append('<img src="' + magic.config.paths.baseurl + "/static/images/watermarks/" + magic.runtime.watermark + '" alt="watermark" />');

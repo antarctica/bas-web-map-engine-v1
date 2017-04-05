@@ -319,6 +319,23 @@ magic.classes.AppContainer = function () {
     /* Add all the markup and layers for autoload groups */
     magic.runtime.layertree.initAutoLoadGroups(magic.runtime.map);
     
+    /* Display any announcement required */
+    var announce_content = magic.runtime.map_context.newslink;
+    if (announce_content) {
+        /* Show the announcement unless cookie has been set */
+        var announceModal = jQuery("#announcement-modal");
+        var cookieName = "announcement_seen_all";
+        if (announceModal.length > 0 && getCookie(cookieName) == "") {
+            announceModal.find(".modal-body").html('<object data="' + announce_content + '"></object>');
+            jQuery("#announcement-close").on("click", function(evt) {
+                if (jQuery("#announcement-dismiss").prop("checked")) {
+                    setCookie(cookieName, "yes", 1000);
+                }
+                announceModal.modal("hide");
+            });
+            announceModal.modal("show");
+        }
+    }
 };
 
 /**

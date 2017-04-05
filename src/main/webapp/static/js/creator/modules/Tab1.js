@@ -11,6 +11,8 @@ magic.modules.creator.Tab1 = function () {
             {"field": "name","default": "new_map"},
             {"field": "title", "default": "New blank map"},
             {"field": "description", "default": "Longer description of the purpose of the map goes here"},
+            {"field": "infolink", "default": "http://"},
+            {"field": "newslink", "default": "http://"},
             {"field": "logo", "default": "http://"},
             {"field": "metadata_url", "default": "http://"},
             {"field": "version", "default": "1.0"},

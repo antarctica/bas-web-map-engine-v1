@@ -107,6 +107,30 @@
         "description": {
             "description": "Long description of map",
             "type": "string"
+        },        
+        "infolink": {
+            "description": "Web page to display via the map information tool",
+            "anyOf": [
+                {
+                    "type": "string",
+                    "format": "uri"
+                },
+                {
+                    "type": ["string", "null"]
+                }
+            ]
+        },
+        "newslink": {
+            "description": "Web page to display in user announcement on map access",
+            "anyOf": [
+                {
+                    "type": "string",
+                    "format": "uri"
+                },
+                {
+                    "type": ["string", "null"]
+                }
+            ]
         },
         "version": {
             "description": "version",
