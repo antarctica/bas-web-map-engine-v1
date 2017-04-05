@@ -38,10 +38,7 @@ magic.classes.AppContainer = function () {
     magic.runtime.layertree = new magic.classes.LayerTree("layer-tree");
     
     /* User unit preferences */
-    magic.runtime.preferences = new magic.classes.UserPreferences({target: "unit-prefs", preferences: magic.runtime.preferencedata});
-    
-    /* Map switcher */
-    magic.runtime.mapswitcher = new magic.classes.MapSwitcher({target: "map-switcher"});
+    magic.runtime.preferences = new magic.classes.UserPreferences({target: "unit-prefs", preferences: magic.runtime.preferencedata});   
     
     /* Issue information panel */
     magic.runtime.issueinfo = new magic.classes.IssueInformation({target: "issue-info"});
@@ -154,7 +151,7 @@ magic.classes.AppContainer = function () {
     
     /* Switch map tool */
     magic.runtime.mapswitcher = null;
-    if (magic.runtime.username != "guest") {// && jQuery.inArray("mapswitcher", magic.runtime.mapdata.controls) != -1) {
+    if (magic.runtime.username != "guest") && jQuery.inArray("mapswitcher", magic.runtime.mapdata.controls) != -1) {
         /* Activate map switcher tool */
         magic.runtime.mapswitcher = new magic.classes.MapSwitcher({target: "map-switcher-tool"});
     } else {

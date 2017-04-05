@@ -25,8 +25,7 @@ magic.classes.MapSwitcher = function(options) {
     this.content = 
         '<div id="' + this.id + '-content">' +                                   
             '<form class="form-horizontal" style="width: 300px">' +                            
-                '<div class="form-group form-group-sm col-sm-12">' +
-                    '<label  for="' + this.id + '-view-list">Load</label>' + 
+                '<div style="margin-bottom: 0px" class="form-group form-group-sm col-sm-12">' +
                     '<div class="input-group">' + 
                         '<select id="' + this.id + '-view-list" class="form-control">' +                               
                         '</select>' + 

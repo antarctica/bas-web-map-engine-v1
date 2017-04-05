@@ -30,20 +30,19 @@
                             Interactive map rotation
                         </label>
                         <label class="checkbox-inline">
+                            <input type="checkbox" name="t3-controls" value="feature_info"
+                                   data-toggle="tooltip" data-placement="top" title="Enable pop-ups of attributes on clicked features"></input>
+                            Pop-up tool
+                        </label>    
+                        <!-- Commented out as the OL graticule control is buggy at high S latitudes -->
+                        <!--<label class="checkbox-inline">
                             <input type="checkbox" name="t3-controls" value="graticule"
                                    data-toggle="tooltip" data-placement="top" title="Enable automatic graticule (South Georgia only)"></input>
                             Automatic graticule
-                        </label>      
-                        <label class="checkbox-inline">
-                            <input type="checkbox" name="t3-controls" value="overview_map"
-                                   data-toggle="tooltip" data-placement="top" title="Enable an inset overview map"></input>
-                            Overview map
-                        </label>      
-                    </div>
-                    <div class="col-sm-12 form-inline">                        
+                        </label>-->                                                          
                         <label class="checkbox-inline">
                             <input type="checkbox" name="t3-controls" value="geolocation"
-                                   data-toggle="tooltip" data-placement="top" title="Show my position"></input>
+                                   data-toggle="tooltip" data-placement="top" title="Show my position according to device GPS"></input>
                             Current device position
                         </label>
                         <label class="checkbox-inline">
@@ -61,7 +60,7 @@
             </div>
             <div class="panel panel-primary">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Select which pop-up features should be added the top menu-bar</h3>
+                    <h3 class="panel-title">Select which tools should be added the top menu-bar</h3>
                 </div>
                 <div class="panel-body">                    
                     <div class="col-sm-12 form-inline">
@@ -69,32 +68,39 @@
                             <input type="checkbox" name="t3-controls" value="geosearch"
                                    data-toggle="tooltip" data-placement="top" title="Add the ability to search gazetteer(s) of place-names for this area"></input>
                             Geosearch tool
-                        </label>
+                        </label>                            
+                        <label class="checkbox-inline">
+                            <input type="checkbox" name="t3-controls" value="measurement"
+                                   data-toggle="tooltip" data-placement="top" title="Enable measurement of distances, areas and elevations (if a DEM layer is included)"></input>
+                            Measurement tool
+                        </label> 
+                        <label class="checkbox-inline">
+                            <input type="checkbox" name="t3-controls" value="overview_map"
+                                   data-toggle="tooltip" data-placement="top" title="Enable an inset overview map"></input>
+                            Overview map
+                        </label> 
                         <label class="checkbox-inline">
                             <input type="checkbox" name="t3-controls" value="download_data"
                                    data-toggle="tooltip" data-placement="top" title="Enable download of underlying data"></input>
                             Data download tool
                         </label>
+                    </div>
+                    <div class="col-sm-12 form-inline">
                         <label class="checkbox-inline">
-                            <input type="checkbox" name="t3-controls" value="measurement"
-                                   data-toggle="tooltip" data-placement="top" title="Enable measurement of distances, areas and elevations (if a DEM layer is included)"></input>
-                            Measurement tool
-                        </label>      
-                        <label class="checkbox-inline">
-                            <input type="checkbox" name="t3-controls" value="feature_info"
-                                   data-toggle="tooltip" data-placement="top" title="Enable pop-ups of attributes on clicked features"></input>
-                            Pop-up tool
-                        </label>      
-                        <label class="checkbox-inline">
-                            <input type="checkbox" name="t3-controls" value="feedback"
-                                   data-toggle="tooltip" data-placement="top" title="Enable user feedback for data and interface problems"></input>
-                            User feedback tool
+                            <input type="checkbox" name="t3-controls" value="mapswitcher"
+                                   data-toggle="tooltip" data-placement="top" title="Enable loading of other map views from the server"></input>
+                            Map switcher
                         </label>
                         <label class="checkbox-inline">
                             <input type="checkbox" name="t3-controls" value="favourites"
                                    data-toggle="tooltip" data-placement="top" title="Enable logged-in users to save favourite maps"></input>
                             Favourite maps
-                        </label>
+                        </label>                          
+                        <label class="checkbox-inline">
+                            <input type="checkbox" name="t3-controls" value="feedback"
+                                   data-toggle="tooltip" data-placement="top" title="Enable user feedback for data and interface problems"></input>
+                            User feedback tool
+                        </label>                        
                     </div>
                 </div>
             </div>

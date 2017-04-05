@@ -44,7 +44,7 @@
                     </li>
                     <li data-toggle="tooltip" data-placement="bottom" title="Switch map view">
                         <a id="map-switcher-tool" href="JavaScript:void(0)" role="button" data-toggle="popover" data-placement="bottom">
-                            <span class="navbar-tool-btn fa fa-map"></span><span></span> 
+                            <span class="navbar-tool-btn fa fa-map"></span><span class="hidden-sm"></span> 
                         </a>       
                     </li>
                     <li data-toggle="tooltip" data-placement="bottom" title="Favourite maps">
@@ -64,11 +64,7 @@
                         <a href="Javascript:void(0)" class="dropdown-toggle" data-toggle="dropdown">
                             <i class="fa fa-user"></i><span th:inline="text"> Not logged in</span><b class="caret"></b>
                         </a>
-                        <ul class="dropdown-menu" style="width:300px">
-                            <li>
-                                <a id="map-switcher" href="Javascript:void(0)"><i class="fa fa-map"></i> Switch map view</a>
-                                <div class="hidden"></div>
-                            </li>                           
+                        <ul class="dropdown-menu" style="width:300px">                                                  
                             <li>
                                 <a id="log-in-user" href="/login"><i class="fa fa-user"></i> Log In</a>
                             </li>                            
@@ -79,11 +75,7 @@
                         <a href="Javascript:void(0)" class="dropdown-toggle" data-toggle="dropdown">
                             <i class="fa fa-user"></i><span th:inline="text"> Logged in as [[${#httpServletRequest.remoteUser}]]</span><b class="caret"></b>
                         </a>
-                        <ul class="dropdown-menu" style="width:300px">
-                            <li>
-                                <a id="map-switcher" href="Javascript:void(0)"><i class="fa fa-map"></i> Switch map view</a>
-                                <div class="hidden"></div>
-                            </li>
+                        <ul class="dropdown-menu" style="width:300px">                            
                             <li>
                                 <a id="issue-info" href="Javascript:void(0)"><i class="fa fa-bug"></i> Issue information</a>
                                 <div class="hidden"></div>
