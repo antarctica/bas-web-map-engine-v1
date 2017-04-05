@@ -152,6 +152,16 @@ magic.classes.AppContainer = function () {
         jQuery("#feedback-tool").closest("li").hide();
     }
     
+    /* Switch map tool */
+    magic.runtime.mapswitcher = null;
+    if (magic.runtime.username != "guest") {// && jQuery.inArray("mapswitcher", magic.runtime.mapdata.controls) != -1) {
+        /* Activate map switcher tool */
+        magic.runtime.mapswitcher = new magic.classes.MapSwitcher({target: "map-switcher-tool"});
+    } else {
+        /* Hide the user feedback button */
+        jQuery("#map-switcher-tool").closest("li").hide();
+    }
+    
     /* User favourites tool */
     magic.runtime.favourites = null;
     if (magic.runtime.username != "guest" && jQuery.inArray("favourites", magic.runtime.mapdata.controls) != -1) {

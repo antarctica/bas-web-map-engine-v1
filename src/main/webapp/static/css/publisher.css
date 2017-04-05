@@ -48,3 +48,8 @@ div.table .file-row:nth-child(odd) {
 #publish-previews .file-row.dz-success .publish-delete {
     display: block;
 }
+
+img.applogo {
+    float: left; 
+    margin-left: 5px
+}
