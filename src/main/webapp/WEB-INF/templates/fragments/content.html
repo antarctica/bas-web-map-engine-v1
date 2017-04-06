@@ -57,6 +57,11 @@
                             <span class="navbar-tool-btn fa fa-comment"></span><span class="hidden-sm"></span> 
                         </a>       
                     </li>
+                    <li data-toggle="tooltip" data-placement="bottom" title="Map information and credits">
+                        <a id="info-tool" href="JavaScript:void(0)" role="button" data-toggle="modal" data-target="#information-modal">
+                            <span class="navbar-tool-btn fa fa-info-circle"></span><span class="hidden-sm"></span> 
+                        </a>       
+                    </li>
                 </ul>                                
                 <ul class="nav navbar-right top-nav hidden" th:switch="${#httpServletRequest.remoteUser}">
                     <li id="user-menu" class="dropdown" th:case="null">
@@ -102,6 +107,49 @@
             <div id="map-container">            
                 <div id="map"></div>
                 <div id="geolocation" class="marker hidden"><span style="color:#0000ff; font-size:24px" class="fa fa-arrow-circle-o-up"></span></div>
+            </div>
+            
+            <!-- Information modal -->
+            <div class="modal fade" id="information-modal" tabindex="-1" role="dialog" aria-hidden="true">
+                <div class="modal-dialog modal-sm">
+                    <div class="modal-content" style="width:400px">                        
+                        <div class="modal-body information-content"> 
+                            <div role="tabpanel">
+                                <ul class="nav nav-tabs" role="tablist">
+                                    <li role="presentation" class="active">
+                                        <a role="tab" data-toggle="tab" href="#information-background">Map information</a>
+                                    </li>
+                                    <li role="presentation">
+                                        <a role="tab" data-toggle="tab" href="#information-credits">Software credits</a>
+                                    </li>
+                                </ul>
+                                <div class="tab-content">
+                                    <div id="information-background" role="tabpanel" class="tab-pane active">
+                                        Loading map information...
+                                    </div>
+                                    <div id="information-credits" style="padding-top:10px" role="tabpanel" class="tab-pane">                                      
+                                        <div class="well well-sm">
+                                            Client-side mapping by <a href="http://openlayers.org/">OpenLayers</a> supported by
+                                            <a href="http://getbootstrap.com/">Bootstrap</a> and <a href="http://jquery.com/">jQuery</a>
+                                        </div>
+                                        <div class="well well-sm">
+                                            Server-side mapping provided by <a href="http://geoserver.org/">GeoServer</a> backed by 
+                                            <a href="https://www.postgresql.org/">PostgreSQL</a> with the <a href="http://postgis.net/">PostGIS</a> extension
+                                        </div>
+                                        <div class="well well-sm" style="margin-bottom:0px">
+                                           Hosted and developed using exclusively Open Source software at 
+                                           <a href="https://www.bas.ac.uk">British Antarctic Survey (BAS)</a>.
+                                           BAS is a component of the <a href="http://www.nerc.ac.uk/">Natural Environment Research Council (NERC)</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer information-footer">
+                            <button type="button" class="btn-sm btn-primary" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
         </div>

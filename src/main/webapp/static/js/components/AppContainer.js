@@ -89,6 +89,9 @@ magic.classes.AppContainer = function () {
     /* Create an attribution modal for legend/metadata */
     magic.runtime.attribution = new magic.classes.AttributionModal({target: "attribution-modal"});
     
+    /* Create information modal */
+    magic.runtime.mapinfo = new magic.classes.InfoModal({target: "information-modal", infolink: magic.runtime.map_context.infolink});
+    
     /* Create WGS84 inset map with single OSM layer */
     magic.runtime.inset = new magic.classes.InsetMap({});
 
