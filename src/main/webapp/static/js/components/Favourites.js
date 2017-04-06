@@ -38,15 +38,15 @@ magic.classes.Favourites = function(options) {
                     '</div>' + 
                 '</div>' + 
                 '<div class="form-group form-group-sm col-sm-12">' +
-                    '<button id="' + this.id + '-add" class="btn btn-primary" type="button" ' + 
+                    '<button id="' + this.id + '-add" class="btn btn-sm btn-primary" type="button" ' + 
                         'data-toggle="tooltip" data-placement="top" title="Add current map to favourites">' + 
                         '<span class="fa fa-star"></span> Add' + 
                     '</button>' +          
-                    '<button id="' + this.id + '-edit" class="btn btn-warning" type="button" style="margin-left:5px" ' + 
+                    '<button id="' + this.id + '-edit" class="btn btn-sm btn-warning" type="button" style="margin-left:5px" ' + 
                         'data-toggle="tooltip" data-placement="top" title="Update title of selected map">' + 
                         '<span class="fa fa-pencil"></span> Edit' + 
                     '</button>' + 
-                    '<button id="' + this.id + '-delete" class="btn btn-danger" type="button" style="margin-left:5px" ' + 
+                    '<button id="' + this.id + '-delete" class="btn btn-sm btn-danger" type="button" style="margin-left:5px" ' + 
                         'data-toggle="tooltip" data-placement="top" title="Delete selected map">' + 
                         '<span class="fa fa-times-circle"></span> Delete' + 
                     '</button>' + 
@@ -64,7 +64,7 @@ magic.classes.Favourites = function(options) {
                     '</div>' +
                     '<div class="form-group form-group-sm col-sm-12">' +
                         magic.modules.Common.buttonFeedbackSet(this.id, "Save map state") +                         
-                        '<button id="' + this.id + '-cancel" class="btn btn-default btn-danger" type="button" ' + 
+                        '<button id="' + this.id + '-cancel" class="btn btn-sm btn-danger" type="button" ' + 
                             'data-toggle="tooltip" data-placement="right" title="Cancel">' + 
                             '<span class="fa fa-times-circle"></span> Cancel' + 
                         '</button>' +                        

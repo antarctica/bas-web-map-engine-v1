@@ -329,20 +329,36 @@ magic.classes.AppContainer = function () {
     }
     
     /* Display any announcement required */
-    var announce_content = magic.runtime.map_context.newslink;
-    if (announce_content) {
+    var announceContent = magic.runtime.map_context.newslink;
+    if (announceContent) {
         /* Show the announcement unless cookie has been set */
         var announceModal = jQuery("#announcement-modal");
-        var cookieName = "announcement_seen_all";
-        if (announceModal.length > 0 && getCookie(cookieName) == "") {
-            announceModal.find(".modal-body").html('<object data="' + announce_content + '"></object>');
-            jQuery("#announcement-close").on("click", function(evt) {
-                if (jQuery("#announcement-dismiss").prop("checked")) {
-                    setCookie(cookieName, "yes", 1000);
-                }
-                announceModal.modal("hide");
-            });
-            announceModal.modal("show");
+        var cookieName = "announcement_seen_" + magic.runtime.map_context.name;
+        if (announceModal.length > 0 && getCookie(cookieName) == "" && announceContent) {
+            if (announceContent.indexOf(magic.config.paths.baseurl) != 0) {
+                announceContent = magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(announceContent);
+            }
+            var modalBody = announceModal.find(".modal-body");
+            var contentDiv = modalBody.find("#announcement-content");
+            if (contentDiv.length > 0) {
+                contentDiv.load(announceContent, function(html, status) {
+                    if (status == "success") {
+                        /* Resize the modal */
+                        modalBody.css({
+                            width: "auto",
+                            height: "auto", 
+                            "max-height": "90%"
+                        });
+                    }
+                });
+                jQuery("#announcement-close").on("click", function(evt) {
+                    if (jQuery("#announcement-dismiss").prop("checked")) {
+                        setCookie(cookieName, "yes", 1000);
+                    }
+                    announceModal.modal("hide");
+                });
+                announceModal.modal("show");
+            }
         }
     }
 };

@@ -141,6 +141,18 @@
             "type": "string",
             "format": "uri"
         },
+        "watermark": {
+            "description": "Full URL of image to be used as a watermark bottom right of map",
+            "anyOf": [
+                {
+                    "type": "string",
+                    "format": "uri"
+                },
+                {
+                    "type": ["string", "null"]
+                }
+            ]
+        },
         "favicon": {
             "description": "Path to favicon .ico image",
             "type": "string",

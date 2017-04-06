@@ -4,13 +4,8 @@
 
 package uk.ac.antarctica.mapengine.controller;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import it.geosolutions.geoserver.rest.HTTPUtils;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.security.KeyManagementException;
@@ -28,7 +23,6 @@ import javax.net.ssl.X509TrustManager;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -62,7 +56,7 @@ public class ProxyController {
     Environment env;
     
     private static final String[] ALLOWED_HOSTS = new String[]{
-        "ccamlr.org", "polarview.aq", "marine-geo.org", "bluehabitats.org", "gov.gs", "aad.gov.au", "ac.uk"
+        "ccamlr.org", "polarview.aq", "marine-geo.org", "bluehabitats.org", "gov.gs", "aad.gov.au", "ac.uk", "scar.org"
     };
     
     private static final HashMap<String, String> CREDENTIALS = new HashMap();

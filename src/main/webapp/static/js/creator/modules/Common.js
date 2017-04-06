@@ -216,6 +216,9 @@ magic.modules.creator.Common = function () {
                 if (input.attr("type") == "checkbox" || input.attr("type") == "radio") {
                     /* Set the "checked" property */
                     input.prop("checked", !data ? defval : (name in data ? (data[name] === true ? true : false) : defval));
+                } else if (input.attr("type") == "url") {
+                    /* Fiddly case of URLs - use an empty default */
+                    input.val(!data ? defval : (name in data ? data[name] : ""));
                 } else {
                     /* Simple case */
                     input.val(!data ? defval : (name in data ? data[name] : defval));

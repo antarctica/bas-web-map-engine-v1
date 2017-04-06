@@ -107,7 +107,7 @@ magic.classes.UserPreferences = function(options) {
                             '</div>' +
                             '<div class="form-group form-group-sm col-sm-12" style="padding-left:30px">' +
                                 magic.modules.Common.buttonFeedbackSet(this.target, "Set preferences") +                         
-                                '<button id="' + this.target + '-cancel" class="btn btn-default btn-danger" type="button" ' + 
+                                '<button id="' + this.target + '-cancel" class="btn btn-sm btn-danger" type="button" ' + 
                                     'data-toggle="tooltip" data-placement="right" title="Cancel">' + 
                                     '<span class="fa fa-times-circle"></span>&nbsp;Cancel' + 
                                 '</button>' +                        
