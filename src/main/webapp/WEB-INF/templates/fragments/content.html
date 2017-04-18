@@ -17,7 +17,7 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
-                    <a id="appurl" href="Javascript:void(0)" target="_blank"><img id="applogo" class="applogo" src="/static/images/1x1.png" width="50" height="50" /></a>
+                    <a id="appurl" href="Javascript:void(0)" target="_blank"><img id="applogo" class="applogo" th:src="@{/static/images/} + ${logo}" width="50" height="50" /></a>
                     <a class="navbar-brand" id="apptitle" href="Javascript:void(0)"></a>
                 </div>
                 <!-- Top Menu Items -->
@@ -112,7 +112,7 @@
             <!-- Information modal -->
             <div class="modal fade" id="information-modal" tabindex="-1" role="dialog" aria-hidden="true">
                 <div class="modal-dialog modal-sm">
-                    <div class="modal-content" style="width:400px">                        
+                    <div class="modal-content" style="width:600px">                        
                         <div class="modal-body information-content"> 
                             <div role="tabpanel">
                                 <ul class="nav nav-tabs" role="tablist">
@@ -136,11 +136,16 @@
                                             Server-side mapping provided by <a href="http://geoserver.org/">GeoServer</a> backed by 
                                             <a href="https://www.postgresql.org/">PostgreSQL</a> with the <a href="http://postgis.net/">PostGIS</a> extension
                                         </div>
-                                        <div class="well well-sm" style="margin-bottom:0px">
+                                        <div class="well well-sm">
                                            Hosted and developed using exclusively Open Source software at 
                                            <a href="https://www.bas.ac.uk">British Antarctic Survey (BAS)</a>.
                                            BAS is a component of the <a href="http://www.nerc.ac.uk/">Natural Environment Research Council (NERC)</a>
                                         </div>
+                                        <div class="well well-sm" style="margin-bottom:0px">
+                                            Contact <a href="https://www.bas.ac.uk/profile/darb1/">David Herbert</a> at BAS for further information
+                                            about the software infrastructure                                          
+                                        </div>
+                                        
                                     </div>
                                 </div>
                             </div>

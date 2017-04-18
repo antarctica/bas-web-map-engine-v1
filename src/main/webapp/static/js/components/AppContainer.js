@@ -373,7 +373,10 @@ magic.classes.AppContainer.prototype.initMapMetadata = function() {
     var context = magic.runtime.map_context;
     jQuery("#apptitle").text(context.title);
     jQuery(document).attr("title", context.title);
-    jQuery("#applogo").attr("src", context.logo || magic.config.paths.baseurl + "/static/images/bas.png");
+    jQuery("meta[name='description']").attr("content", context.title);
+    if (context.logo) {
+        jQuery("#applogo").attr("src", context.logo);
+    }
     jQuery("#appurl").attr("href", context.metadata_url);
     jQuery("link[rel='icon']").attr("href", magic.config.paths.baseurl + "/" + context.favicon);
     jQuery("link[rel='shortcut icon']").attr("href", magic.config.paths.baseurl + "/" + context.favicon);

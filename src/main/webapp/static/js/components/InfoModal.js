@@ -8,8 +8,7 @@ magic.classes.InfoModal = function(options) {
     this.infolink = options.infolink || null;
     
     /* Internal */
-    this.mapinfo = null;
-    this.swinfo = null;
+    this.fetched = false;
     
     jQuery("#" + this.target).on("shown.bs.modal", jQuery.proxy(function() {
         if (this.infolink == null) {
@@ -26,13 +25,14 @@ magic.classes.InfoModal = function(options) {
  * Create the map information markup
  */
 magic.classes.InfoModal.prototype.getBackgroundInfo = function() {
-    if (this.mapinfo == null && this.infolink != null) {
+    if (!this.fetched && this.infolink != null) {
         if (this.infolink.indexOf(magic.config.paths.baseurl) != 0) {
             this.infolink = magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(this.infolink);
         }
         jQuery("#information-background").load(this.infolink, function() {
             jQuery('a[href="#information-background"]').tab("show");
         });
+        this.fetched = true;
     }
 };
 

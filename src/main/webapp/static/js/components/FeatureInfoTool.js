@@ -59,9 +59,16 @@ magic.classes.FeatureInfoTool.prototype.queryFeatures = function(evt) {
                     /* Use WFS version of handling click for points or lines - a much better user experience */
                     var bxw = magic.runtime.map.getView().getResolution()*10;
                     var bxc = evt.coordinate;
+                    var featName = md.source.feature_name;
+                    if (featName.indexOf(":") == -1) {
+                        var ws = magic.modules.Endpoints.getVirtualService(md.source.wms_source);
+                        if (ws != "") {
+                            featName = ws + ":" + featName;
+                        }
+                    }
                     var bbox = [(bxc[0] - bxw), (bxc[1] - bxw), (bxc[0] + bxw), (bxc[1] + bxw)].join(",");
-                    url = md.source.wms_source.replace("wms", "wfs") + "?service=wfs&version=2.0.0&request=getfeature&typename=" + md.source.feature_name + "&srsName=" + 
-                            magic.runtime.map.getView().getProjection().getCode() + "&bbox=" + bbox + "&outputFormat=application/json&count=10";
+                    url = md.source.wms_source.replace("wms", "wfs") + "?service=wfs&version=2.0.0&request=getfeature&typename=" + featName + "&srsName=" + 
+                        magic.runtime.map.getView().getProjection().getCode() + "&bbox=" + bbox + "&outputFormat=application/json&count=10";
                 } else {
                     /* GetFeatureInfo version of interactivity - needs unacceptable user precision in some cases, and it isn't possible to override Geoserver's
                     use of the SLD to determine the size of buffer to the click in all cases. Have implemented a WFS version of the same interactivity which

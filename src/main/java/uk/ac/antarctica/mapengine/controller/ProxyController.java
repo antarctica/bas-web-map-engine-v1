@@ -56,7 +56,7 @@ public class ProxyController {
     Environment env;
     
     private static final String[] ALLOWED_HOSTS = new String[]{
-        "ccamlr.org", "polarview.aq", "marine-geo.org", "bluehabitats.org", "gov.gs", "aad.gov.au", "ac.uk", "scar.org"
+        "ccamlr.org", "polarview.aq", "marine-geo.org", "bluehabitats.org", "gov.gs", "aad.gov.au", "ac.uk", "scar.org", "localhost"
     };
     
     private static final HashMap<String, String> CREDENTIALS = new HashMap();

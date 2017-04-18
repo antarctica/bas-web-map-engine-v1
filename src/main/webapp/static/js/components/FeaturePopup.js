@@ -368,6 +368,8 @@ magic.classes.FeaturePopup.prototype.fixPopoverPosition = function() {
         /* Redjustment potentially necessary */   
         parentPopover.css("top", -parentPopover.outerHeight() + "px");
     }
+    /* Fix horizontal positioning where content width allowed to vary */
+    //TODO
 };
 
 /**

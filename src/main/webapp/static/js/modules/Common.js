@@ -586,6 +586,9 @@ magic.modules.Common = function () {
                 if (value.indexOf("<a") != -1) {
                     /* Already deemed to be linkified - don't try again! */
                     return(value);
+                } else if (value.match(/^https?:\/\/.+\.(jpg|jpeg|png|gif)$/)) {
+                    /* Image URL */
+                    return('<img src="' + value + '"/>');
                 }
 
                 /* http://, https://, ftp:// */

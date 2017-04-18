@@ -3,6 +3,25 @@
 magic.modules.Endpoints = function () {
 
     return({
+        /**
+         * Get the virtual endpoint (workspace) for the given WMS
+         * @param {string} url
+         * @return {string}
+         */
+        getVirtualService: function(url) {
+            var vs = "";
+            var parts = url.split("/");
+            /* Split up a URL like http://bslmagl.nerc-bas.ac.uk/geoserver/matchups/wms */
+            if (parts.length > 3 && parts[parts.length-3] == "geoserver" && parts[parts.length-1] == "wms") {
+                vs = parts[parts.length-2];
+            }
+            return(vs);
+        },
+        /**
+         * Get the service URL proxied by the given one
+         * @param {string} url
+         * @return {string}
+         */
         getWmsProxiedUrl: function(url) {
             var matchEp = this.getEndpointBy("url", url);
             return((matchEp && matchEp.proxied_url ) ? matchEp.proxied_url : null);

@@ -763,3 +763,9 @@ div.watermark {
 .bootbox.modal {
     z-index: 9999 !important;
 }
+
+/* Allow pretty much arbitrary width popovers - could be dodgy! */
+.popover {
+	max-width: 1000px;
+	width: auto;
+}
