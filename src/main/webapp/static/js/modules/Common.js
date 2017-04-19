@@ -590,6 +590,15 @@ magic.modules.Common = function () {
                     /* Image URL */
                     return('<img src="' + value + '"/>');
                 }
+                /* Check for brain-dead Ramadda URLs with ?entryid=<stuff> at the end, disguising the mime type! */
+                if (value.match(/^https?:\/\//) && value.indexOf("?") > 0) {
+                    /* This is a pure URL with a query string */
+                    var valueMinusQuery = value.substring(0, value.indexOf("?"));
+                    if (valueMinusQuery.match(/\.(jpg|jpeg|png|gif)$/)) {
+                        /* Image URL */
+                        return('<img src="' + value + '"/>');
+                    }
+                }
 
                 /* http://, https://, ftp:// */
                 var urlPattern = /\b(?:https?|ftp):\/\/[a-z0-9-+&@#\/%?=~_|!:,.;]*[a-z0-9-+&@#\/%=~_|]/gim;

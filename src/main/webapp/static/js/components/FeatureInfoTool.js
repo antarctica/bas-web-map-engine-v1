@@ -55,7 +55,8 @@ magic.classes.FeatureInfoTool.prototype.queryFeatures = function(evt) {
             if (md && md.source && md.source.wms_source && md.is_interactive === true) {
                 var url = null;
                 var service = magic.modules.Endpoints.getEndpointBy("url", md.source.wms_source);
-                if (service && service.has_wfs === true && (md.geom_type == "point" || md.geom_type == "line")) {
+                if (false && service && service.has_wfs === true && (md.geom_type == "point" || md.geom_type == "line")) {
+                    /* David 2017-04-19 - disabled as causing too many problems with on-the-fly reprojected layers */
                     /* Use WFS version of handling click for points or lines - a much better user experience */
                     var bxw = magic.runtime.map.getView().getResolution()*10;
                     var bxc = evt.coordinate;
