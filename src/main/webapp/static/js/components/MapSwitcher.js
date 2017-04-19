@@ -40,7 +40,7 @@ magic.classes.MapSwitcher = function(options) {
                     '<div class="checkbox">' + 
                         '<label>' + 
                             '<input id="' + this.id + '-new-tab" type="checkbox" checked ' + 
-                                'data-toggle="tooltip" data-placement="left" title="Open map in a new browser tab"></input> New browser tab' + 
+                                'data-toggle="tooltip" data-placement="left" title="Open map in a new browser tab"></input> in a new browser tab' + 
                         '</label>' + 
                     '</div>' + 
                 '</div>' + 
@@ -48,7 +48,7 @@ magic.classes.MapSwitcher = function(options) {
         '</div>';
     this.target.popover({
         template: this.template,
-        title: '<span><big><strong>Switch map view</strong></big><button type="button" class="close">&times;</button></span>',
+        title: '<span><big><strong>Switch map view to</strong></big><button type="button" class="close">&times;</button></span>',
         container: "body",
         html: true,            
         content: this.content

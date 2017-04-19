@@ -401,7 +401,8 @@ div.overview-map-popover-content {
 /* Feature popup styles */
 span.feature-popup-title-cont {
     font-weight: bold;
-    width: 200px;   /* Make sure excessively long titles go onto two lines */
+    width: 98%;
+    min-width: 200px;   /* Make sure excessively long titles go onto two lines */
 }
 
 table.feature-popup-table {

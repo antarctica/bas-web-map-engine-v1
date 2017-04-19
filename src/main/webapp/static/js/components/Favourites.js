@@ -25,16 +25,23 @@ magic.classes.Favourites = function(options) {
     this.content = 
         '<div id="' + this.id + '-content">' +                                   
             '<form id="' + this.id + '-form" class="form-horizontal" role="form">' +
-                '<div class="form-group form-group-sm col-sm-12">' +
-                    '<label for="' + this.id + '-list">Load</label>' + 
+                '<div class="form-group form-group-sm col-sm-12" style="margin-bottom:0px">' +
                     '<div class="input-group">' + 
                         '<select id="' + this.id + '-list" class="form-control">' +                               
                         '</select>' + 
                         '<span class="input-group-btn">' +
-                            '<button id="' + this.id + '-list-go" class="btn btn-primary btn-sm" type="button" title="Load map (warning - will replace your current map!)">' + 
+                            '<button id="' + this.id + '-list-go" class="btn btn-primary btn-sm" type="button" title="Load map">' + 
                                 '<span class="fa fa-arrow-circle-right"></span>' + 
                             '</button>' +
                         '</span>' +
+                    '</div>' + 
+                '</div>' + 
+                '<div class="form-group form-group-sm col-sm-12">' + 
+                    '<div class="checkbox">' + 
+                        '<label>' + 
+                            '<input id="' + this.id + '-new-tab" type="checkbox" checked ' + 
+                                'data-toggle="tooltip" data-placement="left" title="Open map in a new browser tab"></input> in a new browser tab' + 
+                        '</label>' + 
                     '</div>' + 
                 '</div>' + 
                 '<div class="form-group form-group-sm col-sm-12">' +
@@ -74,7 +81,7 @@ magic.classes.Favourites = function(options) {
         '</div>';
     this.target.popover({
         template: this.template,
-        title: '<span><big><strong>Favourite maps</strong></big><button type="button" class="close">&times;</button></span>',
+        title: '<span><big><strong>Load favourite map</strong></big><button type="button" class="close">&times;</button></span>',
         container: "body",
         html: true,            
         content: this.content
@@ -103,7 +110,10 @@ magic.classes.Favourites = function(options) {
         /* Load map button */
         loadBtn.click(jQuery.proxy(function() {
             var mapData = this.user_map_data[dd.prop("selectedIndex")];
-            window.location = magic.config.paths.baseurl + "/home/" + mapData.basemap + "/" + mapData.id;
+            window.open(
+                magic.config.paths.baseurl + "/home/" + mapData.basemap + "/" + mapData.id, 
+                jQuery("#" + this.id + "-new-tab").prop("checked") ? "_blank" : "_self"
+            ); 
         }, this));
         /* New map button */
         addBtn.click(jQuery.proxy(function() {
@@ -231,10 +241,10 @@ magic.classes.Favourites.prototype.fetchMaps = function() {
         this.user_map_data = data;
         /* Populate dropdown list of available maps */
         magic.modules.Common.populateSelect(jQuery("#" + this.id + "-list"), data, "id", "title", false);                        
-        /* Disable irrelevant buttons */
-        loadBtn.prop("disabled", data.length == 0);
-        editBtn.prop("disabled", data.length == 0);
-        delBtn.prop("disabled", data.length == 0);
+        /* Disable irrelevant buttons */       
+        jQuery("#" + this.id + "-list-go").prop("disabled", data.length == 0);
+        jQuery("#" + this.id + "-edit").prop("disabled", data.length == 0);
+        jQuery("#" + this.id + "-delete").prop("disabled", data.length == 0);
     }, this)).fail(function(data) {            
     });
 };
