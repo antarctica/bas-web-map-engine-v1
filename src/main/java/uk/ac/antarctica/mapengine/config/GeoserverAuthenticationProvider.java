@@ -4,6 +4,8 @@
 package uk.ac.antarctica.mapengine.config;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.ParseException;
@@ -17,6 +19,8 @@ import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 import uk.ac.antarctica.mapengine.exception.GeoserverAuthenticationException;
 
@@ -46,7 +50,10 @@ public class GeoserverAuthenticationProvider implements AuthenticationProvider {
             response = Executor.newInstance(client).execute(request).returnResponse();
             String content = IOUtils.toString(response.getEntity().getContent());
             if (content.contains("<span class=\"username\">Logged in as <span>" + name + "</span>.</span>")) {
-                return(new UsernamePasswordAuthenticationToken(name, password, null));
+                /* Record the Geoserver credentials so they are recoverable by the security context holder */
+                List<GrantedAuthority> grantedAuths = new ArrayList<>();
+                grantedAuths.add(new SimpleGrantedAuthority("geoserver:" + name + ":" + password));
+                return(new UsernamePasswordAuthenticationToken(name, password, grantedAuths));
             } else {
                 throw new GeoserverAuthenticationException("Unable to authenticate against local Geoserver");
             }

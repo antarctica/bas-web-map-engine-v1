@@ -11,6 +11,8 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -46,7 +48,7 @@ public class HomeController {
      * @throws IOException
      */
     @RequestMapping(value = "/home", method = RequestMethod.GET)
-    public String home(HttpServletRequest request, ModelMap model) throws ServletException, IOException {
+    public String home(HttpServletRequest request, ModelMap model) throws ServletException, IOException {        
         return(renderPage(request, model, "home", null, null, null, false));       
     }        
     
@@ -390,7 +392,7 @@ public class HomeController {
         model.addAttribute("pagetitle", pageTitle);
         model.addAttribute("logo", logo);
         model.addAttribute("logourl", logoUrl);
-        model.addAttribute("background", backgroundColor);
+        model.addAttribute("background", backgroundColor);        
         ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", message);
         return(tplName);        
     }

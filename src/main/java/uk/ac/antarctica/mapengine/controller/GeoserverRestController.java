@@ -74,7 +74,7 @@ public class GeoserverRestController {
             }
             content = filteredList.toString();
         }        
-        IOUtils.copy(IOUtils.toInputStream(content), response.getOutputStream());       
+        IOUtils.copy(IOUtils.toInputStream(content), response.getOutputStream());           
     }
     
     /**
