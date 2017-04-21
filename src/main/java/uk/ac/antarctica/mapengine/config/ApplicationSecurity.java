@@ -4,6 +4,7 @@
 package uk.ac.antarctica.mapengine.config;
 
 import java.io.IOException;
+import java.util.regex.Pattern;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -25,6 +26,9 @@ import org.springframework.security.ldap.authentication.LdapAuthenticationProvid
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.savedrequest.DefaultSavedRequest;
+import org.springframework.security.web.util.RegexRequestMatcher;
+import org.springframework.security.web.util.RequestMatcher;
+import uk.ac.antarctica.mapengine.config.ApplicationSecurity.CsrfSecurityRequestMatcher;
 
 @Configuration
 @EnableWebMvcSecurity
@@ -71,10 +75,28 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
             }
         }
     }
+    
+    /* See https://blogs.sourceallies.com/2014/04/customizing-csrf-protection-in-spring-security/ - want to protect GET requests to /ogc/proxy for security reasons */
+    public class CsrfSecurityRequestMatcher implements RequestMatcher {
+        
+        private Pattern allowedMethods = Pattern.compile("^(HEAD|TRACE|OPTIONS)$");
+        private RegexRequestMatcher proxyMatcher = new RegexRequestMatcher("/ogc/proxy", null);
+
+        @Override
+        public boolean matches(HttpServletRequest request) {
+            if (allowedMethods.matcher(request.getMethod()).matches()){
+                return(false);
+            } else if (request.getMethod().equals("GET")) {
+                return(proxyMatcher.matches(request));
+            } else {
+                return(true);
+            }            
+        }
+    }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http
+        http                
             .authorizeRequests()
             .antMatchers("/*.ico", "/static/**", "/appconfig/**", "/ping", "/home/**", "/homed/**", 
                 "/maps/dropdown/**", "/maps/name/**", "/maps/id/**", "/maps/thumbnaildata", 
@@ -86,17 +108,19 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
                 "/maps/save", "/maps/update/**", "/maps/delete/**", "/maps/deletebyname/**", 
                 "/usermaps/save", "/usermaps/update/**", "/usermaps/delete/**",
                 "/thumbnail/save/**", "/thumbnail/delete/**")
-            .fullyAuthenticated()
+            .fullyAuthenticated()            
             .and()
             .formLogin()
             .loginPage("/login")
             .successHandler(successHandler())
-            //.defaultSuccessUrl("/auth/home")
             .permitAll()
             .and()
             .logout()
             .logoutSuccessUrl("/home")
             .permitAll();
+        
+        /* Apply CSRF checks to all POST|PUT|DELETE requests, and GET to selected ones */
+        http.csrf().requireCsrfProtectionMatcher(new CsrfSecurityRequestMatcher());
     }
 
     @Override
