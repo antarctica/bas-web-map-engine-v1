@@ -768,7 +768,7 @@ public class MapController implements ServletContextAware {
      */
     private List<Map<String, Object>> getDataEndpoints() {
         List<Map<String, Object>> eps = magicDataTpl.queryForList(
-            "SELECT name, url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs, has_wfs FROM " + 
+            "SELECT id, name, url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs, has_wfs FROM " + 
             env.getProperty("postgres.local.endpointsTable") + " " +  
             "WHERE location=? ORDER BY name", hostLocator()
         );

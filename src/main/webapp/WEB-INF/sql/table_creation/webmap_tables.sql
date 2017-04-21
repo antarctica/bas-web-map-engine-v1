@@ -37,7 +37,7 @@ COMMENT ON COLUMN webmap.endpoints.proxied_url IS 'Original URL which the endpoi
 COMMENT ON COLUMN webmap.endpoints.admin_user IS 'Administration/REST username for endpoint';
 COMMENT ON COLUMN webmap.endpoints.admin_pass IS 'Administration/REST password for endpoint';
 COMMENT ON COLUMN webmap.endpoints.srs IS 'Spatial Reference System as an EPSG code';
-COMMENT ON COLUMN webmap.endpoints.has_wfs IS '-- Whether a WFS service is available at the same endpoint (improved user experience on interactive layers possible)';
+COMMENT ON COLUMN webmap.endpoints.has_wfs IS 'Whether a WFS service is available at the same endpoint (improved user experience on interactive layers possible)';
 
 CREATE TABLE webmap.maps
 (

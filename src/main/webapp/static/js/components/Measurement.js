@@ -24,7 +24,8 @@ magic.classes.Measurement = function(options) {
             image: new ol.style.Circle({radius: 7, fill: new ol.style.Fill({color: "#ff8c00"})})
         })
     });
-    magic.runtime.map.addLayer(this.layer);
+    /* Don't add layer to map at creation time - other mnap layers may not have finished loading */
+    this.layerAdded = false;
 
     /* Current sketch */
     this.sketch = null;
@@ -239,6 +240,12 @@ magic.classes.Measurement.prototype.isActive = function() {
  * @param {boolean} quiet whether to fire event
  */
 magic.classes.Measurement.prototype.activate = function(quiet) {
+    
+    if (!this.layerAdded) {
+        magic.runtime.map.addLayer(this.layer);
+        this.layer.setZIndex(1000);
+        this.layerAdded = true;
+    }
     
     if (!quiet) {
         /* Trigger mapinteractionactivated event */

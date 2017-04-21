@@ -595,7 +595,7 @@ magic.modules.Common = function () {
                     /* This is a pure URL with a query string */
                     var valueMinusQuery = value.substring(0, value.indexOf("?"));
                     if (valueMinusQuery.match(/\.(jpg|jpeg|png|gif)$/)) {
-                        /* Image URL */
+                        /* Image URL displayed as inline image */
                         return('<img src="' + value + '"/>');
                     }
                 }

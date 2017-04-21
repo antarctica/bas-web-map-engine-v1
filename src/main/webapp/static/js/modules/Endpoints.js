@@ -53,7 +53,9 @@ magic.modules.Endpoints = function () {
          */
         getEndpointsBy: function(filterName, filterValue) {            
             return(jQuery.grep(magic.runtime.endpoints, function(ep) {
-                if (filterName == "srs") {
+                if (filterName == "id") {
+                    return(ep[filterName] == filterValue);
+                } else if (filterName == "srs") {
                     /* Projections can be a comma-separated list */
                     var srsList = ep[filterName].toLowerCase().split(",");
                     return(srsList.indexOf(filterValue.toLowerCase()) >= 0);
