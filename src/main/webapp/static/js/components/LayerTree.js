@@ -423,7 +423,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
         } else if (isSingleTile) {
             /* Render point layers with a single tile for labelling free of tile boundary effects */
             var wmsSource = new ol.source.ImageWMS(({
-                url: nd.source.wms_source,
+                url: magic.modules.Endpoints.getOgcEndpoint(nd.source.wms_source, "wms"),
                 params: {
                     "LAYERS": nd.source.feature_name,
                     "STYLES": nd.source.style_name ? (nd.source.style_name == "default" ? "" : nd.source.style_name) : ""
@@ -443,7 +443,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
             /* Non-point layer */
             var wmsVersion = "1.3.0";
             var wmsSource = new ol.source.TileWMS({
-                url: nd.source.wms_source,
+                url: magic.modules.Endpoints.getOgcEndpoint(nd.source.wms_source, "wms"),
                 params: {
                     "LAYERS": nd.source.feature_name,
                     "STYLES": nd.source.style_name ? (nd.source.style_name == "default" ? "" : nd.source.style_name) : "",
@@ -623,7 +623,7 @@ magic.classes.LayerTree.prototype.initAutoLoadGroups = function(map) {
                             attribute_map: data[i].attribute_map
                         }, defaultNodeAttrs);
                         nd.source = jQuery.extend({}, {
-                            wms_source: data[i].wms_source, 
+                            wms_source: magic.modules.Endpoints.getOgcEndpoint(data[i].wms_source, "wms"), 
                             feature_name: data[i].feature_name
                         }, defaultSourceAttrs);
                         nd.is_interactive = grpo.popups === true;

@@ -74,31 +74,25 @@ public class OgcServicesController implements ServletContextAware {
      * @param HttpServletResponse response,
      * @param Integer serviceid
      * @param String service (wms|wfs)
-     * @param String operation (getmap|getfeatureinfo|getcapabilities|getfeature|describefeaturetype)
      * @return
      * @throws ServletException
      * @throws IOException
      */
-    @RequestMapping(value = "/ogc/{serviceid}/{service}/{operation}", method = RequestMethod.GET)
+    @RequestMapping(value = "/ogc/{serviceid}/{service}", method = RequestMethod.GET)
     public void ogcGateway(
         HttpServletRequest request, 
         HttpServletResponse response, 
         @PathVariable("serviceid") Integer serviceid,
-        @PathVariable("service") String service,
-        @PathVariable("operation") String operation
+        @PathVariable("service") String service
     ) throws ServletException, IOException, ServiceException {                
         try {
-            Map<String, Object> servicedata = magicDataTpl.queryForMap(
-                "SELECT * FROM " + env.getProperty("postgres.local.endpointsTable") + " WHERE id=?", 
-                new Object[]{serviceid}, 
-                Integer.class
-            );
+            Map<String, Object> servicedata = magicDataTpl.queryForMap("SELECT * FROM " + env.getProperty("postgres.local.endpointsTable") + " WHERE id=?", serviceid);
             switch(service) {
                 case "wms":
-                    callWms(request, response, servicedata, operation);
+                    callWms(request, response, servicedata);
                     break;
                 case "wfs":
-                    callWfs(request, response, servicedata, operation);
+                    callWfs(request, response, servicedata);
                     break;
                 default:
                     throw new ServletException("Unrecognised service : " + service);
@@ -113,21 +107,20 @@ public class OgcServicesController implements ServletContextAware {
      * @param HttpServletRequest request
      * @param HttpServletResponse response
      * @param Map<String, Object> servicedata
-     * @param String operation 
      */
-    private void callWms(HttpServletRequest request, HttpServletResponse response, Map<String, Object> servicedata, String operation) throws ServletException, IOException {
+    private void callWms(HttpServletRequest request, HttpServletResponse response, Map<String, Object> servicedata) throws ServletException, IOException {
         
-        String mimeType = null;
-        InputStream ogcContent = null;
-        
+        String mimeType = null;                
         List<NameValuePair> params = decomposeQueryString(request);
+        
+        String operation = getQueryParameter(params, "request");
         
         try {
             switch(operation.toLowerCase()) {
                 case "getcapabilities": 
                     /* GetCapabilities document in text/xml */
                     String version = getQueryParameter(params, "version");
-                    ogcContent = getFromUrl(servicedata.get("url") + "?service=wms&request=getcapabilities" + (version != null ? "&version=" + version : ""), false);
+                    getFromUrl(response, servicedata.get("url") + "?service=wms&request=getcapabilities" + (version != null ? "&version=" + version : ""), mimeType, false);
                     mimeType = "text/xml";
                     break;
                 case "getmap":
@@ -135,38 +128,33 @@ public class OgcServicesController implements ServletContextAware {
                     if (mimeType == null) {
                         mimeType = "image/png";
                     }
-                    ogcContent = getFromUrl(servicedata.get("url") + "?" + request.getQueryString(), true);
+                    getFromUrl(response, servicedata.get("url") + "?" + request.getQueryString(), mimeType, true);
                     break;
                 case "getfeatureinfo":
                     mimeType = getQueryParameter(params, "info_format");
                     if (mimeType == null) {
                         mimeType = "application/json";
                     }
-                    ogcContent = getFromUrl(servicedata.get("url") + "?" + request.getQueryString(), true);
+                    getFromUrl(response, servicedata.get("url") + "?" + request.getQueryString(), mimeType, true);
                     break;
                 default:
                     throw new ServletException("Unsupported WMS operation : " + operation);
             }
         } catch(RestrictedDataException rde) {
+            InputStream ogcContent = null;
             if (operation.toLowerCase().equals("getmap")) {
                 /* Output 256x256 transparent PNG image informing user of restricted access */
                 mimeType = "image/png";
-                File tpng = new File(context.getRealPath("/static/images/restricted_data.png"));
-                ogcContent = new FileInputStream(tpng);
+                ogcContent = new FileInputStream(new File(context.getRealPath("/static/images/restricted_data.png")));
             } else {
                 mimeType = "application/json";
                 String jsonOut = "{\"status\":401,\"message\":\"" + rde.getMessage() + "\"}";
                 ogcContent = new ByteArrayInputStream(jsonOut.getBytes(StandardCharsets.UTF_8));
             }
-        }
-        
-        if (ogcContent != null && mimeType != null) {
             response.setContentType(mimeType);
             IOUtils.copy(ogcContent, response.getOutputStream());
             ogcContent.close();
-        } else {
-            throw new ServletException("Failed to retrieve remote WMS response");
-        }
+        }        
     }
     
     /**
@@ -174,50 +162,39 @@ public class OgcServicesController implements ServletContextAware {
      * @param HttpServletRequest request
      * @param HttpServletResponse response
      * @param Map<String, Object> servicedata
-     * @param String operation 
      */
-    private void callWfs(HttpServletRequest request, HttpServletResponse response, Map<String, Object> servicedata, String operation) throws ServletException, IOException {
-        
-        String mimeType = null;
-        InputStream ogcContent = null;
+    private void callWfs(HttpServletRequest request, HttpServletResponse response, Map<String, Object> servicedata) throws ServletException, IOException {                
                 
         if ((Boolean)servicedata.get("has_wfs")) {
             /* Service offers WFS - assume that the URL is a simple swap of 'wfs' for 'wms' at the end */            
             List<NameValuePair> params = decomposeQueryString(request);        
-            String wfsUrl = ((String)servicedata.get("url")).replaceFirst("wms$", "wfs");
-            
+            String operation = getQueryParameter(params, "request");
+            String wfsUrl = ((String)servicedata.get("url")).replaceFirst("wms$", "wfs");            
             try {
+                String mimeType;
                 switch(operation.toLowerCase()) {
                     case "getfeature":
                         mimeType = getQueryParameter(params, "outputformat");
                         if (mimeType == null) {
                             mimeType = "application/json";
                         }
-                        ogcContent = getFromUrl(wfsUrl + "?" + request.getQueryString(), true);
+                        getFromUrl(response, wfsUrl + "?" + request.getQueryString(), mimeType, true);
                         break;
                     case "describefeaturetype":
                         mimeType = "text/xml";                   
-                        ogcContent = getFromUrl(wfsUrl + "?" + request.getQueryString(), true);
+                        getFromUrl(response, wfsUrl + "?" + request.getQueryString(), mimeType, true);
                         break;                        
                     default:
                         throw new ServletException("Unsupported WFS operation : " + operation);
                 }
             } catch(RestrictedDataException rde) {
-                mimeType = "application/json";
                 String jsonOut = "{\"status\":401,\"message\":\"" + rde.getMessage() + "\"}";
-                ogcContent = new ByteArrayInputStream(jsonOut.getBytes(StandardCharsets.UTF_8)); 
+                response.setContentType("application/json");
+                IOUtils.copy(new ByteArrayInputStream(jsonOut.getBytes(StandardCharsets.UTF_8)), response.getOutputStream());
             }
         } else {
             throw new ServletException("Service does not allow WFS"); 
-        }
-        
-        if (ogcContent != null && mimeType != null) {
-            response.setContentType(mimeType);
-            IOUtils.copy(ogcContent, response.getOutputStream());
-            ogcContent.close();
-        } else {
-            throw new ServletException("Failed to retrieve remote WMS response");
-        }
+        }       
     }
     
     /**
@@ -231,15 +208,14 @@ public class OgcServicesController implements ServletContextAware {
     
     /**
      * Retrieve optionally restricted content from the given URL by means of an http(s) GET
+     * @param HttpServletResponse response
      * @param String url
+     * @param String mimeType
      * @param boolean secured
-     * @return InputStream
-     * @throws IOException 
+     * @throws IOException, RestrictedDataException
      */
-    private InputStream getFromUrl(String url, boolean secured) throws IOException, RestrictedDataException { 
-        
-        InputStream content = null;
-        
+    private void getFromUrl(HttpServletResponse response, String url, String mimeType, boolean secured) throws IOException, RestrictedDataException { 
+                
         HttpClientBuilder builder = HttpClients.custom();
                 
         if (secured) {
@@ -276,7 +252,7 @@ public class OgcServicesController implements ServletContextAware {
                 };
                 builder.setSSLSocketFactory(new SSLConnectionSocketFactory(sc, allHostsValid));
             } catch(KeyManagementException | NoSuchAlgorithmException ex) {
-                return(null);
+                return;
             }
         }     
                
@@ -288,15 +264,15 @@ public class OgcServicesController implements ServletContextAware {
                 .build();
             HttpGet httpget = new HttpGet(url);
             httpget.setConfig(requestConfig);
-            try (CloseableHttpResponse response = httpclient.execute(httpget)) {
-                int status = response.getStatusLine().getStatusCode();
+            try (CloseableHttpResponse httpResponse = httpclient.execute(httpget)) {
+                int status = httpResponse.getStatusLine().getStatusCode();
                 if (status == 401) {
                     throw new RestrictedDataException("You are not authorised to access this resource");
                 }
-                content = response.getEntity().getContent();
+                response.setContentType(mimeType);
+                IOUtils.copy(httpResponse.getEntity().getContent(), response.getOutputStream());
             }
         }
-        return(content);
     }
     
     /**
@@ -336,7 +312,7 @@ public class OgcServicesController implements ServletContextAware {
 
     @Override
     public void setServletContext(ServletContext sc) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        this.context = sc;
     }
     
     public class RestrictedDataException extends Exception {

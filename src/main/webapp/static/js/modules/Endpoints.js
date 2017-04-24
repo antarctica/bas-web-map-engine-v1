@@ -10,11 +10,11 @@ magic.modules.Endpoints = function () {
          */
         getVirtualService: function(url) {
             var vs = "";
-            var parts = url.split("/");
-            /* Split up a URL like http://bslmagl.nerc-bas.ac.uk/geoserver/matchups/wms */
-            if (parts.length > 3 && parts[parts.length-3] == "geoserver" && parts[parts.length-1] == "wms") {
-                vs = parts[parts.length-2];
-            }
+            var re = /\/geoserver\/([^\/]+)\/wms/;
+            var match = re.exec(url);
+            if (match != null) {
+                vs = match[1];
+            }            
             return(vs);
         },
         /**
@@ -35,6 +35,22 @@ magic.modules.Endpoints = function () {
             var matchEp = this.getEndpointBy("name", service);
             return(matchEp ? matchEp.url : null);
         },   
+        /**
+         * Get proxied endpoint i.e. a /ogc/<service>/<op> type URL for the given one, if a recognised endpoint
+         * @param {string} url
+         * @param {string} service (wms|wfs|wcs)
+         * @returns {int}
+         */
+        getOgcEndpoint: function(url, service) {
+            var proxEp = url;
+            matches = this.getEndpointsBy("url", url);
+            if (matches.length > 0) {
+                proxEp = magic.config.paths.baseurl + "/ogc/" + matches[0]["id"] + "/" + service;
+            } else {
+                proxEp = magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(url);
+            }
+            return(proxEp);
+        },       
         /**
          * Retrieve single endpoint data corresponding to the input filter (match occurs if 'filter' found at start of endpoint, case-insensitive)
          * @param {string} filterName
