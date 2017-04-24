@@ -23,6 +23,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 import uk.ac.antarctica.mapengine.exception.GeoserverAuthenticationException;
+import uk.ac.antarctica.mapengine.util.ProcessUtils;
 
 @Component
 public class GeoserverAuthenticationProvider implements AuthenticationProvider {
@@ -52,7 +53,8 @@ public class GeoserverAuthenticationProvider implements AuthenticationProvider {
             if (content.contains("<span class=\"username\">Logged in as <span>" + name + "</span>.</span>")) {
                 /* Record the Geoserver credentials so they are recoverable by the security context holder */
                 List<GrantedAuthority> grantedAuths = new ArrayList<>();
-                String hostname = System.getenv("HOSTNAME");
+                String hostname = ProcessUtils.execReadToString("hostname");
+                System.out.println(hostname);
                 grantedAuths.add(new SimpleGrantedAuthority("geoserver:" + hostname + ":" + name + ":" + password));
                 return(new UsernamePasswordAuthenticationToken(name, password, grantedAuths));
             } else {
@@ -84,6 +86,6 @@ public class GeoserverAuthenticationProvider implements AuthenticationProvider {
 
     public void seLoginUrl(String loginUrl) {
         this.loginUrl = loginUrl;
-    }        
+    }
     
 }

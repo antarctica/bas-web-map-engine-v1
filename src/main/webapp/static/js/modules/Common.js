@@ -362,25 +362,16 @@ magic.modules.Common = function () {
             switch(operation.toLowerCase()) {
                 case "getcapabilities":
                     /* Watch out for UMN Mapserver URLs which alrady contain the '?' */
-                    requestUrl = wmsUrl + (wmsUrl.indexOf("?") != -1 ? "&" : "?") + "request=GetCapabilities&service=wms";
+                    requestUrl = magic.modules.Endpoints.getOgcEndpoint(wmsUrl, "wms") + (wmsUrl.indexOf("?") != -1 ? "&" : "?") + "request=GetCapabilities&service=wms";
                     break;
                 case "describefeaturetype":
-                    var service = magic.modules.Endpoints.getEndpointBy("url", wmsUrl);
-                    if (service.has_wfs === true) {
-                        /* Note: version set to 1.0.0 here as certain attributes do NOT get picked up by later versions - is a Geoserver bug */
-                        requestUrl = wmsUrl.replace("wms", "wfs") + "?version=1.0.0&request=DescribeFeatureType&typename=" + feature;
-                    } else {
-                        return("");
-                    }
+                    /* Note: version set to 1.0.0 here as certain attributes do NOT get picked up by later versions - is a Geoserver bug */
+                    requestUrl = magic.modules.Endpoints.getOgcEndpoint(wmsUrl, "wfs") + "?version=1.0.0&request=DescribeFeatureType&typename=" + feature;                    
                     break;
                 default:
                     break;
             }
-            var origUrl = magic.modules.Endpoints.getWmsProxiedUrl(wmsUrl);
-            if (origUrl) {
-                requestUrl = requestUrl.replace(wmsUrl, origUrl);
-            }
-            return(this.proxyUrl(requestUrl));            
+            return(requestUrl);
         },
         /**
          * Retrieve a WMS GetCapabilities document for the URL, calling the given callback with the supplied arguments

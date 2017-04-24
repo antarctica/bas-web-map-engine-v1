@@ -169,7 +169,18 @@ public class OgcServicesController implements ServletContextAware {
             /* Service offers WFS - assume that the URL is a simple swap of 'wfs' for 'wms' at the end */            
             List<NameValuePair> params = decomposeQueryString(request);        
             String operation = getQueryParameter(params, "request");
-            String wfsUrl = ((String)servicedata.get("url")).replaceFirst("wms$", "wfs");            
+            String endpointUrl = (String)servicedata.get("url");
+            if (endpointUrl.endsWith("/")) {
+                endpointUrl = endpointUrl.substring(0, endpointUrl.length()-1);
+            }
+            String wfsUrl = "";
+            if (!endpointUrl.endsWith("wfs")) {
+                if (endpointUrl.endsWith("wms")) {
+                    wfsUrl = endpointUrl.replaceFirst("wms$", "wfs");
+                } else {
+                    wfsUrl = endpointUrl + "/wfs";
+                }                
+            }
             try {
                 String mimeType;
                 switch(operation.toLowerCase()) {
@@ -285,7 +296,7 @@ public class OgcServicesController implements ServletContextAware {
             if (ga.getAuthority().startsWith("geoserver:")) {
                 String[] creds = ga.getAuthority().split(":");
                 String applyToHost = creds[1];
-                if (url.startsWith("http://" + applyToHost) || url.startsWith("https://" + applyToHost)) {
+                if (url.contains("localhost") || url.startsWith("http://" + applyToHost) || url.startsWith("https://" + applyToHost)) {
                     if (creds.length == 4) {
                         return(new String[]{creds[2], creds[3]});                 
                     }

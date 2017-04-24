@@ -71,6 +71,10 @@ magic.modules.Endpoints = function () {
             return(jQuery.grep(magic.runtime.endpoints, function(ep) {
                 if (filterName == "id") {
                     return(ep[filterName] == filterValue);
+                } else if (filterName == "url") {
+                    /* Remove wms/wfs from the end of the URL - the endpoints are the same */
+                    filterValue = filterValue.replace(/(wms|wfs)$/, "");
+                    return(ep[filterName].toLowerCase().indexOf(filterValue.toLowerCase()) == 0);
                 } else if (filterName == "srs") {
                     /* Projections can be a comma-separated list */
                     var srsList = ep[filterName].toLowerCase().split(",");

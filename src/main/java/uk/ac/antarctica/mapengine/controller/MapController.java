@@ -13,6 +13,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -35,6 +37,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.ServletContextAware;
 import uk.ac.antarctica.mapengine.util.PackagingUtils;
+import uk.ac.antarctica.mapengine.util.ProcessUtils;
 
 @RestController
 public class MapController implements ServletContextAware {
@@ -781,7 +784,11 @@ public class MapController implements ServletContextAware {
      */
     private String hostLocator() {
         String location = "cambridge";
-        String hostname = System.getenv("HOSTNAME");
+        String hostname = null;
+        try {
+            hostname = ProcessUtils.execReadToString("hostname");
+        } catch (IOException ex) {
+        }
         if (hostname != null && !hostname.isEmpty()) {
             String[] lowBandwidthLocations = new String[]{"rothera", "halley", "jcr", "es", "bi", "kep", "signy"};
             for (String lbl : lowBandwidthLocations) {
