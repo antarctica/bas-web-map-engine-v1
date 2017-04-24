@@ -52,7 +52,8 @@ public class GeoserverAuthenticationProvider implements AuthenticationProvider {
             if (content.contains("<span class=\"username\">Logged in as <span>" + name + "</span>.</span>")) {
                 /* Record the Geoserver credentials so they are recoverable by the security context holder */
                 List<GrantedAuthority> grantedAuths = new ArrayList<>();
-                grantedAuths.add(new SimpleGrantedAuthority("geoserver:" + name + ":" + password));
+                String hostname = System.getenv("HOSTNAME");
+                grantedAuths.add(new SimpleGrantedAuthority("geoserver:" + hostname + ":" + name + ":" + password));
                 return(new UsernamePasswordAuthenticationToken(name, password, grantedAuths));
             } else {
                 throw new GeoserverAuthenticationException("Unable to authenticate against local Geoserver");

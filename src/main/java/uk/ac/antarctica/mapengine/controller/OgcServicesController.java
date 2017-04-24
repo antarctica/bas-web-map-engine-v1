@@ -242,14 +242,16 @@ public class OgcServicesController implements ServletContextAware {
         
         HttpClientBuilder builder = HttpClients.custom();
                 
-        String[] credentials = getOnwardCredentials();
-        if (credentials != null) {
-            /* Stored credentials for authenmtication to a Geoserver instance */
-            CredentialsProvider credsProvider = new BasicCredentialsProvider();
-            credsProvider.setCredentials(
-                new AuthScope(AuthScope.ANY),
-                new UsernamePasswordCredentials(credentials[0], credentials[1]));
-            builder.setDefaultCredentialsProvider(credsProvider);
+        if (secured) {
+            String[] credentials = getOnwardCredentials(url);
+            if (credentials != null) {
+                /* Stored credentials for authenmtication to a Geoserver instance */
+                CredentialsProvider credsProvider = new BasicCredentialsProvider();
+                credsProvider.setCredentials(
+                    new AuthScope(AuthScope.ANY),
+                    new UsernamePasswordCredentials(credentials[0], credentials[1]));
+                builder.setDefaultCredentialsProvider(credsProvider);
+            }
         }
         
         if (url.startsWith("https://")) {
@@ -299,14 +301,18 @@ public class OgcServicesController implements ServletContextAware {
     
     /**
      * Retrieve credentials stored at user login time which reside in the local SecurityContext
+     * @param String url
      * @return String[]
      */
-    private String[] getOnwardCredentials() {
+    private String[] getOnwardCredentials(String url) {        
         for (GrantedAuthority ga : SecurityContextHolder.getContext().getAuthentication().getAuthorities()) {
             if (ga.getAuthority().startsWith("geoserver:")) {
                 String[] creds = ga.getAuthority().split(":");
-                if (creds.length == 3) {
-                    return(new String[]{creds[1], creds[2]});                 
+                String applyToHost = creds[1];
+                if (url.startsWith("http://" + applyToHost) || url.startsWith("https://" + applyToHost)) {
+                    if (creds.length == 4) {
+                        return(new String[]{creds[2], creds[3]});                 
+                    }
                 }
             }
         }
