@@ -74,43 +74,36 @@ public class UserPreferencesController {
     @ResponseBody
     public ResponseEntity<String> setPrefs(HttpServletRequest request, @RequestBody PreferenceSet prefs) throws ServletException, IOException {
         ResponseEntity<String> ret;
-        String userName = (request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null);
-        if (userName == null || userName.isEmpty()) {
-            /* Bad request for an anonymous user */
-            ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Not logged in");
-        } else {
-            /* Save to db */
-            try {
-                try {
-                    int id = magicDataTpl.queryForObject("SELECT id FROM " + env.getProperty("postgres.local.prefsTable") + " WHERE username=?", new Object[]{userName}, Integer.class); 
-                    /* Update existing record */
-                    magicDataTpl.update("UPDATE " + env.getProperty("postgres.local.prefsTable") + " SET distance=?, area=?, elevation=?, coordinates=?, dates=? WHERE id=?",
-                        new Object[] {                            
-                            prefs.getDistance(),
-                            prefs.getArea(),
-                            prefs.getElevation(),
-                            prefs.getCoordinates(),
-                            prefs.getDates(),
-                            id
-                        }
-                    );
-                    ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Updated successfully");
-                } catch(IncorrectResultSizeDataAccessException irsdae) {
-                    /* Insert new record */
-                    magicDataTpl.update("INSERT INTO " + env.getProperty("postgres.local.prefsTable") + " (distance, area, elevation, coordinates, dates) VALUES(?,?,?,?,?)",
-                        new Object[]{
-                            prefs.getDistance(),
-                            prefs.getArea(),
-                            prefs.getElevation(),
-                            prefs.getCoordinates(),
-                            prefs.getDates()
-                        }
-                    ); 
-                    ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Saved successfully");
-                } 
-            } catch(DataAccessException dae) {
-                ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, dae.getMessage());
-            }
+        String userName = (request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null);       
+        /* Save to db */
+        try {
+            int id = magicDataTpl.queryForObject("SELECT id FROM " + env.getProperty("postgres.local.prefsTable") + " WHERE username=?", new Object[]{userName}, Integer.class); 
+            /* Update existing record */
+            magicDataTpl.update("UPDATE " + env.getProperty("postgres.local.prefsTable") + " SET distance=?, area=?, elevation=?, coordinates=?, dates=? WHERE id=?",
+                new Object[] {                            
+                    prefs.getDistance(),
+                    prefs.getArea(),
+                    prefs.getElevation(),
+                    prefs.getCoordinates(),
+                    prefs.getDates(),
+                    id
+                }
+            );
+            ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Updated successfully");
+        } catch(IncorrectResultSizeDataAccessException irsdae) {
+            /* Insert new record */
+            magicDataTpl.update("INSERT INTO " + env.getProperty("postgres.local.prefsTable") + " (distance, area, elevation, coordinates, dates) VALUES(?,?,?,?,?)",
+                new Object[]{
+                    prefs.getDistance(),
+                    prefs.getArea(),
+                    prefs.getElevation(),
+                    prefs.getCoordinates(),
+                    prefs.getDates()
+                }
+            ); 
+            ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Saved successfully");
+        } catch(DataAccessException dae) {
+            ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, dae.getMessage());
         }
         return(ret);
     }

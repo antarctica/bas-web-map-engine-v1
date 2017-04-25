@@ -99,13 +99,15 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
         http                
             .authorizeRequests()
             .antMatchers("/*.ico", "/static/**", "/appconfig/**", "/ping", "/home/**", "/homed/**", 
-                "/maps/dropdown/**", "/maps/name/**", "/maps/id/**", "/maps/thumbnaildata", 
+                "/maps/dropdown/**", "/maps/name/**", "/maps/id/**", "/thumbnails", 
+                "/embedded_maps/dropdown/**", "/embedded_maps/name/**", "/embedded_maps/id/**",
                 "/usermaps/data", "/ogc/**",
                 "/thumbnail/show/**", "/prefs/get", "/gs/**").permitAll()
             .antMatchers("/creator", "/creatord", "/embedded_creator", "/embedded_creatord", 
                 "/restricted/**", "/restrictedd/**",
                 "/publisher", "/publisherd", "/publish_postgis", "/prefs/set", 
-                "/maps/save", "/maps/update/**", "/maps/delete/**", "/maps/deletebyname/**", 
+                "/maps/save", "/maps/update/**", "/maps/delete/**", "/maps/deletebyname/**",
+                "/embedded_maps/save", "/embedded_maps/update/**", "/embedded_maps/delete/**", "/embedded_maps/deletebyname/**",
                 "/usermaps/save", "/usermaps/update/**", "/usermaps/delete/**",
                 "/thumbnail/save/**", "/thumbnail/delete/**")
             .fullyAuthenticated()            

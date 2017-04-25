@@ -20,7 +20,7 @@ magic.classes.console.WebMapPanel = function () {
     };
     
     /* Assemble gallery of available maps */
-    jQuery.getJSON(magic.config.paths.baseurl + "/maps/thumbnaildata")
+    jQuery.getJSON(magic.config.paths.baseurl + "/thumbnails")
         .done(function (data) {
             var galleryContainer = jQuery("#map-gallery");
             if (galleryContainer) {

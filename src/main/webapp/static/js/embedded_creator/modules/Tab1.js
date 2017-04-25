@@ -22,7 +22,9 @@ magic.modules.embedded_creator.Tab1 = function () {
             {"field": "width", "default": 400},
             {"field": "height", "default": 300},
             {"field": "embed", "default": "map"},
-            {"field": "rotation", "default": 0}
+            {"field": "rotation", "default": 0},
+            {"field": "allowed_usage", "default": "public"},
+            {"field": "allowed_edit", "default": "login"}
         ],
         
         layer_fields: [
@@ -219,8 +221,67 @@ magic.modules.embedded_creator.Tab1 = function () {
             context.projection = mapView.getProjection().getCode();
             context.proj_extent = mapView.getProjection().getExtent();
             context.resolutions = mapView.getResolutions();
-            /* Read the data layers */
-            console.log(context);
+            /* Read the data layers in stacking order */
+            context.layers = [];
+            jQuery("tr[id^='" + this.prefix + "-row-']").each(jQuery.proxy(function(idx, tr) {
+                var trid = tr.id.substring(tr.id.indexOf("-row-")+5);
+                context.layers.push(this.layerdata[trid]);
+            }, this));                       
+            /* Now validate the assembled map context against the JSON schema in /static/js/json/embedded_web_map_schema.json
+             * https://github.com/geraintluff/tv4 is the validator used */            
+            jQuery.getJSON(magic.config.paths.baseurl + "/static/js/json/embedded_web_map_schema.json", jQuery.proxy(function(schema) {
+                console.log(context);
+                var validationResult = tv4.validate(context, schema);
+                var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content");
+                var csrfHeader = jQuery("meta[name='_csrf_header']").attr("content");
+                if (validationResult) {
+                    /* Success - save the map and take the user to the map view */ 
+                    var jqXhr = jQuery.ajax({
+                        url: magic.config.paths.baseurl + "/maps/" + (existingId != "" ? "update/" + existingId : "save"),
+                        /* The PUT verb should be used here for updates as per REST-ful interfaces, however there seems to be a Tomcat bug on
+                         * bslmagg (the live server) which causes a 403 forbidden error.  I have ascertained it is nothing to do with CSRF tokens
+                         * The PUT operation works on Tomcat 8.0.15 locally - David 07/01/16
+                         * Update 10/02/2016 - probably to do with the init-param "readonly" value being set to true (default) in web.xml 
+                         */
+                        method: "POST", //(existingId != "" ? "PUT" : "POST"),
+                        processData: false,
+                        data: JSON.stringify(finalContext),
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        beforeSend: function(xhr) {
+                            xhr.setRequestHeader(csrfHeader, csrfHeaderVal)
+                        }
+                    });
+                    jqXhr.done(function(response) {
+                        /* Load up the finished map into a new tab */
+                        if (finalContext.allowed_usage == "public") {
+                            window.open(magic.config.paths.baseurl + "/home/" + name, "_blank");
+                        } else {
+                            window.open(magic.config.paths.baseurl + "/restricted/" + name, "_blank");
+                        }
+                    });
+                    jqXhr.fail(function(xhr, status, err) {
+                        var detail = JSON.parse(xhr.responseText)["detail"];
+                        bootbox.alert(
+                            '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                                '<p>Failed to save your map - details below:</p>' + 
+                                '<p>' + detail + '</p>' + 
+                            '</div>'
+                        );
+                    });
+                } else {
+                    /* Failed to validate the data against the schema - complain */
+                    var validationErrors = JSON.stringify(tv4.error, null, 4);
+                    bootbox.alert(
+                        '<div class="alert alert-danger" style="margin-top:10px">' + 
+                            '<p>Failed to validate your map data against the web map schema</p>' + 
+                            '<p>Detailed explanation of the failure below:</p>' + 
+                            '<p>' + validationErrors + '</p>' + 
+                        '</div>'
+                    );
+                }                
+            }, this));            
         },
         /**
          * Load up selector map
@@ -239,7 +300,7 @@ magic.modules.embedded_creator.Tab1 = function () {
                 jQuery("#" + this.prefix + "-selector-map").children().remove();
                 var proj = ol.proj.get(context.projection);                               
                 var view = null;
-                /* Sort out the rotation (saved in degrees - OL needs radians */
+                /* Sort out the rotation (saved in degrees - OL needs radians) */
                 var rotation = parseFloat(context.rotation);
                 if (isNaN(rotation)) {
                     rotation = 0.0;
@@ -387,13 +448,13 @@ magic.modules.embedded_creator.Tab1 = function () {
             var tbody = table.find("tbody");
             var trReplace = tbody.find("#" + this.prefix + "-row-" + layerId);
             var layerInfo = 
-                'Opacity: ' + data.opacity + '<br/>' + 
+                'Opacity: ' + (data.opacity || 1.0) + '<br/>' + 
                 'One tile: ' + (data.is_singletile === true ? "Y" : "N") + '<br/>' + 
                 'Interactive: ' + (data.is_interactive === true ? "Y" : "N");
             var rowContent = 
                 '<tr id="' + this.prefix + '-row-' + layerId + '">' + 
                     '<td>' + 
-                        '<a href="Javascript:void(0) data-toggle="tooltip" data-placement="top" title="Click and drag to re-order layer stack">' + 
+                        '<a href="Javascript:void(0)" data-toggle="tooltip" data-placement="top" title="Click and drag to re-order layer stack">' + 
                             '<span class="glyphicon glyphicon-move"></span>' + 
                         '</a>' + 
                     '</td>' + 

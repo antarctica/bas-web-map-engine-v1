@@ -42,7 +42,7 @@ public class FeedbackController {
 		BindingResult result, 
 		ModelMap map)
         throws ServletException, IOException {        
-        ResponseEntity<String> ret = null;                
+        ResponseEntity<String> ret;                
         if (result.hasErrors()) {
             ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Invalid form data " + feedback.toString());
         } else {
