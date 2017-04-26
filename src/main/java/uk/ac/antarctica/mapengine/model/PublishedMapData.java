@@ -46,7 +46,7 @@ public class PublishedMapData extends AbstractMapData {
         setOwner_name(username);           
         setOwner_email(jo.get("owner_email").getAsString());
         setMetadata_url(jo.get("metadata_url").getAsString());
-        setData(jo.get("data").getAsString());
+        setData(jo.get("data").toString());
         setAllowed_usage(jo.get("allowed_usage").getAsString());        
         setAllowed_download(jo.get("allowed_download").getAsString());
         setAllowed_edit(jo.get("allowed_edit").getAsString());

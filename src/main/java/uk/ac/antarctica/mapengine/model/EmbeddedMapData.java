@@ -44,7 +44,7 @@ public class EmbeddedMapData extends AbstractMapData {
         setZoom(jo.get("zoom").getAsInt());
         setRotation(jo.get("rotation").getAsDouble());
         setProjection(jo.get("projection").getAsString());
-        setData(jo.get("data").getAsString());
+        setData(jo.get("data").toString());
         setAllowed_usage(jo.get("allowed_usage").getAsString());        
         setAllowed_edit(jo.get("allowed_edit").getAsString());        
     }

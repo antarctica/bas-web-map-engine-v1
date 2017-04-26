@@ -211,9 +211,7 @@ magic.modules.embedded_creator.Tab1 = function () {
          */
         saveContext: function (context) {
             magic.modules.creator.Common.formToDict(this.form_fields, context, this.prefix);
-            if (!context.id) {
-                context.id = magic.modules.Common.uuid();
-            }
+            var existingId = context.id || "";           
             /* Read center, zoom and projection details from the map */
             var mapView = this.map.getView();
             context.center = mapView.getCenter();
@@ -237,15 +235,10 @@ magic.modules.embedded_creator.Tab1 = function () {
                 if (validationResult) {
                     /* Success - save the map and take the user to the map view */ 
                     var jqXhr = jQuery.ajax({
-                        url: magic.config.paths.baseurl + "/maps/" + (existingId != "" ? "update/" + existingId : "save"),
-                        /* The PUT verb should be used here for updates as per REST-ful interfaces, however there seems to be a Tomcat bug on
-                         * bslmagg (the live server) which causes a 403 forbidden error.  I have ascertained it is nothing to do with CSRF tokens
-                         * The PUT operation works on Tomcat 8.0.15 locally - David 07/01/16
-                         * Update 10/02/2016 - probably to do with the init-param "readonly" value being set to true (default) in web.xml 
-                         */
-                        method: "POST", //(existingId != "" ? "PUT" : "POST"),
+                        url: magic.config.paths.baseurl + "/embedded_maps/" + (existingId != "" ? "update/" + existingId : "save"),                        
+                        method: "POST",
                         processData: false,
-                        data: JSON.stringify(finalContext),
+                        data: JSON.stringify(context),
                         headers: {
                             "Content-Type": "application/json"
                         },
@@ -255,10 +248,10 @@ magic.modules.embedded_creator.Tab1 = function () {
                     });
                     jqXhr.done(function(response) {
                         /* Load up the finished map into a new tab */
-                        if (finalContext.allowed_usage == "public") {
-                            window.open(magic.config.paths.baseurl + "/home/" + name, "_blank");
+                        if (context.allowed_usage == "public") {
+                            window.open(magic.config.paths.baseurl + "/home/" + context.name, "_blank");
                         } else {
-                            window.open(magic.config.paths.baseurl + "/restricted/" + name, "_blank");
+                            window.open(magic.config.paths.baseurl + "/restricted/" + context.name, "_blank");
                         }
                     });
                     jqXhr.fail(function(xhr, status, err) {

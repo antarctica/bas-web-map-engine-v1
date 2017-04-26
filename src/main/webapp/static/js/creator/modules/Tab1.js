@@ -29,7 +29,9 @@ magic.modules.creator.Tab1 = function () {
                         /* Checked one */
                         var select = jQuery("#" + this.prefix + "-" + action);
                         select.prop("disabled", false);
-                        select.find("option").remove();
+                        if (action != "new") {
+                            select.find("option").remove();
+                        }
                         var mapName = "";
                         if (action == "edit") {
                             var search = window.location.search;
