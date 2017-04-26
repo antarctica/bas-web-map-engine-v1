@@ -302,7 +302,14 @@ magic.modules.embedded_creator.Tab1 = function () {
                 }
                 jQuery("#" + this.prefix + "-rotation").val(context.rotation);
                 var layers = [];
-                var projEp = magic.modules.Endpoints.getEndpointBy("srs", context.projection);
+                var projEp;
+                var projEps = magic.modules.Endpoints.getEndpointsBy("srs", context.projection);
+                for (var i = 0; i < projEps.length; i++) {
+                    if (projEps[i].coast_layers) {
+                        projEp = projEps[i];
+                        break;
+                    }
+                }
                 if (!projEp) {
                     bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">No endpoint service defined for projection ' + context.projection + '</div>');
                     return;
