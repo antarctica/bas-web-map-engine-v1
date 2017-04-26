@@ -243,7 +243,7 @@ magic.modules.embedded_creator.Tab1 = function () {
                             "Content-Type": "application/json"
                         },
                         beforeSend: function(xhr) {
-                            xhr.setRequestHeader(csrfHeader, csrfHeaderVal)
+                            xhr.setRequestHeader(csrfHeader, csrfHeaderVal);
                         }
                     });
                     jqXhr.done(function(response) {

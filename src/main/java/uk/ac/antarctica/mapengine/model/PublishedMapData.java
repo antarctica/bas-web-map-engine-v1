@@ -16,7 +16,8 @@ public class PublishedMapData extends AbstractMapData {
     private String logo = "";
     private String favicon = "";
     private String repository = "";
-    private String metadata_url = "";    
+    private String metadata_url = ""; 
+    private String data = "";
     private String allowed_download = "";
     private String infolink = "";
     private String newslink = "";
@@ -31,28 +32,28 @@ public class PublishedMapData extends AbstractMapData {
         Date now = new Date();
         JsonElement je = new JsonParser().parse(payload);
         JsonObject jo = je.getAsJsonObject();
-        setId(jo.has("id") ? jo.get("id").getAsString() : UUID.randomUUID().toString());
-        setName(jo.get("name").getAsString());
-        setTitle(jo.get("title").getAsString());
-        setDescription(jo.get("description").getAsString());
-        setVersion(jo.get("version").getAsString());
-        setLogo(jo.get("logo").getAsString());
+        setId((String)getJsonElement(jo, "id", false, UUID.randomUUID().toString()));
+        setName((String)getJsonElement(jo, "name", false, "new_map"));        
+        setTitle((String)getJsonElement(jo, "title", false, "Map title"));        
+        setDescription((String)getJsonElement(jo, "description", true, null));
+        setVersion((String)getJsonElement(jo, "version", false, "1.0"));
+        setLogo((String)getJsonElement(jo, "logo", true, null));
         /* The following properties are not currently modifiable through the GUI */
         setFavicon("bas.ico");
         /* End of non-modifiable properties */
-        setRepository(jo.get("repository").getAsString());
+        setRepository((String)getJsonElement(jo, "repository", true, null));
         setCreation_date(now);
         setModified_date(now);
         setOwner_name(username);           
-        setOwner_email(jo.get("owner_email").getAsString());
-        setMetadata_url(jo.get("metadata_url").getAsString());
-        setData(jo.get("data").toString());
-        setAllowed_usage(jo.get("allowed_usage").getAsString());        
-        setAllowed_download(jo.get("allowed_download").getAsString());
-        setAllowed_edit(jo.get("allowed_edit").getAsString());
-        setInfolink(jo.get("infolink").getAsString());
-        setNewslink(jo.get("newslink").getAsString());
-        setWatermark(jo.get("watermark").getAsString());
+        setOwner_email((String)getJsonElement(jo, "owner_email", false, "basmagic@bas.ac.uk"));
+        setMetadata_url((String)getJsonElement(jo, "metadata_url", true, null));
+        setData((String)getJsonElement(jo, "data", false, "{}"));
+        setAllowed_usage((String)getJsonElement(jo, "allowed_usage", false, "public"));        
+        setAllowed_download((String)getJsonElement(jo, "allowed_download", false, "login"));
+        setAllowed_edit((String)getJsonElement(jo, "allowed_edit", false, "login"));
+        setInfolink((String)getJsonElement(jo, "infolink", true, null));
+        setNewslink((String)getJsonElement(jo, "newslink", true, null));
+        setWatermark((String)getJsonElement(jo, "watermark", true, null));
     }
 
     @Override
@@ -76,7 +77,7 @@ public class PublishedMapData extends AbstractMapData {
             getOwner_name(),
             getOwner_email(),
             getMetadata_url(),
-            getDataAsPgObject(),
+            getJsonDataAsPgObject(getData()),
             getAllowed_usage(),
             getAllowed_download(),
             getAllowed_edit(),
@@ -125,7 +126,7 @@ public class PublishedMapData extends AbstractMapData {
             getModified_date(),       
             getOwner_email(),
             getMetadata_url(),
-            getDataAsPgObject(),
+            getJsonDataAsPgObject(getData()),
             getAllowed_usage(),
             getAllowed_download(),
             getAllowed_edit(),
@@ -206,6 +207,14 @@ public class PublishedMapData extends AbstractMapData {
 
     public void setWatermark(String watermark) {
         this.watermark = watermark;
+    }
+
+    public String getData() {
+        return data;
+    }
+
+    public void setData(String data) {
+        this.data = data;
     }
     
 }

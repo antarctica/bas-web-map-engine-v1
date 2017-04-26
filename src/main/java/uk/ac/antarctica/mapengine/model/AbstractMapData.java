@@ -3,6 +3,10 @@
  */
 package uk.ac.antarctica.mapengine.model;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import java.sql.SQLException;
 import java.util.Date;
 import org.postgresql.util.PGobject;
@@ -18,7 +22,6 @@ public abstract class AbstractMapData {
     private Date modified_date = null;
     private String owner_name = "";
     private String owner_email = "";
-    private String data = "";
     private String allowed_usage = "";
     private String allowed_edit = "";
     
@@ -41,14 +44,54 @@ public abstract class AbstractMapData {
     
     public abstract String updateSql();
     
-    public abstract Object[] updateArgs(String id);    
+    public abstract Object[] updateArgs(String id);   
     
-    public PGobject getDataAsPgObject() {
+    public Object getJsonElement(JsonObject jo, String key, boolean allowEmpty, Object defaultValue) {
+        Object elt = null;
+        if (jo != null && jo.has(key)) {
+            JsonElement je = jo.get(key);
+            if (je.isJsonArray()) {
+                JsonArray ja = je.getAsJsonArray();
+                if (ja.size() == 0 && !allowEmpty && defaultValue != null) {
+                    elt = defaultValue;
+                } else {
+                    elt = ja.toString();
+                }
+            } else if (je.isJsonObject()) {
+                JsonObject jb = je.getAsJsonObject();
+                if (jb.entrySet().isEmpty() && !allowEmpty && defaultValue != null) {
+                    elt = defaultValue;
+                } else {
+                    elt = jb.toString();
+                }
+            } else if (je.isJsonPrimitive()) {
+                JsonPrimitive jp = je.getAsJsonPrimitive();
+                if (jp.isString()) {
+                    if (jp.getAsString().equals("") && !allowEmpty && defaultValue != null) {
+                        elt = defaultValue;
+                    } else {
+                        elt = jp.getAsString();
+                    }
+                } else if (jp.isNumber()) {
+                    try {
+                        elt = jp.getAsInt();
+                    } catch(NumberFormatException nfe) {
+                        elt = jp.getAsDouble();
+                    }
+                }
+            } else if (!allowEmpty) {
+                elt = defaultValue;
+            }        
+        }
+        return(elt);
+    }
+    
+    public PGobject getJsonDataAsPgObject(String value) {
         /* A bit of "cargo-cult" programming from https://github.com/denishpatel/java/blob/master/PgJSONExample.java - what a palaver! */
         PGobject dataObject = new PGobject();
         dataObject.setType("json");
         try {
-            dataObject.setValue(getData());
+            dataObject.setValue(value);
         } catch (SQLException ex) {            
         }
         return(dataObject);
@@ -116,14 +159,6 @@ public abstract class AbstractMapData {
 
     public void setOwner_email(String owner_email) {
         this.owner_email = owner_email;
-    }
-
-    public String getData() {
-        return data;
-    }
-
-    public void setData(String data) {
-        this.data = data;
     }
 
     public String getTableName() {
