@@ -80,7 +80,7 @@ magic.modules.embedded_creator.Tab1 = function () {
                 var mapName = sel.val();
                 magic.modules.creator.Common.resetFormIndicators();
                 jQuery("div.hidden").removeClass("hidden");
-                this.map_context.load(action, mapName, true, jQuery.proxy(this.loadContext, this));                
+                this.map_context.load(action, mapName, jQuery.proxy(this.loadContext, this));                
             }, this)); 
             
             /* If there is a search string, assume a map edit */
@@ -402,8 +402,8 @@ magic.modules.embedded_creator.Tab1 = function () {
          * @param {object} context
          */
         loadLayers: function (context) {
-            if (context.data && jQuery.isArray(context.layers)) {
-                var layers = context.data.layers;
+            if (jQuery.isArray(context.layers)) {
+                var layers = context.layers;
                 var table = jQuery("#" + this.prefix + "-layerlist");
                 var rows = table.find("tbody tr");
                 if (rows.length > 0) {
