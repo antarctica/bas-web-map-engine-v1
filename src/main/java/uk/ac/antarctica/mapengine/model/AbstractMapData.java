@@ -47,6 +47,10 @@ public abstract class AbstractMapData {
     public abstract Object[] updateArgs(String id);   
     
     public Object getJsonElement(JsonObject jo, String key, boolean allowEmpty, Object defaultValue) {
+        return(getJsonElement(jo, key, allowEmpty, defaultValue, String.class));
+    }
+    
+    public Object getJsonElement(JsonObject jo, String key, boolean allowEmpty, Object defaultValue, Class clazz) {
         Object elt = null;
         if (jo != null && jo.has(key)) {
             JsonElement je = jo.get(key);
@@ -73,9 +77,9 @@ public abstract class AbstractMapData {
                         elt = jp.getAsString();
                     }
                 } else if (jp.isNumber()) {
-                    try {
+                    if (clazz == Integer.class) {
                         elt = jp.getAsInt();
-                    } catch(NumberFormatException nfe) {
+                    } else if (clazz == Double.class) {
                         elt = jp.getAsDouble();
                     }
                 }

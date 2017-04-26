@@ -40,12 +40,12 @@ public class EmbeddedMapData extends AbstractMapData {
         setModified_date(now);
         setOwner_name(username);           
         setOwner_email((String)getJsonElement(jo, "owner_email", false, "basmagic@bas.ac.uk"));
-        setWidth((Integer)getJsonElement(jo, "width", false, 400));
-        setHeight((Integer)getJsonElement(jo, "height", false, 300));        
+        setWidth((int)getJsonElement(jo, "width", false, 400, Integer.class));
+        setHeight((int)getJsonElement(jo, "height", false, 300, Integer.class));        
         setEmbed((String)getJsonElement(jo, "embed", false, "map"));
         setCenter((String)getJsonElement(jo, "center", false, "[0,0]"));
-        setZoom((Integer)getJsonElement(jo, "zoom", false, 0));
-        setRotation((Double)getJsonElement(jo, "rotation", false, 0.0));
+        setZoom((int)getJsonElement(jo, "zoom", false, 0, Integer.class));
+        setRotation((double)getJsonElement(jo, "rotation", false, 0.0, Double.class));
         setProjection((String)getJsonElement(jo, "projection", false, "EPSG:4326"));
         setProj_extent((String)getJsonElement(jo, "proj_extent", false, "[-180.0,-90.0,180.0,90.0]"));
         setResolutions((String)getJsonElement(jo, "resolutions", false, "[]"));
