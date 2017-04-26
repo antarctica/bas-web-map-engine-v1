@@ -38,7 +38,7 @@ magic.modules.embedded_creator.Tab1 = function () {
         ],
                 
         init: function () {
-            this.map_context = new magic.classes.creator.MapContext();
+            this.map_context = new magic.classes.embedded_creator.MapContext();
             /* Creator method radio button change handler */
             jQuery("input[name$='action-rb']").click(jQuery.proxy(function (evt) {
                 var rb = jQuery(evt.currentTarget);
@@ -62,7 +62,7 @@ magic.modules.embedded_creator.Tab1 = function () {
                                 magic.modules.Common.populateSelect(select, data, "name", "title", mapName, true); 
                                 magic.modules.creator.Common.resetFormIndicators();
                                 if (action == "edit") {
-                                    this.map_context.load("edit", mapName, true, jQuery.proxy(magic.modules.creator.Common.loadContext, magic.modules.creator.Common));
+                                    this.map_context.load("edit", mapName, jQuery.proxy(this.loadContext, this));
                                 }
                             }, this));
                         }                  
@@ -402,7 +402,7 @@ magic.modules.embedded_creator.Tab1 = function () {
          * @param {object} context
          */
         loadLayers: function (context) {
-            if (context.data && jQuery.isArray(context.data.layers)) {
+            if (context.data && jQuery.isArray(context.layers)) {
                 var layers = context.data.layers;
                 var table = jQuery("#" + this.prefix + "-layerlist");
                 var rows = table.find("tbody tr");

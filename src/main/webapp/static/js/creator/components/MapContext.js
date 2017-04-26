@@ -14,22 +14,17 @@ magic.classes.creator.MapContext = function() {
  * Load a map context
  * @param {string} action (new|edit|clone)
  * @param {string} name
- * @param {boolean} embedded
  * @param {Function} callback
  */
-magic.classes.creator.MapContext.prototype.load = function(action, name, embedded, callback) {
+magic.classes.creator.MapContext.prototype.load = function(action, name, callback) {
     if (action == "new") {
         /* New blank map context */
-        if (embedded) {
-            this.context = jQuery.extend(true, {}, magic.modules.embedded_creator.Data.BLANK_MAP_DATA(name));
-        } else {
-            this.context = jQuery.extend(true, {}, magic.modules.creator.Data.BLANK_MAP_CORE, {"data": magic.modules.creator.Data.BLANK_MAP_DATA(name)});
-        }
+        this.context = jQuery.extend(true, {}, magic.modules.creator.Data.BLANK_MAP_CORE, {"data": magic.modules.creator.Data.BLANK_MAP_DATA(name)});
         this.id = "";
         callback(this.context);
     } else if (name) {
         /* Clone or edit implies a fetch of map with id */
-        var fetchUrl = magic.config.paths.baseurl + "/" + (embedded ? "embedded_" : "") + "maps/name/" + name;
+        var fetchUrl = magic.config.paths.baseurl + "/maps/name/" + name;
         jQuery.getJSON(fetchUrl, jQuery.proxy(function (response) {
             this.context = jQuery.extend({}, response);
             if (action == "clone") {
@@ -75,22 +70,4 @@ magic.classes.creator.MapContext.prototype.getProjection = function() {
         proj = this.context.data.projection;
     }
     return(proj);
-};
-
-/**
- * Map scale denominator to OL resolution
- * @param {float} scale
- * @returns {float}
- */
-magic.classes.creator.MapContext.prototype.scaleToResolution = function(scale) {
-    var res = null;
-    var proj = this.getProjection();
-    if (proj) {
-        var projOl = ol.proj.get(proj);
-        var units = projOl.getUnits();
-        var dpi = 25.4 / 0.28;
-        var mpu = ol.proj.METERS_PER_UNIT[units];
-        res = scale / (mpu * 39.37 * dpi); /* NB magic numbers */       
-    }
-    return(res);
 };

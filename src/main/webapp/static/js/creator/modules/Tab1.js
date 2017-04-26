@@ -46,7 +46,7 @@ magic.modules.creator.Tab1 = function () {
                                 magic.modules.Common.populateSelect(select, data, "name", "title", mapName, true); 
                                 magic.modules.creator.Common.resetFormIndicators();
                                 if (action == "edit") {
-                                    magic.modules.creator.Common.map_context.load("edit", mapName, false, jQuery.proxy(magic.modules.creator.Common.loadContext, magic.modules.creator.Common));
+                                    magic.modules.creator.Common.map_context.load("edit", mapName, jQuery.proxy(magic.modules.creator.Common.loadContext, magic.modules.creator.Common));
                                 }
                             }, this));
                         }                  
@@ -62,7 +62,7 @@ magic.modules.creator.Tab1 = function () {
                 var action = sel.attr("id").split("-").pop();
                 var mapName = sel.val();
                 magic.modules.creator.Common.resetFormIndicators();
-                magic.modules.creator.Common.map_context.load(action, mapName, false, jQuery.proxy(magic.modules.creator.Common.loadContext, magic.modules.creator.Common));
+                magic.modules.creator.Common.map_context.load(action, mapName, jQuery.proxy(magic.modules.creator.Common.loadContext, magic.modules.creator.Common));
             }); 
             /* If there is a search string, assume a map edit */
             var search = window.location.search;

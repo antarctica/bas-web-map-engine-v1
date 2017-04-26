@@ -482,7 +482,7 @@ magic.classes.Measurement.prototype.queryElevation = function(evt) {
                 jQuery(element).popover("destroy");
                 this.heightPopup.setPosition(evt.coordinate);
                 jQuery.ajax({
-                    url: url,
+                    url: magic.modules.Common.proxyUrl(url),
                     method: "GET"
                 })
                 .done(jQuery.proxy(function(data) {

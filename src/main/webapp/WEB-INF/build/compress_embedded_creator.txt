@@ -15,5 +15,4 @@ js/jquery.sortable.min.js
 js/embedded
 js/modules
 js/creator/modules/Common.js
-js/creator/components/MapContext.js
 js/embedded_creator
