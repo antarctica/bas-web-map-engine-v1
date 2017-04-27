@@ -19,7 +19,7 @@ magic.classes.embedded_creator.MapContext = function() {
 magic.classes.embedded_creator.MapContext.prototype.load = function(action, name, callback) {
     if (action == "new") {
         /* New blank map context */
-        this.context = jQuery.extend(true, {}, magic.modules.embedded_creator.Data.BLANK_MAP_DATA(name));       
+        this.context = jQuery.extend(true, {}, magic.modules.embedded_creator.Data.BLANK_MAP_CORE, magic.modules.embedded_creator.Data.BLANK_MAP_DATA(name));       
         this.id = "";
         callback(this.context);
     } else if (name) {
