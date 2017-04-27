@@ -568,7 +568,7 @@ magic.classes.Measurement.prototype.getDemValue = function(json, units) {
                 jQuery.each(f.properties, function(key, value) {
                     var fval = parseFloat(value);
                     if (!isNaN(fval) && Math.abs(fval) < 9000 && fval > fdem) {
-                        fdem = fval;
+                        fdem = Math.ceil(fval);
                     }
                 });
             }

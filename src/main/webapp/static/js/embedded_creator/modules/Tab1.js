@@ -104,12 +104,13 @@ magic.modules.embedded_creator.Tab1 = function () {
                     var table = jQuery("#" + this.prefix + "-layerlist");
                     table.removeClass("hidden");
                     var fselect = jQuery("#" + this.prefix + "-layer-wms-feature_name");
+                    var opacity = jQuery("#" + this.prefix + "-layer-wms-opacity").val() || 1.0;
                     this.appendLayer(table, {
                         id: jQuery("#" + this.prefix + "-layer-wms-id").val(),
                         name: jQuery("#" + this.prefix + "-layer-wms-feature_name option:selected").text(),
                         wms_source: jQuery("#" + this.prefix + "-layer-wms-wms_source").val(),
                         feature_name: fselect.val(),
-                        opacity: jQuery("#" + this.prefix + "-layer-wms-opacity").val(),
+                        opacity: parseFloat(opacity),
                         is_singletile: jQuery("#" + this.prefix + "-layer-wms-is_singletile").prop("checked"),
                         is_interactive: jQuery("#" + this.prefix + "-layer-wms-is_interactive").prop("checked")
                     });
@@ -299,6 +300,16 @@ magic.modules.embedded_creator.Tab1 = function () {
                     rotation = 0.0;
                 } else {
                     rotation = Math.PI*rotation/180.0;
+                }
+                /* Values that may be JSON or string depending on where they came from */
+                if (typeof context.center === "string") {
+                    context.center = JSON.parse(context.center);
+                }
+                if (typeof context.proj_extent === "string") {
+                    context.proj_extent = JSON.parse(context.proj_extent);
+                }
+                if (typeof context.resolutions === "string") {
+                    context.resolutions = JSON.parse(context.resolutions);
                 }
                 jQuery("#" + this.prefix + "-rotation").val(context.rotation);
                 var layers = [];

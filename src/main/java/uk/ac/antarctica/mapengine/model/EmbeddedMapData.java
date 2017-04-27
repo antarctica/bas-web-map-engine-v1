@@ -104,7 +104,7 @@ public class EmbeddedMapData extends AbstractMapData {
             "resolutions=?, " +
             "layers=?, " + 
             "allowed_usage=?, " +
-            "allowed_edit=?, " +             
+            "allowed_edit=? " +             
             "WHERE id=?"
         );
     }
