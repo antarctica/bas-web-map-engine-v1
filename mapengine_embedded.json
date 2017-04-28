@@ -1,0 +1,54 @@
+{
+  "exports": [
+    "ol.Map",
+    "ol.Map#*",
+    "ol.View",
+    "ol.View#*",
+    "ol.layer.Image",
+    "ol.layer.Image#*",
+    "ol.source.ImageWMS",
+    "ol.source.ImageWMS#*",
+    "ol.layer.Tile",
+    "ol.layer.Tile#*",
+    "ol.source.TileWMS",
+    "ol.source.TileWMS#*",
+    "ol.source.OSM",
+    "ol.source.OSM#*",
+    "ol.tilegrid.TileGrid",            
+    "ol.proj.Projection",
+    "ol.proj.Projection#*",
+    "ol.proj.get",
+    "ol.has.*",
+    "ol.events.*",
+    "ol.control.defaults",
+    "ol.control.ScaleLine",
+    "ol.control.MousePosition",
+    "ol.Collection#*",    
+    "ol.interaction.defaults",
+    "ol.proj.METERS_PER_UNIT",
+    "ol.coordinate.*"
+  ],
+  "compile": {
+    "externs": [
+      "externs/bingmaps.js",
+      "externs/geojson.js",
+      "externs/oli.js",
+      "externs/olx.js",
+      "externs/proj4js.js",
+      "externs/tilejson.js",
+      "externs/topojson.js"
+    ],
+    "define": [
+      "goog.dom.ASSUME_STANDARDS_MODE=true",
+      "goog.DEBUG=false",
+      "ol.ENABLE_VECTOR=true",
+      "ol.ENABLE_DOM=true",
+      "ol.ENABLE_WEBGL=true",
+      "ol.ENABLE_PROJ4JS=true"
+    ],
+    "compilation_level": "ADVANCED_OPTIMIZATIONS",
+    "output_wrapper": "(function(){%output%})();",
+    "use_types_for_optimization": true,
+    "manage_closure_dependencies": true
+  }
+}

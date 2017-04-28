@@ -12,7 +12,6 @@ js/proj4defs
 js/bootstrap.min.js
 js/bootbox.min.js
 js/jquery.sortable.min.js
-js/embedded
 js/modules
 js/creator/modules/Common.js
 js/embedded_creator
