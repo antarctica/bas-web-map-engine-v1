@@ -12,6 +12,19 @@ function showAlert(msg) {
 }
 
 /**
+ * Apply proxying to a URL (e.g. a vector feed) unless it's from the same host
+ * @param {String} url
+ * @returns {String}
+ */
+function proxyUrl(url) {
+    var proxyUrl = url;
+    if (url.indexOf(window.location.protocol + "//" + window.location.hostname) != 0) {
+        proxyUrl = magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(url);
+    }
+    return(proxyUrl);
+}
+
+/**
  * Get scale of map
  * https://groups.google.com/forum/#!searchin/ol3-dev/dpi/ol3-dev/RAJa4locqaM/4AzBrkndL9AJ
  * @returns {float}
@@ -211,6 +224,36 @@ function init() {
                             var scale = getCurrentMapScale();
                             jQuery("div.custom-scale-line-top").attr("title", scale);
                             jQuery("div.custom-scale-line-bottom").attr("title", scale);
+                        });
+                        /* Add GetFeatureInfo handlers */
+                        embedded_map.on("singleclick", function(evt) {
+                            embedded_map.getLayers().forEach(function(layer) {
+                                if (layer.getVisible() === true) {
+                                    var md = layer.get("metadata");
+                                    if (md && md.is_interactive) {
+                                        var gfiUrl = layer.getSource().getGetFeatureInfoUrl(
+                                            evt.coordinate, 
+                                            embedded_map.getView().getResolution(), 
+                                            embedded_map.getView().getProjection(),
+                                            {
+                                                "LAYERS": md.feature_name,
+                                                "QUERY_LAYERS": md.feature_name,
+                                                "INFO_FORMAT": "application/json", 
+                                                "FEATURE_COUNT": 10,
+                                                "buffer": 20
+                                            }
+                                        );
+                                        jQuery.ajax({
+                                            url: gfiUrl,
+                                            method: "GET"
+                                        }).done(function() {
+                                            
+                                        }).fail(function() {
+                                            
+                                        });
+                                    }
+                                }
+                            });
                         });
                     } else {
                         showAlert("No data found to display on map");
