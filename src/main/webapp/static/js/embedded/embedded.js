@@ -188,6 +188,7 @@ function init() {
                             loadTilesWhileInteracting: true,
                             layers: embedLayers,
                             controls: [
+                                new ol.control.Zoom(),
                                 new ol.control.ScaleLine({minWidth: 100, className: "custom-scale-line-top", units: "metric"}),
                                 new ol.control.ScaleLine({minWidth: 100, className: "custom-scale-line-bottom", units: "imperial"}),
                                 new ol.control.MousePosition({
