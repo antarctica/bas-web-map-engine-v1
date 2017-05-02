@@ -20,6 +20,7 @@
     "ol.proj.Projection",
     "ol.proj.Projection#*",
     "ol.proj.get",
+    "ol.proj.toLonLat",
     "ol.has.*",
     "ol.events.*",
     "ol.control.defaults",

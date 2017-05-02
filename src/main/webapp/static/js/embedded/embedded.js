@@ -159,6 +159,43 @@ function createLayers(data, view) {
     return(layers);
 }
 
+/**
+ * Write suitable attributes to the supplied div
+ * @param {jQuery.object} container
+ * @param {Object} attrs
+ * @param {Object} geom
+ */
+function displayFeatureData(container, attrs, geom) {
+    var html = "";
+    if (geom.type && geom.type.toLowerCase().indexOf("point") >= 0) {
+        /* Point geometry => display lat/lon */
+        var lonLat = ol.proj.toLonLat(geom.coordinates, embedded_map.getView().getProjection());
+        html += '<div style="margin-bottom:5px">Lat: <b>' + (lonLat[1].toFixed(2)) + "</b>, Long: <b>" + (lonLat[0].toFixed(2)) + '</b></div>';
+    }
+    if (!jQuery.isEmptyObject(attrs)) {
+        var keys = [];
+        for (var key in attrs) {
+            if (!key.match(/id$/) && key != "bbox") {
+                keys.push(key);
+            }
+        }
+        if (keys.length > 0) {
+            keys.sort();
+            var maxAttrs = Math.min(keys.length, 6);
+            html += '<table cellspacing="5" style="table-layout:fixed; width: 200px">';
+            for (var i = 0; i < maxAttrs; i++) {
+                html += '<tr><td width="60" style="overflow:hidden">' + keys[i] + '</td><td width="140" style="overflow:hidden">' + attrs[keys[i]] + '</td></tr>';
+            }
+            html += '</table>';
+        } else {
+            html += '<div>No attributes found</div>';
+        }        
+    } else {
+        html += '<div>No attributes found</div>';
+    }
+    container.html(html);
+}
+
 /* Load jQuery if not already present */
 if (!window.jQuery){
     var jq = document.createElement("script");
@@ -255,6 +292,37 @@ function init() {
                                             method: "GET"
                                         }).done(function(data) {
                                             console.log(data);
+                                            if (data.type == "FeatureCollection" && jQuery.isArray(data.features) && data.features.length > 0) {
+                                                if (!isApexContext()) {
+                                                    var popupDiv = jQuery(embedded_overlay.getElement());
+                                                    var contentDivs = popupDiv.children("div");
+                                                    var chooser = jQuery(contentDivs[0]);
+                                                    var content = jQuery(contentDivs[1]);
+                                                    if (data.features.length == 1) {
+                                                        /* Hide the chooser */
+                                                        chooser.css("display", "none");                                                        
+                                                    } else {
+                                                        /* Display a chooser */                                                        
+                                                        chooser.empty();                                                        
+                                                        for (var i = 0; i < data.features.length; i++) {
+                                                            var anch = jQuery('<a/>', {
+                                                                href: "Javascript:void(0)",
+                                                                text: (i+1) + ""
+                                                            });
+                                                            chooser.append([anch, '<span>&nbsp;&nbsp;</span>']); 
+                                                            var fpayload = data.features[i];
+                                                            anch.click(jQuery.proxy(function() {
+                                                                displayFeatureData(content, this.properties, this.geometry);
+                                                            }, fpayload));
+                                                        }
+                                                        chooser.css("display", "block");
+                                                    } 
+                                                    displayFeatureData(content, data.features[0].properties, data.features[0].geometry);
+                                                    embedded_overlay.setPosition(evt.coordinate);
+                                                } else {
+                                                    //TODO package data and fire event for Apex case
+                                                }                                                
+                                            }                                            
                                         }).fail(function() {
                                             showAlert("Failed to get info for clicked map feature");
                                         });
@@ -266,11 +334,12 @@ function init() {
                         showAlert("No data found to display on map");
                     }
                     /* Add pop-up div to map if required */
-                    if (!isApexcontext()) {
+                    if (!isApexContext()) {
                         embedDiv.after(
                             '<div class="ol-popup">' + 
                                 '<a href="#" class="ol-popup-closer"></a>' + 
-                                '<div></div>' + 
+                                '<div class="ol-popup-feature-chooser"></div>' + 
+                                '<div class="ol-popup-feature-data"></div>'+ 
                             '</div>'
                         );
                         embedded_overlay = new ol.Overlay({
