@@ -4,6 +4,8 @@
     "ol.Map#*",
     "ol.View",
     "ol.View#*",
+    "ol.Overlay",
+    "ol.Overlay#*",
     "ol.layer.Image",
     "ol.layer.Image#*",
     "ol.source.ImageWMS",

@@ -5,10 +5,17 @@
  */
 
 var embedded_map;
+var embedded_overlay;
 
 function showAlert(msg) {
     /* May eventually use bootbox or some other library to provide more seamless looking alerts in keeping with the rest of the page */
     alert(msg);
+}
+
+function isApexContext() {
+    //TODO - logic here to detect an Application Express context from the DOM - this will trigger a special event to inform Apex of a map click,
+    // and will NOT display pop-ups on the map (as the information will be available in the database report)
+    return(false);
 }
 
 /**
@@ -174,7 +181,7 @@ function init() {
         if (!embedded_map_name) {
             /* The global 'embedded_map_name' wasn't set earlier by map-specific code */
             showAlert("No map name specified - please set variable >embedded_map_name< to the name of the map you wish to embed in the page");
-        } else {
+        } else {            
             /* Go ahead and create the map */
             var baseUrl = (window.location.origin || (window.location.protocol + "//" + window.location.hostname + (window.location.port ? ":" + window.location.port: "")));
             jQuery.ajax({
@@ -226,7 +233,7 @@ function init() {
                             jQuery("div.custom-scale-line-bottom").attr("title", scale);
                         });
                         /* Add GetFeatureInfo handlers */
-                        embedded_map.on("singleclick", function(evt) {
+                        embedded_map.on("singleclick", function(evt) {                            
                             embedded_map.getLayers().forEach(function(layer) {
                                 if (layer.getVisible() === true) {
                                     var md = layer.get("metadata");
@@ -246,10 +253,10 @@ function init() {
                                         jQuery.ajax({
                                             url: gfiUrl,
                                             method: "GET"
-                                        }).done(function() {
-                                            
+                                        }).done(function(data) {
+                                            console.log(data);
                                         }).fail(function() {
-                                            
+                                            showAlert("Failed to get info for clicked map feature");
                                         });
                                     }
                                 }
@@ -257,6 +264,29 @@ function init() {
                         });
                     } else {
                         showAlert("No data found to display on map");
+                    }
+                    /* Add pop-up div to map if required */
+                    if (!isApexcontext()) {
+                        embedDiv.after(
+                            '<div class="ol-popup">' + 
+                                '<a href="#" class="ol-popup-closer"></a>' + 
+                                '<div></div>' + 
+                            '</div>'
+                        );
+                        embedded_overlay = new ol.Overlay({
+                            element: jQuery("div.ol-popup")[0],
+                            autoPan: true,
+                            autoPanAnimation: {
+                                duration: 250
+                            }
+                        });
+                        embedded_map.addOverlay(embedded_overlay);
+                        var closer = jQuery("a.ol-popup-closer");
+                        closer.click(function() {
+                            embedded_overlay.setPosition(undefined);
+                            closer.blur();
+                            return(false);
+                        });
                     }
                 } else {
                     showAlert("Cannot find HTML element with id >" + embedDivId + "< to insert map into");
