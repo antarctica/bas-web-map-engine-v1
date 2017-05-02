@@ -43,7 +43,10 @@ magic.classes.GraticuleButton.prototype.isActive = function () {
  */
 magic.classes.GraticuleButton.prototype.activate = function () {
     this.active = true;
-    // TODO - ol graticule component does not seem very robust as of 03/08/2015   
+    // TODO - ol graticule component does not seem very robust as of 03/08/2015
+    // Update 2017-05-02 David
+    // it *will* work if the projection worldExtent is set as below, but there is no support for labels as of OL 4.1
+    // magic.runtime.map.getView().getProjection().setWorldExtent([-55, -60, -20, -50]);
     this.graticule = new ol.Graticule({});
     this.graticule.setMap(magic.runtime.map);
     this.btn.addClass("active");
