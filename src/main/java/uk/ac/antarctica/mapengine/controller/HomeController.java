@@ -5,8 +5,13 @@ package uk.ac.antarctica.mapengine.controller;
 
 import it.geosolutions.geoserver.rest.HTTPUtils;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URLDecoder;
 import java.security.Principal;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -16,13 +21,19 @@ import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.codehaus.plexus.util.cli.CommandLineException;
+import org.codehaus.plexus.util.cli.CommandLineUtils;
+import org.codehaus.plexus.util.cli.Commandline;
+import org.springframework.web.context.ServletContextAware;
 import uk.ac.antarctica.mapengine.util.ActivityLogger;
 
 @Controller
-public class HomeController {
+public class HomeController implements ServletContextAware {
         
     @Autowired
     Environment env;
+    
+    private ServletContext context;
     
     /**
      * Render top level page (this may need to be changed for different servers)   
@@ -340,9 +351,10 @@ public class HomeController {
     private String renderPage(HttpServletRequest request, ModelMap model, String tplName, String mapName, Integer issueNumber, Integer userMapId, boolean debug) {
         /* Set username */
         String message = "";
-        String username = getUserName(request);
+        String activeProfile = getActiveProfile();
+        String username = getUserName(request, activeProfile);        
         model.addAttribute("username", username);
-        model.addAttribute("profile", getActiveProfile());
+        model.addAttribute("profile", activeProfile);
         String pageTitle = env.getProperty("default.title") != null ? env.getProperty("default.title") : "";
         String logo = env.getProperty("default.logo") != null ? env.getProperty("default.logo") : "/static/images/1x1.png";
         String logoUrl = env.getProperty("default.logoUrl") != null ? env.getProperty("default.logoUrl") : "Javascript:void(0)";
@@ -398,15 +410,99 @@ public class HomeController {
     /**
      * Get user name
      * @param HttpServletRequest request
+     * @param String activeProfile
      * @return String
      */
-    private String getUserName(HttpServletRequest request) {
-        Principal p = request.getUserPrincipal();
-        if (p != null) {
-            return(p.getName());
+    private String getUserName(HttpServletRequest request, String activeProfile) {
+        if (activeProfile.equals("ccamlrgis")) {
+            /* CCAMLR GIS needs interaction with local Drupal */
+            return(getCcamlrUserName(request));
+        } else {
+            /* Other profiles */
+            Principal p = request.getUserPrincipal();
+            return(p != null ? p.getName() : "guest");
         }
-        return("guest");
     }
+    
+    /**
+	 * Retrieve and parse the Bakery CHOCOLATECHIP cookie via a command-line PHP script
+	 * @param HttpServletRequest request
+	 * @return String	
+	 */
+	private String getCcamlrUserName(HttpServletRequest request) {
+        
+		String userName = null;        
+        String catalinaBase = System.getProperty("catalina.base");
+
+        /* From : http://stackoverflow.com/questions/16702011/tomcat-deploying-the-same-application-twice-in-netbeans, answer by Basil Bourque */        
+        Boolean inDevelopment = Boolean.FALSE;
+        if (catalinaBase.contains("Application Support")) {  /* Specific to Mac OS X only */
+            inDevelopment = Boolean.TRUE;
+        } else if (catalinaBase.contains("NetBeans")) {
+            inDevelopment = Boolean.TRUE;
+        }
+        
+		try {
+			if (inDevelopment) {
+				userName = "darb1@bas.ac.uk";           /* For testing logged in functionality locally on development m/c */
+                //userName = "david.ramm@ccamlr.org";   /* For testing management functionality */
+            } else {
+				String cchip = null;
+                if (request.getCookies() != null) {
+                    for (Cookie c : request.getCookies()) {
+                        if (c.getName().equals("CHOCOLATECHIPSSL")) {
+                            cchip = URLDecoder.decode(c.getValue(), "UTF-8");
+                            break;
+                        }
+                    }
+                }
+				if (cchip != null) {
+					/* Chocolate Chip cookie is present, indicating a Drupal login from a CCAMLR user */
+					System.out.println("Found CHOCOLATECHIP cookie " + cchip);
+					Commandline cmd = new Commandline();
+					CommandLineUtils.StringStreamConsumer phpOut = new CommandLineUtils.StringStreamConsumer();
+					CommandLineUtils.StringStreamConsumer phpErr = new CommandLineUtils.StringStreamConsumer();
+					cmd.setExecutable(env.getProperty("ccamlr.phpPath"));
+					cmd.createArg().setValue(context.getRealPath("/WEB-INF/ccamlr/unencryptChocChip.php"));
+					cmd.createArg().setValue(cchip);
+					System.out.println("About to call Drupal mcrypt code...");
+					int ret = CommandLineUtils.executeCommandLine(cmd, phpOut, phpErr, 10);
+					if (ret == 0) {
+						System.out.println("Successful return");
+						String phpSer = phpOut.getOutput().replace("\n", "");
+						/* Sample output:
+						 * a:7:{s:4:"name";s:5:"darb1";s:4:"mail";s:15:"darb1@bas.ac.uk";s:4:"init";s:29:"www.ccamlr.org/user/1081/edit";s:6:"master";i:1;s:8:"calories";i:480;s:9:"timestamp";i:1369044938;s:4:"type";s:13:"CHOCOLATECHIP";}
+						 * All we want is the user name (darb1@bas.ac.uk in this case) so adopt a very simple-minded approach to retrieving it - note that we may want to retrieve other information
+						 * from PHP's serialised form e.g. user permission level, so a more complex method may be needed in future
+						 */
+						 System.out.println("Value retrieved was " + phpSer);
+						 userName = getCcamlrName(phpSer);
+					} else {
+						System.out.println("Non-zero return code (" + ret + ") from unencryptChocChip.php");
+					}
+				}
+			}			
+		} catch(UnsupportedEncodingException | CommandLineException ex) {}
+		System.out.println("Returning user name " + userName);
+		return(userName);
+	}
+    
+    /**
+	 * Retrieve the user name (email address) from the PHP serialised form of the CCAMLR Drupal cookie
+	 * @param String phpSer
+	 * @return String
+	 */
+	private String getCcamlrName(String phpSer) {
+		String name = "Unknown user";
+		String[] parts = phpSer.split(";");
+		if (parts.length > 3) {
+			String[] subs = parts[3].split(":");
+			if (subs.length > 2) {
+				name = subs[2].replaceAll("\"", "");
+			}
+		}	
+		return(name);
+	}
 
     /**
      * Retrieve data for Redmine issue <issue>
@@ -425,7 +521,7 @@ public class HomeController {
                 if (data == null || data.isEmpty()) {
                     data = "{}";
                 }
-            } catch(Exception ex) {}            
+            } catch(MalformedURLException mue) {}            
         }
         return(data);
     }
@@ -441,6 +537,11 @@ public class HomeController {
             activeProfile = profiles[0];
         }
         return(activeProfile);
+    }
+
+    @Override
+    public void setServletContext(ServletContext sc) {
+        context = sc;
     }
 
 }
