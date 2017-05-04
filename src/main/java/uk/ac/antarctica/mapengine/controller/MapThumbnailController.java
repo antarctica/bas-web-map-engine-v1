@@ -110,9 +110,7 @@ public class MapThumbnailController implements ServletContextAware {
                 jm.addProperty("r", canView);
                 jm.addProperty("w", canEdit);
                 jm.addProperty("d", canDelete);
-                System.out.println(jm.toString());
                 /* Get the thumbnail for public sites - restricted ones can have a thumbnail uploaded or use a placeholder */                
-                System.out.println(server);                
                 jm.addProperty("thumburl", server + "/thumbnail/show/" + mapName);
                 ja.add(jm);
             }

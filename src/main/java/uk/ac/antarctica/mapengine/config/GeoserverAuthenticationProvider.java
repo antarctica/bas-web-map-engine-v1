@@ -34,6 +34,7 @@ public class GeoserverAuthenticationProvider implements AuthenticationProvider {
     }
     
     public GeoserverAuthenticationProvider(String loginUrl) {
+        System.out.println("Creating GS Auth Provider with URL : " + loginUrl);
         this.loginUrl = loginUrl;
     }
     
@@ -41,17 +42,20 @@ public class GeoserverAuthenticationProvider implements AuthenticationProvider {
     public Authentication authenticate(Authentication authentication) 
       throws GeoserverAuthenticationException {
         HttpResponse response = null;
+        System.out.println("GS authentication starting...");
         CloseableHttpClient client = HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy()).build();
         String name = authentication.getName();
         String password = authentication.getCredentials().toString();
         try {
             /* If the request succeeds it will be because we have been sent to the login page */
+            System.out.println("POST request to GS...");
             Request request = Request.Post(loginUrl + "/j_spring_security_check")
                 .bodyString("username=" + name + "&password=" + password, ContentType.APPLICATION_FORM_URLENCODED);                
             response = Executor.newInstance(client).execute(request).returnResponse();
             String content = IOUtils.toString(response.getEntity().getContent());
             if (content.contains("<span class=\"username\">Logged in as <span>" + name + "</span>.</span>")) {
                 /* Record the Geoserver credentials so they are recoverable by the security context holder */
+                System.out.println("GS authentication successful");
                 List<GrantedAuthority> grantedAuths = new ArrayList<>();
                 String hostname = ProcessUtils.execReadToString("hostname");
                 System.out.println(hostname);

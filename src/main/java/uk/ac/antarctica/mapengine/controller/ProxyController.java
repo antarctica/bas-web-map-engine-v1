@@ -166,7 +166,7 @@ public class ProxyController {
                         break;
                     case "https":
                         /* Note: authentication not implemented */
-                        System.out.println("Proxy via https");
+                        //System.out.println("Proxy via https");
                         HttpsURLConnection conn = null;
                         try {                            
                             /* Override SSL checking
