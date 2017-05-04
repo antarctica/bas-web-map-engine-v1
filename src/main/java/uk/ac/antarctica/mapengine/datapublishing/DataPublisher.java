@@ -206,7 +206,7 @@ public abstract class DataPublisher {
         executor.setWatchdog(watchdog);
         int exitValue = -1;
         try {         
-            exitValue = executor.execute(ogr2ogr);
+            executor.execute(ogr2ogr);
         } catch (IOException ex) {
             /* Report what ogr2ogr wrote to stderr (may use the stdout output too at some point) */
             throw new ExecuteException("Error converting file : " + new String(ogrStderr.toByteArray(), StandardCharsets.UTF_8), exitValue);

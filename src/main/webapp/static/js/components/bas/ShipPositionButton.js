@@ -142,8 +142,12 @@ magic.classes.ShipPositionButton.prototype.deactivate = function () {
     
 
 magic.classes.ShipPositionButton.prototype.getData = function() {
-    /* Aircraft positional API */
-    var shipApi = "https://api.bas.ac.uk/marine/v1/vessels/position/";        
+    /* Ship positional API */
+    var shipApi = "https://legacy.bas.ac.uk/webteam/api/ship/position/";
+    /* See http://stackoverflow.com/questions/7615645/ssl-handshake-alert-unrecognized-name-error-since-upgrade-to-java-1-7-0
+     * API as below does not support CORS, so need to proxy.  The attempt to proxy https in this case leads to the dreaded
+     * 'unrecognized_name' error, a server misconfiguration which Java alone is intolerant of */
+    //var shipApi = magic.modules.Common.proxyUrl("https://api.bas.ac.uk/marine/v1/vessels/position/");        
     jQuery.ajax({
         url: shipApi,
         method: "GET",
