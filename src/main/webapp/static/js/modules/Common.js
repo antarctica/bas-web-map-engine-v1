@@ -277,9 +277,9 @@ magic.modules.Common = function () {
                 style = (jQuery.proxy(feat.getStyleFunction(), feat))()[0];
             } else if (feat.getStyle()) {
                 style = feat.getStyle();
-            } else if (layer.getStyleFunction()) {
+            } else if (jQuery.isFunction(layer.getStyleFunction) && layer.getStyleFunction()) {
                 style = layer.getStyleFunction()(feat, 0)[0];
-            } else if (layer.getStyle()) {
+            } else if (jQuery.isFunction(layer.getStyle) && layer.getStyle()) {
                 style = layer.getStyle();
             }
             if (style && style.getText()) {            
