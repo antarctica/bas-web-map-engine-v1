@@ -4,15 +4,21 @@
 package uk.ac.antarctica.mapengine.controller;
 
 import it.geosolutions.geoserver.rest.HTTPUtils;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.exec.CommandLine;
+import org.apache.commons.exec.DefaultExecutor;
+import org.apache.commons.exec.ExecuteWatchdog;
+import org.apache.commons.exec.PumpStreamHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
@@ -21,9 +27,6 @@ import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.codehaus.plexus.util.cli.CommandLineException;
-import org.codehaus.plexus.util.cli.CommandLineUtils;
-import org.codehaus.plexus.util.cli.Commandline;
 import org.springframework.web.context.ServletContextAware;
 import uk.ac.antarctica.mapengine.util.ActivityLogger;
 
@@ -459,36 +462,44 @@ public class HomeController implements ServletContextAware {
 				if (cchip != null) {
 					/* Chocolate Chip cookie is present, indicating a Drupal login from a CCAMLR user */
 					System.out.println("Found CHOCOLATECHIP cookie " + cchip);
-					Commandline cmd = new Commandline();
-					CommandLineUtils.StringStreamConsumer phpOut = new CommandLineUtils.StringStreamConsumer();
-					CommandLineUtils.StringStreamConsumer phpErr = new CommandLineUtils.StringStreamConsumer();
-					cmd.setExecutable(env.getProperty("ccamlr.phpPath"));
-					cmd.createArg().setValue(context.getRealPath("/WEB-INF/ccamlr/unencryptChocChip.php"));
-					cmd.createArg().setValue(cchip);
-					System.out.println("About to call Drupal mcrypt code...");
-					int ret = CommandLineUtils.executeCommandLine(cmd, phpOut, phpErr, 10);
-					if (ret == 0) {
-						System.out.println("Successful return");
-						String phpSer = phpOut.getOutput().replace("\n", "");
-						/* Sample output:
-						 * a:7:{s:4:"name";s:5:"darb1";s:4:"mail";s:15:"darb1@bas.ac.uk";s:4:"init";s:29:"www.ccamlr.org/user/1081/edit";s:6:"master";i:1;s:8:"calories";i:480;s:9:"timestamp";i:1369044938;s:4:"type";s:13:"CHOCOLATECHIP";}
-						 * All we want is the user name (darb1@bas.ac.uk in this case) so adopt a very simple-minded approach to retrieving it - note that we may want to retrieve other information
-						 * from PHP's serialised form e.g. user permission level, so a more complex method may be needed in future
-						 */
-						 System.out.println("Value retrieved was " + phpSer);
-						 userName = getCcamlrName(phpSer);
-					} else {
-						System.out.println("Non-zero return code (" + ret + ") from unencryptChocChip.php");
-					}
+                    CommandLine cmd = new CommandLine(env.getProperty("ccamlr.phpPath"));
+                    cmd.addArgument(context.getRealPath("/WEB-INF/ccamlr/unencryptChocChip.php"), true);
+                    cmd.addArgument(cchip, true);
+                    System.out.println("Executing PHP commandline : " + cmd.toString());
+                    DefaultExecutor executor = new DefaultExecutor();
+                    /* Send stdout and stderr to specific byte arrays so that the end user will get some feedback about the problem */
+                    ByteArrayOutputStream cmdStdout = new ByteArrayOutputStream();
+                    ByteArrayOutputStream cmdStderr = new ByteArrayOutputStream();
+                    PumpStreamHandler pumpStreamHandler = new PumpStreamHandler(cmdStdout, cmdStderr); 
+                    executor.setStreamHandler(pumpStreamHandler);
+                    executor.setExitValue(0);
+                    ExecuteWatchdog watchdog = new ExecuteWatchdog(30000);  /* Time process out after 30 seconds */
+                    executor.setWatchdog(watchdog);
+                    int exitValue = -1;
+                    try {         
+                        executor.execute(cmd);
+                        String phpSer = new String(cmdStderr.toByteArray(), StandardCharsets.UTF_8).replace("\n", "");						
+						System.out.println("Successful return - value retrieved was " + phpSer);
+						userName = getCcamlrName(phpSer);
+                    } catch (IOException ex) {
+                        /* Report what the command wrote to stderr */
+                        System.out.println("Error converting file : " + new String(cmdStderr.toByteArray(), StandardCharsets.UTF_8) + " exit value was " + exitValue);
+                    }
 				}
 			}			
-		} catch(UnsupportedEncodingException | CommandLineException ex) {}
+		} catch(UnsupportedEncodingException ex) {}
 		System.out.println("Returning user name " + userName);
 		return(userName);
 	}
     
     /**
 	 * Retrieve the user name (email address) from the PHP serialised form of the CCAMLR Drupal cookie
+     * Sample output:
+     * 
+     * a:7:{s:4:"name";s:5:"darb1";s:4:"mail";s:15:"darb1@bas.ac.uk";s:4:"init";s:29:"www.ccamlr.org/user/1081/edit";s:6:"master";i:1;s:8:"calories";i:480;s:9:"timestamp";i:1369044938;s:4:"type";s:13:"CHOCOLATECHIP";}
+     * 
+     * All we want is the user name (darb1@bas.ac.uk in this case) so adopt a very simple-minded approach to retrieving it - note that we may want to retrieve other information
+     * from PHP's serialised form e.g. user permission level, so a more complex method may be needed in future     
 	 * @param String phpSer
 	 * @return String
 	 */
