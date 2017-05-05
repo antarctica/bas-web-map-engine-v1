@@ -51,7 +51,7 @@ public abstract class DataPublisher {
     protected static final String OGR2OGR = SEP.equals("/") 
         //? System.getProperty("user.home") + "/gdal/bin/ogr2ogr"   /* If we have to install the gdal package into user home directory ourselves */
         ? "/packages/gdal/current/bin/ogr2ogr"                      /* If Jeremy has installed the authorised package on the server */
-        : "\"c:/Program Files/QGIS Essen/bin/ogr2ogr.exe\"";
+        : "\"c:/Program Files/QGIS Las/bin/ogr2ogr.exe\"";
 
     @Autowired
     private Environment env;
@@ -218,13 +218,17 @@ public abstract class DataPublisher {
      * NOTE: tableName must include a schema prefix i.e. be of form <schema>.<tablename>
      * @param String tableName 
      */
-    protected void archiveExistingTable(String tableName) { //throws ExecuteException {
+    protected void archiveExistingTable(String tableName) throws Exception {
         String tableSchema = tableName.split("\\.")[0];
         String tableBase = tableName.split("\\.")[1];
+        if (tableBase.length() > 47) {
+            /* Postgres table names are 63 characters max - we will add 15 more in the date/time suffix below, so bomb if name too long */
+            throw new Exception("Table name " + tableBase + " is too long, and will likely lead to table name clashes - aborting publish");
+        }
         List<Map<String, Object>> exTab = getMagicDataTpl().queryForList("SELECT 1 FROM information_schema.tables WHERE table_schema=? AND table_name=?", tableSchema, tableBase);
         if (exTab.size() == 1) {                            
             /* Copy existing table to a new archival one */                        
-            getMagicDataTpl().execute("CREATE TABLE  " + tableName + "_" + dateTimeSuffix() + " AS TABLE " + tableName);
+            getMagicDataTpl().execute("CREATE TABLE " + tableName + "_" + dateTimeSuffix() + " AS TABLE " + tableName);
             /* Drop the existing table, including any sequence and index previously created by ogr2ogr */
             getMagicDataTpl().execute("DROP TABLE " + tableName + " CASCADE");
             /* Drop any Geoserver feature corresponding to this table */

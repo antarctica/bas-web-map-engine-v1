@@ -78,7 +78,7 @@ public class DataPublishController implements ApplicationContextAware {
                     msg = "unsupported extension type " + extension;
                 }
             } catch(Exception ex) {
-                msg = "failed to publish with error " + ex.getMessage();
+                msg = "Publish failed with error : " + ex.getMessage();
                 ex.printStackTrace();
             }
             

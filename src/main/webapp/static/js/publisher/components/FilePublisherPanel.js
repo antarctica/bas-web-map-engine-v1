@@ -96,6 +96,10 @@ magic.classes.publisher.FilePublisherPanel = function () {
                                 jQuery(pokBtns[i]).removeClass("hidden").addClass("show");
                                 jQuery(perBtns[i]).removeClass("show").addClass("hidden");
                                 jQuery(pMsgs[i]).removeClass("hidden").addClass("show").html("");
+                                /* Remove the file from the list after a set time - David 2017-05-05 */
+                                window.setTimeout(jQuery.proxy(function() {
+                                    this.dz.removeFile(this.f);
+                                }, {dz : this, f: file[i]}), 3000);
                             } else {
                                 jQuery(pokBtns[i]).removeClass("show").addClass("hidden");
                                 jQuery(perBtns[i]).removeClass("hidden").addClass("show");
