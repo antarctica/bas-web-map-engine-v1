@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import javax.net.ssl.HostnameVerifier;
@@ -114,6 +115,9 @@ public class OgcServicesController implements ServletContextAware {
         List<NameValuePair> params = decomposeQueryString(request);
         
         String operation = getQueryParameter(params, "request");
+        if (operation == null) {
+            return;
+        }
         
         try {
             switch(operation.toLowerCase()) {
@@ -169,6 +173,9 @@ public class OgcServicesController implements ServletContextAware {
             /* Service offers WFS - assume that the URL is a simple swap of 'wfs' for 'wms' at the end */            
             List<NameValuePair> params = decomposeQueryString(request);        
             String operation = getQueryParameter(params, "request");
+            if (operation == null) {
+                return;
+            }
             String endpointUrl = (String)servicedata.get("url");
             if (endpointUrl.endsWith("/")) {
                 endpointUrl = endpointUrl.substring(0, endpointUrl.length()-1);
@@ -214,7 +221,12 @@ public class OgcServicesController implements ServletContextAware {
      * @return List<NameValuePair>
      */
     private List<NameValuePair> decomposeQueryString(HttpServletRequest request) {
-        return(URLEncodedUtils.parse(request.getQueryString(), Charset.defaultCharset()));
+        String qry = request.getQueryString();
+        if (qry != null) {
+            return(URLEncodedUtils.parse(request.getQueryString(), Charset.defaultCharset()));
+        } else {
+            return(new ArrayList());
+        }
     }
     
     /**
