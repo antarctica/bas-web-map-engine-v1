@@ -1,6 +1,59 @@
 /* Canned styles for vector layers */
 
 magic.modules.VectorStyles = function () {
+    
+    var col2Hex = {
+        red: "#f20000",
+        orange: "#ff776b",
+        green: "#5af23f"
+    };
+    
+    /**
+     * Get property key of given object that looks like a name
+     * @param {Object} props
+     * @return {String}
+     */
+    function getNameProperty(props) {
+        var nameProp = null;
+        jQuery.each(props, function(key, value) {
+            if (magic.modules.Common.isNameLike(key)) {
+                nameProp = value;
+                return(false);
+            }
+        });
+        return(nameProp);
+    }
+    
+    /**
+     * Canned style for map pin marker of given colour
+     * @param {String} col
+     * @return {Function}
+     */
+    function markerStyle(col) {
+        return(function() {
+            var name = getNameProperty(this.getProperties());
+            var style = new ol.style.Style({
+                image: new ol.style.Icon({
+                    scale: 0.8,
+                    anchor: [0.5, 1.0],
+                    src: magic.config.paths.baseurl + "/static/images/marker_" + col + ".png"
+                })
+            });
+            if (name != null) {
+                style.setText(new ol.style.Text({
+                    font: "Arial",
+                    scale: 1.2,
+                    offsetX: 10,
+                    offsetY: -10,
+                    text: name,
+                    textAlign: "left",
+                    fill: new ol.style.Fill({color: magic.modules.Common.rgbToDec(col2Hex[col], 0.0)}),
+                    stroke: new ol.style.Stroke({color: "rgba(255, 255, 255, 0.0)"})
+                }));
+            }
+            return([style]);
+        });
+    }
 
     return({
         
@@ -141,6 +194,15 @@ magic.modules.VectorStyles = function () {
                     })
                 })]);
             });
+        },
+        red_map_pin: function() {
+            return(markerStyle("red"));
+        },
+        orange_map_pin: function() {
+            return(markerStyle("orange"));
+        },
+        green_map_pin: function() {
+            return(markerStyle("green"));
         }
 
     });
