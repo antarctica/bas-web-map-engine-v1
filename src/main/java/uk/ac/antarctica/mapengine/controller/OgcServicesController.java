@@ -4,9 +4,12 @@
 
 package uk.ac.antarctica.mapengine.controller;
 
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
@@ -17,6 +20,7 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import javax.imageio.ImageIO;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
@@ -116,7 +120,7 @@ public class OgcServicesController implements ServletContextAware {
         
         String operation = getQueryParameter(params, "request");
         if (operation == null) {
-            return;
+            throw new ServletException("Query string >" + request.getQueryString() + "< contains no 'request' parameter");
         }
         
         try {
@@ -149,15 +153,34 @@ public class OgcServicesController implements ServletContextAware {
             if (operation.toLowerCase().equals("getmap")) {
                 /* Output 256x256 transparent PNG image informing user of restricted access */
                 mimeType = "image/png";
-                ogcContent = new FileInputStream(new File(context.getRealPath("/static/images/restricted_data.png")));
+                String[] annotations = new String[] {
+                    "Layer " + getQueryParameter(params, "layers"),
+                    "contains restricted data",
+                    "log in to view"
+                };
+                BufferedImage bi = new BufferedImage(256, 256, BufferedImage.TRANSLUCENT);
+                Graphics g = bi.getGraphics();
+                g.setColor(new Color(1f, 1f, 1f, 0.5f));
+                g.fillRect(0, 0, 256, 256);
+                g.setFont(new Font("Arial", Font.PLAIN, 14));
+                g.setColor(new Color(1f, 0f, 0f, 1.0f));
+                FontMetrics fm = g.getFontMetrics();
+                int y = 100;
+                for (String a : annotations) {
+                    g.drawString(a, (256-fm.stringWidth(a))/2, y);
+                    y += 20;
+                }                                
+                response.setContentType(mimeType);
+                ImageIO.write(bi, "png", response.getOutputStream());  
+                g.dispose();
             } else {
                 mimeType = "application/json";
                 String jsonOut = "{\"status\":401,\"message\":\"" + rde.getMessage() + "\"}";
+                response.setContentType(mimeType);
                 ogcContent = new ByteArrayInputStream(jsonOut.getBytes(StandardCharsets.UTF_8));
-            }
-            response.setContentType(mimeType);
-            IOUtils.copy(ogcContent, response.getOutputStream());
-            ogcContent.close();
+                IOUtils.copy(ogcContent, response.getOutputStream());
+                ogcContent.close();
+            }                        
         }        
     }
     
@@ -174,7 +197,7 @@ public class OgcServicesController implements ServletContextAware {
             List<NameValuePair> params = decomposeQueryString(request);        
             String operation = getQueryParameter(params, "request");
             if (operation == null) {
-                return;
+                throw new ServletException("Query string >" + request.getQueryString() + "< contains no 'request' parameter");
             }
             String endpointUrl = (String)servicedata.get("url");
             if (endpointUrl.endsWith("/")) {
