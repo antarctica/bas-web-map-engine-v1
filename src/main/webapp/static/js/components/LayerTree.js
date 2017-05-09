@@ -479,6 +479,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
         }                                               
     } else if (nd.source.geojson_source) {
         /* GeosJSON layer */
+        var vectorSource;
         var labelRotation = nd.source.feature_name ? 0.0 : -magic.runtime.viewdata.rotation;
         var format = new ol.format.GeoJSON();
         var url = nd.source.geojson_source;
@@ -486,15 +487,41 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
             /* WFS */
             url = magic.modules.Endpoints.getOgcEndpoint(url, "wfs") + "?service=wfs&request=getfeature&outputFormat=application/json&" + 
                 "typename=" + nd.source.feature_name + "&" + 
-                "srsname=" + (nd.source.srs || "EPSG:4326");                    
+                "srsname=" + (nd.source.srs || "EPSG:4326");
+            vectorSource = new ol.source.Vector({
+                format: format,
+                loader: function(extent, resolution, projection) {                   
+                    var wfs = url + "&bbox=" + extent.join(",");
+                    jQuery.ajax({
+                        url: wfs,
+                        method: "GET"                   
+                    })
+                    .done(function(data) {
+                        vectorSource.addFeatures(format.readFeatures(data));
+                    })
+                    .fail(function(xhr) {
+                        var msg;
+                        if (xhr.status == 401) {
+                            msg = "Not authorised to access layer " + nd.source.feature_name;
+                        } else {
+                            msg = JSON.parse(xhr.responseText)["detail"];
+                        }
+                        bootbox.alert(
+                            '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                                '<p>' + msg + '</p>' + 
+                            '</div>'
+                        );
+                    });
+                }
+            });  
         } else {
             /* Another GeoJSON source */
             url = magic.modules.Common.proxyUrl(url);
-        }
-        var vectorSource = new ol.source.Vector({
-            format: format,
-            url: url
-        });
+            vectorSource = new ol.source.Vector({
+                format: format,
+                url: url
+            });  
+        }        
         layer = new ol.layer.Vector({
             name: nd.name,
             visible: isVisible,
@@ -503,7 +530,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
             metadata: nd,
             minResolution: minRes,
             maxResolution: maxRes
-        });
+        });        
         layer.setZIndex(200);
         this.layersBySource["geojson"].push(layer);
     } else if (nd.source.gpx_source) {

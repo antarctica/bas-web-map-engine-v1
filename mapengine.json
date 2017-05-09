@@ -108,7 +108,8 @@
     "ol.interaction.DragAndDrop#*",
     "ol.Collection#*",    
     "ol.proj.METERS_PER_UNIT",
-    "ol.coordinate.*"
+    "ol.coordinate.*",
+    "ol.loadingstrategy.*"
   ],
   "compile": {
     "externs": [
