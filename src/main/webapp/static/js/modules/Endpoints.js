@@ -43,7 +43,7 @@ magic.modules.Endpoints = function () {
          */
         getOgcEndpoint: function(url, service) {
             var proxEp = url;
-            matches = this.getEndpointsBy("url", url);
+            var matches = this.getEndpointsBy("url", url);
             if (matches.length > 0) {
                 proxEp = magic.config.paths.baseurl + "/ogc/" + matches[0]["id"] + "/" + service;
             } else {
@@ -58,7 +58,7 @@ magic.modules.Endpoints = function () {
          * @returns {Object}
          */
         getEndpointBy: function(filterName, filterValue) {
-            matches = this.getEndpointsBy(filterName, filterValue);           
+            var matches = this.getEndpointsBy(filterName, filterValue);           
             return(matches.length > 0 ? matches[0] : null);
         },        
         /**

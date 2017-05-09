@@ -499,13 +499,17 @@ magic.classes.Measurement.prototype.queryElevation = function(evt) {
                     }); 
                     jQuery(element).popover("show");
                 }, this))
-                .fail(jQuery.proxy(function(xhr, status) {
+                .fail(jQuery.proxy(function(xhr) {
+                    var msg = "Failed to get height";
+                    if (xhr.status == 401) {
+                        msg = "Not authorised to query DEM";
+                    }
                     jQuery(element).popover({
                         "container": "body",
                         "placement": "top",
                         "animation": false,
                         "html": true,
-                        "content": "Failed to get height"
+                        "content": msg
                     }); 
                     jQuery(element).popover("show");
                 }, this));

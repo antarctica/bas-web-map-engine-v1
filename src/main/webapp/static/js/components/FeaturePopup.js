@@ -148,18 +148,25 @@ magic.classes.FeaturePopup.prototype.basicMarkup = function() {
     jQuery.each(this.featureCollection, jQuery.proxy(function(i, feat) {
         content += '<div class="feature-popup-table-cont ' + (i > 0 ? "hidden" : "show") + '">';
         content += '<table class="table table-striped table-condensed feature-popup-table">';
-        var nDisplayed = 0, nAttrs = -1;
+        var nDisplayed = 0, nAttrs = -1, isVectorFeat = false;
         if (feat.layer) {            
             var md = feat.layer.get("metadata");
-            if (md && jQuery.isArray(md.attribute_map)) {
-                /* Sort attribute map according to the ordinals (added by David 08/04/2016 in response to request by Alex B-J) */                
-                md.attribute_map.sort(function(a, b) {
-                    var orda = a["ordinal"] || 999;
-                    var ordb = b["ordinal"] || 999;
-                    return((orda < ordb) ? -1 : (orda > ordb) ? 1 : 0);
-                });                   
-                nAttrs = md.attribute_map.length;
-                jQuery.each(md.attribute_map, jQuery.proxy(function(idx, attrdata) {
+            if (md) {
+                var attrMap = md.attribute_map;
+                if (jQuery.isArray(attrMap) && attrMap.length > 0) {
+                    /* Sort attribute map according to the ordinals (added by David 08/04/2016 in response to request by Alex B-J) */                
+                    attrMap.sort(function(a, b) {
+                        var orda = a["ordinal"] || 999;
+                        var ordb = b["ordinal"] || 999;
+                        return((orda < ordb) ? -1 : (orda > ordb) ? 1 : 0);
+                    });                                       
+                } else {
+                    /* Create suitable attribute map from name/lat/lon */
+                    attrMap = this.minimumPopupAttrs(feat);
+                    isVectorFeat = true;
+                }
+                nAttrs = attrMap.length;
+                jQuery.each(attrMap, jQuery.proxy(function(idx, attrdata) {
                     var extension = false;
                     if (attrdata.displayed === true) {
                         var nameStr = attrdata.alias || attrdata.name;
@@ -203,7 +210,7 @@ magic.classes.FeaturePopup.prototype.basicMarkup = function() {
                 }, this));
             }
         }
-        if (nAttrs == -1 || nAttrs > nDisplayed) {
+        if (nAttrs == -1 || nAttrs > nDisplayed || isVectorFeat) {
             content += '<tr><td colspan="2" align="center"><button type="button" id="' + this.popupId + '-full-attr-set-' + i + '" class="btn btn-primary btn-xs">Full attribute set</button></td></tr>';
         }
         content += '</table>';
@@ -232,6 +239,61 @@ magic.classes.FeaturePopup.prototype.basicMarkup = function() {
             '</div>';
     }
     return(content);
+};
+
+/**
+ * Deduce a minimal popup attribute set if possible
+ * @param {object} feat
+ * @return {Array}
+ */
+magic.classes.FeaturePopup.prototype.minimumPopupAttrs = function(feat) {
+    var attrs = [];
+    if (feat && !jQuery.isEmptyObject(feat)) {
+        var nameAttr = null, 
+            nonNullStringAttr = null,
+            lonAttr = null,
+            latAttr = null;
+        for (var key in feat) {
+            if (!nameAttr && magic.modules.Common.isNameLike(key) && feat[key]) {
+                nameAttr = key;
+            }
+            if (feat[key] && !jQuery.isNumeric(feat[key])) {
+                nonNullStringAttr = key; 
+            }           
+            if (!lonAttr && magic.modules.Common.isLongitudeLike(key) && jQuery.isNumeric(feat[key])) {
+                lonAttr = key;
+            }
+            if (!latAttr && magic.modules.Common.isLatitudeLike(key) && jQuery.isNumeric(feat[key])) {
+                latAttr = key;
+            }
+        }
+        nameAttr = nameAttr || nonNullStringAttr;
+        if (nameAttr) {
+            attrs.push({
+                "name": nameAttr,
+                "displayed": true,
+                "alias": magic.modules.Common.initCap(nameAttr),
+                "type": "xsd:string"
+            });
+        }
+        if (lonAttr) {
+            attrs.push({
+                "name": lonAttr,
+                "displayed": true,
+                "alias": magic.modules.Common.initCap(lonAttr),
+                "type": "xsd:decimal"
+            });
+        }
+        if (latAttr) {
+            attrs.push({
+                "name": latAttr,
+                "displayed": true,
+                "alias": magic.modules.Common.initCap(latAttr),
+                "type": "xsd:decimal"
+            });
+        }
+    }
+    return(attrs);
 };
 
 /**

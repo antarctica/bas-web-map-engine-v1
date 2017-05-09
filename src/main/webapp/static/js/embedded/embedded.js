@@ -323,8 +323,12 @@ function init() {
                                                     //TODO package data and fire event for Apex case
                                                 }                                                
                                             }                                            
-                                        }).fail(function() {
-                                            showAlert("Failed to get info for clicked map feature");
+                                        }).fail(function(xhr) {
+                                            var msg = "Failed to get info for clicked map feature";
+                                            if (xhr.status == 401) {
+                                                msg = "Not authorised to query underlying data";
+                                            }
+                                            showAlert(msg);
                                         });
                                     }
                                 }

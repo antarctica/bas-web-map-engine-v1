@@ -49,7 +49,7 @@ magic.classes.creator.LayerAttributeMap.prototype.vectorLoadContext = function(c
                      * absolutely nothing about whether we have a point, line or polygon.  This is probably because
                      * of automated import systems using wkb_geometry fields rather than wkt - David */
                     format = new ol.format.GeoJSON();
-                    source = source + "?service=wfs&request=getfeature&outputFormat=application/json&" + 
+                    source = magic.modules.Endpoints.getOgcEndpoint(source, "wfs") + "?service=wfs&request=getfeature&outputFormat=application/json&" + 
                                 "typename=" + feature + "&" + 
                                 "srsname=" + context.source.srs + "&" + 
                                 "count=1";
@@ -92,7 +92,7 @@ magic.classes.creator.LayerAttributeMap.prototype.vectorLoadContext = function(c
                 method: "GET",
                 dataType: "text"
             });
-            jqXhr.done(jQuery.proxy(function(data) {
+            jqXhr.done(jQuery.proxy(function(data, status, xhr) {
                 var testFeats = format.readFeatures(data);
                 if (jQuery.isArray(testFeats) && testFeats.length > 0) {
                     /* Successful read of test feature */            
@@ -128,8 +128,14 @@ magic.classes.creator.LayerAttributeMap.prototype.vectorLoadContext = function(c
                     this.displayInteractivityDiv("yes", '<div class="alert alert-warning" style="margin-bottom:0">Failed to parse test feature from ' + source + '</div>');
                 }
             }, this));
-            jqXhr.fail(jQuery.proxy(function(xhr, status) {
-                this.displayInteractivityDiv("yes", '<div class="alert alert-warning" style="margin-bottom:0">Failed to read features from ' + source + '(' + xhr.responseText + ')</div>');
+            jqXhr.fail(jQuery.proxy(function(xhr) {
+                var msg;
+                if (xhr.status == 401) {
+                    msg = "Not authorised to access data layer";
+                } else {
+                    msg = "Failed to read features from " + source + " (" + xhr.responseText + ")";
+                }
+                this.displayInteractivityDiv("yes", '<div class="alert alert-warning" style="margin-bottom:0">' + msg + '</div>');
             }, this));
         }
     }    
@@ -190,6 +196,11 @@ magic.classes.creator.LayerAttributeMap.prototype.ogcLoadContext = function(wms,
                         this.displayInteractivityDiv("no", "");
                     } else {
                         this.displayInteractivityDiv("yes", this.toForm(id, attrMap, this.attribute_dictionary[id]));
+                    }
+                }, this))
+                .fail(jQuery.proxy(function(xhr) {
+                    if (xhr.status == 401) {
+                        this.displayInteractivityDiv("yes", '<div class="alert alert-warning" style="margin-bottom:0">Not authorised to read data</div>');
                     }
                 }, this));
             }            

@@ -176,6 +176,7 @@ public class OgcServicesController implements ServletContextAware {
             } else {
                 mimeType = "application/json";
                 String jsonOut = "{\"status\":401,\"message\":\"" + rde.getMessage() + "\"}";
+                response.setStatus(401);
                 response.setContentType(mimeType);
                 ogcContent = new ByteArrayInputStream(jsonOut.getBytes(StandardCharsets.UTF_8));
                 IOUtils.copy(ogcContent, response.getOutputStream());
@@ -230,6 +231,7 @@ public class OgcServicesController implements ServletContextAware {
                 }
             } catch(RestrictedDataException rde) {
                 String jsonOut = "{\"status\":401,\"message\":\"" + rde.getMessage() + "\"}";
+                response.setStatus(401);
                 response.setContentType("application/json");
                 IOUtils.copy(new ByteArrayInputStream(jsonOut.getBytes(StandardCharsets.UTF_8)), response.getOutputStream());
             }

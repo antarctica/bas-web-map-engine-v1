@@ -348,7 +348,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
     var isWms = "wms_source" in nd.source;
     var isSingleTile = isWms ? nd.source.is_singletile === true : false;
     var isBase = isWms ? nd.source.is_base === true : false;
-    var isInteractive = nd.is_interactive === true;
+    var isInteractive = nd.is_interactive === true || (nd.source.geojson_source && nd.source.feature_name);
     var refreshRate = nd.refresh_rate || 0;
     var name = nd.name, /* Save name as we may insert ellipsis into name text for presentation purposes */
             ellipsisName = magic.modules.Common.ellipsis(nd.name, 30),
