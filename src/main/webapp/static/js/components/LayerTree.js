@@ -490,7 +490,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                 "srsname=" + (nd.source.srs || "EPSG:4326");
             vectorSource = new ol.source.Vector({
                 format: format,
-                loader: function(extent, resolution, projection) {                   
+                loader: function(extent) {                   
                     var wfs = url + "&bbox=" + extent.join(",");
                     jQuery.ajax({
                         url: wfs,

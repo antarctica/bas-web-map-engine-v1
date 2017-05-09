@@ -5,7 +5,9 @@ magic.modules.VectorStyles = function () {
     var col2Hex = {
         red: "#f20000",
         orange: "#ff776b",
-        green: "#5af23f"
+        green: "#5af23f",
+        gold: "#ffd700",
+        gray: "#777777"
     };
     
     /**
@@ -203,6 +205,12 @@ magic.modules.VectorStyles = function () {
         },
         green_map_pin: function() {
             return(markerStyle("green"));
+        },
+        gold_map_pin: function() {
+            return(markerStyle("gold"));
+        },
+        gray_map_pin: function() {
+            return(markerStyle("gray"));
         }
 
     });
