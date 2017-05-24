@@ -100,6 +100,80 @@ magic.modules.creator.Data = function () {
                         }
                     ]
                 },
+                "antarctic_laea": {
+                    "projection": "EPSG:102020",
+                    "proj_extent": [-5500000,-5500000,5500000,5500000],
+                    "center": [0, 0],
+                    "zoom": 0,
+                    "rotation": 0,
+                    "min_zoom": 0,
+                    "max_zoom": 6,
+                    "resolutions": [14000, 7000, 2800, 1400, 560, 280, 140],
+                    "controls": ["zoom_world", "zoom_in", "zoom_out", "box_zoom"],
+                    "gazetteers": ["cga"],              
+                    "layers": [
+                        {
+                            "id": null,
+                            "name": "Base layers",                        
+                            "expanded": true,
+                            "base": true,
+                            "layers": [
+                                {
+                                    "id": null,
+                                    "name": "Hillshade and bathymetry",
+                                    "source": {
+                                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database"),
+                                        "feature_name": "add:antarctic_hillshade_and_bathymetry",
+                                        "is_base": true
+                                    },
+                                    "is_visible": true
+                                }
+                            ]
+                        },
+                        {
+                            "id": null,
+                            "name": "Topo layers",
+                            "expanded": true,
+                            "layers": [
+                                {
+                                    "id": null,
+                                    "name": "Coastline",
+                                    "source": {
+                                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database"),
+                                        "feature_name": "add:antarctic_coastline"
+                                    },     
+                                    "is_visible": true
+                                },
+                                {
+                                    "id": null,
+                                    "name": "Sub-Antarctic coastline",
+                                    "source": {
+                                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database"),
+                                        "feature_name": "add:sub_antarctic_coastline"
+                                    },     
+                                    "is_visible": true
+                                }
+                            ]
+                        },
+                        {
+                            "id": null,
+                            "name": "Grids",
+                            "expanded": true,
+                            "layers": [
+                                {
+                                    "id": null,
+                                    "name": "Graticule",
+                                    "source": {
+                                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database"),
+                                        "feature_name": "add:antarctic_graticule",
+                                        "is_singletile": true
+                                    },   
+                                    "is_visible": true                                
+                                }
+                            ]
+                        }
+                    ]
+                },
                 "arctic": {
                     "projection": "EPSG:3995",
                     "proj_extent": [-4000000,-4000000,4000000,4000000],

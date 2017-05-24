@@ -19,8 +19,19 @@
                 <a class="navbar-brand" href="javascript:void(0)" th:text="${pagetitle}"></a>
             </div>
             <!-- Collect the nav links, forms, and other content for toggling -->
-            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                <ul class="nav navbar-left top-nav">
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1" th:switch="${profile}">
+                <ul class="nav navbar-left top-nav" th:case="ccamlrgis">
+                    <li>
+                        <a href="https://www.ccamlr.org" target="_blank">CCAMLR Home</a>
+                    </li>
+                    <li>
+                        <a href="https://gis.ccamlr.org" target="_blank">CCAMLR GIS</a>
+                    </li>
+                    <li>
+                        <a href="/home" target="_blank">Available Maps</a>
+                    </li>
+                </ul>
+                <ul class="nav navbar-left top-nav" th:case="*">
                     <li>
                         <a href="/home">Home</a>
                     </li>
