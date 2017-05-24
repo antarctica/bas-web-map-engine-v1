@@ -16,8 +16,13 @@
                             <input type="radio" name="_t1-action-rb" id="t1-new-rb" value="new" checked="checked"></input>
                             Create a new map of
                         </label>
-                        <div class="col-sm-9">
-                            <select class="form-control map-creator-control-lg map-select" id="t1-new">
+                        <div class="col-sm-9" th:switch="${profile}">
+                            <select class="form-control map-creator-control-lg map-select" id="t1-new" th:case="ccamlrgis">
+                                <option value="">Select region</option>
+                                <option value="antarctic">Antarctica</option>                                
+                                <option value="midlatitudes">World (mid-latitudes)</option>
+                            </select>
+                            <select class="form-control map-creator-control-lg map-select" id="t1-new" th:case="*">
                                 <option value="">Select region</option>
                                 <option value="antarctic">Antarctica</option> 
                                 <option value="arctic">Arctic</option> 
