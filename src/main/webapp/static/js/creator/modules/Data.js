@@ -117,17 +117,7 @@ magic.modules.creator.Data = function () {
                             "name": "Base layers",                        
                             "expanded": true,
                             "base": true,
-                            "layers": [
-                                {
-                                    "id": null,
-                                    "name": "Hillshade and bathymetry",
-                                    "source": {
-                                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database"),
-                                        "feature_name": "add:antarctic_hillshade_and_bathymetry",
-                                        "is_base": true
-                                    },
-                                    "is_visible": true
-                                }
+                            "layers": [                              
                             ]
                         },
                         {
@@ -139,17 +129,8 @@ magic.modules.creator.Data = function () {
                                     "id": null,
                                     "name": "Coastline",
                                     "source": {
-                                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database"),
-                                        "feature_name": "add:antarctic_coastline"
-                                    },     
-                                    "is_visible": true
-                                },
-                                {
-                                    "id": null,
-                                    "name": "Sub-Antarctic coastline",
-                                    "source": {
-                                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database"),
-                                        "feature_name": "add:sub_antarctic_coastline"
+                                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("CCAMLR GIS"),
+                                        "feature_name": "gis:coastline"
                                     },     
                                     "is_visible": true
                                 }
@@ -164,8 +145,8 @@ magic.modules.creator.Data = function () {
                                     "id": null,
                                     "name": "Graticule",
                                     "source": {
-                                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database"),
-                                        "feature_name": "add:antarctic_graticule",
+                                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("CCAMLR GIS"),
+                                        "feature_name": "gis:graticule",
                                         "is_singletile": true
                                     },   
                                     "is_visible": true                                
