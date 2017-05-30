@@ -98,7 +98,7 @@ magic.classes.Geosearch = function (options) {
                                 '<input id="' + this.id + '-ta" class="form-control typeahead border-lh-round" type="text" placeholder="Search for place-name" ' +
                                     'required="required" autofocus="true"></input>' +
                                 '<span class="input-group-btn">' +
-                                    '<button id="' + this.id + '-placename-go" class="btn btn-default btn-sm" type="button" ' +
+                                    '<button id="' + this.id + '-placename-go" class="btn btn-primary btn-sm" type="button" ' +
                                         'data-toggle="tooltip" data-placement="right" title="Search gazetteer">' +
                                         '<span class="glyphicon glyphicon-search"></span>' +
                                     '</button>' +
@@ -122,7 +122,7 @@ magic.classes.Geosearch = function (options) {
                                 '<input id="' + this.id + '-label" class="form-control" type="text" placeholder="Label" ' +
                                     'data-toggle="tooltip" data-placement="right" title="Type a label for the point"></input>' +
                                 '<span class="input-group-btn">' +
-                                    '<button id="' + this.id + '-position-go" class="btn btn-default btn-sm" type="button" ' +
+                                    '<button id="' + this.id + '-position-go" class="btn btn-primary btn-sm" type="button" ' +
                                         'data-toggle="tooltip" data-placement="right" title="Show position">' +
                                         '<span class="glyphicon glyphicon-search"></span>' +
                                     '</button>' +

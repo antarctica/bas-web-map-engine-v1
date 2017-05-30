@@ -103,20 +103,25 @@ public class FavouriteMapController {
             try {                
                 /* Check the base map exists and this user is allowed access */                
                 if (basemapExists(username, jo.get("basemap").getAsString())) {
+                    String userMaps = getEnv().getProperty("postgres.local.usermapsTable");
                     Date now = new Date();
                     /* A bit of "cargo-cult" programming from https://github.com/denishpatel/java/blob/master/PgJSONExample.java - what a palaver! */
                     PGobject dataObject = new PGobject();
                     dataObject.setType("json");
                     dataObject.setValue(jo.get("data").toString());
-                    String sql = "INSERT INTO " + getEnv().getProperty("postgres.local.usermapsTable") + "(username, basemap, title, data, modified) VALUES(?,?,?,?,?)";
+                    String sql = "INSERT INTO " + userMaps + " " + 
+                        "(username, basemap, title, data, modified, permissions) " + 
+                        "VALUES(?,?,?,?,?,?)";
                     getMagicDataTpl().update(sql, new Object[] {                    
                         username,
                         jo.get("basemap").getAsString(),
-                        jo.get("title").getAsString(),
-                        dataObject,
-                        now                    
+                        jo.get("title").getAsString(),                        
+                        dataObject,                        
+                        now,
+                        jo.get("permissions").getAsString()
                     });
-                    ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Successfully saved");
+                    Long insertedId = getMagicDataTpl().queryForObject("SELECT currval('" + userMaps + "_id_seq')", Long.class);
+                    ret = PackagingUtils.packageResults(HttpStatus.OK, insertedId + "", "Successfully saved");
                 } else {
                     ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Base map " + jo.get("basemap").getAsString() + " does not exist or is not accessible");
                 }                
@@ -163,7 +168,8 @@ public class FavouriteMapController {
                             "basemap=?, " + 
                             "title=?, " +
                             "data=?, " + 
-                            "modified=? " + 
+                            "modified=?, " + 
+                            "permissions=? " + 
                             "WHERE id=?";
                         getMagicDataTpl().update(sql, new Object[] {
                             username,
@@ -171,6 +177,7 @@ public class FavouriteMapController {
                             jo.get("title").getAsString(),                            
                             dataObject,
                             now,
+                            jo.get("permissions").getAsString(),
                             id
                         });
                         ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Successfully updated");

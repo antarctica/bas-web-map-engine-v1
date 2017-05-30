@@ -103,19 +103,23 @@ magic.modules.Common = function () {
          * Create a set of buttons suitable for giving feedback on a POST/PUT/DELETE operation
          * @param {string} btnBaseId
          * @param {string} msg
+         * @param {string} size lg|sm|xs
          * @returns {String}
          */
-        buttonFeedbackSet: function(btnBaseId, msg) {
+        buttonFeedbackSet: function(btnBaseId, msg, size) {
+            if (!size) {
+                size = "sm";
+            }
             return(
-                '<button id="' + btnBaseId + '-go" class="btn btn-sm btn-primary" type="button" ' + 
+                '<button id="' + btnBaseId + '-go" class="btn btn-' + size + ' btn-primary" type="button" ' + 
                     'data-toggle="tooltip" data-placement="top" title="' + msg + '" style="margin-right:5px">' + 
                     '<span class="fa fa-floppy-o"></span> Save' + 
                 '</button>' +
-                '<button id="' + btnBaseId + '-fb-ok" class="btn btn-sm btn-success" style="display:none; margin-right:5px" type="button" ' + 
+                '<button id="' + btnBaseId + '-fb-ok" class="btn btn-' + size + ' btn-success" style="display:none; margin-right:5px" type="button" ' + 
                     'data-toggle="tooltip" data-placement="top" title="Ok">' + 
                     '<span class="glyphicon glyphicon-ok post-ok"></span> Ok' + 
                 '</button>' +
-                '<button id="' + btnBaseId + '-fb-error" class="btn btn-sm btn-danger" style="display:none" type="button" ' + 
+                '<button id="' + btnBaseId + '-fb-error" class="btn btn-' + size + ' btn-danger" style="display:none" type="button" ' + 
                     'data-toggle="tooltip" data-placement="top" title="Error">' + 
                     '<span class="glyphicon glyphicon-remove post-error"> Error</span>' + 
                 '</button>'

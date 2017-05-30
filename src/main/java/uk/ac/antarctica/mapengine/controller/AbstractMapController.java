@@ -138,16 +138,25 @@ public class AbstractMapController {
                 /* Some endpoints retrieved */
                 userMapData.put("endpoints", endpointData);
             }
-            if (usermapid != null && username != null) {
+            if (usermapid != null) {
                 /* Additional payload of extra user settings */
                 String userTableName = webmapData.getUserTableName();
                 if (userTableName != null && !userTableName.isEmpty()) {
                     try {
-                        Map<String, Object> bookmarkData = getMagicDataTpl().queryForMap(
-                            "SELECT * FROM " + userTableName + " " + 
-                            "WHERE username=? AND id=?", 
-                            username, usermapid
-                        );
+                        Map<String, Object> bookmarkData;
+                        if (username != null) {
+                            bookmarkData = getMagicDataTpl().queryForMap(
+                                "SELECT * FROM " + userTableName + " " + 
+                                "WHERE id=? AND (permissions='public' OR permissions='login' OR (permissions='owner' AND username=?))", 
+                                usermapid, username
+                            );
+                        } else {
+                            bookmarkData = getMagicDataTpl().queryForMap(
+                                "SELECT * FROM " + userTableName + " " + 
+                                "WHERE id=? AND permissions='public'", 
+                                usermapid
+                            );
+                        }                                
                         userMapData.put("userdata", bookmarkData);
                     } catch (IncorrectResultSizeDataAccessException irsdae2) {
                         /* Don't care about non-existence of user map data - just serve the default base map */

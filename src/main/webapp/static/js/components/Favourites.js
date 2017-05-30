@@ -25,6 +25,8 @@ magic.classes.Favourites = function(options) {
     this.content = 
         '<div id="' + this.id + '-content">' +                                   
             '<form id="' + this.id + '-form" class="form-horizontal" role="form">' +
+                '<input type="hidden" id="' + this.id + '-id"></input>' + 
+                '<input type="hidden" id="' + this.id + '-basemap"></input>' +
                 '<div class="form-group form-group-sm col-sm-12" style="margin-bottom:0px">' +
                     '<div class="input-group">' + 
                         '<select id="' + this.id + '-list" class="form-control">' +                               
@@ -33,7 +35,7 @@ magic.classes.Favourites = function(options) {
                             '<button id="' + this.id + '-list-go" class="btn btn-primary btn-sm" type="button" title="Load map">' + 
                                 '<span class="fa fa-arrow-circle-right"></span>' + 
                             '</button>' +
-                        '</span>' +
+                        '</span>' +                       
                     '</div>' + 
                 '</div>' + 
                 '<div class="form-group form-group-sm col-sm-12">' + 
@@ -45,38 +47,56 @@ magic.classes.Favourites = function(options) {
                     '</div>' + 
                 '</div>' + 
                 '<div class="form-group form-group-sm col-sm-12">' +
-                    '<button id="' + this.id + '-add" class="btn btn-sm btn-primary" type="button" ' + 
+                    '<button id="' + this.id + '-add" class="btn btn-xs btn-primary" type="button" ' + 
                         'data-toggle="tooltip" data-placement="top" title="Add current map to favourites">' + 
                         '<span class="fa fa-star"></span> Add' + 
                     '</button>' +          
-                    '<button id="' + this.id + '-edit" class="btn btn-sm btn-warning" type="button" style="margin-left:5px" ' + 
+                    '<button id="' + this.id + '-edit" class="btn btn-xs btn-warning" type="button" style="margin-left:5px" ' + 
                         'data-toggle="tooltip" data-placement="top" title="Update title of selected map">' + 
                         '<span class="fa fa-pencil"></span> Edit' + 
                     '</button>' + 
-                    '<button id="' + this.id + '-delete" class="btn btn-sm btn-danger" type="button" style="margin-left:5px" ' + 
+                    '<button id="' + this.id + '-delete" class="btn btn-xs btn-danger" type="button" style="margin-left:5px" ' + 
                         'data-toggle="tooltip" data-placement="top" title="Delete selected map">' + 
                         '<span class="fa fa-times-circle"></span> Delete' + 
                     '</button>' + 
+                    '<button id="' + this.id + '-list-bmk" class="btn btn-xs btn-primary" type="button"  style="margin-left:5px" ' + 
+                        'data-toggle="tooltip" data-placement="top" title="Bookmarkable URL for selected map">' + 
+                        '<span class="fa fa-bookmark"></span>' + 
+                    '</button>' +
                 '</div>' +  
-                '<div class="edit-favourite-fs hidden" style="width:100% !important">' + 
-                    '<input type="hidden" id="' + this.id + '-id"></input>' + 
-                    '<input type="hidden" id="' + this.id + '-basemap"></input>' +
-                    '<div class="form-group form-group-sm col-sm-12">' +
-                        '<input type="text" name="' + this.id + '-title" id="' + this.id + '-title" class="form-control" ' + 
-                            'placeholder="Caption for favourite map" maxlength="100" ' + 
-                            'data-toggle="tooltip" data-placement="right" ' + 
-                            'title="Caption for favourite map (required)" ' + 
-                            'required="required">' +
-                        '</input>' +                        
+                '<div class="col-sm-12 well well-sm edit-favourite-fs hidden">' +
+                    '<div class="form-group form-group-sm col-sm-12 edit-favourite-fs-title"><strong>Add new map</strong></div>' + 
+                    '<div class="form-group form-group-sm col-sm-12">' +                     
+                        '<label class="col-sm-2" for="' + this.id + '-title">Name</label>' + 
+                        '<div class="col-sm-10">' + 
+                            '<input type="text" name="' + this.id + '-title" id="' + this.id + '-title" class="form-control" ' + 
+                                'placeholder="Map title" maxlength="100" ' + 
+                                'data-toggle="tooltip" data-placement="right" ' + 
+                                'title="Map title (required)" ' + 
+                                'required="required">' +
+                            '</input>' + 
+                        '</div>' + 
                     '</div>' +
                     '<div class="form-group form-group-sm col-sm-12">' +
-                        magic.modules.Common.buttonFeedbackSet(this.id, "Save map state") +                         
-                        '<button id="' + this.id + '-cancel" class="btn btn-sm btn-danger" type="button" ' + 
+                        '<label class="col-sm-2" for="' + this.id + '-permissions">Share</label>' + 
+                        '<div class="col-sm-10">' + 
+                            '<select name="' + this.id + '-permissions" id="' + this.id + '-permissions" class="form-control" ' + 
+                                'data-toggle="tooltip" data-placement="right" ' + 
+                                'title="Sharing permissions">' +
+                                '<option value="owner" default>no</option>' + 
+                                '<option value="public">with everyone</option>' +
+                                '<option value="login">with logged-in users only</option>' +
+                            '</select>' + 
+                        '</div>' + 
+                    '</div>' +
+                    '<div class="form-group form-group-sm col-sm-12">' +
+                        magic.modules.Common.buttonFeedbackSet(this.id, "Save map state", "xs") +                         
+                        '<button id="' + this.id + '-cancel" class="btn btn-xs btn-danger" type="button" ' + 
                             'data-toggle="tooltip" data-placement="right" title="Cancel">' + 
                             '<span class="fa fa-times-circle"></span> Cancel' + 
                         '</button>' +                        
                     '</div>' +  
-                '</div>' + 
+                '</div>' +
             '</form>' +               
         '</div>';
     this.target.popover({
@@ -93,14 +113,17 @@ magic.classes.Favourites = function(options) {
         var idHid = jQuery("#" + this.id + "-id"),
             bmHid = jQuery("#" + this.id + "-basemap"),
             ttInp = jQuery("#" + this.id + "-title"),
+            pmSel = jQuery("#" + this.id + "-permissions"),
             loadBtn = jQuery("#" + this.id + "-list-go"),
+            bmkBtn = jQuery("#" + this.id + "-list-bmk"),
             addBtn = jQuery("#" + this.id + "-add"),
             editBtn = jQuery("#" + this.id + "-edit"),
             delBtn = jQuery("#" + this.id + "-delete"),
             saveBtn = jQuery("#" + this.id + "-go"),
             cancBtn = jQuery("#" + this.id + "-cancel"),
             favFrm = jQuery("#" + this.id + "-form"),
-            editForm = jQuery(".edit-favourite-fs");            
+            editForm = jQuery(".edit-favourite-fs"),
+            editFormTitle = jQuery(".edit-favourite-fs-title"); 
         /* Changing dropdown value*/
         dd.change(jQuery.proxy(function() {
             idHid.val(dd.val());
@@ -115,9 +138,19 @@ magic.classes.Favourites = function(options) {
                 jQuery("#" + this.id + "-new-tab").prop("checked") ? "_blank" : "_self"
             ); 
         }, this));
+        /* Bookmarkable URL button */
+        bmkBtn.click(jQuery.proxy(function() {
+            var mapData = this.user_map_data[dd.prop("selectedIndex")];
+            bootbox.prompt({
+                "title": "Bookmarkable URL",
+                "value": magic.config.paths.baseurl + "/home/" + mapData.basemap + "/" + mapData.id,
+                "callback": function(result){}
+            });
+        }, this));
         /* New map button */
         addBtn.click(jQuery.proxy(function() {
             editForm.removeClass("hidden");
+            editFormTitle.html('<strong>Add new map</strong>');
             favFrm[0].reset();                
             editBtn.prop("disabled", true);
             dd.prop("disabled", true);
@@ -127,10 +160,12 @@ magic.classes.Favourites = function(options) {
         /* Edit map button */
         editBtn.click(jQuery.proxy(function() {
             editForm.removeClass("hidden");
+            editFormTitle.html('<strong>Edit existing map</strong>');
             var mapData = this.user_map_data[dd.prop("selectedIndex")];
             idHid.val(mapData.id);
             bmHid.val(mapData.basemap);
-            ttInp.val(mapData.title); 
+            ttInp.val(mapData.title);
+            pmSel.val(mapData.permissions);
             ttInp.focus();
         }, this));
          /* Delete map button */
@@ -185,12 +220,13 @@ magic.classes.Favourites = function(options) {
                 var formdata = {
                     id: idHid.val(),
                     title: ttInp.val(),
+                    permissions: pmSel.val(),
                     basemap: bmHid.val() || magic.runtime.mapname,
                     data: this.mapPayload()
                 };
                 var saveUrl = magic.config.paths.baseurl + "/usermaps/" + (formdata.id ? "update/" + formdata.id : "save");                
                 var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content");               
-                jQuery.ajax({
+                var jqXhr = jQuery.ajax({
                     url: saveUrl, 
                     data: JSON.stringify(formdata), 
                     method: "POST",
@@ -198,8 +234,9 @@ magic.classes.Favourites = function(options) {
                     contentType: "application/json",
                     headers: {
                         "X-CSRF-TOKEN": csrfHeaderVal
-                    },
-                    success: jQuery.proxy(function(response) {
+                    }
+                })
+                .done(jQuery.proxy(function(response) {
                         magic.modules.Common.buttonClickFeedback(this.id, response.status < 400, response.detail); 
                         loadBtn.prop("disabled", false);
                         editBtn.prop("disabled", false);
@@ -209,8 +246,16 @@ magic.classes.Favourites = function(options) {
                             editForm.addClass("hidden");
                         }, 1000);
                         this.fetchMaps();
-                    }, this)
-                });
+                    }, this))
+                .fail(function (xhr, status) {
+                    var detail = JSON.parse(xhr.responseText)["detail"];
+                    bootbox.alert(
+                        '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                            '<p>Failed to save user map - details below:</p>' + 
+                            '<p>' + detail + '</p>' + 
+                        '</div>'
+                    );
+                });    
             }                
         }, this));
         /* Cancel button */

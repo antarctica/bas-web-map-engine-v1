@@ -98,7 +98,7 @@ magic.classes.Measurement = function(options) {
                                     '<option value="nm">nautical miles</option>' +
                                 '</select>' +
                                 '<span class="input-group-btn">' +
-                                    '<button id="' + this.id + '-distance-go" class="btn btn-default btn-sm" type="button" ' +
+                                    '<button id="' + this.id + '-distance-go" class="btn btn-primary btn-sm" type="button" ' +
                                         'data-toggle="tooltip" data-placement="right" title="Draw line to measure on map - double-click to finish">' +
                                         '<span class="fa fa-play""></span>' +
                                     '</button>' +
@@ -125,7 +125,7 @@ magic.classes.Measurement = function(options) {
                                     '<option value="nm2">square nautical miles</option>' +
                                 '</select>' +
                                 '<span class="input-group-btn">' +
-                                    '<button id="' + this.id + '-area-go" class="btn btn-default btn-sm" type="button" ' +
+                                    '<button id="' + this.id + '-area-go" class="btn btn-primary btn-sm" type="button" ' +
                                         'data-toggle="tooltip" data-placement="right" title="Draw area to measure on map - click once to finish">' +
                                         '<span class="fa fa-play"></span>' +
                                     '</button>' +
@@ -150,7 +150,7 @@ magic.classes.Measurement = function(options) {
                                     '<option value="ft">feet</option>' +                                   
                                 '</select>' +
                                 '<span class="input-group-btn">' +
-                                    '<button id="' + this.id + '-elevation-go" class="btn btn-default btn-sm" type="button" ' +
+                                    '<button id="' + this.id + '-elevation-go" class="btn btn-primary btn-sm" type="button" ' +
                                         'data-toggle="tooltip" data-placement="right" title="Click map to measure elevation at a point">' +
                                         '<span class="fa fa-play"></span>' +
                                     '</button>' +
