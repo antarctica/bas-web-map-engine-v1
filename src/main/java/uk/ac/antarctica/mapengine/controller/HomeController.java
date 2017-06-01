@@ -213,7 +213,7 @@ public class HomeController implements ServletContextAware {
      * @throws ServletException
      * @throws IOException
      */
-    @RequestMapping(value = "/restricted/{map}/{issue}", method = RequestMethod.GET)
+    @RequestMapping(value = "/restricted/{map}/issue/{issue}", method = RequestMethod.GET)
     public String mapRestrictedIssue(HttpServletRequest request, @PathVariable("map") String map, @PathVariable("issue") Integer issue, ModelMap model) throws ServletException, IOException {    
         return(renderPage(request, model, "map", map, issue, null, false));
     }    
@@ -257,7 +257,7 @@ public class HomeController implements ServletContextAware {
      * @throws ServletException
      * @throws IOException
      */
-    @RequestMapping(value = "/restrictedd/{map}/{issue}", method = RequestMethod.GET)
+    @RequestMapping(value = "/restrictedd/{map}/issue/{issue}", method = RequestMethod.GET)
     public String mapRestrictedDebugIssue(HttpServletRequest request, @PathVariable("map") String map, @PathVariable("issue") Integer issue, ModelMap model) throws ServletException, IOException {    
         return(renderPage(request, model, "map", map, issue, null, true));
     }       

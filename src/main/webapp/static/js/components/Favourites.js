@@ -237,7 +237,7 @@ magic.classes.Favourites = function(options) {
                     }
                 })
                 .done(jQuery.proxy(function(response) {
-                        magic.modules.Common.buttonClickFeedback(this.id, response.status < 400, response.detail); 
+                        magic.modules.Common.buttonClickFeedback(this.id, jQuery.isNumeric(response) || response.status < 400, response.detail); 
                         loadBtn.prop("disabled", false);
                         editBtn.prop("disabled", false);
                         delBtn.prop("disabled", false);
