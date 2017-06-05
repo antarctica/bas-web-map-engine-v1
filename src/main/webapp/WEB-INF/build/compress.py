@@ -48,6 +48,7 @@ def fconcat(root, file, concjs, conccss):
 def main():
     print "*** Starting"    
     try:
+        # TODO include profile argument
         if (len(sys.argv) > 1):
             modifier = "_" + sys.argv[1]
         else:

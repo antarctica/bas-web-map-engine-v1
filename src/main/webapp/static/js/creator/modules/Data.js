@@ -117,7 +117,17 @@ magic.modules.creator.Data = function () {
                             "name": "Base layers",                        
                             "expanded": true,
                             "base": true,
-                            "layers": [                              
+                            "layers": [
+                                {
+                                    "id": null,
+                                    "name": "Hillshade and bathymetry",
+                                    "source": {
+                                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("CCAMLR GIS"),
+                                        "feature_name": "gis:hillshade_and_bathymetry",
+                                        "is_base": true
+                                    },
+                                    "is_visible": true
+                                }
                             ]
                         },
                         {
