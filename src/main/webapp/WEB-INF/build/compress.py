@@ -48,21 +48,28 @@ def fconcat(root, file, concjs, conccss):
 def main():
     print "*** Starting"    
     try:
-        # TODO include profile argument
-        if (len(sys.argv) > 1):
-            modifier = "_" + sys.argv[1]
+        print sys.argv
+        if (len(sys.argv) <= 2):
+            raise TypeError, "Usage: compress.py <feature> <profile>"            
         else:
-            modifier = ""
-        tocompress = open("compress" + modifier + ".txt")
+            feature = sys.argv[1]
+            profile = sys.argv[2]
+            
+        instructions = profile + "/compress_" + feature + ".txt"
+        if os.path.isfile(instructions):
+            # There is a profile-specific instruction set for this profile
+            tocompress = open(instructions)
+        else:
+            tocompress = open("compress_" + feature + ".txt")
         
-        alljs = os.path.join(buildjs, "alljs" + modifier + ".js")
+        alljs = os.path.join(buildjs, "alljs." + feature + "." + profile + ".js")
         if not os.path.exists(buildjs):
             os.makedirs(buildjs)
         else:
             if os.path.exists(alljs):
                 os.remove(alljs)
 
-        allcss = os.path.join(buildcss, "allcss" + modifier + ".css")
+        allcss = os.path.join(buildcss, "allcss." + feature + "." + profile + ".css")
         if not os.path.exists(buildcss):
             os.makedirs(buildcss)
         else:
@@ -82,10 +89,10 @@ def main():
                     for file in files:
                         fconcat(root, file, concjs, conccss)                        
         tocompress.close()
+        concjs.close()
+        conccss.close()
     except:
-        print "Exception ", sys.exc_info()[0]
-    concjs.close()
-    conccss.close()
+        print "Exception ", sys.exc_info()[0]    
     print "*** Finished"
 
 if __name__ == "__main__":

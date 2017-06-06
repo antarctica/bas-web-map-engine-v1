@@ -1,0 +1,16 @@
+css/ol.css
+css/bootstrap.min.slate.css
+css/dropzone.min.css
+css/nav.css
+css/font-awesome.min.css
+css/console.css
+js/jquery.js
+js/bootstrap.min.js
+js/dropzone.min.js
+js/bootbox.min.js
+js/ol.min.js
+js/init.js
+js/modules/Common.js
+js/modules/Endpoints.js
+js/modules/GeoUtils.js
+js/console/components/WebMapPanel.js

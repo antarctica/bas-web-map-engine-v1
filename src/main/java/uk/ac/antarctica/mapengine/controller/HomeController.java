@@ -363,6 +363,7 @@ public class HomeController implements ServletContextAware {
         String logoUrl = env.getProperty("default.logoUrl") != null ? env.getProperty("default.logoUrl") : "Javascript:void(0)";
         String backgroundColor = env.getProperty("default.backgroundColor") != null ? env.getProperty("default.backgroundColor") : "#ffffff";
         String theme = env.getProperty("default.theme") != null ? env.getProperty("default.theme") : "";
+        String navbarClass = env.getProperty("default.navbarclass") != null ? env.getProperty("default.navbarclass") : "navbar-inverse";
         switch (tplName) {
             case "home":                
                 message = "Public home page";
@@ -408,6 +409,7 @@ public class HomeController implements ServletContextAware {
         model.addAttribute("logourl", logoUrl);
         model.addAttribute("background", backgroundColor);        
         model.addAttribute("theme", theme); 
+        model.addAttribute("navbarclass", navbarClass); 
         ActivityLogger.logActivity(request, HttpStatus.OK.value() + "", message);
         return(tplName);        
     }

@@ -12,14 +12,14 @@
         <link rel="icon" type="image/vnd.microsoft.icon" href="/bas.ico"></link>
         <link rel="shortcut icon" type="image/vnd.microsoft.icon" href="/bas.ico"></link>
         <title th:text="${pagetitle}"></title>
-        <link href="/static/buildcss/allcss_creator.css" rel="stylesheet"></link>        
+        <link href="/static/buildcss/allcss.creator.${profile}.css" rel="stylesheet"></link>        
         <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
         <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
         <!--[if lt IE 9]>
             <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
             <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
         <![endif]-->       
-        <script src="/static/buildjs/alljs_creator.js"></script>        
+        <script src="/static/buildjs/alljs.creator.${profile}.js"></script>        
     </head>
     <head th:fragment="debug_layout">
         <meta charset="utf-8"></meta>
@@ -34,7 +34,7 @@
         <link rel="shortcut icon" type="image/vnd.microsoft.icon" href="/bas.ico"></link>
         <title th:text="${pagetitle}"></title>
         <link href="/static/css/ol.css" rel="stylesheet"></link>
-        <link href="/static/css/bootstrap.min.css" rel="stylesheet"></link>
+        <link href="/static/css/bootstrap.min.${theme}.css" rel="stylesheet"></link>
         <link href="/static/css/prettify.css" rel="stylesheet"></link>
         <link href="/static/css/nav.css" rel="stylesheet"></link>
         <link href="/static/css/creator.css" rel="stylesheet"></link>
