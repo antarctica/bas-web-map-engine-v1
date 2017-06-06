@@ -269,7 +269,7 @@ public class OgcServicesController implements ServletContextAware {
         if (secured) {
             String[] credentials = getOnwardCredentials(url);
             if (credentials != null) {
-                /* Stored credentials for authenmtication to a Geoserver instance */
+                /* Stored credentials for authentication to a Geoserver instance */
                 CredentialsProvider credsProvider = new BasicCredentialsProvider();
                 credsProvider.setCredentials(
                     new AuthScope(AuthScope.ANY),

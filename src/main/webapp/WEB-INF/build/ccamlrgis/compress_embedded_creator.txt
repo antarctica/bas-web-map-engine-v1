@@ -2,7 +2,7 @@ css/ol.css
 css/bootstrap.min.slate.css
 css/prettify.css
 css/nav.css
-css/embedded_creator.css
+css/ccamlrgis/embedded_creator.css
 css/font-awesome.min.css
 js/ol.min.js
 js/jquery.js

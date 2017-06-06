@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -33,6 +34,9 @@ import uk.ac.antarctica.mapengine.config.ApplicationSecurity.CsrfSecurityRequest
 @Configuration
 @EnableWebMvcSecurity
 public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
+    
+    @Autowired
+    private Environment env;
 
     @Autowired
     private SecurityProperties security;
@@ -131,17 +135,19 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
         /* Attempt to authenticate an in-memory user, useful when LDAP and other providers are not available   */      
         auth
             .inMemoryAuthentication()
-            .withUser("darb1")
-            .password("oypsmaj")
+            .withUser("user")
+            .password("password")
             .roles("USER");                   
         
         /* Attempt to authenticate against a local Geoserver instance */
         auth.authenticationProvider(new GeoserverAuthenticationProvider(geoserverUrl));
         
-        /* Attempt to authenticate against LDAP */
+        /* Attempt to authenticate against BAS LDAP */
         String catalinaBase = System.getProperty("catalina.base");
         boolean isDevEnvironment = catalinaBase.contains("Application Support") || catalinaBase.contains("NetBeans");
-        if (!isDevEnvironment) {
+        String useLdapProp = env.getProperty("default.usebasldap");
+        boolean useLdap = useLdapProp == null || !useLdapProp.equals("no");
+        if (!isDevEnvironment && useLdap) {
             /* Temporary fix for Tomcat aborting operations because of being unable to see BAS LDAP server - will be fixed by VPN */
             try {
                 BindAuthenticator ba = new BindAuthenticator(this.contextSource);
