@@ -58,8 +58,10 @@ def main():
         instructions = profile + "/compress_" + feature + ".txt"
         if os.path.isfile(instructions):
             # There is a profile-specific instruction set for this profile
+            print "Using profile-specific build instructions for " + profile
             tocompress = open(instructions)
         else:
+            print "Using generic build instructions for " + profile
             tocompress = open("compress_" + feature + ".txt")
         
         alljs = os.path.join(buildjs, "alljs." + feature + "." + profile + ".js")
