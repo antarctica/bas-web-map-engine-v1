@@ -265,6 +265,8 @@ public class OgcServicesController implements ServletContextAware {
     private void getFromUrl(HttpServletResponse response, String url, String mimeType, boolean secured) throws IOException, RestrictedDataException { 
                 
         HttpClientBuilder builder = HttpClients.custom();
+        
+        System.out.println("Retrieving " + url + "...");
                 
         if (secured) {
             String[] credentials = getOnwardCredentials(url);
