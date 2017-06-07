@@ -9,37 +9,39 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.ExecuteWatchdog;
 import org.apache.commons.exec.PumpStreamHandler;
-import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
  * Handles CCAMLR request headers to extract usernames
  */
-public class DrupalChocChipHeaderAuthenticationFilter extends RequestHeaderAuthenticationFilter {
+public class DrupalChocChipHeaderAuthenticationFilter extends OncePerRequestFilter {
     
     private static final String PHP_PATH = "/usr/bin/php";
         
-    private static final boolean EXCEPTION_IF_HEADER_MISSING = false;
-
-    public DrupalChocChipHeaderAuthenticationFilter() {
-        super();
-        this.setPrincipalRequestHeader("SET-COOKIE");
-        this.setExceptionIfHeaderMissing(EXCEPTION_IF_HEADER_MISSING);
-    }
-
-    /**
-     * Called when a request is made, the returned object is the CCAMLR user name from Drupal
-     * @param HttpServletRequest request
-     * @return Object
-     */
     @Override
-    protected Object getPreAuthenticatedPrincipal(HttpServletRequest request) {        
-        return (getCcamlrUserName(request));
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain fc) throws ServletException, IOException {
+        String userName = getCcamlrUserName(request);
+        if (userName != null) {
+            ArrayList<GrantedAuthority> authorities = new ArrayList();
+            GrantedAuthority ga = new SimpleGrantedAuthority("ROLE_CCAMLR");
+            authorities.add(ga);
+            SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userName, "password", authorities));
+        }
+        fc.doFilter(request, response);
     }
     
     /**
@@ -50,57 +52,43 @@ public class DrupalChocChipHeaderAuthenticationFilter extends RequestHeaderAuthe
 	private String getCcamlrUserName(HttpServletRequest request) {
         
 		String userName = null;        
-        String catalinaBase = System.getProperty("catalina.base");
-
-        /* From : http://stackoverflow.com/questions/16702011/tomcat-deploying-the-same-application-twice-in-netbeans, answer by Basil Bourque */        
-        Boolean inDevelopment = Boolean.FALSE;
-        if (catalinaBase.contains("Application Support")) {  /* Specific to Mac OS X only */
-            inDevelopment = Boolean.TRUE;
-        } else if (catalinaBase.contains("NetBeans")) {
-            inDevelopment = Boolean.TRUE;
-        }
         
-		try {
-			if (inDevelopment) {
-				userName = "darb1@bas.ac.uk";           /* For testing logged in functionality locally on development m/c */
-                //userName = "david.ramm@ccamlr.org";   /* For testing management functionality */
-            } else {
-				String cchip = null;
-                if (request.getCookies() != null) {
-                    for (Cookie c : request.getCookies()) {
-                        if (c.getName().equals("CHOCOLATECHIPSSL")) {
-                            cchip = URLDecoder.decode(c.getValue(), "UTF-8");
-                            break;
-                        }
+		try {			
+            String cchip = null;
+            if (request.getCookies() != null) {
+                for (Cookie c : request.getCookies()) {
+                    if (c.getName().equals("CHOCOLATECHIPSSL")) {
+                        cchip = URLDecoder.decode(c.getValue(), "UTF-8");
+                        break;
                     }
                 }
-				if (cchip != null) {
-					/* Chocolate Chip cookie is present, indicating a Drupal login from a CCAMLR user */
-					System.out.println("Found CHOCOLATECHIP cookie " + cchip);
-                    CommandLine cmd = new CommandLine(PHP_PATH);
-                    cmd.addArgument(this.getServletContext().getRealPath("/WEB-INF/ccamlr/unencryptChocChip.php"), true);
-                    cmd.addArgument(cchip, true);
-                    System.out.println("Executing PHP commandline : " + cmd.toString());
-                    DefaultExecutor executor = new DefaultExecutor();
-                    /* Send stdout and stderr to specific byte arrays so that the end user will get some feedback about the problem */
-                    ByteArrayOutputStream cmdStdout = new ByteArrayOutputStream();
-                    ByteArrayOutputStream cmdStderr = new ByteArrayOutputStream();
-                    PumpStreamHandler pumpStreamHandler = new PumpStreamHandler(cmdStdout, cmdStderr); 
-                    executor.setStreamHandler(pumpStreamHandler);
-                    executor.setExitValue(0);
-                    ExecuteWatchdog watchdog = new ExecuteWatchdog(30000);  /* Time process out after 30 seconds */
-                    executor.setWatchdog(watchdog);
-                    int exitValue = -1;
-                    try {         
-                        executor.execute(cmd);
-                        String phpSer = new String(cmdStderr.toByteArray(), StandardCharsets.UTF_8).replace("\n", "");						
-						System.out.println("Successful return - value retrieved was " + phpSer);
-						userName = getCcamlrName(phpSer);
-                    } catch (IOException ex) {
-                        /* Report what the command wrote to stderr */
-                        System.out.println("Error converting file : " + new String(cmdStderr.toByteArray(), StandardCharsets.UTF_8) + " exit value was " + exitValue);
-                    }
-				}
+            }
+            if (cchip != null) {
+                /* Chocolate Chip cookie is present, indicating a Drupal login from a CCAMLR user */
+                System.out.println("Found CHOCOLATECHIP cookie " + cchip);
+                CommandLine cmd = new CommandLine(PHP_PATH);
+                cmd.addArgument(this.getServletContext().getRealPath("/WEB-INF/ccamlr/unencryptChocChip.php"), true);
+                cmd.addArgument(cchip, true);
+                System.out.println("Executing PHP commandline : " + cmd.toString());
+                DefaultExecutor executor = new DefaultExecutor();
+                /* Send stdout and stderr to specific byte arrays so that the end user will get some feedback about the problem */
+                ByteArrayOutputStream cmdStdout = new ByteArrayOutputStream();
+                ByteArrayOutputStream cmdStderr = new ByteArrayOutputStream();
+                PumpStreamHandler pumpStreamHandler = new PumpStreamHandler(cmdStdout, cmdStderr); 
+                executor.setStreamHandler(pumpStreamHandler);
+                executor.setExitValue(0);
+                ExecuteWatchdog watchdog = new ExecuteWatchdog(30000);  /* Time process out after 30 seconds */
+                executor.setWatchdog(watchdog);
+                int exitValue = -1;
+                try {         
+                    executor.execute(cmd);
+                    String phpSer = new String(cmdStderr.toByteArray(), StandardCharsets.UTF_8).replace("\n", "");						
+                    System.out.println("Successful return - value retrieved was " + phpSer);
+                    userName = getCcamlrName(phpSer);
+                } catch (IOException ex) {
+                    /* Report what the command wrote to stderr */
+                    System.out.println("Error converting file : " + new String(cmdStderr.toByteArray(), StandardCharsets.UTF_8) + " exit value was " + exitValue);
+                }
 			}			
 		} catch(UnsupportedEncodingException ex) {}
 		System.out.println("Returning user name " + userName);

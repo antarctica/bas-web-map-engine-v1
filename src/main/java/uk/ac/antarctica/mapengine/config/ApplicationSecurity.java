@@ -69,44 +69,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
         return (handler);
     }
 
-    /* Added for CCAMLR Drupal pre-Authentication 2017-06-07 David - see 
-     * http://www.learningthegoodstuff.com/2014/12/spring-security-pre-authentication-and.html
-     */
-    @Bean
-    public UserDetailsByNameServiceWrapper<PreAuthenticatedAuthenticationToken> userDetailsServiceWrapper() {
-        UserDetailsByNameServiceWrapper<PreAuthenticatedAuthenticationToken> wrapper = new UserDetailsByNameServiceWrapper<>();
-        wrapper.setUserDetailsService(new CustomUserDetailsService());
-        return (wrapper);
-    }
-
-    @Bean
-    public PreAuthenticatedAuthenticationProvider preauthAuthProvider() {
-        PreAuthenticatedAuthenticationProvider preauthAuthProvider = new PreAuthenticatedAuthenticationProvider();
-        preauthAuthProvider.setPreAuthenticatedUserDetailsService(userDetailsServiceWrapper());
-        return (preauthAuthProvider);
-    }
-
-    @Bean
-    public DrupalChocChipHeaderAuthenticationFilter chocChipFilter() throws Exception {
-        DrupalChocChipHeaderAuthenticationFilter filter = new DrupalChocChipHeaderAuthenticationFilter();
-        filter.setAuthenticationManager(authenticationManager());
-        return (filter);
-    }
-
-    public class CustomUserDetailsService implements UserDetailsService {
-
-        @Override
-        public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-            List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
-            SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_CCAMLR");
-            authorities.add(authority);
-            return (new User(username, "password", authorities));
-        }
-    }
-
-    /* End of CCAMLR additions */
-
- /* See http://thinkinginsoftware.blogspot.co.uk/2011/07/redirect-after-login-to-requested-page.html */
+    /* See http://thinkinginsoftware.blogspot.co.uk/2011/07/redirect-after-login-to-requested-page.html */
     public class CustomLoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
 
         public CustomLoginSuccessHandler() {
@@ -152,38 +115,49 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 
         if (env.getProperty("authentication.ccamlr").equals("yes")) {
             /* Authentication via Drupal CHOCCHIPSSL cookie */
-            http
-                    .addFilterBefore(ssoFilter(), RequestHeaderAuthenticationFilter.class)
-                    .authenticationProvider(
-                            preauthAuthProvider())
-                    .csrf().disable()
-                    .authorizeRequests().anyRequest().authenticated();
+//            http
+//                .addFilterBefore(chocChipFilter(), RequestHeaderAuthenticationFilter.class)
+//                .authenticationProvider(preauthAuthProvider())
+//                .authorizeRequests()
+//                .antMatchers("/*.ico", "/static/**", "/appconfig/**", "/ping", "/home/**", "/homed/**",
+//                        "/maps/dropdown/**", "/maps/name/**", "/maps/id/**", "/thumbnails",
+//                        "/embedded_maps/dropdown/**", "/embedded_maps/name/**", "/embedded_maps/id/**",
+//                        "/usermaps/data", "/ogc/**",
+//                        "/thumbnail/show/**", "/prefs/get", "/gs/**").permitAll()
+//                .antMatchers("/creator", "/creatord", "/embedded_creator", "/embedded_creatord",
+//                        "/restricted/**", "/restrictedd/**",
+//                        "/publisher", "/publisherd", "/publish_postgis", "/prefs/set",
+//                        "/maps/save", "/maps/update/**", "/maps/delete/**", "/maps/deletebyname/**",
+//                        "/embedded_maps/save", "/embedded_maps/update/**", "/embedded_maps/delete/**", "/embedded_maps/deletebyname/**",
+//                        "/usermaps/save", "/usermaps/update/**", "/usermaps/delete/**",
+//                        "/thumbnail/save/**", "/thumbnail/delete/**")
+//                .fullyAuthenticated();                    
         } else {
             /* Form-based authentication of some kind */
             http
-                    .authorizeRequests()
-                    .antMatchers("/*.ico", "/static/**", "/appconfig/**", "/ping", "/home/**", "/homed/**",
-                            "/maps/dropdown/**", "/maps/name/**", "/maps/id/**", "/thumbnails",
-                            "/embedded_maps/dropdown/**", "/embedded_maps/name/**", "/embedded_maps/id/**",
-                            "/usermaps/data", "/ogc/**",
-                            "/thumbnail/show/**", "/prefs/get", "/gs/**").permitAll()
-                    .antMatchers("/creator", "/creatord", "/embedded_creator", "/embedded_creatord",
-                            "/restricted/**", "/restrictedd/**",
-                            "/publisher", "/publisherd", "/publish_postgis", "/prefs/set",
-                            "/maps/save", "/maps/update/**", "/maps/delete/**", "/maps/deletebyname/**",
-                            "/embedded_maps/save", "/embedded_maps/update/**", "/embedded_maps/delete/**", "/embedded_maps/deletebyname/**",
-                            "/usermaps/save", "/usermaps/update/**", "/usermaps/delete/**",
-                            "/thumbnail/save/**", "/thumbnail/delete/**")
-                    .fullyAuthenticated()
-                    .and()
-                    .formLogin()
-                    .loginPage("/login")
-                    .successHandler(successHandler())
-                    .permitAll()
-                    .and()
-                    .logout()
-                    .logoutSuccessUrl("/home")
-                    .permitAll();
+                .authorizeRequests()
+                .antMatchers("/*.ico", "/static/**", "/appconfig/**", "/ping", "/home/**", "/homed/**",
+                        "/maps/dropdown/**", "/maps/name/**", "/maps/id/**", "/thumbnails",
+                        "/embedded_maps/dropdown/**", "/embedded_maps/name/**", "/embedded_maps/id/**",
+                        "/usermaps/data", "/ogc/**",
+                        "/thumbnail/show/**", "/prefs/get", "/gs/**").permitAll()
+                .antMatchers("/creator", "/creatord", "/embedded_creator", "/embedded_creatord",
+                        "/restricted/**", "/restrictedd/**",
+                        "/publisher", "/publisherd", "/publish_postgis", "/prefs/set",
+                        "/maps/save", "/maps/update/**", "/maps/delete/**", "/maps/deletebyname/**",
+                        "/embedded_maps/save", "/embedded_maps/update/**", "/embedded_maps/delete/**", "/embedded_maps/deletebyname/**",
+                        "/usermaps/save", "/usermaps/update/**", "/usermaps/delete/**",
+                        "/thumbnail/save/**", "/thumbnail/delete/**")
+                .fullyAuthenticated()
+                .and()
+                .formLogin()
+                .loginPage("/login")
+                .successHandler(successHandler())
+                .permitAll()
+                .and()
+                .logout()
+                .logoutSuccessUrl("/home")
+                .permitAll();
         }
 
         /* Apply CSRF checks to all POST|PUT|DELETE requests, and GET to selected ones */
@@ -193,13 +167,18 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
     @Override
     public void configure(AuthenticationManagerBuilder auth) throws Exception {
 
+//        if (env.getProperty("authentication.ccamlr").equals("yes")) {
+//            auth.authenticationProvider(preauthAuthProvider());
+//            chocChipFilter().setAuthenticationManager(auth.getOrBuild());
+//        }
+        
         if (env.getProperty("authentication.inmemory").equals("yes")) {
             /* Attempt to authenticate an in-memory user, useful when LDAP and other providers are not available */
             auth
-                    .inMemoryAuthentication()
-                    .withUser("mapengine")
-                    .password("m4P3NG1n3")
-                    .roles("USER");
+                .inMemoryAuthentication()
+                .withUser("mapengine")
+                .password("m4P3NG1n3")
+                .roles("USER");
         }
 
         if (env.getProperty("authentication.geoserver").equals("yes")) {
