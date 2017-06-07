@@ -1,5 +1,5 @@
 css/ol.css
-css/bootstrap.min.slate.css
+css/bootstrap.min.css
 css/prettify.css
 css/nav.css
 css/ccamlrgis/creator.css

@@ -1,5 +1,5 @@
 css/ol.css
-css/bootstrap.min.slate.css
+css/bootstrap.min.css
 css/dropzone.min.css
 css/nav.css
 css/font-awesome.min.css
