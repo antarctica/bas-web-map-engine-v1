@@ -26,10 +26,10 @@ import org.springframework.security.ldap.authentication.BindAuthenticator;
 import org.springframework.security.ldap.authentication.LdapAuthenticationProvider;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.savedrequest.DefaultSavedRequest;
 import org.springframework.security.web.util.RegexRequestMatcher;
 import org.springframework.security.web.util.RequestMatcher;
-import org.springframework.web.filter.OncePerRequestFilter;
 import uk.ac.antarctica.mapengine.config.ApplicationSecurity.CsrfSecurityRequestMatcher;
 
 @Configuration
@@ -114,7 +114,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
         if (env.getProperty("authentication.ccamlr").equals("yes")) {
             /* Authentication via Drupal CHOCCHIPSSL cookie */
             http
-                .addFilterBefore(chocChipFilter(), OncePerRequestFilter.class)
+                .addFilterBefore(chocChipFilter(), BasicAuthenticationFilter.class)
                 .authorizeRequests()
                 .antMatchers("/*.ico", "/static/**", "/appconfig/**", "/ping", "/home/**", "/homed/**",
                         "/maps/dropdown/**", "/maps/name/**", "/maps/id/**", "/thumbnails",

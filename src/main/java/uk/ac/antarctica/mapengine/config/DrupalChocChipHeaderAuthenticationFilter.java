@@ -4,21 +4,18 @@
  */
 package uk.ac.antarctica.mapengine.config;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.commons.exec.CommandLine;
-import org.apache.commons.exec.DefaultExecutor;
-import org.apache.commons.exec.ExecuteWatchdog;
-import org.apache.commons.exec.PumpStreamHandler;
+import org.codehaus.plexus.util.cli.CommandLineException;
+import org.codehaus.plexus.util.cli.CommandLineUtils;
+import org.codehaus.plexus.util.cli.Commandline;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -71,31 +68,26 @@ public class DrupalChocChipHeaderAuthenticationFilter extends OncePerRequestFilt
             if (cchip != null) {
                 /* Chocolate Chip cookie is present, indicating a Drupal login from a CCAMLR user */
                 System.out.println("Found CHOCOLATECHIP cookie " + cchip);
-                CommandLine cmd = new CommandLine(PHP_PATH);
-                cmd.addArgument(this.getServletContext().getRealPath("/WEB-INF/ccamlr/unencryptChocChip.php"), true);
-                cmd.addArgument(cchip, true);
-                System.out.println("Executing PHP commandline : " + cmd.toString());
-                DefaultExecutor executor = new DefaultExecutor();
-                /* Send stdout and stderr to specific byte arrays so that the end user will get some feedback about the problem */
-                ByteArrayOutputStream cmdStdout = new ByteArrayOutputStream();
-                ByteArrayOutputStream cmdStderr = new ByteArrayOutputStream();
-                PumpStreamHandler pumpStreamHandler = new PumpStreamHandler(cmdStdout, cmdStderr); 
-                executor.setStreamHandler(pumpStreamHandler);
-                executor.setExitValue(0);
-                ExecuteWatchdog watchdog = new ExecuteWatchdog(30000);  /* Time process out after 30 seconds */
-                executor.setWatchdog(watchdog);
-                int exitValue = -1;
-                try {         
-                    executor.execute(cmd);
-                    String phpSer = new String(cmdStderr.toByteArray(), StandardCharsets.UTF_8).replace("\n", "");						
-                    System.out.println("Successful return - value retrieved was " + phpSer);
+                Commandline cmd = new Commandline();
+                CommandLineUtils.StringStreamConsumer phpOut = new CommandLineUtils.StringStreamConsumer();
+                CommandLineUtils.StringStreamConsumer phpErr = new CommandLineUtils.StringStreamConsumer();
+                cmd.setExecutable(PHP_PATH);
+                cmd.createArg().setValue(this.getServletContext().getRealPath("/WEB-INF/ccamlr/unencryptChocChip.php"));
+                cmd.createArg().setValue(cchip);
+                System.out.println("About to call Drupal mcrypt code...");
+                int ret = CommandLineUtils.executeCommandLine(cmd, phpOut, phpErr, 10);
+                if (ret == 0) {
+                    System.out.println("Successful return");
+                    String phpSer = phpOut.getOutput().replace("\n", "");                    
                     userName = getCcamlrName(phpSer);
-                } catch (IOException ex) {
-                    /* Report what the command wrote to stderr */
-                    System.out.println("Error converting file : " + new String(cmdStderr.toByteArray(), StandardCharsets.UTF_8) + " exit value was " + exitValue);
+                } else {
+                    System.out.println("Non-zero return code (" + ret + ") from unencryptChocChip.php");
                 }
 			}			
-		} catch(UnsupportedEncodingException ex) {}
+		} catch(UnsupportedEncodingException ex) {
+        } catch (CommandLineException cle) {
+            System.out.println("Command line exception: " + cle.getMessage());
+        }
 		System.out.println("Returning user name " + userName);
 		return(userName);
 	}
