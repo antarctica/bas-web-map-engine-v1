@@ -4,8 +4,6 @@
 package uk.ac.antarctica.mapengine.config;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Pattern;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -24,23 +22,14 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.servlet.configuration.EnableWebMvcSecurity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsByNameServiceWrapper;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.ldap.authentication.BindAuthenticator;
 import org.springframework.security.ldap.authentication.LdapAuthenticationProvider;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
-import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
 import org.springframework.security.web.savedrequest.DefaultSavedRequest;
 import org.springframework.security.web.util.RegexRequestMatcher;
 import org.springframework.security.web.util.RequestMatcher;
+import org.springframework.web.filter.OncePerRequestFilter;
 import uk.ac.antarctica.mapengine.config.ApplicationSecurity.CsrfSecurityRequestMatcher;
 
 @Configuration
@@ -68,6 +57,15 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
         handler.setUseReferer(true);
         return (handler);
     }
+    
+    /* Added for CCAMLR pre-authentication via Drupal cookie */
+    
+    @Bean
+    public DrupalChocChipHeaderAuthenticationFilter chocChipFilter() {
+        return(new DrupalChocChipHeaderAuthenticationFilter());
+    }
+    
+    /* End of CCAMLR additions */
 
     /* See http://thinkinginsoftware.blogspot.co.uk/2011/07/redirect-after-login-to-requested-page.html */
     public class CustomLoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
@@ -115,23 +113,22 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 
         if (env.getProperty("authentication.ccamlr").equals("yes")) {
             /* Authentication via Drupal CHOCCHIPSSL cookie */
-//            http
-//                .addFilterBefore(chocChipFilter(), RequestHeaderAuthenticationFilter.class)
-//                .authenticationProvider(preauthAuthProvider())
-//                .authorizeRequests()
-//                .antMatchers("/*.ico", "/static/**", "/appconfig/**", "/ping", "/home/**", "/homed/**",
-//                        "/maps/dropdown/**", "/maps/name/**", "/maps/id/**", "/thumbnails",
-//                        "/embedded_maps/dropdown/**", "/embedded_maps/name/**", "/embedded_maps/id/**",
-//                        "/usermaps/data", "/ogc/**",
-//                        "/thumbnail/show/**", "/prefs/get", "/gs/**").permitAll()
-//                .antMatchers("/creator", "/creatord", "/embedded_creator", "/embedded_creatord",
-//                        "/restricted/**", "/restrictedd/**",
-//                        "/publisher", "/publisherd", "/publish_postgis", "/prefs/set",
-//                        "/maps/save", "/maps/update/**", "/maps/delete/**", "/maps/deletebyname/**",
-//                        "/embedded_maps/save", "/embedded_maps/update/**", "/embedded_maps/delete/**", "/embedded_maps/deletebyname/**",
-//                        "/usermaps/save", "/usermaps/update/**", "/usermaps/delete/**",
-//                        "/thumbnail/save/**", "/thumbnail/delete/**")
-//                .fullyAuthenticated();                    
+            http
+                .addFilterBefore(chocChipFilter(), OncePerRequestFilter.class)
+                .authorizeRequests()
+                .antMatchers("/*.ico", "/static/**", "/appconfig/**", "/ping", "/home/**", "/homed/**",
+                        "/maps/dropdown/**", "/maps/name/**", "/maps/id/**", "/thumbnails",
+                        "/embedded_maps/dropdown/**", "/embedded_maps/name/**", "/embedded_maps/id/**",
+                        "/usermaps/data", "/ogc/**",
+                        "/thumbnail/show/**", "/prefs/get", "/gs/**").permitAll()
+                .antMatchers("/creator", "/creatord", "/embedded_creator", "/embedded_creatord",
+                        "/restricted/**", "/restrictedd/**",
+                        "/publisher", "/publisherd", "/publish_postgis", "/prefs/set",
+                        "/maps/save", "/maps/update/**", "/maps/delete/**", "/maps/deletebyname/**",
+                        "/embedded_maps/save", "/embedded_maps/update/**", "/embedded_maps/delete/**", "/embedded_maps/deletebyname/**",
+                        "/usermaps/save", "/usermaps/update/**", "/usermaps/delete/**",
+                        "/thumbnail/save/**", "/thumbnail/delete/**")
+                .fullyAuthenticated();                    
         } else {
             /* Form-based authentication of some kind */
             http
@@ -167,10 +164,9 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
     @Override
     public void configure(AuthenticationManagerBuilder auth) throws Exception {
 
-//        if (env.getProperty("authentication.ccamlr").equals("yes")) {
-//            auth.authenticationProvider(preauthAuthProvider());
-//            chocChipFilter().setAuthenticationManager(auth.getOrBuild());
-//        }
+        if (env.getProperty("authentication.ccamlr").equals("yes")) {
+            auth.authenticationProvider(new CcamlrAuthenticationProvider());
+        }
         
         if (env.getProperty("authentication.inmemory").equals("yes")) {
             /* Attempt to authenticate an in-memory user, useful when LDAP and other providers are not available */

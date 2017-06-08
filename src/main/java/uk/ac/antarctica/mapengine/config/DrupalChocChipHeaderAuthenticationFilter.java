@@ -1,6 +1,6 @@
 /*
  * Custom filter to authenticate a CCAMLR user via the Drupal CHOCCHIPSSL cookie
- * Based around http://www.learningthegoodstuff.com/2014/12/spring-security-pre-authentication-and.html
+ * Based around http://shout.setfive.com/2015/11/02/spring-boot-authentication-with-custom-http-header/
  */
 package uk.ac.antarctica.mapengine.config;
 
@@ -34,12 +34,17 @@ public class DrupalChocChipHeaderAuthenticationFilter extends OncePerRequestFilt
         
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain fc) throws ServletException, IOException {
+        System.out.println("CCAMLR pre-Authentication filter");
         String userName = getCcamlrUserName(request);
         if (userName != null) {
+            System.out.println("Recording user name");
             ArrayList<GrantedAuthority> authorities = new ArrayList();
             GrantedAuthority ga = new SimpleGrantedAuthority("ROLE_CCAMLR");
             authorities.add(ga);
             SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userName, "password", authorities));
+            System.out.println("Authentication set");
+        } else {
+            System.out.println("No authentication cookie found");
         }
         fc.doFilter(request, response);
     }
