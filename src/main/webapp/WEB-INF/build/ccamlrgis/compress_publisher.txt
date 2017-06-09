@@ -2,7 +2,7 @@ css/bootstrap.min.css
 css/nav.css
 css/font-awesome.min.css
 css/dropzone.min.css
-css/ccamlrgis/publisher.css
+css/publisher.css
 js/jquery.js
 js/bootstrap.min.js
 js/dropzone.min.js

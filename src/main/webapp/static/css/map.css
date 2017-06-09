@@ -57,6 +57,7 @@ body {
     padding-top: 15px;
     padding-bottom: 15px;
     line-height: 20px;
+    min-height: 55px;
     color: #999;
 }
 

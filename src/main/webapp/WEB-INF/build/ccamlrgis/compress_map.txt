@@ -3,7 +3,7 @@ css/bootstrap.min.css
 css/bootstrap-slider.min.css
 css/prettify.css
 css/nav.css
-css/ccamlrgis/map.css
+css/map.css
 css/font-awesome.min.css
 css/whhg-reduced.min.css
 js/xmlToJSON.min.js
