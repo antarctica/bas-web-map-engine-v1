@@ -192,11 +192,12 @@ magic.classes.creator.LayerAttributeMap.prototype.ogcLoadContext = function(wms,
                         this.attribute_dictionary[id].push(attrs);                    
                     }, this));
                     this.type_dictionary[id] = geomType;
-                    if (geomType == "unknown") {
-                        this.displayInteractivityDiv("no", "");
-                    } else {
+                    /* See if lack of a geometry type matters - David 2017-06-09 */
+                    //if (geomType == "unknown") {
+                    //    this.displayInteractivityDiv("no", "");
+                    //} else {
                         this.displayInteractivityDiv("yes", this.toForm(id, attrMap, this.attribute_dictionary[id]));
-                    }
+                    //}
                 }, this))
                 .fail(jQuery.proxy(function(xhr) {
                     if (xhr.status == 401) {

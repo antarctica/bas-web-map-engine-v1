@@ -75,7 +75,7 @@ magic.modules.creator.Tab4 = function () {
                     var coasts = projEp.coast_layers.split(",");                    
                     jQuery.each(coasts, function(idx, cl) {
                         var wmsSource = new ol.source.TileWMS({
-                            url: projEp.url,
+                            url: magic.modules.Endpoints.getOgcEndpoint(projEp.url, "wms"),
                             params: {
                                 "LAYERS": cl, 
                                 "CRS": proj.getCode(),
@@ -110,7 +110,7 @@ magic.modules.creator.Tab4 = function () {
                     var graticule = projEp.graticule_layer;
                     if (graticule) {
                         if (graticule == "ol") {
-                            /* Use the native OL graticule control - hangs badly in Chrome 28/01/2016 - obviously buggy */
+                            /* Use the native OL graticule control - commented out 2017-06-09 as OL doesn't support labelling yet - a fundamental requirement */
 //                            olGrat = new ol.Graticule({
 //                                projection: proj,
 //                                maxLines: 10
@@ -118,7 +118,7 @@ magic.modules.creator.Tab4 = function () {
                         } else {
                             /* Use prepared data for Polar Stereographic as OL control does not work */
                             var wmsSource = new ol.source.ImageWMS(({
-                                url: projEp.url,
+                                url: magic.modules.Endpoints.getOgcEndpoint(projEp.url, "wms"),
                                 params: {"LAYERS": graticule},
                                 projection: proj
                             }));

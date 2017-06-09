@@ -76,7 +76,7 @@ magic.modules.creator.Tab1 = function () {
             if (!checkRb) {
                 return(false);
             }
-            if (jQuery("#t1-" + checkRb.val()) == "") {
+            if (jQuery("#t1-" + checkRb.val()).val() == "") {
                 return(false);
             }
             /* Check form inputs */
