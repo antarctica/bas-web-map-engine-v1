@@ -30,7 +30,13 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
-public class GeoserverRestController {        
+public class GeoserverRestController {   
+    
+    /**
+     * NOTE: 2017-06-12 David - updating CCAMLR GIS
+     * It is very likely that all the methods in here should be applicable to any Geoserver REST endpoint URL which we have the appropriate credentials for
+     * not just the local Geoserver.  It is likely that an extra endpoint id REST parameter be added to each eventually
+     */
     
     @Autowired
     Environment env;
@@ -102,6 +108,44 @@ public class GeoserverRestController {
             content = "{styles: \"\"}";
         }
         IOUtils.copy(IOUtils.toInputStream(content), response.getOutputStream());       
+    }
+    
+    /**
+     * Proxy Geoserver REST API call to get all granules for a mosaic coverage
+     * @param HttpServletRequest request,
+     * @param String layer
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/gs/granules/{layer}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
+    @ResponseBody
+    public void geoserverGranulesForMosaic(HttpServletRequest request, HttpServletResponse response, @PathVariable("layer") String layer)
+        throws ServletException, IOException, ServiceException {
+        String content = "{features: []}";
+        RESTLayer gsLayer = getReader().getLayer(layer);
+        if (layer != null) {
+            RESTCoverage mosaic = getReader().getCoverage(gsLayer);
+            if (mosaic != null) {
+                String mType = mosaic.getStoreType();                
+                if (mType.equals("coverageStore")) {
+                    /* Store URL will look like http://localhost:8080/geoserver/rest/workspaces/gis/coveragestores/bremen_sic.xml */
+                    String mUrl = mosaic.getStoreUrl();
+                    mUrl = mUrl.substring(0, mUrl.lastIndexOf(".")-1);  /* Strip .<extension> */
+                    mUrl = mUrl + "/coverages/" + layer + "/index/granules.json";
+                    System.out.println("Get granules from " + mUrl);
+                    content = HTTPUtils.get(
+                        mUrl, 
+                        env.getProperty("geoserver.local.username"), 
+                        env.getProperty("geoserver.local.password")
+                    );
+                    if (content == null) { 
+                        content = "{features: []}";
+                    }
+                }                
+            }
+        }
+        IOUtils.copy(IOUtils.toInputStream(content), response.getOutputStream());
     }
     
     /**

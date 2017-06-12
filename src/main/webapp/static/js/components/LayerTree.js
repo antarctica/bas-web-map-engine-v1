@@ -290,8 +290,9 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
     jQuery.each(nodes, jQuery.proxy(function (i, nd) {
         if (jQuery.isArray(nd.layers)) {
             /* Style a group */
-            var groupExpanded = this.userGroupExpanded(nd.id, nd.expanded);             
-            var title = (groupExpanded ? "Collapse" : "Expand") + " this group";
+            var groupExpanded = this.userGroupExpanded(nd.id, nd.expanded);      
+            var ellipsisName = magic.modules.Common.ellipsis(nd.name, 25);            
+            var title = (ellipsisName != nd.name ? nd.name + " - " : "") + (groupExpanded ? "Collapse" : "Expand") + " this group";            
             var hbg = depth == 0 ? "panel-primary" : (depth == 1 ? "panel-info" : "");
             var topMargin = i == 0 ? "margin-top:5px" : "";
             var oneOnly = (nd.base === true || nd.one_only === true);
@@ -308,7 +309,7 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                             (oneOnly ? '' : '<span class="badge checked-indicator-badge hidden"><span class="fa fa-eye">&nbsp;</span>0</span>') + 
                             '<span class="panel-title layer-group-panel-title" data-toggle="tooltip" data-placement="right" title="' + title + '">' +
                                 '<a class="layer-group-tool" role="button" data-toggle="collapse" href="#layer-group-panel-' + nd.id + '">' +
-                                    '<span style="font-weight:bold">' + nd.name + '</span>' +
+                                    '<span style="font-weight:bold">' + ellipsisName + '</span>' +
                                 '</a>' +
                             '</span>' +
                         '</div>' +

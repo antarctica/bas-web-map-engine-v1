@@ -18,43 +18,29 @@ magic.classes.MosaicTimeSeriesPlayer = function(options) {
     /* Movie interval handle */
     this.movie = null;
     
-    /* Get the GeoJSON for the mosaic time series */
-    var wmsUrl = this.layer.getSource().getUrls()[0];
-    if (wmsUrl) {
-        var gsPos = wmsUrl.indexOf("geoserver");
-        if (gsPos != -1) {
-            var restUrl = wmsUrl.substring(0, gsPos + 9) + "/rest/workspaces";
-            var params = this.layer.getSource().getParams();
-            /* Get workspace and feature type to load up REST call */
-            var workspace = params["WORKSPACE"], store = params["LAYERS"], featureType = params["LAYERS"];
-            if (featureType.indexOf(":") > 0) {
-                /* Workspace is part of the feature type definition */
-                var fparts = featureType.split(":");
-                workspace = fparts[0];
-                store = fparts[1];
-                featureType = fparts[1];
+    /* Get the GeoJSON for the mosaic time series (assumed on the local server - TODO widen this to any server with REST and appropriate credentials */
+    var params = this.layer.getSource().getParams();
+    var featureType = params["LAYERS"];
+    if (featureType) {
+        jQuery.getJSON(magic.config.paths.baseurl + "/gs/granules/" + featureType, jQuery.proxy(function(data) {
+            var feats = data.features;
+            if (jQuery.isArray(feats) && feats.length > 0) {
+                feats.sort(function(a, b) {
+                    var cda = Date.parse(a.properties.chart_date);
+                    var cdb = Date.parse(b.properties.chart_date);
+                    return(cda - cdb);
+                });
+                this.granules = feats;
+                this.imagePointer = this.granules.length - 1;                    
+                this.showCurrentState();
             } else {
-                /* Increasing desperation - try and deduce from the URL, assuming a per-workspace endpoint */
-                workspace = workspace || wmsUrl.substring(gsPos+10, wmsUrl.indexOf("/", gsPos+10));         
-            }                        
-            restUrl += ("/" + workspace + "/coveragestores/" + store + "/coverages/" + featureType + "/index/granules");
-            jQuery.getJSON(restUrl, jQuery.proxy(function(data) {
-                var feats = data.features;
-                if (jQuery.isArray(feats) && feats.length > 0) {
-                    feats.sort(function(a, b) {
-                        var cda = Date.parse(a.properties.chart_date);
-                        var cdb = Date.parse(b.properties.chart_date);
-                        return(cda - cdb);
-                    });
-                    this.granules = feats;
-                    this.imagePointer = this.granules.length - 1;                    
-                    this.showCurrentState();
-                } else {
-                    alert("No data received");
-                }
-            }, this));
-            
-        }
+                bootbox.alert(
+                    '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                        '<p>No time series granule data received</p>' + 
+                    '</div>'
+                );
+            }
+        }, this));
     }
 };
 
