@@ -52,15 +52,39 @@ magic.classes.MosaicTimeSeriesPlayer.prototype.showCurrentState = function() {
         this.imagePointer = this.granules.length - 1;
     }
     this.target.html(
-        '<div>' + 
-            '<button class="btn btn-primary btn-sm fa fa-fast-backward mosaic-player" role="button" data-toggle="tooltip" data-placement="top" title="First image in series" disabled></button>' + 
-            '<button class="btn btn-primary btn-sm fa fa-step-backward mosaic-player" data-toggle="tooltip" data-placement="top" title="Previous image in series" disabled></button>' + 
-            '<button class="btn btn-primary btn-sm fa fa-play mosaic-player" data-toggle="tooltip" data-placement="top" title="Play movie of mosaic images" disabled></button>' +
-            '<button class="btn btn-primary btn-sm fa fa-step-forward mosaic-player" data-toggle="tooltip" data-placement="top" title="Next image in series" disabled></button>' + 
-            '<button class="btn btn-primary btn-sm fa fa-fast-forward mosaic-player" data-toggle="tooltip" data-placement="top" title="Most recent image in series" disabled></button>' +
-        '</div>' +
-        '<br clear="all" />' + 
-        '<div>Data : <span id="granule-date-' + this.nodeid + '"></span></div>'
+        '<div class="panel panel-default">' +
+            '<div class="panel-body mosaic-player-panel">' + 
+                '<form id="mplayer-form-' + this.nodeid + '" style="width: 230px; margin-top: 10px">' +
+                    '<div class="form-group form-group-sm col-sm-12">' +
+                        '<button class="btn btn-primary btn-sm fa fa-fast-backward mosaic-player" role="button" ' + 
+                            'data-toggle="tooltip" data-placement="top" title="First image in series" disabled></button>' + 
+                        '<button class="btn btn-primary btn-sm fa fa-step-backward mosaic-player" ' + 
+                            'data-toggle="tooltip" data-placement="top" title="Previous image in series" disabled></button>' + 
+                        '<button class="btn btn-primary btn-sm fa fa-play mosaic-player" ' + 
+                            'data-toggle="tooltip" data-placement="top" title="Play movie of mosaic images" disabled></button>' +
+                        '<button class="btn btn-primary btn-sm fa fa-step-forward mosaic-player" ' + 
+                            'data-toggle="tooltip" data-placement="top" title="Next image in series" disabled></button>' + 
+                        '<button class="btn btn-primary btn-sm fa fa-fast-forward mosaic-player" ' + 
+                            'data-toggle="tooltip" data-placement="top" title="Most recent image in series" disabled></button>' +
+                    '</div>' +
+                    '<div class="form-group form-group-sm col-sm-12">' +
+                        '<label class="col-sm-4" for="mplayer-refresh-rate">Refresh (s)</label>' + 
+                        '<div class="col-sm-8">' + 
+                            '<select id="mplayer-refresh-rate" class="form-control" ' +
+                                'data-toggle="tooltip" data-placement="right" ' + 
+                                'title="Frame refresh rate in seconds">' + 
+                                '<option value="2000" selected>2</option>' + 
+                                '<option value="4000">4</option>' +
+                                '<option value="6000">6</option>' +
+                                '<option value="8000">8</option>' +
+                                '<option value="10000">10</option>' +
+                            '</select>' +                            
+                        '</div>' + 
+                    '</div>' + 
+                    '<div class="col-sm-12">Data : <span id="granule-date-' + this.nodeid + '"></span></div>' + 
+                '</form>' + 
+            '</div>' + 
+        '</div>'
     );  
     var btns = this.target.find("button");
     jQuery(btns[0]).on("click", {pointer: "0"}, jQuery.proxy(this.showImage, this));
@@ -68,10 +92,17 @@ magic.classes.MosaicTimeSeriesPlayer.prototype.showCurrentState = function() {
     jQuery(btns[2]).on("click", jQuery.proxy(this.changeMovieState, this));
     jQuery(btns[3]).on("click",{pointer: "+"}, jQuery.proxy(this.showImage, this));
     jQuery(btns[4]).on("click",{pointer: "1"}, jQuery.proxy(this.showImage, this));
+    jQuery("#mplayer-refresh-rate").change(jQuery.proxy(function(evt) {
+        var playBtn = jQuery(btns[2]);
+        if (playBtn.hasClass("fa-pause")) {
+            /* Movie is playing => stop it, so user can restart movie with new rate */
+            playBtn.trigger("click");
+        }
+    }, this));
     this.syncButtons();
     this.updateLayer();
     this.target.toggleClass("hidden");
-    jQuery("#granule-date-" + this.nodeid).html(this.getTime().replace(".000Z", ""));
+    jQuery("#granule-date-" + this.nodeid).html(this.getTime());
 };
 
 /**
@@ -118,7 +149,7 @@ magic.classes.MosaicTimeSeriesPlayer.prototype.changeMovieState = function(evt) 
                     this.movie = null;
                 }
                 this.syncButtons();
-            }, this), 2000);
+            }, this), jQuery("#mplayer-refresh-rate").val());
         }
     } else if (playBtn.hasClass("fa-pause")) {
         playBtn.removeClass("fa-pause").addClass("fa-play");
@@ -163,6 +194,6 @@ magic.classes.MosaicTimeSeriesPlayer.prototype.updateLayer = function() {
 magic.classes.MosaicTimeSeriesPlayer.prototype.getTime = function() {
     var t = this.granules[this.imagePointer].properties.chart_date;
     /* See http://suite.opengeo.org/4.1/geoserver/tutorials/imagemosaic_timeseries/imagemosaic_time-elevationseries.html for description of the pernickety date format */
-    t = t.replace("+0000", "Z");
-    return(t);
+    //t = t.replace("+0000", "Z");
+    return(t.substring(0, 10));
 };

@@ -266,7 +266,7 @@ public class OgcServicesController implements ServletContextAware {
                 
         HttpClientBuilder builder = HttpClients.custom();
         
-        System.out.println("Retrieving " + url + "...");
+        //System.out.println("Retrieving " + url + "...");
                 
         if (secured) {
             String[] credentials = getOnwardCredentials(url);

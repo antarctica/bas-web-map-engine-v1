@@ -34,12 +34,12 @@ public class DrupalChocChipHeaderAuthenticationFilter extends OncePerRequestFilt
         System.out.println("CCAMLR pre-Authentication filter");
         String userName = getCcamlrUserName(request);
         if (userName != null) {
-            System.out.println("Recording user name");
+            //System.out.println("Recording user name");
             ArrayList<GrantedAuthority> authorities = new ArrayList();
             GrantedAuthority ga = new SimpleGrantedAuthority("ROLE_CCAMLR");
             authorities.add(ga);
             SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userName, "password", authorities));
-            System.out.println("Authentication set");
+            //System.out.println("Authentication set");
         } else {
             System.out.println("No authentication cookie found");
         }
@@ -67,17 +67,17 @@ public class DrupalChocChipHeaderAuthenticationFilter extends OncePerRequestFilt
             }
             if (cchip != null) {
                 /* Chocolate Chip cookie is present, indicating a Drupal login from a CCAMLR user */
-                System.out.println("Found CHOCOLATECHIP cookie " + cchip);
+                //System.out.println("Found CHOCOLATECHIP cookie " + cchip);
                 Commandline cmd = new Commandline();
                 CommandLineUtils.StringStreamConsumer phpOut = new CommandLineUtils.StringStreamConsumer();
                 CommandLineUtils.StringStreamConsumer phpErr = new CommandLineUtils.StringStreamConsumer();
                 cmd.setExecutable(PHP_PATH);
                 cmd.createArg().setValue(this.getServletContext().getRealPath("/WEB-INF/ccamlr/unencryptChocChip.php"));
                 cmd.createArg().setValue(cchip);
-                System.out.println("About to call Drupal mcrypt code...");
+                //System.out.println("About to call Drupal mcrypt code...");
                 int ret = CommandLineUtils.executeCommandLine(cmd, phpOut, phpErr, 10);
                 if (ret == 0) {
-                    System.out.println("Successful return");
+                    //System.out.println("Successful return");
                     String phpSer = phpOut.getOutput().replace("\n", "");                    
                     userName = getCcamlrName(phpSer);
                 } else {

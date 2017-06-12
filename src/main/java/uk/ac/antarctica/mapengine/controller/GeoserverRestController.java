@@ -131,7 +131,7 @@ public class GeoserverRestController {
                 if (mType.equals("coverageStore")) {
                     /* Store URL will look like http://localhost:8080/geoserver/rest/workspaces/gis/coveragestores/bremen_sic.xml */
                     String mUrl = mosaic.getStoreUrl();
-                    mUrl = mUrl.substring(0, mUrl.lastIndexOf(".")-1);  /* Strip .<extension> */
+                    mUrl = mUrl.substring(0, mUrl.lastIndexOf("."));  /* Strip .<extension> */
                     mUrl = mUrl + "/coverages/" + layer + "/index/granules.json";
                     System.out.println("Get granules from " + mUrl);
                     content = HTTPUtils.get(
