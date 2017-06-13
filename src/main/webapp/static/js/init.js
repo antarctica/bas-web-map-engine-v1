@@ -37,6 +37,7 @@ var magic = {
         },
         highlighted: [],
         highlighted_inset: [],
+        timeSeriesCache: {},
         pingSession: function() {
             jQuery.get(magic.config.paths.baseurl + "/ping");
         },

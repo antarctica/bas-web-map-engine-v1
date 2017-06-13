@@ -16,31 +16,46 @@ magic.classes.MosaicTimeSeriesPlayer = function(options) {
     this.granules = null;
     
     /* Movie interval handle */
-    this.movie = null;
+    this.movie = null;       
     
     /* Get the GeoJSON for the mosaic time series (assumed on the local server - TODO widen this to any server with REST and appropriate credentials */
     var params = this.layer.getSource().getParams();
     var featureType = params["LAYERS"];
     if (featureType) {
-        jQuery.getJSON(magic.config.paths.baseurl + "/gs/granules/" + featureType, jQuery.proxy(function(data) {
-            var feats = data.features;
-            if (jQuery.isArray(feats) && feats.length > 0) {
-                feats.sort(function(a, b) {
-                    var cda = Date.parse(a.properties.chart_date);
-                    var cdb = Date.parse(b.properties.chart_date);
-                    return(cda - cdb);
-                });
-                this.granules = feats;
-                this.imagePointer = this.granules.length - 1;                    
-                this.showCurrentState();
-            } else {
-                bootbox.alert(
-                    '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                        '<p>No time series granule data received</p>' + 
-                    '</div>'
-                );
-            }
-        }, this));
+        if (magic.runtime.timeSeriesCache[this.nodeid]) {
+            /* Use session cached granule data */
+            this.loadGranules(magic.runtime.timeSeriesCache[this.nodeid]);
+        } else {
+            /* Fetch the granule data - could be slow and costly for big datasets */
+            jQuery.getJSON(magic.config.paths.baseurl + "/gs/granules/" + featureType, jQuery.proxy(function(data) {
+                this.loadGranules(data);
+                magic.runtime.timeSeriesCache[this.nodeid] = data;
+            }, this));
+        }
+    }
+};
+
+/**
+ * Load granule data into the mosaic player
+ * @param {Object} data
+ */
+magic.classes.MosaicTimeSeriesPlayer.prototype.loadGranules = function(data) {
+    var feats = data.features;
+    if (jQuery.isArray(feats) && feats.length > 0) {
+        feats.sort(function(a, b) {
+            var cda = Date.parse(a.properties.chart_date);
+            var cdb = Date.parse(b.properties.chart_date);
+            return(cda - cdb);
+        });
+        this.granules = feats;
+        this.imagePointer = this.granules.length - 1;                    
+        this.showCurrentState();
+    } else {
+        bootbox.alert(
+            '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                '<p>No time series granule data received</p>' + 
+            '</div>'
+        );
     }
 };
 
@@ -54,7 +69,7 @@ magic.classes.MosaicTimeSeriesPlayer.prototype.showCurrentState = function() {
     this.target.html(
         '<div class="panel panel-default">' +
             '<div class="panel-body mosaic-player-panel">' + 
-                '<form id="mplayer-form-' + this.nodeid + '" style="width: 230px; margin-top: 10px">' +
+                '<form id="mplayer-form-' + this.nodeid + '" style="margin-top: 10px">' +
                     '<div class="form-group form-group-sm col-sm-12">' +
                         '<button class="btn btn-primary btn-sm fa fa-fast-backward mosaic-player" role="button" ' + 
                             'data-toggle="tooltip" data-placement="top" title="First image in series" disabled></button>' + 
@@ -68,9 +83,9 @@ magic.classes.MosaicTimeSeriesPlayer.prototype.showCurrentState = function() {
                             'data-toggle="tooltip" data-placement="top" title="Most recent image in series" disabled></button>' +
                     '</div>' +
                     '<div class="form-group form-group-sm col-sm-12">' +
-                        '<label class="col-sm-4" for="mplayer-refresh-rate">Refresh (s)</label>' + 
-                        '<div class="col-sm-8">' + 
-                            '<select id="mplayer-refresh-rate" class="form-control" ' +
+                        '<label class="col-sm-5" for="mplayer-refresh-rate-' + this.nodeid + '">Refresh (s)</label>' + 
+                        '<div class="col-sm-7">' + 
+                            '<select id="mplayer-refresh-rate-' + this.nodeid + '" class="form-control" ' +
                                 'data-toggle="tooltip" data-placement="right" ' + 
                                 'title="Frame refresh rate in seconds">' + 
                                 '<option value="2000" selected>2</option>' + 
@@ -86,13 +101,15 @@ magic.classes.MosaicTimeSeriesPlayer.prototype.showCurrentState = function() {
             '</div>' + 
         '</div>'
     );  
+    /* Allow clicking on the inputs without the dropdown going away */
+    this.target.find("form").click(function(evt2) {evt2.stopPropagation()});
     var btns = this.target.find("button");
     jQuery(btns[0]).on("click", {pointer: "0"}, jQuery.proxy(this.showImage, this));
     jQuery(btns[1]).on("click", {pointer: "-"}, jQuery.proxy(this.showImage, this));
     jQuery(btns[2]).on("click", jQuery.proxy(this.changeMovieState, this));
     jQuery(btns[3]).on("click",{pointer: "+"}, jQuery.proxy(this.showImage, this));
     jQuery(btns[4]).on("click",{pointer: "1"}, jQuery.proxy(this.showImage, this));
-    jQuery("#mplayer-refresh-rate").change(jQuery.proxy(function(evt) {
+    jQuery("#mplayer-refresh-rate-" + this.nodeid).change(jQuery.proxy(function(evt) {        
         var playBtn = jQuery(btns[2]);
         if (playBtn.hasClass("fa-pause")) {
             /* Movie is playing => stop it, so user can restart movie with new rate */
@@ -194,6 +211,7 @@ magic.classes.MosaicTimeSeriesPlayer.prototype.updateLayer = function() {
 magic.classes.MosaicTimeSeriesPlayer.prototype.getTime = function() {
     var t = this.granules[this.imagePointer].properties.chart_date;
     /* See http://suite.opengeo.org/4.1/geoserver/tutorials/imagemosaic_timeseries/imagemosaic_time-elevationseries.html for description of the pernickety date format */
+    // TODO - need to think about datasets with a sub-day granularity - David 2017-06-13
     //t = t.replace("+0000", "Z");
     return(t.substring(0, 10));
 };
