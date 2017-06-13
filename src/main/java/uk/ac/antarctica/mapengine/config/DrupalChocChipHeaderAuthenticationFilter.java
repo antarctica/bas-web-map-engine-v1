@@ -31,18 +31,13 @@ public class DrupalChocChipHeaderAuthenticationFilter extends OncePerRequestFilt
         
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain fc) throws ServletException, IOException {
-        System.out.println("CCAMLR pre-Authentication filter");
         String userName = getCcamlrUserName(request);
         if (userName != null) {
-            //System.out.println("Recording user name");
             ArrayList<GrantedAuthority> authorities = new ArrayList();
             GrantedAuthority ga = new SimpleGrantedAuthority("ROLE_CCAMLR");
             authorities.add(ga);
             SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userName, "password", authorities));
-            //System.out.println("Authentication set");
-        } else {
-            System.out.println("No authentication cookie found");
-        }
+        } 
         fc.doFilter(request, response);
     }
     
@@ -74,10 +69,8 @@ public class DrupalChocChipHeaderAuthenticationFilter extends OncePerRequestFilt
                 cmd.setExecutable(PHP_PATH);
                 cmd.createArg().setValue(this.getServletContext().getRealPath("/WEB-INF/ccamlr/unencryptChocChip.php"));
                 cmd.createArg().setValue(cchip);
-                //System.out.println("About to call Drupal mcrypt code...");
                 int ret = CommandLineUtils.executeCommandLine(cmd, phpOut, phpErr, 10);
                 if (ret == 0) {
-                    //System.out.println("Successful return");
                     String phpSer = phpOut.getOutput().replace("\n", "");                    
                     userName = getCcamlrName(phpSer);
                 } else {
@@ -88,7 +81,6 @@ public class DrupalChocChipHeaderAuthenticationFilter extends OncePerRequestFilt
         } catch (CommandLineException cle) {
             System.out.println("Command line exception: " + cle.getMessage());
         }
-		System.out.println("Returning user name " + userName);
 		return(userName);
 	}
     

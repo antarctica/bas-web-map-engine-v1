@@ -213,6 +213,8 @@ magic.classes.MosaicTimeSeriesPlayer.prototype.stopMovie = function() {
  */
 magic.classes.MosaicTimeSeriesPlayer.prototype.syncButtons = function() {
     var btns = this.target.find("button");
+    jQuery(btns[2]).removeClass(this.movie == null ? "fa-play" : "fa-pause").addClass(this.movie == null ? "fa-pause" : "fa-play");
+    jQuery(btns[2]).attr("data-original-title", this.movie == null ? "Play movie of mosaic images" : "Pause movie").tooltip("fixTitle");
     jQuery(btns[0]).prop("disabled", this.imagePointer == 0);
     jQuery(btns[1]).prop("disabled", this.imagePointer == 0);
     jQuery(btns[2]).prop("disabled", this.imagePointer == this.granules.length - 1);
