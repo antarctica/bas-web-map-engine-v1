@@ -69,22 +69,22 @@ magic.classes.MosaicTimeSeriesPlayer.prototype.showCurrentState = function() {
     this.target.html(
         '<div class="panel panel-default">' +
             '<div class="panel-body mosaic-player-panel">' + 
-                '<form id="mplayer-form-' + this.nodeid + '" style="margin-top: 10px">' +
+                '<form id="mplayer-form-' + this.nodeid + '" style="width: 230px; margin-top: 10px">' +
                     '<div class="form-group form-group-sm col-sm-12">' +
                         '<button class="btn btn-primary btn-sm fa fa-fast-backward mosaic-player" role="button" ' + 
                             'data-toggle="tooltip" data-placement="top" title="First image in series" disabled></button>' + 
-                        '<button class="btn btn-primary btn-sm fa fa-step-backward mosaic-player" ' + 
+                        '<button class="btn btn-primary btn-sm fa fa-step-backward mosaic-player" role="button" ' + 
                             'data-toggle="tooltip" data-placement="top" title="Previous image in series" disabled></button>' + 
-                        '<button class="btn btn-primary btn-sm fa fa-play mosaic-player" ' + 
+                        '<button class="btn btn-primary btn-sm fa fa-play mosaic-player" role="button" ' + 
                             'data-toggle="tooltip" data-placement="top" title="Play movie of mosaic images" disabled></button>' +
-                        '<button class="btn btn-primary btn-sm fa fa-step-forward mosaic-player" ' + 
+                        '<button class="btn btn-primary btn-sm fa fa-step-forward mosaic-player" role="button" ' + 
                             'data-toggle="tooltip" data-placement="top" title="Next image in series" disabled></button>' + 
-                        '<button class="btn btn-primary btn-sm fa fa-fast-forward mosaic-player" ' + 
+                        '<button class="btn btn-primary btn-sm fa fa-fast-forward mosaic-player" role="button" ' + 
                             'data-toggle="tooltip" data-placement="top" title="Most recent image in series" disabled></button>' +
                     '</div>' +
                     '<div class="form-group form-group-sm col-sm-12">' +
-                        '<label class="col-sm-5" for="mplayer-refresh-rate-' + this.nodeid + '">Refresh (s)</label>' + 
-                        '<div class="col-sm-7">' + 
+                        '<label class="col-sm-6" for="mplayer-refresh-rate-' + this.nodeid + '">Refresh (s)</label>' + 
+                        '<div class="col-sm-6">' + 
                             '<select id="mplayer-refresh-rate-' + this.nodeid + '" class="form-control" ' +
                                 'data-toggle="tooltip" data-placement="right" ' + 
                                 'title="Frame refresh rate in seconds">' + 
@@ -101,15 +101,18 @@ magic.classes.MosaicTimeSeriesPlayer.prototype.showCurrentState = function() {
             '</div>' + 
         '</div>'
     );  
+    this.target.toggleClass("hidden");
     /* Allow clicking on the inputs without the dropdown going away */
-    this.target.find("form").click(function(evt2) {evt2.stopPropagation()});
+    jQuery("#mplayer-form-" + this.nodeid).click(function(evt2) {
+        evt2.stopPropagation();
+    });
     var btns = this.target.find("button");
     jQuery(btns[0]).on("click", {pointer: "0"}, jQuery.proxy(this.showImage, this));
     jQuery(btns[1]).on("click", {pointer: "-"}, jQuery.proxy(this.showImage, this));
     jQuery(btns[2]).on("click", jQuery.proxy(this.changeMovieState, this));
     jQuery(btns[3]).on("click",{pointer: "+"}, jQuery.proxy(this.showImage, this));
     jQuery(btns[4]).on("click",{pointer: "1"}, jQuery.proxy(this.showImage, this));
-    jQuery("#mplayer-refresh-rate-" + this.nodeid).change(jQuery.proxy(function(evt) {        
+    jQuery("#mplayer-refresh-rate-" + this.nodeid).on("change", jQuery.proxy(function(evt) {        
         var playBtn = jQuery(btns[2]);
         if (playBtn.hasClass("fa-pause")) {
             /* Movie is playing => stop it, so user can restart movie with new rate */
@@ -118,7 +121,6 @@ magic.classes.MosaicTimeSeriesPlayer.prototype.showCurrentState = function() {
     }, this));
     this.syncButtons();
     this.updateLayer();
-    this.target.toggleClass("hidden");
     jQuery("#granule-date-" + this.nodeid).html(this.getTime());
 };
 
