@@ -27,85 +27,82 @@ magic.classes.LayerFilter = function(options) {
         }
     });
     
-    this.target.html(
-        '<div class="panel panel-default">' +
-            '<div class="panel-body layer-filter-panel">' + 
-                '<form id="ftr-form-' + this.nodeid + '" style="width: 230px; margin-top: 10px">' +
-                    '<input id="ftr-comparison-type-' + this.nodeid + '" type="hidden" value="string">' + 
-                    '<div class="form-group form-group-sm col-sm-12">' +
-                        '<select id="ftr-attr-' + this.nodeid + '" class="form-control">' +
-                            opts + 
-                        '</select>' +                            
-                    '</div>' +
-                    '<div class="form-group form-group-sm col-sm-12">' +
-                        '<select id="ftr-op-str-' + this.nodeid + '" class="form-control">' +                             
-                            '<option id="ftr-op-str-eq-' + this.nodeid + '" value="eq">equal to (case-insensitive)</option>' +
-                            '<option id="ftr-op-str-sw-' + this.nodeid + '" value="sw">starts with (case-insensitive)</option>' +
-                            '<option id="ftr-op-str-ew-' + this.nodeid + '" value="ew">Ends with (case-insensitive)</option>' +
-                            '<option id="ftr-op-str-ct-' + this.nodeid + '" value="ct">Contains (case-insensitive)</option>' +
-                            '<option id="ftr-op-str-nn-' + this.nodeid + '" value="nn">Has a non-null value</option>' +
-                        '</select>' +                            
-                    '</div>' +
-                    '<div class="form-group form-group-sm col-sm-12 hidden">' +
-                        '<select id="ftr-op-str-unique-' + this.nodeid + '" class="form-control">' +                             
-                            '<option id="ftr-op-str-eq-' + this.nodeid + '" value="eq">equal to</option>' +                            
-                        '</select>' +                            
-                    '</div>' +
-                    '<div class="form-group form-group-sm col-sm-12 hidden">' +
-                        '<select id="ftr-op-num-' + this.nodeid + '" class="form-control">' +
-                            '<option id="ftr-op-num-eq-' + this.nodeid + '" value="=" selected>equal to</option>' +
-                            '<option id="ftr-op-num-gt-' + this.nodeid + '" value=">">greater than</option>' +
-                            '<option id="ftr-op-num-lt-' + this.nodeid + '" value="<">less than</option>' +
-                            '<option id="ftr-op-num-gte-' + this.nodeid + '" value=">=">greater than or equal to</option>' +
-                            '<option id="ftr-op-num-lte-' + this.nodeid + '" value="<=">less than or equal to</option>' +
-                            '<option id="ftr-op-num-btw-' + this.nodeid + '" value="between">between</option>' +
-                        '</select>' +                            
-                    '</div>' +
-                    '<div class="form-group form-group-sm col-sm-12">' +
-                        '<input id="ftr-val-str-' + this.nodeid + '" class="form-control" type="text" required="true" placeholder="Attribute value" ' + 
-                            'data-toggle="tooltip" data-placement="right" title="Enter the attribute value to filter on"></input>' + 
-                    '</div>' + 
-                    '<div class="form-group form-group-sm col-sm-12 hidden">' +
-                        '<select id="ftr-val-str-unique-' + this.nodeid + '" class="form-control" type="text" required="true" placeholder="Attribute value" ' + 
-                            'data-toggle="tooltip" data-placement="right" title="Select the attribute value to filter on">' + 
-                        '</select>' + 
-                    '</div>' + 
-                    '<div class="form-group form-group-sm col-sm-12 hidden">' +
-                        '<input id="ftr-val-num1-' + this.nodeid + '" class="form-control" type="number" required="true" placeholder="Numeric attribute value" ' + 
-                            'data-toggle="tooltip" data-placement="right" title="Enter numeric attribute value to filter on"></input>' + 
-                    '</div>' + 
-                    '<div class="form-group form-group-sm col-sm-12 hidden">' +
-                        '<input id="ftr-val-num2-' + this.nodeid + '" class="form-control" type="number" required="false" placeholder="Numeric attribute value" ' + 
-                            'data-toggle="tooltip" data-placement="right" title="Enter upper numeric attribute value to filter on"></input>' + 
-                    '</div>' + 
-                    '<div class="form-group form-group-sm col-sm-12 hidden">' +
-                        '<input id="ftr-val-date1-' + this.nodeid + '" class="form-control" type="date" required="true" placeholder="Date as yyyy-mm-dd hh:mm:ss" ' + 
-                            'data-toggle="tooltip" data-placement="right" title="Enter date/time to filter on"></input>' + 
-                    '</div>' + 
-                    '<div class="form-group form-group-sm col-sm-12 hidden">' +
-                        '<input id="ftr-val-date2-' + this.nodeid + '" class="form-control" type="date" required="false" placeholder="Date as yyyy-mm-dd hh:mm:ss" ' + 
-                            'data-toggle="tooltip" data-placement="right" title="Enter date/time to filter on"></input>' + 
-                    '</div>' + 
-                    '<div class="form-group form-group-sm col-sm-12">' +
-                        '<button id="ftr-btn-go-' + this.nodeid + '" class="btn btn-primary btn-sm" type="button" ' + 
-                            'data-toggle="tooltip" data-placement="right" title="Set filter on layer" style="margin-right:5px">' + 
-                            '<span class="fa fa-filter"></span>Apply' + 
-                        '</button>' +
-                        '<button id="ftr-btn-reset-' + this.nodeid + '" class="btn btn-danger btn-sm" type="button" ' + 
-                            'data-toggle="tooltip" data-placement="right" title="Remove layer filter">' + 
-                            '<span class="fa fa-minus-circle"></span>Reset' + 
-                        '</button>' +
-                    '</div>' + 
-                '</form>' + 
-            '</div>' +
-        '</div>'
-    );
-       
-    if (this.target.hasClass("hidden")) {
-        this.target.removeClass("hidden").addClass("show");
-        /* Allow clicking on the inputs without the dropdown going away */
-        this.target.find("form").click(function(evt2) {evt2.stopPropagation()});
-        this.setFilterOptions("init", null);
+    if (this.target.html() == "") {
+        /* Add markup and handlers */
+        this.target.html(
+            '<div class="panel panel-default">' +
+                '<div class="panel-body layer-filter-panel">' + 
+                    '<form id="ftr-form-' + this.nodeid + '" style="width: 230px; margin-top: 10px">' +
+                        '<input id="ftr-comparison-type-' + this.nodeid + '" type="hidden" value="string">' + 
+                        '<div class="form-group form-group-sm col-sm-12">' +
+                            '<select id="ftr-attr-' + this.nodeid + '" class="form-control">' +
+                                opts + 
+                            '</select>' +                            
+                        '</div>' +
+                        '<div class="form-group form-group-sm col-sm-12">' +
+                            '<select id="ftr-op-str-' + this.nodeid + '" class="form-control">' +                             
+                                '<option id="ftr-op-str-eq-' + this.nodeid + '" value="eq">equal to (case-insensitive)</option>' +
+                                '<option id="ftr-op-str-sw-' + this.nodeid + '" value="sw">starts with (case-insensitive)</option>' +
+                                '<option id="ftr-op-str-ew-' + this.nodeid + '" value="ew">Ends with (case-insensitive)</option>' +
+                                '<option id="ftr-op-str-ct-' + this.nodeid + '" value="ct">Contains (case-insensitive)</option>' +
+                                '<option id="ftr-op-str-nn-' + this.nodeid + '" value="nn">Has a non-null value</option>' +
+                            '</select>' +                            
+                        '</div>' +
+                        '<div class="form-group form-group-sm col-sm-12 hidden">' +
+                            '<select id="ftr-op-str-unique-' + this.nodeid + '" class="form-control">' +                             
+                                '<option id="ftr-op-str-eq-' + this.nodeid + '" value="eq">equal to</option>' +                            
+                            '</select>' +                            
+                        '</div>' +
+                        '<div class="form-group form-group-sm col-sm-12 hidden">' +
+                            '<select id="ftr-op-num-' + this.nodeid + '" class="form-control">' +
+                                '<option id="ftr-op-num-eq-' + this.nodeid + '" value="=" selected>equal to</option>' +
+                                '<option id="ftr-op-num-gt-' + this.nodeid + '" value=">">greater than</option>' +
+                                '<option id="ftr-op-num-lt-' + this.nodeid + '" value="<">less than</option>' +
+                                '<option id="ftr-op-num-gte-' + this.nodeid + '" value=">=">greater than or equal to</option>' +
+                                '<option id="ftr-op-num-lte-' + this.nodeid + '" value="<=">less than or equal to</option>' +
+                                '<option id="ftr-op-num-btw-' + this.nodeid + '" value="between">between</option>' +
+                            '</select>' +                            
+                        '</div>' +
+                        '<div class="form-group form-group-sm col-sm-12">' +
+                            '<input id="ftr-val-str-' + this.nodeid + '" class="form-control" type="text" required="true" placeholder="Attribute value" ' + 
+                                'data-toggle="tooltip" data-placement="right" title="Enter the attribute value to filter on"></input>' + 
+                        '</div>' + 
+                        '<div class="form-group form-group-sm col-sm-12 hidden">' +
+                            '<select id="ftr-val-str-unique-' + this.nodeid + '" class="form-control" type="text" required="true" placeholder="Attribute value" ' + 
+                                'data-toggle="tooltip" data-placement="right" title="Select the attribute value to filter on">' + 
+                            '</select>' + 
+                        '</div>' + 
+                        '<div class="form-group form-group-sm col-sm-12 hidden">' +
+                            '<input id="ftr-val-num1-' + this.nodeid + '" class="form-control" type="number" required="true" placeholder="Numeric attribute value" ' + 
+                                'data-toggle="tooltip" data-placement="right" title="Enter numeric attribute value to filter on"></input>' + 
+                        '</div>' + 
+                        '<div class="form-group form-group-sm col-sm-12 hidden">' +
+                            '<input id="ftr-val-num2-' + this.nodeid + '" class="form-control" type="number" required="false" placeholder="Numeric attribute value" ' + 
+                                'data-toggle="tooltip" data-placement="right" title="Enter upper numeric attribute value to filter on"></input>' + 
+                        '</div>' + 
+                        '<div class="form-group form-group-sm col-sm-12 hidden">' +
+                            '<input id="ftr-val-date1-' + this.nodeid + '" class="form-control" type="date" required="true" placeholder="Date as yyyy-mm-dd hh:mm:ss" ' + 
+                                'data-toggle="tooltip" data-placement="right" title="Enter date/time to filter on"></input>' + 
+                        '</div>' + 
+                        '<div class="form-group form-group-sm col-sm-12 hidden">' +
+                            '<input id="ftr-val-date2-' + this.nodeid + '" class="form-control" type="date" required="false" placeholder="Date as yyyy-mm-dd hh:mm:ss" ' + 
+                                'data-toggle="tooltip" data-placement="right" title="Enter date/time to filter on"></input>' + 
+                        '</div>' + 
+                        '<div class="form-group form-group-sm col-sm-12">' +
+                            '<button id="ftr-btn-go-' + this.nodeid + '" class="btn btn-primary btn-sm" type="button" ' + 
+                                'data-toggle="tooltip" data-placement="right" title="Set filter on layer" style="margin-right:5px">' + 
+                                '<span class="fa fa-filter"></span>Apply' + 
+                            '</button>' +
+                            '<button id="ftr-btn-reset-' + this.nodeid + '" class="btn btn-danger btn-sm" type="button" ' + 
+                                'data-toggle="tooltip" data-placement="right" title="Remove layer filter">' + 
+                                '<span class="fa fa-minus-circle"></span>Reset' + 
+                            '</button>' +
+                        '</div>' + 
+                    '</form>' + 
+                '</div>' +
+            '</div>'
+        );
+        this.target.find("form").click(function(evt2) {evt2.stopPropagation()});        
         jQuery("#ftr-attr-" + this.nodeid).on("change", jQuery.proxy(function(evt) {
             this.setFilterOptions("attr", jQuery(evt.target).val());                                
         }, this));
@@ -114,6 +111,11 @@ magic.classes.LayerFilter = function(options) {
         }, this));      
         jQuery("#ftr-btn-go-" + this.nodeid).on("click", jQuery.proxy(this.applyFilter, this));
         jQuery("#ftr-btn-reset-" + this.nodeid).on("click", jQuery.proxy(this.resetFilter, this));
+    }
+       
+    if (this.target.hasClass("hidden")) {
+        this.target.removeClass("hidden").addClass("show");
+        this.setFilterOptions("init", null);        
     } else {
         this.target.removeClass("show").addClass("hidden");        
     }           
