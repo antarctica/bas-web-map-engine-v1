@@ -38,6 +38,9 @@ magic.classes.LayerTree = function (target) {
     /* Performance - avoid a DOM-wide search whenever tree refreshed to show visibilities */
     this.layerGroupDivs = [];
     
+    /* Time-dependent layer movie player instances, indexed by node id */
+    this.moviePlayers = {};
+    
     /* Groups which require an autoload (keyed by uuid) */
     this.autoloadGroups = {};
     
@@ -350,6 +353,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
     var isSingleTile = isWms ? nd.source.is_singletile === true : false;
     var isBase = isWms ? nd.source.is_base === true : false;
     var isInteractive = nd.is_interactive === true || (nd.source.geojson_source && nd.source.feature_name);
+    var isTimeDependent = nd.source.is_time_dependent;
     var refreshRate = nd.refresh_rate || 0;
     var name = nd.name, /* Save name as we may insert ellipsis into name text for presentation purposes */
             ellipsisName = magic.modules.Common.ellipsis(nd.name, 30),
@@ -383,7 +387,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                     'title="' + (isInteractive ? infoTitle + "<br />Click on map features for info" : infoTitle) + '" ' +
                     'style="cursor:pointer">' +
                     '</span>' +
-                    cb +
+                    '<div id="vis-wrapper-' + nd.id + '" class="layer-vis-wrapper"' + (isTimeDependent ? 'data-toggle="popover" data-placement="bottom"' : '') + '>' + cb + '</div>' + 
                     '<a href="Javascript:void(0)">' + 
                         '<span id="layer-filter-badge-' + nd.id + '" class="badge filter-badge hidden" ' + 
                         'data-toggle="tooltip" data-placement="right" title="">filter</span>' +
@@ -477,7 +481,11 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
             layer.setZIndex(this.zIndexWmsStack);
             this.zIndexWmsStack++;
             this.layersBySource["wms"].push(layer); 
-        }                                               
+        }   
+        if (isTimeDependent) {
+            /* Assign movie player handler */
+            this.moviePlayers = new magic.classes.MosaicTimeSeriesPlayer({"nodeid": nd.id, "target": "vis-wrapper-" + nd.id, "layer": layer});
+        }
     } else if (nd.source.geojson_source) {
         /* GeosJSON layer */
         var vectorSource;

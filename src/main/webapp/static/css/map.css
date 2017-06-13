@@ -284,6 +284,12 @@ span.checked-indicator-badge {
     margin-right: 5px;
 }
 
+div.layer-vis-wrapper {
+    width: auto;
+    height: auto;
+    float: left !important;    
+}
+
 /* Button ribbon styles */
 div.button-ribbon {    
     margin-left: 5px !important;

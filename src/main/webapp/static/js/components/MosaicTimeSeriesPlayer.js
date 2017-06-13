@@ -18,48 +18,68 @@ magic.classes.MosaicTimeSeriesPlayer = function(options) {
     /* Movie interval handle */
     this.movie = null;  
     
-    if (this.target.html() == "") {
-        /* Add markup and handlers */
-        this.target.html(
-            '<div class="panel panel-default">' +
-                '<div class="panel-body mosaic-player-panel" style="padding-top:0px">' + 
-                    '<form id="mplayer-form-' + this.nodeid + '" style="width: 230px">' +
-                        '<div class="form-group form-group-sm col-sm-12">' +
-                            '<button class="btn btn-primary btn-sm fa fa-fast-backward mosaic-player" type="button" role="button" ' + 
-                                'data-toggle="tooltip" data-placement="top" title="First image in series" disabled></button>' + 
-                            '<button class="btn btn-primary btn-sm fa fa-step-backward mosaic-player" type="button" role="button" ' + 
-                                'data-toggle="tooltip" data-placement="top" title="Previous image in series" disabled></button>' + 
-                            '<button class="btn btn-primary btn-sm fa fa-play mosaic-player" type="button" role="button" ' + 
-                                'data-toggle="tooltip" data-placement="top" title="Play movie of mosaic images" disabled></button>' +
-                            '<button class="btn btn-primary btn-sm fa fa-step-forward mosaic-player" type="button" role="button" ' + 
-                                'data-toggle="tooltip" data-placement="top" title="Next image in series" disabled></button>' + 
-                            '<button class="btn btn-primary btn-sm fa fa-fast-forward mosaic-player" type="button" role="button" ' + 
-                                'data-toggle="tooltip" data-placement="top" title="Most recent image in series" disabled></button>' +
-                        '</div>' +
-                        '<div class="form-group form-group-sm">' +
-                            '<label class="col-sm-4 control-label" for="mplayer-refresh-rate-' + this.nodeid + '">Refresh</label>' + 
-                            '<div class="col-sm-8">' + 
-                                '<select id="mplayer-refresh-rate-' + this.nodeid + '" class="form-control" ' +
-                                    'data-toggle="tooltip" data-placement="right" ' + 
-                                    'title="Frame refresh rate in seconds">' + 
-                                    '<option value="2000" selected>every 2 sec</option>' + 
-                                    '<option value="4000">every 4 sec</option>' +
-                                    '<option value="6000">every 6 sec</option>' +
-                                    '<option value="8000">every 8 sec</option>' +
-                                    '<option value="10000">every 10 sec</option>' +
-                                '</select>' +                            
-                            '</div>' + 
-                        '</div>' + 
-                        '<div class="col-sm-12" style="margin-top: 5px">Data from : <span id="granule-date-' + this.nodeid + '"></span></div>' + 
-                    '</form>' + 
+    this.template =
+        '<div class="popover popover-auto-width movieplayer-popover" role="popover">' +
+            '<div class="arrow"></div>' +
+            '<h3 class="popover-title"></h3>' +
+            '<div class="popover-content movieplayer-popover-content"></div>' +
+        '</div>';
+    
+    this.content =        
+        '<form id="mplayer-form-' + this.nodeid + '">' +
+            '<div class="form-group form-group-sm col-sm-12">' +
+                '<button class="btn btn-primary btn-sm fa fa-fast-backward mosaic-player" type="button" role="button" ' + 
+                    'data-toggle="tooltip" data-placement="top" title="First image in series" disabled></button>' + 
+                '<button class="btn btn-primary btn-sm fa fa-step-backward mosaic-player" type="button" role="button" ' + 
+                    'data-toggle="tooltip" data-placement="top" title="Previous image in series" disabled></button>' + 
+                '<button class="btn btn-primary btn-sm fa fa-play mosaic-player" type="button" role="button" ' + 
+                    'data-toggle="tooltip" data-placement="top" title="Play movie of mosaic images" disabled></button>' +
+                '<button class="btn btn-primary btn-sm fa fa-step-forward mosaic-player" type="button" role="button" ' + 
+                    'data-toggle="tooltip" data-placement="top" title="Next image in series" disabled></button>' + 
+                '<button class="btn btn-primary btn-sm fa fa-fast-forward mosaic-player" type="button" role="button" ' + 
+                    'data-toggle="tooltip" data-placement="top" title="Most recent image in series" disabled></button>' +
+            '</div>' +
+            '<div class="form-group form-group-sm">' +
+                '<label class="col-sm-4 control-label" for="mplayer-refresh-rate-' + this.nodeid + '">Refresh</label>' + 
+                '<div class="col-sm-8">' + 
+                    '<select id="mplayer-refresh-rate-' + this.nodeid + '" class="form-control" ' +
+                        'data-toggle="tooltip" data-placement="right" ' + 
+                        'title="Frame refresh rate in seconds">' + 
+                        '<option value="2000" selected>every 2 sec</option>' + 
+                        '<option value="4000">every 4 sec</option>' +
+                        '<option value="6000">every 6 sec</option>' +
+                        '<option value="8000">every 8 sec</option>' +
+                        '<option value="10000">every 10 sec</option>' +
+                    '</select>' +                            
                 '</div>' + 
-            '</div>'
-        );
-        /* Set button and refresh rate handlers */        
-        jQuery("#mplayer-form-" + this.nodeid).click(function(evt2) {
-            /* Allow clicking on the inputs without the dropdown going away */
-            evt2.stopPropagation();
-        });
+            '</div>' + 
+            '<div class="col-sm-12" style="margin-top: 5px">Data from : <span id="granule-date-' + this.nodeid + '"></span></div>' + 
+        '</form>'            
+    );
+    this.target.popover({
+        template: this.template,
+        title: '<span><strong>Play time series movie</strong><button type="button" class="close">&times;</button></span>',
+        container: "body",
+        html: true,
+        content: this.content
+    })
+    .on("shown.bs.popover", jQuery.proxy(function() {
+        /* Get the GeoJSON for the mosaic time series (assumed on the local server - TODO widen this to any server with REST and appropriate credentials) */
+        var params = this.layer.getSource().getParams();
+        var featureType = params["LAYERS"];
+        if (featureType) {
+            if (magic.runtime.timeSeriesCache[this.nodeid]) {
+                /* Use session cached granule data */
+                this.loadGranules(magic.runtime.timeSeriesCache[this.nodeid]);
+            } else {
+                /* Fetch the granule data - could be slow and costly for big datasets */
+                jQuery.getJSON(magic.config.paths.baseurl + "/gs/granules/" + featureType, jQuery.proxy(function(data) {
+                    this.loadGranules(data);
+                    magic.runtime.timeSeriesCache[this.nodeid] = data;
+                }, this));
+            }
+        }
+        /* Set button and refresh rate handlers */               
         var btns = this.target.find("button");
         jQuery(btns[0]).on("click", {pointer: "0"}, jQuery.proxy(this.showImage, this));
         jQuery(btns[1]).on("click", {pointer: "-"}, jQuery.proxy(this.showImage, this));
@@ -73,23 +93,15 @@ magic.classes.MosaicTimeSeriesPlayer = function(options) {
                 playBtn.trigger("click");
             }
         }, this));
-    }
+        /* Close button */
+        jQuery(".movieplayer-popover").find("button.close").click(jQuery.proxy(function () {
+            this.target.popover("hide");
+        }, this));
+    }, this))
+    .on("hidden.bs.popover", jQuery.proxy(function() {
         
-    /* Get the GeoJSON for the mosaic time series (assumed on the local server - TODO widen this to any server with REST and appropriate credentials */
-    var params = this.layer.getSource().getParams();
-    var featureType = params["LAYERS"];
-    if (featureType) {
-        if (magic.runtime.timeSeriesCache[this.nodeid]) {
-            /* Use session cached granule data */
-            this.loadGranules(magic.runtime.timeSeriesCache[this.nodeid]);
-        } else {
-            /* Fetch the granule data - could be slow and costly for big datasets */
-            jQuery.getJSON(magic.config.paths.baseurl + "/gs/granules/" + featureType, jQuery.proxy(function(data) {
-                this.loadGranules(data);
-                magic.runtime.timeSeriesCache[this.nodeid] = data;
-            }, this));
-        }
-    }
+    }, this));        
+    
 };
 
 /**
@@ -105,7 +117,7 @@ magic.classes.MosaicTimeSeriesPlayer.prototype.loadGranules = function(data) {
             return(cda - cdb);
         });
         this.granules = feats;
-        this.showCurrentState();
+        this.showInitialState();
     } else {
         bootbox.alert(
             '<div class="alert alert-warning" style="margin-bottom:0">' + 
@@ -116,21 +128,16 @@ magic.classes.MosaicTimeSeriesPlayer.prototype.loadGranules = function(data) {
 };
 
 /**
- * Show the current state of the player
+ * Show the initial state of the player
  */
-magic.classes.MosaicTimeSeriesPlayer.prototype.showCurrentState = function() {
-    if (this.target.hasClass("hidden")) {
-        this.target.removeClass("hidden").addClass("show");
-        if (this.imagePointer < 0) {
-            this.imagePointer = this.granules.length - 1;
-        }
-        this.syncButtons();
-        this.updateLayer();
-        jQuery("#granule-date-" + this.nodeid).html(this.getTime());    
-    } else {
-        this.stopMovie();
-        this.target.removeClass("show").addClass("hidden");        
-    }         
+magic.classes.MosaicTimeSeriesPlayer.prototype.showInitialState = function() {
+    this.stopMovie();
+    if (this.imagePointer < 0) {
+        this.imagePointer = this.granules.length - 1;
+    }
+    this.syncButtons();
+    this.updateLayer();
+    jQuery("#granule-date-" + this.nodeid).html(this.getTime());    
 };
 
 /**

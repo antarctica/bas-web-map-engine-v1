@@ -34,11 +34,6 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
             '<div class="layer-options-dd-entry layer-options-slider hidden" id="wrapper-opc-' + this.nodeid + '">' + 
                 '<input id="opc-slider-' + this.nodeid + '" data-slider-id="opc-slider-' + this.nodeid + '" data-slider-min="0" data-slider-max="1" data-slider-step="0.1" data-slider-value="1">' + 
             '</div>' + 
-        '</li>' +
-        '<li>' + 
-            '<a href="Javascript:void(0)" id="tss-' + this.nodeid + '">View time series</a>' +
-            '<div class="layer-options-dd-entry hidden" id="wrapper-tss-' + this.nodeid + '">' +                                    
-            '</div>' + 
         '</li>'
     );        
     if (this.layer) {
@@ -80,29 +75,7 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
         } else {
             /* Hide filter link for layer where it isn't possible */
             jQuery("#ftr-" + this.nodeid).parent().addClass("disabled");        
-        }                
-        
-        /* Time series movie player, if layer supports the time dimension */
-        if (this.canViewTimeSeries()) {
-            jQuery(".tooltip").attr("container", "body");
-            jQuery("#tss-" + this.nodeid).off("click").on("click", jQuery.proxy(function(evt) {
-                evt.stopPropagation();
-                var layerName = this.layer.get("name");
-                if (!this.time_dependent_mosaics[layerName]) {
-                    /* Allocate time series player */
-                    this.time_dependent_mosaics[layerName] = new magic.classes.MosaicTimeSeriesPlayer({               
-                        target: jQuery(evt.currentTarget).next("div"),
-                        nodeid: this.nodeid,
-                        layer: this.layer
-                    }); 
-                } else {
-                    this.time_dependent_mosaics[layerName].showCurrentState();
-                }
-            }, this));
-        } else {
-            /* Hide time series link for layer where it isn't possible */
-            jQuery("#tss-" + this.nodeid).parent().addClass("disabled");        
-        }
+        }                                
         
         /* Transparency control */
         this.addWebglSliderHandler("opc", 0.0, 1.0, 0.1);        
