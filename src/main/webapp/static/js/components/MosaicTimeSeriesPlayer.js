@@ -5,7 +5,7 @@ magic.classes.MosaicTimeSeriesPlayer = function(options) {
     /* API options */
     this.nodeid = options.nodeid;
     
-    this.target = options.target;
+    this.target = jQuery("#" + options.target);
     
     this.layer = options.layer;
     
@@ -22,7 +22,7 @@ magic.classes.MosaicTimeSeriesPlayer = function(options) {
         '<div class="popover popover-auto-width movieplayer-popover" role="popover">' +
             '<div class="arrow"></div>' +
             '<h3 class="popover-title"></h3>' +
-            '<div class="popover-content movieplayer-popover-content"></div>' +
+            '<div class="popover-content movieplayer-popover-content" style="padding-top: 0px"></div>' +
         '</div>';
     
     this.content =        
@@ -53,13 +53,12 @@ magic.classes.MosaicTimeSeriesPlayer = function(options) {
                     '</select>' +                            
                 '</div>' + 
             '</div>' + 
-            '<div class="col-sm-12" style="margin-top: 5px">Data from : <span id="granule-date-' + this.nodeid + '"></span></div>' + 
-        '</form>'            
-    );
+            '<div class="col-sm-12" style="margin-top: 5px; margin-bottom: 10px">Data from : <span id="granule-date-' + this.nodeid + '"></span></div>' + 
+        '</form>';
     this.target.popover({
         template: this.template,
         title: '<span><strong>Play time series movie</strong><button type="button" class="close">&times;</button></span>',
-        container: "body",
+        container: "#layer-tree",
         html: true,
         content: this.content
     })
@@ -80,7 +79,7 @@ magic.classes.MosaicTimeSeriesPlayer = function(options) {
             }
         }
         /* Set button and refresh rate handlers */               
-        var btns = this.target.find("button");
+        var btns = jQuery("#mplayer-form-" + this.nodeid).find("button");
         jQuery(btns[0]).on("click", {pointer: "0"}, jQuery.proxy(this.showImage, this));
         jQuery(btns[1]).on("click", {pointer: "-"}, jQuery.proxy(this.showImage, this));
         jQuery(btns[2]).on("click", jQuery.proxy(this.changeMovieState, this));
@@ -92,16 +91,24 @@ magic.classes.MosaicTimeSeriesPlayer = function(options) {
                 /* Movie is playing => stop it, so user can restart movie with new rate */
                 playBtn.trigger("click");
             }
-        }, this));
+        }, this)); 
         /* Close button */
         jQuery(".movieplayer-popover").find("button.close").click(jQuery.proxy(function () {
-            this.target.popover("hide");
+            this.deactivate();
         }, this));
     }, this))
     .on("hidden.bs.popover", jQuery.proxy(function() {
-        
+        this.stopMovie();
     }, this));        
     
+};
+
+magic.classes.MosaicTimeSeriesPlayer.prototype.activate = function() {
+    this.target.popover("show");
+};
+
+magic.classes.MosaicTimeSeriesPlayer.prototype.deactivate = function() {
+    this.target.popover("hide");
 };
 
 /**
@@ -180,7 +187,7 @@ magic.classes.MosaicTimeSeriesPlayer.prototype.changeMovieState = function(evt) 
  * Start a time series movie
  */
 magic.classes.MosaicTimeSeriesPlayer.prototype.startMovie = function() {
-    var playBtn = jQuery(this.target.find("button")[2]);
+    var playBtn = jQuery(jQuery("#mplayer-form-" + this.nodeid).find("button")[2]);
     if (playBtn.hasClass("fa-play")) {
         /* Set play button to pause */
         playBtn.removeClass("fa-play").addClass("fa-pause");
@@ -204,7 +211,7 @@ magic.classes.MosaicTimeSeriesPlayer.prototype.startMovie = function() {
  * Stop a time series movie
  */
 magic.classes.MosaicTimeSeriesPlayer.prototype.stopMovie = function() {
-    var playBtn = jQuery(this.target.find("button")[2]);
+    var playBtn = jQuery(jQuery("#mplayer-form-" + this.nodeid).find("button")[2]);
     if (playBtn.hasClass("fa-pause")) {
         playBtn.removeClass("fa-pause").addClass("fa-play");
         playBtn.attr("data-original-title", "Play movie of mosaic images").tooltip("fixTitle");
@@ -219,9 +226,7 @@ magic.classes.MosaicTimeSeriesPlayer.prototype.stopMovie = function() {
  * Set the button disabled statuses according to the current image pointer
  */
 magic.classes.MosaicTimeSeriesPlayer.prototype.syncButtons = function() {
-    var btns = this.target.find("button");
-    jQuery(btns[2]).removeClass(this.movie == null ? "fa-play" : "fa-pause").addClass(this.movie == null ? "fa-pause" : "fa-play");
-    jQuery(btns[2]).attr("data-original-title", this.movie == null ? "Play movie of mosaic images" : "Pause movie").tooltip("fixTitle");
+    var btns = jQuery("#mplayer-form-" + this.nodeid).find("button");   
     jQuery(btns[0]).prop("disabled", this.imagePointer == 0);
     jQuery(btns[1]).prop("disabled", this.imagePointer == 0);
     jQuery(btns[2]).prop("disabled", this.imagePointer == this.granules.length - 1);

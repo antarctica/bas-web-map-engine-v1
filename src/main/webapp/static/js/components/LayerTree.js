@@ -202,9 +202,9 @@ magic.classes.LayerTree.prototype.assignLayerHandlers = function(belowElt) {
     /* The get layer info buttons */
     var layerInfo = null;
     if (belowElt) {
-        layerInfo = belowElt.find("span[id^='layer-info-']");
+        layerInfo = belowElt.find("a[id^='layer-info-']");
     } else {
-        layerInfo = jQuery("span[id^='layer-info-']");
+        layerInfo = jQuery("a[id^='layer-info-']");
     }    
     layerInfo.on("click", jQuery.proxy(function (evt) {
         var id = evt.currentTarget.id;
@@ -380,27 +380,35 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
     }           
     element.append(
             '<li class="list-group-item layer-list-group-item" id="layer-item-' + nd.id + '">' +
-                '<span style="float:left">' +
-                    '<span id="layer-info-' + nd.id + '" ' +
-                    'class="fa fa-info-circle' + (isInteractive ? ' clickable' : ' non-clickable') + '" ' +
-                    'data-toggle="tooltip" data-placement="right" data-html="true" ' +
-                    'title="' + (isInteractive ? infoTitle + "<br />Click on map features for info" : infoTitle) + '" ' +
-                    'style="cursor:pointer">' +
-                    '</span>' +
-                    '<div id="vis-wrapper-' + nd.id + '" class="layer-vis-wrapper"' + (isTimeDependent ? 'data-toggle="popover" data-placement="bottom"' : '') + '>' + cb + '</div>' + 
-                    '<a href="Javascript:void(0)">' + 
-                        '<span id="layer-filter-badge-' + nd.id + '" class="badge filter-badge hidden" ' + 
-                        'data-toggle="tooltip" data-placement="right" title="">filter</span>' +
-                    '</a>' + 
-                    nameSpan +
-                '</span>' +
-                '<span style="float:right">' +
-                    '<a class="layer-tool" id="layer-opts-' + nd.id + '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
-                        '<span class="fa fa-bars"></span><b class="caret"></b>' +
-                    '</a>' +
-                    '<ul id="layer-opts-dm-' + nd.id + '" aria-labelled-by="layer-opts-' + nd.id + '" class="dropdown-menu dropdown-menu-right">' +
-                    '</ul>' +
-                '</span>' +
+                '<table style="table-layout:fixed; width:290px">' + 
+                    '<tr>' + 
+                        '<td style="width:15px">' + 
+                            '<a id="layer-info-' + nd.id + '" data-toggle="tooltip" data-placement="right" data-html="true" ' +
+                                'title="' + (isInteractive ? infoTitle + "<br />Click on map features for info" : infoTitle) + '">' +
+                                '<span class="fa fa-info-circle' + (isInteractive ? ' clickable' : ' non-clickable') + '"></span>' +                                
+                            '</a>' +
+                        '</td>' +
+                        '<td style="width:15px">' +
+                            '<div id="vis-wrapper-' + nd.id + '" class="layer-vis-wrapper"' + (isTimeDependent ? ' data-toggle="popover" data-placement="bottom"' : '') + '>' + 
+                            cb + 
+                            '</div>' + 
+                        '</td>' +
+                        '<td style="width:23px; padding-left:10px; text-overflow: ellipsis">' +  
+                            '<a href="Javascript:void(0)">' + 
+                                '<span id="layer-filter-badge-' + nd.id + '" class="badge filter-badge hidden" ' + 
+                                'data-toggle="tooltip" data-placement="right" title="">filter</span>' +
+                            '</a>' + 
+                            nameSpan +
+                        '</td>' +   
+                        '<td style="width:25px">' +
+                            '<a class="layer-tool" id="layer-opts-' + nd.id + '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
+                                '<span class="fa fa-bars"></span><b class="caret"></b>' +
+                            '</a>' +
+                            '<ul id="layer-opts-dm-' + nd.id + '" aria-labelled-by="layer-opts-' + nd.id + '" class="dropdown-menu dropdown-menu-right">' +
+                            '</ul>' +
+                        '</td>' +
+                    '</tr>' + 
+                '</table>' + 
             '</li>'
             );            
     /* Create a data layer */
@@ -481,11 +489,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
             layer.setZIndex(this.zIndexWmsStack);
             this.zIndexWmsStack++;
             this.layersBySource["wms"].push(layer); 
-        }   
-        if (isTimeDependent) {
-            /* Assign movie player handler */
-            this.moviePlayers = new magic.classes.MosaicTimeSeriesPlayer({"nodeid": nd.id, "target": "vis-wrapper-" + nd.id, "layer": layer});
-        }
+        }           
     } else if (nd.source.geojson_source) {
         /* GeosJSON layer */
         var vectorSource;
@@ -862,10 +866,22 @@ magic.classes.LayerTree.prototype.setLayerVisibility = function(chk, forceOff) {
                 bl.setVisible(bl.get("metadata")["id"] == nodeid);
             }
         }, this));                      
-    }else {
+    } else {
         /* Overlay layer visibility change */        
         layer.setVisible(chk.prop("checked"));
-    }  
+        var md = layer.get("metadata");
+        if (md && md.source && md.source.is_time_dependent) {
+            /* Display time-series movie player for layer */
+            if (!this.moviePlayers[md.id]) {
+                this.moviePlayers[md.id] = new magic.classes.MosaicTimeSeriesPlayer({"nodeid": md.id, "target": "vis-wrapper-" + md.id, "layer": layer});
+            }
+            if (chk.prop("checked")) {
+                this.moviePlayers[md.id].activate(); 
+            } else {
+                this.moviePlayers[md.id].deactivate();
+            }            
+        }
+    }    
 };
 
 /**

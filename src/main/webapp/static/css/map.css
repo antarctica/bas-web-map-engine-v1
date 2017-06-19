@@ -239,6 +239,8 @@ ul.layer-list-group {
 
 li.layer-list-group-item {
     height: 40px;
+    padding-top: 8px !important;
+    padding-bottom: 4px !important;
     border-radius: 0px !important;
 }
 
