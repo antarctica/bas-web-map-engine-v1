@@ -287,9 +287,9 @@ span.checked-indicator-badge {
 }
 
 div.layer-vis-wrapper {
-    width: auto;
+    /*width: auto;
     height: auto;
-    float: left !important;    
+    float: left !important; */   
 }
 
 /* Button ribbon styles */

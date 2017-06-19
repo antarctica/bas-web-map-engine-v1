@@ -116,7 +116,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
             http
                 .addFilterBefore(chocChipFilter(), BasicAuthenticationFilter.class)
                 .authorizeRequests()
-                .antMatchers("/*.ico", "/static/**", "/appconfig/**", "/ping", "/home/**", "/homed/**",
+                .antMatchers("/*.ico", "/static/**", "/ping", "/home/**", "/homed/**",
                         "/maps/dropdown/**", "/maps/name/**", "/maps/id/**", "/thumbnails",
                         "/embedded_maps/dropdown/**", "/embedded_maps/name/**", "/embedded_maps/id/**",
                         "/usermaps/data", "/ogc/**",
@@ -133,7 +133,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
             /* Form-based authentication of some kind */
             http
                 .authorizeRequests()
-                .antMatchers("/*.ico", "/static/**", "/appconfig/**", "/ping", "/home/**", "/homed/**",
+                .antMatchers("/*.ico", "/static/**", "/ping", "/home/**", "/homed/**",
                         "/maps/dropdown/**", "/maps/name/**", "/maps/id/**", "/thumbnails",
                         "/embedded_maps/dropdown/**", "/embedded_maps/name/**", "/embedded_maps/id/**",
                         "/usermaps/data", "/ogc/**",

@@ -393,7 +393,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                             cb + 
                             '</div>' + 
                         '</td>' +
-                        '<td style="width:23px; padding-left:10px; text-overflow: ellipsis">' +  
+                        '<td style="width:230px; padding-left:10px; text-overflow: ellipsis">' +  
                             '<a href="Javascript:void(0)">' + 
                                 '<span id="layer-filter-badge-' + nd.id + '" class="badge filter-badge hidden" ' + 
                                 'data-toggle="tooltip" data-placement="right" title="">filter</span>' +
@@ -873,7 +873,12 @@ magic.classes.LayerTree.prototype.setLayerVisibility = function(chk, forceOff) {
         if (md && md.source && md.source.is_time_dependent) {
             /* Display time-series movie player for layer */
             if (!this.moviePlayers[md.id]) {
-                this.moviePlayers[md.id] = new magic.classes.MosaicTimeSeriesPlayer({"nodeid": md.id, "target": "vis-wrapper-" + md.id, "layer": layer});
+                this.moviePlayers[md.id] = new magic.classes.MosaicTimeSeriesPlayer({
+                    "nodeid": md.id, 
+                    "target": "vis-wrapper-" + md.id, 
+                    "container": "#layer-item-" + md.id,
+                    "layer": layer
+                });
             }
             if (chk.prop("checked")) {
                 this.moviePlayers[md.id].activate(); 

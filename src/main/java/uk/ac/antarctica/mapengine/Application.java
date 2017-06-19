@@ -17,6 +17,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
 @EnableScheduling
 @EnableTransactionManagement
@@ -62,7 +64,19 @@ public class Application extends SpringBootServletInitializer {
     @Bean
     public HttpSessionListener httpSessionListener() {
         return (new SessionListener());
-    }   
+    }
+
+    @Bean
+    public WebMvcConfigurerAdapter webConfigurer() {
+        return(new WebMvcConfigurerAdapter() {
+            @Override
+            public void addResourceHandlers(ResourceHandlerRegistry registry) {
+                registry.addResourceHandler("/static/**")
+                        .addResourceLocations("/static/")
+                        .setCachePeriod(30);
+            }
+        });
+    }
 
     public class SessionListener implements HttpSessionListener {
 
@@ -76,6 +90,6 @@ public class Application extends SpringBootServletInitializer {
         public void sessionDestroyed(HttpSessionEvent event) {
             System.out.println("==== Session destroyed ====");
         }
-    }   
+    }
 
 }

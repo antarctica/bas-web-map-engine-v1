@@ -132,11 +132,12 @@ public class OgcServicesController implements ServletContextAware {
                     mimeType = "text/xml";
                     break;
                 case "getmap":
+                case "getlegendgraphic":
                     mimeType = getQueryParameter(params, "format");
                     if (mimeType == null) {
                         mimeType = "image/png";
                     }
-                    getFromUrl(response, servicedata.get("url") + "?" + request.getQueryString(), mimeType, true);
+                    getFromUrl(response, servicedata.get("url") + "?" + request.getQueryString(), mimeType, !operation.toLowerCase().equals("getlegendgraphic"));
                     break;
                 case "getfeatureinfo":
                     mimeType = getQueryParameter(params, "info_format");

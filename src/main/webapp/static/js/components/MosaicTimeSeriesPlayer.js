@@ -7,6 +7,8 @@ magic.classes.MosaicTimeSeriesPlayer = function(options) {
     
     this.target = jQuery("#" + options.target);
     
+    this.container = options.container;
+    
     this.layer = options.layer;
     
     /* Internal */
@@ -58,7 +60,7 @@ magic.classes.MosaicTimeSeriesPlayer = function(options) {
     this.target.popover({
         template: this.template,
         title: '<span><strong>Play time series movie</strong><button type="button" class="close">&times;</button></span>',
-        container: "#layer-tree",
+        container: this.container,
         html: true,
         content: this.content
     })
