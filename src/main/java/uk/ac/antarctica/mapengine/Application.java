@@ -65,19 +65,7 @@ public class Application extends SpringBootServletInitializer {
     public HttpSessionListener httpSessionListener() {
         return (new SessionListener());
     }
-
-    @Bean
-    public WebMvcConfigurerAdapter webConfigurer() {
-        return(new WebMvcConfigurerAdapter() {
-            @Override
-            public void addResourceHandlers(ResourceHandlerRegistry registry) {
-                registry.addResourceHandler("/static/**")
-                        .addResourceLocations("/static/")
-                        .setCachePeriod(30);
-            }
-        });
-    }
-
+    
     public class SessionListener implements HttpSessionListener {
 
         @Override

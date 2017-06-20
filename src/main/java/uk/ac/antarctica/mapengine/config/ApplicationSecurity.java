@@ -110,7 +110,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-
+        
         if (env.getProperty("authentication.ccamlr").equals("yes")) {
             /* Authentication via Drupal CHOCCHIPSSL cookie */
             http
