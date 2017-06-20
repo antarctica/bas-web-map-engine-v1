@@ -121,8 +121,11 @@ magic.classes.MosaicTimeSeriesPlayer.prototype.loadGranules = function(data) {
     var feats = data.features;
     if (jQuery.isArray(feats) && feats.length > 0) {
         feats.sort(function(a, b) {
-            var cda = Date.parse(a.properties.chart_date);
-            var cdb = Date.parse(b.properties.chart_date);
+            var datea = a.properties.chart_date;
+            var dateb = b.properties.chart_date;
+            /* Compensate for brain dead Date parsing in MSIE which can't cope with e.g. '+0000' at the end - sigh */         
+            var cda = Date.parse(datea.replace(/\+\d+$/, ""));
+            var cdb = Date.parse(dateb.replace(/\+\d+$/, ""));
             return(cda - cdb);
         });
         this.granules = feats;

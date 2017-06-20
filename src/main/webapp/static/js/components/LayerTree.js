@@ -383,13 +383,14 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                 '<table style="table-layout:fixed; width:290px">' + 
                     '<tr>' + 
                         '<td style="width:15px">' + 
-                            '<a id="layer-info-' + nd.id + '" data-toggle="tooltip" data-placement="right" data-html="true" ' +
+                            '<a id="layer-info-' + nd.id + '" style="cursor:pointer" data-toggle="tooltip" data-placement="right" data-html="true" ' +
                                 'title="' + (isInteractive ? infoTitle + "<br />Click on map features for info" : infoTitle) + '">' +
                                 '<span class="fa fa-info-circle' + (isInteractive ? ' clickable' : ' non-clickable') + '"></span>' +                                
                             '</a>' +
                         '</td>' +
                         '<td style="width:15px">' +
-                            '<div id="vis-wrapper-' + nd.id + '" class="layer-vis-wrapper"' + (isTimeDependent ? ' data-toggle="popover" data-placement="bottom"' : '') + '>' + 
+                            '<div id="vis-wrapper-' + nd.id + '" style="cursor:pointer" tabindex="0" class="layer-vis-wrapper"' + 
+                            (isTimeDependent ? ' data-trigger="manual" data-toggle="popover" data-placement="bottom"' : '') + '>' + 
                             cb + 
                             '</div>' + 
                         '</td>' +
@@ -876,7 +877,8 @@ magic.classes.LayerTree.prototype.setLayerVisibility = function(chk, forceOff) {
                 this.moviePlayers[md.id] = new magic.classes.MosaicTimeSeriesPlayer({
                     "nodeid": md.id, 
                     "target": "vis-wrapper-" + md.id, 
-                    "container": "#layer-item-" + md.id,
+                    //TODO - find the actual id of the enclosing div...
+                    "container": "#layer-group-panel-" + md.id,
                     "layer": layer
                 });
             }
