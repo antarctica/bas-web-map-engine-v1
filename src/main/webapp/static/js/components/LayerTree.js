@@ -874,18 +874,33 @@ magic.classes.LayerTree.prototype.setLayerVisibility = function(chk, forceOff) {
         if (md && md.source && md.source.is_time_dependent) {
             /* Display time-series movie player for layer */
             if (!this.moviePlayers[md.id]) {
+                /* Find enclosing div */
+                var lgp = jQuery("#vis-wrapper-" + md.id).closest("div[id^='layer-group-panel-']");
                 this.moviePlayers[md.id] = new magic.classes.MosaicTimeSeriesPlayer({
                     "nodeid": md.id, 
                     "target": "vis-wrapper-" + md.id, 
-                    //TODO - find the actual id of the enclosing div...
-                    "container": "#layer-group-panel-" + md.id,
+                    "container": lgp ? "#" + lgp.prop("id") : "body",
                     "layer": layer
                 });
             }
             if (chk.prop("checked")) {
-                this.moviePlayers[md.id].activate(); 
+                this.moviePlayers[md.id].activate(jQuery.proxy(function() {
+                    if (navigator.appVersion.toLowerCase().indexOf("chrome") >= 0) {
+                        /* Appalling hack to work round nasty Chrome refresh bug when showing popover - elements in layer tree randomly disappear - 2017-06-21 */
+                        console.log("Chrome refresh workaround for movie player show - test periodically if this is still needed!");
+                        /* Force a refresh via tiny resize and back */
+                        jQuery("#" + this.target).css("width", "351px");
+                    }
+                }, this));                
             } else {
-                this.moviePlayers[md.id].deactivate();
+                this.moviePlayers[md.id].deactivate(jQuery.proxy(function() {
+                    if (navigator.appVersion.toLowerCase().indexOf("chrome") >= 0) {
+                        /* Appalling hack to work round nasty Chrome refresh bug when hiding popover - elements in layer tree randomly disappear - 2017-06-21 */
+                        console.log("Chrome refresh workaround for movie player hide - test periodically if this is still needed!");
+                        /* Force a refresh via tiny resize and back */
+                        jQuery("#" + this.target).css("width", "350px");
+                    }
+                }, this));
             }            
         }
     }    

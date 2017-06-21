@@ -90,15 +90,16 @@ magic.classes.AttributionModal.prototype.legendMarkup = function() {
     if (this.layer) {
         var md = this.layer.get("metadata");
         if (md) {
-            var legendUrl = null;            
-            if (md.source.wms_source || (md.source.geojson_source && md.source.feature_name)) {
+            var legendUrl = null; 
+            if (md.legend_graphic) {
+                /* Non-WMS derived legend graphic e.g. a canned image */
+                legendUrl = md.legend_graphic;
+            } else if (md.source.wms_source || (md.source.geojson_source && md.source.feature_name)) {
+                /* Derive from same WMS as layer */
                 var wmsUrl;
                 var isWms = true;
                 if (md.source.geojson_source) {
                     wmsUrl = md.source.geojson_source.replace("wfs", "wms");
-                } else if (md.legend_graphic) {
-                    wmsUrl = md.legend_graphic;
-                    isWms = md.legend_graphic.indexOf("/wms") != -1;                     
                 } else {
                     wmsUrl = md.source.wms_source;
                 } 
@@ -108,11 +109,8 @@ magic.classes.AttributionModal.prototype.legendMarkup = function() {
                    var cacheBuster = "&buster=" + new Date().getTime();
                    legendUrl = magic.modules.Endpoints.getOgcEndpoint(wmsUrl, "wms") + 
                         "?service=WMS&request=GetLegendGraphic&format=image/png&width=20&height=20" + (styles ? "&styles=" + styles : "") + "&layer=" + md.source.feature_name + 
-                        "&legend_options=fontName:Lucida Sans Regular;fontAntiAliasing:true;fontColor:0xffffff;fontSize:6;bgColor:0x272b30;dpi:180" + cacheBuster;
+                        "&legend_options=fontName:Bitstream Vera Sans Mono;fontAntiAliasing:true;fontColor:0xffffff;fontSize:6;bgColor:0x272b30;dpi:180" + cacheBuster;
                 }
-            } else if (md.legend_graphic) {
-                /* Non-WMS derived legend graphic e.g. a canned image */
-                legendUrl = md.legend_graphic;
             }
             if (legendUrl != null) {
                  content += 
@@ -120,7 +118,7 @@ magic.classes.AttributionModal.prototype.legendMarkup = function() {
                         '<img style="padding:10px;background-color:#272b30" src="' + legendUrl + '" alt="legend" />' + 
                     '</div>';  
             } else {
-                content += '<div class="attribution-title">Vector legends not yet implemented!</div>';
+                content += '<div class="attribution-title">Vector legends not implemented!</div>';
             }
         } else {
             content += '<div class="attribution-title">No legend available</div>';
@@ -230,7 +228,7 @@ magic.classes.AttributionModal.prototype.populateRecordWms = function(getCaps, f
         }
         /* Read WMS feed */
         var wmsSource = this.layer.get("metadata")["source"]["wms_source"];
-        rec["wmsfeed"] = wmsSource + "?" + 
+        rec["wmsfeed"] = magic.modules.Endpoints.getOgcEndpoint(wmsSource, "wms") + "?" + 
             "SERVICE=WMS&" + 
             "VERSION=1.3.0&" + 
             "REQUEST=GetMap&" + 
@@ -297,11 +295,14 @@ magic.classes.AttributionModal.prototype.tabulate = function(rec) {
             if (value != null && value != undefined && value != "") {
                 /* Format table row */
                 var heading = '<strong>' + mf.caption + '</strong>';
-                if (mf.type == "long_text") {
-                    content += '<tr><td colspan="2" class="metadata" style="background-color: inherit">' + heading + '<div>' + magic.modules.Common.linkify(value) + '</div></td></tr>';
+                var linkVal = magic.modules.Common.linkify(value);
+                content += '<tr>';
+                if (mf.type == "long_text") {                    
+                    content += '<td colspan="2" class="metadata" style="background-color: inherit">' + heading + '<div>' + linkVal + '</div></td>';
                 } else {
-                    content += '<tr><td valign="top" style="width:120px">' + heading + '</td><td class="metadata" style="width:270px">' + magic.modules.Common.linkify(value) + '</td></tr>';
-                }                
+                    content += '<td valign="top" style="width:120px">' + heading + '</td><td class="metadata" style="width:270px">' + linkVal + '</td>';
+                }
+                content += '</tr>';
             }
         }, this));
     } else {

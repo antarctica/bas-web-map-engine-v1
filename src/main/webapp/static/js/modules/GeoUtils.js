@@ -238,6 +238,22 @@ magic.modules.GeoUtils = function() {
         },
         
         /**
+         * Is projection with given EPSG code a polar one?
+         * @param {string} proj
+         * @return {Boolean}
+         */
+        isPolarProjection: function(proj) {
+            switch(proj) {
+                case "EPSG:3031":                
+                case "EPSG:3995":
+                case "EPSG:102020": 
+                    return(true);
+                default:
+                    return(false);
+            }
+        },
+        
+        /**
          * Get the lat/lon extent of a projection
          * @param {string} proj
          * @returns {ol.Extent}
@@ -246,13 +262,16 @@ magic.modules.GeoUtils = function() {
             var extent = [];
             switch(proj) {
                 case "EPSG:3031":
-                    extent = [-180.0,-90.0,180.0,-50.0];
+                    extent = [-180.0, -90.0, 180.0, -50.0];
                     break;
                 case "EPSG:3995":
                     extent = [-180.0, 60.0, 180.0, 90.0];
                     break;
                 case "EPSG:3762":
-                    extent = [-50.0,-65.0,-18.0,-50.0];
+                    extent = [-50.0, -65.0, -18.0, -50.0];
+                    break;
+                case "EPSG:102020": 
+                    extent = [-180.0, -89.0, 180.0, -30.0];
                     break;
                 default:
                     extent = [-180.0, -85.06, 180.0, 85.06];

@@ -20,6 +20,10 @@ magic.classes.MosaicTimeSeriesPlayer = function(options) {
     /* Movie interval handle */
     this.movie = null;  
     
+    /* Compensates for a repainting bug in Chrome - David 2017-06-21 */
+    this.chromeRefreshWorkaroundShow = null;
+    this.chromeRefreshWorkaroundHide = null;
+    
     this.template =
         '<div class="popover popover-auto-width movieplayer-popover" role="popover">' +
             '<div class="arrow"></div>' +
@@ -47,11 +51,11 @@ magic.classes.MosaicTimeSeriesPlayer = function(options) {
                     '<select id="mplayer-refresh-rate-' + this.nodeid + '" class="form-control" ' +
                         'data-toggle="tooltip" data-placement="right" ' + 
                         'title="Frame refresh rate in seconds">' + 
-                        '<option value="2000" selected>every 2 sec</option>' + 
-                        '<option value="4000">every 4 sec</option>' +
-                        '<option value="6000">every 6 sec</option>' +
-                        '<option value="8000">every 8 sec</option>' +
-                        '<option value="10000">every 10 sec</option>' +
+                        '<option value="2000" selected>every 4 sec</option>' + 
+                        '<option value="4000">every 6 sec</option>' +
+                        '<option value="6000">every 8 sec</option>' +
+                        '<option value="8000">every 10 sec</option>' +
+                        '<option value="10000">every 20 sec</option>' +
                     '</select>' +                            
                 '</div>' + 
             '</div>' + 
@@ -98,18 +102,30 @@ magic.classes.MosaicTimeSeriesPlayer = function(options) {
         jQuery(".movieplayer-popover").find("button.close").click(jQuery.proxy(function () {
             this.deactivate();
         }, this));
+        if (jQuery.isFunction(this.chromeRefreshWorkaroundShow)) {
+            this.chromeRefreshWorkaroundShow();
+        }
     }, this))
     .on("hidden.bs.popover", jQuery.proxy(function() {
         this.stopMovie();
+        if (jQuery.isFunction(this.chromeRefreshWorkaroundHide)) {
+            this.chromeRefreshWorkaroundHide();
+        }
     }, this));        
     
 };
 
-magic.classes.MosaicTimeSeriesPlayer.prototype.activate = function() {
+magic.classes.MosaicTimeSeriesPlayer.prototype.activate = function(cb) {
+    if (jQuery.isFunction(cb)) {
+        this.chromeRefreshWorkaroundShow = cb;
+    }
     this.target.popover("show");
 };
 
-magic.classes.MosaicTimeSeriesPlayer.prototype.deactivate = function() {
+magic.classes.MosaicTimeSeriesPlayer.prototype.deactivate = function(cb) {
+    if (jQuery.isFunction(cb)) {
+        this.chromeRefreshWorkaroundHide = cb;
+    }
     this.target.popover("hide");
 };
 

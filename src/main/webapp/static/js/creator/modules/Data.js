@@ -145,24 +145,24 @@ magic.modules.creator.Data = function () {
                                     "is_visible": true
                                 }
                             ]
-                        },
-                        {
-                            "id": null,
-                            "name": "Grids",
-                            "expanded": true,
-                            "layers": [
-                                {
-                                    "id": null,
-                                    "name": "Graticule",
-                                    "source": {
-                                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("CCAMLR GIS"),
-                                        "feature_name": "gis:graticule",
-                                        "is_singletile": true
-                                    },   
-                                    "is_visible": true                                
-                                }
-                            ]
                         }
+//                        {
+//                            "id": null,
+//                            "name": "Grids",
+//                            "expanded": true,
+//                            "layers": [
+//                                {
+//                                    "id": null,
+//                                    "name": "Graticule",
+//                                    "source": {
+//                                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("CCAMLR GIS"),
+//                                        "feature_name": "gis:graticule",
+//                                        "is_singletile": true
+//                                    },   
+//                                    "is_visible": true                                
+//                                }
+//                            ]
+//                        }
                     ]
                 },
                 "arctic": {
