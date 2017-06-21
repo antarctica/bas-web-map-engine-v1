@@ -71,9 +71,7 @@ magic.classes.GraticuleButton.prototype.activate = function () {
                 /* Found a graticule data layer we can use */
                 var wmsSource = new ol.source.ImageWMS(({
                     url: magic.modules.Endpoints.getOgcEndpoint(gratEp.url, "wms"),
-                    params: {
-                        "LAYERS": gratEp.graticule_layer
-                    },
+                    params: {"LAYERS": gratEp.graticule_layer},
                     projection: projection
                 }));
                 this.graticuleLayer = new ol.layer.Image({
@@ -83,6 +81,7 @@ magic.classes.GraticuleButton.prototype.activate = function () {
                     maxResolution: magic.runtime.viewdata.resolutions[0]+1
                 });                
                 magic.runtime.map.addLayer(this.graticuleLayer);
+                /* Send to top of WMS layer stack (vectors will be on top of it) */
                 this.graticuleLayer.setZIndex(199);
             } else {
                 /* No graticule layer found */

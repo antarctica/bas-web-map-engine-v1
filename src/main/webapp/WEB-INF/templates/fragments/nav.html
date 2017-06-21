@@ -49,8 +49,9 @@
                             <i class="fa fa-user"></i><span th:inline="text"> Not logged in</span><b class="caret"></b>
                         </a>
                         <ul class="dropdown-menu">                                                    
-                            <li>
-                                <a id="log-in-user" href="Javascript:void(0)"><i class="fa fa-user"></i> Log In</a>
+                            <li th:switch="${profile}">
+                                <a id="log-in-user" href="https://www.ccamlr.org/en/user/login?destination=site/gis" th:case="ccamlrgis"><i class="fa fa-user"></i> Log In</a>
+                                <a id="log-in-user" href="Javascript:void(0)" th:case="*"><i class="fa fa-user"></i> Log In</a>
                             </li>                            
                         </ul>
                     </li>
@@ -60,8 +61,9 @@
                             <i class="fa fa-user"></i><span th:inline="text"> Logged in as [[${#httpServletRequest.remoteUser}]]</span><b class="caret"></b>
                         </a>
                         <ul class="dropdown-menu">                                
-                            <li>
-                                <a id="log-out-user" href="Javascript:void(0)"><i class="fa fa-power-off"></i> Log Out</a>
+                            <li th:switch="${profile}">
+                                <a id="log-out-user" href="https://www.ccamlr.org/en/user/logout" th:case="ccamlrgis"><i class="fa fa-power-off"></i> Log Out</a>
+                                <a id="log-out-user" href="Javascript:void(0)" th:case="*"><i class="fa fa-power-off"></i> Log Out</a>                                
                             </li>
                         </ul>
                     </li>
