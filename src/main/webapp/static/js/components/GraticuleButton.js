@@ -7,7 +7,7 @@ magic.classes.GraticuleButton = function (name, ribbon) {
     this.ribbon = ribbon;
 
     /* Internal properties */
-    this.active = false;
+    this.active = true;
     this.graticule = null;      /* OL control for non-polar projections */
     this.graticuleLayer = null; /* Data layer for polar projections */    
 
@@ -19,7 +19,7 @@ magic.classes.GraticuleButton = function (name, ribbon) {
         "class": "btn btn-default",
         "data-toggle": "tooltip",
         "data-placement": "bottom",
-        "title": this.inactiveTitle,
+        "title": this.activeTitle,
         "html": '<span class="fa fa-table"></span>'
     });
     this.btn.on("click", jQuery.proxy(function () {
@@ -29,21 +29,7 @@ magic.classes.GraticuleButton = function (name, ribbon) {
             this.activate();
         }
     }, this));
-};
-
-magic.classes.GraticuleButton.prototype.getButton = function () {
-    return(this.btn);
-};
-
-magic.classes.GraticuleButton.prototype.isActive = function () {
-    return(this.active);
-};
-
-/**
- * Activate the control
- */
-magic.classes.GraticuleButton.prototype.activate = function () {
-    this.active = true;
+    
     var projection = magic.runtime.map.getView().getProjection();
     var projCode = projection.getCode();
     var projExtent = magic.modules.GeoUtils.projectionLatLonExtent(projCode);
@@ -76,6 +62,7 @@ magic.classes.GraticuleButton.prototype.activate = function () {
                 }));
                 this.graticuleLayer = new ol.layer.Image({
                     name: "automated_graticule_layer",
+                    visible: true,
                     source: wmsSource,
                     minResolution: magic.runtime.viewdata.resolutions[magic.runtime.viewdata.resolutions.length-1],
                     maxResolution: magic.runtime.viewdata.resolutions[0]+1
@@ -87,11 +74,28 @@ magic.classes.GraticuleButton.prototype.activate = function () {
                 /* No graticule layer found */
                 alert("No endpoint exports a graticule layer - none therefore available");
             }
-        }
-        if (this.graticuleLayer) {
-            this.graticuleLayer.setVisible(true);
-        }
+        }        
     }     
+};
+
+magic.classes.GraticuleButton.prototype.getButton = function () {
+    return(this.btn);
+};
+
+magic.classes.GraticuleButton.prototype.isActive = function () {
+    return(this.active);
+};
+
+/**
+ * Activate the control
+ */
+magic.classes.GraticuleButton.prototype.activate = function () {
+    this.active = true;
+    if (this.graticule) {
+        this.graticule.setMap(magic.runtime.map);
+    } else if (this.graticuleLayer) {
+        this.graticuleLayer.setVisible(true);
+    }
     this.btn.addClass("active");
     this.btn.attr("data-original-title", this.activeTitle).tooltip("fixTitle");
 };
