@@ -34,10 +34,10 @@ public class DrupalChocChipHeaderAuthenticationFilter extends OncePerRequestFilt
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain fc) throws ServletException, IOException {
         String userName = getCcamlrUserName(request);
         if (userName != null) {
-            System.out.println("CCAMLR user " + userName + " is logged in");
+            //System.out.println("CCAMLR user " + userName + " is logged in");
             Principal loggedInUser = request.getUserPrincipal();
-            if (loggedInUser != null && !loggedInUser.getName().equals(userName)) {
-                System.out.println("Setting authentication context");
+            if (loggedInUser == null || !loggedInUser.getName().equals(userName)) {
+                //System.out.println("Setting authentication context...");
                 ArrayList<GrantedAuthority> authorities = new ArrayList();
                 GrantedAuthority ga = new SimpleGrantedAuthority("ROLE_CCAMLR");
                 authorities.add(ga);
@@ -45,7 +45,7 @@ public class DrupalChocChipHeaderAuthenticationFilter extends OncePerRequestFilt
             }
         } else {
             /* Probably logged out */
-            System.out.println("No CCAMLR user logged in => clear context");
+            //System.out.println("No CCAMLR user logged in => clear context");
             SecurityContextHolder.clearContext();
         }
         fc.doFilter(request, response);

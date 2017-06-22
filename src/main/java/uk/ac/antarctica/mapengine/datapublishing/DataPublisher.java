@@ -47,12 +47,6 @@ public abstract class DataPublisher {
     /* Upload temporary working directory base name */
     protected static final String WDBASE = System.getProperty("java.io.tmpdir") + SEP + "upload_";
     
-    /* Path to ogr2ogr executable */
-    protected static final String OGR2OGR = SEP.equals("/") 
-        //? System.getProperty("user.home") + "/gdal/bin/ogr2ogr"   /* If we have to install the gdal package into user home directory ourselves */
-        ? "/packages/gdal/current/bin/ogr2ogr"                      /* If Jeremy has installed the authorised package on the server */
-        : "\"c:/Program Files/QGIS Las/bin/ogr2ogr.exe\"";
-
     @Autowired
     private Environment env;
 
@@ -81,14 +75,24 @@ public abstract class DataPublisher {
      * @return UploadedFileMetadata
      * @throws IOException 
      */
-    public UploadedFileMetadata initWorkingEnvironment(MultipartFile mpf, String userName) throws IOException {
+    public UploadedFileMetadata initWorkingEnvironment(MultipartFile mpf, String userName) throws IOException, DataAccessException {
         
         UploadedFileMetadata md = new UploadedFileMetadata();
         
-        setGrp(new GeoServerRESTPublisher(getEnv().getProperty("geoserver.local.url"), getEnv().getProperty("geoserver.local.username"), getEnv().getProperty("geoserver.local.password")));
+        /* Create Geoserver publisher */
+        setGrp(new GeoServerRESTPublisher(
+            getEnv().getProperty("geoserver.local.url"), 
+            getEnv().getProperty("geoserver.local.username"), 
+            getEnv().getProperty("geoserver.local.password")
+        ));
+        
+        /* PostgreSQL credentials */
         getPgMap().put("PGSCHEMA", getEnv().getProperty("datasource.magic.userUploadSchema"));
         getPgMap().put("PGUSER", getEnv().getProperty("datasource.magic.username"));
         getPgMap().put("PGPASS", getEnv().getProperty("datasource.magic.password").replaceAll("!", "\\\\!"));   /* ! is a shell metacharacter for UNIX */
+        
+        /* Check user upload schema exists in Postgres and create it if it doesn't */
+        getUserSchema(userName);
         
         File wd = new File(WDBASE + Calendar.getInstance().getTimeInMillis());
         if (wd.mkdir()) {
@@ -120,6 +124,18 @@ public abstract class DataPublisher {
      */
     public void cleanUp(File uploaded) {
         FileUtils.deleteQuietly(uploaded.getParentFile());        
+    }
+    
+    /**
+     * Check for the existence of a schema corresponding to this user, and create it if not present
+     * @param String userName 
+     * @return String the name of the created schema
+     */
+    protected String getUserSchema(String userName) throws DataAccessException {
+        /* Replace all non-lowercase alphanumerics with _ and truncate to 30 characters */
+        String schemaName = userName.toLowerCase().replaceAll("[^a-z0-9]", "_").replaceAll("_{2,}", "_").replaceFirst("_$", "").substring(0, 30);
+        getMagicDataTpl().execute("CREATE SCHEMA IF NOT EXISTS " + schemaName + " AUTHORIZATION " + getEnv().getProperty("datasource.magic.username"));
+        return(schemaName);
     }
     
     /**
@@ -163,10 +179,18 @@ public abstract class DataPublisher {
 
     /**
      * Create a new database schema to receive tables created from an uploaded file name
-     * @param String name
+     * @param String schemaName
      */
-    protected void createUploadConversionSchema(String name) throws DataAccessException {
-        getMagicDataTpl().execute("CREATE SCHEMA " + name + " AUTHORIZATION " + getEnv().getProperty("datasource.magic.username"));
+    protected void createUploadConversionSchema(String schemaName) throws DataAccessException {
+        getMagicDataTpl().execute("CREATE SCHEMA IF NOT EXISTS " + schemaName + " AUTHORIZATION " + getEnv().getProperty("datasource.magic.username"));
+    }
+    
+    /**
+     * Drop a database schema temporarily created to receive tables from an upload
+     * @param String schemaName
+     */
+    protected void deleteUploadConversionSchema(String schemaName) throws DataAccessException {
+        getMagicDataTpl().execute("DROP SCHEMA IF EXISTS " + schemaName + " CASCADE");
     }
     
     /**
@@ -180,7 +204,7 @@ public abstract class DataPublisher {
     protected void executeOgr2ogr(File toConvert, String tableName, String tableSchema) throws ExecuteException {
         getPgMap().put("PGSCHEMA", (tableSchema != null) ? tableSchema : getEnv().getProperty("datasource.magic.userUploadSchema"));     
         getPgMap().put("TOCONVERT", toConvert.getAbsolutePath());       
-        CommandLine ogr2ogr = new CommandLine(OGR2OGR);
+        CommandLine ogr2ogr = new CommandLine(getEnv().getProperty("software.ogr2ogr"));
         ogr2ogr.setSubstitutionMap(getPgMap());
         ogr2ogr.addArgument("-overwrite", false);
         ogr2ogr.addArgument("-f", false);        
