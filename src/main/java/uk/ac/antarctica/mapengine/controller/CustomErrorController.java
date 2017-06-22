@@ -44,12 +44,23 @@ public class CustomErrorController implements ErrorController {
             }
         } else {
             /* Everything else => custom error page */
+            String favicon = env.getProperty("default.favicon") != null ? env.getProperty("default.favicon") : "bas.ico";
+            String logo = env.getProperty("default.logo") != null ? env.getProperty("default.logo") : "/static/images/1x1.png";
+            String theme = env.getProperty("default.theme") != null ? env.getProperty("default.theme") : "";
+            String navbarClass = env.getProperty("default.navbarclass") != null ? env.getProperty("default.navbarclass") : "navbar-inverse";
+            String pageTitle = "An error occurred";
             model.addAttribute("httpstatus", errAttrs.get("status"))
                  .addAttribute("httperror", errAttrs.get("error"))
                  .addAttribute("httpmessage", errAttrs.get("message"))
                  .addAttribute("timestamp", errAttrs.get("timestamp"))
-                 .addAttribute("referrer", request.getHeader("referer"));        
-            return("error/error");
+                 .addAttribute("referrer", request.getHeader("referer"))
+                 .addAttribute("theme", theme)
+                 .addAttribute("favicon", favicon)
+                 .addAttribute("logo", logo)
+                 .addAttribute("pagetitle", pageTitle)
+                 .addAttribute("profile", getActiveProfile())
+                 .addAttribute("navbarclass", navbarClass);
+            return("error");
         }
     }
 
@@ -61,6 +72,19 @@ public class CustomErrorController implements ErrorController {
     private Map<String, Object> getErrorAttributes(HttpServletRequest request, boolean includeStackTrace) {
         RequestAttributes requestAttributes = new ServletRequestAttributes(request);
         return(errorAttributes.getErrorAttributes(requestAttributes, includeStackTrace));
+    }
+    
+    /**
+     * Get the current active profile
+     * @return 
+     */
+    private String getActiveProfile() {
+        String[] profiles = env.getActiveProfiles();
+        String activeProfile = "add";
+        if (profiles != null && profiles.length > 0) {
+            activeProfile = profiles[0];
+        }
+        return(activeProfile);
     }
 
 }
