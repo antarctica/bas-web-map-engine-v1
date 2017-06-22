@@ -10,8 +10,8 @@
 
         <title>Web Mapping Services - Login</title>
 
-        <link rel="icon" type="image/vnd.microsoft.icon" href="/bas.ico"></link>
-        <link rel="shortcut icon" type="image/vnd.microsoft.icon" href="/bas.ico"></link>        
+        <link rel="icon" type="image/vnd.microsoft.icon" href="@{'/' + ${favicon}}"></link>
+        <link rel="shortcut icon" type="image/vnd.microsoft.icon" href="@{'/' + ${favicon}}"></link>        
         <link href="static/css/bootstrap.min.css" rel="stylesheet"></link>
         <link href="static/css/login.css" rel="stylesheet"></link>
 
@@ -44,7 +44,10 @@
                 <div th:if="${param.logout}" class="post-ok" style="margin-bottom:10px"> 
                     You have been logged out
                 </div>
-                <div th:if="${param.error}" class="post-error" style="margin-bottom:10px"> 
+                <div th:if="${param.error} == 'forbidden'" class="post-error" style="margin-bottom:10px"> 
+                    You tried to access a restricted resource - please log in
+                </div>
+                <div th:if="${param.error} == ''" class="post-error" style="margin-bottom:10px"> 
                     Unable to log you in - please try again
                 </div>
                 <div class="form-group">

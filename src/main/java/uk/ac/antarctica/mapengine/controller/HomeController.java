@@ -351,6 +351,7 @@ public class HomeController implements ServletContextAware {
         model.addAttribute("profile", activeProfile);
         String pageTitle = env.getProperty("default.title") != null ? env.getProperty("default.title") : "";
         String logo = env.getProperty("default.logo") != null ? env.getProperty("default.logo") : "/static/images/1x1.png";
+        String favicon = env.getProperty("default.favicon") != null ? env.getProperty("default.favicon") : "/static@{'/' + ${favicon}}";
         String logoUrl = env.getProperty("default.logoUrl") != null ? env.getProperty("default.logoUrl") : "Javascript:void(0)";
         String backgroundColor = env.getProperty("default.backgroundColor") != null ? env.getProperty("default.backgroundColor") : "#ffffff";
         String theme = env.getProperty("default.theme") != null ? env.getProperty("default.theme") : "";
@@ -398,6 +399,7 @@ public class HomeController implements ServletContextAware {
         model.addAttribute("pagetitle", pageTitle);
         model.addAttribute("logo", logo);
         model.addAttribute("logourl", logoUrl);
+        model.addAttribute("favicon", favicon);
         model.addAttribute("background", backgroundColor);        
         model.addAttribute("theme", theme); 
         model.addAttribute("navbarclass", navbarClass); 
