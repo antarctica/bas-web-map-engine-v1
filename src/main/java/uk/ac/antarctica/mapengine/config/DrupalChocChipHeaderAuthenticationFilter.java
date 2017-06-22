@@ -7,6 +7,7 @@ package uk.ac.antarctica.mapengine.config;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.security.Principal;
 import java.util.ArrayList;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -33,11 +34,20 @@ public class DrupalChocChipHeaderAuthenticationFilter extends OncePerRequestFilt
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain fc) throws ServletException, IOException {
         String userName = getCcamlrUserName(request);
         if (userName != null) {
-            ArrayList<GrantedAuthority> authorities = new ArrayList();
-            GrantedAuthority ga = new SimpleGrantedAuthority("ROLE_CCAMLR");
-            authorities.add(ga);
-            SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userName, "password", authorities));
-        } 
+            System.out.println("CCAMLR user " + userName + " is logged in");
+            Principal loggedInUser = request.getUserPrincipal();
+            if (loggedInUser != null && !loggedInUser.getName().equals(userName)) {
+                System.out.println("Setting authentication context");
+                ArrayList<GrantedAuthority> authorities = new ArrayList();
+                GrantedAuthority ga = new SimpleGrantedAuthority("ROLE_CCAMLR");
+                authorities.add(ga);
+                SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userName, "password", authorities));
+            }
+        } else {
+            /* Probably logged out */
+            System.out.println("No CCAMLR user logged in => clear context");
+            SecurityContextHolder.clearContext();
+        }
         fc.doFilter(request, response);
     }
     
