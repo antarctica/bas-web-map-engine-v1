@@ -10,6 +10,7 @@ import java.util.Collection;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.stereotype.Component;
+import uk.ac.antarctica.mapengine.model.UploadedData;
 import uk.ac.antarctica.mapengine.model.UploadedFileMetadata;
 
 @Component
@@ -21,9 +22,11 @@ public class ShpZipPublisher extends DataPublisher {
      * @return String
      */
     @Override
-    public String publish(UploadedFileMetadata md) throws Exception {
+    public String publish(UploadedData ud) throws Exception {
         
         String message = "";
+        
+        UploadedFileMetadata md = ud.getUfmd();
 
         /* First unzip the uploaded file */
         unzipFile(md.getUploaded()); 
@@ -54,7 +57,7 @@ public class ShpZipPublisher extends DataPublisher {
             if (shp != null) {
                 /* Copy any existing table to one with an archival name and remove all associated Geoserver feature types */
                 String newTableName = getPgMap().get("PGSCHEMA") + "." + standardiseName(FilenameUtils.getBaseName(shp.getName()));
-                archiveExistingTable(newTableName);                        
+                removeExistingData(newTableName);                        
                 /* Convert shapefile to PostGIS table via ogr2ogr */
                 executeOgr2ogr(shp, newTableName, null);
                 /* Publish to Geoserver */

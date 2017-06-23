@@ -426,16 +426,14 @@ public class HomeController implements ServletContextAware {
     private String getIssueData(Integer issue) {
         String data = "{}";
         if (issue != null) {
-            try {
-                data = HTTPUtils.get(
-                    env.getProperty("redmine.local.url") + "/issues/" + issue + ".json", 
+            data = HTTPUtils.get(
+                    env.getProperty("redmine.local.url") + "/issues/" + issue + ".json",
                     env.getProperty("redmine.local.username"), 
                     env.getProperty("redmine.local.password")
-                );
-                if (data == null || data.isEmpty()) {
-                    data = "{}";
-                }
-            } catch(MalformedURLException mue) {}            
+            );
+            if (data == null || data.isEmpty()) {
+                data = "{}";
+            }            
         }
         return(data);
     }

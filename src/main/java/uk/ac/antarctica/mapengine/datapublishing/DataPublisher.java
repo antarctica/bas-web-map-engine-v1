@@ -22,6 +22,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import org.apache.commons.exec.CommandLine;
@@ -37,7 +38,9 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import uk.ac.antarctica.mapengine.model.UploadedData;
 import uk.ac.antarctica.mapengine.model.UploadedFileMetadata;
+import uk.ac.antarctica.mapengine.model.UploadedFileUserEnvironment;
 
 public abstract class DataPublisher {
 
@@ -46,7 +49,7 @@ public abstract class DataPublisher {
 
     /* Upload temporary working directory base name */
     protected static final String WDBASE = System.getProperty("java.io.tmpdir") + SEP + "upload_";
-    
+        
     @Autowired
     private Environment env;
 
@@ -63,21 +66,6 @@ public abstract class DataPublisher {
     private Runtime appRuntime = Runtime.getRuntime();
 
     public DataPublisher() {
-    }
-
-    @Transactional
-    public abstract String publish(UploadedFileMetadata md) throws Exception;
-    
-    /**
-     * Create the working environment to process a data file upload
-     * @param MultipartFile mpf
-     * @param String userName
-     * @return UploadedFileMetadata
-     * @throws IOException 
-     */
-    public UploadedFileMetadata initWorkingEnvironment(MultipartFile mpf, String userName) throws IOException, DataAccessException {
-        
-        UploadedFileMetadata md = new UploadedFileMetadata();
         
         /* Create Geoserver publisher */
         setGrp(new GeoServerRESTPublisher(
@@ -90,32 +78,50 @@ public abstract class DataPublisher {
         getPgMap().put("PGSCHEMA", getEnv().getProperty("datasource.magic.userUploadSchema"));
         getPgMap().put("PGUSER", getEnv().getProperty("datasource.magic.username"));
         getPgMap().put("PGPASS", getEnv().getProperty("datasource.magic.password").replaceAll("!", "\\\\!"));   /* ! is a shell metacharacter for UNIX */
+    }
+
+    @Transactional
+    public abstract String publish(UploadedData ud) throws Exception;
+    
+    /**
+     * Create the working environment to process a data file upload
+     * @param MultipartFile mpf
+     * @param String userName
+     * @return UploadedFileMetadata
+     * @throws IOException 
+     */
+    public UploadedData initWorkingEnvironment(MultipartFile mpf, String userName) throws IOException, DataAccessException {
+        
+        UploadedData ud = new UploadedData();
+        ud.setUfmd(new UploadedFileMetadata());
+        ud.setUfue(new UploadedFileUserEnvironment());    
         
         /* Check user upload schema exists in Postgres and create it if it doesn't */
-        getUserSchema(userName);
+        ud.getUfue().setUserName(userName);
+        ud.getUfue().setUserPgSchema(createPgSchema(userName));
         
         File wd = new File(WDBASE + Calendar.getInstance().getTimeInMillis());
         if (wd.mkdir()) {
-            /* Created the working directory */
+            /* Created the tempotary working directory, move the uploaded file there for conversion */
             File uploaded = new File(wd.getAbsolutePath() + SEP + standardiseName(mpf.getOriginalFilename()));
             mpf.transferTo(uploaded);
             System.out.println("File transferred to : " + uploaded.getAbsolutePath());
             System.out.println("Is readable : " + (uploaded.canRead() ? "yes" : "no"));
             String basename = FilenameUtils.getBaseName(mpf.getOriginalFilename());
-            md.setUploaded(uploaded);
-            md.setName(basename);
-            md.setTitle(basename.replace("[^A-Za-z0-9]", " ").replace("\\s{2,}", " "));
-            md.setDescription(FilenameUtils.getExtension(mpf.getOriginalFilename()).toUpperCase() + 
+            ud.getUfmd().setUploaded(uploaded);
+            ud.getUfmd().setName(basename);
+            ud.getUfmd().setTitle(basename.replace("[^A-Za-z0-9]", " ").replace("\\s{2,}", " "));
+            ud.getUfmd().setDescription(FilenameUtils.getExtension(mpf.getOriginalFilename()).toUpperCase() + 
                 " file " + mpf.getOriginalFilename() + 
                 " of size " + sizeFormatter(mpf.getSize()) + 
                 " uploaded on " + new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date()) + 
                 " by " + userName);
-            md.setSrs("EPSG:4326");     /* Any different projection (shapefiles only) will be done in the appropriate place */
+            ud.getUfmd().setSrs("EPSG:4326");     /* Any different projection (shapefiles only) will be done in the appropriate place */
         } else {
             /* Failed to create */
             throw new IOException("Failed to create working directory " + wd.getName());
         }  
-        return(md);
+        return(ud);
     }
     
     /**
@@ -127,16 +133,29 @@ public abstract class DataPublisher {
     }
     
     /**
-     * Check for the existence of a schema corresponding to this user, and create it if not present
-     * @param String userName 
+     * Create the named schema (a temporary UUID-named one if the input is null)
+     * @param String fromName 
      * @return String the name of the created schema
      */
-    protected String getUserSchema(String userName) throws DataAccessException {
+    protected String createPgSchema(String fromName) throws DataAccessException {
+        if (fromName == null || fromName.isEmpty()) {
+            fromName = "temp_" + UUID.randomUUID().toString();
+        }
         /* Replace all non-lowercase alphanumerics with _ and truncate to 30 characters */
-        String schemaName = userName.toLowerCase().replaceAll("[^a-z0-9]", "_").replaceAll("_{2,}", "_").replaceFirst("_$", "").substring(0, 30);
+        String schemaName = fromName.toLowerCase().replaceAll("[^a-z0-9]", "_").replaceAll("_{2,}", "_").replaceFirst("_$", "").substring(0, 30);        
         getMagicDataTpl().execute("CREATE SCHEMA IF NOT EXISTS " + schemaName + " AUTHORIZATION " + getEnv().getProperty("datasource.magic.username"));
         return(schemaName);
     }
+    
+    /**
+     * Drop a database schema
+     * @param String schemaName
+     */
+    protected void deletePgSchema(String schemaName) throws DataAccessException {
+        if (schemaName != null && !schemaName.isEmpty()) {
+            getMagicDataTpl().execute("DROP SCHEMA IF EXISTS " + schemaName + " CASCADE");
+        }
+    }    
     
     /**
      * Unzip the given file into the same directory
@@ -175,22 +194,6 @@ public abstract class DataPublisher {
             type = "polygon";
         }
         return (type);
-    }
-
-    /**
-     * Create a new database schema to receive tables created from an uploaded file name
-     * @param String schemaName
-     */
-    protected void createUploadConversionSchema(String schemaName) throws DataAccessException {
-        getMagicDataTpl().execute("CREATE SCHEMA IF NOT EXISTS " + schemaName + " AUTHORIZATION " + getEnv().getProperty("datasource.magic.username"));
-    }
-    
-    /**
-     * Drop a database schema temporarily created to receive tables from an upload
-     * @param String schemaName
-     */
-    protected void deleteUploadConversionSchema(String schemaName) throws DataAccessException {
-        getMagicDataTpl().execute("DROP SCHEMA IF EXISTS " + schemaName + " CASCADE");
     }
     
     /**
@@ -240,31 +243,22 @@ public abstract class DataPublisher {
     /**
      * If table with given name exists in the upload schema, copy it to one with an archival name and remove the corresponding Geoserver feature
      * NOTE: tableName must include a schema prefix i.e. be of form <schema>.<tablename>
+     * @param String tableSchema
      * @param String tableName 
      */
-    protected void archiveExistingTable(String tableName) throws Exception {
-        String tableSchema = tableName.split("\\.")[0];
-        String tableBase = tableName.split("\\.")[1];
-        if (tableBase.length() > 47) {
-            /* Postgres table names are 63 characters max - we will add 15 more in the date/time suffix below, so bomb if name too long */
-            throw new Exception("Table name " + tableBase + " is too long, and will likely lead to table name clashes - aborting publish");
-        }
-        List<Map<String, Object>> exTab = getMagicDataTpl().queryForList("SELECT 1 FROM information_schema.tables WHERE table_schema=? AND table_name=?", tableSchema, tableBase);
-        if (exTab.size() == 1) {                            
-            /* Copy existing table to a new archival one */                        
-            getMagicDataTpl().execute("CREATE TABLE " + tableName + "_" + dateTimeSuffix() + " AS TABLE " + tableName);
-            /* Drop the existing table, including any sequence and index previously created by ogr2ogr */
-            getMagicDataTpl().execute("DROP TABLE " + tableName + " CASCADE");
-            /* Drop any Geoserver feature corresponding to this table */
-            if (!getGrp().unpublishFeatureType(
-                getEnv().getProperty("geoserver.local.userWorkspace"),
-                getEnv().getProperty("geoserver.local.userPostgis"),
-                tableBase
-            )) {
-                /* Don't really want to throw an exception here as the existing feature type might simply not exist, which is perfectly ok! */
-                //throw new ExecuteException("Failed to remove existing Geoserver layer " + tableBase, 1);
-            }
-        }
+    protected void removeExistingData(String tableSchema, String tableName) throws DataAccessException {
+        
+        /* Drop the existing table, including any sequence and index previously created by ogr2ogr */
+        getMagicDataTpl().execute("DROP TABLE " + tableSchema + "." + tableName + " CASCADE");
+     
+        /* Drop any Geoserver feature corresponding to this table */
+        getGrp().unpublishFeatureType(
+            getEnv().getProperty("geoserver.local.userWorkspace"),
+            getEnv().getProperty("geoserver.local.userPostgis"),
+            tableName
+        );
+        
+        /* TODO - drop any record of this feature in the user features table */
     }
     
     /**
@@ -387,7 +381,7 @@ public abstract class DataPublisher {
         return(new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
     }
 
-    public Environment getEnv() {
+    public final Environment getEnv() {
         return env;
     }
 
@@ -407,11 +401,11 @@ public abstract class DataPublisher {
         return grp;
     }
 
-    public void setGrp(GeoServerRESTPublisher grp) {
+    public final void setGrp(GeoServerRESTPublisher grp) {
         this.grp = grp;
     }
     
-    public HashMap<String, String> getPgMap() {
+    public final HashMap<String, String> getPgMap() {
         return pgMap;
     }
     

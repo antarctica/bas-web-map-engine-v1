@@ -14,7 +14,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
-import uk.ac.antarctica.mapengine.model.UploadedFileMetadata;
+import uk.ac.antarctica.mapengine.model.UploadedData;
 import uk.ac.antarctica.mapengine.util.CoordinateConversionUtils;
 
 @Component
@@ -26,14 +26,14 @@ public class CsvPublisher extends DataPublisher {
      * @return String
      */
     @Override
-    public String publish(UploadedFileMetadata md) throws Exception {
+    public String publish(UploadedData ud) throws Exception {
         
         String message = "";        
-        String pgTable = getEnv().getProperty("datasource.magic.userUploadSchema") + "." + standardiseName(md.getName());
+        String pgTable = getEnv().getProperty("datasource.magic.userUploadSchema") + "." + standardiseName(ud.getUfmd().getName());
 
         /* Deduce table column types from CSV values and create the table */
-        LinkedHashMap<String, String> columnTypes = getColumnTypeDictionary(md.getUploaded());
-        archiveExistingTable(pgTable);
+        LinkedHashMap<String, String> columnTypes = getColumnTypeDictionary(ud.getUfmd().getUploaded());
+        removeExistingData(pgTable);
         StringBuilder ctSql = new StringBuilder("CREATE TABLE " + pgTable + " (\n");
         ctSql.append("pgid serial,\n");
         for (String key : columnTypes.keySet()) {
@@ -49,12 +49,12 @@ public class CsvPublisher extends DataPublisher {
         getMagicDataTpl().execute(ctSql.toString());
         getMagicDataTpl().execute("ALTER TABLE " + pgTable + " OWNER TO " + getEnv().getProperty("datasource.magic.username"));
         getMagicDataTpl().execute("ALTER TABLE " + pgTable + " ADD PRIMARY KEY (pgid)");
-        populateTable(md.getUploaded(), columnTypes, pgTable);
+        populateTable(ud.getUfmd().getUploaded(), columnTypes, pgTable);
         /* Now publish to Geoserver */                                                      
         if (!getGrp().publishDBLayer(
             getEnv().getProperty("geoserver.local.userWorkspace"), 
             getEnv().getProperty("geoserver.local.userPostgis"), 
-            configureFeatureType(md, pgTable), 
+            configureFeatureType(ud.getUfmd(), pgTable), 
             configureLayer("point")
         )) {
             message = "Publishing PostGIS table " + pgTable + " to Geoserver failed";

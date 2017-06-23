@@ -22,7 +22,7 @@ import uk.ac.antarctica.mapengine.datapublishing.CsvPublisher;
 import uk.ac.antarctica.mapengine.datapublishing.DataPublisher;
 import uk.ac.antarctica.mapengine.datapublishing.GpxKmlPublisher;
 import uk.ac.antarctica.mapengine.datapublishing.ShpZipPublisher;
-import uk.ac.antarctica.mapengine.model.UploadedFileMetadata;
+import uk.ac.antarctica.mapengine.model.UploadedData;
 
 @Controller
 public class DataPublishController implements ApplicationContextAware {
@@ -67,12 +67,12 @@ public class DataPublishController implements ApplicationContextAware {
                 }
                 if (pub != null) {
                     /* Publish the file */
-                    UploadedFileMetadata md = pub.initWorkingEnvironment(mpf, userName);
-                    msg = pub.publish(md);
+                    UploadedData ud = pub.initWorkingEnvironment(mpf, userName);
+                    msg = pub.publish(ud);
                     if (msg.isEmpty()) {
                         msg = "published ok";
                     }
-                    pub.cleanUp(md.getUploaded());                    
+                    pub.cleanUp(ud.getUfmd().getUploaded());                    
                 } else {
                     /* Unsupported extension type */
                     msg = "unsupported extension type " + extension;
