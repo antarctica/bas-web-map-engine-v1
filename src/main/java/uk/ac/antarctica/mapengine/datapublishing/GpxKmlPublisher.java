@@ -16,11 +16,11 @@ public class GpxKmlPublisher extends DataPublisher {
 
     /**
      * Publishing workflow for uploaded GPX or KML file
-     * @param UploadeData ud
+     * @param UploadedData ud
      * @return String
      */
     @Override
-    public String publish(UploadedData ud) throws ExecuteException {
+    public String publish(UploadedData ud) {
                 
         String message = "";
         String pgTempSchema = "";
@@ -48,13 +48,14 @@ public class GpxKmlPublisher extends DataPublisher {
                     /* Create destination table name (must not start with a number as this upsets Postgres and Geoserver) */
                     String tableBase = (Character.isDigit(uploadedBasename.charAt(0)) ? uploadedExtension + "_" : "") + uploadedBasename;
                     String tableType = standardiseName((String)pgTableRec.get("table_name"));
-                    String destTableName = pgUserSchema + "." + tableBase + "_" + tableType;
+                    String pgTable = tableBase + "_" + tableType;
+                    String destTableName = pgUserSchema + "." + pgTable;
 
                     /* Check if the table contains any data */
                     int nRecs = getMagicDataTpl().queryForObject("SELECT count(*) FROM " + srcTableName, Integer.class);
                     if (nRecs > 0) {
                         /* Copy records from non-empty table into user uploads schema with a user-friendly name */ 
-                        removeExistingData(pgUserSchema, tableBase + "_" + tableType); 
+                        removeExistingData(pgUserSchema, pgTable); 
                         getMagicDataTpl().execute("CREATE TABLE " + destTableName + " AS TABLE " + srcTableName);
                         /* Now publish to Geoserver */                                                      
                         if (!getGrp().publishDBLayer(

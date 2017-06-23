@@ -8,9 +8,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import java.util.Date;
 import org.apache.commons.io.FilenameUtils;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -25,10 +22,8 @@ import uk.ac.antarctica.mapengine.datapublishing.ShpZipPublisher;
 import uk.ac.antarctica.mapengine.model.UploadedData;
 
 @Controller
-public class DataPublishController implements ApplicationContextAware {
-    
-    private ApplicationContext applicationContext;
-    
+public class DataPublishController {
+        
     @RequestMapping(value = "/publish_postgis", method = RequestMethod.POST, consumes = "multipart/form-data", produces = {"application/json"})
     public ResponseEntity<String> publishToPostGIS(MultipartHttpServletRequest request) throws Exception {
         
@@ -54,13 +49,13 @@ public class DataPublishController implements ApplicationContextAware {
                 switch(extension) {
                     case "gpx":
                     case "kml":
-                        pub = applicationContext.getBean(GpxKmlPublisher.class);
+                        pub = new GpxKmlPublisher();
                         break;
                     case "csv":
-                        pub = applicationContext.getBean(CsvPublisher.class);
+                        pub = new CsvPublisher();
                         break;
                     case "zip":
-                        pub = applicationContext.getBean(ShpZipPublisher.class);
+                        pub = new ShpZipPublisher();
                         break;
                     default:
                         break;
@@ -79,7 +74,6 @@ public class DataPublishController implements ApplicationContextAware {
                 }
             } catch(Exception ex) {
                 msg = "Publish failed with error : " + ex.getMessage();
-                ex.printStackTrace();
             }
             
             messages.add(new JsonPrimitive(msg));
@@ -94,15 +88,6 @@ public class DataPublishController implements ApplicationContextAware {
         jo.addProperty("status", status.value());
         jo.add("messages", messages);
         return(new ResponseEntity<>(jo.toString(), status));
-    }
-
-    public ApplicationContext getApplicationContext() {
-        return applicationContext;
-    }
-
-    @Override
-    public void setApplicationContext(ApplicationContext ac) throws BeansException {
-        applicationContext = ac;
     }
 
 }

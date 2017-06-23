@@ -75,13 +75,12 @@ public abstract class DataPublisher {
         ));
         
         /* PostgreSQL credentials */
-        getPgMap().put("PGSCHEMA", getEnv().getProperty("datasource.magic.userUploadSchema"));
         getPgMap().put("PGUSER", getEnv().getProperty("datasource.magic.username"));
         getPgMap().put("PGPASS", getEnv().getProperty("datasource.magic.password").replaceAll("!", "\\\\!"));   /* ! is a shell metacharacter for UNIX */
     }
 
     @Transactional
-    public abstract String publish(UploadedData ud) throws Exception;
+    public abstract String publish(UploadedData ud);
     
     /**
      * Create the working environment to process a data file upload
@@ -205,7 +204,7 @@ public abstract class DataPublisher {
      * @throws ExecuteException 
      */
     protected void executeOgr2ogr(File toConvert, String tableName, String tableSchema) throws ExecuteException {
-        getPgMap().put("PGSCHEMA", (tableSchema != null) ? tableSchema : getEnv().getProperty("datasource.magic.userUploadSchema"));     
+        getPgMap().put("PGSCHEMA", tableSchema);     
         getPgMap().put("TOCONVERT", toConvert.getAbsolutePath());       
         CommandLine ogr2ogr = new CommandLine(getEnv().getProperty("software.ogr2ogr"));
         ogr2ogr.setSubstitutionMap(getPgMap());

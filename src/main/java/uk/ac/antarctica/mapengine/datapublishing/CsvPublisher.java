@@ -22,43 +22,52 @@ public class CsvPublisher extends DataPublisher {
 
     /**
      * Publishing workflow for uploaded CSV file
-     * @param UploadedFileMetadata md
+     * @param UploadedData md
      * @return String
      */
     @Override
-    public String publish(UploadedData ud) throws Exception {
+    public String publish(UploadedData ud) {
         
-        String message = "";        
-        String pgTable = getEnv().getProperty("datasource.magic.userUploadSchema") + "." + standardiseName(ud.getUfmd().getName());
-
-        /* Deduce table column types from CSV values and create the table */
-        LinkedHashMap<String, String> columnTypes = getColumnTypeDictionary(ud.getUfmd().getUploaded());
-        removeExistingData(pgTable);
-        StringBuilder ctSql = new StringBuilder("CREATE TABLE " + pgTable + " (\n");
-        ctSql.append("pgid serial,\n");
-        for (String key : columnTypes.keySet()) {
-            ctSql.append("\"");
-            ctSql.append(key);
-            ctSql.append("\"");
-            ctSql.append(" ");
-            ctSql.append(columnTypes.get(key));
-            ctSql.append(",\n");
+        String message = "";
+        
+        try {            
+            String pgUserSchema = ud.getUfue().getUserPgSchema();
+            String pgTable = standardiseName(ud.getUfmd().getName()).substring(0, 40);
+            String destTableName = pgUserSchema + "." + pgTable;
+            
+            /* Deduce table column types from CSV values and create the table */
+            LinkedHashMap<String, String> columnTypes = getColumnTypeDictionary(ud.getUfmd().getUploaded());
+            removeExistingData(pgUserSchema, pgTable);
+            StringBuilder ctSql = new StringBuilder("CREATE TABLE " + destTableName + " (\n");
+            ctSql.append("pgid serial,\n");
+            for (String key : columnTypes.keySet()) {
+                ctSql.append("\"");
+                ctSql.append(key);
+                ctSql.append("\"");
+                ctSql.append(" ");
+                ctSql.append(columnTypes.get(key));
+                ctSql.append(",\n");
+            }
+            ctSql.append("wkb_geometry geometry(Point, 4326)\n");
+            ctSql.append(") WITH(OIDS=FALSE)");
+            getMagicDataTpl().execute(ctSql.toString());
+            getMagicDataTpl().execute("ALTER TABLE " + destTableName + " OWNER TO " + getEnv().getProperty("datasource.magic.username"));
+            getMagicDataTpl().execute("ALTER TABLE " + destTableName + " ADD PRIMARY KEY (pgid)");
+            populateTable(ud.getUfmd().getUploaded(), columnTypes, destTableName);
+            /* Now publish to Geoserver */
+            if (!getGrp().publishDBLayer(
+                    getEnv().getProperty("geoserver.local.userWorkspace"),
+                    getEnv().getProperty("geoserver.local.userPostgis"),
+                    configureFeatureType(ud.getUfmd(), destTableName),
+                    configureLayer("point")
+            )) {
+                message = "Publishing PostGIS table " + destTableName + " to Geoserver failed";
+            }            
+        } catch (IOException ioe) {
+            message = "Publish error occurred : " + ioe.getMessage();
+        } catch (DataAccessException dae) {
+            message = "Database error occurred during publish : " + dae.getMessage();
         }
-        ctSql.append("wkb_geometry geometry(Point, 4326)\n");
-        ctSql.append(") WITH(OIDS=FALSE)");
-        getMagicDataTpl().execute(ctSql.toString());
-        getMagicDataTpl().execute("ALTER TABLE " + pgTable + " OWNER TO " + getEnv().getProperty("datasource.magic.username"));
-        getMagicDataTpl().execute("ALTER TABLE " + pgTable + " ADD PRIMARY KEY (pgid)");
-        populateTable(ud.getUfmd().getUploaded(), columnTypes, pgTable);
-        /* Now publish to Geoserver */                                                      
-        if (!getGrp().publishDBLayer(
-            getEnv().getProperty("geoserver.local.userWorkspace"), 
-            getEnv().getProperty("geoserver.local.userPostgis"), 
-            configureFeatureType(ud.getUfmd(), pgTable), 
-            configureLayer("point")
-        )) {
-            message = "Publishing PostGIS table " + pgTable + " to Geoserver failed";
-        }        
         return (message);
     }
     
