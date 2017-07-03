@@ -21,7 +21,7 @@ magic.classes.publisher.FilePublisherPanel = function () {
 
     var previewTemplate =
             '<div class="table table-striped files" id="publish-previews">' +
-                '<div id="publish-template" class="file-row">' +
+                '<div class="file-row">' +
                     '<div class="col-lg-7">' +
                         '<p class="name" data-dz-name style="font-weight: bold"></p>' +
                         '<strong class="error text-danger" data-dz-errormessage></strong>' +

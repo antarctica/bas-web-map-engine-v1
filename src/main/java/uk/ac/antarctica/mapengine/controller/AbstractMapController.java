@@ -30,7 +30,7 @@ public class AbstractMapController {
        
     /**
      * Get {id: <uuid>, name: <name>} dropdown populator for a particular action
-     * @param AbstractWebmapData webmapData
+     * @param AbstractMapData webmapData
      * @param String username
      * @param String action view|clone|edit
      * @return ResponseEntity<String>
@@ -147,13 +147,13 @@ public class AbstractMapController {
                         if (username != null) {
                             bookmarkData = getMagicDataTpl().queryForMap(
                                 "SELECT * FROM " + userTableName + " " + 
-                                "WHERE id=? AND (permissions='public' OR permissions='login' OR (permissions='owner' AND username=?))", 
+                                "WHERE id=? AND (allowed_usage='public' OR allowed_usage='login' OR (allowed_usage='owner' AND owner_name=?))", 
                                 usermapid, username
                             );
                         } else {
                             bookmarkData = getMagicDataTpl().queryForMap(
                                 "SELECT * FROM " + userTableName + " " + 
-                                "WHERE id=? AND permissions='public'", 
+                                "WHERE id=? AND allowed_usage='public'", 
                                 usermapid
                             );
                         }                                
@@ -203,7 +203,7 @@ public class AbstractMapController {
     
     /**
      * Method to do deletion of a map view by UUID or name
-     * @param AbstractWebmapData webmapData
+     * @param AbstractMapData webmapData
      * @param String username
      * @param String attr
      * @param String value

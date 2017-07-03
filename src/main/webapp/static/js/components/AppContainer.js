@@ -163,10 +163,10 @@ magic.classes.AppContainer = function () {
     }
     
     /* User favourites tool */
-    magic.runtime.favourites = null;
+    magic.runtime.viewmanager = null;
     if (magic.runtime.username != "guest" && jQuery.inArray("favourites", magic.runtime.mapdata.controls) != -1) {
         /* Activate user feedback tool */
-        magic.runtime.favourites = new magic.classes.Favourites({target: "favourites-tool"});
+        magic.runtime.viewmanager = new magic.classes.MapViewManager({target: "viewmanager-tool"});
     } else {
         /* Hide the user feedback button */
         jQuery("#favourites-tool").closest("li").hide();
