@@ -33,7 +33,7 @@ magic.classes.MapViewManager = function(options) {
                 '<div class="form-group form-group-sm col-sm-12 edit-view-fs-title"><strong>Select a map view</strong></div>' +
                 '<div class="form-group form-group-sm col-sm-12" style="margin-bottom:0px">' +
                     '<div class="input-group">' + 
-                        '<select id="' + this.id + '-view-list" class="form-control fa">' +                               
+                        '<select id="' + this.id + '-view-list" class="form-control">' +                               
                         '</select>' + 
                         '<span class="input-group-btn">' +
                             '<button id="' + this.id + '-view-list-go" class="btn btn-primary btn-sm" type="button" title="Load map view">' + 
@@ -65,7 +65,7 @@ magic.classes.MapViewManager = function(options) {
                     '</button>' + 
                     '<button id="' + this.id + '-view-list-bmk" class="btn btn-xs btn-primary" type="button"  style="margin-left:5px" ' + 
                         'data-toggle="tooltip" data-placement="top" title="Bookmarkable URL for selected map view">' + 
-                        '<span class="fa fa-bookmark"></span>' + 
+                        '<span class="fa fa-bookmark"></span> Shareable URL' + 
                     '</button>' +
                 '</div>' +  
                 '<div class="col-sm-12 well well-sm edit-view-fs hidden">' +
@@ -113,24 +113,22 @@ magic.classes.MapViewManager = function(options) {
         /* Fetch maps */
         this.fetchMaps();
         /* Get widgets */
-        this.widgets = {
-            idHid:    jQuery("#" + this.id + "-id"),
-            bmHid:    jQuery("#" + this.id + "-basemap"),
-            nmInp:    jQuery("#" + this.id + "-name"),
-            pmSel:    jQuery("#" + this.id + "-allowed_usage"),
-            loadBtn:  jQuery("#" + this.id + "-view-list-go"),
-            bmkBtn:   jQuery("#" + this.id + "-view-list-bmk"),
-            addBtn:   jQuery("#" + this.id + "-add"),
-            editBtn:  jQuery("#" + this.id + "-edit"),
-            delBtn:   jQuery("#" + this.id + "-delete"),
-            saveBtn:  jQuery("#" + this.id + "-go"),
-            cancBtn:  jQuery("#" + this.id + "-cancel"),
-            mgrForm:  jQuery("#" + this.id + "-form"),
-            editForm: jQuery(".edit-view-fs"),
-            efTitle:  jQuery(".edit-view-fs-title"),
-            dd:       jQuery("#" + this.id + "-view-list"),
-            newTab:   jQuery("#" + this.id + "-view-new-tab")
-        };
+        this.idHid    = jQuery("#" + this.id + "-id");
+        this.bmHid    = jQuery("#" + this.id + "-basemap");
+        this.nmInp    = jQuery("#" + this.id + "-name");
+        this.pmSel    = jQuery("#" + this.id + "-allowed_usage");
+        this.loadBtn  = jQuery("#" + this.id + "-view-list-go");
+        this.bmkBtn   = jQuery("#" + this.id + "-view-list-bmk");
+        this.addBtn   = jQuery("#" + this.id + "-add");
+        this.editBtn  = jQuery("#" + this.id + "-edit");
+        this.delBtn   = jQuery("#" + this.id + "-delete");
+        this.saveBtn  = jQuery("#" + this.id + "-go");
+        this.cancBtn  = jQuery("#" + this.id + "-cancel");
+        this.mgrForm  = jQuery("#" + this.id + "-form");
+        this.editForm = jQuery(".edit-view-fs");
+        this.efTitle  = jQuery(".edit-view-fs-title");
+        this.dd       = jQuery("#" + this.id + "-view-list");
+        this.newTab   = jQuery("#" + this.id + "-view-new-tab");
         /* Assign handlers - changing dropdown value*/
         this.dd.change(jQuery.proxy(function() {
             var mapId = this.dd.val();
@@ -271,6 +269,9 @@ magic.classes.MapViewManager = function(options) {
  * Fetch data on all official public and derived map views
  */
 magic.classes.MapViewManager.prototype.fetchMaps = function() {
+    /* Clear select and prepend the invite to select */
+    this.dd.empty();
+    this.dd.append(jQuery("<option>", {value: "", text: "Please select"}));
     /* Load the officially defined maps */
     var baseRequest = jQuery.ajax({
         url: magic.config.paths.baseurl + "/maps/dropdown", 
@@ -279,6 +280,7 @@ magic.classes.MapViewManager.prototype.fetchMaps = function() {
         contentType: "application/json"
     });
     var baseMapData;
+    /* Load the user-defined map views */
     var userRequest = baseRequest.then(jQuery.proxy(function(data) {
         baseMapData = data;
         return(jQuery.ajax({
@@ -288,27 +290,30 @@ magic.classes.MapViewManager.prototype.fetchMaps = function() {
         }));
     }, this));
     userRequest.done(jQuery.proxy(function(udata) {
+        /* List the official base maps */
+        var bmTitles = {};
+        var bmGroup = jQuery("<optgroup>", {label: "Publically available maps"});
+        jQuery.each(baseMapData, function(ibm, bm) {
+            var bmOpt = jQuery("<option>", {value: bm.name});
+            bmOpt.text(bm.title);
+            bmGroup.append(bmOpt);
+            bmTitles[bm.name.substring(bm.name.indexOf(":")+1)] = bm.title;
+        });
+        this.dd.append(bmGroup);
         this.userMapData = udata;
-        var listData = {};
-        /* Group the public and private maps according to base map name */
-        for (var i = 0; i < baseMapData.length; i++) {
-            listData[baseMapData[i].name] = [{
-                "value": baseMapData[i].name,
-                "text": baseMapData[i].title
-            }];
-        }
-        for (var j = 0; j < this.userMapData.length; i++) {
-            if (this.userMapData[j].basemap in listData) {
-                listData[this.userMapData[j].basemap].push({
-                    "value": this.userMapData[j].basemap + "/" + this.userMapData[j].id,
-                    "text": "&#xf061;&nbsp;" + this.userMapData[j].name
-                });
+        var currentBm = null;
+        var umGroup = null;
+        jQuery.each(userMapData, jQuery.proxy(function(ium, um) {
+            if (currentBm == null || um.basemap != currentBm) {
+                umGroup = jQuery("<optgroup>", {label: "Views of " + bmTitles[um.basemap]});
+                this.dd.append(umGroup);
             }
-        }
-        /* Populate dropdown list of available views */
-        magic.modules.Common.populateSelect(jQuery("#" + this.id + "-view-list"), listData, "value", "text", true);                        
+            var umOpt = jQuery("<option>", {value: um.basemap + "/" + um.id});
+            umOpt.text(um.name);
+            umGroup.append(umOpt);
+        }, this));                   
         /* Disable irrelevant buttons which might otherwise offer confusing options */       
-        this.loadBtn.prop("disabled", udata.length == 0);
+        this.loadBtn.prop("disabled", udata.length == 0 && baseMapData.length == 0);
         this.editBtn.prop("disabled", udata.length == 0);
         this.delBtn.prop("disabled", udata.length == 0);
     }, this));

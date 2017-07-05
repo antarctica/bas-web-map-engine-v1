@@ -62,7 +62,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
     
     @Bean
     public DrupalChocChipHeaderAuthenticationFilter chocChipFilter() {
-        return(new DrupalChocChipHeaderAuthenticationFilter());
+        return(new DrupalChocChipHeaderAuthenticationFilter(env.getProperty("authentication.ccamlr").equals("yes")));
     }
     
     /* End of CCAMLR additions */

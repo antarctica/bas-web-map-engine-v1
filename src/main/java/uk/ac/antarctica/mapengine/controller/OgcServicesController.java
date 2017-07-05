@@ -49,6 +49,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -331,14 +332,17 @@ public class OgcServicesController implements ServletContextAware {
      * @param String url
      * @return String[]
      */
-    private String[] getOnwardCredentials(String url) {        
-        for (GrantedAuthority ga : SecurityContextHolder.getContext().getAuthentication().getAuthorities()) {
-            if (ga.getAuthority().startsWith("geoserver:")) {
-                String[] creds = ga.getAuthority().split(":");
-                String applyToHost = creds[1];
-                if (url.contains("localhost") || url.startsWith("http://" + applyToHost) || url.startsWith("https://" + applyToHost)) {
-                    if (creds.length == 4) {
-                        return(new String[]{creds[2], creds[3]});                 
+    private String[] getOnwardCredentials(String url) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null) {
+            for (GrantedAuthority ga : auth.getAuthorities()) {
+                if (ga.getAuthority().startsWith("geoserver:")) {
+                    String[] creds = ga.getAuthority().split(":");
+                    String applyToHost = creds[1];
+                    if (url.contains("localhost") || url.startsWith("http://" + applyToHost) || url.startsWith("https://" + applyToHost)) {
+                        if (creds.length == 4) {
+                            return(new String[]{creds[2], creds[3]});                 
+                        }
                     }
                 }
             }

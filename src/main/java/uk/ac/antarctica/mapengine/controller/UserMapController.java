@@ -49,7 +49,7 @@ public class UserMapController extends AbstractMapController {
         String tableName = getEnv().getProperty("postgres.local.usermapsTable");
         try {
             List<Map<String, Object>> userMapData = getMagicDataTpl().queryForList(
-                "SELECT * FROM " + tableName + " WHERE username=? GROUP BY basemap ORDER BY name", 
+                "SELECT * FROM " + tableName + " WHERE owner_name=? GROUP BY basemap, id ORDER BY name", 
                 username
             );
             if (userMapData != null && !userMapData.isEmpty()) {

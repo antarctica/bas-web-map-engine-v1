@@ -57,7 +57,7 @@ public abstract class DataPublisher {
     private JdbcTemplate magicDataTpl;
     
     /* Geoserver Manager publisher */
-    private GeoServerRESTPublisher grp;
+    private GeoServerRESTPublisher grp = null;
     
     /* Map of PostgreSQL schema/credentials */
     private HashMap<String, String> pgMap = new HashMap();
@@ -65,18 +65,7 @@ public abstract class DataPublisher {
     /* Access to OS level commands */
     private Runtime appRuntime = Runtime.getRuntime();
 
-    public DataPublisher() {
-        
-        /* Create Geoserver publisher */
-        setGrp(new GeoServerRESTPublisher(
-            getEnv().getProperty("geoserver.local.url"), 
-            getEnv().getProperty("geoserver.local.username"), 
-            getEnv().getProperty("geoserver.local.password")
-        ));
-        
-        /* PostgreSQL credentials */
-        getPgMap().put("PGUSER", getEnv().getProperty("datasource.magic.username"));
-        getPgMap().put("PGPASS", getEnv().getProperty("datasource.magic.password").replaceAll("!", "\\\\!"));   /* ! is a shell metacharacter for UNIX */
+    public DataPublisher() {               
     }
 
     @Transactional
@@ -91,6 +80,21 @@ public abstract class DataPublisher {
      */
     public UploadedData initWorkingEnvironment(MultipartFile mpf, String userName) throws IOException, DataAccessException {
         
+        if (getGrp() == null) {
+            /* Create Geoserver publisher */
+            setGrp(new GeoServerRESTPublisher(
+                getEnv().getProperty("geoserver.local.url"), 
+                getEnv().getProperty("geoserver.local.username"), 
+                getEnv().getProperty("geoserver.local.password")
+            ));
+        }
+        
+        if (getPgMap().isEmpty()) {
+            /* PostgreSQL credentials */
+            getPgMap().put("PGUSER", getEnv().getProperty("datasource.magic.username"));
+            getPgMap().put("PGPASS", getEnv().getProperty("datasource.magic.password").replaceAll("!", "\\\\!"));   /* ! is a shell metacharacter for UNIX */
+        }
+
         UploadedData ud = new UploadedData();
         ud.setUfmd(new UploadedFileMetadata());
         ud.setUfue(new UploadedFileUserEnvironment());    

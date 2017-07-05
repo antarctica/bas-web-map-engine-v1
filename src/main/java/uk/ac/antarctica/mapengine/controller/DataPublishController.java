@@ -6,8 +6,13 @@ package uk.ac.antarctica.mapengine.controller;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import java.io.IOException;
 import java.util.Date;
 import org.apache.commons.io.FilenameUtils;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -22,8 +27,10 @@ import uk.ac.antarctica.mapengine.datapublishing.ShpZipPublisher;
 import uk.ac.antarctica.mapengine.model.UploadedData;
 
 @Controller
-public class DataPublishController {
-        
+public class DataPublishController implements ApplicationContextAware {
+    
+    private ApplicationContext applicationContext;
+    
     @RequestMapping(value = "/publish_postgis", method = RequestMethod.POST, consumes = "multipart/form-data", produces = {"application/json"})
     public ResponseEntity<String> publishToPostGIS(MultipartHttpServletRequest request) throws Exception {
         
@@ -49,13 +56,13 @@ public class DataPublishController {
                 switch(extension) {
                     case "gpx":
                     case "kml":
-                        pub = new GpxKmlPublisher();
+                        pub = applicationContext.getBean(GpxKmlPublisher.class);
                         break;
                     case "csv":
-                        pub = new CsvPublisher();
+                        pub = applicationContext.getBean(CsvPublisher.class);
                         break;
                     case "zip":
-                        pub = new ShpZipPublisher();
+                        pub = applicationContext.getBean(ShpZipPublisher.class);
                         break;
                     default:
                         break;
@@ -72,7 +79,7 @@ public class DataPublishController {
                     /* Unsupported extension type */
                     msg = "unsupported extension type " + extension;
                 }
-            } catch(Exception ex) {
+            } catch(IOException | BeansException | DataAccessException ex) {
                 msg = "Publish failed with error : " + ex.getMessage();
             }
             
@@ -88,6 +95,15 @@ public class DataPublishController {
         jo.addProperty("status", status.value());
         jo.add("messages", messages);
         return(new ResponseEntity<>(jo.toString(), status));
+    }
+
+    public ApplicationContext getApplicationContext() {
+        return applicationContext;
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext ac) throws BeansException {
+        applicationContext = ac;
     }
 
 }

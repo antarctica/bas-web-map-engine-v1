@@ -169,7 +169,7 @@ magic.classes.AppContainer = function () {
         magic.runtime.viewmanager = new magic.classes.MapViewManager({target: "viewmanager-tool"});
     } else {
         /* Hide the user feedback button */
-        jQuery("#favourites-tool").closest("li").hide();
+        jQuery("#viewmanager-tool").closest("li").hide();
     }
 
     /* Updates height of map when window resizes */
