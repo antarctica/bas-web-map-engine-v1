@@ -29,15 +29,12 @@ public class EmbeddedMapData extends AbstractMapData {
 
     @Override
     public void fromPayload(String payload, String username) {
-        Date now = new Date();
         JsonElement je = new JsonParser().parse(payload);
         JsonObject jo = je.getAsJsonObject();
         setId((String)getJsonElement(jo, "id", false, UUID.randomUUID().toString()));
         setName((String)getJsonElement(jo, "name", false, "new_map"));        
         setTitle((String)getJsonElement(jo, "title", false, "Map title"));        
-        setDescription((String)getJsonElement(jo, "description", true, null));        
-        setCreation_date(now);
-        setModified_date(now);
+        setDescription((String)getJsonElement(jo, "description", true, null));                
         setOwner_name(username);           
         setOwner_email((String)getJsonElement(jo, "owner_email", false, "basmagic@bas.ac.uk"));
         setWidth((int)getJsonElement(jo, "width", false, 400, Integer.class));
@@ -56,7 +53,7 @@ public class EmbeddedMapData extends AbstractMapData {
 
     @Override
     public String insertSql() {
-        return("INSERT INTO " + getTableName() + " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+        return("INSERT INTO " + getTableName() + " VALUES(?,?,?,?,current_timestamp,current_timestamp,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
     }
 
     @Override
@@ -65,9 +62,7 @@ public class EmbeddedMapData extends AbstractMapData {
             getId(),
             getName(),
             getTitle(),
-            getDescription(),            
-            getCreation_date(),
-            getModified_date(),
+            getDescription(),                       
             getOwner_name(),
             getOwner_email(),
             getWidth(),
@@ -91,7 +86,7 @@ public class EmbeddedMapData extends AbstractMapData {
             "name=?, " + 
             "title=?, " +
             "description=?, " +             
-            "modified_date=?, " + 
+            "modified_date=current_timestamp, " + 
             "owner_email=?, " + 
             "width=?, " + 
             "height=?, " + 
@@ -115,7 +110,6 @@ public class EmbeddedMapData extends AbstractMapData {
             getName(),
             getTitle(),
             getDescription(),            
-            getModified_date(),       
             getOwner_email(),
             getWidth(),
             getHeight(),

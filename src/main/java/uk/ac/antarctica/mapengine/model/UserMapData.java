@@ -6,7 +6,6 @@ package uk.ac.antarctica.mapengine.model;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import java.util.Date;
 import java.util.UUID;
 
 public class UserMapData extends AbstractMapData {
@@ -21,15 +20,12 @@ public class UserMapData extends AbstractMapData {
 
     @Override
     public void fromPayload(String payload, String username) {
-        Date now = new Date();
         JsonElement je = new JsonParser().parse(payload);
         JsonObject jo = je.getAsJsonObject();
-        setId((String)getJsonElement(jo, "id", false, UUID.randomUUID().toString()));
+        setId((String)getJsonElement(jo, "id", false, ""));
         setName((String)getJsonElement(jo, "name", false, ""));        
         setTitle("");        
-        setDescription("");       
-        setCreation_date(now);
-        setModified_date(now);
+        setDescription("");               
         setOwner_name(username);           
         setOwner_email("");
         setAllowed_usage((String)getJsonElement(jo, "allowed_usage", false, "public"));
@@ -40,18 +36,19 @@ public class UserMapData extends AbstractMapData {
 
     @Override
     public String insertSql() {
-        return("INSERT INTO " + getTableName() + " VALUES(?,?,?,?,?,?,?,?,?,?,?,?)");
+        return(
+            "INSERT INTO " + getUserTableName() + " " + 
+            "(name, title, description, creation_date, modified_date, owner_name, owner_email, allowed_usage, allowed_edit, basemap, data) " + 
+            "VALUES(?,?,?, current_timestamp,current_timestamp,?,?,?,?,?,?)"
+        );
     }
-
+    
     @Override
     public Object[] insertArgs() {        
         return(new Object[] {
-            getId(),
             getName(),
             getTitle(),
-            getDescription(),           
-            getCreation_date(),
-            getModified_date(),
+            getDescription(),                       
             getOwner_name(),
             getOwner_email(),
             getAllowed_usage(),
@@ -63,9 +60,9 @@ public class UserMapData extends AbstractMapData {
 
     @Override
     public String updateSql() {
-        return("UPDATE " + getTableName() + " SET " + 
+        return("UPDATE " + getUserTableName() + " SET " + 
             "name=?, " +            
-            "modified_date=?, " + 
+            "modified_date=current_timestamp, " + 
             "allowed_usage=?, " +
             "basemap=?, " +
             "data=? " +              
@@ -77,11 +74,10 @@ public class UserMapData extends AbstractMapData {
     public Object[] updateArgs(String id) {
         return(new Object[] {
             getName(),               
-            getModified_date(),       
             getAllowed_usage(),
             getBasemap(),
             getJsonDataAsPgObject(getData()),
-            id
+            Integer.parseInt(id)
         });
     }
 

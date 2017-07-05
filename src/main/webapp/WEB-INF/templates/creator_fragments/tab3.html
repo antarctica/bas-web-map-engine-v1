@@ -16,7 +16,7 @@
                 </div>
                 <div class="panel-body">
                     <div class="alert alert-info">
-                        Note that controls for zooming in/out, to maximum map extent and by dragging a box are added as standard
+                        Note that controls for zoom in/out, to maximum extent and by dragging a box appear by default
                     </div>
                     <div class="col-sm-12 form-inline">
                         <label class="checkbox-inline">
@@ -32,30 +32,45 @@
                         <label class="checkbox-inline">
                             <input type="checkbox" name="t3-controls" value="feature_info"
                                    data-toggle="tooltip" data-placement="top" title="Enable pop-ups of attributes on clicked features"></input>
-                            Pop-up tool
-                        </label>    
+                            Enable map feature pop-ups
+                        </label>                            
+                    </div>
+                    <div class="col-sm-12 form-inline" th:switch="${profile}">
                         <label class="checkbox-inline">
                             <input type="checkbox" name="t3-controls" value="graticule"
                                    data-toggle="tooltip" data-placement="top" title="Enable a labelled graticule"></input>
                             Enable graticule
                         </label>  
-                    </div>
-                    <div class="col-sm-12 form-inline">
                         <label class="checkbox-inline">
                             <input type="checkbox" name="t3-controls" value="geolocation"
                                    data-toggle="tooltip" data-placement="top" title="Show my position according to device GPS"></input>
                             Current device position
                         </label>
-                        <label class="checkbox-inline">
-                            <input type="checkbox" name="t3-controls" value="aircraft"
-                                   data-toggle="tooltip" data-placement="top" title="Show positions of BAS aircraft"></input>
-                            BAS aircraft positions
-                        </label>
-                        <label class="checkbox-inline">
-                            <input type="checkbox" name="t3-controls" value="ships"
-                                   data-toggle="tooltip" data-placement="top" title="Show positions of BAS ships"></input>
-                            BAS ship positions
-                        </label>
+                        <div th:case="ccamlrgis">
+                            <label class="checkbox-inline hidden">
+                                <input type="checkbox" name="t3-controls" value="aircraft"
+                                       data-toggle="tooltip" data-placement="top" title="Show positions of BAS aircraft"></input>
+                                BAS aircraft positions
+                            </label>
+                            <label class="checkbox-inline hidden">
+                                <input type="checkbox" name="t3-controls" value="ships"
+                                       data-toggle="tooltip" data-placement="top" title="Show positions of BAS ships"></input>
+                                BAS ship positions
+                            </label>
+                        </div>
+                        <div th:case="*">
+                            <label class="checkbox-inline">
+                                <input type="checkbox" name="t3-controls" value="aircraft"
+                                       data-toggle="tooltip" data-placement="top" title="Show positions of BAS aircraft"></input>
+                                BAS aircraft positions
+                            </label>
+
+                            <label class="checkbox-inline">
+                                <input type="checkbox" name="t3-controls" value="ships"
+                                       data-toggle="tooltip" data-placement="top" title="Show positions of BAS ships"></input>
+                                BAS ship positions
+                            </label>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -79,23 +94,18 @@
                             <input type="checkbox" name="t3-controls" value="overview_map"
                                    data-toggle="tooltip" data-placement="top" title="Enable an inset overview map"></input>
                             Overview map
-                        </label> 
+                        </label>                         
+                    </div>
+                    <div class="col-sm-12 form-inline">
                         <label class="checkbox-inline">
                             <input type="checkbox" name="t3-controls" value="download_data"
                                    data-toggle="tooltip" data-placement="top" title="Enable download of underlying data"></input>
                             Data download tool
-                        </label>
-                    </div>
-                    <div class="col-sm-12 form-inline">
+                        </label>                        
                         <label class="checkbox-inline">
-                            <input type="checkbox" name="t3-controls" value="mapswitcher"
-                                   data-toggle="tooltip" data-placement="top" title="Enable loading of other map views from the server"></input>
-                            Map switcher
-                        </label>
-                        <label class="checkbox-inline">
-                            <input type="checkbox" name="t3-controls" value="favourites"
-                                   data-toggle="tooltip" data-placement="top" title="Enable logged-in users to save favourite maps"></input>
-                            Favourite maps
+                            <input type="checkbox" name="t3-controls" value="viewmanager"
+                                   data-toggle="tooltip" data-placement="top" title="Enable logged-in users to manage custom map views"></input>
+                            Custom map view management
                         </label>                          
                         <label class="checkbox-inline">
                             <input type="checkbox" name="t3-controls" value="feedback"

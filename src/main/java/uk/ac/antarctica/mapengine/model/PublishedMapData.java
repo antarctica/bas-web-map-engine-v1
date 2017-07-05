@@ -6,7 +6,6 @@ package uk.ac.antarctica.mapengine.model;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import java.util.Date;
 import java.util.UUID;
 
 public class PublishedMapData extends AbstractMapData {
@@ -29,7 +28,6 @@ public class PublishedMapData extends AbstractMapData {
 
     @Override
     public void fromPayload(String payload, String username) {
-        Date now = new Date();
         JsonElement je = new JsonParser().parse(payload);
         JsonObject jo = je.getAsJsonObject();
         setId((String)getJsonElement(jo, "id", false, UUID.randomUUID().toString()));
@@ -41,9 +39,7 @@ public class PublishedMapData extends AbstractMapData {
         /* The following properties are not currently modifiable through the GUI */
         setFavicon("bas.ico");
         /* End of non-modifiable properties */
-        setRepository((String)getJsonElement(jo, "repository", true, null));
-        setCreation_date(now);
-        setModified_date(now);
+        setRepository((String)getJsonElement(jo, "repository", true, null));        
         setOwner_name(username);           
         setOwner_email((String)getJsonElement(jo, "owner_email", false, "basmagic@bas.ac.uk"));
         setMetadata_url((String)getJsonElement(jo, "metadata_url", true, null));
@@ -58,7 +54,7 @@ public class PublishedMapData extends AbstractMapData {
 
     @Override
     public String insertSql() {
-        return("INSERT INTO " + getTableName() + " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+        return("INSERT INTO " + getTableName() + " VALUES(?,?,?,?,current_timestamp,current_timestamp,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
     }
 
     @Override
@@ -71,9 +67,7 @@ public class PublishedMapData extends AbstractMapData {
             getVersion(),
             getLogo(),
             getFavicon(),
-            getRepository(),
-            getCreation_date(),
-            getModified_date(),
+            getRepository(),            
             getOwner_name(),
             getOwner_email(),
             getMetadata_url(),
@@ -97,7 +91,7 @@ public class PublishedMapData extends AbstractMapData {
             "logo=?, " + 
             "favicon=?, " + 
             "repository=?, " +
-            "modified_date=?, " + 
+            "modified_date=current_timestamp, " + 
             "owner_email=?, " + 
             "metadata_url=?, " + 
             "data=?, " + 
@@ -123,7 +117,6 @@ public class PublishedMapData extends AbstractMapData {
             "bas.ico",
             /* End of non-modifiable properties */
             getRepository(),
-            getModified_date(),       
             getOwner_email(),
             getMetadata_url(),
             getJsonDataAsPgObject(getData()),

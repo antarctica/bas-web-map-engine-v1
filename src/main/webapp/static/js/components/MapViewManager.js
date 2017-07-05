@@ -16,9 +16,6 @@ magic.classes.MapViewManager = function(options) {
     /* The retrieved data on base and user defined maps */
     this.userMapData = [];
     
-    /* All the various form widgets in convenient jQuery form */
-    this.widgets = {};
-    
     this.template = 
         '<div class="popover popover-auto-width viewmanager-popover" role="popover">' + 
             '<div class="arrow"></div>' +
@@ -69,10 +66,10 @@ magic.classes.MapViewManager = function(options) {
                     '</button>' +
                 '</div>' +  
                 '<div class="col-sm-12 well well-sm edit-view-fs hidden">' +
-                    '<div class="form-group form-group-sm col-sm-12 edit-view-fs-title"><strong>Add new map view</strong></div>' + 
+                    '<div id="' + this.id + '-eftitle" class="form-group form-group-sm col-sm-12 edit-view-fs-title"><strong>Add new map view</strong></div>' + 
                     '<div class="form-group form-group-sm col-sm-12">' +                     
-                        '<label class="col-sm-2" for="' + this.id + '-name">Name</label>' + 
-                        '<div class="col-sm-10">' + 
+                        '<label class="col-sm-3" for="' + this.id + '-name">Name</label>' + 
+                        '<div class="col-sm-9">' + 
                             '<input type="text" name="' + this.id + '-name" id="' + this.id + '-name" class="form-control" ' + 
                                 'placeholder="Map name" maxlength="100" ' + 
                                 'data-toggle="tooltip" data-placement="right" ' + 
@@ -82,8 +79,8 @@ magic.classes.MapViewManager = function(options) {
                         '</div>' + 
                     '</div>' +
                     '<div class="form-group form-group-sm col-sm-12">' +
-                        '<label class="col-sm-2" for="' + this.id + '-allowed_usage">Share</label>' + 
-                        '<div class="col-sm-10">' + 
+                        '<label class="col-sm-3" for="' + this.id + '-allowed_usage">Share</label>' + 
+                        '<div class="col-sm-9">' + 
                             '<select name="' + this.id + '-allowed_usage" id="' + this.id + '-allowed_usage" class="form-control" ' + 
                                 'data-toggle="tooltip" data-placement="right" ' + 
                                 'title="Sharing permissions">' +
@@ -93,6 +90,12 @@ magic.classes.MapViewManager = function(options) {
                             '</select>' + 
                         '</div>' + 
                     '</div>' +
+                    '<div class="form-group form-group-sm col-sm-12">' + 
+                        '<label class="col-sm-3 control-label">Modified</label>' + 
+                        '<div class="col-sm-9">' + 
+                            '<p id="' + this.id + '-last-mod" class="form-control-static"></p>' + 
+                        '</div>' + 
+                    '</div>' + 
                     '<div class="form-group form-group-sm col-sm-12">' +
                         magic.modules.Common.buttonFeedbackSet(this.id, "Save map state", "xs") +                         
                         '<button id="' + this.id + '-cancel" class="btn btn-xs btn-danger" type="button" ' + 
@@ -109,9 +112,7 @@ magic.classes.MapViewManager = function(options) {
         container: "body",
         html: true,            
         content: this.content
-    }).on("shown.bs.popover", jQuery.proxy(function() {
-        /* Fetch maps */
-        this.fetchMaps();
+    }).on("shown.bs.popover", jQuery.proxy(function() {        
         /* Get widgets */
         this.idHid    = jQuery("#" + this.id + "-id");
         this.bmHid    = jQuery("#" + this.id + "-basemap");
@@ -126,26 +127,31 @@ magic.classes.MapViewManager = function(options) {
         this.cancBtn  = jQuery("#" + this.id + "-cancel");
         this.mgrForm  = jQuery("#" + this.id + "-form");
         this.editForm = jQuery(".edit-view-fs");
-        this.efTitle  = jQuery(".edit-view-fs-title");
+        this.efTitle  = jQuery("#" + this.id + "-eftitle");
         this.dd       = jQuery("#" + this.id + "-view-list");
         this.newTab   = jQuery("#" + this.id + "-view-new-tab");
+        this.lastMod  = jQuery("#" + this.id + "-last-mod");
+        /* Fetch maps */
+        this.fetchMaps();
+        /* Set initial button states */
+        this.setButtonStates({
+            loadBtn: true, addBtn: false, editBtn: true, delBtn: true, bmkBtn: false
+        });
         /* Assign handlers - changing dropdown value*/
         this.dd.change(jQuery.proxy(function() {
-            var mapId = this.dd.val();
-            var userMap = this.isUserMap(mapId);
-            this.idHid.val(mapId);                        
-            this.editBtn.prop("disabled", !userMap);
-            this.loadBtn.prop("disabled", false);
+            this.setButtonStates({
+                loadBtn: this.dd.val() == "", addBtn: false, editBtn: !this.userMapSelected(), delBtn: !this.userMapSelected(), bmkBtn: false
+            });            
         }, this));
         /* Load map button */
-        this.loadBtn.click(jQuery.proxy(function() {            
-            window.open(magic.config.paths.baseurl + "/home/" + this.dd.val(), this.newTab.prop("checked") ? "_blank" : "_self"); 
+        this.loadBtn.click(jQuery.proxy(function() {                
+            window.open(this.selectedMapLoadUrl(), this.newTab.prop("checked") ? "_blank" : "_self"); 
         }, this));
         /* Bookmarkable URL button */
-        this.bmkBtn.click(jQuery.proxy(function() {            
+        this.bmkBtn.click(jQuery.proxy(function() {             
             bootbox.prompt({
                 "title": "Bookmarkable URL",
-                "value": magic.config.paths.baseurl + "/home/" + this.dd.val(),
+                "value": this.selectedMapLoadUrl(),
                 "callback": function(result){}
             });
         }, this));
@@ -153,34 +159,36 @@ magic.classes.MapViewManager = function(options) {
         this.addBtn.click(jQuery.proxy(function() {
             this.editForm.removeClass("hidden");
             this.efTitle.html('<strong>Add new map</strong>');
-            this.mgrForm[0].reset();                
-            this.editBtn.prop("disabled", true);
-            this.prop("disabled", true);
-            this.loadBtn.prop("disabled", true);
+            this.mgrForm[0].reset();
+            this.setButtonStates({
+                loadBtn: true, addBtn: true, editBtn: true, delBtn: true, bmkBtn: true
+            });            
             this.nmInp.focus();
+            this.dd.prop("disabled", true);
         }, this));
         /* Edit map button */
-        this.editBtn.click(jQuery.proxy(function() {
+        this.editBtn.click(jQuery.proxy(function() {            
             this.editForm.removeClass("hidden");
             this.efTitle.html('<strong>Edit existing map</strong>');
-            var mapData = this.userMapData[this.dd.prop("selectedIndex")];
+            var mapData = this.userMapData[this.selectedMapId()];
             this.idHid.val(mapData.id);
             this.bmHid.val(mapData.basemap);
-            this.nmInp.val(mapData.title);
-            this.pmSel.val(mapData.permissions);
+            this.nmInp.val(mapData.name);
+            this.pmSel.val(mapData.allowed_usage);
+            this.lastMod.html(mapData.modified_date);
+            this.setButtonStates({
+                loadBtn: true, addBtn: true, editBtn: true, delBtn: true, bmkBtn: true
+            });     
             this.nmInp.focus();
+            this.dd.prop("disabled", true);
         }, this));
          /* Delete map button */
-        this.delBtn.click(jQuery.proxy(function() {
-            var mapView = this.dd.val();
-            if (!this.isUserMap(mapView)) {
-                return(false);
-            }
-            bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">Are you sure?</div>', jQuery.proxy(function(result) {
+        this.delBtn.click(jQuery.proxy(function() {            
+            bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">Are you sure you want to delete this view?</div>', jQuery.proxy(function(result) {
                 if (result) {
                     /* Do the deletion */
                     var jqxhr = jQuery.ajax({
-                        url: magic.config.paths.baseurl + "/usermaps/delete/" + mapView.substring(mapView.indexOf("/")+1),
+                        url: magic.config.paths.baseurl + "/usermaps/delete/" + this.selectedMapId(),
                         method: "DELETE",
                         beforeSend: function (xhr) {
                             var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content");
@@ -205,6 +213,9 @@ magic.classes.MapViewManager = function(options) {
         }, this));
         /* Save button */
         this.saveBtn.click(jQuery.proxy(function() {
+            if (!this.userMapSelected()) {
+                return(false);
+            }
             if (this.nmInp[0].checkValidity() === false) {
                 this.nmInp.closest("div.form-group").addClass("has-error");
             } else {
@@ -229,10 +240,10 @@ magic.classes.MapViewManager = function(options) {
                     }
                 })
                 .done(jQuery.proxy(function(response) {
-                        magic.modules.Common.buttonClickFeedback(this.id, jQuery.isNumeric(response) || response.status < 400, response.detail); 
-                        this.loadBtn.prop("disabled", false);
-                        this.editBtn.prop("disabled", false);
-                        this.delBtn.prop("disabled", false);
+                        magic.modules.Common.buttonClickFeedback(this.id, jQuery.isNumeric(response) || response.status < 400, response.detail);
+                        this.setButtonStates({
+                            loadBtn: false, addBtn: false, editBtn: !this.userMapSelected(), delBtn: !this.userMapSelected(), bmkBtn: true
+                        });                             
                         this.dd.prop("disabled", false);
                         setTimeout(jQuery.proxy(function() {
                             this.editForm.addClass("hidden");
@@ -253,9 +264,9 @@ magic.classes.MapViewManager = function(options) {
         this.cancBtn.click(jQuery.proxy(function() {
             this.mgrForm[0].reset();
             this.editForm.addClass("hidden");
-            this.loadBtn.prop("disabled", false);
-            this.editBtn.prop("disabled", false);
-            this.delBtn.prop("disabled", false);
+            this.setButtonStates({
+                loadBtn: false, addBtn: false, editBtn: !this.userMapSelected(), delBtn: !this.userMapSelected(), bmkBtn: true
+            });              
             this.dd.prop("disabled", false);                
         }, this));
         /* Close button */
@@ -294,23 +305,26 @@ magic.classes.MapViewManager.prototype.fetchMaps = function() {
         var bmTitles = {};
         var bmGroup = jQuery("<optgroup>", {label: "Publically available maps"});
         jQuery.each(baseMapData, function(ibm, bm) {
+            /* Strip permission-related data before the ':' */
+            var santisedName = bm.name.substring(bm.name.indexOf(":")+1);
             var bmOpt = jQuery("<option>", {value: bm.name});
             bmOpt.text(bm.title);
             bmGroup.append(bmOpt);
-            bmTitles[bm.name.substring(bm.name.indexOf(":")+1)] = bm.title;
+            bmTitles[santisedName] = bm.title;
         });
         this.dd.append(bmGroup);
-        this.userMapData = udata;
-        var currentBm = null;
-        var umGroup = null;
-        jQuery.each(userMapData, jQuery.proxy(function(ium, um) {
+        this.userMapData = {};
+        var currentBm = null, umGroup = null;
+        jQuery.each(udata, jQuery.proxy(function(ium, um) {
             if (currentBm == null || um.basemap != currentBm) {
-                umGroup = jQuery("<optgroup>", {label: "Views of " + bmTitles[um.basemap]});
+                currentBm = um.basemap;
+                umGroup = jQuery("<optgroup>", {label: "Your views of " + bmTitles[um.basemap]});
                 this.dd.append(umGroup);
             }
-            var umOpt = jQuery("<option>", {value: um.basemap + "/" + um.id});
+            var umOpt = jQuery("<option>", {value: "user:" + um.id});
             umOpt.text(um.name);
             umGroup.append(umOpt);
+            this.userMapData[um.id] = um;
         }, this));                   
         /* Disable irrelevant buttons which might otherwise offer confusing options */       
         this.loadBtn.prop("disabled", udata.length == 0 && baseMapData.length == 0);
@@ -357,10 +371,45 @@ magic.classes.MapViewManager.prototype.mapPayload = function() {
 };
 
 /**
- * Detect whether map with given id is a public base map (non-writable) or a user view (expressed as <basemapname>/<id>)
- * @param {type} mapid
+ * Set the form button states according to received object
+ * @para, {Object} states
  * @return {Boolean}
  */
-magic.classes.MapViewManager.prototype.isUserMap = function(mapid) {
-    return(mapid.indexOf("/") >= 0);
+magic.classes.MapViewManager.prototype.setButtonStates = function(states) {
+    for (var btn in states) {
+        if (states[btn]) {
+            this[btn].addClass("disabled");
+        } else {
+            this[btn].removeClass("disabled");
+        }
+        this[btn].prop("disabled", states[btn]);
+    }
+};
+
+/**
+ * Detect whether selected map option represents a public base map (non-writable) or a user view (expressed as <basemapname>/<id>)
+ * @return {Boolean}
+ */
+magic.classes.MapViewManager.prototype.userMapSelected = function() {
+    return(this.dd.val().startsWith("user:"));
+};
+
+/**
+ * Return the identifier for the selected map option
+ */
+magic.classes.MapViewManager.prototype.selectedMapId = function() {
+    return(this.dd.val().substring(this.dd.val().indexOf(":")+1));   
+};
+
+/**
+ * Return the load URL for the selected map option
+ */
+magic.classes.MapViewManager.prototype.selectedMapLoadUrl = function() {
+    var url = magic.config.paths.baseurl + "/home/";
+    if (this.userMapSelected()) {
+        url += this.userMapData[this.selectedMapId()].basemap + "/" + this.selectedMapId();
+    } else {
+        url += this.selectedMapId();
+    }
+    return(url);   
 };
