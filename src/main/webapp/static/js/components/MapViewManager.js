@@ -158,23 +158,25 @@ magic.classes.MapViewManager = function(options) {
         /* New map button */
         this.addBtn.click(jQuery.proxy(function() {
             this.editForm.removeClass("hidden");
-            this.efTitle.html('<strong>Add new map</strong>');
+            this.efTitle.html('<strong>Save current map view</strong>');
             this.mgrForm[0].reset();
             this.setButtonStates({
                 loadBtn: true, addBtn: true, editBtn: true, delBtn: true, bmkBtn: true
             });            
             this.nmInp.focus();
+            this.lastMod.closest("div.form-group").hide();
             this.dd.prop("disabled", true);
         }, this));
         /* Edit map button */
         this.editBtn.click(jQuery.proxy(function() {            
             this.editForm.removeClass("hidden");
-            this.efTitle.html('<strong>Edit existing map</strong>');
+            this.efTitle.html('<strong>Edit existing map view</strong>');
             var mapData = this.userMapData[this.selectedMapId()];
             this.idHid.val(mapData.id);
             this.bmHid.val(mapData.basemap);
             this.nmInp.val(mapData.name);
             this.pmSel.val(mapData.allowed_usage);
+            this.lastMod.closest("div.form-group").show();
             this.lastMod.html(mapData.modified_date);
             this.setButtonStates({
                 loadBtn: true, addBtn: true, editBtn: true, delBtn: true, bmkBtn: true
@@ -212,10 +214,7 @@ magic.classes.MapViewManager = function(options) {
             }, this));               
         }, this));
         /* Save button */
-        this.saveBtn.click(jQuery.proxy(function() {
-            if (!this.userMapSelected()) {
-                return(false);
-            }
+        this.saveBtn.click(jQuery.proxy(function() {            
             if (this.nmInp[0].checkValidity() === false) {
                 this.nmInp.closest("div.form-group").addClass("has-error");
             } else {
