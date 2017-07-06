@@ -26,7 +26,7 @@ magic.classes.UserLayerManager = function(options) {
         '<div id="' + this.id + '-content">' +                                   
             '<form id="' + this.id + '-form" class="form-horizontal" role="form">' +                             
                 '<div class="form-group form-group-sm col-sm-12"><strong>Select a user layer</strong></div>' +
-                '<div class="form-group form-group-sm col-sm-12" style="margin-bottom:0px">' +
+                '<div class="form-group form-group-sm col-sm-12">' +
                     '<select name="' + this.id + '-layers" id="' + this.id + '-layers" class="form-control" ' + 
                         'data-toggle="tooltip" data-placement="right" ' + 
                         'title="List of uploaded user layers">' +                       
@@ -107,10 +107,9 @@ magic.classes.UserLayerManager = function(options) {
                                 '<option value="login">with logged-in users only</option>' +
                             '</select>' + 
                         '</div>' + 
-                    '</div>' +                    
-                    '<div id="layer-file-upload-dz" class="dropzone col-sm-12">' + 
-                        '<!-- Upload area -->' + 
                     '</div>' + 
+                    '<div id="publish-files-dz" class="dropzone col-sm-12">' +                        
+                    '</div>' +                    
                     '<div class="form-group form-group-sm col-sm-12">' + 
                         '<label class="col-sm-3 control-label">Modified</label>' + 
                         '<div class="col-sm-9">' + 
@@ -118,7 +117,7 @@ magic.classes.UserLayerManager = function(options) {
                         '</div>' + 
                     '</div>' + 
                     '<div class="form-group form-group-sm col-sm-12">' +
-                        magic.modules.Common.buttonFeedbackSet(this.id, "Upload layer", "xs") +                         
+                        magic.modules.Common.buttonFeedbackSet(this.id, "Upload layer", "xs", "Upload") +                         
                         '<button id="' + this.id + '-cancel" class="btn btn-xs btn-danger" type="button" ' + 
                             'data-toggle="tooltip" data-placement="right" title="Cancel">' + 
                             '<span class="fa fa-times-circle"></span> Cancel' + 
@@ -133,7 +132,10 @@ magic.classes.UserLayerManager = function(options) {
         container: "body",
         html: true,            
         content: this.content
-    }).on("shown.bs.popover", jQuery.proxy(function() {        
+    }).on("shown.bs.popover", jQuery.proxy(function() { 
+        /* Initialise drag-drop zone */
+        console.log(jQuery("#publish-files-dz"));
+        this.initDropzone();
         /* Get widgets */
         this.ddLayers = jQuery("#" + this.id + "-layers");
         this.divVis   = jQuery("#" + this.id + "-layer-vis-div");
@@ -157,7 +159,7 @@ magic.classes.UserLayerManager = function(options) {
         /* Assign handlers - changing dropdown value*/
         this.ddLayers.change(jQuery.proxy(function() {
             this.setButtonStates({
-                loadBtn: this.ddLayers.val() == "", addBtn: false, editBtn: !this.userLayerSelected(), delBtn: !this.userLayerSelected(), bmkBtn: false
+                addBtn: false, editBtn: !this.userLayerSelected(), delBtn: !this.userLayerSelected(), bmkBtn: false
             });
             if (this.ddLayers.val() == "") {
                 this.divVis.addClass("hidden");
@@ -239,7 +241,7 @@ magic.classes.UserLayerManager = function(options) {
                 .done(jQuery.proxy(function(response) {
                         magic.modules.Common.buttonClickFeedback(this.id, jQuery.isNumeric(response) || response.status < 400, response.detail);
                         this.setButtonStates({
-                            loadBtn: false, addBtn: false, editBtn: !this.userLayerSelected(), delBtn: !this.userLayerSelected(), bmkBtn: true
+                            addBtn: false, editBtn: !this.userLayerSelected(), delBtn: !this.userLayerSelected(), bmkBtn: true
                         });                             
                         this.dd.prop("disabled", false);
                         setTimeout(jQuery.proxy(function() {
@@ -262,12 +264,12 @@ magic.classes.UserLayerManager = function(options) {
             this.mgrForm[0].reset();
             this.editFs.addClass("hidden");
             this.setButtonStates({
-                loadBtn: false, addBtn: false, editBtn: !this.userLayerSelected(), delBtn: !this.userLayerSelected(), bmkBtn: true
+                addBtn: false, editBtn: !this.userLayerSelected(), delBtn: !this.userLayerSelected(), bmkBtn: true
             });              
             this.dd.prop("disabled", false);                
         }, this));
         /* Close button */
-        jQuery(".viewmanager-popover").find("button.close").click(jQuery.proxy(function() { 
+        jQuery(".layermanager-popover").find("button.close").click(jQuery.proxy(function() { 
             this.target.popover("hide");
         }, this));                
     }, this));           
@@ -295,7 +297,7 @@ magic.classes.UserLayerManager.prototype.showEditForm = function(populator) {
         this.lastMod.closest("div.form-group").hide();
     }
     this.setButtonStates({
-        loadBtn: true, addBtn: true, editBtn: true, delBtn: true, bmkBtn: true
+        addBtn: true, editBtn: true, delBtn: true, bmkBtn: true
     });     
     this.mgrForm.find("input").first().focus();
     this.ddLayers.prop("disabled", true);
@@ -306,14 +308,16 @@ magic.classes.UserLayerManager.prototype.showEditForm = function(populator) {
  */
 magic.classes.UserLayerManager.prototype.fetchLayers = function() {
     //TODO
+    console.log("Not implemented");
 };
 
 /**
  * Detect whether selected layer is owned by current user
  * @return {Boolean}
  */
-magic.classes.userLayerManager.prototype.userLayerSelected = function() {
+magic.classes.UserLayerManager.prototype.userLayerSelected = function() {
     //TODO
+    console.log("Not implemented");
 };
 
 /**
@@ -337,6 +341,7 @@ magic.classes.UserLayerManager.prototype.setButtonStates = function(states) {
  */
 magic.classes.UserLayerManager.prototype.selectedLayerId = function() {
     //TODO
+    console.log("Not implemented");
 };
 
 /**
@@ -344,4 +349,106 @@ magic.classes.UserLayerManager.prototype.selectedLayerId = function() {
  */
 magic.classes.UserLayerManager.prototype.selectedLayerLoadUrl = function() {
     //TODO  
+    console.log("Not implemented");
 };
+
+/**
+ * Initialise the dropzone for uploading files
+ */
+magic.classes.UserLayerManager.prototype.initDropzone = function() {
+    var previewTemplate =             
+        '<div class="row col-sm-12">' + 
+            '<div class="col-sm-4" style="padding-left:0px !important">' +
+                '<p class="name" data-dz-name style="font-weight:bold"></p>' +                
+            '</div>' +
+            '<div class="col-sm-2">' +
+                '<p class="size" data-dz-size=""></p>' +
+            '</div>' +
+            '<div class="col-sm-4 publish-feedback">' +
+                '<div class="progress progress-striped active show" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">' +
+                    '<div class="progress-bar progress-bar-success" style="width:0%;" data-dz-uploadprogress></div>' +
+                '</div>' +
+                '<div class="publish-feedback-msg hidden">' + 
+                '</div>' + 
+            '</div>' +
+            '<div class="col-sm-2">' +
+                '<button data-dz-remove class="btn btn-xs btn-danger publish-delete show">' +
+                    '<i class="glyphicon glyphicon-trash"></i>' +
+                    '<span>&nbsp;Delete</span>' +
+                '</button>' +
+                '<button class="btn btn-xs btn-success publish-success hidden">' +
+                    '<i class="glyphicon glyphicon-ok"></i>' +
+                    '<span>&nbsp;Publish ok</span>' +
+                '</button>' +
+                '<button class="btn btn-xs btn-warning publish-error hidden">' +
+                    '<i class="glyphicon glyphicon-remove"></i>' +
+                    '<span>&nbsp;Publish failed</span>' +
+                '</button>' +
+            '</div>' +   
+            '<div class="row col-sm-12">' + 
+                '<strong class="error text-danger" data-dz-errormessage></strong>' + 
+            '</div>' + 
+        '</div>';         
+    jQuery("div#publish-files-dz").dropzone({
+        url: magic.config.paths.baseurl + "/publish_postgis",
+        paramName: "file", /* The name that will be used to transfer the file */
+        maxFilesize: 100,  /* Maximum file size, in MB */
+        uploadMultiple: false,
+        autoDiscover: false,
+        autoProcessQueue: false,
+        maxFiles: 1,
+        parallelUploads: 1,
+        previewTemplate: previewTemplate,
+        headers: {
+            "X-CSRF-TOKEN": jQuery("meta[name='_csrf']").attr("content")
+        },
+        init: function () {
+            this.on("success", function(file, response) {  
+                console.log("TODO");
+            }); 
+            this.on("maxfilesexceeded", function(file) {
+                this.removeAllFiles();
+                this.addFile(file);
+            });
+            this.on("addedfile", function(file) {
+                jQuery("div#publish-files-dz").find("p.name").html(magic.modules.Common.ellipsis(file.name, 18));
+            });
+            this.on("error", jQuery.proxy(function() {
+                window.setTimeout(jQuery.proxy(this.removeAllFiles, this), 3000);
+            }, this));
+        },
+        accept: function (file, done) {
+            switch (file.type) {
+                case "text/csv":
+                case "application/vnd.ms-excel":
+                case "application/gpx+xml":
+                case "application/vnd.google-earth.kml+xml":
+                case "application/zip":
+                case "application/x-zip-compressed":
+                    break;
+                case "":
+                    /* Do some more work - GPX (and sometimes KML) files routinely get uploaded without a type */
+                    if (file.name.match(/\.gpx$/) != null) {
+                        file.type = "application/gpx+xml";
+                    } else if (file.name.match(/\.kml$/) != null) {
+                        file.type = "application/vnd.google-earth.kml+xml";
+                    } else {
+                        done(this.options.dictInvalidFileType);
+                        return;
+                    }
+                    break;
+                default:
+                    done(this.options.dictInvalidFileType);
+                    return;
+            }
+            done();
+        },
+        dictDefaultMessage: "Upload GPX, KML, CSV or zipped Shapefiles by dragging and dropping them here",
+        dictInvalidFileType: "Not a GPX, KML, CSV or zipped Shapefile",
+        dictFileTooBig: "File is too large ({{filesize}} bytes) - maximum size is {{maxFileSize}}",
+        dictResponseError: "Publication failed - server responded with code {{statusCode}}",
+        dictCancelUpload: "Cancel upload",
+        dictCancelUploadConfirmation: "Are you sure?"
+    });
+};
+

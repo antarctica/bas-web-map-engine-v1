@@ -104,16 +104,20 @@ magic.modules.Common = function () {
          * @param {string} btnBaseId
          * @param {string} msg
          * @param {string} size lg|sm|xs
+         * @paran {string} btnCaption
          * @returns {String}
          */
-        buttonFeedbackSet: function(btnBaseId, msg, size) {
+        buttonFeedbackSet: function(btnBaseId, msg, size, btnCaption) {
             if (!size) {
                 size = "sm";
+            }
+            if (!btnCaption) {
+                btnCaption = "Save";
             }
             return(
                 '<button id="' + btnBaseId + '-go" class="btn btn-' + size + ' btn-primary" type="button" ' + 
                     'data-toggle="tooltip" data-placement="top" title="' + msg + '" style="margin-right:5px">' + 
-                    '<span class="fa fa-floppy-o"></span> Save' + 
+                    '<span class="fa fa-floppy-o"></span> ' + btnCaption + 
                 '</button>' +
                 '<button id="' + btnBaseId + '-fb-ok" class="btn btn-' + size + ' btn-success" style="display:none; margin-right:5px" type="button" ' + 
                     'data-toggle="tooltip" data-placement="top" title="Ok">' + 

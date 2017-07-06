@@ -152,14 +152,24 @@ magic.classes.AppContainer = function () {
         jQuery("#feedback-tool").closest("li").hide();
     }
     
-    /* User favourites tool */
+    /* User map view manager tool */
     magic.runtime.viewmanager = null;
     if (magic.runtime.username != "guest" && jQuery.inArray("viewmanager", magic.runtime.mapdata.controls) != -1) {
-        /* Activate user feedback tool */
+        /* Activate view manager tool */
         magic.runtime.viewmanager = new magic.classes.MapViewManager({target: "viewmanager-tool"});
     } else {
-        /* Hide the user feedback button */
+        /* Hide the view manager button */
         jQuery("#viewmanager-tool").closest("li").hide();
+    }
+    
+    /* User layer upload manager tool */
+    magic.runtime.layermanager = null;
+    if (magic.runtime.username != "guest" && jQuery.inArray("layermanager", magic.runtime.mapdata.controls) != -1) {
+        /* Activate layer upload manager tool */
+        magic.runtime.layermanager = new magic.classes.UserLayerManager({target: "layermanager-tool"});
+    } else {
+        /* Hide the layer upload manager button */
+        jQuery("#layermanager-tool").closest("li").hide();
     }
 
     /* Updates height of map when window resizes */

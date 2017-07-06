@@ -64,7 +64,6 @@
                                        data-toggle="tooltip" data-placement="top" title="Show positions of BAS aircraft"></input>
                                 BAS aircraft positions
                             </label>
-
                             <label class="checkbox-inline">
                                 <input type="checkbox" name="t3-controls" value="ships"
                                        data-toggle="tooltip" data-placement="top" title="Show positions of BAS ships"></input>
@@ -96,7 +95,7 @@
                             Overview map
                         </label>                         
                     </div>
-                    <div class="col-sm-12 form-inline">
+                    <div class="col-sm-12 form-inline" th:switch="${profile}">
                         <label class="checkbox-inline">
                             <input type="checkbox" name="t3-controls" value="download_data"
                                    data-toggle="tooltip" data-placement="top" title="Enable download of underlying data"></input>
@@ -106,8 +105,18 @@
                             <input type="checkbox" name="t3-controls" value="viewmanager"
                                    data-toggle="tooltip" data-placement="top" title="Enable logged-in users to manage custom map views"></input>
                             Custom map view management
-                        </label>                          
+                        </label> 
                         <label class="checkbox-inline">
+                            <input type="checkbox" name="t3-controls" value="layermanager"
+                                   data-toggle="tooltip" data-placement="top" title="Enable logged-in users to manage custom layer uploads"></input>
+                            Custom layer upload management
+                        </label> 
+                        <label class="checkbox-inline hidden" th:case="ccamlrgis">
+                            <input type="checkbox" name="t3-controls" value="feedback"
+                                   data-toggle="tooltip" data-placement="top" title="Enable user feedback for data and interface problems"></input>
+                            User feedback tool
+                        </label>     
+                        <label class="checkbox-inline" th:case="*">
                             <input type="checkbox" name="t3-controls" value="feedback"
                                    data-toggle="tooltip" data-placement="top" title="Enable user feedback for data and interface problems"></input>
                             User feedback tool

@@ -784,3 +784,11 @@ div.watermark {
 	max-width: 1000px;
 	width: auto;
 }
+
+/* Upload files dropzone styling */
+#publish-files-dz {
+    min-height: 100px; 
+    height: auto !important; 
+    border: 3px #909090 dashed; 
+    margin-bottom: 15px;    
+}

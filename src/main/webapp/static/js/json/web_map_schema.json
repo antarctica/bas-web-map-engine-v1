@@ -279,6 +279,7 @@
                             "overview_map",
                             "geosearch",
                             "viewmanager",
+                            "layermanager",
                             "feedback",
                             "download_data",
                             "measurement",
