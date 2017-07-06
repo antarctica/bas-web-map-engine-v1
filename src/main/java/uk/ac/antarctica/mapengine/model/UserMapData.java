@@ -6,7 +6,6 @@ package uk.ac.antarctica.mapengine.model;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import java.util.UUID;
 
 public class UserMapData extends AbstractMapData {
     
@@ -14,8 +13,8 @@ public class UserMapData extends AbstractMapData {
     private String basemap = "";   
     private String data = "";
     
-    public UserMapData(String tableName, String userTableName) {
-        super(tableName, userTableName);
+    public UserMapData(String tableName) {
+        super(tableName);
     }
 
     @Override
@@ -37,7 +36,7 @@ public class UserMapData extends AbstractMapData {
     @Override
     public String insertSql() {
         return(
-            "INSERT INTO " + getUserTableName() + " " + 
+            "INSERT INTO " + getTableName() + " " + 
             "(name, title, description, creation_date, modified_date, owner_name, owner_email, allowed_usage, allowed_edit, basemap, data) " + 
             "VALUES(?,?,?, current_timestamp,current_timestamp,?,?,?,?,?,?)"
         );
@@ -60,7 +59,7 @@ public class UserMapData extends AbstractMapData {
 
     @Override
     public String updateSql() {
-        return("UPDATE " + getUserTableName() + " SET " + 
+        return("UPDATE " + getTableName() + " SET " + 
             "name=?, " +            
             "modified_date=current_timestamp, " + 
             "allowed_usage=?, " +
@@ -77,6 +76,18 @@ public class UserMapData extends AbstractMapData {
             getAllowed_usage(),
             getBasemap(),
             getJsonDataAsPgObject(getData()),
+            Integer.parseInt(id)
+        });
+    }
+    
+    @Override
+    public String deleteSql() {
+        return("DELETE FROM " + getTableName() + " WHERE id=?");
+    }
+    
+    @Override
+    public Object[] deleteArgs(String id) {
+        return(new Object[] {
             Integer.parseInt(id)
         });
     }

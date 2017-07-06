@@ -7,6 +7,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import java.util.List;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
@@ -224,7 +225,7 @@ public class AbstractMapController {
             } else {
                 /* Do deletion */                
                 try {
-                    getMagicDataTpl().update("DELETE FROM " + webmapData.getTableName() + " WHERE id=?", new Object[]{mapId});                        
+                    getMagicDataTpl().update(webmapData.deleteSql(), webmapData.deleteArgs(mapId));                        
                     ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Successfully deleted");
                 } catch(DataAccessException dae) {
                     ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Error deleting data, message was: " + dae.getMessage());
@@ -234,6 +235,15 @@ public class AbstractMapController {
             ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Supports deleting map by name or id only");
         }       
         return (ret);
+    }
+    
+    /**
+     * Get the logged in username
+     * @param HttpServletRequest request
+     * @return String
+     */
+    protected String loggedInUsername(HttpServletRequest request) {
+        return(request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null);
     }
     
     /**

@@ -30,7 +30,12 @@ public abstract class AbstractMapData {
     
     /* Table containing user-variants on published maps */
     private String userTableName;
-   
+    
+    public AbstractMapData(String tableName) {        
+        this.tableName = tableName;
+        this.userTableName = null;
+    }
+    
     public AbstractMapData(String tableName, String userTableName) {        
         this.tableName = tableName;
         this.userTableName = userTableName;
@@ -44,7 +49,11 @@ public abstract class AbstractMapData {
     
     public abstract String updateSql();
     
-    public abstract Object[] updateArgs(String id);   
+    public abstract Object[] updateArgs(String id); 
+    
+    public abstract String deleteSql();
+    
+    public abstract Object[] deleteArgs(String id);    
     
     public Object getJsonElement(JsonObject jo, String key, boolean allowEmpty, Object defaultValue) {
         return(getJsonElement(jo, key, allowEmpty, defaultValue, String.class));
@@ -196,6 +205,5 @@ public abstract class AbstractMapData {
     public void setAllowed_edit(String allowed_edit) {
         this.allowed_edit = allowed_edit;
     }
-    
     
 }

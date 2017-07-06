@@ -22,6 +22,10 @@ public class PublishedMapData extends AbstractMapData {
     private String newslink = "";
     private String watermark = "";
     
+    public PublishedMapData(String tableName) {
+        super(tableName);
+    }
+    
     public PublishedMapData(String tableName, String userTableName) {
         super(tableName, userTableName);
     }
@@ -128,6 +132,16 @@ public class PublishedMapData extends AbstractMapData {
             getWatermark(),
             id
         });
+    }
+    
+    @Override
+    public String deleteSql() {
+        return("DELETE FROM " + getTableName() + " WHERE id=?");
+    }
+    
+    @Override
+    public Object[] deleteArgs(String id) {
+        return(new Object[] {id});
     }
 
     public String getVersion() {

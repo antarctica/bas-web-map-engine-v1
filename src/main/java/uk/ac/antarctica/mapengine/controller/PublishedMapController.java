@@ -41,13 +41,8 @@ public class PublishedMapController extends AbstractMapController {
     @RequestMapping(value = "/maps/dropdown", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
     @ResponseBody
     public ResponseEntity<String> mapViews(HttpServletRequest request)
-        throws ServletException, IOException, ServiceException {
-        PublishedMapData pmd = new PublishedMapData(
-            getEnv().getProperty("postgres.local.mapsTable"), 
-            getEnv().getProperty("postgres.local.usermapsTable")
-        );        
-        String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
-        return(getMapDropdownData(pmd, username, "view"));
+        throws ServletException, IOException, ServiceException {        
+        return(getMapDropdownData(new PublishedMapData(getEnv().getProperty("postgres.local.mapsTable")), loggedInUsername(request), "view"));
     }
     
     /**
@@ -61,13 +56,8 @@ public class PublishedMapController extends AbstractMapController {
     @RequestMapping(value = "/maps/dropdown/{action}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
     @ResponseBody
     public ResponseEntity<String> mapViews(HttpServletRequest request, @PathVariable("action") String action)
-        throws ServletException, IOException, ServiceException {
-        PublishedMapData pmd = new PublishedMapData(
-            getEnv().getProperty("postgres.local.mapsTable"), 
-            getEnv().getProperty("postgres.local.usermapsTable")
-        );   
-        String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
-        return(getMapDropdownData(pmd, username, action));
+        throws ServletException, IOException, ServiceException {       
+        return(getMapDropdownData(new PublishedMapData(getEnv().getProperty("postgres.local.mapsTable")), loggedInUsername(request), action));
     }
     
     /*---------------------------------------------------------------- Get map by id/name ----------------------------------------------------------------*/
@@ -83,13 +73,8 @@ public class PublishedMapController extends AbstractMapController {
     @RequestMapping(value = "/maps/id/{id}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
     @ResponseBody
     public ResponseEntity<String> mapById(HttpServletRequest request, @PathVariable("id") String id)
-        throws ServletException, IOException, ServiceException {
-        PublishedMapData pmd = new PublishedMapData(
-            getEnv().getProperty("postgres.local.mapsTable"), 
-            getEnv().getProperty("postgres.local.usermapsTable")
-        );   
-        String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
-        return(getMapByAttribute(pmd, username, "id", id, null));
+        throws ServletException, IOException, ServiceException {      
+        return(getMapByAttribute(new PublishedMapData(getEnv().getProperty("postgres.local.mapsTable")), loggedInUsername(request), "id", id, null));
     }
     
     /**
@@ -103,13 +88,8 @@ public class PublishedMapController extends AbstractMapController {
     @RequestMapping(value = "/maps/name/{name}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
     @ResponseBody
     public ResponseEntity<String> mapByName(HttpServletRequest request, @PathVariable("name") String name)
-        throws ServletException, IOException, ServiceException {
-        PublishedMapData pmd = new PublishedMapData(
-            getEnv().getProperty("postgres.local.mapsTable"), 
-            getEnv().getProperty("postgres.local.usermapsTable")
-        );   
-        String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
-        return(getMapByAttribute(pmd, username, "name", name, null));
+        throws ServletException, IOException, ServiceException {     
+        return(getMapByAttribute(new PublishedMapData(getEnv().getProperty("postgres.local.mapsTable")), loggedInUsername(request), "name", name, null));
     }
     
     /**
@@ -124,13 +104,17 @@ public class PublishedMapController extends AbstractMapController {
     @RequestMapping(value = "/maps/name/{name}/{usermapid}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
     @ResponseBody
     public ResponseEntity<String> userMapByName(HttpServletRequest request, @PathVariable("name") String name, @PathVariable("usermapid") Integer usermapid)
-        throws ServletException, IOException, ServiceException {
-        PublishedMapData pmd = new PublishedMapData(
-            getEnv().getProperty("postgres.local.mapsTable"), 
-            getEnv().getProperty("postgres.local.usermapsTable")
-        );   
-        String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
-        return(getMapByAttribute(pmd, username, "name", name, usermapid));
+        throws ServletException, IOException, ServiceException {        
+        return(
+            getMapByAttribute(
+                new PublishedMapData(
+                    getEnv().getProperty("postgres.local.mapsTable"), 
+                    getEnv().getProperty("postgres.local.usermapsTable")
+                ), 
+                loggedInUsername(request), 
+                "name", name, usermapid
+            )
+        );
     }
         
     /**
@@ -165,12 +149,8 @@ public class PublishedMapController extends AbstractMapController {
     @RequestMapping(value = "/maps/save", method = RequestMethod.POST, headers = {"Content-type=application/json"})
     public ResponseEntity<String> saveMap(HttpServletRequest request,
         @RequestBody String payload) throws Exception {
-        String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
-        PublishedMapData pmd = new PublishedMapData(
-            getEnv().getProperty("postgres.local.mapsTable"), 
-            getEnv().getProperty("postgres.local.usermapsTable")
-        );          
-        pmd.fromPayload(payload, username);                
+        PublishedMapData pmd = new PublishedMapData(getEnv().getProperty("postgres.local.mapsTable"));          
+        pmd.fromPayload(payload, loggedInUsername(request));                
         return (saveMapData(pmd, null));
     }
     
@@ -184,12 +164,8 @@ public class PublishedMapController extends AbstractMapController {
     public ResponseEntity<String> updateMap(HttpServletRequest request,
         @PathVariable("id") String id,
         @RequestBody String payload) throws Exception {
-        String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
-        PublishedMapData pmd = new PublishedMapData(
-            getEnv().getProperty("postgres.local.mapsTable"), 
-            getEnv().getProperty("postgres.local.usermapsTable")
-        );          
-        pmd.fromPayload(payload, username);
+        PublishedMapData pmd = new PublishedMapData(getEnv().getProperty("postgres.local.mapsTable"));          
+        pmd.fromPayload(payload, loggedInUsername(request));
         return (saveMapData(pmd, id));
     }
     
@@ -203,12 +179,7 @@ public class PublishedMapController extends AbstractMapController {
     @RequestMapping(value = "/maps/delete/{id}", method = RequestMethod.DELETE, produces = "application/json; charset=utf-8")
     public ResponseEntity<String> deleteMap(HttpServletRequest request,
         @PathVariable("id") String id) throws Exception {
-        String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
-        PublishedMapData pmd = new PublishedMapData(
-            getEnv().getProperty("postgres.local.mapsTable"), 
-            getEnv().getProperty("postgres.local.usermapsTable")
-        );          
-        return(deleteMapByAttribute(pmd, username, "id", id));
+        return(deleteMapByAttribute(new PublishedMapData(getEnv().getProperty("postgres.local.mapsTable")), loggedInUsername(request), "id", id));
     }      
     
     /**
@@ -219,12 +190,7 @@ public class PublishedMapController extends AbstractMapController {
     @RequestMapping(value = "/maps/deletebyname/{name}", method = RequestMethod.DELETE, produces = "application/json; charset=utf-8")
     public ResponseEntity<String> deleteMapByName(HttpServletRequest request,
         @PathVariable("name") String name) throws Exception {
-        String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
-        PublishedMapData pmd = new PublishedMapData(
-            getEnv().getProperty("postgres.local.mapsTable"), 
-            getEnv().getProperty("postgres.local.usermapsTable")
-        );          
-        return(deleteMapByAttribute(pmd, username, "name", name));
+        return(deleteMapByAttribute(new PublishedMapData(getEnv().getProperty("postgres.local.mapsTable")), loggedInUsername(request), "name", name));
     }      
 
 }

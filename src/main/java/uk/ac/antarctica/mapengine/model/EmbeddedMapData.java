@@ -6,7 +6,6 @@ package uk.ac.antarctica.mapengine.model;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import java.util.Date;
 import java.util.UUID;
 
 public class EmbeddedMapData extends AbstractMapData {
@@ -24,7 +23,7 @@ public class EmbeddedMapData extends AbstractMapData {
     private String layers = "";
     
     public EmbeddedMapData(String tableName) {
-        super(tableName, null);
+        super(tableName);
     }
 
     @Override
@@ -125,6 +124,16 @@ public class EmbeddedMapData extends AbstractMapData {
             getAllowed_edit(),            
             id
         });
+    }
+    
+    @Override
+    public String deleteSql() {
+        return("DELETE FROM " + getTableName() + " WHERE id=?");
+    }
+    
+    @Override
+    public Object[] deleteArgs(String id) {
+        return(new Object[] {id});
     }
 
     public int getWidth() {
