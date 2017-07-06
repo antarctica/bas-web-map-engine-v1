@@ -1,4 +1,4 @@
-/* Favourite maps form */
+/* Custom map view management */
 
 magic.classes.MapViewManager = function(options) {
         
@@ -114,10 +114,6 @@ magic.classes.MapViewManager = function(options) {
         content: this.content
     }).on("shown.bs.popover", jQuery.proxy(function() {        
         /* Get widgets */
-        this.idHid    = jQuery("#" + this.id + "-id");
-        this.bmHid    = jQuery("#" + this.id + "-basemap");
-        this.nmInp    = jQuery("#" + this.id + "-name");
-        this.pmSel    = jQuery("#" + this.id + "-allowed_usage");
         this.loadBtn  = jQuery("#" + this.id + "-view-list-go");
         this.bmkBtn   = jQuery("#" + this.id + "-view-list-bmk");
         this.addBtn   = jQuery("#" + this.id + "-add");
@@ -125,22 +121,22 @@ magic.classes.MapViewManager = function(options) {
         this.delBtn   = jQuery("#" + this.id + "-delete");
         this.saveBtn  = jQuery("#" + this.id + "-go");
         this.cancBtn  = jQuery("#" + this.id + "-cancel");
-        this.mgrForm  = jQuery("#" + this.id + "-form");
-        this.editForm = jQuery(".edit-view-fs");
+        this.mgrForm  = jQuery("#" + this.id + "-form");        
         this.efTitle  = jQuery("#" + this.id + "-eftitle");
-        this.dd       = jQuery("#" + this.id + "-view-list");
+        this.editFs   = this.efTitle.closest("div.well");
+        this.ddMaps   = jQuery("#" + this.id + "-view-list");
         this.newTab   = jQuery("#" + this.id + "-view-new-tab");
         this.lastMod  = jQuery("#" + this.id + "-last-mod");
         /* Fetch maps */
         this.fetchMaps();
         /* Set initial button states */
         this.setButtonStates({
-            loadBtn: true, addBtn: false, editBtn: true, delBtn: true, bmkBtn: false
+            loadBtn: true, addBtn: false, editBtn: true, delBtn: true, bmkBtn: true
         });
         /* Assign handlers - changing dropdown value*/
-        this.dd.change(jQuery.proxy(function() {
+        this.ddMaps.change(jQuery.proxy(function() {
             this.setButtonStates({
-                loadBtn: this.dd.val() == "", addBtn: false, editBtn: !this.userMapSelected(), delBtn: !this.userMapSelected(), bmkBtn: false
+                loadBtn: this.ddMaps.val() == "", addBtn: false, editBtn: !this.userMapSelected(), delBtn: !this.userMapSelected(), bmkBtn: false
             });            
         }, this));
         /* Load map button */
@@ -157,32 +153,12 @@ magic.classes.MapViewManager = function(options) {
         }, this));
         /* New map button */
         this.addBtn.click(jQuery.proxy(function() {
-            this.editForm.removeClass("hidden");
-            this.efTitle.html('<strong>Save current map view</strong>');
-            this.mgrForm[0].reset();
-            this.setButtonStates({
-                loadBtn: true, addBtn: true, editBtn: true, delBtn: true, bmkBtn: true
-            });            
-            this.nmInp.focus();
-            this.lastMod.closest("div.form-group").hide();
-            this.dd.prop("disabled", true);
+            this.showEditForm(null);            
         }, this));
         /* Edit map button */
-        this.editBtn.click(jQuery.proxy(function() {            
-            this.editForm.removeClass("hidden");
-            this.efTitle.html('<strong>Edit existing map view</strong>');
+        this.editBtn.click(jQuery.proxy(function() { 
             var mapData = this.userMapData[this.selectedMapId()];
-            this.idHid.val(mapData.id);
-            this.bmHid.val(mapData.basemap);
-            this.nmInp.val(mapData.name);
-            this.pmSel.val(mapData.allowed_usage);
-            this.lastMod.closest("div.form-group").show();
-            this.lastMod.html(mapData.modified_date);
-            this.setButtonStates({
-                loadBtn: true, addBtn: true, editBtn: true, delBtn: true, bmkBtn: true
-            });     
-            this.nmInp.focus();
-            this.dd.prop("disabled", true);
+            this.showEditForm(mapData);            
         }, this));
          /* Delete map button */
         this.delBtn.click(jQuery.proxy(function() {            
@@ -214,17 +190,18 @@ magic.classes.MapViewManager = function(options) {
             }, this));               
         }, this));
         /* Save button */
-        this.saveBtn.click(jQuery.proxy(function() {            
-            if (this.nmInp[0].checkValidity() === false) {
-                this.nmInp.closest("div.form-group").addClass("has-error");
+        this.saveBtn.click(jQuery.proxy(function() { 
+            var nameInput = jQuery("#" + this.id + "-name");
+            if (nameInput[0].checkValidity() === false) {
+                nameInput.closest("div.form-group").addClass("has-error");
             } else {
-                this.nmInp.closest("div.form-group").removeClass("has-error");
+                nameInput.closest("div.form-group").removeClass("has-error");
                 var formdata = {
-                    id: this.idHid.val(),
-                    name: this.nmInp.val(),
-                    allowed_usage: this.pmSel.val(),
-                    basemap: this.bmHid.val() || magic.runtime.mapname,
-                    data: this.mapPayload()
+                    id:             jQuery("#" + this.id + "-id").val(),
+                    name:           nameInput.val(),
+                    allowed_usage:  jQuery("#" + this.id + "-allowed_usage").val(),
+                    basemap:        jQuery("#" + this.id + "-basemap").val() || magic.runtime.mapname,
+                    data:           this.mapPayload()
                 };
                 var saveUrl = magic.config.paths.baseurl + "/usermaps/" + (formdata.id ? "update/" + formdata.id : "save");                
                 var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content");               
@@ -243,9 +220,9 @@ magic.classes.MapViewManager = function(options) {
                         this.setButtonStates({
                             loadBtn: false, addBtn: false, editBtn: !this.userMapSelected(), delBtn: !this.userMapSelected(), bmkBtn: true
                         });                             
-                        this.dd.prop("disabled", false);
+                        this.ddMaps.prop("disabled", false);
                         setTimeout(jQuery.proxy(function() {
-                            this.editForm.addClass("hidden");
+                            this.editFs.addClass("hidden");
                         }, this), 1000);
                         this.fetchMaps();
                     }, this))
@@ -262,11 +239,11 @@ magic.classes.MapViewManager = function(options) {
         /* Cancel button */
         this.cancBtn.click(jQuery.proxy(function() {
             this.mgrForm[0].reset();
-            this.editForm.addClass("hidden");
+            this.editFs.addClass("hidden");
             this.setButtonStates({
                 loadBtn: false, addBtn: false, editBtn: !this.userMapSelected(), delBtn: !this.userMapSelected(), bmkBtn: true
             });              
-            this.dd.prop("disabled", false);                
+            this.ddMaps.prop("disabled", false);                
         }, this));
         /* Close button */
         jQuery(".viewmanager-popover").find("button.close").click(jQuery.proxy(function() { 
@@ -276,12 +253,39 @@ magic.classes.MapViewManager = function(options) {
 };
 
 /**
+ * Show the edit map view form, pre-populated with the given object
+ * @param {Object} populator
+ */
+magic.classes.MapViewManager.prototype.showEditForm = function(populator) {
+    this.editFs.removeClass("hidden");    
+    this.mgrForm[0].reset();
+    if (populator != null) {
+        this.efTitle.html('<strong>Edit existing map view</strong>');
+        var inputs = ["id", "basemap", "name", "allowed_usage"];
+        var idBase = "#" + this.id + "-";
+        jQuery.each(inputs, function(idx, inp) {
+            jQuery(idBase + inp).val(populator[inp]);
+        });
+        this.lastMod.closest("div.form-group").show();
+        this.lastMod.html(populator.modified_date);
+    } else {
+        this.efTitle.html('<strong>Save current map view</strong>');
+        this.lastMod.closest("div.form-group").hide();
+    }
+    this.setButtonStates({
+        loadBtn: true, addBtn: true, editBtn: true, delBtn: true, bmkBtn: true
+    });     
+    this.mgrForm.find("input").first().focus();
+    this.ddMaps.prop("disabled", true);
+};
+
+/**
  * Fetch data on all official public and derived map views
  */
 magic.classes.MapViewManager.prototype.fetchMaps = function() {
     /* Clear select and prepend the invite to select */
-    this.dd.empty();
-    this.dd.append(jQuery("<option>", {value: "", text: "Please select"}));
+    this.ddMaps.empty();
+    this.ddMaps.append(jQuery("<option>", {value: "", text: "Please select"}));
     /* Load the officially defined maps */
     var baseRequest = jQuery.ajax({
         url: magic.config.paths.baseurl + "/maps/dropdown", 
@@ -311,14 +315,14 @@ magic.classes.MapViewManager.prototype.fetchMaps = function() {
             bmGroup.append(bmOpt);
             bmTitles[santisedName] = bm.title;
         });
-        this.dd.append(bmGroup);
+        this.ddMaps.append(bmGroup);
         this.userMapData = {};
         var currentBm = null, umGroup = null;
         jQuery.each(udata, jQuery.proxy(function(ium, um) {
             if (currentBm == null || um.basemap != currentBm) {
                 currentBm = um.basemap;
                 umGroup = jQuery("<optgroup>", {label: "Your views of " + bmTitles[um.basemap]});
-                this.dd.append(umGroup);
+                this.ddMaps.append(umGroup);
             }
             var umOpt = jQuery("<option>", {value: "user:" + um.id});
             umOpt.text(um.name);
@@ -390,14 +394,14 @@ magic.classes.MapViewManager.prototype.setButtonStates = function(states) {
  * @return {Boolean}
  */
 magic.classes.MapViewManager.prototype.userMapSelected = function() {
-    return(this.dd.val().startsWith("user:"));
+    return(this.ddMaps.val().startsWith("user:"));
 };
 
 /**
  * Return the identifier for the selected map option
  */
 magic.classes.MapViewManager.prototype.selectedMapId = function() {
-    return(this.dd.val().substring(this.dd.val().indexOf(":")+1));   
+    return(this.ddMaps.val().substring(this.ddMaps.val().indexOf(":")+1));   
 };
 
 /**

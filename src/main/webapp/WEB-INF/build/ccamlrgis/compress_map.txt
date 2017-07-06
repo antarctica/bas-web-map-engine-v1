@@ -1,6 +1,7 @@
 css/ol.css
 css/bootstrap.min.css
 css/bootstrap-slider.min.css
+css/dropzone.min.css
 css/prettify.css
 css/nav.css
 css/map.css
@@ -17,6 +18,7 @@ js/bootstrap.min.js
 js/typeahead.bundle.min.js
 js/bootstrap-slider.min.js
 js/bootbox.min.js
+js/dropzone.min.js
 js/prettify.js
 js/init.js
 js/modules

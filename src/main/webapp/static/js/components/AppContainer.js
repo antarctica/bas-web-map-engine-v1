@@ -181,7 +181,7 @@ magic.classes.AppContainer = function () {
             features: evt.features
         });
         jQuery.each(evt.features, jQuery.proxy(function(idx, feat) {
-            feat.setStyle(this.constructStyle(feat))
+            feat.setStyle(this.constructStyle(feat));
         }, this));        
         var layer = new ol.layer.Image({
             name: (evt.file && evt.file.name) ? evt.file.name : "_user_layer_" + magic.runtime.userlayers.length,
