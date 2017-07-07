@@ -85,9 +85,9 @@ magic.classes.UserLayerManager = function(options) {
                         '</div>' + 
                     '</div>' +
                     '<div class="form-group form-group-sm col-sm-12">' +
-                        '<label class="col-sm-4 control-label" for="' + this.id + '-layer-style">Style</label>' + 
+                        '<label class="col-sm-4 control-label" for="' + this.id + '-layer-style-mode">Style</label>' + 
                         '<div class="col-sm-8">' + 
-                            '<select id="' + this.id + '-layer-style" class="form-control" ' + 
+                            '<select id="' + this.id + '-layer-style-mode" class="form-control" ' + 
                                 'data-toggle="tooltip" data-placement="right" ' + 
                                 'title="Layer styling">' +
                                 '<option value="auto" default>Automatic</option>' + 
@@ -101,9 +101,9 @@ magic.classes.UserLayerManager = function(options) {
                     '<div id="' + this.id + '-style-fs" class="hidden">' + 
                         '<div id="' + this.id + '-style-point-fs">' + 
                             '<div class="form-group form-group-sm col-sm-12">' + 
-                                '<label class="col-sm-4 control-label" for="' + this.id + '-layer-style-point-marker">Marker</label>' + 
+                                '<label class="col-sm-4 control-label" for="' + this.id + '-layer-style-marker">Marker</label>' + 
                                 '<div class="col-sm-8">' + 
-                                    '<select class="form-control" id="' + this.id + '-layer-style-point-marker" ' +                                         
+                                    '<select class="form-control" id="' + this.id + '-layer-style-marker" ' +                                         
                                             'data-toggle="tooltip" data-placement="right" title="Choose a marker type">' + 
                                         '<option value="circle">Circle</option>' + 
                                         '<option value="triangle">Triangle</option>' + 
@@ -115,9 +115,9 @@ magic.classes.UserLayerManager = function(options) {
                                 '</div>' + 
                             '</div>' +
                             '<div class="form-group form-group-sm col-sm-12">' + 
-                                '<label class="col-sm-4 control-label" for="' + this.id + '-layer-style-point-radius">Size</label>' + 
+                                '<label class="col-sm-4 control-label" for="' + this.id + '-layer-style-radius">Size</label>' + 
                                 '<div class="col-sm-8">' +
-                                    '<input type="number" class="form-control" id="' + this.id + '-layer-style-point-radius" ' + 
+                                    '<input type="number" class="form-control" id="' + this.id + '-layer-style-radius" ' + 
                                             'placeholder="Radius of graphic marker in pixels" ' +
                                             'min="3" max="20" step="0.2" ' + 
                                             'data-toggle="tooltip" data-placement="right" title="Radius of graphic marker in pixels, default 5">' + 
@@ -126,9 +126,9 @@ magic.classes.UserLayerManager = function(options) {
                             '</div>' + 
                         '</div>' + 
                         '<div class="form-group form-group-sm col-sm-12">' + 
-                            '<label class="col-sm-4 control-label" for="' + this.id + '-layer-style-stroke-width">Outline width</label>' + 
+                            '<label class="col-sm-4 control-label" for="' + this.id + '-layer-style-stroke_width">Outline width</label>' + 
                             '<div class="col-sm-8">' +
-                                '<input type="number" class="form-control" id="' + this.id + '-layer-style-stroke-width" ' + 
+                                '<input type="number" class="form-control" id="' + this.id + '-layer-style-stroke_width" ' + 
                                        'placeholder="Width of outline in pixels" ' + 
                                        'min="3" max="20" step="0.2" ' + 
                                        'data-toggle="tooltip" data-placement="right" title="Width of outline in pixels, default 5">' + 
@@ -136,17 +136,17 @@ magic.classes.UserLayerManager = function(options) {
                             '</div>' + 
                         '</div>' + 
                         '<div class="form-group form-group-sm col-sm-12">' + 
-                            '<label class="col-sm-4 control-label" for="' + this.id + '-layer-style-stroke-color">Outline colour</label>' + 
+                            '<label class="col-sm-4 control-label" for="' + this.id + '-layer-style-stroke_color">Outline colour</label>' + 
                             '<div class="col-sm-8">' +
-                                '<input type="color" class="form-control" id="' + this.id + '-layer-style-stroke-color" ' +                                        
+                                '<input type="color" class="form-control" id="' + this.id + '-layer-style-stroke_color" ' +                                        
                                        'data-toggle="tooltip" data-placement="right" title="Colour of the graphic outline, default black"' + 
                                 '</input>' +
                             '</div>' + 
                         '</div>' + 
                         '<div class="form-group form-group-sm col-sm-12">' + 
-                            '<label for="' + this.id + '-layer-style-stroke-opacity" class="col-sm-4 control-label">Outline opacity</label>' + 
+                            '<label for="' + this.id + '-layer-style-stroke_opacity" class="col-sm-4 control-label">Outline opacity</label>' + 
                             '<div class="col-sm-8">' + 
-                                '<input type="number" class="form-control" id="' + this.id + '-layer-style-stroke-opacity" ' +
+                                '<input type="number" class="form-control" id="' + this.id + '-layer-style-stroke_opacity" ' +
                                        'placeholder="Outline opacity (0->1)" ' + 
                                        'min="0" max="1" step="0.1" ' + 
                                        'data-toggle="tooltip" data-placement="right" title="Outline opacity (0.0 = transparent, 1.0 = opaque)">' +                          
@@ -154,9 +154,9 @@ magic.classes.UserLayerManager = function(options) {
                             '</div>' + 
                         '</div>' + 
                         '<div class="form-group form-group-sm col-sm-12">' + 
-                            '<label class="col-sm-4 control-label" for="' + this.id + '-layer-style-stroke-linestyle">Line style</label>' + 
+                            '<label class="col-sm-4 control-label" for="' + this.id + '-layer-style-stroke_linestyle">Line style</label>' + 
                             '<div class="col-sm-8">' + 
-                                '<select class="form-control id="' + this.id + '-layer-style-stroke-linestyle" ' +                                       
+                                '<select class="form-control id="' + this.id + '-layer-style-stroke_linestyle" ' +                                       
                                         'data-toggle="tooltip" data-placement="right" title="Type of line" required="required">' + 
                                     '<option value="solid">Solid</option>'+ 
                                     '<option value="dotted">Dotted</option>' +
@@ -166,17 +166,17 @@ magic.classes.UserLayerManager = function(options) {
                             '</div>' + 
                         '</div>' + 
                         '<div class="form-group form-group-sm col-sm-12">' + 
-                            '<label class="col-sm-4 control-label" for="' + this.id + '-layer-style-fill-color">Fill colour</label>' + 
+                            '<label class="col-sm-4 control-label" for="' + this.id + '-layer-style-fill_color">Fill colour</label>' + 
                             '<div class="col-sm-8">' +
-                                '<input type="color" class="form-control" id="' + this.id + '-layer-style-fill-color" ' +                                        
+                                '<input type="color" class="form-control" id="' + this.id + '-layer-style-fill_color" ' +                                        
                                        'data-toggle="tooltip" data-placement="right" title="Colour of the graphic interior fill, default black"' + 
                                 '</input>' +
                             '</div>' + 
                         '</div>' + 
                         '<div class="form-group form-group-sm col-sm-12">' +
-                            '<label for="' + this.id + '-layer-style-fill-opacity" class="col-sm-4 control-label">Fill opacity</label>' + 
+                            '<label for="' + this.id + '-layer-style-fill_opacity" class="col-sm-4 control-label">Fill opacity</label>' + 
                             '<div class="col-sm-8">' + 
-                                '<input type="number" class="form-control" id="' + this.id + '-layer-style-fill-opacity" ' + 
+                                '<input type="number" class="form-control" id="' + this.id + '-layer-style-fill_opacity" ' + 
                                        'placeholder="Fill opacity (0->1)" ' + 
                                        'min="0" max="1" step="0.1" ' + 
                                        'data-toggle="tooltip" data-placement="right" title="Fill opacity (0.0 = transparent, 1.0 = opaque)" required="required">' + 
@@ -208,7 +208,7 @@ magic.classes.UserLayerManager = function(options) {
                         magic.modules.Common.buttonFeedbackSet(this.id, "Upload layer", "xs", "Upload") +                         
                         '<button id="' + this.id + '-cancel" class="btn btn-xs btn-danger" type="button" ' + 
                             'data-toggle="tooltip" data-placement="right" title="Cancel">' + 
-                            '<span class="fa fa-times-circle"></span> Cancel' + 
+                            '<span class="fa fa-times-circle"></span> Cancel' 4+ 
                         '</button>' +                        
                     '</div>' +  
                 '</div>' +
@@ -237,7 +237,7 @@ magic.classes.UserLayerManager = function(options) {
         this.elTitle  = jQuery("#" + this.id + "-layer-edit-title");
         this.editFs   = this.elTitle.closest("div.well");
         this.styleFs  = jQuery("#" + this.id + "-style-fs");
-        this.ddStyle = jQuery("#" + this.id + "-layer-style");
+        this.ddStyle = jQuery("#" + this.id + "-layer-style-mode");
         this.lastMod  = jQuery("#" + this.id + "-layer-last-mod");
         /* Fetch layers */
         this.fetchLayers();
@@ -321,13 +321,7 @@ magic.classes.UserLayerManager = function(options) {
                 this.nmInp.closest("div.form-group").addClass("has-error");
             } else {
                 this.nmInp.closest("div.form-group").removeClass("has-error");
-                var formdata = {
-                    id: this.idHid.val(),
-                    name: this.nmInp.val(),
-                    allowed_usage: this.pmSel.val(),
-                    basemap: this.bmHid.val() || magic.runtime.mapname,
-                    data: this.mapPayload()
-                };
+                var formdata = this.formToPayload();
                 var saveUrl = magic.config.paths.baseurl + "/userlayers/" + (formdata.id ? "update/" + formdata.id : "save");                
                 var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content");               
                 var jqXhr = jQuery.ajax({
@@ -345,7 +339,7 @@ magic.classes.UserLayerManager = function(options) {
                         this.setButtonStates({
                             addBtn: false, editBtn: !this.userLayerSelected(), delBtn: !this.userLayerSelected(), bmkBtn: true
                         });                             
-                        this.dd.prop("disabled", false);
+                        this.ddLayers.prop("disabled", false);
                         setTimeout(jQuery.proxy(function() {
                             this.editFs.addClass("hidden");
                         }, this), 1000);
@@ -386,12 +380,7 @@ magic.classes.UserLayerManager.prototype.showEditForm = function(populator) {
     this.mgrForm[0].reset();
     if (populator != null) {
         this.elTitle.html('<strong>Edit existing layer</strong>');
-        //TODO
-        var inputs = [];
-        var idBase = "#" + this.id + "-";
-        jQuery.each(inputs, function(idx, inp) {
-            jQuery(idBase + inp).val(populator[inp]);
-        });
+        this.payloadToForm(populator);
         this.lastMod.closest("div.form-group").show();
         this.lastMod.html(populator.modified_date);
     } else {
@@ -474,6 +463,43 @@ magic.classes.UserLayerManager.prototype.selectedLayerId = function() {
 magic.classes.UserLayerManager.prototype.selectedLayerLoadUrl = function() {
     //TODO  
     console.log("Not implemented");
+};
+
+/**
+ * Create required JSON payload from form fields
+ * @return {Object}
+ */
+magic.classes.UserLayerManager.prototype.formToPayload = function() {
+    var payload = {};
+    var idBase = "#" + this.id + "-layer-";
+    var inputs = ["id", "caption", "description", "allowed_usage"];
+    jQuery.each(inputs, function(idx, ip) {
+        payload[ip] = jQuery(idBase + ip).val();
+    });
+    payload["styledef"] = {};
+    var styleIdBase = idBase + "style-";
+    var styleInputs = ["mode", "marker", "radius", "stroke_width", "stroke_color", "stroke_opacity", "stroke_linestyle", "fill_color", "fill_opacity"];
+    jQuery.each(styleInputs, jQuery.proxy(function(idx, sip) {
+        payload["styledef"][sip] = jQuery(styleIdBase + sip).val();
+    }, this));
+    return(payload);
+};
+
+/**
+ * Populate form from given JSON payload
+ * @param {Object} populator
+ */
+magic.classes.UserLayerManager.prototype.payloadToForm = function(populator) {
+    var idBase = "#" + this.id + "-layer-";
+    var inputs = ["id", "caption", "description", "allowed_usage"];
+    jQuery.each(inputs, function(idx, ip) {
+        jQuery(idBase + ip).val(populator[ip]);
+    });
+    var styleIdBase = idBase + "style-";
+    var styleInputs = ["mode", "marker", "radius", "stroke_width", "stroke_color", "stroke_opacity", "stroke_linestyle", "fill_color", "fill_opacity"];
+    jQuery.each(styleInputs, jQuery.proxy(function(idx, sip) {
+        jQuery(styleIdBase + sip).val(populator["styledef"][sip]);
+    }, this));
 };
 
 /**
