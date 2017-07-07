@@ -14,7 +14,7 @@ magic.classes.MapViewManager = function(options) {
     this.map = options.map || magic.runtime.map;
     
     /* The retrieved data on base and user defined maps */
-    this.userMapData = [];
+    this.userMapData = {};
     
     this.template = 
         '<div class="popover popover-auto-width viewmanager-popover" role="popover">' + 

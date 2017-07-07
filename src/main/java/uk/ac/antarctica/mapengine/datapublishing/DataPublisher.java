@@ -244,8 +244,7 @@ public abstract class DataPublisher {
     }
         
     /**
-     * If table with given name exists in the upload schema, copy it to one with an archival name and remove the corresponding Geoserver feature
-     * NOTE: tableName must include a schema prefix i.e. be of form <schema>.<tablename>
+     * Unpublish an existing dataset by deleting it from PosGIS, unpublishing from Geoserver and deleting it from userlayers
      * @param String tableSchema
      * @param String tableName 
      */
