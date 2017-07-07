@@ -63,7 +63,7 @@ magic.classes.UserLayerManager = function(options) {
                     '<div class="form-group form-group-sm col-sm-12">' +                     
                         '<label class="col-sm-3" for="' + this.id + '-layer-caption">Name</label>' + 
                         '<div class="col-sm-9">' + 
-                            '<input type="text" name="' + this.id + '-layer-caption" id="' + this.id + '-layer-caption" class="form-control" ' + 
+                            '<input type="text" id="' + this.id + '-layer-caption" class="form-control" ' + 
                                 'placeholder="Layer caption" maxlength="100" ' + 
                                 'data-toggle="tooltip" data-placement="right" ' + 
                                 'title="Layer name (required)" ' + 
@@ -74,7 +74,7 @@ magic.classes.UserLayerManager = function(options) {
                     '<div class="form-group form-group-sm col-sm-12">' +
                         '<label class="col-sm-3" for="' + this.id + '-layer-description">Description</label>' + 
                         '<div class="col-sm-9">' + 
-                            '<textarea name="description" id="' + this.id + '-layer-description" class="form-control" ' + 
+                            '<textarea id="' + this.id + '-layer-description" class="form-control" ' + 
                                 'style="height:8em !important" ' + 
                                 'placeholder="Detailed layer description, purpose, content etc" ' + 
                                 'data-toggle="tooltip" data-placement="right" ' + 
@@ -85,7 +85,7 @@ magic.classes.UserLayerManager = function(options) {
                     '<div class="form-group form-group-sm col-sm-12">' +
                         '<label class="col-sm-3" for="' + this.id + '-layer-style">Style</label>' + 
                         '<div class="col-sm-9">' + 
-                            '<select name="' + this.id + '-layer-style" id="' + this.id + '-layer-style" class="form-control" ' + 
+                            '<select id="' + this.id + '-layer-style" class="form-control" ' + 
                                 'data-toggle="tooltip" data-placement="right" ' + 
                                 'title="Layer styling">' +
                                 '<option value="auto" default>Automatic</option>' + 
@@ -96,6 +96,82 @@ magic.classes.UserLayerManager = function(options) {
                             '</select>' + 
                         '</div>' + 
                     '</div>' +
+                    '<div id="' + this.id + '-style-fs" class="hidden">' + 
+                        '<div id="' + this.id + '-style-point-fs">' + 
+                            '<div class="form-group form-group-sm col-sm-12">' + 
+                                '<label class="col-sm-3 control-label" for="' + this.id + '-layer-style-point-marker">Marker</label>' + 
+                                '<div class="col-sm-9">' + 
+                                    '<select class="form-control" id="' + this.id + '-layer-style-point-marker" ' +                                         
+                                            'data-toggle="tooltip" data-placement="right" title="Choose a marker type">' + 
+                                        '<option value="circle">Circle</option>' + 
+                                        '<option value="triangle">Triangle</option>' + 
+                                        '<option value="square">Square</option>' + 
+                                        '<option value="pentagon">Pentagon</option>' + 
+                                        '<option value="hexagon">Hexagon</option>' + 
+                                        '<option value="star">Star</option>' + 
+                                    '</select>' +
+                                '</div>' + 
+                            '</div>' +
+                            '<div class="form-group form-group-sm col-sm-12">' + 
+                                '<label class="col-sm-3 control-label" for="' + this.id + '-layer-style-point-radius">Size</label>' + 
+                                '<div class="col-sm-9">' +
+                                    '<input type="number" class="form-control" id="' + this.id + '-layer-style-point-radius" ' + 
+                                            'placeholder="Radius of graphic marker in pixels" ' +
+                                            'min="3" max="20" step="0.2" ' + 
+                                            'data-toggle="tooltip" data-placement="right" title="Radius of graphic marker in pixels, default 5">' + 
+                                    '</input>' +
+                                '</div>' + 
+                            '</div>' + 
+                        '</div>' + 
+                        '<div class="form-group form-group-sm col-sm-12">' + 
+                            '<label class="col-sm-3 control-label" for="' + this.id + '-layer-style-stroke-width">Outline width</label>' + 
+                            '<div class="col-sm-9">' +
+                                '<input type="number" class="form-control" id="' + this.id + '-layer-style-stroke-width" ' + 
+                                       'placeholder="Width of outline in pixels" ' + 
+                                       'min="3" max="20" step="0.2" ' + 
+                                       'data-toggle="tooltip" data-placement="right" title="Width of outline in pixels, default 5">' + 
+                                '</input>' +
+                            '</div>' + 
+                        '</div>' + 
+                        '<div class="form-group form-group-sm col-sm-12">' + 
+                            '<label class="col-sm-3 control-label" for="' + this.id + '-layer-style-stroke-color">Outline colour</label>' + 
+                            '<div class="col-sm-9">' +
+                                '<input type="color" class="form-control" id="' + this.id + '-layer-style-stroke-color" ' +                                        
+                                       'data-toggle="tooltip" data-placement="right" title="Colour of the graphic outline, default black"' + 
+                                '</input>' +
+                            '</div>' + 
+                        '</div>' + 
+                        '<div class="form-group form-group-sm col-sm-12">' + 
+                            '<label class="col-sm-3 control-label" for="' + this.id + '-layer-style-stroke-style">Line style</label>' + 
+                            '<div class="col-sm-9">' + 
+                                '<select class="form-control id="' + this.id + '-layer-style-stroke-style" ' +                                       
+                                        'data-toggle="tooltip" data-placement="right" title="Type of line" required="required">' + 
+                                    '<option value="solid">Solid</option>'+ 
+                                    '<option value="dotted">Dotted</option>' +
+                                    '<option value="dashed">Dashed</option>' +
+                                    '<option value="dotted-dashed">Dash/dot</option>' + 
+                                '</select>' + 
+                            '</div>' + 
+                        '</div>' + 
+                        '<div class="form-group form-group-sm col-sm-12">' + 
+                            '<label class="col-sm-3 control-label" for="' + this.id + '-layer-style-fill-color">Fill colour</label>' + 
+                            '<div class="col-sm-9">' +
+                                '<input type="color" class="form-control" id="' + this.id + '-layer-style-fill-color" ' +                                        
+                                       'data-toggle="tooltip" data-placement="right" title="Colour of the graphic interior fill, default black"' + 
+                                '</input>' +
+                            '</div>' + 
+                        '</div>' + 
+                        '<div class="form-group form-group-sm col-sm-12">' +
+                            '<label for="' + this.id + '-layer-style-fill-opacity" class="col-sm-3 control-label">Opacity</label>' + 
+                            '<div class="col-sm-9">' + 
+                                '<input type="number" class="form-control" id="' + this.id + '-layer-style-fill-opacity" ' + 
+                                       'placeholder="Fill opacity (0->1)" ' + 
+                                       'min="0" max="1" step="0.1" ' + 
+                                       'data-toggle="tooltip" data-placement="right" title="Fill opacity (0.0 = transparent, 1.0 = opaque)" required="required">' + 
+                                '</input>' + 
+                            '</div>' + 
+                        '</div>' +                         
+                    '</div>' + 
                     '<div class="form-group form-group-sm col-sm-12">' +
                         '<label class="col-sm-3" for="' + this.id + '-layer-allowed_usage">Share</label>' + 
                         '<div class="col-sm-9">' + 
@@ -134,7 +210,6 @@ magic.classes.UserLayerManager = function(options) {
         content: this.content
     }).on("shown.bs.popover", jQuery.proxy(function() { 
         /* Initialise drag-drop zone */
-        console.log(jQuery("#publish-files-dz"));
         this.initDropzone();
         /* Get widgets */
         this.ddLayers = jQuery("#" + this.id + "-layers");
@@ -149,6 +224,8 @@ magic.classes.UserLayerManager = function(options) {
         this.mgrForm  = jQuery("#" + this.id + "-form");        
         this.elTitle  = jQuery("#" + this.id + "-layer-edit-title");
         this.editFs   = this.elTitle.closest("div.well");
+        this.styleFs  = jQuery("#" + this.id + "-style-fs");
+        this.ddStyle = jQuery("#" + this.id + "-layer-style");
         this.lastMod  = jQuery("#" + this.id + "-layer-last-mod");
         /* Fetch layers */
         this.fetchLayers();
@@ -156,7 +233,7 @@ magic.classes.UserLayerManager = function(options) {
         this.setButtonStates({
             addBtn: false, editBtn: true, delBtn: true, bmkBtn: true
         });
-        /* Assign handlers - changing dropdown value*/
+        /* Assign handlers - changing layer dropdown value*/
         this.ddLayers.change(jQuery.proxy(function() {
             this.setButtonStates({
                 addBtn: false, editBtn: !this.userLayerSelected(), delBtn: !this.userLayerSelected(), bmkBtn: false
@@ -166,7 +243,20 @@ magic.classes.UserLayerManager = function(options) {
             } else {
                 this.divVis.removeClass("hidden");
             }
-        }, this));        
+        }, this));  
+        this.ddStyle.change(jQuery.proxy(function() {
+            var selection = this.ddStyle.val();
+            if (selection == "auto" || selection == "file") {
+                this.styleFs.addClass("hidden");
+            } else {
+                this.styleFs.removeClass("hidden");
+                if (selection == "point") {
+                    jQuery("#" + this.id + "-style-point-fs").removeClass("hidden");
+                } else {
+                    jQuery("#" + this.id + "-style-point-fs").addClass("hidden");
+                }
+            }
+        }, this));
         /* Bookmarkable URL button */
         this.bmkBtn.click(jQuery.proxy(function() {             
             bootbox.prompt({
@@ -266,7 +356,7 @@ magic.classes.UserLayerManager = function(options) {
             this.setButtonStates({
                 addBtn: false, editBtn: !this.userLayerSelected(), delBtn: !this.userLayerSelected(), bmkBtn: true
             });              
-            this.dd.prop("disabled", false);                
+            this.ddLayers.prop("disabled", false);                
         }, this));
         /* Close button */
         jQuery(".layermanager-popover").find("button.close").click(jQuery.proxy(function() { 

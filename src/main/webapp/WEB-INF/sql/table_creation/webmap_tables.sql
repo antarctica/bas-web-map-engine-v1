@@ -242,7 +242,7 @@ CREATE TABLE webmap.userlayers
   creation_date timestamp without time zone, -- When layer was uploaded
   modified_date timestamp without time zone, -- Last modified date
   allowed_usage character varying(10), -- public|login|owner
-  styledef json -- Style configuration
+  styledef json, -- Style configuration
   CONSTRAINT user_data_pkey PRIMARY KEY (id)
 )
 WITH (
