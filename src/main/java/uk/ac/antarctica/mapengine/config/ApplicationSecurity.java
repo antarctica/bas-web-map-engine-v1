@@ -123,7 +123,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
                         "/thumbnail/show/**", "/prefs/get", "/gs/**").permitAll()
                 .antMatchers("/creator", "/creatord", "/embedded_creator", "/embedded_creatord",
                         "/restricted/**", "/restrictedd/**",
-                        "/publisher", "/publisherd", "/publish_postgis", "/prefs/set",
+                        "/publisher", "/publisherd", "/userlayers/**", "/prefs/set",
                         "/maps/save", "/maps/update/**", "/maps/delete/**", "/maps/deletebyname/**",
                         "/embedded_maps/save", "/embedded_maps/update/**", "/embedded_maps/delete/**", "/embedded_maps/deletebyname/**",
                         "/usermaps/save", "/usermaps/update/**", "/usermaps/delete/**",
@@ -140,7 +140,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
                         "/thumbnail/show/**", "/prefs/get", "/gs/**").permitAll()
                 .antMatchers("/creator", "/creatord", "/embedded_creator", "/embedded_creatord",
                         "/restricted/**", "/restrictedd/**",
-                        "/publisher", "/publisherd", "/publish_postgis", "/prefs/set",
+                        "/publisher", "/publisherd", "/userlayers/**", "/prefs/set",
                         "/maps/save", "/maps/update/**", "/maps/delete/**", "/maps/deletebyname/**",
                         "/embedded_maps/save", "/embedded_maps/update/**", "/embedded_maps/delete/**", "/embedded_maps/deletebyname/**",
                         "/usermaps/save", "/usermaps/update/**", "/usermaps/delete/**",

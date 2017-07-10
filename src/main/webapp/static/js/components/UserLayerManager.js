@@ -119,7 +119,7 @@ magic.classes.UserLayerManager = function(options) {
                                 '<div class="col-sm-8">' +
                                     '<input type="number" class="form-control" id="' + this.id + '-layer-style-radius" ' + 
                                             'placeholder="Radius of graphic marker in pixels" ' +
-                                            'min="3" max="20" step="0.2" ' + 
+                                            'min="3" max="20" step="0.2" value="5" ' + 
                                             'data-toggle="tooltip" data-placement="right" title="Radius of graphic marker in pixels, default 5">' + 
                                     '</input>' +
                                 '</div>' + 
@@ -130,8 +130,8 @@ magic.classes.UserLayerManager = function(options) {
                             '<div class="col-sm-8">' +
                                 '<input type="number" class="form-control" id="' + this.id + '-layer-style-stroke_width" ' + 
                                        'placeholder="Width of outline in pixels" ' + 
-                                       'min="3" max="20" step="0.2" ' + 
-                                       'data-toggle="tooltip" data-placement="right" title="Width of outline in pixels, default 5">' + 
+                                       'min="3" max="20" step="0.2" value="1" ' + 
+                                       'data-toggle="tooltip" data-placement="right" title="Width of outline in pixels, default 1">' + 
                                 '</input>' +
                             '</div>' + 
                         '</div>' + 
@@ -148,7 +148,7 @@ magic.classes.UserLayerManager = function(options) {
                             '<div class="col-sm-8">' + 
                                 '<input type="number" class="form-control" id="' + this.id + '-layer-style-stroke_opacity" ' +
                                        'placeholder="Outline opacity (0->1)" ' + 
-                                       'min="0" max="1" step="0.1" ' + 
+                                       'min="0" max="1" step="0.1" value="1.0" ' + 
                                        'data-toggle="tooltip" data-placement="right" title="Outline opacity (0.0 = transparent, 1.0 = opaque)">' +                          
                                 '</input>' + 
                             '</div>' + 
@@ -178,7 +178,7 @@ magic.classes.UserLayerManager = function(options) {
                             '<div class="col-sm-8">' + 
                                 '<input type="number" class="form-control" id="' + this.id + '-layer-style-fill_opacity" ' + 
                                        'placeholder="Fill opacity (0->1)" ' + 
-                                       'min="0" max="1" step="0.1" ' + 
+                                       'min="0" max="1" step="0.1" value="1.0" ' + 
                                        'data-toggle="tooltip" data-placement="right" title="Fill opacity (0.0 = transparent, 1.0 = opaque)" required="required">' + 
                                 '</input>' + 
                             '</div>' + 
@@ -208,7 +208,7 @@ magic.classes.UserLayerManager = function(options) {
                         magic.modules.Common.buttonFeedbackSet(this.id, "Upload layer", "xs", "Upload") +                         
                         '<button id="' + this.id + '-cancel" class="btn btn-xs btn-danger" type="button" ' + 
                             'data-toggle="tooltip" data-placement="right" title="Cancel">' + 
-                            '<span class="fa fa-times-circle"></span> Cancel' 4+ 
+                            '<span class="fa fa-times-circle"></span> Cancel' + 
                         '</button>' +                        
                     '</div>' +  
                 '</div>' +
@@ -220,9 +220,7 @@ magic.classes.UserLayerManager = function(options) {
         container: "body",
         html: true,            
         content: this.content
-    }).on("shown.bs.popover", jQuery.proxy(function() { 
-        /* Initialise drag-drop zone */
-        this.initDropzone();
+    }).on("shown.bs.popover", jQuery.proxy(function() {         
         /* Get widgets */
         this.ddLayers = jQuery("#" + this.id + "-layers");
         this.divVis   = jQuery("#" + this.id + "-layer-vis-div");
@@ -239,6 +237,8 @@ magic.classes.UserLayerManager = function(options) {
         this.styleFs  = jQuery("#" + this.id + "-style-fs");
         this.ddStyle = jQuery("#" + this.id + "-layer-style-mode");
         this.lastMod  = jQuery("#" + this.id + "-layer-last-mod");
+        /* Initialise drag-drop zone */
+        this.initDropzone();
         /* Fetch layers */
         this.fetchLayers();
         /* Set initial button states */
@@ -314,47 +314,7 @@ magic.classes.UserLayerManager = function(options) {
                     bootbox.hideAll();
                 }                            
             }, this));               
-        }, this));
-        /* Save button */
-        this.saveBtn.click(jQuery.proxy(function() {            
-            if (this.nmInp[0].checkValidity() === false) {
-                this.nmInp.closest("div.form-group").addClass("has-error");
-            } else {
-                this.nmInp.closest("div.form-group").removeClass("has-error");
-                var formdata = this.formToPayload();
-                var saveUrl = magic.config.paths.baseurl + "/userlayers/" + (formdata.id ? "update/" + formdata.id : "save");                
-                var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content");               
-                var jqXhr = jQuery.ajax({
-                    url: saveUrl, 
-                    data: JSON.stringify(formdata), 
-                    method: "POST",
-                    dataType: "json",
-                    contentType: "application/json",
-                    headers: {
-                        "X-CSRF-TOKEN": csrfHeaderVal
-                    }
-                })
-                .done(jQuery.proxy(function(response) {
-                        magic.modules.Common.buttonClickFeedback(this.id, jQuery.isNumeric(response) || response.status < 400, response.detail);
-                        this.setButtonStates({
-                            addBtn: false, editBtn: !this.userLayerSelected(), delBtn: !this.userLayerSelected(), bmkBtn: true
-                        });                             
-                        this.ddLayers.prop("disabled", false);
-                        setTimeout(jQuery.proxy(function() {
-                            this.editFs.addClass("hidden");
-                        }, this), 1000);
-                        this.fetchlayers();
-                    }, this))
-                .fail(function (xhr) {
-                    bootbox.alert(
-                        '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                            '<p>Failed to save user layer - details below:</p>' + 
-                            '<p>' + JSON.parse(xhr.responseText)["detail"] + '</p>' + 
-                        '</div>'
-                    );
-                });    
-            }                
-        }, this));
+        }, this));        
         /* Cancel button */
         this.cancBtn.click(jQuery.proxy(function() {
             this.mgrForm[0].reset();
@@ -538,9 +498,11 @@ magic.classes.UserLayerManager.prototype.initDropzone = function() {
             '<div class="row col-sm-12">' + 
                 '<strong class="error text-danger" data-dz-errormessage></strong>' + 
             '</div>' + 
-        '</div>';         
+        '</div>';
+    var ulm = this;
+    var saveBtn = this.saveBtn;
     jQuery("div#publish-files-dz").dropzone({
-        url: magic.config.paths.baseurl + "/publish_postgis",
+        url: magic.config.paths.baseurl + "/userlayers/save",
         paramName: "file", /* The name that will be used to transfer the file */
         maxFilesize: 100,  /* Maximum file size, in MB */
         uploadMultiple: false,
@@ -553,8 +515,25 @@ magic.classes.UserLayerManager.prototype.initDropzone = function() {
             "X-CSRF-TOKEN": jQuery("meta[name='_csrf']").attr("content")
         },
         init: function () {
-            this.on("success", function(file, response) {  
-                console.log("TODO");
+            this.on("success", function(evt, response) {
+                console.log(evt);
+                console.log(response);
+//                magic.modules.Common.buttonClickFeedback(this.id, jQuery.isNumeric(response) || response.status < 400, response.detail);
+//                this.setButtonStates({
+//                    addBtn: false, editBtn: !this.userLayerSelected(), delBtn: !this.userLayerSelected(), bmkBtn: true
+//                });                             
+//                this.ddLayers.prop("disabled", false);
+//                setTimeout(jQuery.proxy(function() {
+//                    this.editFs.addClass("hidden");
+//                }, this), 1000);
+//                this.fetchlayers();
+//                /* Failure mode */
+//                bootbox.alert(
+//                    '<div class="alert alert-warning" style="margin-bottom:0">' + 
+//                        '<p>Failed to save user layer - details below:</p>' + 
+//                        '<p>' + JSON.parse(xhr.responseText)["detail"] + '</p>' + 
+//                    '</div>'
+//                );
             }); 
             this.on("maxfilesexceeded", function(file) {
                 this.removeAllFiles();
@@ -566,6 +545,32 @@ magic.classes.UserLayerManager.prototype.initDropzone = function() {
             this.on("error", jQuery.proxy(function() {
                 window.setTimeout(jQuery.proxy(this.removeAllFiles, this), 3000);
             }, this));
+            /* Save button */
+            saveBtn.click(jQuery.proxy(function() {            
+                var ok = this.ulm.mgrForm[0].checkValidity();
+                /* Indicate invalid fields */
+                jQuery.each(this.ulm.mgrForm.find("input[required='required']"), function(idx, ri) {
+                    var riEl = jQuery(ri);
+                    var fg = riEl.closest("div.form-group");
+                    var vState = riEl.prop("validity");
+                    if (vState.valid) {
+                        fg.removeClass("has-error").addClass("has-success");
+                    } else {
+                        console.log(ri);
+                        fg.removeClass("has-success").addClass("has-error");
+                    }
+                });
+                //if (ok) {
+                    var formdata = this.ulm.formToPayload();
+                    /* Add the other form parameters to the dropzone POST */
+                    this.pfdz.on("sending", function(file, xhr, data) {
+                        jQuery.each(formdata, function(key, val) {
+                            data.append(key, val);
+                        });
+                    });
+                    this.pfdz.processQueue();                
+                //}                
+            }, {pfdz: this, ulm: ulm}));
         },
         accept: function (file, done) {
             switch (file.type) {
