@@ -32,7 +32,7 @@ public class CsvPublisher extends DataPublisher {
         
         try {            
             String pgUserSchema = ud.getUfue().getUserPgSchema();
-            String pgTable = standardiseName(ud.getUfmd().getName()).substring(0, 40);
+            String pgTable = standardiseName(ud.getUfmd().getName(), false, 40);
             String destTableName = pgUserSchema + "." + pgTable;
             
             /* Deduce table column types from CSV values and create the table */
@@ -55,7 +55,7 @@ public class CsvPublisher extends DataPublisher {
             getMagicDataTpl().execute("ALTER TABLE " + destTableName + " ADD PRIMARY KEY (pgid)");
             populateTable(ud.getUfmd().getUploaded(), columnTypes, destTableName);
             /* Now publish to Geoserver */
-            if (!getGrp().publishDBLayer(
+            if (!getGrm().getPublisher().publishDBLayer(
                     getEnv().getProperty("geoserver.local.userWorkspace"),
                     getEnv().getProperty("geoserver.local.userPostgis"),
                     configureFeatureType(ud.getUfmd(), destTableName),
@@ -159,7 +159,7 @@ public class CsvPublisher extends DataPublisher {
                         throw new IOException("Bad column name >" + colName + "< in first row - check this contains the attribute names");
                     } else {
                         /* Initialise the Postgres type */
-                        columnTypes.put(standardiseName(colName), null);
+                        columnTypes.put(standardiseName(colName, false, -1), null);
                     }
                 }
                 gotHeaders = true;

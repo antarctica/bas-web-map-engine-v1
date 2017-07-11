@@ -7,9 +7,12 @@ import java.io.File;
 
 public class UploadedFileMetadata {
 
+    private String uuid;
     private String name;
     private String title;
     private String description;
+    private String allowed_usage;
+    private String styledef;
     private String srs;
     private File uploaded;
 
@@ -54,6 +57,30 @@ public class UploadedFileMetadata {
     
     public void setUploaded(File uploaded) {
         this.uploaded = uploaded;
+    }
+
+    public String getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
+
+    public String getAllowed_usage() {
+        return allowed_usage;
+    }
+
+    public void setAllowed_usage(String allowed_usage) {
+        this.allowed_usage = allowed_usage;
+    }
+
+    public String getStyledef() {
+        return styledef;
+    }
+
+    public void setStyledef(String styledef) {
+        this.styledef = styledef;
     }
 
 }

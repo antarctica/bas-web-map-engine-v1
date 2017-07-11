@@ -3,8 +3,10 @@
  */
 package uk.ac.antarctica.mapengine.datapublishing;
 
-import it.geosolutions.geoserver.rest.GeoServerRESTPublisher;
+import it.geosolutions.geoserver.rest.GeoServerRESTManager;
+import it.geosolutions.geoserver.rest.decoder.RESTDataStore;
 import it.geosolutions.geoserver.rest.encoder.GSLayerEncoder;
+import it.geosolutions.geoserver.rest.encoder.datastore.GSPostGISDatastoreEncoder;
 import it.geosolutions.geoserver.rest.encoder.feature.FeatureTypeAttribute;
 import it.geosolutions.geoserver.rest.encoder.feature.GSAttributeEncoder;
 import it.geosolutions.geoserver.rest.encoder.feature.GSFeatureTypeEncoder;
@@ -14,6 +16,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
@@ -56,8 +60,8 @@ public abstract class DataPublisher {
     @Autowired
     private JdbcTemplate magicDataTpl;
     
-    /* Geoserver Manager publisher */
-    private GeoServerRESTPublisher grp = null;
+    /* Single endpoint for all Geoserver Manager functionality */
+    private GeoServerRESTManager grm = null;
     
     /* Map of PostgreSQL schema/credentials */
     private HashMap<String, String> pgMap = new HashMap();
@@ -78,12 +82,13 @@ public abstract class DataPublisher {
      * @return UploadedFileMetadata
      * @throws IOException 
      */
-    public UploadedData initWorkingEnvironment(MultipartFile mpf, String userName) throws IOException, DataAccessException {
+    public UploadedData initWorkingEnvironment(MultipartFile mpf, Map<String, String[]> parms, String userName) 
+        throws IOException, DataAccessException, MalformedURLException, GeoserverPublishException {                
         
-        if (getGrp() == null) {
-            /* Create Geoserver publisher */
-            setGrp(new GeoServerRESTPublisher(
-                getEnv().getProperty("geoserver.local.url"), 
+        if (getGrm() == null) {
+            /* Create Geoserver store manager */
+            setGrm(new GeoServerRESTManager(
+                new URL(getEnv().getProperty("geoserver.local.url")), 
                 getEnv().getProperty("geoserver.local.username"), 
                 getEnv().getProperty("geoserver.local.password")
             ));
@@ -103,22 +108,29 @@ public abstract class DataPublisher {
         ud.getUfue().setUserName(userName);
         ud.getUfue().setUserPgSchema(createPgSchema(userName));
         
+        /* Check user PostGIS store exposing the above schema exists, and create it if not */
+        ud.getUfue().setUserDatastore(createPgSchemaDatastore(ud.getUfue().getUserPgSchema()));        
+        
         File wd = new File(WDBASE + Calendar.getInstance().getTimeInMillis());
         if (wd.mkdir()) {
             /* Created the tempotary working directory, move the uploaded file there for conversion */
-            File uploaded = new File(wd.getAbsolutePath() + SEP + standardiseName(mpf.getOriginalFilename()));
+            File uploaded = new File(wd.getAbsolutePath() + SEP + standardiseName(mpf.getOriginalFilename(), true, -1));
             mpf.transferTo(uploaded);
             System.out.println("File transferred to : " + uploaded.getAbsolutePath());
             System.out.println("Is readable : " + (uploaded.canRead() ? "yes" : "no"));
             String basename = FilenameUtils.getBaseName(mpf.getOriginalFilename());
             ud.getUfmd().setUploaded(uploaded);
+            ud.getUfmd().setUuid(getParameter("id", parms, ""));
             ud.getUfmd().setName(basename);
-            ud.getUfmd().setTitle(basename.replace("[^A-Za-z0-9]", " ").replace("\\s{2,}", " "));
-            ud.getUfmd().setDescription(FilenameUtils.getExtension(mpf.getOriginalFilename()).toUpperCase() + 
-                " file " + mpf.getOriginalFilename() + 
-                " of size " + sizeFormatter(mpf.getSize()) + 
-                " uploaded on " + new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date()) + 
-                " by " + userName);
+            ud.getUfmd().setTitle(getParameter("title", parms, basename.replace("[^A-Za-z0-9]", " ").replace("\\s{2,}", " ")));
+            ud.getUfmd().setDescription(getParameter("description", parms, 
+                FilenameUtils.getExtension(mpf.getOriginalFilename()).toUpperCase() + 
+                    " file " + mpf.getOriginalFilename() + 
+                    " of size " + sizeFormatter(mpf.getSize()) + 
+                    " uploaded on " + new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date()) + 
+                    " by " + userName));
+            ud.getUfmd().setAllowed_usage(getParameter("allowed_usage", parms, "public"));
+            ud.getUfmd().setStyledef(getParameter("styledef", parms, "{\"mode\": \"auto\"}"));
             ud.getUfmd().setSrs("EPSG:4326");     /* Any different projection (shapefiles only) will be done in the appropriate place */
         } else {
             /* Failed to create */
@@ -136,6 +148,24 @@ public abstract class DataPublisher {
     }
     
     /**
+     * Recover the passed-in parameter, assigning a suitable default
+     * @param String name
+     * @param Map<String, String[]> parms
+     * @param String defaultVal
+     * @return String 
+     */
+    protected String getParameter(String name, Map<String, String[]> parms, String defaultVal) {
+        String parmVal;
+        String[] parmVals = parms.get(name);
+        if (parmVals != null && parmVals.length > 0) {
+            parmVal = (parmVals[0] != null && !parmVals[0].isEmpty()) ? parmVals[0] : defaultVal;
+        } else {
+            parmVal = defaultVal;
+        }
+        return(parmVal);
+    }
+    
+    /**
      * Create the named schema (a temporary UUID-named one if the input is null)
      * @param String fromName 
      * @return String the name of the created schema
@@ -145,7 +175,7 @@ public abstract class DataPublisher {
             fromName = "temp_" + UUID.randomUUID().toString();
         }
         /* Replace all non-lowercase alphanumerics with _ and truncate to 30 characters */
-        String schemaName = fromName.toLowerCase().replaceAll("[^a-z0-9]", "_").replaceAll("_{2,}", "_").replaceFirst("_$", "").substring(0, 30);        
+        String schemaName = standardiseName(fromName, false, 30);        
         getMagicDataTpl().execute("CREATE SCHEMA IF NOT EXISTS " + schemaName + " AUTHORIZATION " + getEnv().getProperty("datasource.magic.username"));
         return(schemaName);
     }
@@ -158,7 +188,31 @@ public abstract class DataPublisher {
         if (schemaName != null && !schemaName.isEmpty()) {
             getMagicDataTpl().execute("DROP SCHEMA IF EXISTS " + schemaName + " CASCADE");
         }
-    }    
+    }   
+    
+    /**
+     * Create a Geoserver PostGIS datastore of the given name in the global user workspace
+     * @param String schemaName 
+     * @return String the datastore name
+     */
+    protected String createPgSchemaDatastore(String schemaName) throws GeoserverPublishException {
+        String ws = getEnv().getProperty("geoserver.local.userWorkspace");
+        RESTDataStore rds = getGrm().getReader().getDatastore(ws, schemaName);
+        if (rds == null) {
+            GSPostGISDatastoreEncoder dse = new GSPostGISDatastoreEncoder(schemaName);
+            dse.setHost("localhost");
+            dse.setPort(5432);
+            dse.setDatabase("magic");
+            dse.setUser(getEnv().getProperty("datasource.magic.username"));
+            dse.setPassword(getEnv().getProperty("datasource.magic.password"));
+            dse.setSchema(schemaName);
+            dse.setMaxConnections(0);
+            if (!getGrm().getStoreManager().create(ws, dse)) {
+                throw new GeoserverPublishException("Failed to create PostGIS user store");
+            }
+        }
+        return(schemaName);
+    }
     
     /**
      * Unzip the given file into the same directory
@@ -166,21 +220,21 @@ public abstract class DataPublisher {
      */
     protected void unzipFile(File zip) throws FileNotFoundException, IOException {
         String workDir = zip.getParent();
-        ZipInputStream zis = new ZipInputStream(new FileInputStream(zip));
-        ZipEntry ze = zis.getNextEntry();
-        while(ze != null) {
-            File f = new File(workDir + SEP + ze.getName());
-            FileOutputStream fos = new FileOutputStream(f);
-            int len;
-            byte buffer[] = new byte[1024];
-            while ((len = zis.read(buffer)) > 0) {
-                fos.write(buffer, 0, len);
+        try (ZipInputStream zis = new ZipInputStream(new FileInputStream(zip))) {
+            ZipEntry ze = zis.getNextEntry();
+            while(ze != null) {
+                File f = new File(workDir + SEP + ze.getName());
+                try (FileOutputStream fos = new FileOutputStream(f)) {
+                    int len;
+                    byte buffer[] = new byte[1024];
+                    while ((len = zis.read(buffer)) > 0) {
+                        fos.write(buffer, 0, len);
+                    }
+                }
+                ze = zis.getNextEntry();
             }
-            fos.close();   
-            ze = zis.getNextEntry();
+            zis.closeEntry();
         }
-        zis.closeEntry();
-        zis.close();
     }
     
     /**
@@ -254,7 +308,7 @@ public abstract class DataPublisher {
         getMagicDataTpl().execute("DROP TABLE " + tableSchema + "." + tableName + " CASCADE");
      
         /* Drop any Geoserver feature corresponding to this table */
-        getGrp().unpublishFeatureType(
+        getGrm().getPublisher().unpublishFeatureType(
             getEnv().getProperty("geoserver.local.userWorkspace"),
             getEnv().getProperty("geoserver.local.userPostgis"),
             tableName
@@ -348,16 +402,24 @@ public abstract class DataPublisher {
     }
 
     /**
-     * Create a standardised file (and hence table) name from the user's
-     * filename - done by lowercasing, converting all non-alphanumerics to _ and
-     * sequences of _ to single _
-     * @param String fileName
+     * Create a standardised name for a file/table/schema - done by lowercasing,
+     * converting all non-alphanumerics to _ and sequences of _ to single _
+     * @param String name
+     * @param boolean allowDot - allow a period to delimit the suffix in a filename
+     * @param int lengthLimit - maximum string length, -1 to allow any
      * @return String
      */
-    protected String standardiseName(String fileName) {
+    protected String standardiseName(String name, boolean allowDot, int lengthLimit) {
         String stdName = "";
-        if (fileName != null && !fileName.isEmpty()) {
-            stdName = fileName.toLowerCase().replaceAll("[^a-z0-9.]", "_").replaceAll("_{2,}", "_").replaceFirst("_$", "");
+        if (name != null && !name.isEmpty()) {
+            stdName = name.toLowerCase().replaceAll(allowDot ? "[^a-z0-9.]" : "[^a-z0-9]", "_").replaceAll("_{2,}", "_").replaceFirst("_$", "");
+            if (Character.isDigit(stdName.charAt(0))) {
+                /* Disallow an initial digit, bad for PostGIS and Geoserver */
+                stdName = "x" + stdName;
+            }
+            if (lengthLimit > 0) {
+                stdName = stdName.substring(0, lengthLimit);
+            }
         }
         return (stdName);
     }
@@ -398,14 +460,6 @@ public abstract class DataPublisher {
     public void setMagicDataTpl(JdbcTemplate magicDataTpl) {
         this.magicDataTpl = magicDataTpl;
     }
-
-    public GeoServerRESTPublisher getGrp() {
-        return grp;
-    }
-
-    public final void setGrp(GeoServerRESTPublisher grp) {
-        this.grp = grp;
-    }
     
     public final HashMap<String, String> getPgMap() {
         return pgMap;
@@ -421,6 +475,20 @@ public abstract class DataPublisher {
 
     public void setAppRuntime(Runtime appRuntime) {
         this.appRuntime = appRuntime;
+    }
+
+    public GeoServerRESTManager getGrm() {
+        return grm;
+    }
+
+    public void setGrm(GeoServerRESTManager grm) {
+        this.grm = grm;
+    }
+    
+    public class GeoserverPublishException extends Exception {
+        public GeoserverPublishException(String message) {
+            super(message);
+        }
     }
 
 }

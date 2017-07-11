@@ -55,11 +55,11 @@ public class ShpZipPublisher extends DataPublisher {
                 }
                 if (sld != null) {
                     /* Create a Geoserver style based on the submitted SLD */
-                    getGrp().publishStyle(sld, standardiseName(sld.getName()));
+                    getGrm().getPublisher().publishStyle(sld, standardiseName(sld.getName(), false, -1));
                 }
                 if (shp != null) {
                     /* Copy any existing table to one with an archival name and remove all associated Geoserver feature types */
-                    String pgTable = standardiseName(FilenameUtils.getBaseName(shp.getName())).substring(0, 40);
+                    String pgTable = standardiseName(FilenameUtils.getBaseName(shp.getName()), false, 40);
                     String newTableName = pgUserSchema + "." + pgTable;
                     removeExistingData(pgUserSchema, pgTable);                        
                     /* Convert shapefile to PostGIS table via ogr2ogr */
@@ -67,7 +67,7 @@ public class ShpZipPublisher extends DataPublisher {
                     /* Publish to Geoserver */
                     GSFeatureTypeEncoder gsfte = configureFeatureType(ud.getUfmd(), newTableName);
                     GSLayerEncoder gsle = configureLayer(getGeometryType(newTableName));
-                    if (!getGrp().publishDBLayer(
+                    if (!getGrm().getPublisher().publishDBLayer(
                             getEnv().getProperty("geoserver.local.userWorkspace"), 
                             getEnv().getProperty("geoserver.local.userPostgis"), 
                             gsfte, 

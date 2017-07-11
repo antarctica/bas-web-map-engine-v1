@@ -47,7 +47,7 @@ public class GpxKmlPublisher extends DataPublisher {
 
                     /* Create destination table name (must not start with a number as this upsets Postgres and Geoserver) */
                     String tableBase = (Character.isDigit(uploadedBasename.charAt(0)) ? uploadedExtension + "_" : "") + uploadedBasename;
-                    String tableType = standardiseName((String)pgTableRec.get("table_name"));
+                    String tableType = standardiseName((String)pgTableRec.get("table_name"), false, 60);
                     String pgTable = tableBase + "_" + tableType;
                     String destTableName = pgUserSchema + "." + pgTable;
 
@@ -58,7 +58,7 @@ public class GpxKmlPublisher extends DataPublisher {
                         removeExistingData(pgUserSchema, pgTable); 
                         getMagicDataTpl().execute("CREATE TABLE " + destTableName + " AS TABLE " + srcTableName);
                         /* Now publish to Geoserver */                                                      
-                        if (!getGrp().publishDBLayer(
+                        if (!getGrm().getPublisher().publishDBLayer(
                             getEnv().getProperty("geoserver.local.userWorkspace"), 
                             getEnv().getProperty("geoserver.local.userPostgis"), 
                             configureFeatureType(ud.getUfmd(), destTableName), 
