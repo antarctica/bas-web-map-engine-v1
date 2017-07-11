@@ -436,12 +436,13 @@ magic.classes.UserLayerManager.prototype.formToPayload = function() {
     jQuery.each(inputs, function(idx, ip) {
         payload[ip] = jQuery(idBase + ip).val();
     });
-    payload["styledef"] = {};
+    var styledef = {};
     var styleIdBase = idBase + "style-";
     var styleInputs = ["mode", "marker", "radius", "stroke_width", "stroke_color", "stroke_opacity", "stroke_linestyle", "fill_color", "fill_opacity"];
     jQuery.each(styleInputs, jQuery.proxy(function(idx, sip) {
-        payload["styledef"][sip] = jQuery(styleIdBase + sip).val();
+        styledef[sip] = jQuery(styleIdBase + sip).val();
     }, this));
+    payload["styledef"] = JSON.stringify(styledef);
     return(payload);
 };
 
@@ -547,20 +548,20 @@ magic.classes.UserLayerManager.prototype.initDropzone = function() {
             }, this));
             /* Save button */
             saveBtn.click(jQuery.proxy(function() {            
-                var ok = this.ulm.mgrForm[0].checkValidity();
-                /* Indicate invalid fields */
+                /* Indicate any invalid fields */
+                var ok = true;
                 jQuery.each(this.ulm.mgrForm.find("input[required='required']"), function(idx, ri) {
                     var riEl = jQuery(ri);
                     var fg = riEl.closest("div.form-group");
                     var vState = riEl.prop("validity");
                     if (vState.valid) {
-                        fg.removeClass("has-error").addClass("has-success");
+                        fg.removeClass("has-error");
                     } else {
-                        console.log(ri);
-                        fg.removeClass("has-success").addClass("has-error");
+                        fg.addClass("has-error");
+                        ok = false;
                     }
                 });
-                //if (ok) {
+                if (ok) {
                     var formdata = this.ulm.formToPayload();
                     /* Add the other form parameters to the dropzone POST */
                     this.pfdz.on("sending", function(file, xhr, data) {
@@ -569,7 +570,9 @@ magic.classes.UserLayerManager.prototype.initDropzone = function() {
                         });
                     });
                     this.pfdz.processQueue();                
-                //}                
+                } else {
+                    bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Please correct the marked errors in your input and try again</div>');
+                }            
             }, {pfdz: this, ulm: ulm}));
         },
         accept: function (file, done) {
