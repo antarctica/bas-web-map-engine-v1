@@ -26,49 +26,43 @@ public class CsvPublisher extends DataPublisher {
      * @return String
      */
     @Override
-    public String publish(UploadedData ud) {
-        
-        String message = "";
-        
-        try {            
-            String pgUserSchema = ud.getUfue().getUserPgSchema();
-            String pgTable = standardiseName(ud.getUfmd().getName(), false, 40);
-            String destTableName = pgUserSchema + "." + pgTable;
+    public void publish(UploadedData ud) throws GeoserverPublishException, IOException, DataAccessException {
             
-            /* Deduce table column types from CSV values and create the table */
-            LinkedHashMap<String, String> columnTypes = getColumnTypeDictionary(ud.getUfmd().getUploaded());
-            removeExistingData(pgUserSchema, pgTable);
-            StringBuilder ctSql = new StringBuilder("CREATE TABLE " + destTableName + " (\n");
-            ctSql.append("pgid serial,\n");
-            for (String key : columnTypes.keySet()) {
-                ctSql.append("\"");
-                ctSql.append(key);
-                ctSql.append("\"");
-                ctSql.append(" ");
-                ctSql.append(columnTypes.get(key));
-                ctSql.append(",\n");
-            }
-            ctSql.append("wkb_geometry geometry(Point, 4326)\n");
-            ctSql.append(") WITH(OIDS=FALSE)");
-            getMagicDataTpl().execute(ctSql.toString());
-            getMagicDataTpl().execute("ALTER TABLE " + destTableName + " OWNER TO " + getEnv().getProperty("datasource.magic.username"));
-            getMagicDataTpl().execute("ALTER TABLE " + destTableName + " ADD PRIMARY KEY (pgid)");
-            populateTable(ud.getUfmd().getUploaded(), columnTypes, destTableName);
-            /* Now publish to Geoserver */
-            if (!getGrm().getPublisher().publishDBLayer(
-                    getEnv().getProperty("geoserver.local.userWorkspace"),
-                    getEnv().getProperty("geoserver.local.userPostgis"),
-                    configureFeatureType(ud.getUfmd(), destTableName),
-                    configureLayer("point")
-            )) {
-                message = "Publishing PostGIS table " + destTableName + " to Geoserver failed";
-            }            
-        } catch (IOException ioe) {
-            message = "Publish error occurred : " + ioe.getMessage();
-        } catch (DataAccessException dae) {
-            message = "Database error occurred during publish : " + dae.getMessage();
+        String pgUserSchema = ud.getUfue().getUserPgSchema();
+        String pgTable = standardiseName(ud.getUfmd().getName(), false, 40);
+        String destTableName = pgUserSchema + "." + pgTable;
+
+        /* Deduce table column types from CSV values and create the table */
+        LinkedHashMap<String, String> columnTypes = getColumnTypeDictionary(ud.getUfmd().getUploaded());
+        removeExistingData(ud.getUfmd().getUuid(), pgUserSchema, pgTable);
+        StringBuilder ctSql = new StringBuilder("CREATE TABLE " + destTableName + " (\n");
+        ctSql.append("pgid serial,\n");
+        for (String key : columnTypes.keySet()) {
+            ctSql.append("\"");
+            ctSql.append(key);
+            ctSql.append("\"");
+            ctSql.append(" ");
+            ctSql.append(columnTypes.get(key));
+            ctSql.append(",\n");
         }
-        return (message);
+        ctSql.append("wkb_geometry geometry(Point, 4326)\n");
+        ctSql.append(") WITH(OIDS=FALSE)");
+        getMagicDataTpl().execute(ctSql.toString());
+        getMagicDataTpl().execute("ALTER TABLE " + destTableName + " OWNER TO " + getEnv().getProperty("datasource.magic.username"));
+        getMagicDataTpl().execute("ALTER TABLE " + destTableName + " ADD PRIMARY KEY (pgid)");
+        populateTable(ud.getUfmd().getUploaded(), columnTypes, destTableName);
+        
+        /* Now publish to Geoserver */
+        if (!getGrm().getPublisher().publishDBLayer(
+                getEnv().getProperty("geoserver.local.userWorkspace"),
+                ud.getUfue().getUserDatastore(),
+                configureFeatureType(ud.getUfmd(), destTableName),
+                configureLayer("point")
+        )) {
+            throw new GeoserverPublishException("Publishing PostGIS table " + destTableName + " to Geoserver failed");
+        }
+        /* Finally insert/update the userlayers table record */
+        updateUserlayersRecord(ud);
     }
     
     /**

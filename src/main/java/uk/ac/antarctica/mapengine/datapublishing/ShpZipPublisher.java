@@ -25,9 +25,8 @@ public class ShpZipPublisher extends DataPublisher {
      * @return String
      */
     @Override
-    public String publish(UploadedData ud) {
+    public void publish(UploadedData ud) throws GeoserverPublishException, IOException, DataAccessException {
         
-        String message = "";               
         String pgUserSchema = ud.getUfue().getUserPgSchema();
 
         try {
@@ -37,7 +36,7 @@ public class ShpZipPublisher extends DataPublisher {
             Collection<File> shpCpts = FileUtils.listFiles(ud.getUfmd().getUploaded().getParentFile(), validFiles, true);
             if (shpCpts.size() < validFiles.length - 1) {
                 /* Cannot make sense of underspecified data */
-                message = "Shapefile " + ud.getUfmd().getUploaded().getName() + " is underspecified";
+                throw new GeoserverPublishException("Shapefile " + ud.getUfmd().getUploaded().getName() + " is underspecified");
             } else {
                 /* Find SLD if present, and publish a style */
                 File sld = null, shp = null;
@@ -73,22 +72,17 @@ public class ShpZipPublisher extends DataPublisher {
                             gsfte, 
                             gsle
                     )) {
-                        message = "Publishing PostGIS table " + newTableName + " to Geoserver failed";
+                        throw new GeoserverPublishException("Publishing PostGIS table " + newTableName + " to Geoserver failed");
                     }
                 } else {
-                    message = "Failed to find .shp file in the uploaded zip";
+                    throw new GeoserverPublishException("Failed to find .shp file in the uploaded zip");
                 }
             }  
-        } catch(DataAccessException dae) {
-            message = "Database error occurred during publish : " + dae.getMessage();
         } catch(ExecuteException ee) {
-            message = "Failed to convert the input file to PostGIS table(s), error was : " + ee.getMessage();
+            throw new GeoserverPublishException("Failed to convert the input file to PostGIS table(s), error was : " + ee.getMessage());
         } catch(FileNotFoundException fnfe) {
-            message = "Unexpected error during publish : " + fnfe.getMessage();
-        } catch(IOException ioe) {
-            message = "Unexpected error during publish : " + ioe.getMessage();
-        }
-        return (message);
+            throw new GeoserverPublishException("Unexpected error during publish : " + fnfe.getMessage());
+        } 
     }       
     
 }

@@ -73,11 +73,12 @@ public abstract class DataPublisher {
     }
 
     @Transactional
-    public abstract String publish(UploadedData ud);
+    public abstract void publish(UploadedData ud) throws GeoserverPublishException, IOException, DataAccessException;
     
     /**
      * Create the working environment to process a data file upload
      * @param MultipartFile mpf
+     * @param Map<String, String[]> parms
      * @param String userName
      * @return UploadedFileMetadata
      * @throws IOException 
@@ -215,6 +216,14 @@ public abstract class DataPublisher {
     }
     
     /**
+     * Insert/update record into the userlayers table
+     * @param UploadedData ud 
+     */
+    protected void updateUserlayersRecord(UploadedData ud) throws DataAccessException {
+        //TODO
+    }
+    
+    /**
      * Unzip the given file into the same directory
      * @param File zip 
      */
@@ -299,22 +308,24 @@ public abstract class DataPublisher {
         
     /**
      * Unpublish an existing dataset by deleting it from PosGIS, unpublishing from Geoserver and deleting it from userlayers
+     * @param String uuid
      * @param String tableSchema
      * @param String tableName 
      */
-    protected void removeExistingData(String tableSchema, String tableName) throws DataAccessException {
+    protected void removeExistingData(String uuid, String tableSchema, String tableName) throws DataAccessException {
         
         /* Drop the existing table, including any sequence and index previously created by ogr2ogr */
         getMagicDataTpl().execute("DROP TABLE " + tableSchema + "." + tableName + " CASCADE");
      
         /* Drop any Geoserver feature corresponding to this table */
-        getGrm().getPublisher().unpublishFeatureType(
+        if (!getGrm().getPublisher().unpublishFeatureType(
             getEnv().getProperty("geoserver.local.userWorkspace"),
             getEnv().getProperty("geoserver.local.userPostgis"),
             tableName
-        );
+        ))
         
-        /* TODO - drop any record of this feature in the user features table */
+        /* Drop any record of this feature in the user features table */
+        getMagicDataTpl().update("DELETE FROM " + getEnv().getProperty("postgres.local.userlayersTable") + " WHERE id=?", uuid);
     }
     
     /**
