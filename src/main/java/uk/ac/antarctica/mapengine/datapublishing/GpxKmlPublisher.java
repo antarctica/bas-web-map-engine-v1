@@ -48,12 +48,15 @@ public class GpxKmlPublisher extends DataPublisher {
                 String tableType = standardiseName((String)pgTableRec.get("table_name"), false, 60);
                 String pgTable = tableBase + "_" + tableType;
                 String destTableName = pgUserSchema + "." + pgTable;
+                
+                /* Record the feature type name */
+                ud.getUfue().setUserPgLayer(pgTable);
 
                 /* Check if the table contains any data */
                 int nRecs = getMagicDataTpl().queryForObject("SELECT count(*) FROM " + srcTableName, Integer.class);
                 if (nRecs > 0) {
                     /* Copy records from non-empty table into user uploads schema with a user-friendly name */ 
-                    removeExistingData(pgUserSchema, pgTable); 
+                    removeExistingData(ud.getUfmd().getUuid(), pgUserSchema, pgTable); 
                     getMagicDataTpl().execute("CREATE TABLE " + destTableName + " AS TABLE " + srcTableName);
                     /* Now publish to Geoserver */                                                      
                     if (!getGrm().getPublisher().publishDBLayer(

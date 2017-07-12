@@ -31,6 +31,9 @@ public class CsvPublisher extends DataPublisher {
         String pgUserSchema = ud.getUfue().getUserPgSchema();
         String pgTable = standardiseName(ud.getUfmd().getName(), false, 40);
         String destTableName = pgUserSchema + "." + pgTable;
+        
+        /* Record the feature type name */
+        ud.getUfue().setUserPgLayer(pgTable);
 
         /* Deduce table column types from CSV values and create the table */
         LinkedHashMap<String, String> columnTypes = getColumnTypeDictionary(ud.getUfmd().getUploaded());

@@ -3,6 +3,9 @@
  */
 package uk.ac.antarctica.mapengine.datapublishing;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import it.geosolutions.geoserver.rest.GeoServerRESTManager;
 import it.geosolutions.geoserver.rest.decoder.RESTDataStore;
 import it.geosolutions.geoserver.rest.encoder.GSLayerEncoder;
@@ -29,6 +32,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import javax.servlet.ServletContext;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.ExecuteException;
@@ -36,6 +40,8 @@ import org.apache.commons.exec.ExecuteWatchdog;
 import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
@@ -60,6 +66,8 @@ public abstract class DataPublisher {
     @Autowired
     private JdbcTemplate magicDataTpl;
     
+    private ServletContext servletContext;
+    
     /* Single endpoint for all Geoserver Manager functionality */
     private GeoServerRESTManager grm = null;
     
@@ -77,14 +85,17 @@ public abstract class DataPublisher {
     
     /**
      * Create the working environment to process a data file upload
+     * @param ServletContext sc
      * @param MultipartFile mpf
      * @param Map<String, String[]> parms
      * @param String userName
      * @return UploadedFileMetadata
      * @throws IOException 
      */
-    public UploadedData initWorkingEnvironment(MultipartFile mpf, Map<String, String[]> parms, String userName) 
-        throws IOException, DataAccessException, MalformedURLException, GeoserverPublishException {                
+    public UploadedData initWorkingEnvironment(ServletContext sc, MultipartFile mpf, Map<String, String[]> parms, String userName) 
+        throws IOException, DataAccessException, MalformedURLException, GeoserverPublishException {   
+        
+        setServletContext(sc);
         
         if (getGrm() == null) {
             /* Create Geoserver store manager */
@@ -130,6 +141,7 @@ public abstract class DataPublisher {
                     " of size " + sizeFormatter(mpf.getSize()) + 
                     " uploaded on " + new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date()) + 
                     " by " + userName));
+            ud.getUfmd().setFiletype(FilenameUtils.getExtension(mpf.getOriginalFilename()).toLowerCase());
             ud.getUfmd().setAllowed_usage(getParameter("allowed_usage", parms, "public"));
             ud.getUfmd().setStyledef(getParameter("styledef", parms, "{\"mode\": \"auto\"}"));
             ud.getUfmd().setSrs("EPSG:4326");     /* Any different projection (shapefiles only) will be done in the appropriate place */
@@ -213,14 +225,96 @@ public abstract class DataPublisher {
             }
         }
         return(schemaName);
-    }
+    } 
     
     /**
-     * Insert/update record into the userlayers table
-     * @param UploadedData ud 
+     * Create a style based on the user's requirements
+     * @param String schemaName
+     * @param String tableName
+     * @param String styledef
+     * @param File exStyleFile
+     * @return String style name
      */
-    protected void updateUserlayersRecord(UploadedData ud) throws DataAccessException {
-        //TODO
+    protected String createLayerStyling(String schemaName, String tableName, String styledef, File exStyleFile) throws IOException, FileNotFoundException{        
+        JsonElement jesd = new JsonParser().parse(styledef);
+        JsonObject josd = jesd.getAsJsonObject();
+        String mode = !josd.has("mode") ? "default" : josd.get("mode").getAsString();
+        String geomType = getGeometryType(schemaName + "." + tableName);
+        String styleName = geomType;
+        switch(mode) {
+            case "file":
+                /* Style is in file supplied (shapefile), or internal to the file (GPX/KML) when exStyleFile is null */
+                if (exStyleFile != null && getGrm().getPublisher().publishStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), exStyleFile, tableName)) {
+                    styleName = tableName;
+                }                
+                break;
+            case "point":
+                if (geomType.equals("point")) {
+                    String genSld = getServletContext().getContextPath() + "/WEB-INF/sld/point.xml";
+                    String content = FileUtils.readFileToString(new File(genSld));
+                    String sldOut = StringUtils.replaceEachRepeatedly(
+                        content, 
+                        new String[]{"{marker}", "{radius}", "{fill_color}", "fill_opacity}", "{stroke_width}", "{stroke_color}", "{stroke_opacity}"}, 
+                        new String[]{
+                            josd.has("marker") ? josd.get("marker").getAsString() : "circle",
+                            josd.has("radius") ? josd.get("radius").getAsString() : "5",
+                            josd.has("fill_color") ? josd.get("fill_color").getAsString() : "#ffffff",
+                            josd.has("fill_opacity") ? josd.get("fill_opacity").getAsString() : "1.0",
+                            josd.has("stroke_width") ? josd.get("stroke_width").getAsString() : "1",
+                            josd.has("stroke_color") ? josd.get("stroke_color").getAsString() : "#000000",
+                            josd.has("stroke_opacity") ? josd.get("stroke_opacity").getAsString() : "1.0"
+                        });
+                    if (getGrm().getPublisher().publishStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, tableName)) {
+                        styleName = tableName;
+                    }
+                }
+                break;
+            case "line":
+                if (geomType.equals("line")) {
+                    String genSld = getServletContext().getContextPath() + "/WEB-INF/sld/line.xml";
+                    String content = FileUtils.readFileToString(new File(genSld));
+                    String sldOut = StringUtils.replaceEachRepeatedly(
+                        content, 
+                        new String[]{"{marker}", "{radius}", "{fill_color}", "fill_opacity}", "{stroke_width}", "{stroke_color}", "{stroke_opacity}"}, 
+                        new String[]{
+                            josd.has("marker") ? josd.get("marker").getAsString() : "circle",
+                            josd.has("radius") ? josd.get("radius").getAsString() : "5",
+                            josd.has("fill_color") ? josd.get("fill_color").getAsString() : "#ffffff",
+                            josd.has("fill_opacity") ? josd.get("fill_opacity").getAsString() : "1.0",
+                            josd.has("stroke_width") ? josd.get("stroke_width").getAsString() : "1",
+                            josd.has("stroke_color") ? josd.get("stroke_color").getAsString() : "#000000",
+                            josd.has("stroke_opacity") ? josd.get("stroke_opacity").getAsString() : "1.0"
+                        });
+                    if (getGrm().getPublisher().publishStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, tableName)) {
+                        styleName = tableName;
+                    }
+                }
+                break;
+            case "polygon":
+                if (geomType.equals("polygon")) {
+                    String genSld = getServletContext().getContextPath() + "/WEB-INF/sld/polygon.xml";
+                    String content = FileUtils.readFileToString(new File(genSld));
+                    String sldOut = StringUtils.replaceEachRepeatedly(
+                        content, 
+                        new String[]{"{marker}", "{radius}", "{fill_color}", "fill_opacity}", "{stroke_width}", "{stroke_color}", "{stroke_opacity}"}, 
+                        new String[]{
+                            josd.has("marker") ? josd.get("marker").getAsString() : "circle",
+                            josd.has("radius") ? josd.get("radius").getAsString() : "5",
+                            josd.has("fill_color") ? josd.get("fill_color").getAsString() : "#ffffff",
+                            josd.has("fill_opacity") ? josd.get("fill_opacity").getAsString() : "1.0",
+                            josd.has("stroke_width") ? josd.get("stroke_width").getAsString() : "1",
+                            josd.has("stroke_color") ? josd.get("stroke_color").getAsString() : "#000000",
+                            josd.has("stroke_opacity") ? josd.get("stroke_opacity").getAsString() : "1.0"
+                        });
+                    if (getGrm().getPublisher().publishStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, tableName)) {
+                        styleName = tableName;
+                    }
+                }
+                break;
+            default:
+                break;
+        }
+        return(styleName);
     }
     
     /**
@@ -326,6 +420,47 @@ public abstract class DataPublisher {
         
         /* Drop any record of this feature in the user features table */
         getMagicDataTpl().update("DELETE FROM " + getEnv().getProperty("postgres.local.userlayersTable") + " WHERE id=?", uuid);
+    }
+    
+    /**
+     * Insert/update record into the userlayers table
+     * @param UploadedData ud 
+     */
+    protected void updateUserlayersRecord(UploadedData ud) throws DataAccessException, FileNotFoundException, IOException {
+        String uuid = ud.getUfmd().getUuid();
+        if (uuid == null || uuid.equals("")) {
+            /* This is an insert */
+            getMagicDataTpl().update("INSERT INTO " + getEnv().getProperty("postgres.local.userlayersTable") + " " + 
+                "VALUES(?,?,?,?,?,?,?,?,?,current_timestamp,current_timestamp,?,?)", 
+                new Object[] {
+                    UUID.randomUUID().toString(),
+                    ud.getUfmd().getName(),
+                    ud.getUfmd().getDescription(),
+                    IOUtils.toByteArray(new FileInputStream(ud.getUfmd().getUploaded())),
+                    ud.getUfmd().getFiletype(),
+                    getEnv().getProperty("geoserver.local.url") + "/" + getEnv().getProperty("geoserver.local.workspace") + "/wms",
+                    ud.getUfue().getUserDatastore(),
+                    ud.getUfue().getUserPgLayer(),
+                    ud.getUfue().getUserName(),
+                    ud.getUfmd().getAllowed_usage(),
+                    ud.getUfmd().getStyledef()
+                });
+        } else {
+            /* This is an update of an existing record */
+            getMagicDataTpl().update("UPDATE " + getEnv().getProperty("postgres.local.userlayersTable") + " " + 
+                "SET name=?,description=?,upload=?,filetype=?,store=?,layer=?,modified_date=current_timestamp,allowed_usage=?,styledef=? WHERE id=?", 
+                new Object[] {
+                    ud.getUfmd().getName(),
+                    ud.getUfmd().getDescription(),
+                    IOUtils.toByteArray(new FileInputStream(ud.getUfmd().getUploaded())),
+                    ud.getUfmd().getFiletype(),
+                    ud.getUfue().getUserDatastore(),
+                    ud.getUfue().getUserPgLayer(),
+                    ud.getUfmd().getAllowed_usage(),
+                    ud.getUfmd().getStyledef(),
+                    ud.getUfmd().getUuid()
+                });
+        }
     }
     
     /**
@@ -478,6 +613,14 @@ public abstract class DataPublisher {
     
     public void setPgMap(HashMap<String, String> pgMap) {
         this.pgMap = pgMap;
+    }
+        
+    public ServletContext getServletContext() {
+        return servletContext;
+    }
+
+    public void setServletContext(ServletContext servletContext) {
+        this.servletContext = servletContext;
     }
 
     public Runtime getAppRuntime() {

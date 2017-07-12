@@ -39,7 +39,7 @@ public class ShpZipPublisher extends DataPublisher {
                 throw new GeoserverPublishException("Shapefile " + ud.getUfmd().getUploaded().getName() + " is underspecified");
             } else {
                 /* Find SLD if present, and publish a style */
-                File sld = null, shp = null;
+                File sld = null, shp = null;                
                 for (File f : shpCpts) {
                     switch (FilenameUtils.getExtension(f.getName())) {
                         case "sld":
@@ -51,19 +51,19 @@ public class ShpZipPublisher extends DataPublisher {
                             shp = f.getAbsoluteFile();
                             break;
                     }
-                }
-                if (sld != null) {
-                    /* Create a Geoserver style based on the submitted SLD */
-                    getGrm().getPublisher().publishStyle(sld, standardiseName(sld.getName(), false, -1));
-                }
+                }                
                 if (shp != null) {
                     /* Copy any existing table to one with an archival name and remove all associated Geoserver feature types */
                     String pgTable = standardiseName(FilenameUtils.getBaseName(shp.getName()), false, 40);
                     String newTableName = pgUserSchema + "." + pgTable;
-                    removeExistingData(pgUserSchema, pgTable);                        
+                    /* Record the feature type name */
+                    ud.getUfue().setUserPgLayer(pgTable);
+                    removeExistingData(ud.getUfmd().getUuid(), pgUserSchema, pgTable);                        
                     /* Convert shapefile to PostGIS table via ogr2ogr */
                     executeOgr2ogr(shp, newTableName, pgUserSchema);
-                    /* Publish to Geoserver */
+                    /* Publish style to Geoserver */
+                    String styleName = createLayerStyling(pgUserSchema, pgTable, ud.getUfmd().getStyledef(), sld);                
+                    /* Publish feature to Geoserver */
                     GSFeatureTypeEncoder gsfte = configureFeatureType(ud.getUfmd(), newTableName);
                     GSLayerEncoder gsle = configureLayer(getGeometryType(newTableName));
                     if (!getGrm().getPublisher().publishDBLayer(

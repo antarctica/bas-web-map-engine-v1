@@ -15,6 +15,7 @@ public class UploadedFileMetadata {
     private String styledef;
     private String srs;
     private File uploaded;
+    private String filetype;
 
     public UploadedFileMetadata() {
     }
@@ -81,6 +82,14 @@ public class UploadedFileMetadata {
 
     public void setStyledef(String styledef) {
         this.styledef = styledef;
+    }
+
+    public String getFiletype() {
+        return filetype;
+    }
+
+    public void setFiletype(String filetype) {
+        this.filetype = filetype;
     }
 
 }

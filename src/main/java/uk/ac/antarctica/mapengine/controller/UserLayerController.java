@@ -6,6 +6,7 @@ package uk.ac.antarctica.mapengine.controller;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Enumeration;
+import javax.servlet.ServletContext;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.context.ServletContextAware;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import uk.ac.antarctica.mapengine.datapublishing.CsvPublisher;
@@ -30,7 +32,7 @@ import uk.ac.antarctica.mapengine.model.UploadedData;
 import uk.ac.antarctica.mapengine.util.PackagingUtils;
 
 @Controller
-public class UserLayerController implements ApplicationContextAware {
+public class UserLayerController implements ApplicationContextAware, ServletContextAware {
     
     @Autowired
     private Environment env;
@@ -39,6 +41,8 @@ public class UserLayerController implements ApplicationContextAware {
     private JdbcTemplate magicDataTpl;
     
     private ApplicationContext applicationContext;
+    
+    private ServletContext servletContext;
     
     @RequestMapping(value = "/userlayers/save", method = RequestMethod.POST, consumes = "multipart/form-data", produces = {"application/json"})
     public ResponseEntity<String> saveUserData(MultipartHttpServletRequest request) throws Exception {
@@ -87,7 +91,7 @@ public class UserLayerController implements ApplicationContextAware {
                     }
                     if (pub != null) {
                         /* Publish the file */
-                        UploadedData ud = pub.initWorkingEnvironment(mpf, request.getParameterMap(), userName);
+                        UploadedData ud = pub.initWorkingEnvironment(servletContext, mpf, request.getParameterMap(), userName);
                         pub.publish(ud);                    
                         pub.cleanUp(ud.getUfmd().getUploaded());                    
                         ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Published ok");
@@ -122,6 +126,11 @@ public class UserLayerController implements ApplicationContextAware {
         applicationContext = ac;
     }
     
+    @Override
+    public void setServletContext(ServletContext sc) {
+        servletContext = sc;
+    }
+    
     /**
      * Is the current user the owner of the record with given id
      * @param String uuid
@@ -134,6 +143,6 @@ public class UserLayerController implements ApplicationContextAware {
             new Object[]{uuid, userName}, 
             Integer.class
         ) == 1);
-    }
+    }    
 
 }

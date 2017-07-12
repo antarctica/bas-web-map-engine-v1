@@ -90,7 +90,7 @@ magic.classes.UserLayerManager = function(options) {
                             '<select id="' + this.id + '-layer-style-mode" class="form-control" ' + 
                                 'data-toggle="tooltip" data-placement="right" ' + 
                                 'title="Layer styling">' +
-                                '<option value="auto" default>Automatic</option>' + 
+                                '<option value="default" default>Default</option>' + 
                                 '<option value="file">Use style in file</option>' +
                                 '<option value="point">Point style</option>' +
                                 '<option value="line">Line style</option>' +
@@ -125,64 +125,68 @@ magic.classes.UserLayerManager = function(options) {
                                 '</div>' + 
                             '</div>' + 
                         '</div>' + 
-                        '<div class="form-group form-group-sm col-sm-12">' + 
-                            '<label class="col-sm-4 control-label" for="' + this.id + '-layer-style-stroke_width">Outline width</label>' + 
-                            '<div class="col-sm-8">' +
-                                '<input type="number" class="form-control" id="' + this.id + '-layer-style-stroke_width" ' + 
-                                       'placeholder="Width of outline in pixels" ' + 
-                                       'min="3" max="20" step="0.2" value="1" ' + 
-                                       'data-toggle="tooltip" data-placement="right" title="Width of outline in pixels, default 1">' + 
-                                '</input>' +
+                        '<div id="' + this.id + '-style-line-fs">' + 
+                            '<div class="form-group form-group-sm col-sm-12">' + 
+                                '<label class="col-sm-4 control-label" for="' + this.id + '-layer-style-stroke_width">Outline width</label>' + 
+                                '<div class="col-sm-8">' +
+                                    '<input type="number" class="form-control" id="' + this.id + '-layer-style-stroke_width" ' + 
+                                           'placeholder="Width of outline in pixels" ' + 
+                                           'min="3" max="20" step="0.2" value="1" ' + 
+                                           'data-toggle="tooltip" data-placement="right" title="Width of outline in pixels, default 1">' + 
+                                    '</input>' +
+                                '</div>' + 
+                            '</div>' + 
+                            '<div class="form-group form-group-sm col-sm-12">' + 
+                                '<label class="col-sm-4 control-label" for="' + this.id + '-layer-style-stroke_color">Outline colour</label>' + 
+                                '<div class="col-sm-8">' +
+                                    '<input type="color" class="form-control" id="' + this.id + '-layer-style-stroke_color" ' +                                        
+                                           'data-toggle="tooltip" data-placement="right" title="Colour of the graphic outline, default black"' + 
+                                    '</input>' +
+                                '</div>' + 
+                            '</div>' + 
+                            '<div class="form-group form-group-sm col-sm-12">' + 
+                                '<label for="' + this.id + '-layer-style-stroke_opacity" class="col-sm-4 control-label">Outline opacity</label>' + 
+                                '<div class="col-sm-8">' + 
+                                    '<input type="number" class="form-control" id="' + this.id + '-layer-style-stroke_opacity" ' +
+                                           'placeholder="Outline opacity (0->1)" ' + 
+                                           'min="0" max="1" step="0.1" value="1.0" ' + 
+                                           'data-toggle="tooltip" data-placement="right" title="Outline opacity (0.0 = transparent, 1.0 = opaque)">' +                          
+                                    '</input>' + 
+                                '</div>' + 
+                            '</div>' + 
+                            '<div class="form-group form-group-sm col-sm-12">' + 
+                                '<label class="col-sm-4 control-label" for="' + this.id + '-layer-style-stroke_linestyle">Line style</label>' + 
+                                '<div class="col-sm-8">' + 
+                                    '<select class="form-control id="' + this.id + '-layer-style-stroke_linestyle" ' +                                       
+                                            'data-toggle="tooltip" data-placement="right" title="Type of line" required="required">' + 
+                                        '<option value="solid">Solid</option>'+ 
+                                        '<option value="dotted">Dotted</option>' +
+                                        '<option value="dashed">Dashed</option>' +
+                                        '<option value="dotted-dashed">Dash/dot</option>' + 
+                                    '</select>' + 
+                                '</div>' + 
                             '</div>' + 
                         '</div>' + 
-                        '<div class="form-group form-group-sm col-sm-12">' + 
-                            '<label class="col-sm-4 control-label" for="' + this.id + '-layer-style-stroke_color">Outline colour</label>' + 
-                            '<div class="col-sm-8">' +
-                                '<input type="color" class="form-control" id="' + this.id + '-layer-style-stroke_color" ' +                                        
-                                       'data-toggle="tooltip" data-placement="right" title="Colour of the graphic outline, default black"' + 
-                                '</input>' +
+                        '<div id="' + this.id + '-style-polygon-fs">' + 
+                            '<div class="form-group form-group-sm col-sm-12">' + 
+                                '<label class="col-sm-4 control-label" for="' + this.id + '-layer-style-fill_color">Fill colour</label>' + 
+                                '<div class="col-sm-8">' +
+                                    '<input type="color" class="form-control" id="' + this.id + '-layer-style-fill_color" ' +                                        
+                                           'data-toggle="tooltip" data-placement="right" title="Colour of the graphic interior fill, default black"' + 
+                                    '</input>' +
+                                '</div>' + 
                             '</div>' + 
+                            '<div class="form-group form-group-sm col-sm-12">' +
+                                '<label for="' + this.id + '-layer-style-fill_opacity" class="col-sm-4 control-label">Fill opacity</label>' + 
+                                '<div class="col-sm-8">' + 
+                                    '<input type="number" class="form-control" id="' + this.id + '-layer-style-fill_opacity" ' + 
+                                           'placeholder="Fill opacity (0->1)" ' + 
+                                           'min="0" max="1" step="0.1" value="1.0" ' + 
+                                           'data-toggle="tooltip" data-placement="right" title="Fill opacity (0.0 = transparent, 1.0 = opaque)" required="required">' + 
+                                    '</input>' + 
+                                '</div>' + 
+                            '</div>' +      
                         '</div>' + 
-                        '<div class="form-group form-group-sm col-sm-12">' + 
-                            '<label for="' + this.id + '-layer-style-stroke_opacity" class="col-sm-4 control-label">Outline opacity</label>' + 
-                            '<div class="col-sm-8">' + 
-                                '<input type="number" class="form-control" id="' + this.id + '-layer-style-stroke_opacity" ' +
-                                       'placeholder="Outline opacity (0->1)" ' + 
-                                       'min="0" max="1" step="0.1" value="1.0" ' + 
-                                       'data-toggle="tooltip" data-placement="right" title="Outline opacity (0.0 = transparent, 1.0 = opaque)">' +                          
-                                '</input>' + 
-                            '</div>' + 
-                        '</div>' + 
-                        '<div class="form-group form-group-sm col-sm-12">' + 
-                            '<label class="col-sm-4 control-label" for="' + this.id + '-layer-style-stroke_linestyle">Line style</label>' + 
-                            '<div class="col-sm-8">' + 
-                                '<select class="form-control id="' + this.id + '-layer-style-stroke_linestyle" ' +                                       
-                                        'data-toggle="tooltip" data-placement="right" title="Type of line" required="required">' + 
-                                    '<option value="solid">Solid</option>'+ 
-                                    '<option value="dotted">Dotted</option>' +
-                                    '<option value="dashed">Dashed</option>' +
-                                    '<option value="dotted-dashed">Dash/dot</option>' + 
-                                '</select>' + 
-                            '</div>' + 
-                        '</div>' + 
-                        '<div class="form-group form-group-sm col-sm-12">' + 
-                            '<label class="col-sm-4 control-label" for="' + this.id + '-layer-style-fill_color">Fill colour</label>' + 
-                            '<div class="col-sm-8">' +
-                                '<input type="color" class="form-control" id="' + this.id + '-layer-style-fill_color" ' +                                        
-                                       'data-toggle="tooltip" data-placement="right" title="Colour of the graphic interior fill, default black"' + 
-                                '</input>' +
-                            '</div>' + 
-                        '</div>' + 
-                        '<div class="form-group form-group-sm col-sm-12">' +
-                            '<label for="' + this.id + '-layer-style-fill_opacity" class="col-sm-4 control-label">Fill opacity</label>' + 
-                            '<div class="col-sm-8">' + 
-                                '<input type="number" class="form-control" id="' + this.id + '-layer-style-fill_opacity" ' + 
-                                       'placeholder="Fill opacity (0->1)" ' + 
-                                       'min="0" max="1" step="0.1" value="1.0" ' + 
-                                       'data-toggle="tooltip" data-placement="right" title="Fill opacity (0.0 = transparent, 1.0 = opaque)" required="required">' + 
-                                '</input>' + 
-                            '</div>' + 
-                        '</div>' +                         
                     '</div>' + 
                     '<div class="form-group form-group-sm col-sm-12">' +
                         '<label class="col-sm-4 control-label" for="' + this.id + '-layer-allowed_usage">Share</label>' + 
@@ -262,11 +266,26 @@ magic.classes.UserLayerManager = function(options) {
                 this.styleFs.addClass("hidden");
             } else {
                 this.styleFs.removeClass("hidden");
-                if (selection == "point") {
-                    jQuery("#" + this.id + "-style-point-fs").removeClass("hidden");
-                } else {
-                    jQuery("#" + this.id + "-style-point-fs").addClass("hidden");
-                }
+                var pointFs = jQuery("#" + this.id + "-style-point-fs"),
+                    lineFs = jQuery("#" + this.id + "-style-line-fs"),
+                    polygonFs = jQuery("#" + this.id + "-style-polygon-fs");                
+                switch(selection) {
+                    case "point":
+                        pointFs.removeClass("hidden");
+                        lineFs.removeClass("hidden");
+                        polygonFs.removeClass("hidden");
+                        break;
+                    case "line":
+                        pointFs.addClass("hidden");
+                        lineFs.removeClass("hidden");
+                        polygonFs.addClass("hidden");
+                        break;
+                    default:
+                        pointFs.addClass("hidden");
+                        lineFs.removeClass("hidden");
+                        polygonFs.removeClass("hidden");
+                        break;
+                }                
             }
         }, this));
         /* Bookmarkable URL button */

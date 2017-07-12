@@ -236,8 +236,8 @@ CREATE TABLE webmap.userlayers
   upload bytea, -- Actual content (for XML) or null for shapefiles
   filetype character varying(10), -- 3 letter type code (shp|csv|kml|gpx)
   service character varying(255), -- Service URL to access data
-  store character varying(100), -- Store name (for shapefiles only)
-  layer character varying(100), -- Layer name (for shapefiles only)
+  store character varying(100), -- Store name
+  layer character varying(100), -- Layer name
   owner character varying(150), -- Owning username
   creation_date timestamp without time zone, -- When layer was uploaded
   modified_date timestamp without time zone, -- Last modified date
@@ -258,8 +258,8 @@ COMMENT ON COLUMN webmap.userlayers.description IS 'Longer description if requir
 COMMENT ON COLUMN webmap.userlayers.upload IS 'Actual content (for XML) or null for shapefiles';
 COMMENT ON COLUMN webmap.userlayers.filetype IS '3 letter type code (shp|csv|kml|gpx)';
 COMMENT ON COLUMN webmap.userlayers.service IS 'Service URL to access data';
-COMMENT ON COLUMN webmap.userlayers.store IS 'Store name (for shapefiles only)';
-COMMENT ON COLUMN webmap.userlayers.layer IS 'Layer name (for shapefiles only)';
+COMMENT ON COLUMN webmap.userlayers.store IS 'Store name';
+COMMENT ON COLUMN webmap.userlayers.layer IS 'Layer name';
 COMMENT ON COLUMN webmap.userlayers.owner IS 'Owning username';
 COMMENT ON COLUMN webmap.userlayers.creation_date IS 'When layer was uploaded';
 COMMENT ON COLUMN webmap.userlayers.modified_date IS 'Last modified date';
