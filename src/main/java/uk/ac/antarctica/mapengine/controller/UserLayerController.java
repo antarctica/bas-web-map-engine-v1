@@ -3,11 +3,18 @@
  */
 package uk.ac.antarctica.mapengine.controller;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.List;
+import java.util.Map;
 import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.io.FilenameUtils;
+import org.geotools.ows.ServiceException;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -18,8 +25,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.ServletContextAware;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
@@ -43,6 +52,42 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
     private ApplicationContext applicationContext;
     
     private ServletContext servletContext;
+    
+    /* JSON mapper */
+    private Gson mapper = new Gson();
+    
+    /**
+     * Get all user layers the logged in user can view
+     * @param HttpServletRequest request,    
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/userlayers/data", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
+    @ResponseBody
+    public ResponseEntity<String> userMapViews(HttpServletRequest request)
+        throws ServletException, IOException, ServiceException {
+        ResponseEntity<String> ret;
+        String userName = request.getUserPrincipal().getName();
+        String tableName = getEnv().getProperty("postgres.local.userlayersTable");
+        try {
+            List<Map<String, Object>> userLayerData = getMagicDataTpl().queryForList(
+                "(SELECT * FROM " + tableName + " WHERE owner=? ORDER BY name)" + 
+                " UNION " + 
+                "(SELECT * FROM " + tableName + " WHERE owner <> ? AND (allowed_usage = 'public' OR allowed_usage = 'login') GROUP BY owner, name)", 
+                userName, userName);
+            if (userLayerData != null && !userLayerData.isEmpty()) {
+                JsonArray views = getMapper().toJsonTree(userLayerData).getAsJsonArray();
+                ret = PackagingUtils.packageResults(HttpStatus.OK, views.toString(), null);
+            } else {
+                /* No data is fine - simply return empty results array */
+                ret = PackagingUtils.packageResults(HttpStatus.OK, "[]", null);
+            }
+        } catch(DataAccessException dae) {
+            ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Exception fetching user layer data - error was : " + dae.getMessage());
+        }
+        return(ret);
+    }
     
     @RequestMapping(value = "/userlayers/save", method = RequestMethod.POST, consumes = "multipart/form-data", produces = {"application/json"})
     public ResponseEntity<String> saveUserData(MultipartHttpServletRequest request) throws Exception {
@@ -116,6 +161,30 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
         }
         return(ret);
     }
+    
+    /**
+     * Delete a user layer by id
+     * @param String id
+     * @throws Exception
+     */
+    @RequestMapping(value = "/maps/delete/{id}", method = RequestMethod.DELETE, produces = "application/json; charset=utf-8")
+    public ResponseEntity<String> deleteMap(HttpServletRequest request,
+        @PathVariable("id") String id) throws Exception {
+        ResponseEntity<String> ret;
+        String userName = request.getUserPrincipal().getName();
+        if (isOwner(id, userName)) {
+            /* Logged-in user is the owner of the layer => do deletion */            
+            try {
+                getMagicDataTpl().update("DELETE FROM " + getEnv().getProperty("postgres.local.userlayersTable") + " WHERE id=?", id);                        
+                ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Successfully deleted");
+            } catch(DataAccessException dae) {
+                ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Error deleting data, message was: " + dae.getMessage());
+            }
+        } else {
+            ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "You are not the owner of this user layer");
+        }       
+        return (ret);
+    }      
 
     public ApplicationContext getApplicationContext() {
         return applicationContext;
@@ -138,11 +207,35 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
      * @return boolean 
      */
     private boolean isOwner(String uuid, String userName) {
-        return(magicDataTpl.queryForObject(
-            "SELECT count(id) FROM " + env.getProperty("postgres.local.userlayersTable") + " WHERE id=? AND owner=?", 
+        return(getMagicDataTpl().queryForObject(
+            "SELECT count(id) FROM " + getEnv().getProperty("postgres.local.userlayersTable") + " WHERE id=? AND owner=?", 
             new Object[]{uuid, userName}, 
             Integer.class
         ) == 1);
+    }
+
+    public Environment getEnv() {
+        return env;
+    }
+
+    public void setEnv(Environment env) {
+        this.env = env;
+    }
+
+    public JdbcTemplate getMagicDataTpl() {
+        return magicDataTpl;
+    }
+
+    public void setMagicDataTpl(JdbcTemplate magicDataTpl) {
+        this.magicDataTpl = magicDataTpl;
+    }
+
+    public Gson getMapper() {
+        return mapper;
+    }
+
+    public void setMapper(Gson mapper) {
+        this.mapper = mapper;
     }    
 
 }

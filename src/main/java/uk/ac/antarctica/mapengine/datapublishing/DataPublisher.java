@@ -275,15 +275,12 @@ public abstract class DataPublisher {
                     String content = FileUtils.readFileToString(new File(genSld));
                     String sldOut = StringUtils.replaceEachRepeatedly(
                         content, 
-                        new String[]{"{marker}", "{radius}", "{fill_color}", "fill_opacity}", "{stroke_width}", "{stroke_color}", "{stroke_opacity}"}, 
-                        new String[]{
-                            josd.has("marker") ? josd.get("marker").getAsString() : "circle",
-                            josd.has("radius") ? josd.get("radius").getAsString() : "5",
-                            josd.has("fill_color") ? josd.get("fill_color").getAsString() : "#ffffff",
-                            josd.has("fill_opacity") ? josd.get("fill_opacity").getAsString() : "1.0",
+                        new String[]{"{stroke_width}", "{stroke_color}", "{stroke_opacity}", "{stroke_linestyle}"}, 
+                        new String[]{                            
                             josd.has("stroke_width") ? josd.get("stroke_width").getAsString() : "1",
                             josd.has("stroke_color") ? josd.get("stroke_color").getAsString() : "#000000",
-                            josd.has("stroke_opacity") ? josd.get("stroke_opacity").getAsString() : "1.0"
+                            josd.has("stroke_opacity") ? josd.get("stroke_opacity").getAsString() : "1.0",
+                            josd.has("stroke_linestyle") ? getDashArray(josd.get("stroke_linestyle").getAsString()) : ""
                         });
                     if (getGrm().getPublisher().publishStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, tableName)) {
                         styleName = tableName;
@@ -296,10 +293,8 @@ public abstract class DataPublisher {
                     String content = FileUtils.readFileToString(new File(genSld));
                     String sldOut = StringUtils.replaceEachRepeatedly(
                         content, 
-                        new String[]{"{marker}", "{radius}", "{fill_color}", "fill_opacity}", "{stroke_width}", "{stroke_color}", "{stroke_opacity}"}, 
-                        new String[]{
-                            josd.has("marker") ? josd.get("marker").getAsString() : "circle",
-                            josd.has("radius") ? josd.get("radius").getAsString() : "5",
+                        new String[]{"{fill_color}", "fill_opacity}", "{stroke_width}", "{stroke_color}", "{stroke_opacity}"}, 
+                        new String[]{                            
                             josd.has("fill_color") ? josd.get("fill_color").getAsString() : "#ffffff",
                             josd.has("fill_opacity") ? josd.get("fill_opacity").getAsString() : "1.0",
                             josd.has("stroke_width") ? josd.get("stroke_width").getAsString() : "1",
@@ -315,6 +310,28 @@ public abstract class DataPublisher {
                 break;
         }
         return(styleName);
+    }
+    
+    /**
+     * Style translation for human-friendly line symbology
+     * @param Sting lineStyle solid|dotted|dashed|dotted-dashed
+     * @return String
+     */
+    protected String getDashArray(String lineStyle) {
+        String dashArray = "";
+        if (lineStyle != null && !lineStyle.equals("solid")) {
+            String arr = null;
+            switch(lineStyle) {
+                case "dotted": arr = "2 2"; break;
+                case "dashed": arr = "5 2"; break;
+                case "dotted-dashed": arr = "4 2 1 2"; break;
+                default: break;
+            }
+            if (arr != null) {
+                dashArray = "<CssParameter name=\"stroke-dasharray\">" + arr + "</CssParameter>";
+            }
+        }
+        return(dashArray);
     }
     
     /**

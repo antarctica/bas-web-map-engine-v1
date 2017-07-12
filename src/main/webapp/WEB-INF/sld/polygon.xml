@@ -16,12 +16,13 @@
                     <Title>Polygon</Title>                                
                     <PolygonSymbolizer>
                         <Fill>
-                            <CssParameter name="fill">{STYLECOL}</CssParameter>
-                            <CssParameter name="fill-opacity">0.5</CssParameter>
+                            <CssParameter name="fill">{fill_color}</CssParameter>
+                            <CssParameter name="fill-opacity">{fill_opacity}</CssParameter>
                         </Fill>
                         <Stroke>
-                            <CssParameter name="stroke">{STYLECOL}</CssParameter>
-                            <CssParameter name="stroke-width">1</CssParameter>
+                            <CssParameter name="stroke">{stroke_color}</CssParameter>
+                            <CssParameter name="stroke-width">{stroke_width}</CssParameter>
+                            <CssParameter name="stroke-opacity">{stroke_opacity}</CssParameter>
                         </Stroke>
                     </PolygonSymbolizer>                                        
                 </Rule>

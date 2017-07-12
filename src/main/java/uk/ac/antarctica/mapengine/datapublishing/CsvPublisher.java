@@ -55,12 +55,14 @@ public class CsvPublisher extends DataPublisher {
         getMagicDataTpl().execute("ALTER TABLE " + destTableName + " ADD PRIMARY KEY (pgid)");
         populateTable(ud.getUfmd().getUploaded(), columnTypes, destTableName);
         
+        /* Publish style to Geoserver */
+        String styleName = createLayerStyling(pgUserSchema, pgTable, ud.getUfmd().getStyledef(), null);
         /* Now publish to Geoserver */
         if (!getGrm().getPublisher().publishDBLayer(
                 getEnv().getProperty("geoserver.local.userWorkspace"),
                 ud.getUfue().getUserDatastore(),
                 configureFeatureType(ud.getUfmd(), destTableName),
-                configureLayer("point")
+                configureLayer(styleName)
         )) {
             throw new GeoserverPublishException("Publishing PostGIS table " + destTableName + " to Geoserver failed");
         }

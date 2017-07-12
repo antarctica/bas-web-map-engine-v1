@@ -58,12 +58,14 @@ public class GpxKmlPublisher extends DataPublisher {
                     /* Copy records from non-empty table into user uploads schema with a user-friendly name */ 
                     removeExistingData(ud.getUfmd().getUuid(), pgUserSchema, pgTable); 
                     getMagicDataTpl().execute("CREATE TABLE " + destTableName + " AS TABLE " + srcTableName);
+                    /* Publish style to Geoserver */
+                    String styleName = createLayerStyling(pgUserSchema, pgTable, ud.getUfmd().getStyledef(), null);
                     /* Now publish to Geoserver */                                                      
                     if (!getGrm().getPublisher().publishDBLayer(
                         getEnv().getProperty("geoserver.local.userWorkspace"), 
                         getEnv().getProperty("geoserver.local.userPostgis"), 
                         configureFeatureType(ud.getUfmd(), destTableName), 
-                        configureLayer(getGeometryType(destTableName))
+                        configureLayer(styleName)
                     )) {
                         throw new GeoserverPublishException("Publishing PostGIS table " + destTableName + " to Geoserver failed");
                     }
