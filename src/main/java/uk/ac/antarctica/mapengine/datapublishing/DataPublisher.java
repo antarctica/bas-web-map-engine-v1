@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -42,6 +43,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
@@ -105,11 +107,15 @@ public abstract class DataPublisher {
                 getEnv().getProperty("geoserver.local.password")
             ));
         }
-        
+                
         if (getPgMap().isEmpty()) {
             /* PostgreSQL credentials */
-            getPgMap().put("PGUSER", getEnv().getProperty("datasource.magic.username"));
-            getPgMap().put("PGPASS", getEnv().getProperty("datasource.magic.password").replaceAll("!", "\\\\!"));   /* ! is a shell metacharacter for UNIX */
+            String passwd = getEnv().getProperty("datasource.magic.password");
+            getPgMap().put("PGUSER", getEnv().getProperty("datasource.magic.username"));            
+            if (!getEnv().getProperty("software.ogr2ogr").toLowerCase().contains("c:")) {
+                passwd = passwd.replaceAll("!", "\\\\!");   /* ! is a shell metacharacter for UNIX */
+            }
+            getPgMap().put("PGPASS", passwd);
         }
 
         UploadedData ud = new UploadedData();
@@ -134,7 +140,7 @@ public abstract class DataPublisher {
             ud.getUfmd().setUploaded(uploaded);
             ud.getUfmd().setUuid(getParameter("id", parms, ""));
             ud.getUfmd().setName(basename);
-            ud.getUfmd().setTitle(getParameter("title", parms, basename.replace("[^A-Za-z0-9]", " ").replace("\\s{2,}", " ")));
+            ud.getUfmd().setTitle(getParameter("caption", parms, basename.replace("[^A-Za-z0-9]", " ").replace("\\s{2,}", " ")));
             ud.getUfmd().setDescription(getParameter("description", parms, 
                 FilenameUtils.getExtension(mpf.getOriginalFilename()).toUpperCase() + 
                     " file " + mpf.getOriginalFilename() + 
@@ -188,7 +194,7 @@ public abstract class DataPublisher {
             fromName = "temp_" + UUID.randomUUID().toString();
         }
         /* Replace all non-lowercase alphanumerics with _ and truncate to 30 characters */
-        String schemaName = standardiseName(fromName, false, 30);        
+        String schemaName = "user_" + standardiseName(fromName, false, 30);        
         getMagicDataTpl().execute("CREATE SCHEMA IF NOT EXISTS " + schemaName + " AUTHORIZATION " + getEnv().getProperty("datasource.magic.username"));
         return(schemaName);
     }
@@ -391,7 +397,7 @@ public abstract class DataPublisher {
         ogr2ogr.addArgument("PostgreSQL", false);
         /* Don't really understand why Linux wants this string UNQUOTED as it has spaces in it - all the examples do, however if you quote it it looks like ogr2ogr
          * attempts to create the database which it doesn't have the privileges to do */
-        ogr2ogr.addArgument("PG:host=localhost dbname=magic schemas=${PGSCHEMA} user=${PGUSER} password=${PGPASS}", false);
+        ogr2ogr.addArgument("PG:host=localhost dbname=magic schemas=${PGSCHEMA} user=${PGUSER} password=${PGPASS}", true);
         ogr2ogr.addArgument("${TOCONVERT}", true);
         if (tableName != null) {
             /* Strip schema name if present */
@@ -426,14 +432,14 @@ public abstract class DataPublisher {
     protected void removeExistingData(String uuid, String tableSchema, String tableName) throws DataAccessException {
         
         /* Drop the existing table, including any sequence and index previously created by ogr2ogr */
-        getMagicDataTpl().execute("DROP TABLE " + tableSchema + "." + tableName + " CASCADE");
+        getMagicDataTpl().execute("DROP TABLE IF EXISTS " + tableSchema + "." + tableName + " CASCADE");
      
         /* Drop any Geoserver feature corresponding to this table */
-        if (!getGrm().getPublisher().unpublishFeatureType(
+        getGrm().getPublisher().unpublishFeatureType(
             getEnv().getProperty("geoserver.local.userWorkspace"),
             getEnv().getProperty("geoserver.local.userPostgis"),
             tableName
-        ))
+        );
         
         /* Drop any record of this feature in the user features table */
         getMagicDataTpl().update("DELETE FROM " + getEnv().getProperty("postgres.local.userlayersTable") + " WHERE id=?", uuid);
@@ -451,7 +457,7 @@ public abstract class DataPublisher {
                 "VALUES(?,?,?,?,?,?,?,?,?,current_timestamp,current_timestamp,?,?)", 
                 new Object[] {
                     UUID.randomUUID().toString(),
-                    ud.getUfmd().getName(),
+                    ud.getUfmd().getTitle(),
                     ud.getUfmd().getDescription(),
                     IOUtils.toByteArray(new FileInputStream(ud.getUfmd().getUploaded())),
                     ud.getUfmd().getFiletype(),
@@ -460,24 +466,35 @@ public abstract class DataPublisher {
                     ud.getUfue().getUserPgLayer(),
                     ud.getUfue().getUserName(),
                     ud.getUfmd().getAllowed_usage(),
-                    ud.getUfmd().getStyledef()
+                    getJsonDataAsPgObject(ud.getUfmd().getStyledef())
                 });
         } else {
             /* This is an update of an existing record */
             getMagicDataTpl().update("UPDATE " + getEnv().getProperty("postgres.local.userlayersTable") + " " + 
                 "SET name=?,description=?,upload=?,filetype=?,store=?,layer=?,modified_date=current_timestamp,allowed_usage=?,styledef=? WHERE id=?", 
                 new Object[] {
-                    ud.getUfmd().getName(),
+                    ud.getUfmd().getTitle(),
                     ud.getUfmd().getDescription(),
                     IOUtils.toByteArray(new FileInputStream(ud.getUfmd().getUploaded())),
                     ud.getUfmd().getFiletype(),
                     ud.getUfue().getUserDatastore(),
                     ud.getUfue().getUserPgLayer(),
                     ud.getUfmd().getAllowed_usage(),
-                    ud.getUfmd().getStyledef(),
+                    getJsonDataAsPgObject(ud.getUfmd().getStyledef()),
                     ud.getUfmd().getUuid()
                 });
         }
+    }
+    
+    protected PGobject getJsonDataAsPgObject(String value) {
+        /* A bit of "cargo-cult" programming from https://github.com/denishpatel/java/blob/master/PgJSONExample.java - what a palaver! */
+        PGobject dataObject = new PGobject();
+        dataObject.setType("json");
+        try {
+            dataObject.setValue(value);
+        } catch (SQLException ex) {            
+        }
+        return(dataObject);
     }
     
     /**
@@ -580,7 +597,7 @@ public abstract class DataPublisher {
                 /* Disallow an initial digit, bad for PostGIS and Geoserver */
                 stdName = "x" + stdName;
             }
-            if (lengthLimit > 0) {
+            if (lengthLimit > 0 && stdName.length() > lengthLimit) {
                 stdName = stdName.substring(0, lengthLimit);
             }
         }

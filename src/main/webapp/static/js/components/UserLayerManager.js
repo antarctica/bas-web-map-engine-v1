@@ -396,7 +396,7 @@ magic.classes.UserLayerManager.prototype.fetchLayers = function() {
                 this.ddLayers.append(ulGroup);
             }
             var ulOpt = jQuery("<option>", {value: ul.id});
-            ulOpt.text(ul.name);
+            ulOpt.text(ul.caption);
             ulGroup.append(ulOpt);
             this.userLayerData[ul.id] = ul;
         }, this));     

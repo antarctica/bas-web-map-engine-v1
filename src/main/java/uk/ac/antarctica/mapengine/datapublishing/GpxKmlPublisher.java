@@ -24,7 +24,10 @@ public class GpxKmlPublisher extends DataPublisher {
                 
         String pgTempSchema = "";
         String uploadedExtension = FilenameUtils.getExtension(ud.getUfmd().getUploaded().getName());
-        String uploadedBasename = FilenameUtils.getBaseName(ud.getUfmd().getUploaded().getName()).substring(0, 30);                
+        String uploadedBasename = FilenameUtils.getBaseName(ud.getUfmd().getUploaded().getName());
+        if (uploadedBasename.length() > 30) {
+            uploadedBasename = uploadedBasename.substring(0, 30);  
+        }
         
         /* Create a temporary schema for ogr2ogr to unpack the data into (multiple tables) */
         pgTempSchema = createPgSchema(null);

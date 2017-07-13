@@ -65,16 +65,18 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
      */
     @RequestMapping(value = "/userlayers/data", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
     @ResponseBody
-    public ResponseEntity<String> userMapViews(HttpServletRequest request)
+    public ResponseEntity<String> getUserLayerData(HttpServletRequest request)
         throws ServletException, IOException, ServiceException {
         ResponseEntity<String> ret;
         String userName = request.getUserPrincipal().getName();
         String tableName = getEnv().getProperty("postgres.local.userlayersTable");
         try {
             List<Map<String, Object>> userLayerData = getMagicDataTpl().queryForList(
-                "(SELECT * FROM " + tableName + " WHERE owner=? ORDER BY name)" + 
+                "(SELECT id,caption,description,modified_date,allowed_usage,styledef::text FROM " + tableName + " " + 
+                "WHERE owner=? ORDER BY caption)" + 
                 " UNION " + 
-                "(SELECT * FROM " + tableName + " WHERE owner <> ? AND (allowed_usage = 'public' OR allowed_usage = 'login') GROUP BY owner, name)", 
+                "(SELECT id,caption,description,modified_date,allowed_usage,styledef::text FROM " + tableName + " " + 
+                "WHERE owner <> ? AND (allowed_usage = 'public' OR allowed_usage = 'login') GROUP BY owner, caption, id ORDER BY caption)", 
                 userName, userName);
             if (userLayerData != null && !userLayerData.isEmpty()) {
                 JsonArray views = getMapper().toJsonTree(userLayerData).getAsJsonArray();
@@ -90,7 +92,7 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
     }
     
     @RequestMapping(value = "/userlayers/save", method = RequestMethod.POST, consumes = "multipart/form-data", produces = {"application/json"})
-    public ResponseEntity<String> saveUserData(MultipartHttpServletRequest request) throws Exception {
+    public ResponseEntity<String> saveUserLayerData(MultipartHttpServletRequest request) throws Exception {
                 
         int count = 0;
         ResponseEntity<String> ret = null;
@@ -167,8 +169,8 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
      * @param String id
      * @throws Exception
      */
-    @RequestMapping(value = "/maps/delete/{id}", method = RequestMethod.DELETE, produces = "application/json; charset=utf-8")
-    public ResponseEntity<String> deleteMap(HttpServletRequest request,
+    @RequestMapping(value = "/userlayers/delete/{id}", method = RequestMethod.DELETE, produces = "application/json; charset=utf-8")
+    public ResponseEntity<String> deleteUserLayer(HttpServletRequest request,
         @PathVariable("id") String id) throws Exception {
         ResponseEntity<String> ret;
         String userName = request.getUserPrincipal().getName();
@@ -207,6 +209,9 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
      * @return boolean 
      */
     private boolean isOwner(String uuid, String userName) {
+        if (uuid == null || uuid.isEmpty()) {
+            return(true);
+        }
         return(getMagicDataTpl().queryForObject(
             "SELECT count(id) FROM " + getEnv().getProperty("postgres.local.userlayersTable") + " WHERE id=? AND owner=?", 
             new Object[]{uuid, userName}, 
