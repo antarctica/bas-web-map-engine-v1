@@ -31,6 +31,9 @@ public abstract class AbstractMapData {
     /* Table containing user-variants on published maps */
     private String userTableName;
     
+    /* Table containing user-uploaded layers */
+    private String userLayerTableName;
+    
     public AbstractMapData(String tableName) {        
         this.tableName = tableName;
         this.userTableName = null;
@@ -39,6 +42,12 @@ public abstract class AbstractMapData {
     public AbstractMapData(String tableName, String userTableName) {        
         this.tableName = tableName;
         this.userTableName = userTableName;
+    }
+    
+    public AbstractMapData(String tableName, String userTableName, String userLayerTableName) {        
+        this.tableName = tableName;
+        this.userTableName = userTableName;
+        this.userLayerTableName = userLayerTableName;
     }
     
     public abstract void fromPayload(String payload, String username);
@@ -205,5 +214,13 @@ public abstract class AbstractMapData {
     public void setAllowed_edit(String allowed_edit) {
         this.allowed_edit = allowed_edit;
     }
+    
+    public String getUserLayerTableName() {
+        return userLayerTableName;
+    }
+
+    public void setUserLayerTableName(String userLayerTableName) {
+        this.userLayerTableName = userLayerTableName;
+    }        
     
 }

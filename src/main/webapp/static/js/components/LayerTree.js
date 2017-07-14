@@ -22,6 +22,7 @@ magic.classes.LayerTree = function (target) {
      * }
      */
     this.userdata = magic.runtime.userdata;
+    this.userlayerData = magic.runtime.userlayerdata;
 
     /* Dictionary mapping from a node UUID to an OL layer */
     this.nodeLayerTranslation = {};
@@ -615,6 +616,82 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
 };
 
 /**
+ * Fetch the user layer data and create all visible ones (others will be lazily created when turned on via UserLayerManager 
+ * @param {ol.Map} map
+ */
+magic.classes.LayerTree.prototype.initUserLayerGroups = function(map) {    
+    if (jQuery.isArray(this.userlayerData)) {
+        var minRes = magic.runtime.viewdata.resolutions[magic.runtime.viewdata.resolutions.length-1];
+        var maxRes = magic.runtime.viewdata.resolutions[0]+1;   /* Note: OL applies this one exclusively, whereas minRes is inclusive - duh! */  
+        var defaultNodeAttrs = {
+            legend_graphic: null,
+            refresh_rate: 0,
+            min_scale: 1,
+            max_scale: 50000000,
+            opacity: 1.0,
+            is_visible: false,
+            is_interactive: false,
+            is_filterable: false        
+        };
+        var defaultSourceAttrs = {
+            style_name: null,
+            is_base: false,
+            is_singletile: false,
+            is_dem: false,
+            is_time_dependent: false
+        };
+        jQuery.each(this.userlayerData, jQuery.proxy(function(idx, uld) {
+            var styledef = uld["styledef"];
+            if (typeof styledef === "string") {
+                styledef = JSON.parse(styledef);
+            }
+            var geomType = (styledef["mode"] == "file" || styledef["mode"] == "default") ? "unknown" : styledef["mode"];
+            var nd = jQuery.extend({}, {
+                id: uld["id"],
+                name: uld["caption"],
+                geom_type: geomType,
+                attribute_map: null
+            }, defaultNodeAttrs);
+            nd.source = jQuery.extend({}, {
+                wms_source: uld["service"], 
+                feature_name: uld["layer"]
+            }, defaultSourceAttrs);
+            /* Non-point layer */
+            var proj = map.getView().getProjection();
+            var wmsVersion = "1.3.0";
+            var wmsSource = new ol.source.TileWMS({
+                url: magic.modules.Endpoints.getOgcEndpoint(nd.source.wms_source, "wms"),
+                params: {
+                    "LAYERS": nd.source.feature_name,
+                    "STYLES": nd.source.style_name ? (nd.source.style_name == "default" ? "" : nd.source.style_name) : "",
+                    "TRANSPARENT": true,
+                    "CRS": proj.getCode(),
+                    "SRS": proj.getCode(),
+                    "VERSION": wmsVersion,
+                    "TILED": true
+                },
+                tileGrid: new ol.tilegrid.TileGrid({
+                    resolutions: magic.runtime.viewdata.resolutions,
+                    origin: proj.getExtent().slice(0, 2)
+                }),
+                projection: proj
+            });
+            var layer = new ol.layer.Tile({
+                name: nd.name,
+                visible: this.userLayerAttribute(uld["id"], "is_visible", false),
+                opacity: this.userLayerAttribute(uld["id"], "opacity", 1.0),
+                minResolution: minRes,
+                maxResolution: maxRes,
+                metadata: nd,
+                source: wmsSource
+            });
+            nd.layer = layer;
+            this.nodeLayerTranslation[nd.id] = layer;
+        }, this));
+    }
+};
+
+/**
  * Fetch the data for all autoload layers
  * @param {ol.Map} map
  */
@@ -1174,7 +1251,7 @@ magic.classes.LayerTree.prototype.layerMatcher = function(data) {
  * @param {String} layerId
  * @param {String} attrName
  * @param {Number|Boolean} defVal
- * @return {Number|Boolean|.magic.runtime.map_context.userdata..layers}
+ * @return {string}
  */
 magic.classes.LayerTree.prototype.userLayerAttribute = function(layerId, attrName, defVal) {
     var attrVal = null;

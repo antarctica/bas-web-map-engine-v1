@@ -66,7 +66,7 @@ public class GpxKmlPublisher extends DataPublisher {
                     /* Now publish to Geoserver */                                                      
                     if (!getGrm().getPublisher().publishDBLayer(
                         getEnv().getProperty("geoserver.local.userWorkspace"), 
-                        getEnv().getProperty("geoserver.local.userPostgis"), 
+                        ud.getUfue().getUserDatastore(), 
                         configureFeatureType(ud.getUfmd(), destTableName), 
                         configureLayer(styleName)
                     )) {

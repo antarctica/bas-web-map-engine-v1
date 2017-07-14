@@ -68,7 +68,7 @@ public class ShpZipPublisher extends DataPublisher {
                     GSLayerEncoder gsle = configureLayer(getGeometryType(newTableName));
                     if (!getGrm().getPublisher().publishDBLayer(
                             getEnv().getProperty("geoserver.local.userWorkspace"), 
-                            getEnv().getProperty("geoserver.local.userPostgis"), 
+                            ud.getUfue().getUserDatastore(), 
                             gsfte, 
                             gsle
                     )) {

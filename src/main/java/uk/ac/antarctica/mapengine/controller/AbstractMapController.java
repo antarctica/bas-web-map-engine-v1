@@ -140,10 +140,11 @@ public class AbstractMapController {
                 userMapData.put("endpoints", endpointData);
             }
             if (usermapid != null) {
-                /* Additional payload of extra user settings */
+                /* Additional payload of extra user map settings and layers */
                 String userTableName = webmapData.getUserTableName();
                 if (userTableName != null && !userTableName.isEmpty()) {
                     try {
+                        /* Get map settings */
                         Map<String, Object> bookmarkData;
                         if (username != null) {
                             bookmarkData = getMagicDataTpl().queryForMap(
@@ -158,7 +159,20 @@ public class AbstractMapController {
                                 usermapid
                             );
                         }                                
-                        userMapData.put("userdata", bookmarkData);
+                        userMapData.put("userdata", bookmarkData);                        
+                        if (username != null && bookmarkData != null && !bookmarkData.isEmpty()) {
+                            /* Get user layers */
+                            String userLayerTableName = webmapData.getUserLayerTableName();
+                            if (userLayerTableName != null) {
+                                List<Map<String, Object>> uploadedLayersData;
+                                uploadedLayersData = getMagicDataTpl().queryForList(
+                                    "SELECT id, caption, description, service, layer, styledef::text FROM " + userLayerTableName + " " + 
+                                    "WHERE allowed_usage='public' OR allowed_usage='login' OR (allowed_usage='owner' AND owner=?) " + 
+                                    "ORDER BY id", username
+                                );
+                                userMapData.put("userlayerdata", uploadedLayersData);
+                            }                      
+                        }
                     } catch (IncorrectResultSizeDataAccessException irsdae2) {
                         /* Don't care about non-existence of user map data - just serve the default base map */
                         System.out.println(irsdae2.getMessage());

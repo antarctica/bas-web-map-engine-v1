@@ -35,7 +35,7 @@ magic.classes.UserLayerManager = function(options) {
                     '</select>' +  
                 '</div>' + 
                 '<div id="' + this.id + '-layer-vis-div" class="form-group form-group-sm col-sm-12 hidden">' + 
-                    '<div class="checkbox">' + 
+                    '<div class="checkbox" style="padding-top:0px">' + 
                         '<label>' + 
                             '<input id="' + this.id + '-layer-vis" type="checkbox" ' + 
                                 'data-toggle="tooltip" data-placement="left" title="Check/uncheck to toggle layer visibility"></input> is currently visible' + 
@@ -341,7 +341,9 @@ magic.classes.UserLayerManager = function(options) {
             this.setButtonStates({
                 addBtn: false, editBtn: !this.userLayerSelected(), delBtn: !this.userLayerSelected(), bmkBtn: true
             });              
-            this.ddLayers.prop("disabled", false);                
+            this.ddLayers.removeClass("disabled");    
+            this.ddLayers.prop("disabled", false);
+            this.divVis.addClass("hidden");
         }, this));
         /* Close button */
         jQuery(".layermanager-popover").find("button.close").click(jQuery.proxy(function() { 
@@ -410,6 +412,10 @@ magic.classes.UserLayerManager.prototype.fetchLayers = function() {
  * @return {Boolean}
  */
 magic.classes.UserLayerManager.prototype.userLayerSelected = function() {
+    var selItem = this.ddLayers.val();
+    if (selItem == null || selItem == "") {
+        return(false);
+    }
     return(this.userLayerData[this.ddLayers.val()].owner == magic.runtime.username);
 };
 
@@ -477,8 +483,17 @@ magic.classes.UserLayerManager.prototype.payloadToForm = function(populator) {
     });
     var styleIdBase = idBase + "style-";
     var styleInputs = ["mode", "marker", "radius", "stroke_width", "stroke_color", "stroke_opacity", "stroke_linestyle", "fill_color", "fill_opacity"];
+    var styledef = populator["styledef"];
+    if (typeof styledef === "string") {
+        styledef = JSON.parse(styledef);
+    }
+    if (styledef["mode"] != "default" && styledef["mode"] != "file") {
+        this.styleFs.removeClass("hidden");
+    } else {
+        this.styleFs.addClass("hidden");
+    }
     jQuery.each(styleInputs, jQuery.proxy(function(idx, sip) {
-        jQuery(styleIdBase + sip).val(populator["styledef"][sip]);
+        jQuery(styleIdBase + sip).val(styledef[sip]);
     }, this));
 };
 
@@ -535,26 +550,26 @@ magic.classes.UserLayerManager.prototype.initDropzone = function() {
             "X-CSRF-TOKEN": jQuery("meta[name='_csrf']").attr("content")
         },
         init: function () {
-            this.on("success", function(evt, response) {
-                console.log(evt);
-                console.log(response);
-//                magic.modules.Common.buttonClickFeedback(this.id, jQuery.isNumeric(response) || response.status < 400, response.detail);
-//                this.setButtonStates({
-//                    addBtn: false, editBtn: !this.userLayerSelected(), delBtn: !this.userLayerSelected(), bmkBtn: true
-//                });                             
-//                this.ddLayers.prop("disabled", false);
-//                setTimeout(jQuery.proxy(function() {
-//                    this.editFs.addClass("hidden");
-//                }, this), 1000);
-//                this.fetchlayers();
-//                /* Failure mode */
-//                bootbox.alert(
-//                    '<div class="alert alert-warning" style="margin-bottom:0">' + 
-//                        '<p>Failed to save user layer - details below:</p>' + 
-//                        '<p>' + JSON.parse(xhr.responseText)["detail"] + '</p>' + 
-//                    '</div>'
-//                );
-            }); 
+            this.on("complete", jQuery.proxy(function(file, response) {
+                if (response.status < 400) {
+                    /* Successful save */
+                    magic.modules.Common.buttonClickFeedback(this.ulm.id, true, response.detail);
+                    this.setButtonStates({
+                        addBtn: false, editBtn: !this.ulm.userLayerSelected(), delBtn: !this.ulm.userLayerSelected(), bmkBtn: true
+                    });                             
+                    this.ulm.ddLayers.prop("disabled", false);
+                    setTimeout(jQuery.proxy(function() {
+                        this.editFs.addClass("hidden");
+                    }, this.ulm), 2000);
+                    this.ulm.fetchlayers();
+                } else {
+                    /* Failed to save */
+                    magic.modules.Common.buttonClickFeedback(this.ulm.id, false, response.detail);
+                    setTimeout(jQuery.proxy(function() {
+                        this.editFs.addClass("hidden");
+                    }, this.ulm), 2000);
+                }
+            }, {pfdz: this, ulm: ulm})); 
             this.on("maxfilesexceeded", function(file) {
                 this.removeAllFiles();
                 this.addFile(file);

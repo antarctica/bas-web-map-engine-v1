@@ -322,6 +322,9 @@ magic.classes.AppContainer = function () {
     /* Add all the markup and layers for autoload groups */
     magic.runtime.layertree.initAutoLoadGroups(magic.runtime.map);
     
+    /* Add all the markup and layers for initially visible user uploaded data */
+    magic.runtime.layertree.initUserLayerGroups(magic.runtime.map);
+    
     /* Display watermark if required */
     var wmkUrl = magic.runtime.map_context.watermark;
     if (wmkUrl) {

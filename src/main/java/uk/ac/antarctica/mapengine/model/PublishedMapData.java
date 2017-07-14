@@ -21,13 +21,17 @@ public class PublishedMapData extends AbstractMapData {
     private String infolink = "";
     private String newslink = "";
     private String watermark = "";
-    
+        
     public PublishedMapData(String tableName) {
         super(tableName);
     }
     
     public PublishedMapData(String tableName, String userTableName) {
         super(tableName, userTableName);
+    }
+    
+    public PublishedMapData(String tableName, String userTableName, String userLayerTableName) {
+        super(tableName, userTableName, userLayerTableName);
     }
 
     @Override
@@ -222,6 +226,6 @@ public class PublishedMapData extends AbstractMapData {
 
     public void setData(String data) {
         this.data = data;
-    }
+    }    
     
 }

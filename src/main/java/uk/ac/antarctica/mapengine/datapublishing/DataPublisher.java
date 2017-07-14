@@ -225,7 +225,13 @@ public abstract class DataPublisher {
             dse.setUser(getEnv().getProperty("datasource.magic.username"));
             dse.setPassword(getEnv().getProperty("datasource.magic.password"));
             dse.setSchema(schemaName);
-            dse.setMaxConnections(0);
+            dse.setMaxConnections(10);
+            dse.setMinConnections(1);
+            dse.setFetchSize(1000);
+            dse.setExposePrimaryKeys(true);
+            dse.setConnectionTimeout(20);
+            dse.setValidateConnections(true);
+            dse.setMaxOpenPreparedStatements(50);
             if (!getGrm().getStoreManager().create(ws, dse)) {
                 throw new GeoserverPublishException("Failed to create PostGIS user store");
             }

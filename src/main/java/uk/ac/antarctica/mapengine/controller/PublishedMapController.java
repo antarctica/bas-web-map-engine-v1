@@ -109,7 +109,8 @@ public class PublishedMapController extends AbstractMapController {
             getMapByAttribute(
                 new PublishedMapData(
                     getEnv().getProperty("postgres.local.mapsTable"), 
-                    getEnv().getProperty("postgres.local.usermapsTable")
+                    getEnv().getProperty("postgres.local.usermapsTable"),
+                    getEnv().getProperty("postgres.local.userlayersTable")
                 ), 
                 loggedInUsername(request), 
                 "name", name, usermapid
