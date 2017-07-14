@@ -254,12 +254,25 @@ magic.classes.UserLayerManager = function(options) {
             this.setButtonStates({
                 addBtn: false, editBtn: !this.userLayerSelected(), delBtn: !this.userLayerSelected(), bmkBtn: false
             });
-            if (this.ddLayers.val() == "") {
+            var layerId = this.ddLayers.val();
+            if (layerId == "") {
                 this.divVis.addClass("hidden");
             } else {
                 this.divVis.removeClass("hidden");
+                /* Set checkbox according to selected layer visibility status */
+                var layer = this.selectedLayer();
+                if (layer != null) {
+                    this.cbVis.prop("checked", layer.getVisible());
+                }
             }
-        }, this));  
+        }, this));
+        this.cbVis.change(jQuery.proxy(function(evt) {
+            var checked = this.cbVis.prop("checked");
+            var layer = this.selectedLayer();
+            if (layer != null) {
+                layer.setVisible(checked);
+            }
+        }, this));
         this.ddStyle.change(jQuery.proxy(function() {
             var selection = this.ddStyle.val();
             if (selection == "auto" || selection == "file") {
@@ -433,6 +446,23 @@ magic.classes.UserLayerManager.prototype.setButtonStates = function(states) {
         }
         this[btn].prop("disabled", states[btn]);
     }
+};
+
+/**
+ * Return the layer for the selected option
+ */
+magic.classes.UserLayerManager.prototype.selectedLayer = function() {
+    var id = this.ddLayers.val();
+    if (id == null || id == "") {
+        return(null);
+    }
+    var theLayer = null;
+    magic.runtime.map.getLayers().forEach(function (layer) {
+        if (layer.get("metadata") && layer.get("metadata")["id"] == id) {
+            theLayer = layer;
+        }
+    });
+    return(theLayer);
 };
 
 /**

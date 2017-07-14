@@ -467,7 +467,7 @@ public abstract class DataPublisher {
                     ud.getUfmd().getDescription(),
                     IOUtils.toByteArray(new FileInputStream(ud.getUfmd().getUploaded())),
                     ud.getUfmd().getFiletype(),
-                    getEnv().getProperty("geoserver.local.url") + "/" + getEnv().getProperty("geoserver.local.workspace") + "/wms",
+                    getEnv().getProperty("geoserver.local.url") + "/" + getEnv().getProperty("geoserver.local.userWorkspace") + "/wms",
                     ud.getUfue().getUserDatastore(),
                     ud.getUfue().getUserPgLayer(),
                     ud.getUfue().getUserName(),

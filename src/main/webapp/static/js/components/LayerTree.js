@@ -686,7 +686,9 @@ magic.classes.LayerTree.prototype.initUserLayerGroups = function(map) {
                 source: wmsSource
             });
             nd.layer = layer;
+            nd.layer.setZIndex(this.zIndexWmsStack++);
             this.nodeLayerTranslation[nd.id] = layer;
+            map.addLayer(nd.layer);
         }, this));
     }
 };
