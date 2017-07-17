@@ -775,6 +775,43 @@ magic.classes.UserLayerManager.prototype.initDropzone = function() {
                     });
                     if (!jQuery.isArray(this.pfdz.files) || this.pfdz.files.length == 0) {
                         /* No upload file, so assume only the other fields are to change and process form data */
+                        if (formdata["id"]) {
+                            /* Do an update of user layer data */
+                            var jqXhr = jQuery.ajax({
+                                url: magic.config.paths.baseurl + "/userlayers/update/" + formdata["id"], 
+                                data: JSON.stringify(formdata), 
+                                method: "POST",
+                                dataType: "json",
+                                contentType: "application/json",
+                                headers: {
+                                    "X-CSRF-TOKEN": jQuery("meta[name='_csrf']").attr("content")
+                                }
+                            })
+                            .done(jQuery.proxy(function(response) {
+                                magic.modules.Common.buttonClickFeedback(this.ulm.id, jQuery.isNumeric(response) || response.status < 400, response.detail);
+                                this.setButtonStates({
+                                    addBtn: false, editBtn: !this.ulm.userLayerSelected(), delBtn: !this.ulm.userLayerSelected(), bmkBtn: true
+                                });                               
+                                this.ulm.ddLayers.prop("disabled", false);
+                                setTimeout(jQuery.proxy(function() {
+                                    this.editFs.addClass("hidden");
+                                }, this.ulm), 2000);                            
+                            }, this.ulm))
+                            .fail(function (xhr) {
+                                bootbox.alert(
+                                    '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                                        '<p>Failed to save user layer data - details below:</p>' + 
+                                        '<p>' + JSON.parse(xhr.responseText)["detail"] + '</p>' + 
+                                    '</div>'
+                                );
+                            });    
+                        } else {
+                            bootbox.alert(
+                                '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                                    '<p>No uploaded file found - please specify the data to upload</p>' + 
+                                '</div>'
+                            );
+                        }
                     } else {
                         /* Uploaded file present, so process via DropZone */
                         this.pfdz.processQueue();

@@ -5,12 +5,16 @@ package uk.ac.antarctica.mapengine.controller;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -28,6 +32,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -39,6 +44,7 @@ import uk.ac.antarctica.mapengine.datapublishing.DataPublisher;
 import uk.ac.antarctica.mapengine.datapublishing.DataPublisher.GeoserverPublishException;
 import uk.ac.antarctica.mapengine.datapublishing.GpxKmlPublisher;
 import uk.ac.antarctica.mapengine.datapublishing.ShpZipPublisher;
+import uk.ac.antarctica.mapengine.model.PublishedMapData;
 import uk.ac.antarctica.mapengine.model.UploadedData;
 import uk.ac.antarctica.mapengine.util.PackagingUtils;
 
@@ -112,26 +118,7 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
             System.out.println("*** End of POST parameters ***");
             Map<String, MultipartFile> fmp = request.getFileMap();
             if (fmp == null || fmp.isEmpty()) {
-                /* No file upload => save attribute data only */
-                System.out.println("*** No file upload detected");
-                String exId = request.getParameter("id");
-                if (exId != null && !exId.isEmpty()) {
-                    String tableName = getEnv().getProperty("postgres.local.userlayersTable");
-                    try {
-                        getMagicDataTpl().update(
-                            "UPDATE " + tableName + " SET caption=?, description=?, allowed_usage=?, styledef=? WHERE id=?",
-                            request.getParameter("caption"),
-                            request.getParameter("description"),
-                            request.getParameter("allowed_usage"),
-                            getJsonDataAsPgObject(request.getParameter("styledef"))
-                        );
-                        ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Updated ok");
-                    } catch(DataAccessException dae) {
-                        ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Publish failed with error : " + dae.getMessage());
-                    }
-                } else {
-                    ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "No record id specified to update");
-                }                
+                        
             } else {
                 /* Process file upload alongside attribute data */
                 for (MultipartFile mpf : request.getFileMap().values()) {
@@ -191,6 +178,42 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
     }
     
     /**
+     * Update a user layer whose data is POST-ed (with no uploaded file)
+     * @param String id
+     * @param String payload   
+     * @throws Exception
+     */
+    @RequestMapping(value = "/userlayers/update/{id}", method = RequestMethod.POST, headers = {"Content-type=application/json"})
+    public ResponseEntity<String> updateMap(HttpServletRequest request,
+        @PathVariable("id") String id,
+        @RequestBody String payload) throws Exception {
+        ResponseEntity<String> ret = null;
+        String userName = request.getUserPrincipal().getName();
+        if (isOwner(userName, id)) {
+            /* No file upload => save attribute data only */
+            String tableName = getEnv().getProperty("postgres.local.userlayersTable");
+            try {
+                JsonElement je = new JsonParser().parse(payload);
+                JsonObject jo = je.getAsJsonObject();
+                getMagicDataTpl().update(
+                    "UPDATE " + tableName + " SET caption=?, description=?, allowed_usage=?, styledef=? WHERE id=?",
+                    jo.get("caption").getAsString(),
+                    jo.get("description").getAsString(),
+                    jo.get("allowed_usage").getAsString(),
+                    getJsonDataAsPgObject(jo.get("styledef").getAsString()), 
+                    id
+                );
+                ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Updated ok");
+            } catch(DataAccessException dae) {
+                ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Update failed with error : " + dae.getMessage());
+            }              
+        } else {
+            ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "You are not the owner of this user layer");
+        }    
+        return(ret);
+    }
+    
+    /**
      * Delete a user layer by id
      * @param String id
      * @throws Exception
@@ -212,7 +235,7 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
             ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "You are not the owner of this user layer");
         }       
         return (ret);
-    }     
+    }    
     
     /**
      * Prepare string data to go into a PostgreSQL json field
