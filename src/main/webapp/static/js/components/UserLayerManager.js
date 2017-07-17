@@ -15,21 +15,20 @@ magic.classes.UserLayerManager = function(options) {
     
     this.zIndexWmsStack = -1;    
     
-    /* Fetch user layer data from server */
+    this.userPayloadConfig = magic.runtime.userdata ? (magic.runtime.userdata.layers || {}) : {};
+    
     this.userLayerData = {};   
+    
+    /* Fetch user layer data from server */
     this.fetchLayers(jQuery.proxy(this.initialise, this));
 };
 
 magic.classes.UserLayerManager.prototype.initialise = function(uldata) {
     /* Get top of WMS stack */
-    this.zIndexWmsStack = this.getWmsStackTop(this.map);
-    
+    this.zIndexWmsStack = this.getWmsStackTop(this.map);    
     /* Record the layer data, and create any visible layers */
-    var payloadConfig = magic.runtime.userdata ? (magic.runtime.userdata.layers || {}) : {};
     jQuery.each(uldata, jQuery.proxy(function(iul, ul) {
-        var visible = ul.id in payloadConfig && payloadConfig[ul.id].visibility === true;
-        var opacity = ul.id in payloadConfig && payloadConfig[ul.id].opacity || 1.0;
-        this.prepLayer(ul, visible, opacity);        
+        this.prepLayer(ul);        
     }, this));
     this.template = 
         '<div class="popover popover-auto-width layermanager-popover" role="popover">' + 
@@ -269,23 +268,22 @@ magic.classes.UserLayerManager.prototype.initialise = function(uldata) {
             this.setButtonStates({
                 addBtn: false, editBtn: !this.userLayerSelected(), delBtn: !this.userLayerSelected(), bmkBtn: false
             });
-            var layerId = this.ddLayers.val();
-            if (layerId == "") {
+            var layerId = this.selectedLayerId();
+            if (layerId == null || layerId == "") {
                 this.divVis.addClass("hidden");
             } else {
                 this.divVis.removeClass("hidden");
                 /* Set checkbox according to selected layer visibility status */
-                var layer = this.selectedLayer();
+                var layer = this.userLayerData[layerId].olLayer;
                 if (layer != null) {
                     this.cbVis.prop("checked", layer.getVisible());
                 }
             }
         }, this));
         this.cbVis.change(jQuery.proxy(function(evt) {
-            var checked = this.cbVis.prop("checked");
-            var layer = this.selectedLayer();
-            if (layer != null) {
-                layer.setVisible(checked);
+            var selId = this.selectedLayerId();
+            if (selId != null && selId != "") {
+                this.prepLayer(this.userLayerData[selId], this.cbVis.prop("checked"));               
             }
         }, this));
         this.ddStyle.change(jQuery.proxy(function() {
@@ -486,31 +484,25 @@ magic.classes.UserLayerManager.prototype.setButtonStates = function(states) {
 };
 
 /**
- * Return the layer for the selected option, creating it if not present in the map thus far
- */
-magic.classes.UserLayerManager.prototype.selectedLayer = function() {
-    var id = this.ddLayers.val();
-    if (id == null || id == "" || !this.userLayerData[id]) {
-        return(null);
-    }    
-    return(this.prepLayer(this.userLayerData[id]));
-};
-
-/**
  * Lazily create layer from fetched data if required
  * @param {Object} layerData
  * @param {boolean} visible
- * @param {float} opacity
  * @return {ol.Layer}
  */
-magic.classes.UserLayerManager.prototype.prepLayer = function(layerData, visible, opacity) {    
-    visible = visible === true || false;
-    opacity = opacity || 1.0;
-    var olLayer = null;
-    if (visible) {
-        var exLayer = this.getLayerById(layerData.id);
-        if (exLayer == null) {
+magic.classes.UserLayerManager.prototype.prepLayer = function(layerData, visible) { 
+    console.log("*** Entered prepLayer() ***");
+    console.log(layerData);    
+    if (typeof visible !== "boolean") {
+        console.log("Determine visibility from payload config...");
+        visible = this.userPayloadConfig[layerData.id].visibility;
+    }
+    console.log("Intended to be visible : " + visible);
+    var olLayer = null;     
+    var exLayer = layerData.olLayer;
+    if (exLayer == null) {
+        if (visible) {
             /* We create the layer now */
+            console.log("No existing layer => create it...");
             var defaultNodeAttrs = {
                 legend_graphic: null,
                 refresh_rate: 0,
@@ -564,7 +556,7 @@ magic.classes.UserLayerManager.prototype.prepLayer = function(layerData, visible
             olLayer = new ol.layer.Tile({
                 name: nd.name,
                 visible: visible,
-                opacity: opacity,
+                opacity: this.userPayloadConfig[layerData.id].opacity || 1.0,
                 minResolution: magic.runtime.viewdata.resolutions[magic.runtime.viewdata.resolutions.length-1],
                 maxResolution: magic.runtime.viewdata.resolutions[0]+1,
                 metadata: nd,
@@ -573,19 +565,28 @@ magic.classes.UserLayerManager.prototype.prepLayer = function(layerData, visible
             nd.layer = olLayer;    
             nd.layer.setZIndex(this.zIndexWmsStack++);
             this.map.addLayer(olLayer);
+            console.log("Created ok");
         } else {
-            /* Layer already exists, do a refresh in case the layer name has changed */
-            olLayer = exLayer;
-            if (jQuery.isFunction(olLayer.getSource().updateParams)) {
-                olLayer.getSource().updateParams(jQuery.extend({}, 
-                    this.layer.getSource().getParams(), 
-                    {"LAYERS": layerData.layer}
-                ));
-            }
+            console.log("Not necessary to create the layer yet");
         }
+    } else {
+        /* Layer already exists, do a refresh in case the layer name has changed */
+        console.log("Layer exists => refresh only");
+        olLayer = exLayer;
+        if (jQuery.isFunction(olLayer.getSource().updateParams)) {
+            olLayer.getSource().updateParams(jQuery.extend({}, 
+                olLayer.getSource().getParams(), 
+                {"LAYERS": layerData.layer}
+            ));
+        }
+        olLayer.setVisible(visible);
+        console.log("Done");
     }
     layerData.olLayer = olLayer;
-    this.userLayerData[layerData.id] = layerData; 
+    this.userLayerData[layerData.id] = layerData;
+    console.log("UserLayerData is now:");
+    console.log(this.userLayerData);
+    console.log("*** Exiting prepLayer() ***");
     return(olLayer);
 };
 
@@ -612,26 +613,11 @@ magic.classes.UserLayerManager.prototype.getWmsStackTop = function(map) {
     var maxStack = -1;
     map.getLayers().forEach(function (layer) {
         var zi = layer.getZIndex();
-        if (zi < 400 && zi > maxStack;) {
+        if (zi < 400 && zi > maxStack) {
             maxStack = zi;
         }
     });
     return(maxStack);
-};
-
-/**
- * Get layer by id
- * @param {string} layerName
- * @returns {ol.Layer}
- */
-magic.classes.UserLayerManager.prototype.getLayerById = function(layerId) {
-    var theLayer = null;
-    magic.runtime.map.getLayers().forEach(function (layer) {
-        if (layer.get("id") == layerId) {
-            theLayer = layer;
-        }
-    });
-    return(theLayer);
 };
 
 /**
