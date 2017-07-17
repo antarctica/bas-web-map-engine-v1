@@ -13,9 +13,23 @@ magic.classes.UserLayerManager = function(options) {
     /* Map */
     this.map = options.map || magic.runtime.map;
     
-    /* Layer data fetched from server */
-    this.userLayerData = {};
-    
+    /* Fetch user layer data from server */
+    this.userLayerData = {};   
+    this.fetchLayers(this.initialise);
+};
+
+magic.classes.UserLayerManager.prototype.initialise = function(uldata) {
+    /* Record the layer data, and create any visible layers */
+    var userLayerConfig = magic.runtime.userdata ? (magic.runtime.userdata.layers || {}) : {};
+    jQuery.each(uldata, jQuery.proxy(function(iul, ul) {
+        if (ul.id in userLayerConfig && userLayerConfig[ul.id].visibility === true) {
+            /* Create the layer now as it's supposed to be visible (invisible layers created as needed - there may be a lot of them) */
+            ul.layer = this.createLayer(ul, true, userLayerConfig[ul.id].visibility || 1.0);
+        } else {
+            ul.layer = null;
+        }
+        this.userLayerData[ul.id] = ul;
+    }, this));         
     this.template = 
         '<div class="popover popover-auto-width layermanager-popover" role="popover">' + 
             '<div class="arrow"></div>' +
@@ -244,7 +258,7 @@ magic.classes.UserLayerManager = function(options) {
         /* Initialise drag-drop zone */
         this.initDropzone();
         /* Fetch layers */
-        this.fetchLayers();
+        this.populateLayerSelector(uldata);
         /* Set initial button states */
         this.setButtonStates({
             addBtn: false, editBtn: true, delBtn: true, bmkBtn: true
@@ -361,7 +375,8 @@ magic.classes.UserLayerManager = function(options) {
         /* Close button */
         jQuery(".layermanager-popover").find("button.close").click(jQuery.proxy(function() { 
             this.target.popover("hide");
-        }, this));                
+        }, this));
+        this.populateLayerSelector();
     }, this));           
 };
 
@@ -390,8 +405,9 @@ magic.classes.UserLayerManager.prototype.showEditForm = function(populator) {
 
 /**
  * Fetch data on all uploaded layers user has access to
+ * @param {Function} cb
  */
-magic.classes.UserLayerManager.prototype.fetchLayers = function() {
+magic.classes.UserLayerManager.prototype.fetchLayers = function(cb) {
      /* Clear select and prepend the invite to select */
     this.ddLayers.empty();
     this.ddLayers.append(jQuery("<option>", {value: "", text: "Please select"}));
@@ -403,21 +419,28 @@ magic.classes.UserLayerManager.prototype.fetchLayers = function() {
         dataType: "json",
         contentType: "application/json"
     }).done(jQuery.proxy(function(uldata) {
-        var currentUser = null, ulGroup = null;
-        jQuery.each(uldata, jQuery.proxy(function(iul, ul) {
-            if (currentUser == null || ul.owner != currentUser) {
-                currentUser = ul.owner;
-                ulGroup = jQuery("<optgroup>", {label: currentUser == magic.runtime.username ? "Your uploaded layers" : "Community uploaded layers"});
-                this.ddLayers.append(ulGroup);
-            }
-            var ulOpt = jQuery("<option>", {value: ul.id});
-            ulOpt.text(ul.caption);
-            ulGroup.append(ulOpt);
-            this.userLayerData[ul.id] = ul;
-        }, this));     
+        cb(uldata);
     }, this)).fail(function() {
         bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to load available user layers</div>');
     });
+};
+
+/**
+ * Populate the user layer selection dropdown
+ * @param {Object} uldata
+ */
+magic.classes.UserLayerManager.prototype.populateLayerSelector = function(uldata) {
+    var currentUser = null, ulGroup = null;
+    jQuery.each(uldata, jQuery.proxy(function(iul, ul) {
+        if (currentUser == null || ul.owner != currentUser) {
+            currentUser = ul.owner;
+            ulGroup = jQuery("<optgroup>", {label: currentUser == magic.runtime.username ? "Your uploaded layers" : "Community uploaded layers"});
+            this.ddLayers.append(ulGroup);
+        }
+        var ulOpt = jQuery("<option>", {value: ul.id});
+        ulOpt.text(ul.caption);
+        ulGroup.append(ulOpt);        
+    }, this));     
 };
 
 /**
@@ -449,20 +472,97 @@ magic.classes.UserLayerManager.prototype.setButtonStates = function(states) {
 };
 
 /**
- * Return the layer for the selected option
+ * Return the layer for the selected option, creating it if not present in the map thus far
  */
 magic.classes.UserLayerManager.prototype.selectedLayer = function() {
     var id = this.ddLayers.val();
-    if (id == null || id == "") {
+    if (id == null || id == "" || !this.userLayerData[id]) {
         return(null);
     }
     var theLayer = null;
-    magic.runtime.map.getLayers().forEach(function (layer) {
-        if (layer.get("metadata") && layer.get("metadata")["id"] == id) {
-            theLayer = layer;
-        }
-    });
+    if (!this.userLayerData[id].layer) {
+        theLayer = this.createLayer(this.userLayerData[id]);
+        this.userLayerData[id].layer = theLayer;
+    } else {
+        theLayer = this.userLayerData[id].layer;
+    }   
     return(theLayer);
+};
+
+/**
+ * Create layer from fetched data
+ * @param {Object} layerData
+ * @param {boolean} visible
+ * @param {float} opacity
+ * @return {ol.Layer} layer
+ */
+magic.classes.UserLayerManager.prototype.createLayer = function(layerData, visible, opacity) {
+    visible = visible === true || false;
+    opacity = opacity || 1.0;
+    var defaultNodeAttrs = {
+        legend_graphic: null,
+        refresh_rate: 0,
+        min_scale: 1,
+        max_scale: 50000000,
+        opacity: 1.0,
+        is_visible: false,
+        is_interactive: false,
+        is_filterable: false        
+    };
+    var defaultSourceAttrs = {
+        style_name: null,
+        is_base: false,
+        is_singletile: false,
+        is_dem: false,
+        is_time_dependent: false
+    };    
+    var styledef = layerData.styledef;
+    if (typeof styledef === "string") {
+        styledef = JSON.parse(styledef);
+    }
+    var geomType = (styledef["mode"] == "file" || styledef["mode"] == "default") ? "unknown" : styledef["mode"];
+    var nd = jQuery.extend({}, {
+        id: layerData.id,
+        name: layerData.caption,
+        geom_type: geomType,
+        attribute_map: null
+    }, defaultNodeAttrs);
+    nd.source = jQuery.extend({}, {
+        wms_source: layerData.service, 
+        feature_name: layerData.layer
+    }, defaultSourceAttrs);
+    var proj = this.map.getView().getProjection();    
+    var wmsSource = new ol.source.TileWMS({
+        url: magic.modules.Endpoints.getOgcEndpoint(nd.source.wms_source, "wms"),
+        params: {
+            "LAYERS": nd.source.feature_name,
+            "STYLES": "",
+            "TRANSPARENT": true,
+            "CRS": proj.getCode(),
+            "SRS": proj.getCode(),
+            "VERSION": "1.3.0",
+            "TILED": true
+        },
+        tileGrid: new ol.tilegrid.TileGrid({
+            resolutions: magic.runtime.viewdata.resolutions,
+            origin: proj.getExtent().slice(0, 2)
+        }),
+        projection: proj
+    });
+    var layer = new ol.layer.Tile({
+        name: nd.name,
+        visible: visible,
+        opacity: opacity,
+        minResolution: magic.runtime.viewdata.resolutions[magic.runtime.viewdata.resolutions.length-1],
+        maxResolution: magic.runtime.viewdata.resolutions[0]+1,
+        metadata: nd,
+        source: wmsSource
+    });
+    nd.layer = layer;
+    nd.layer.setZIndex(this.zIndexWmsStack++);
+    this.userLayerData[nd.id].layer = layer;
+    this.map.addLayer(nd.layer);
+    return(nd.layer);
 };
 
 /**
@@ -591,7 +691,7 @@ magic.classes.UserLayerManager.prototype.initDropzone = function() {
                     setTimeout(jQuery.proxy(function() {
                         this.editFs.addClass("hidden");
                     }, this.ulm), 2000);
-                    this.ulm.fetchlayers();
+                    this.ulm.fetchlayers(this.ulm.populateLayerSelector);
                 } else {
                     /* Failed to save */
                     magic.modules.Common.buttonClickFeedback(this.ulm.id, false, response.detail);

@@ -39,7 +39,6 @@
                     magic.runtime.map_context = jQuery.extend({}, payload);
                     magic.runtime.map_context.data = JSON.parse(payload.data.value);
                     magic.runtime.userdata = magic.runtime.map_context.userdata ? JSON.parse(magic.runtime.map_context.userdata.data.value) : {};
-                    magic.runtime.userlayerdata = magic.runtime.map_context.userlayerdata ? magic.runtime.map_context.userlayerdata : [];
                     return(jQuery.ajax({
                         url: magic.config.paths.baseurl + "/prefs/get",
                         method: "GET",
@@ -163,7 +162,6 @@
                     magic.runtime.map_context = jQuery.extend({}, payload);
                     magic.runtime.map_context.data = JSON.parse(payload.data.value);
                     magic.runtime.userdata = magic.runtime.map_context.userdata ? JSON.parse(magic.runtime.map_context.userdata.data.value) : {};
-                    magic.runtime.userlayerdata = magic.runtime.map_context.userlayerdata ? magic.runtime.map_context.userlayerdata : [];
                     return(jQuery.ajax({
                         url: magic.config.paths.baseurl + "/prefs/get",
                         method: "GET",
