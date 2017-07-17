@@ -6,6 +6,7 @@ package uk.ac.antarctica.mapengine.controller;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
@@ -15,6 +16,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.io.FilenameUtils;
 import org.geotools.ows.ServiceException;
+import org.postgresql.util.PGobject;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -108,56 +110,80 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
                 System.out.println(key + " : >" + request.getParameter(key) + "<");
             }
             System.out.println("*** End of POST parameters ***");
-
-            for (MultipartFile mpf : request.getFileMap().values()) {
-
-                System.out.println("*** File no " + (count+1));
-                System.out.println("Publish workflow started at " + (new Date().toString()));
-                System.out.println("Original name : " + mpf.getOriginalFilename());
-                System.out.println("Name : " + mpf.getName());
-                System.out.println("Content type : " + mpf.getContentType());
-                System.out.println("Size : " + mpf.getSize());
-                System.out.println("*** End of file no " + (count+1));
-
-                try {
-                    String extension = FilenameUtils.getExtension(mpf.getOriginalFilename());
-                    DataPublisher pub = null;
-                    switch(extension) {
-                        case "gpx":
-                        case "kml":
-                            pub = applicationContext.getBean(GpxKmlPublisher.class);
-                            break;
-                        case "csv":
-                            pub = applicationContext.getBean(CsvPublisher.class);
-                            break;
-                        case "zip":
-                            pub = applicationContext.getBean(ShpZipPublisher.class);
-                            break;
-                        default:
-                            break;
+            Map<String, MultipartFile> fmp = request.getFileMap();
+            if (fmp == null || fmp.isEmpty()) {
+                /* No file upload => save attribute data only */
+                System.out.println("*** No file upload detected");
+                String exId = request.getParameter("id");
+                if (exId != null && !exId.isEmpty()) {
+                    String tableName = getEnv().getProperty("postgres.local.userlayersTable");
+                    try {
+                        getMagicDataTpl().update(
+                            "UPDATE " + tableName + " SET caption=?, description=?, allowed_usage=?, styledef=? WHERE id=?",
+                            request.getParameter("caption"),
+                            request.getParameter("description"),
+                            request.getParameter("allowed_usage"),
+                            getJsonDataAsPgObject(request.getParameter("styledef"))
+                        );
+                        ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Updated ok");
+                    } catch(DataAccessException dae) {
+                        ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Publish failed with error : " + dae.getMessage());
                     }
-                    if (pub != null) {
-                        /* Publish the file */
-                        UploadedData ud = pub.initWorkingEnvironment(servletContext, mpf, request.getParameterMap(), userName);
-                        pub.publish(ud);                    
-                        pub.cleanUp(ud.getUfmd().getUploaded());                    
-                        ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Published ok");
-                    } else {
-                        /* Unsupported extension type */
-                        ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Unsupported extension type " + extension);
-                    }
-                } catch(GeoserverPublishException gpe) {
-                    ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Geoserver publish failed with error : " + gpe.getMessage());
-                } catch(IOException | DataAccessException ex) {
-                    ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Publish failed with error : " + ex.getMessage());
-                } catch(BeansException be) {
-                    ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Failed to create publisher bean : " + be.getMessage());
-                }                       
-                System.out.println("*** File no " + (count+1));
-                System.out.println("Publish workflow ended at " + (new Date().toString()) + " with output " + ret.toString());            
-                System.out.println("*** End of file no " + (count+1));            
-                count++;
-            }     
+                } else {
+                    ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "No record id specified to update");
+                }                
+            } else {
+                /* Process file upload alongside attribute data */
+                for (MultipartFile mpf : request.getFileMap().values()) {
+
+                    System.out.println("*** File no " + (count+1));
+                    System.out.println("Publish workflow started at " + (new Date().toString()));
+                    System.out.println("Original name : " + mpf.getOriginalFilename());
+                    System.out.println("Name : " + mpf.getName());
+                    System.out.println("Content type : " + mpf.getContentType());
+                    System.out.println("Size : " + mpf.getSize());
+                    System.out.println("*** End of file no " + (count+1));
+
+                    try {
+                        String extension = FilenameUtils.getExtension(mpf.getOriginalFilename());
+                        DataPublisher pub = null;
+                        switch(extension) {
+                            case "gpx":
+                            case "kml":
+                                pub = applicationContext.getBean(GpxKmlPublisher.class);
+                                break;
+                            case "csv":
+                                pub = applicationContext.getBean(CsvPublisher.class);
+                                break;
+                            case "zip":
+                                pub = applicationContext.getBean(ShpZipPublisher.class);
+                                break;
+                            default:
+                                break;
+                        }
+                        if (pub != null) {
+                            /* Publish the file */
+                            UploadedData ud = pub.initWorkingEnvironment(servletContext, mpf, request.getParameterMap(), userName);
+                            pub.publish(ud);                    
+                            pub.cleanUp(ud.getUfmd().getUploaded());                    
+                            ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Published ok");
+                        } else {
+                            /* Unsupported extension type */
+                            ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Unsupported extension type " + extension);
+                        }
+                    } catch(GeoserverPublishException gpe) {
+                        ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Geoserver publish failed with error : " + gpe.getMessage());
+                    } catch(IOException | DataAccessException ex) {
+                        ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Publish failed with error : " + ex.getMessage());
+                    } catch(BeansException be) {
+                        ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Failed to create publisher bean : " + be.getMessage());
+                    }                       
+                    System.out.println("*** File no " + (count+1));
+                    System.out.println("Publish workflow ended at " + (new Date().toString()) + " with output " + ret.toString());            
+                    System.out.println("*** End of file no " + (count+1));            
+                    count++;
+                }
+            }
         } else {
             ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "User " + userName + " is not the owner of record with id " + uuid);
         }
@@ -186,7 +212,23 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
             ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "You are not the owner of this user layer");
         }       
         return (ret);
-    }      
+    }     
+    
+    /**
+     * Prepare string data to go into a PostgreSQL json field
+     * @param String value
+     * @return PGObject
+     */
+    private PGobject getJsonDataAsPgObject(String value) {
+        /* A bit of "cargo-cult" programming from https://github.com/denishpatel/java/blob/master/PgJSONExample.java - what a palaver! */
+        PGobject dataObject = new PGobject();
+        dataObject.setType("json");
+        try {
+            dataObject.setValue(value);
+        } catch (SQLException ex) {            
+        }
+        return(dataObject);
+    }
 
     public ApplicationContext getApplicationContext() {
         return applicationContext;

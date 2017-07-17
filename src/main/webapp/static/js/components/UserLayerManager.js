@@ -773,7 +773,12 @@ magic.classes.UserLayerManager.prototype.initDropzone = function() {
                             data.append(key, val);
                         });
                     });
-                    this.pfdz.processQueue();                
+                    if (!jQuery.isArray(this.pfdz.files) || this.pfdz.files.length == 0) {
+                        /* No upload file, so assume only the other fields are to change and process form data */
+                    } else {
+                        /* Uploaded file present, so process via DropZone */
+                        this.pfdz.processQueue();
+                    }
                 } else {
                     bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Please correct the marked errors in your input and try again</div>');
                 }            
