@@ -581,7 +581,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
             minResolution: minRes,
             maxResolution: maxRes
         });
-        layer.setZIndex(200);
+        layer.setZIndex(400);
         this.layersBySource["gpx"].push(layer);
     } else if (nd.source.kml_source) {
         /* KML source */
@@ -604,7 +604,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
             minResolution: minRes,
             maxResolution: maxRes
         });
-        layer.setZIndex(200);
+        layer.setZIndex(400);
         this.layersBySource["kml"].push(layer);
     }
     nd.layer = layer;

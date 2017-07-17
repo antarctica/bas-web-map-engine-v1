@@ -72,10 +72,10 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
         String tableName = getEnv().getProperty("postgres.local.userlayersTable");
         try {
             List<Map<String, Object>> userLayerData = getMagicDataTpl().queryForList(
-                "(SELECT id,caption,description,modified_date,owner,allowed_usage,styledef::text FROM " + tableName + " " + 
+                "(SELECT id,caption,description,service,layer,modified_date,owner,allowed_usage,styledef::text FROM " + tableName + " " + 
                 "WHERE owner=? ORDER BY caption)" + 
                 " UNION " + 
-                "(SELECT id,caption,description,modified_date,owner,allowed_usage,styledef::text FROM " + tableName + " " + 
+                "(SELECT id,caption,description,service,layer,modified_date,owner,allowed_usage,styledef::text FROM " + tableName + " " + 
                 "WHERE owner <> ? AND (allowed_usage = 'public' OR allowed_usage = 'login') GROUP BY owner, caption, id ORDER BY caption)", 
                 userName, userName);
             if (userLayerData != null && !userLayerData.isEmpty()) {

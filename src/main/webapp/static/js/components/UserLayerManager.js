@@ -13,23 +13,24 @@ magic.classes.UserLayerManager = function(options) {
     /* Map */
     this.map = options.map || magic.runtime.map;
     
+    this.zIndexWmsStack = -1;    
+    
     /* Fetch user layer data from server */
     this.userLayerData = {};   
-    this.fetchLayers(this.initialise);
+    this.fetchLayers(jQuery.proxy(this.initialise, this));
 };
 
 magic.classes.UserLayerManager.prototype.initialise = function(uldata) {
+    /* Get top of WMS stack */
+    this.zIndexWmsStack = this.getWmsStackTop(this.map);
+    
     /* Record the layer data, and create any visible layers */
-    var userLayerConfig = magic.runtime.userdata ? (magic.runtime.userdata.layers || {}) : {};
+    var payloadConfig = magic.runtime.userdata ? (magic.runtime.userdata.layers || {}) : {};
     jQuery.each(uldata, jQuery.proxy(function(iul, ul) {
-        if (ul.id in userLayerConfig && userLayerConfig[ul.id].visibility === true) {
-            /* Create the layer now as it's supposed to be visible (invisible layers created as needed - there may be a lot of them) */
-            ul.layer = this.createLayer(ul, true, userLayerConfig[ul.id].visibility || 1.0);
-        } else {
-            ul.layer = null;
-        }
-        this.userLayerData[ul.id] = ul;
-    }, this));         
+        var visible = ul.id in payloadConfig && payloadConfig[ul.id].visibility === true;
+        var opacity = ul.id in payloadConfig && payloadConfig[ul.id].opacity || 1.0;
+        this.prepLayer(ul, visible, opacity);        
+    }, this));
     this.template = 
         '<div class="popover popover-auto-width layermanager-popover" role="popover">' + 
             '<div class="arrow"></div>' +
@@ -337,8 +338,9 @@ magic.classes.UserLayerManager.prototype.initialise = function(uldata) {
             bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">Are you sure you want to delete this layer?</div>', jQuery.proxy(function(result) {
                 if (result) {
                     /* Do the deletion */
+                    var id = this.selectedLayerId();
                     var jqxhr = jQuery.ajax({
-                        url: magic.config.paths.baseurl + "/userlayers/delete/" + this.selectedLayerId(),
+                        url: magic.config.paths.baseurl + "/userlayers/delete/" + id,
                         method: "DELETE",
                         beforeSend: function (xhr) {
                             var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content");
@@ -346,7 +348,16 @@ magic.classes.UserLayerManager.prototype.initialise = function(uldata) {
                             xhr.setRequestHeader(csrfHeader, csrfHeaderVal);
                         }
                     })
-                    .done(jQuery.proxy(this.fetchLayers, this))
+                    .done(jQuery.proxy(function(uldata) {
+                        /* Now delete the corresponding layer and data */
+                        if (id in this.userLayerData) {
+                            if (this.userLayerData[id].olLayer) {
+                                this.map.removeLayer(this.userLayerData[id].olLayer);
+                            }
+                            delete this.userLayerData[id];
+                        }
+                        this.fetchLayers(uldata);                                                
+                    }, this))
                     .fail(function (xhr) {
                         bootbox.alert(
                             '<div class="alert alert-warning" style="margin-bottom:0">' + 
@@ -376,7 +387,6 @@ magic.classes.UserLayerManager.prototype.initialise = function(uldata) {
         jQuery(".layermanager-popover").find("button.close").click(jQuery.proxy(function() { 
             this.target.popover("hide");
         }, this));
-        this.populateLayerSelector();
     }, this));           
 };
 
@@ -408,10 +418,11 @@ magic.classes.UserLayerManager.prototype.showEditForm = function(populator) {
  * @param {Function} cb
  */
 magic.classes.UserLayerManager.prototype.fetchLayers = function(cb) {
-     /* Clear select and prepend the invite to select */
-    this.ddLayers.empty();
-    this.ddLayers.append(jQuery("<option>", {value: "", text: "Please select"}));
-    this.userLayerData = {};
+    if (this.ddLayers) {
+        /* Clear select and prepend the invite to select */
+        this.ddLayers.empty();
+        this.ddLayers.append(jQuery("<option>", {value: "", text: "Please select"}));
+    }
     /* Load the available user layers */
     var xhr = jQuery.ajax({
         url: magic.config.paths.baseurl + "/userlayers/data", 
@@ -431,6 +442,9 @@ magic.classes.UserLayerManager.prototype.fetchLayers = function(cb) {
  */
 magic.classes.UserLayerManager.prototype.populateLayerSelector = function(uldata) {
     var currentUser = null, ulGroup = null;
+    var defOpt = jQuery("<option>", {value: ""});
+    defOpt.text("Please select...");
+    this.ddLayers.append(defOpt);
     jQuery.each(uldata, jQuery.proxy(function(iul, ul) {
         if (currentUser == null || ul.owner != currentUser) {
             currentUser = ul.owner;
@@ -478,91 +492,101 @@ magic.classes.UserLayerManager.prototype.selectedLayer = function() {
     var id = this.ddLayers.val();
     if (id == null || id == "" || !this.userLayerData[id]) {
         return(null);
-    }
-    var theLayer = null;
-    if (!this.userLayerData[id].layer) {
-        theLayer = this.createLayer(this.userLayerData[id]);
-        this.userLayerData[id].layer = theLayer;
-    } else {
-        theLayer = this.userLayerData[id].layer;
-    }   
-    return(theLayer);
+    }    
+    return(this.prepLayer(this.userLayerData[id]));
 };
 
 /**
- * Create layer from fetched data
+ * Lazily create layer from fetched data if required
  * @param {Object} layerData
  * @param {boolean} visible
  * @param {float} opacity
- * @return {ol.Layer} layer
+ * @return {ol.Layer}
  */
-magic.classes.UserLayerManager.prototype.createLayer = function(layerData, visible, opacity) {
+magic.classes.UserLayerManager.prototype.prepLayer = function(layerData, visible, opacity) {    
     visible = visible === true || false;
     opacity = opacity || 1.0;
-    var defaultNodeAttrs = {
-        legend_graphic: null,
-        refresh_rate: 0,
-        min_scale: 1,
-        max_scale: 50000000,
-        opacity: 1.0,
-        is_visible: false,
-        is_interactive: false,
-        is_filterable: false        
-    };
-    var defaultSourceAttrs = {
-        style_name: null,
-        is_base: false,
-        is_singletile: false,
-        is_dem: false,
-        is_time_dependent: false
-    };    
-    var styledef = layerData.styledef;
-    if (typeof styledef === "string") {
-        styledef = JSON.parse(styledef);
+    var olLayer = null;
+    if (visible) {
+        var exLayer = this.getLayerById(layerData.id);
+        if (exLayer == null) {
+            /* We create the layer now */
+            var defaultNodeAttrs = {
+                legend_graphic: null,
+                refresh_rate: 0,
+                min_scale: 1,
+                max_scale: 50000000,
+                opacity: 1.0,
+                is_visible: false,
+                is_interactive: false,
+                is_filterable: false        
+            };
+            var defaultSourceAttrs = {
+                style_name: null,
+                is_base: false,
+                is_singletile: false,
+                is_dem: false,
+                is_time_dependent: false
+            };    
+            var styledef = layerData.styledef;
+            if (typeof styledef === "string") {
+                styledef = JSON.parse(styledef);
+            }
+            var geomType = (styledef["mode"] == "file" || styledef["mode"] == "default") ? "unknown" : styledef["mode"];
+            var nd = jQuery.extend({}, {
+                id: layerData.id,
+                name: layerData.caption,
+                geom_type: geomType,
+                attribute_map: null
+            }, defaultNodeAttrs);
+            nd.source = jQuery.extend({}, {
+                wms_source: layerData.service, 
+                feature_name: layerData.layer
+            }, defaultSourceAttrs);
+            var proj = this.map.getView().getProjection();    
+            var wmsSource = new ol.source.TileWMS({
+                url: magic.modules.Endpoints.getOgcEndpoint(nd.source.wms_source, "wms"),
+                params: {
+                    "LAYERS": nd.source.feature_name,
+                    "STYLES": "",
+                    "TRANSPARENT": true,
+                    "CRS": proj.getCode(),
+                    "SRS": proj.getCode(),
+                    "VERSION": "1.3.0",
+                    "TILED": true
+                },
+                tileGrid: new ol.tilegrid.TileGrid({
+                    resolutions: magic.runtime.viewdata.resolutions,
+                    origin: proj.getExtent().slice(0, 2)
+                }),
+                projection: proj
+            });
+            olLayer = new ol.layer.Tile({
+                name: nd.name,
+                visible: visible,
+                opacity: opacity,
+                minResolution: magic.runtime.viewdata.resolutions[magic.runtime.viewdata.resolutions.length-1],
+                maxResolution: magic.runtime.viewdata.resolutions[0]+1,
+                metadata: nd,
+                source: wmsSource
+            });
+            nd.layer = olLayer;    
+            nd.layer.setZIndex(this.zIndexWmsStack++);
+            this.map.addLayer(olLayer);
+        } else {
+            /* Layer already exists, do a refresh in case the layer name has changed */
+            olLayer = exLayer;
+            if (jQuery.isFunction(olLayer.getSource().updateParams)) {
+                olLayer.getSource().updateParams(jQuery.extend({}, 
+                    this.layer.getSource().getParams(), 
+                    {"LAYERS": layerData.layer}
+                ));
+            }
+        }
     }
-    var geomType = (styledef["mode"] == "file" || styledef["mode"] == "default") ? "unknown" : styledef["mode"];
-    var nd = jQuery.extend({}, {
-        id: layerData.id,
-        name: layerData.caption,
-        geom_type: geomType,
-        attribute_map: null
-    }, defaultNodeAttrs);
-    nd.source = jQuery.extend({}, {
-        wms_source: layerData.service, 
-        feature_name: layerData.layer
-    }, defaultSourceAttrs);
-    var proj = this.map.getView().getProjection();    
-    var wmsSource = new ol.source.TileWMS({
-        url: magic.modules.Endpoints.getOgcEndpoint(nd.source.wms_source, "wms"),
-        params: {
-            "LAYERS": nd.source.feature_name,
-            "STYLES": "",
-            "TRANSPARENT": true,
-            "CRS": proj.getCode(),
-            "SRS": proj.getCode(),
-            "VERSION": "1.3.0",
-            "TILED": true
-        },
-        tileGrid: new ol.tilegrid.TileGrid({
-            resolutions: magic.runtime.viewdata.resolutions,
-            origin: proj.getExtent().slice(0, 2)
-        }),
-        projection: proj
-    });
-    var layer = new ol.layer.Tile({
-        name: nd.name,
-        visible: visible,
-        opacity: opacity,
-        minResolution: magic.runtime.viewdata.resolutions[magic.runtime.viewdata.resolutions.length-1],
-        maxResolution: magic.runtime.viewdata.resolutions[0]+1,
-        metadata: nd,
-        source: wmsSource
-    });
-    nd.layer = layer;
-    nd.layer.setZIndex(this.zIndexWmsStack++);
-    this.userLayerData[nd.id].layer = layer;
-    this.map.addLayer(nd.layer);
-    return(nd.layer);
+    layerData.olLayer = olLayer;
+    this.userLayerData[layerData.id] = layerData; 
+    return(olLayer);
 };
 
 /**
@@ -578,6 +602,36 @@ magic.classes.UserLayerManager.prototype.selectedLayerId = function() {
 magic.classes.UserLayerManager.prototype.selectedLayerLoadUrl = function() {
     //TODO  
     console.log("Not implemented");
+};
+
+/**
+ * Get top of WMS layer stack in map
+ * @return {Number|zi}
+ */
+magic.classes.UserLayerManager.prototype.getWmsStackTop = function(map) {
+    var maxStack = -1;
+    map.getLayers().forEach(function (layer) {
+        var zi = layer.getZIndex();
+        if (zi < 400 && zi > maxStack;) {
+            maxStack = zi;
+        }
+    });
+    return(maxStack);
+};
+
+/**
+ * Get layer by id
+ * @param {string} layerName
+ * @returns {ol.Layer}
+ */
+magic.classes.UserLayerManager.prototype.getLayerById = function(layerId) {
+    var theLayer = null;
+    magic.runtime.map.getLayers().forEach(function (layer) {
+        if (layer.get("id") == layerId) {
+            theLayer = layer;
+        }
+    });
+    return(theLayer);
 };
 
 /**
@@ -691,7 +745,7 @@ magic.classes.UserLayerManager.prototype.initDropzone = function() {
                     setTimeout(jQuery.proxy(function() {
                         this.editFs.addClass("hidden");
                     }, this.ulm), 2000);
-                    this.ulm.fetchlayers(this.ulm.populateLayerSelector);
+                    this.ulm.fetchlayers(jQuery.proxy(this.ulm.populateLayerSelector, this.ulm));
                 } else {
                     /* Failed to save */
                     magic.modules.Common.buttonClickFeedback(this.ulm.id, false, response.detail);
