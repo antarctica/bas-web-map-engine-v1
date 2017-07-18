@@ -68,12 +68,14 @@ public class GpxKmlPublisher extends DataPublisher {
                         getEnv().getProperty("geoserver.local.userWorkspace"), 
                         ud.getUfue().getUserDatastore(), 
                         configureFeatureType(ud.getUfmd(), destTableName), 
-                        configureLayer(styleName)
+                        configureLayerData(styleName)
                     )) {
                         throw new GeoserverPublishException("Publishing PostGIS table " + destTableName + " to Geoserver failed");
                     }
                     /* Finally insert/update the userlayers table record */
                     updateUserlayersRecord(ud);
+                    /* Kill any stored cache */
+                    clearCache(destTableName);
                 }                        
             }
         }   

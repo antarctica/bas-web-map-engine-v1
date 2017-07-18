@@ -12,9 +12,9 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -43,8 +43,8 @@ import uk.ac.antarctica.mapengine.datapublishing.CsvPublisher;
 import uk.ac.antarctica.mapengine.datapublishing.DataPublisher;
 import uk.ac.antarctica.mapengine.datapublishing.DataPublisher.GeoserverPublishException;
 import uk.ac.antarctica.mapengine.datapublishing.GpxKmlPublisher;
+import uk.ac.antarctica.mapengine.datapublishing.NoUploadPublisher;
 import uk.ac.antarctica.mapengine.datapublishing.ShpZipPublisher;
-import uk.ac.antarctica.mapengine.model.PublishedMapData;
 import uk.ac.antarctica.mapengine.model.UploadedData;
 import uk.ac.antarctica.mapengine.util.PackagingUtils;
 
@@ -187,26 +187,31 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
     public ResponseEntity<String> updateMap(HttpServletRequest request,
         @PathVariable("id") String id,
         @RequestBody String payload) throws Exception {
-        ResponseEntity<String> ret = null;
-        String userName = request.getUserPrincipal().getName();
-        if (isOwner(userName, id)) {
-            /* No file upload => save attribute data only */
-            String tableName = getEnv().getProperty("postgres.local.userlayersTable");
+        ResponseEntity<String> ret;        
+        String userName = request.getUserPrincipal().getName();        
+        if (isOwner(id, userName)) {
             try {
+                /* No file upload => save attribute data only */
                 JsonElement je = new JsonParser().parse(payload);
                 JsonObject jo = je.getAsJsonObject();
-                getMagicDataTpl().update(
-                    "UPDATE " + tableName + " SET caption=?, description=?, allowed_usage=?, styledef=? WHERE id=?",
-                    jo.get("caption").getAsString(),
-                    jo.get("description").getAsString(),
-                    jo.get("allowed_usage").getAsString(),
-                    getJsonDataAsPgObject(jo.get("styledef").getAsString()), 
-                    id
-                );
-                ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Updated ok");
-            } catch(DataAccessException dae) {
-                ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Update failed with error : " + dae.getMessage());
-            }              
+                /* Read data payload into appropriate map form */
+                HashMap<String,String[]> parms = new HashMap();
+                parms.put("id", new String[]{jo.get("id").getAsString()});
+                parms.put("caption", new String[]{jo.get("caption").getAsString()});
+                parms.put("description", new String[]{jo.get("description").getAsString()});
+                parms.put("allowed_usage", new String[]{jo.get("allowed_usage").getAsString()});
+                parms.put("styledef", new String[]{jo.get("styledef").getAsString()});
+                DataPublisher pub = applicationContext.getBean(NoUploadPublisher.class);
+                UploadedData ud = pub.initWorkingEnvironment(servletContext, null, parms, userName);
+                pub.publish(ud);                    
+                ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Published ok");
+            } catch(GeoserverPublishException gpe) {
+                ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Geoserver publish failed with error : " + gpe.getMessage());
+            } catch(IOException | DataAccessException ex) {
+                ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Publish failed with error : " + ex.getMessage());
+            } catch(BeansException be) {
+                ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Failed to create publisher bean : " + be.getMessage());
+            }          
         } else {
             ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "You are not the owner of this user layer");
         }    

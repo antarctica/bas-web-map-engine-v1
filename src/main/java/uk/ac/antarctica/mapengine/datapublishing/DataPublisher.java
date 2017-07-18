@@ -7,6 +7,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import it.geosolutions.geoserver.rest.GeoServerRESTManager;
+import it.geosolutions.geoserver.rest.HTTPUtils;
 import it.geosolutions.geoserver.rest.decoder.RESTDataStore;
 import it.geosolutions.geoserver.rest.encoder.GSLayerEncoder;
 import it.geosolutions.geoserver.rest.encoder.datastore.GSPostGISDatastoreEncoder;
@@ -129,32 +130,42 @@ public abstract class DataPublisher {
         /* Check user PostGIS store exposing the above schema exists, and create it if not */
         ud.getUfue().setUserDatastore(createPgSchemaDatastore(ud.getUfue().getUserPgSchema()));        
         
-        File wd = new File(WDBASE + Calendar.getInstance().getTimeInMillis());
-        if (wd.mkdir()) {
-            /* Created the tempotary working directory, move the uploaded file there for conversion */
-            File uploaded = new File(wd.getAbsolutePath() + SEP + standardiseName(mpf.getOriginalFilename(), true, -1));
-            mpf.transferTo(uploaded);
-            System.out.println("File transferred to : " + uploaded.getAbsolutePath());
-            System.out.println("Is readable : " + (uploaded.canRead() ? "yes" : "no"));
-            String basename = FilenameUtils.getBaseName(mpf.getOriginalFilename());
-            ud.getUfmd().setUploaded(uploaded);
+        if (mpf == null) {
+            /* No uploaded file data */
             ud.getUfmd().setUuid(getParameter("id", parms, ""));
-            ud.getUfmd().setName(basename);
-            ud.getUfmd().setTitle(getParameter("caption", parms, basename.replace("[^A-Za-z0-9]", " ").replace("\\s{2,}", " ")));
-            ud.getUfmd().setDescription(getParameter("description", parms, 
-                FilenameUtils.getExtension(mpf.getOriginalFilename()).toUpperCase() + 
-                    " file " + mpf.getOriginalFilename() + 
-                    " of size " + sizeFormatter(mpf.getSize()) + 
-                    " uploaded on " + new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date()) + 
-                    " by " + userName));
-            ud.getUfmd().setFiletype(FilenameUtils.getExtension(mpf.getOriginalFilename()).toLowerCase());
+            ud.getUfmd().setTitle(getParameter("caption", parms, ""));
+            ud.getUfmd().setDescription(getParameter("description", parms, ""));
             ud.getUfmd().setAllowed_usage(getParameter("allowed_usage", parms, "public"));
             ud.getUfmd().setStyledef(getParameter("styledef", parms, "{\"mode\": \"auto\"}"));
-            ud.getUfmd().setSrs("EPSG:4326");     /* Any different projection (shapefiles only) will be done in the appropriate place */
         } else {
-            /* Failed to create */
-            throw new IOException("Failed to create working directory " + wd.getName());
-        }  
+            /* uploaded data */
+            File wd = new File(WDBASE + Calendar.getInstance().getTimeInMillis());
+            if (wd.mkdir()) {
+                /* Created the tempotary working directory, move the uploaded file there for conversion */
+                File uploaded = new File(wd.getAbsolutePath() + SEP + standardiseName(mpf.getOriginalFilename(), true, -1));
+                mpf.transferTo(uploaded);
+                System.out.println("File transferred to : " + uploaded.getAbsolutePath());
+                System.out.println("Is readable : " + (uploaded.canRead() ? "yes" : "no"));
+                String basename = FilenameUtils.getBaseName(mpf.getOriginalFilename());
+                ud.getUfmd().setUploaded(uploaded);
+                ud.getUfmd().setUuid(getParameter("id", parms, ""));
+                ud.getUfmd().setName(basename);
+                ud.getUfmd().setTitle(getParameter("caption", parms, basename.replace("[^A-Za-z0-9]", " ").replace("\\s{2,}", " ")));
+                ud.getUfmd().setDescription(getParameter("description", parms, 
+                    FilenameUtils.getExtension(mpf.getOriginalFilename()).toUpperCase() + 
+                        " file " + mpf.getOriginalFilename() + 
+                        " of size " + sizeFormatter(mpf.getSize()) + 
+                        " uploaded on " + new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date()) + 
+                        " by " + userName));
+                ud.getUfmd().setFiletype(FilenameUtils.getExtension(mpf.getOriginalFilename()).toLowerCase());
+                ud.getUfmd().setAllowed_usage(getParameter("allowed_usage", parms, "public"));
+                ud.getUfmd().setStyledef(getParameter("styledef", parms, "{\"mode\": \"auto\"}"));
+                ud.getUfmd().setSrs("EPSG:4326");     /* Any different projection (shapefiles only) will be done in the appropriate place */
+            } else {
+                /* Failed to create */
+                throw new IOException("Failed to create working directory " + wd.getName());
+            }  
+        }        
         return(ud);
     }
     
@@ -164,6 +175,18 @@ public abstract class DataPublisher {
      */
     public void cleanUp(File uploaded) {
         FileUtils.deleteQuietly(uploaded.getParentFile());        
+    }
+        
+    /**
+     * Clear the GeowebCache cache for the given layer (needed when a style has been updated)
+     * @param String layerName 
+     */
+    public void clearCache(String layerName) {
+        System.out.println("Result of cache clear was : " + HTTPUtils.delete(
+            getEnv().getProperty("geoserver.local.adminUrl") + "/gwc/rest/layers/" + layerName,
+            getEnv().getProperty("geoserver.local.username"),
+            getEnv().getProperty("geoserver.local.password")
+        ));
     }
     
     /**
@@ -239,6 +262,7 @@ public abstract class DataPublisher {
         return(schemaName);
     } 
     
+    
     /**
      * Create a style based on the user's requirements
      * @param String schemaName
@@ -256,17 +280,26 @@ public abstract class DataPublisher {
         switch(mode) {
             case "file":
                 /* Style is in file supplied (shapefile), or internal to the file (GPX/KML) when exStyleFile is null */
-                if (exStyleFile != null && getGrm().getPublisher().publishStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), exStyleFile, tableName)) {
-                    styleName = tableName;
-                }                
+                if (exStyleFile != null) {
+                    boolean ok = false;
+                    if (getGrm().getReader().existsStyle(getEnv().getProperty("geoserver.local.userWorkspace"), tableName)) {
+                        ok = getGrm().getPublisher().updateStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), exStyleFile, tableName);
+                    } else {
+                        ok = getGrm().getPublisher().publishStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), exStyleFile, tableName);
+                    }
+                    if (ok) {
+                        styleName = tableName;
+                    }
+                }      
                 break;
             case "point":
                 if (geomType.equals("point")) {
-                    String genSld = getServletContext().getContextPath() + "/WEB-INF/sld/point.xml";
+                    boolean ok = false;
+                    String genSld = getServletContext().getRealPath("/WEB-INF/sld/point.xml");
                     String content = FileUtils.readFileToString(new File(genSld));
                     String sldOut = StringUtils.replaceEachRepeatedly(
                         content, 
-                        new String[]{"{marker}", "{radius}", "{fill_color}", "fill_opacity}", "{stroke_width}", "{stroke_color}", "{stroke_opacity}"}, 
+                        new String[]{"{marker}", "{radius}", "{fill_color}", "{fill_opacity}", "{stroke_width}", "{stroke_color}", "{stroke_opacity}"}, 
                         new String[]{
                             josd.has("marker") ? josd.get("marker").getAsString() : "circle",
                             josd.has("radius") ? josd.get("radius").getAsString() : "5",
@@ -276,14 +309,20 @@ public abstract class DataPublisher {
                             josd.has("stroke_color") ? josd.get("stroke_color").getAsString() : "#000000",
                             josd.has("stroke_opacity") ? josd.get("stroke_opacity").getAsString() : "1.0"
                         });
-                    if (getGrm().getPublisher().publishStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, tableName)) {
+                    if (getGrm().getReader().existsStyle(getEnv().getProperty("geoserver.local.userWorkspace"), tableName)) {
+                        ok = getGrm().getPublisher().updateStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, mode);
+                    } else {
+                        ok = getGrm().getPublisher().publishStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, tableName); 
+                    }
+                    if (ok) {
                         styleName = tableName;
                     }
                 }
                 break;
             case "line":
                 if (geomType.equals("line")) {
-                    String genSld = getServletContext().getContextPath() + "/WEB-INF/sld/line.xml";
+                    boolean ok = false;
+                    String genSld = getServletContext().getRealPath("/WEB-INF/sld/line.xml");
                     String content = FileUtils.readFileToString(new File(genSld));
                     String sldOut = StringUtils.replaceEachRepeatedly(
                         content, 
@@ -294,18 +333,24 @@ public abstract class DataPublisher {
                             josd.has("stroke_opacity") ? josd.get("stroke_opacity").getAsString() : "1.0",
                             josd.has("stroke_linestyle") ? getDashArray(josd.get("stroke_linestyle").getAsString()) : ""
                         });
-                    if (getGrm().getPublisher().publishStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, tableName)) {
+                    if (getGrm().getReader().existsStyle(getEnv().getProperty("geoserver.local.userWorkspace"), tableName)) {
+                        ok = getGrm().getPublisher().updateStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, mode);
+                    } else {
+                        ok = getGrm().getPublisher().publishStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, tableName); 
+                    }
+                    if (ok) {
                         styleName = tableName;
                     }
                 }
                 break;
             case "polygon":
                 if (geomType.equals("polygon")) {
-                    String genSld = getServletContext().getContextPath() + "/WEB-INF/sld/polygon.xml";
+                    boolean ok = false;
+                    String genSld = getServletContext().getRealPath("/WEB-INF/sld/polygon.xml");
                     String content = FileUtils.readFileToString(new File(genSld));
                     String sldOut = StringUtils.replaceEachRepeatedly(
                         content, 
-                        new String[]{"{fill_color}", "fill_opacity}", "{stroke_width}", "{stroke_color}", "{stroke_opacity}"}, 
+                        new String[]{"{fill_color}", "{fill_opacity}", "{stroke_width}", "{stroke_color}", "{stroke_opacity}"}, 
                         new String[]{                            
                             josd.has("fill_color") ? josd.get("fill_color").getAsString() : "#ffffff",
                             josd.has("fill_opacity") ? josd.get("fill_opacity").getAsString() : "1.0",
@@ -313,7 +358,12 @@ public abstract class DataPublisher {
                             josd.has("stroke_color") ? josd.get("stroke_color").getAsString() : "#000000",
                             josd.has("stroke_opacity") ? josd.get("stroke_opacity").getAsString() : "1.0"
                         });
-                    if (getGrm().getPublisher().publishStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, tableName)) {
+                    if (getGrm().getReader().existsStyle(getEnv().getProperty("geoserver.local.userWorkspace"), tableName)) {
+                        ok = getGrm().getPublisher().updateStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, mode);
+                    } else {
+                        ok = getGrm().getPublisher().publishStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, tableName); 
+                    }
+                    if (ok) {
                         styleName = tableName;
                     }
                 }
@@ -477,7 +527,7 @@ public abstract class DataPublisher {
         } else {
             /* This is an update of an existing record */
             getMagicDataTpl().update("UPDATE " + getEnv().getProperty("postgres.local.userlayersTable") + " " + 
-                "SET name=?,description=?,upload=?,filetype=?,store=?,layer=?,modified_date=current_timestamp,allowed_usage=?,styledef=? WHERE id=?", 
+                "SET caption=?,description=?,upload=?,filetype=?,store=?,layer=?,modified_date=current_timestamp,allowed_usage=?,styledef=? WHERE id=?", 
                 new Object[] {
                     ud.getUfmd().getTitle(),
                     ud.getUfmd().getDescription(),
@@ -546,7 +596,7 @@ public abstract class DataPublisher {
      * @param String defaultStyle
      * @return GSLayerEncoder
      */
-    protected GSLayerEncoder configureLayer(String defaultStyle) {
+    protected GSLayerEncoder configureLayerData(String defaultStyle) {
         GSLayerEncoder gsle = new GSLayerEncoder();
         gsle.setDefaultStyle(defaultStyle);
         gsle.setEnabled(true);

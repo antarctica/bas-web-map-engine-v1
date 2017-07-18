@@ -65,7 +65,7 @@ public class ShpZipPublisher extends DataPublisher {
                     String styleName = createLayerStyling(pgUserSchema, pgTable, ud.getUfmd().getStyledef(), sld);                
                     /* Publish feature to Geoserver */
                     GSFeatureTypeEncoder gsfte = configureFeatureType(ud.getUfmd(), newTableName);
-                    GSLayerEncoder gsle = configureLayer(getGeometryType(newTableName));
+                    GSLayerEncoder gsle = configureLayerData(styleName);
                     if (!getGrm().getPublisher().publishDBLayer(
                             getEnv().getProperty("geoserver.local.userWorkspace"), 
                             ud.getUfue().getUserDatastore(), 
@@ -74,6 +74,8 @@ public class ShpZipPublisher extends DataPublisher {
                     )) {
                         throw new GeoserverPublishException("Publishing PostGIS table " + newTableName + " to Geoserver failed");
                     }
+                    /* Kill any stored cache */
+                    clearCache(newTableName); 
                 } else {
                     throw new GeoserverPublishException("Failed to find .shp file in the uploaded zip");
                 }
