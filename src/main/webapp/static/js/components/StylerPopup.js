@@ -12,6 +12,8 @@ magic.classes.StylerPopup = function(options) {
     
     this.active = false;
     
+    this.mode = null;
+    
     this.styleInputs = ["marker", "radius", "stroke_width", "stroke_color", "stroke_opacity", "stroke_linestyle", "fill_color", "fill_opacity"];
     
     this.inputDefaults = {
@@ -146,6 +148,7 @@ magic.classes.StylerPopup = function(options) {
             jQuery.each(this.styleInputs, jQuery.proxy(function(idx, sip) {
                 styleDef[sip] = jQuery("#" + this.id + "-" + sip).val();
             }, this));
+            styleDef["mode"] = this.mode;
             this.formInput.val(JSON.stringify(styleDef));
             this.deactivate();
         }, this));
@@ -169,6 +172,7 @@ magic.classes.StylerPopup.prototype.activate = function(mode) {
     if (!fieldsets[mode]) {
         return;
     }
+    this.mode = mode;
     this.active = true;
     jQuery.each(fieldsets[mode], jQuery.proxy(function(fsname, fsconf) {
         if (fsconf === 1) {
@@ -186,6 +190,7 @@ magic.classes.StylerPopup.prototype.activate = function(mode) {
 
 magic.classes.StylerPopup.prototype.deactivate = function() {
     this.active = false;
+    this.mode = null;
     this.target.popover("hide");
 };
 

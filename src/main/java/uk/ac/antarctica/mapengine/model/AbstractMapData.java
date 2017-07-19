@@ -114,7 +114,8 @@ public abstract class AbstractMapData {
         dataObject.setType("json");
         try {
             dataObject.setValue(value);
-        } catch (SQLException ex) {            
+        } catch (SQLException ex) {
+            System.out.println("Problem preparing JSON value for PostGIS ingestion : " + ex.getMessage());
         }
         return(dataObject);
     }

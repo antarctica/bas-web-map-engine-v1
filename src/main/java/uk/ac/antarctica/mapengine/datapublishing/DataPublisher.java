@@ -306,7 +306,7 @@ public abstract class DataPublisher {
                             josd.has("stroke_opacity") ? josd.get("stroke_opacity").getAsString() : "1.0"
                         });
                     if (getGrm().getReader().existsStyle(getEnv().getProperty("geoserver.local.userWorkspace"), tableName)) {
-                        stylePublished = getGrm().getPublisher().updateStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, mode);
+                        stylePublished = getGrm().getPublisher().updateStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, tableName);
                     } else {
                         stylePublished = getGrm().getPublisher().publishStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, tableName); 
                     }                   
@@ -326,7 +326,7 @@ public abstract class DataPublisher {
                             josd.has("stroke_linestyle") ? getDashArray(josd.get("stroke_linestyle").getAsString()) : ""
                         });
                     if (getGrm().getReader().existsStyle(getEnv().getProperty("geoserver.local.userWorkspace"), tableName)) {
-                        stylePublished = getGrm().getPublisher().updateStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, mode);
+                        stylePublished = getGrm().getPublisher().updateStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, tableName);
                     } else {
                         stylePublished = getGrm().getPublisher().publishStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, tableName); 
                     }                   
@@ -347,7 +347,7 @@ public abstract class DataPublisher {
                             josd.has("stroke_opacity") ? josd.get("stroke_opacity").getAsString() : "1.0"
                         });
                     if (getGrm().getReader().existsStyle(getEnv().getProperty("geoserver.local.userWorkspace"), tableName)) {
-                        stylePublished = getGrm().getPublisher().updateStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, mode);
+                        stylePublished = getGrm().getPublisher().updateStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, tableName);
                     } else {
                         stylePublished = getGrm().getPublisher().publishStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, tableName); 
                     }                    

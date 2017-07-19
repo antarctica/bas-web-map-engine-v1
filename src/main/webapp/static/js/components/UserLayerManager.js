@@ -189,6 +189,7 @@ magic.classes.UserLayerManager.prototype.initialise = function(uldata) {
             this.setButtonStates({
                 addBtn: false, editBtn: !this.userLayerSelected(), delBtn: !this.userLayerSelected(), bmkBtn: false
             });
+            this.stylerPopup.deactivate();
             var layerId = this.selectedLayerId();
             if (layerId == null || layerId == "") {
                 this.divVis.addClass("hidden");
@@ -477,7 +478,7 @@ magic.classes.UserLayerManager.prototype.prepLayer = function(layerData, visible
         if (jQuery.isFunction(olLayer.getSource().updateParams)) {
             olLayer.getSource().updateParams(jQuery.extend({}, 
                 olLayer.getSource().getParams(), 
-                {"LAYERS": layerData.layer}
+                {"LAYERS": layerData.layer, "buster": new Date().getTime()}
             ));
         }
         olLayer.setVisible(visible);
@@ -492,6 +493,21 @@ magic.classes.UserLayerManager.prototype.prepLayer = function(layerData, visible
  */
 magic.classes.UserLayerManager.prototype.selectedLayerId = function() {
     return(this.ddLayers.val());
+};
+
+/**
+ * Refresh selected layer by adding cache buster parameter
+ */
+magic.classes.UserLayerManager.prototype.refreshSelectedLayer = function() {
+    var layerData = this.userLayerData[this.selectedLayerId()];
+    if (layerData && layerData.olLayer) {
+        if (jQuery.isFunction(layerData.olLayer.getSource().updateParams)) {
+            layerData.olLayer.getSource().updateParams(jQuery.extend({}, 
+                layerData.olLayer.getSource().getParams(), 
+                {"LAYERS": layerData.layer, "buster": new Date().getTime()}
+            ));
+        }
+    }
 };
 
 /**
@@ -523,11 +539,10 @@ magic.classes.UserLayerManager.prototype.getWmsStackTop = function(map) {
  */
 magic.classes.UserLayerManager.prototype.formToPayload = function() {
     var payload = {};
-    var idBase = "#" + this.id + "-layer-";
     var inputs = ["id", "caption", "description", "allowed_usage", "styledef"];
-    jQuery.each(inputs, function(idx, ip) {
-        payload[ip] = jQuery(idBase + ip).val();
-    });    
+    jQuery.each(inputs, jQuery.proxy(function(idx, ip) {
+        payload[ip] = jQuery("#" + this.id + "-layer-" + ip).val();
+    }, this));    
     return(payload);
 };
 
@@ -536,11 +551,10 @@ magic.classes.UserLayerManager.prototype.formToPayload = function() {
  * @param {Object} populator
  */
 magic.classes.UserLayerManager.prototype.payloadToForm = function(populator) {
-    var idBase = "#" + this.id + "-layer-";
     var inputs = ["id", "caption", "description", "allowed_usage", "styledef"];
-    jQuery.each(inputs, function(idx, ip) {
-        jQuery(idBase + ip).val(populator[ip]);
-    });
+    jQuery.each(inputs, jQuery.proxy(function(idx, ip) {
+        jQuery("#" + this.id + "-layer-" + ip).val(populator[ip]);
+    }, this));
     var styledef = populator["styledef"];
     if (typeof styledef === "string") {
         styledef = JSON.parse(styledef);
@@ -607,6 +621,7 @@ magic.classes.UserLayerManager.prototype.initDropzone = function() {
             this.on("complete", jQuery.proxy(function(file, response) {
                 if (response.status < 400) {
                     /* Successful save */
+                    this.refreshSelectedLayer();
                     magic.modules.Common.buttonClickFeedback(this.ulm.id, true, response.detail);
                     this.setButtonStates({
                         addBtn: false, editBtn: !this.ulm.userLayerSelected(), delBtn: !this.ulm.userLayerSelected(), bmkBtn: true
@@ -615,7 +630,7 @@ magic.classes.UserLayerManager.prototype.initDropzone = function() {
                     setTimeout(jQuery.proxy(function() {
                         this.editFs.addClass("hidden");
                     }, this.ulm), 2000);
-                    this.ulm.fetchlayers(jQuery.proxy(this.ulm.populateLayerSelector, this.ulm));
+                    this.ulm.fetchLayers(jQuery.proxy(this.ulm.populateLayerSelector, this.ulm));                   
                 } else {
                     /* Failed to save */
                     magic.modules.Common.buttonClickFeedback(this.ulm.id, false, response.detail);
@@ -672,6 +687,7 @@ magic.classes.UserLayerManager.prototype.initDropzone = function() {
                                 }
                             })
                             .done(jQuery.proxy(function(response) {
+                                this.refreshSelectedLayer();
                                 magic.modules.Common.buttonClickFeedback(this.id, jQuery.isNumeric(response) || response.status < 400, response.detail);
                                 this.setButtonStates({
                                     addBtn: false, editBtn: !this.userLayerSelected(), delBtn: !this.userLayerSelected(), bmkBtn: true
@@ -679,7 +695,8 @@ magic.classes.UserLayerManager.prototype.initDropzone = function() {
                                 this.ddLayers.prop("disabled", false);
                                 setTimeout(jQuery.proxy(function() {
                                     this.editFs.addClass("hidden");
-                                }, this), 2000);                            
+                                }, this), 2000);    
+                                this.fetchLayers(jQuery.proxy(this.populateLayerSelector, this));
                             }, this.ulm))
                             .fail(function (xhr) {
                                 bootbox.alert(
