@@ -11,6 +11,19 @@ magic.classes.StylerPopup = function(options) {
     this.formInput = jQuery("#" + options.formInput);
     
     this.active = false;
+    
+    this.styleInputs = ["marker", "radius", "stroke_width", "stroke_color", "stroke_opacity", "stroke_linestyle", "fill_color", "fill_opacity"];
+    
+    this.inputDefaults = {
+        "marker": "circle", 
+        "radius": 5, 
+        "stroke_width": 1, 
+        "stroke_color": "#000000", 
+        "stroke_opacity": 1.0, 
+        "stroke_linestyle": "solid", 
+        "fill_color": "#ffffff", 
+        "fill_opacity": 1.0
+    };
         
     /* Internal */
     this.template = 
@@ -80,7 +93,7 @@ magic.classes.StylerPopup = function(options) {
                     '<label class="col-sm-4 control-label" for="' + this.id + '-stroke_linestyle">Line style</label>' + 
                     '<div class="col-sm-8">' + 
                         '<select class="form-control id="' + this.id + '-stroke_linestyle" ' +                                       
-                                'data-toggle="tooltip" data-placement="right" title="Type of line" required="required">' + 
+                                'data-toggle="tooltip" data-placement="right" title="Type of line">' + 
                             '<option value="solid">Solid</option>'+ 
                             '<option value="dotted">Dotted</option>' +
                             '<option value="dashed">Dashed</option>' +
@@ -104,7 +117,7 @@ magic.classes.StylerPopup = function(options) {
                         '<input type="number" class="form-control" id="' + this.id + '-fill_opacity" ' + 
                                'placeholder="Fill opacity (0->1)" ' + 
                                'min="0" max="1" step="0.1" value="1.0" ' + 
-                               'data-toggle="tooltip" data-placement="right" title="Fill opacity (0.0 = transparent, 1.0 = opaque)" required="required">' + 
+                               'data-toggle="tooltip" data-placement="right" title="Fill opacity (0.0 = transparent, 1.0 = opaque)">' + 
                         '</input>' + 
                     '</div>' + 
                 '</div>' +      
@@ -130,18 +143,16 @@ magic.classes.StylerPopup = function(options) {
     .on("shown.bs.popover", jQuery.proxy(function() {
         jQuery("#" + this.id + "-save").click(jQuery.proxy(function() {
             var styleDef = {};
-            var styleIdBase = this.id + "-";
-            var styleInputs = ["mode", "marker", "radius", "stroke_width", "stroke_color", "stroke_opacity", "stroke_linestyle", "fill_color", "fill_opacity"];                        
-            jQuery.each(styleInputs, jQuery.proxy(function(idx, sip) {
-                styleDef[sip] = jQuery(styleIdBase + sip).val();
+            jQuery.each(this.styleInputs, jQuery.proxy(function(idx, sip) {
+                styleDef[sip] = jQuery("#" + this.id + "-" + sip).val();
             }, this));
             this.formInput.val(JSON.stringify(styleDef));
             this.deactivate();
         }, this));
         jQuery("#" + this.id + "-cancel").click(jQuery.proxy(this.deactivate, this));
         /* Close button */
-        jQuery(".inset-map-popover").find("button.close").click(jQuery.proxy(this.deactivate, this));       
-    }, this))    
+        jQuery(".styler-popover").find("button.close").click(jQuery.proxy(this.deactivate, this));       
+    }, this));  
 };
 
 /**
@@ -165,7 +176,12 @@ magic.classes.StylerPopup.prototype.activate = function(mode) {
         } else {
             jQuery("#" + this.id + "-" + fsname + "-fs").addClass("hidden");
         }
-    }, this));    
+    }, this)); 
+    /* Set values of fields from the hidden input */
+    var styledef = JSON.parse(this.formInput.val() || "{}");
+    jQuery.each(this.styleInputs, jQuery.proxy(function(idx, sip) {
+        jQuery("#" + this.id + "-" + sip).val(styledef[sip] || this.inputDefaults[sip]);
+    }, this));
 };
 
 magic.classes.StylerPopup.prototype.deactivate = function() {

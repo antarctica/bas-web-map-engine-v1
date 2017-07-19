@@ -280,6 +280,7 @@ magic.classes.UserLayerManager.prototype.initialise = function(uldata) {
         }, this));        
         /* Cancel button */
         this.cancBtn.click(jQuery.proxy(function() {
+            this.stylerPopup.deactivate();
             this.mgrForm[0].reset();
             this.editFs.addClass("hidden");
             this.setButtonStates({
@@ -290,7 +291,8 @@ magic.classes.UserLayerManager.prototype.initialise = function(uldata) {
             this.divVis.addClass("hidden");
         }, this));
         /* Close button */
-        jQuery(".layermanager-popover").find("button.close").click(jQuery.proxy(function() { 
+        jQuery(".layermanager-popover").find("button.close").click(jQuery.proxy(function() {
+            this.stylerPopup.deactivate();
             this.target.popover("hide");
         }, this));
     }, this));           
@@ -543,8 +545,9 @@ magic.classes.UserLayerManager.prototype.payloadToForm = function(populator) {
     if (typeof styledef === "string") {
         styledef = JSON.parse(styledef);
     }
+    this.ddStyle.val(styledef["mode"]);
     if (styledef["mode"] != "default" && styledef["mode"] != "file") {
-        this.stylePopup.activate(styledef["mode"]);
+        this.stylerPopup.activate(styledef["mode"]);
     }
 };
 
@@ -669,14 +672,14 @@ magic.classes.UserLayerManager.prototype.initDropzone = function() {
                                 }
                             })
                             .done(jQuery.proxy(function(response) {
-                                magic.modules.Common.buttonClickFeedback(this.ulm.id, jQuery.isNumeric(response) || response.status < 400, response.detail);
+                                magic.modules.Common.buttonClickFeedback(this.id, jQuery.isNumeric(response) || response.status < 400, response.detail);
                                 this.setButtonStates({
-                                    addBtn: false, editBtn: !this.ulm.userLayerSelected(), delBtn: !this.ulm.userLayerSelected(), bmkBtn: true
+                                    addBtn: false, editBtn: !this.userLayerSelected(), delBtn: !this.userLayerSelected(), bmkBtn: true
                                 });                               
-                                this.ulm.ddLayers.prop("disabled", false);
+                                this.ddLayers.prop("disabled", false);
                                 setTimeout(jQuery.proxy(function() {
                                     this.editFs.addClass("hidden");
-                                }, this.ulm), 2000);                            
+                                }, this), 2000);                            
                             }, this.ulm))
                             .fail(function (xhr) {
                                 bootbox.alert(
