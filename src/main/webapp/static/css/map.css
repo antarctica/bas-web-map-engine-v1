@@ -792,3 +792,8 @@ div.watermark {
     border: 3px #909090 dashed; 
     margin-bottom: 15px;    
 }
+
+/* Upload files styler */
+div.styler-popover-content {
+    width: 400px;
+}

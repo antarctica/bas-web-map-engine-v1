@@ -3,8 +3,6 @@
  */
 package uk.ac.antarctica.mapengine.datapublishing;
 
-import it.geosolutions.geoserver.rest.encoder.GSLayerEncoder;
-import it.geosolutions.geoserver.rest.encoder.feature.GSFeatureTypeEncoder;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -63,14 +61,12 @@ public class ShpZipPublisher extends DataPublisher {
                     executeOgr2ogr(shp, newTableName, pgUserSchema);
                     /* Publish style to Geoserver */
                     String styleName = createLayerStyling(pgUserSchema, pgTable, ud.getUfmd().getStyledef(), sld);                
-                    /* Publish feature to Geoserver */
-                    GSFeatureTypeEncoder gsfte = configureFeatureType(ud.getUfmd(), newTableName);
-                    GSLayerEncoder gsle = configureLayerData(styleName);
+                    /* Publish feature to Geoserver */                    
                     if (!getGrm().getPublisher().publishDBLayer(
                             getEnv().getProperty("geoserver.local.userWorkspace"), 
                             ud.getUfue().getUserDatastore(), 
-                            gsfte, 
-                            gsle
+                            configureFeatureType(ud.getUfmd(), newTableName), 
+                            configureLayerData(styleName)
                     )) {
                         throw new GeoserverPublishException("Publishing PostGIS table " + newTableName + " to Geoserver failed");
                     }

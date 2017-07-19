@@ -13,6 +13,9 @@ magic.classes.UserLayerManager = function(options) {
     /* Map */
     this.map = options.map || magic.runtime.map;
     
+    /* Styler popup tool */
+    this.stylerPopup = null;
+    
     this.zIndexWmsStack = -1;    
     
     this.userPayloadConfig = magic.runtime.userdata ? (magic.runtime.userdata.layers || {}) : {};
@@ -100,9 +103,9 @@ magic.classes.UserLayerManager.prototype.initialise = function(uldata) {
                     '</div>' +
                     '<div class="form-group form-group-sm col-sm-12">' +
                         '<label class="col-sm-4 control-label" for="' + this.id + '-layer-style-mode">Style</label>' + 
-                        '<div class="col-sm-8">' + 
+                        '<div class="form-inline col-sm-8">' + 
                             '<select id="' + this.id + '-layer-style-mode" class="form-control" ' + 
-                                'data-toggle="tooltip" data-placement="right" ' + 
+                                'data-toggle="tooltip" data-placement="top" ' + 
                                 'title="Layer styling">' +
                                 '<option value="default" default>Default</option>' + 
                                 '<option value="file">Use style in file</option>' +
@@ -110,98 +113,10 @@ magic.classes.UserLayerManager.prototype.initialise = function(uldata) {
                                 '<option value="line">Line style</option>' +
                                 '<option value="polygon">Polygon style</option>' +
                             '</select>' + 
+                            '<button id="' + this.id + '-layer-style-edit" data-toggle="popover" data-placement="right" ' + 
+                                ' type="button" role="button"class="btn btn-sm btn-primary">Edit</button>' +
                         '</div>' + 
-                    '</div>' +
-                    '<div id="' + this.id + '-style-fs" class="hidden">' + 
-                        '<div id="' + this.id + '-style-point-fs">' + 
-                            '<div class="form-group form-group-sm col-sm-12">' + 
-                                '<label class="col-sm-4 control-label" for="' + this.id + '-layer-style-marker">Marker</label>' + 
-                                '<div class="col-sm-8">' + 
-                                    '<select class="form-control" id="' + this.id + '-layer-style-marker" ' +                                         
-                                            'data-toggle="tooltip" data-placement="right" title="Choose a marker type">' + 
-                                        '<option value="circle">Circle</option>' + 
-                                        '<option value="triangle">Triangle</option>' + 
-                                        '<option value="square">Square</option>' + 
-                                        '<option value="pentagon">Pentagon</option>' + 
-                                        '<option value="hexagon">Hexagon</option>' + 
-                                        '<option value="star">Star</option>' + 
-                                    '</select>' +
-                                '</div>' + 
-                            '</div>' +
-                            '<div class="form-group form-group-sm col-sm-12">' + 
-                                '<label class="col-sm-4 control-label" for="' + this.id + '-layer-style-radius">Size</label>' + 
-                                '<div class="col-sm-8">' +
-                                    '<input type="number" class="form-control" id="' + this.id + '-layer-style-radius" ' + 
-                                            'placeholder="Radius of graphic marker in pixels" ' +
-                                            'min="3" max="20" step="0.2" value="5" ' + 
-                                            'data-toggle="tooltip" data-placement="right" title="Radius of graphic marker in pixels, default 5">' + 
-                                    '</input>' +
-                                '</div>' + 
-                            '</div>' + 
-                        '</div>' + 
-                        '<div id="' + this.id + '-style-line-fs">' + 
-                            '<div class="form-group form-group-sm col-sm-12">' + 
-                                '<label class="col-sm-4 control-label" for="' + this.id + '-layer-style-stroke_width">Outline width</label>' + 
-                                '<div class="col-sm-8">' +
-                                    '<input type="number" class="form-control" id="' + this.id + '-layer-style-stroke_width" ' + 
-                                           'placeholder="Width of outline in pixels" ' + 
-                                           'min="3" max="20" step="0.2" value="1" ' + 
-                                           'data-toggle="tooltip" data-placement="right" title="Width of outline in pixels, default 1">' + 
-                                    '</input>' +
-                                '</div>' + 
-                            '</div>' + 
-                            '<div class="form-group form-group-sm col-sm-12">' + 
-                                '<label class="col-sm-4 control-label" for="' + this.id + '-layer-style-stroke_color">Outline colour</label>' + 
-                                '<div class="col-sm-8">' +
-                                    '<input type="color" class="form-control" id="' + this.id + '-layer-style-stroke_color" ' +                                        
-                                           'data-toggle="tooltip" data-placement="right" title="Colour of the graphic outline, default black"' + 
-                                    '</input>' +
-                                '</div>' + 
-                            '</div>' + 
-                            '<div class="form-group form-group-sm col-sm-12">' + 
-                                '<label for="' + this.id + '-layer-style-stroke_opacity" class="col-sm-4 control-label">Outline opacity</label>' + 
-                                '<div class="col-sm-8">' + 
-                                    '<input type="number" class="form-control" id="' + this.id + '-layer-style-stroke_opacity" ' +
-                                           'placeholder="Outline opacity (0->1)" ' + 
-                                           'min="0" max="1" step="0.1" value="1.0" ' + 
-                                           'data-toggle="tooltip" data-placement="right" title="Outline opacity (0.0 = transparent, 1.0 = opaque)">' +                          
-                                    '</input>' + 
-                                '</div>' + 
-                            '</div>' + 
-                            '<div class="form-group form-group-sm col-sm-12">' + 
-                                '<label class="col-sm-4 control-label" for="' + this.id + '-layer-style-stroke_linestyle">Line style</label>' + 
-                                '<div class="col-sm-8">' + 
-                                    '<select class="form-control id="' + this.id + '-layer-style-stroke_linestyle" ' +                                       
-                                            'data-toggle="tooltip" data-placement="right" title="Type of line" required="required">' + 
-                                        '<option value="solid">Solid</option>'+ 
-                                        '<option value="dotted">Dotted</option>' +
-                                        '<option value="dashed">Dashed</option>' +
-                                        '<option value="dotted-dashed">Dash/dot</option>' + 
-                                    '</select>' + 
-                                '</div>' + 
-                            '</div>' + 
-                        '</div>' + 
-                        '<div id="' + this.id + '-style-polygon-fs">' + 
-                            '<div class="form-group form-group-sm col-sm-12">' + 
-                                '<label class="col-sm-4 control-label" for="' + this.id + '-layer-style-fill_color">Fill colour</label>' + 
-                                '<div class="col-sm-8">' +
-                                    '<input type="color" class="form-control" id="' + this.id + '-layer-style-fill_color" ' +                                        
-                                           'data-toggle="tooltip" data-placement="right" title="Colour of the graphic interior fill, default black"' + 
-                                    '</input>' +
-                                '</div>' + 
-                            '</div>' + 
-                            '<div class="form-group form-group-sm col-sm-12">' +
-                                '<label for="' + this.id + '-layer-style-fill_opacity" class="col-sm-4 control-label">Fill opacity</label>' + 
-                                '<div class="col-sm-8">' + 
-                                    '<input type="number" class="form-control" id="' + this.id + '-layer-style-fill_opacity" ' + 
-                                           'placeholder="Fill opacity (0->1)" ' + 
-                                           'min="0" max="1" step="0.1" value="1.0" ' + 
-                                           'data-toggle="tooltip" data-placement="right" title="Fill opacity (0.0 = transparent, 1.0 = opaque)" required="required">' + 
-                                    '</input>' + 
-                                '</div>' + 
-                            '</div>' +      
-                        '</div>' + 
-                    '</div>' + 
+                    '</div>' +                    
                     '<div class="form-group form-group-sm col-sm-12">' +
                         '<label class="col-sm-4 control-label" for="' + this.id + '-layer-allowed_usage">Share</label>' + 
                         '<div class="col-sm-8">' + 
@@ -240,21 +155,27 @@ magic.classes.UserLayerManager.prototype.initialise = function(uldata) {
         content: this.content
     }).on("shown.bs.popover", jQuery.proxy(function() {         
         /* Get widgets */
-        this.ddLayers = jQuery("#" + this.id + "-layers");
-        this.divVis   = jQuery("#" + this.id + "-layer-vis-div");
-        this.cbVis    = jQuery("#" + this.id + "-layer-vis");        
-        this.bmkBtn   = jQuery("#" + this.id + "-layer-bmk");
-        this.addBtn   = jQuery("#" + this.id + "-layer-add");
-        this.editBtn  = jQuery("#" + this.id + "-layer-edit");
-        this.delBtn   = jQuery("#" + this.id + "-layer-delete");
-        this.saveBtn  = jQuery("#" + this.id + "-go");
-        this.cancBtn  = jQuery("#" + this.id + "-cancel");
-        this.mgrForm  = jQuery("#" + this.id + "-form");        
-        this.elTitle  = jQuery("#" + this.id + "-layer-edit-title");
-        this.editFs   = this.elTitle.closest("div.well");
-        this.styleFs  = jQuery("#" + this.id + "-style-fs");
-        this.ddStyle = jQuery("#" + this.id + "-layer-style-mode");
-        this.lastMod  = jQuery("#" + this.id + "-layer-last-mod");
+        this.ddLayers  = jQuery("#" + this.id + "-layers");
+        this.divVis    = jQuery("#" + this.id + "-layer-vis-div");
+        this.cbVis     = jQuery("#" + this.id + "-layer-vis");        
+        this.bmkBtn    = jQuery("#" + this.id + "-layer-bmk");
+        this.addBtn    = jQuery("#" + this.id + "-layer-add");
+        this.editBtn   = jQuery("#" + this.id + "-layer-edit");
+        this.delBtn    = jQuery("#" + this.id + "-layer-delete");
+        this.saveBtn   = jQuery("#" + this.id + "-go");
+        this.cancBtn   = jQuery("#" + this.id + "-cancel");
+        this.mgrForm   = jQuery("#" + this.id + "-form");        
+        this.elTitle   = jQuery("#" + this.id + "-layer-edit-title");
+        this.editFs    = this.elTitle.closest("div.well");
+        this.ddStyle   = jQuery("#" + this.id + "-layer-style-mode");
+        this.styleEdit = jQuery("#" + this.id + "-layer-style-edit");
+        this.hidStyle  = jQuery("#" + this.id + "-layer-styledef");
+        this.lastMod   = jQuery("#" + this.id + "-layer-last-mod");
+        /* Initialise styler popup */
+        this.stylerPopup = new magic.classes.StylerPopup({
+            target: this.id + "-layer-style-edit", 
+            formInput: this.id + "-layer-styledef"
+        });
         /* Initialise drag-drop zone */
         this.initDropzone();
         /* Fetch layers */
@@ -280,39 +201,26 @@ magic.classes.UserLayerManager.prototype.initialise = function(uldata) {
                 }
             }
         }, this));
+        /* Layer visibility checkbox change handler */
         this.cbVis.change(jQuery.proxy(function(evt) {
             var selId = this.selectedLayerId();
             if (selId != null && selId != "") {
                 this.prepLayer(this.userLayerData[selId], this.cbVis.prop("checked"));               
             }
         }, this));
+        /* Layer style mode change handler */
         this.ddStyle.change(jQuery.proxy(function() {
             var selection = this.ddStyle.val();
-            if (selection == "auto" || selection == "file") {
-                this.styleFs.addClass("hidden");
+            if (selection == "default" || selection == "file") {
+                this.stylerPopup.deactivate();
+                this.styleEdit.addClass("hidden");
             } else {
-                this.styleFs.removeClass("hidden");
-                var pointFs = jQuery("#" + this.id + "-style-point-fs"),
-                    lineFs = jQuery("#" + this.id + "-style-line-fs"),
-                    polygonFs = jQuery("#" + this.id + "-style-polygon-fs");                
-                switch(selection) {
-                    case "point":
-                        pointFs.removeClass("hidden");
-                        lineFs.removeClass("hidden");
-                        polygonFs.removeClass("hidden");
-                        break;
-                    case "line":
-                        pointFs.addClass("hidden");
-                        lineFs.removeClass("hidden");
-                        polygonFs.addClass("hidden");
-                        break;
-                    default:
-                        pointFs.addClass("hidden");
-                        lineFs.removeClass("hidden");
-                        polygonFs.removeClass("hidden");
-                        break;
-                }                
+                this.styleEdit.removeClass("hidden");                
             }
+        }, this));
+        /* Style edit button click handler */
+        this.styleEdit.click(jQuery.proxy(function(evt) {
+            this.stylerPopup.activate(this.ddStyle.val());
         }, this));
         /* Bookmarkable URL button */
         this.bmkBtn.click(jQuery.proxy(function() {             
@@ -490,19 +398,14 @@ magic.classes.UserLayerManager.prototype.setButtonStates = function(states) {
  * @return {ol.Layer}
  */
 magic.classes.UserLayerManager.prototype.prepLayer = function(layerData, visible) { 
-    console.log("*** Entered prepLayer() ***");
-    console.log(layerData);    
     if (typeof visible !== "boolean") {
-        console.log("Determine visibility from payload config...");
         visible = this.userPayloadConfig[layerData.id].visibility;
     }
-    console.log("Intended to be visible : " + visible);
     var olLayer = null;     
     var exLayer = layerData.olLayer;
     if (exLayer == null) {
         if (visible) {
             /* We create the layer now */
-            console.log("No existing layer => create it...");
             var defaultNodeAttrs = {
                 legend_graphic: null,
                 refresh_rate: 0,
@@ -565,13 +468,9 @@ magic.classes.UserLayerManager.prototype.prepLayer = function(layerData, visible
             nd.layer = olLayer;    
             nd.layer.setZIndex(this.zIndexWmsStack++);
             this.map.addLayer(olLayer);
-            console.log("Created ok");
-        } else {
-            console.log("Not necessary to create the layer yet");
         }
     } else {
         /* Layer already exists, do a refresh in case the layer name has changed */
-        console.log("Layer exists => refresh only");
         olLayer = exLayer;
         if (jQuery.isFunction(olLayer.getSource().updateParams)) {
             olLayer.getSource().updateParams(jQuery.extend({}, 
@@ -580,13 +479,9 @@ magic.classes.UserLayerManager.prototype.prepLayer = function(layerData, visible
             ));
         }
         olLayer.setVisible(visible);
-        console.log("Done");
     }
     layerData.olLayer = olLayer;
     this.userLayerData[layerData.id] = layerData;
-    console.log("UserLayerData is now:");
-    console.log(this.userLayerData);
-    console.log("*** Exiting prepLayer() ***");
     return(olLayer);
 };
 
@@ -627,17 +522,10 @@ magic.classes.UserLayerManager.prototype.getWmsStackTop = function(map) {
 magic.classes.UserLayerManager.prototype.formToPayload = function() {
     var payload = {};
     var idBase = "#" + this.id + "-layer-";
-    var inputs = ["id", "caption", "description", "allowed_usage"];
+    var inputs = ["id", "caption", "description", "allowed_usage", "styledef"];
     jQuery.each(inputs, function(idx, ip) {
         payload[ip] = jQuery(idBase + ip).val();
-    });
-    var styledef = {};
-    var styleIdBase = idBase + "style-";
-    var styleInputs = ["mode", "marker", "radius", "stroke_width", "stroke_color", "stroke_opacity", "stroke_linestyle", "fill_color", "fill_opacity"];
-    jQuery.each(styleInputs, jQuery.proxy(function(idx, sip) {
-        styledef[sip] = jQuery(styleIdBase + sip).val();
-    }, this));
-    payload["styledef"] = JSON.stringify(styledef);
+    });    
     return(payload);
 };
 
@@ -647,24 +535,17 @@ magic.classes.UserLayerManager.prototype.formToPayload = function() {
  */
 magic.classes.UserLayerManager.prototype.payloadToForm = function(populator) {
     var idBase = "#" + this.id + "-layer-";
-    var inputs = ["id", "caption", "description", "allowed_usage"];
+    var inputs = ["id", "caption", "description", "allowed_usage", "styledef"];
     jQuery.each(inputs, function(idx, ip) {
         jQuery(idBase + ip).val(populator[ip]);
     });
-    var styleIdBase = idBase + "style-";
-    var styleInputs = ["mode", "marker", "radius", "stroke_width", "stroke_color", "stroke_opacity", "stroke_linestyle", "fill_color", "fill_opacity"];
     var styledef = populator["styledef"];
     if (typeof styledef === "string") {
         styledef = JSON.parse(styledef);
     }
     if (styledef["mode"] != "default" && styledef["mode"] != "file") {
-        this.styleFs.removeClass("hidden");
-    } else {
-        this.styleFs.addClass("hidden");
+        this.stylePopup.activate(styledef["mode"]);
     }
-    jQuery.each(styleInputs, jQuery.proxy(function(idx, sip) {
-        jQuery(styleIdBase + sip).val(styledef[sip]);
-    }, this));
 };
 
 /**

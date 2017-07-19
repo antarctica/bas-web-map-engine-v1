@@ -276,25 +276,21 @@ public abstract class DataPublisher {
         JsonObject josd = jesd.getAsJsonObject();
         String mode = !josd.has("mode") ? "default" : josd.get("mode").getAsString();
         String geomType = getGeometryType(schemaName + "." + tableName);
-        String styleName = geomType;
+        String styleName = null;
+        boolean stylePublished = false;
         switch(mode) {
             case "file":
                 /* Style is in file supplied (shapefile), or internal to the file (GPX/KML) when exStyleFile is null */
                 if (exStyleFile != null) {
-                    boolean ok = false;
                     if (getGrm().getReader().existsStyle(getEnv().getProperty("geoserver.local.userWorkspace"), tableName)) {
-                        ok = getGrm().getPublisher().updateStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), exStyleFile, tableName);
+                        stylePublished = getGrm().getPublisher().updateStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), exStyleFile, tableName);
                     } else {
-                        ok = getGrm().getPublisher().publishStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), exStyleFile, tableName);
-                    }
-                    if (ok) {
-                        styleName = tableName;
-                    }
+                        stylePublished = getGrm().getPublisher().publishStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), exStyleFile, tableName);
+                    }                    
                 }      
                 break;
             case "point":
                 if (geomType.equals("point")) {
-                    boolean ok = false;
                     String genSld = getServletContext().getRealPath("/WEB-INF/sld/point.xml");
                     String content = FileUtils.readFileToString(new File(genSld));
                     String sldOut = StringUtils.replaceEachRepeatedly(
@@ -310,18 +306,14 @@ public abstract class DataPublisher {
                             josd.has("stroke_opacity") ? josd.get("stroke_opacity").getAsString() : "1.0"
                         });
                     if (getGrm().getReader().existsStyle(getEnv().getProperty("geoserver.local.userWorkspace"), tableName)) {
-                        ok = getGrm().getPublisher().updateStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, mode);
+                        stylePublished = getGrm().getPublisher().updateStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, mode);
                     } else {
-                        ok = getGrm().getPublisher().publishStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, tableName); 
-                    }
-                    if (ok) {
-                        styleName = tableName;
-                    }
+                        stylePublished = getGrm().getPublisher().publishStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, tableName); 
+                    }                   
                 }
                 break;
             case "line":
                 if (geomType.equals("line")) {
-                    boolean ok = false;
                     String genSld = getServletContext().getRealPath("/WEB-INF/sld/line.xml");
                     String content = FileUtils.readFileToString(new File(genSld));
                     String sldOut = StringUtils.replaceEachRepeatedly(
@@ -334,18 +326,14 @@ public abstract class DataPublisher {
                             josd.has("stroke_linestyle") ? getDashArray(josd.get("stroke_linestyle").getAsString()) : ""
                         });
                     if (getGrm().getReader().existsStyle(getEnv().getProperty("geoserver.local.userWorkspace"), tableName)) {
-                        ok = getGrm().getPublisher().updateStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, mode);
+                        stylePublished = getGrm().getPublisher().updateStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, mode);
                     } else {
-                        ok = getGrm().getPublisher().publishStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, tableName); 
-                    }
-                    if (ok) {
-                        styleName = tableName;
-                    }
+                        stylePublished = getGrm().getPublisher().publishStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, tableName); 
+                    }                   
                 }
                 break;
             case "polygon":
                 if (geomType.equals("polygon")) {
-                    boolean ok = false;
                     String genSld = getServletContext().getRealPath("/WEB-INF/sld/polygon.xml");
                     String content = FileUtils.readFileToString(new File(genSld));
                     String sldOut = StringUtils.replaceEachRepeatedly(
@@ -359,17 +347,17 @@ public abstract class DataPublisher {
                             josd.has("stroke_opacity") ? josd.get("stroke_opacity").getAsString() : "1.0"
                         });
                     if (getGrm().getReader().existsStyle(getEnv().getProperty("geoserver.local.userWorkspace"), tableName)) {
-                        ok = getGrm().getPublisher().updateStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, mode);
+                        stylePublished = getGrm().getPublisher().updateStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, mode);
                     } else {
-                        ok = getGrm().getPublisher().publishStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, tableName); 
-                    }
-                    if (ok) {
-                        styleName = tableName;
-                    }
+                        stylePublished = getGrm().getPublisher().publishStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, tableName); 
+                    }                    
                 }
                 break;
             default:
                 break;
+        }
+        if (stylePublished) {
+            styleName = tableName;
         }
         return(styleName);
     }
@@ -598,7 +586,9 @@ public abstract class DataPublisher {
      */
     protected GSLayerEncoder configureLayerData(String defaultStyle) {
         GSLayerEncoder gsle = new GSLayerEncoder();
-        gsle.setDefaultStyle(defaultStyle);
+        if (defaultStyle != null) {
+            gsle.setDefaultStyle(defaultStyle);
+        }
         gsle.setEnabled(true);
         gsle.setQueryable(true);
         return (gsle);
