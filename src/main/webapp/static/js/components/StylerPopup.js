@@ -7,13 +7,14 @@ magic.classes.StylerPopup = function(options) {
     /* Button/link possessing the styling popover */
     this.target = jQuery("#" + options.target);   
     
-    /* Where to write the value output on close/edit */
+    /* The style mode input (allowed values: default|file|point|line|polygon)*/
+    this.styleMode = jQuery("#" + options.styleMode);
+    
+    /* Where to write the JSON value output on close/edit */
     this.formInput = jQuery("#" + options.formInput);
     
     this.active = false;
-    
-    this.mode = null;
-    
+        
     this.styleInputs = ["marker", "radius", "stroke_width", "stroke_color", "stroke_opacity", "stroke_linestyle", "fill_color", "fill_opacity"];
     
     this.inputDefaults = {
@@ -148,7 +149,7 @@ magic.classes.StylerPopup = function(options) {
             jQuery.each(this.styleInputs, jQuery.proxy(function(idx, sip) {
                 styleDef[sip] = jQuery("#" + this.id + "-" + sip).val();
             }, this));
-            styleDef["mode"] = this.mode;
+            styleDef["mode"] = this.styleMode.val();
             this.formInput.val(JSON.stringify(styleDef));
             this.deactivate();
         }, this));
@@ -160,9 +161,9 @@ magic.classes.StylerPopup = function(options) {
 
 /**
  * Activate the styler popup control
- * @param {String} mode
  */
-magic.classes.StylerPopup.prototype.activate = function(mode) {    
+magic.classes.StylerPopup.prototype.activate = function() {  
+    var mode = this.styleMode.val();
     this.target.popover("show");
     var fieldsets = {
         "point" : {"point": 1, "line": 1, "polygon": 1}, 
@@ -172,7 +173,6 @@ magic.classes.StylerPopup.prototype.activate = function(mode) {
     if (!fieldsets[mode]) {
         return;
     }
-    this.mode = mode;
     this.active = true;
     jQuery.each(fieldsets[mode], jQuery.proxy(function(fsname, fsconf) {
         if (fsconf === 1) {

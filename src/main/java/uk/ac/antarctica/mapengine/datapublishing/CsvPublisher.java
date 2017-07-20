@@ -3,7 +3,6 @@
  */
 package uk.ac.antarctica.mapengine.datapublishing;
 
-import it.geosolutions.geoserver.rest.HTTPUtils;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -30,7 +29,7 @@ public class CsvPublisher extends DataPublisher {
     public void publish(UploadedData ud) throws GeoserverPublishException, IOException, DataAccessException {
             
         String pgUserSchema = ud.getUfue().getUserPgSchema();
-        String pgTable = standardiseName(ud.getUfmd().getName(), false, 40);
+        String pgTable = standardiseName(ud.getUfmd().getName(), false, MAX_TABLENAME_LENGTH);
         String destTableName = pgUserSchema + "." + pgTable;
         
         /* Record the feature type name */

@@ -62,6 +62,10 @@ public abstract class DataPublisher {
 
     /* Upload temporary working directory base name */
     protected static final String WDBASE = System.getProperty("java.io.tmpdir") + SEP + "upload_";
+    
+    protected static final int MAX_TABLENAME_LENGTH = 50;
+    
+    protected static final int MAX_SCHEMANAME_LENGTH = 30;
         
     @Autowired
     private Environment env;
@@ -216,8 +220,8 @@ public abstract class DataPublisher {
         if (fromName == null || fromName.isEmpty()) {
             fromName = "temp_" + UUID.randomUUID().toString();
         }
-        /* Replace all non-lowercase alphanumerics with _ and truncate to 30 characters */
-        String schemaName = "user_" + standardiseName(fromName, false, 30);        
+        /* Replace all non-lowercase alphanumerics with _ and truncate maximum allowed length */
+        String schemaName = "user_" + standardiseName(fromName, false, MAX_SCHEMANAME_LENGTH);        
         getMagicDataTpl().execute("CREATE SCHEMA IF NOT EXISTS " + schemaName + " AUTHORIZATION " + getEnv().getProperty("datasource.magic.username"));
         return(schemaName);
     }
@@ -473,20 +477,32 @@ public abstract class DataPublisher {
      * @param String tableSchema
      * @param String tableName 
      */
-    protected void removeExistingData(String uuid, String tableSchema, String tableName) throws DataAccessException {
+    protected void removeExistingData(String uuid, String tableSchema, String tableName) throws DataAccessException, GeoserverPublishException {
         
-        /* Drop the existing table, including any sequence and index previously created by ogr2ogr */
-        getMagicDataTpl().execute("DROP TABLE IF EXISTS " + tableSchema + "." + tableName + " CASCADE");
-     
-        /* Drop any Geoserver feature corresponding to this table */
-        getGrm().getPublisher().unpublishFeatureType(
-            getEnv().getProperty("geoserver.local.userWorkspace"),
-            getEnv().getProperty("geoserver.local.userPostgis"),
-            tableName
-        );
-        
-        /* Drop any record of this feature in the user features table */
-        getMagicDataTpl().update("DELETE FROM " + getEnv().getProperty("postgres.local.userlayersTable") + " WHERE id=?", uuid);
+        if (uuid == null || uuid.isEmpty()) {
+            /* Check for table already existing */
+            int nExisting = getMagicDataTpl().queryForObject(
+                "SELECT count(tablename) FROM pg_tables WHERE schemaname = '" + tableSchema + "' AND tablename = '" + tableName + "'", 
+                Integer.class
+            );
+            if (nExisting > 0) {
+                /* Forbid the republication of the same data with different uuids - multiple versions will be very confusing for all! */
+                throw new GeoserverPublishException("This data is already published (table " + tableName + " already exists)");
+            }
+        } else {
+            /* Drop the existing table, including any sequence and index previously created by ogr2ogr */
+            getMagicDataTpl().execute("DROP TABLE IF EXISTS " + tableSchema + "." + tableName + " CASCADE");
+
+            /* Drop any Geoserver feature corresponding to this table */
+            getGrm().getPublisher().unpublishFeatureType(
+                getEnv().getProperty("geoserver.local.userWorkspace"),
+                getEnv().getProperty("geoserver.local.userPostgis"),
+                tableName
+            );
+
+            /* Drop any record of this feature in the user features table */
+            getMagicDataTpl().update("DELETE FROM " + getEnv().getProperty("postgres.local.userlayersTable") + " WHERE id=?", uuid);
+        }
     }
     
     /**

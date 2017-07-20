@@ -104,7 +104,7 @@ magic.classes.UserLayerManager.prototype.initialise = function(uldata) {
                     '<div class="form-group form-group-sm col-sm-12">' +
                         '<label class="col-sm-4 control-label" for="' + this.id + '-layer-style-mode">Style</label>' + 
                         '<div class="form-inline col-sm-8">' + 
-                            '<select id="' + this.id + '-layer-style-mode" class="form-control" ' + 
+                            '<select id="' + this.id + '-layer-style-mode" class="form-control" style="width:80%" ' + 
                                 'data-toggle="tooltip" data-placement="top" ' + 
                                 'title="Layer styling">' +
                                 '<option value="default" default>Default</option>' + 
@@ -113,7 +113,7 @@ magic.classes.UserLayerManager.prototype.initialise = function(uldata) {
                                 '<option value="line">Line style</option>' +
                                 '<option value="polygon">Polygon style</option>' +
                             '</select>' + 
-                            '<button id="' + this.id + '-layer-style-edit" data-toggle="popover" data-placement="right" ' + 
+                            '<button id="' + this.id + '-layer-style-edit" style="width:20%" data-toggle="popover" data-placement="right" ' + 
                                 ' type="button" role="button"class="btn btn-sm btn-primary">Edit</button>' +
                         '</div>' + 
                     '</div>' +                    
@@ -174,12 +174,13 @@ magic.classes.UserLayerManager.prototype.initialise = function(uldata) {
         /* Initialise styler popup */
         this.stylerPopup = new magic.classes.StylerPopup({
             target: this.id + "-layer-style-edit", 
-            formInput: this.id + "-layer-styledef"
+            formInput: this.id + "-layer-styledef",
+            styleMode: this.id + "-layer-style-mode"
         });
         /* Initialise drag-drop zone */
         this.initDropzone();
         /* Fetch layers */
-        this.populateLayerSelector(uldata);
+        this.refreshAfterUpdate(uldata);
         /* Set initial button states */
         this.setButtonStates({
             addBtn: false, editBtn: true, delBtn: true, bmkBtn: true
@@ -221,7 +222,7 @@ magic.classes.UserLayerManager.prototype.initialise = function(uldata) {
         }, this));
         /* Style edit button click handler */
         this.styleEdit.click(jQuery.proxy(function(evt) {
-            this.stylerPopup.activate(this.ddStyle.val());
+            this.stylerPopup.activate();
         }, this));
         /* Bookmarkable URL button */
         this.bmkBtn.click(jQuery.proxy(function() {             
@@ -263,7 +264,7 @@ magic.classes.UserLayerManager.prototype.initialise = function(uldata) {
                             }
                             delete this.userLayerData[id];
                         }
-                        this.fetchLayers(uldata);                                                
+                        this.fetchLayers(jQuery.proxy(this.refreshAfterUpdate, this));                                                
                     }, this))
                     .fail(function (xhr) {
                         bootbox.alert(
@@ -346,10 +347,11 @@ magic.classes.UserLayerManager.prototype.fetchLayers = function(cb) {
 };
 
 /**
- * Populate the user layer selection dropdown
+ * Populate the user layer selection dropdown and update map layers
  * @param {Object} uldata
  */
-magic.classes.UserLayerManager.prototype.populateLayerSelector = function(uldata) {
+magic.classes.UserLayerManager.prototype.refreshAfterUpdate = function(uldata) {
+    this.ddLayers.empty();
     var currentUser = null, ulGroup = null;
     var defOpt = jQuery("<option>", {value: ""});
     defOpt.text("Please select...");
@@ -362,7 +364,8 @@ magic.classes.UserLayerManager.prototype.populateLayerSelector = function(uldata
         }
         var ulOpt = jQuery("<option>", {value: ul.id});
         ulOpt.text(ul.caption);
-        ulGroup.append(ulOpt);        
+        ulGroup.append(ulOpt);
+        this.prepLayer(ul);
     }, this));     
 };
 
@@ -402,10 +405,11 @@ magic.classes.UserLayerManager.prototype.setButtonStates = function(states) {
  */
 magic.classes.UserLayerManager.prototype.prepLayer = function(layerData, visible) { 
     if (typeof visible !== "boolean") {
-        visible = this.userPayloadConfig[layerData.id].visibility;
+        visible = this.userPayloadConfig[layerData.id] ? this.userPayloadConfig[layerData.id].visibility : false;
     }
-    var olLayer = null;     
-    var exLayer = layerData.olLayer;
+    var olLayer = null;    
+    var exData = this.userLayerData[layerData.id];
+    var exLayer = exData ? exData.olLayer : null;
     if (exLayer == null) {
         if (visible) {
             /* We create the layer now */
@@ -496,21 +500,6 @@ magic.classes.UserLayerManager.prototype.selectedLayerId = function() {
 };
 
 /**
- * Refresh selected layer by adding cache buster parameter
- */
-magic.classes.UserLayerManager.prototype.refreshSelectedLayer = function() {
-    var layerData = this.userLayerData[this.selectedLayerId()];
-    if (layerData && layerData.olLayer) {
-        if (jQuery.isFunction(layerData.olLayer.getSource().updateParams)) {
-            layerData.olLayer.getSource().updateParams(jQuery.extend({}, 
-                layerData.olLayer.getSource().getParams(), 
-                {"LAYERS": layerData.layer, "buster": new Date().getTime()}
-            ));
-        }
-    }
-};
-
-/**
  * Return the load URL for the selected layer
  */
 magic.classes.UserLayerManager.prototype.selectedLayerLoadUrl = function() {
@@ -559,9 +548,10 @@ magic.classes.UserLayerManager.prototype.payloadToForm = function(populator) {
     if (typeof styledef === "string") {
         styledef = JSON.parse(styledef);
     }
+    /* Set styling mode, and trigger styler popover if necessary */
     this.ddStyle.val(styledef["mode"]);
-    if (styledef["mode"] != "default" && styledef["mode"] != "file") {
-        this.stylerPopup.activate(styledef["mode"]);
+    if (styledef["mode"] == "point" || styledef["mode"] == "line" || styledef["mode"] == "polygon") {
+        this.stylerPopup.activate();
     }
 };
 
@@ -618,25 +608,25 @@ magic.classes.UserLayerManager.prototype.initDropzone = function() {
             "X-CSRF-TOKEN": jQuery("meta[name='_csrf']").attr("content")
         },
         init: function () {
-            this.on("complete", jQuery.proxy(function(file, response) {
+            this.on("complete", jQuery.proxy(function(file) {
+                var response = JSON.parse(file.xhr.responseText);                
                 if (response.status < 400) {
                     /* Successful save */
-                    this.refreshSelectedLayer();
                     magic.modules.Common.buttonClickFeedback(this.ulm.id, true, response.detail);
-                    this.setButtonStates({
+                    this.ulm.setButtonStates({
                         addBtn: false, editBtn: !this.ulm.userLayerSelected(), delBtn: !this.ulm.userLayerSelected(), bmkBtn: true
                     });                             
                     this.ulm.ddLayers.prop("disabled", false);
                     setTimeout(jQuery.proxy(function() {
                         this.editFs.addClass("hidden");
                     }, this.ulm), 2000);
-                    this.ulm.fetchLayers(jQuery.proxy(this.ulm.populateLayerSelector, this.ulm));                   
+                    this.ulm.fetchLayers(jQuery.proxy(this.ulm.refreshAfterUpdate, this.ulm));                   
                 } else {
                     /* Failed to save */
                     magic.modules.Common.buttonClickFeedback(this.ulm.id, false, response.detail);
                     setTimeout(jQuery.proxy(function() {
                         this.editFs.addClass("hidden");
-                    }, this.ulm), 2000);
+                    }, this.ulm), 6000);
                 }
             }, {pfdz: this, ulm: ulm})); 
             this.on("maxfilesexceeded", function(file) {
@@ -687,7 +677,6 @@ magic.classes.UserLayerManager.prototype.initDropzone = function() {
                                 }
                             })
                             .done(jQuery.proxy(function(response) {
-                                this.refreshSelectedLayer();
                                 magic.modules.Common.buttonClickFeedback(this.id, jQuery.isNumeric(response) || response.status < 400, response.detail);
                                 this.setButtonStates({
                                     addBtn: false, editBtn: !this.userLayerSelected(), delBtn: !this.userLayerSelected(), bmkBtn: true
@@ -696,7 +685,7 @@ magic.classes.UserLayerManager.prototype.initDropzone = function() {
                                 setTimeout(jQuery.proxy(function() {
                                     this.editFs.addClass("hidden");
                                 }, this), 2000);    
-                                this.fetchLayers(jQuery.proxy(this.populateLayerSelector, this));
+                                this.fetchLayers(jQuery.proxy(this.refreshAfterUpdate, this));
                             }, this.ulm))
                             .fail(function (xhr) {
                                 bootbox.alert(

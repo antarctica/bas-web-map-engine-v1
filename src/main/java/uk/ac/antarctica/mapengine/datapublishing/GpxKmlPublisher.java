@@ -38,6 +38,8 @@ public class GpxKmlPublisher extends DataPublisher {
 
         /* Normal termination - ogr2ogr has created routes, tracks and waypoints tables - not all of these will have any content depending on the data - delete all empty ones */
         List<Map<String,Object>> createdTables = getMagicDataTpl().queryForList("SELECT table_name FROM information_schema.tables WHERE table_schema=?", pgTempSchema);
+        
+        String title = ud.getUfmd().getTitle();
 
         if (!createdTables.isEmpty()) {
             /* ogr2ogr created some tables */            
@@ -48,12 +50,15 @@ public class GpxKmlPublisher extends DataPublisher {
 
                 /* Create destination table name (must not start with a number as this upsets Postgres and Geoserver) */
                 String tableBase = (Character.isDigit(uploadedBasename.charAt(0)) ? uploadedExtension + "_" : "") + uploadedBasename;
-                String tableType = standardiseName((String)pgTableRec.get("table_name"), false, 60);
+                String tableType = standardiseName((String)pgTableRec.get("table_name"), false, MAX_TABLENAME_LENGTH);
                 String pgTable = tableBase + "_" + tableType;
                 String destTableName = pgUserSchema + "." + pgTable;
                 
                 /* Record the feature type name */
                 ud.getUfue().setUserPgLayer(pgTable);
+                
+                /* Modify the title of the layer so users can distinguish between the various products which might be created */
+                ud.getUfmd().setTitle(title + " (" + tableType + ")");
 
                 /* Check if the table contains any data */
                 int nRecs = getMagicDataTpl().queryForObject("SELECT count(*) FROM " + srcTableName, Integer.class);

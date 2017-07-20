@@ -52,7 +52,7 @@ public class ShpZipPublisher extends DataPublisher {
                 }                
                 if (shp != null) {
                     /* Copy any existing table to one with an archival name and remove all associated Geoserver feature types */
-                    String pgTable = standardiseName(FilenameUtils.getBaseName(shp.getName()), false, 40);
+                    String pgTable = standardiseName(FilenameUtils.getBaseName(shp.getName()), false, MAX_TABLENAME_LENGTH);
                     String newTableName = pgUserSchema + "." + pgTable;
                     /* Record the feature type name */
                     ud.getUfue().setUserPgLayer(pgTable);
