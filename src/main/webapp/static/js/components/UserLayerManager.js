@@ -466,7 +466,7 @@ magic.classes.UserLayerManager.prototype.prepLayer = function(layerData, visible
             olLayer = new ol.layer.Tile({
                 name: nd.name,
                 visible: visible,
-                opacity: this.userPayloadConfig[layerData.id].opacity || 1.0,
+                opacity: this.userPayloadConfig[layerData.id] ? this.userPayloadConfig[layerData.id].opacity : 1.0,
                 minResolution: magic.runtime.viewdata.resolutions[magic.runtime.viewdata.resolutions.length-1],
                 maxResolution: magic.runtime.viewdata.resolutions[0]+1,
                 metadata: nd,

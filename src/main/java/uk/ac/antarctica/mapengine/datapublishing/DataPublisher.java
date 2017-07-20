@@ -286,77 +286,29 @@ public abstract class DataPublisher {
             case "file":
                 /* Style is in file supplied (shapefile), or internal to the file (GPX/KML) when exStyleFile is null */
                 if (exStyleFile != null) {
-                    if (getGrm().getReader().existsStyle(getEnv().getProperty("geoserver.local.userWorkspace"), tableName)) {
-                        stylePublished = getGrm().getPublisher().updateStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), exStyleFile, tableName);
-                    } else {
-                        stylePublished = getGrm().getPublisher().publishStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), exStyleFile, tableName);
-                    }                    
+                    getGrm().getPublisher().removeStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), tableName, true);
+                    stylePublished = getGrm().getPublisher().publishStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), exStyleFile, tableName);
                 }      
                 break;
             case "point":
-                if (geomType.equals("point")) {
-                    String genSld = getServletContext().getRealPath("/WEB-INF/sld/point.xml");
-                    String content = FileUtils.readFileToString(new File(genSld));
-                    String sldOut = StringUtils.replaceEachRepeatedly(
-                        content, 
-                        new String[]{"{marker}", "{radius}", "{fill_color}", "{fill_opacity}", "{stroke_width}", "{stroke_color}", "{stroke_opacity}"}, 
-                        new String[]{
-                            josd.has("marker") ? josd.get("marker").getAsString() : "circle",
-                            josd.has("radius") ? josd.get("radius").getAsString() : "5",
-                            josd.has("fill_color") ? josd.get("fill_color").getAsString() : "#ffffff",
-                            josd.has("fill_opacity") ? josd.get("fill_opacity").getAsString() : "1.0",
-                            josd.has("stroke_width") ? josd.get("stroke_width").getAsString() : "1",
-                            josd.has("stroke_color") ? josd.get("stroke_color").getAsString() : "#000000",
-                            josd.has("stroke_opacity") ? josd.get("stroke_opacity").getAsString() : "1.0"
-                        });
-                    if (getGrm().getReader().existsStyle(getEnv().getProperty("geoserver.local.userWorkspace"), tableName)) {
-                        stylePublished = getGrm().getPublisher().updateStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, tableName);
-                    } else {
-                        stylePublished = getGrm().getPublisher().publishStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, tableName); 
-                    }                   
-                }
-                break;
             case "line":
-                if (geomType.equals("line")) {
-                    String genSld = getServletContext().getRealPath("/WEB-INF/sld/line.xml");
-                    String content = FileUtils.readFileToString(new File(genSld));
-                    String sldOut = StringUtils.replaceEachRepeatedly(
-                        content, 
-                        new String[]{"{stroke_width}", "{stroke_color}", "{stroke_opacity}", "{stroke_linestyle}"}, 
-                        new String[]{                            
-                            josd.has("stroke_width") ? josd.get("stroke_width").getAsString() : "1",
-                            josd.has("stroke_color") ? josd.get("stroke_color").getAsString() : "#000000",
-                            josd.has("stroke_opacity") ? josd.get("stroke_opacity").getAsString() : "1.0",
-                            josd.has("stroke_linestyle") ? getDashArray(josd.get("stroke_linestyle").getAsString()) : ""
-                        });
-                    if (getGrm().getReader().existsStyle(getEnv().getProperty("geoserver.local.userWorkspace"), tableName)) {
-                        stylePublished = getGrm().getPublisher().updateStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, tableName);
-                    } else {
-                        stylePublished = getGrm().getPublisher().publishStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, tableName); 
-                    }                   
-                }
-                break;
-            case "polygon":
-                if (geomType.equals("polygon")) {
-                    String genSld = getServletContext().getRealPath("/WEB-INF/sld/polygon.xml");
-                    String content = FileUtils.readFileToString(new File(genSld));
-                    String sldOut = StringUtils.replaceEachRepeatedly(
-                        content, 
-                        new String[]{"{fill_color}", "{fill_opacity}", "{stroke_width}", "{stroke_color}", "{stroke_opacity}"}, 
-                        new String[]{                            
-                            josd.has("fill_color") ? josd.get("fill_color").getAsString() : "#ffffff",
-                            josd.has("fill_opacity") ? josd.get("fill_opacity").getAsString() : "1.0",
-                            josd.has("stroke_width") ? josd.get("stroke_width").getAsString() : "1",
-                            josd.has("stroke_color") ? josd.get("stroke_color").getAsString() : "#000000",
-                            josd.has("stroke_opacity") ? josd.get("stroke_opacity").getAsString() : "1.0"
-                        });
-                    if (getGrm().getReader().existsStyle(getEnv().getProperty("geoserver.local.userWorkspace"), tableName)) {
-                        stylePublished = getGrm().getPublisher().updateStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, tableName);
-                    } else {
-                        stylePublished = getGrm().getPublisher().publishStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, tableName); 
-                    }                    
-                }
-                break;
+            case "polygon":                
+                String sldOut = StringUtils.replaceEachRepeatedly(
+                    FileUtils.readFileToString(new File(getServletContext().getRealPath("/WEB-INF/sld/" + geomType + ".xml"))), 
+                    new String[]{"{marker}", "{radius}", "{fill_color}", "{fill_opacity}", "{stroke_width}", "{stroke_color}", "{stroke_opacity}", "{stroke_linestyle}"}, 
+                    new String[]{
+                        josd.has("marker") ? josd.get("marker").getAsString() : "circle",
+                        josd.has("radius") ? josd.get("radius").getAsString() : "5",
+                        josd.has("fill_color") ? josd.get("fill_color").getAsString() : "#ffffff",
+                        josd.has("fill_opacity") ? josd.get("fill_opacity").getAsString() : "1.0",
+                        josd.has("stroke_width") ? josd.get("stroke_width").getAsString() : "1",
+                        josd.has("stroke_color") ? josd.get("stroke_color").getAsString() : "#000000",
+                        josd.has("stroke_opacity") ? josd.get("stroke_opacity").getAsString() : "1.0",
+                        josd.has("stroke_linestyle") ? getDashArray(josd.get("stroke_linestyle").getAsString()) : ""
+                    });
+                getGrm().getPublisher().removeStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), tableName, true);
+                stylePublished = getGrm().getPublisher().publishStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, tableName);                
+                break;            
             default:
                 break;
         }
@@ -489,17 +441,17 @@ public abstract class DataPublisher {
                 /* Forbid the republication of the same data with different uuids - multiple versions will be very confusing for all! */
                 throw new GeoserverPublishException("This data is already published (table " + tableName + " already exists)");
             }
-        } else {
-            /* Drop the existing table, including any sequence and index previously created by ogr2ogr */
-            getMagicDataTpl().execute("DROP TABLE IF EXISTS " + tableSchema + "." + tableName + " CASCADE");
-
+        } else {            
             /* Drop any Geoserver feature corresponding to this table */
             getGrm().getPublisher().unpublishFeatureType(
                 getEnv().getProperty("geoserver.local.userWorkspace"),
                 getEnv().getProperty("geoserver.local.userPostgis"),
                 tableName
             );
-
+            /* Drop any Geoserver style relating to the table */
+            getGrm().getPublisher().removeStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), tableName, true);
+            /* Drop the existing table, including any sequence and index previously created by ogr2ogr */
+            getMagicDataTpl().execute("DROP TABLE IF EXISTS " + tableSchema + "." + tableName + " CASCADE");
             /* Drop any record of this feature in the user features table */
             getMagicDataTpl().update("DELETE FROM " + getEnv().getProperty("postgres.local.userlayersTable") + " WHERE id=?", uuid);
         }
