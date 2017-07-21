@@ -40,6 +40,7 @@ import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.ExecuteException;
 import org.apache.commons.exec.ExecuteWatchdog;
 import org.apache.commons.exec.PumpStreamHandler;
+import org.apache.commons.exec.environment.EnvironmentUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
@@ -407,6 +408,8 @@ public abstract class DataPublisher {
         getPgMap().put("TOCONVERT", toConvert.getAbsolutePath());       
         CommandLine ogr2ogr = new CommandLine(getEnv().getProperty("software.ogr2ogr"));
         ogr2ogr.setSubstitutionMap(getPgMap());
+        ogr2ogr.addArgument("-t_srs", false);
+        ogr2ogr.addArgument("EPSG:4326", false);
         ogr2ogr.addArgument("-overwrite", false);
         ogr2ogr.addArgument("-f", false);        
         ogr2ogr.addArgument("PostgreSQL", false);
@@ -431,7 +434,9 @@ public abstract class DataPublisher {
         executor.setWatchdog(watchdog);
         int exitValue = -1;
         try {         
-            executor.execute(ogr2ogr);
+            Map executionEnv = EnvironmentUtils.getProcEnvironment();            
+            executionEnv.put("GDAL_DATA", getEnv().getProperty("software.gdal_data"));
+            executor.execute(ogr2ogr, executionEnv);
         } catch (IOException ex) {
             /* Report what ogr2ogr wrote to stderr (may use the stdout output too at some point) */
             throw new ExecuteException("Error converting file : " + new String(ogrStderr.toByteArray(), StandardCharsets.UTF_8), exitValue);
@@ -439,7 +444,7 @@ public abstract class DataPublisher {
     }
         
     /**
-     * Unpublish an existing dataset by deleting it from PosGIS, unpublishing from Geoserver and deleting it from userlayers
+     * Unpublish an existing dataset by deleting it from PostGIS, unpublishing from Geoserver and deleting it from userlayers
      * @param String uuid
      * @param String tableSchema
      * @param String tableName 
