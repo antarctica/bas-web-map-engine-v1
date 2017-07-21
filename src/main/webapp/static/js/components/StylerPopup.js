@@ -105,7 +105,7 @@ magic.classes.StylerPopup = function(options) {
                     '</div>' + 
                 '</div>' + 
             '</div>' + 
-            '<div id="' + this.id + '-style-polygon-fs">' + 
+            '<div id="' + this.id + '-polygon-fs">' + 
                 '<div class="form-group form-group-sm col-sm-12">' + 
                     '<label class="col-sm-4 control-label" for="' + this.id + '-fill_color">Fill colour</label>' + 
                     '<div class="col-sm-8">' +
@@ -155,43 +155,56 @@ magic.classes.StylerPopup = function(options) {
         }, this));
         jQuery("#" + this.id + "-cancel").click(jQuery.proxy(this.deactivate, this));
         /* Close button */
-        jQuery(".styler-popover").find("button.close").click(jQuery.proxy(this.deactivate, this));       
+        jQuery(".styler-popover").find("button.close").click(jQuery.proxy(this.deactivate, this));
+        /* Show only relevant fieldsets */
+        this.enableRelevantFields();        
     }, this));  
 };
 
 /**
  * Activate the styler popup control
  */
-magic.classes.StylerPopup.prototype.activate = function() {  
-    var mode = this.styleMode.val();
-    this.target.popover("show");
+magic.classes.StylerPopup.prototype.enableRelevantFields = function() {      
+    var mode = this.styleMode.val();    
     var fieldsets = {
         "point" : {"point": 1, "line": 1, "polygon": 1}, 
         "line": {"point": 0, "line": 1, "polygon": 0}, 
         "polygon": {"point": 0, "line": 1, "polygon": 1}
     };
-    if (!fieldsets[mode]) {
-        return;
+    if (fieldsets[mode]) {             
+        jQuery.each(fieldsets[mode], jQuery.proxy(function(fsname, fsconf) {
+            if (fsconf === 1) {
+                jQuery("#" + this.id + "-" + fsname + "-fs :input").prop("disabled", false);
+            } else {
+                jQuery("#" + this.id + "-" + fsname + "-fs :input").prop("disabled", true);
+            }
+        }, this)); 
+        /* Set values of fields from the hidden input */
+        var styledef = JSON.parse(this.formInput.val() || "{}");
+        jQuery.each(this.styleInputs, jQuery.proxy(function(idx, sip) {
+            jQuery("#" + this.id + "-" + sip).val(styledef[sip] || this.inputDefaults[sip]);
+        }, this));   
     }
-    this.active = true;
-    jQuery.each(fieldsets[mode], jQuery.proxy(function(fsname, fsconf) {
-        if (fsconf === 1) {
-            jQuery("#" + this.id + "-" + fsname + "-fs").removeClass("hidden");
-        } else {
-            jQuery("#" + this.id + "-" + fsname + "-fs").addClass("hidden");
-        }
-    }, this)); 
-    /* Set values of fields from the hidden input */
-    var styledef = JSON.parse(this.formInput.val() || "{}");
-    jQuery.each(this.styleInputs, jQuery.proxy(function(idx, sip) {
-        jQuery("#" + this.id + "-" + sip).val(styledef[sip] || this.inputDefaults[sip]);
-    }, this));
 };
 
+/**
+ * Activate the styler popup control
+ */
+magic.classes.StylerPopup.prototype.activate = function() {      
+    this.active = true;
+    this.target.popover("show");
+};
+
+/**
+ * Deactivate the styler popup control
+ */
 magic.classes.StylerPopup.prototype.deactivate = function() {
     this.active = false;
-    this.mode = null;
     this.target.popover("hide");
+};
+
+magic.classes.StylerPopup.prototype.isActive = function() {
+    return(this.active);
 };
 
 magic.classes.StylerPopup.prototype.getTarget = function() {

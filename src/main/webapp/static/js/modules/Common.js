@@ -148,7 +148,7 @@ magic.modules.Common = function () {
                 effect = function(){return(btnFbOk.fadeIn(300).delay(1200).fadeOut(300))};                                                      
             } else {
                 btnFbError.attr("data-original-title", msg).tooltip("fixTitle");
-                effect = function(){return(btnFbError.fadeIn(600).delay(1200).fadeOut(600))};
+                effect = function(){return(btnFbError.fadeIn(600).delay(6000).fadeOut(600))};
             }
             jQuery.when(effect()).done(function() {
                 btnGo.show();                            

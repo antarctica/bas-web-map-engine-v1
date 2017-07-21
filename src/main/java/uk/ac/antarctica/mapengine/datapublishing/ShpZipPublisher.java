@@ -70,6 +70,8 @@ public class ShpZipPublisher extends DataPublisher {
                     )) {
                         throw new GeoserverPublishException("Publishing PostGIS table " + newTableName + " to Geoserver failed");
                     }
+                    /* Insert/update the userlayers table record */
+                    updateUserlayersRecord(ud);
                     /* Kill any stored cache */
                     clearCache(newTableName); 
                 } else {

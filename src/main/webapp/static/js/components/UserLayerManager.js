@@ -197,9 +197,11 @@ magic.classes.UserLayerManager.prototype.initialise = function(uldata) {
             } else {
                 this.divVis.removeClass("hidden");
                 /* Set checkbox according to selected layer visibility status */
-                var layer = this.userLayerData[layerId].olLayer;
-                if (layer != null) {
+                var layer = this.userLayerData[layerId].olLayer;                
+                if (layer != null) {                    
                     this.cbVis.prop("checked", layer.getVisible());
+                } else {
+                    this.cbVis.prop("checked", false);
                 }
             }
         }, this));
@@ -217,13 +219,10 @@ magic.classes.UserLayerManager.prototype.initialise = function(uldata) {
                 this.stylerPopup.deactivate();
                 this.styleEdit.addClass("hidden");
             } else {
+                this.stylerPopup.enableRelevantFields();
                 this.styleEdit.removeClass("hidden");                
             }
-        }, this));
-        /* Style edit button click handler */
-        this.styleEdit.click(jQuery.proxy(function(evt) {
-            this.stylerPopup.activate();
-        }, this));
+        }, this));        
         /* Bookmarkable URL button */
         this.bmkBtn.click(jQuery.proxy(function() {             
             bootbox.prompt({
@@ -238,8 +237,7 @@ magic.classes.UserLayerManager.prototype.initialise = function(uldata) {
         }, this));
         /* Edit layer button */
         this.editBtn.click(jQuery.proxy(function() {   
-            var layerData = this.userLayerData[this.selectedLayerId()];
-            this.showEditForm(layerData);
+            this.showEditForm(this.userLayerData[this.selectedLayerId()]);
         }, this));
          /* Delete layer button */
         this.delBtn.click(jQuery.proxy(function() {            
@@ -315,6 +313,7 @@ magic.classes.UserLayerManager.prototype.showEditForm = function(populator) {
     } else {
         this.elTitle.html('<strong>Upload a new file</strong>');
         this.lastMod.closest("div.form-group").hide();
+        this.styleEdit.addClass("hidden");
     }
     this.setButtonStates({
         addBtn: true, editBtn: true, delBtn: true, bmkBtn: true
@@ -365,7 +364,8 @@ magic.classes.UserLayerManager.prototype.refreshAfterUpdate = function(uldata) {
         var ulOpt = jQuery("<option>", {value: ul.id});
         ulOpt.text(ul.caption);
         ulGroup.append(ulOpt);
-        this.prepLayer(ul);
+        var isVis = (ul.olLayer && ul.olLayer.getVisible());
+        this.prepLayer(ul, isVis);
     }, this));     
 };
 
@@ -623,11 +623,15 @@ magic.classes.UserLayerManager.prototype.initDropzone = function() {
                     this.ulm.fetchLayers(jQuery.proxy(this.ulm.refreshAfterUpdate, this.ulm));                   
                 } else {
                     /* Failed to save */
-                    magic.modules.Common.buttonClickFeedback(this.ulm.id, false, response.detail);
-                    setTimeout(jQuery.proxy(function() {
-                        this.editFs.addClass("hidden");
-                    }, this.ulm), 6000);
+                    bootbox.alert(
+                        '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                            '<p>Failed to save user layer data - details below:</p>' + 
+                            '<p>' + response.detail + '</p>' + 
+                        '</div>'
+                    );     
+                    this.ulm.ddLayers.prop("disabled", false);
                 }
+                this.pfdz.removeAllFiles();
             }, {pfdz: this, ulm: ulm})); 
             this.on("maxfilesexceeded", function(file) {
                 this.removeAllFiles();
@@ -656,11 +660,11 @@ magic.classes.UserLayerManager.prototype.initDropzone = function() {
                 });
                 if (ok) {
                     var formdata = this.ulm.formToPayload();
-                    /* Add the other form parameters to the dropzone POST */
-                    this.pfdz.on("sending", function(file, xhr, data) {
+                    /* Add the other form parameters to the dropzone POST */                    
+                    this.pfdz.on("sending", function(file, xhr, data) {                        
                         jQuery.each(formdata, function(key, val) {
                             data.append(key, val);
-                        });
+                        });                        
                     });
                     if (!jQuery.isArray(this.pfdz.files) || this.pfdz.files.length == 0) {
                         /* No upload file, so assume only the other fields are to change and process form data */
@@ -685,7 +689,7 @@ magic.classes.UserLayerManager.prototype.initDropzone = function() {
                                 setTimeout(jQuery.proxy(function() {
                                     this.editFs.addClass("hidden");
                                 }, this), 2000);    
-                                this.fetchLayers(jQuery.proxy(this.refreshAfterUpdate, this));
+                                this.fetchLayers(jQuery.proxy(this.refreshAfterUpdate, this));                                
                             }, this.ulm))
                             .fail(function (xhr) {
                                 bootbox.alert(

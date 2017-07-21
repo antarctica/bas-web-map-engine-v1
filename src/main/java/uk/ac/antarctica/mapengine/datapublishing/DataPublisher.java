@@ -282,12 +282,20 @@ public abstract class DataPublisher {
         String geomType = getGeometryType(schemaName + "." + tableName);
         String styleName = null;
         boolean stylePublished = false;
+        System.out.println("Styling mode " + mode);
         switch(mode) {
             case "file":
                 /* Style is in file supplied (shapefile), or internal to the file (GPX/KML) when exStyleFile is null */
                 if (exStyleFile != null) {
-                    getGrm().getPublisher().removeStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), tableName, true);
-                    stylePublished = getGrm().getPublisher().publishStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), exStyleFile, tableName);
+                    if (getGrm().getReader().existsStyle(getEnv().getProperty("geoserver.local.userWorkspace"), tableName)) {
+                        System.out.println("Style " + tableName + " exists");
+                        stylePublished = getGrm().getPublisher().updateStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), exStyleFile, tableName);
+                        System.out.println("Updated " + stylePublished);
+                    } else {
+                        System.out.println("Style " + tableName + " not present");
+                        stylePublished = getGrm().getPublisher().publishStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), exStyleFile, tableName);
+                        System.out.println("Created " + stylePublished);
+                    }
                 }      
                 break;
             case "point":
@@ -305,9 +313,16 @@ public abstract class DataPublisher {
                         josd.has("stroke_color") ? josd.get("stroke_color").getAsString() : "#000000",
                         josd.has("stroke_opacity") ? josd.get("stroke_opacity").getAsString() : "1.0",
                         josd.has("stroke_linestyle") ? getDashArray(josd.get("stroke_linestyle").getAsString()) : ""
-                    });
-                getGrm().getPublisher().removeStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), tableName, true);
-                stylePublished = getGrm().getPublisher().publishStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, tableName);                
+                    });                
+                if (getGrm().getReader().existsStyle(getEnv().getProperty("geoserver.local.userWorkspace"), tableName)) {
+                    System.out.println("Style " + tableName + " exists");
+                    stylePublished = getGrm().getPublisher().updateStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, tableName);
+                    System.out.println("Updated " + stylePublished);
+                } else {
+                    System.out.println("Style " + tableName + " not present");
+                    stylePublished = getGrm().getPublisher().publishStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, tableName);
+                    System.out.println("Created " + stylePublished);
+                }                
                 break;            
             default:
                 break;
@@ -431,30 +446,43 @@ public abstract class DataPublisher {
      */
     protected void removeExistingData(String uuid, String tableSchema, String tableName) throws DataAccessException, GeoserverPublishException {
         
+        System.out.println("Entered removeExistingData()");
         if (uuid == null || uuid.isEmpty()) {
             /* Check for table already existing */
+            System.out.println("Insert (no UUID supplied)");
             int nExisting = getMagicDataTpl().queryForObject(
                 "SELECT count(tablename) FROM pg_tables WHERE schemaname = '" + tableSchema + "' AND tablename = '" + tableName + "'", 
                 Integer.class
             );
+            System.out.println("There are " + nExisting + " tables with this name");
             if (nExisting > 0) {
                 /* Forbid the republication of the same data with different uuids - multiple versions will be very confusing for all! */
                 throw new GeoserverPublishException("This data is already published (table " + tableName + " already exists)");
             }
         } else {            
             /* Drop any Geoserver feature corresponding to this table */
-            getGrm().getPublisher().unpublishFeatureType(
+            System.out.println("Update of " + uuid);
+            System.out.println("Unpublishing feature " + tableName + "...");
+            boolean  unpubOk = getGrm().getPublisher().unpublishFeatureType(
                 getEnv().getProperty("geoserver.local.userWorkspace"),
                 getEnv().getProperty("geoserver.local.userPostgis"),
                 tableName
             );
+            System.out.println("Unpublish status " + unpubOk);
             /* Drop any Geoserver style relating to the table */
-            getGrm().getPublisher().removeStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), tableName, true);
+            System.out.println("Remove any style with name " + tableName + "...");
+            unpubOk = getGrm().getPublisher().removeStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), tableName, true);
+            System.out.println("Removal status " + unpubOk);
             /* Drop the existing table, including any sequence and index previously created by ogr2ogr */
+            System.out.println("Drop underlying PostGIS table " + tableSchema + "." + tableName + "...");
             getMagicDataTpl().execute("DROP TABLE IF EXISTS " + tableSchema + "." + tableName + " CASCADE");
+            System.out.println("Done");
             /* Drop any record of this feature in the user features table */
+            System.out.println("Delete layer from userlayers table...");
             getMagicDataTpl().update("DELETE FROM " + getEnv().getProperty("postgres.local.userlayersTable") + " WHERE id=?", uuid);
+            System.out.println("Done");
         }
+        System.out.println("Exited removeExistingData()");
     }
     
     /**
