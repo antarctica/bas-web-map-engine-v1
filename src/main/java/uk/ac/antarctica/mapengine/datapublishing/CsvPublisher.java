@@ -69,7 +69,9 @@ public class CsvPublisher extends DataPublisher {
         /* Insert/update the userlayers table record */
         updateUserlayersRecord(ud);
         /* Kill any stored cache */
-        clearCache(destTableName);        
+        clearCache(destTableName);
+        /* Reload Geoserver catalogue */
+        getGrm().getPublisher().reload();        
     }
     
     /**

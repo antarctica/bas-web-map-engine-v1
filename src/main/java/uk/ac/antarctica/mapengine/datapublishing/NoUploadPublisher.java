@@ -42,6 +42,8 @@ public class NoUploadPublisher extends DataPublisher {
         }
         /* Kill any stored cache */
         clearCache(exLayerTable); 
+        /* Reload Geoserver catalogue */
+        getGrm().getPublisher().reload();
     }       
     
 }

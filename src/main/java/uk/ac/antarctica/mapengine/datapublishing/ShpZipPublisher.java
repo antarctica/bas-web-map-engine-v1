@@ -74,6 +74,8 @@ public class ShpZipPublisher extends DataPublisher {
                     updateUserlayersRecord(ud);
                     /* Kill any stored cache */
                     clearCache(newTableName); 
+                    /* Reload Geoserver catalogue */
+                    getGrm().getPublisher().reload();
                 } else {
                     throw new GeoserverPublishException("Failed to find .shp file in the uploaded zip");
                 }

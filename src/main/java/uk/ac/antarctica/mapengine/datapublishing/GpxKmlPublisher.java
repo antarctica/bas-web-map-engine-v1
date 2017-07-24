@@ -81,6 +81,8 @@ public class GpxKmlPublisher extends DataPublisher {
                     updateUserlayersRecord(ud);
                     /* Kill any stored cache */
                     clearCache(destTableName);
+                    /* Reload Geoserver catalogue */
+                    getGrm().getPublisher().reload();
                 }                        
             }
         }   

@@ -141,7 +141,7 @@ public abstract class DataPublisher {
             ud.getUfmd().setTitle(getParameter("caption", parms, ""));
             ud.getUfmd().setDescription(getParameter("description", parms, ""));
             ud.getUfmd().setAllowed_usage(getParameter("allowed_usage", parms, "public"));
-            ud.getUfmd().setStyledef(getParameter("styledef", parms, "{\"mode\": \"auto\"}"));
+            ud.getUfmd().setStyledef(getParameter("styledef", parms, "{\"mode\": \"default\"}"));
         } else {
             /* uploaded data */
             File wd = new File(WDBASE + Calendar.getInstance().getTimeInMillis());
@@ -164,7 +164,7 @@ public abstract class DataPublisher {
                         " by " + userName));
                 ud.getUfmd().setFiletype(FilenameUtils.getExtension(mpf.getOriginalFilename()).toLowerCase());
                 ud.getUfmd().setAllowed_usage(getParameter("allowed_usage", parms, "public"));
-                ud.getUfmd().setStyledef(getParameter("styledef", parms, "{\"mode\": \"auto\"}"));
+                ud.getUfmd().setStyledef(getParameter("styledef", parms, "{\"mode\": \"default\"}"));
                 ud.getUfmd().setSrs("EPSG:4326");     /* Any different projection (shapefiles only) will be done in the appropriate place */
             } else {
                 /* Failed to create */
@@ -483,9 +483,9 @@ public abstract class DataPublisher {
             getMagicDataTpl().execute("DROP TABLE IF EXISTS " + tableSchema + "." + tableName + " CASCADE");
             System.out.println("Done");
             /* Drop any record of this feature in the user features table */
-            System.out.println("Delete layer from userlayers table...");
-            getMagicDataTpl().update("DELETE FROM " + getEnv().getProperty("postgres.local.userlayersTable") + " WHERE id=?", uuid);
-            System.out.println("Done");
+            //System.out.println("Delete layer from userlayers table...");
+            //getMagicDataTpl().update("DELETE FROM " + getEnv().getProperty("postgres.local.userlayersTable") + " WHERE id=?", uuid);
+            //System.out.println("Done");
         }
         System.out.println("Exited removeExistingData()");
     }
