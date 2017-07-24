@@ -306,32 +306,6 @@ public class HomeController implements ServletContextAware {
     }
     
     /**
-     * Render data publisher home page     
-     * @param HttpServletRequest request
-     * @param ModelMap model 
-     * @return
-     * @throws ServletException
-     * @throws IOException
-     */
-    @RequestMapping(value = "/publisher", method = RequestMethod.GET)
-    public String publisher(HttpServletRequest request, ModelMap model) throws ServletException, IOException {
-        return(renderPage(request, model, "publisher", null, null, null, false));
-    }
-    
-    /**
-     * Render data publisher home page (debug)    
-     * @param HttpServletRequest request
-     * @param ModelMap model
-     * @return
-     * @throws ServletException
-     * @throws IOException
-     */
-    @RequestMapping(value = "/publisherd", method = RequestMethod.GET)
-    public String publisherDebug(HttpServletRequest request, ModelMap model) throws ServletException, IOException {
-        return(renderPage(request, model, "publisher", null, null, null, true));
-    }
-    
-    /**
      * Page renderer
      * @param HttpServletRequest request
      * @param ModelMap model

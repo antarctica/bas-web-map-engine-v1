@@ -58,13 +58,15 @@ public class GpxKmlPublisher extends DataPublisher {
                 ud.getUfue().setUserPgLayer(pgTable);
                 
                 /* Modify the title of the layer so users can distinguish between the various products which might be created */
-                ud.getUfmd().setTitle(title + " (" + tableType + ")");
+                if (!title.endsWith(" (" + tableType + ")")) {
+                    ud.getUfmd().setTitle(title + " (" + tableType + ")");
+                }
 
                 /* Check if the table contains any data */
                 int nRecs = getMagicDataTpl().queryForObject("SELECT count(*) FROM " + srcTableName, Integer.class);
                 if (nRecs > 0) {
                     /* Copy records from non-empty table into user uploads schema with a user-friendly name */ 
-                    removeExistingData(ud.getUfmd().getUuid(), pgUserSchema, pgTable); 
+                    removeExistingData(ud.getUfmd().getUuid(), ud.getUfue().getUserDatastore(), pgUserSchema, pgTable); 
                     getMagicDataTpl().execute("CREATE TABLE " + destTableName + " AS TABLE " + srcTableName);
                     /* Publish style to Geoserver */
                     String styleName = createLayerStyling(pgUserSchema, pgTable, ud.getUfmd().getStyledef(), null);
@@ -80,9 +82,7 @@ public class GpxKmlPublisher extends DataPublisher {
                     /* Finally insert/update the userlayers table record */
                     updateUserlayersRecord(ud);
                     /* Kill any stored cache */
-                    clearCache(destTableName);
-                    /* Reload Geoserver catalogue */
-                    getGrm().getPublisher().reload();
+                    clearCache(pgTable);                    
                 }                        
             }
         }   

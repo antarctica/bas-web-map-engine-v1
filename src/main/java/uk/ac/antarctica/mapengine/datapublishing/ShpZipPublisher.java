@@ -56,7 +56,7 @@ public class ShpZipPublisher extends DataPublisher {
                     String newTableName = pgUserSchema + "." + pgTable;
                     /* Record the feature type name */
                     ud.getUfue().setUserPgLayer(pgTable);
-                    removeExistingData(ud.getUfmd().getUuid(), pgUserSchema, pgTable);                        
+                    removeExistingData(ud.getUfmd().getUuid(), ud.getUfue().getUserDatastore(), pgUserSchema, pgTable);                        
                     /* Convert shapefile to PostGIS table via ogr2ogr */
                     executeOgr2ogr(shp, newTableName, pgUserSchema);
                     /* Publish style to Geoserver */
@@ -73,9 +73,7 @@ public class ShpZipPublisher extends DataPublisher {
                     /* Insert/update the userlayers table record */
                     updateUserlayersRecord(ud);
                     /* Kill any stored cache */
-                    clearCache(newTableName); 
-                    /* Reload Geoserver catalogue */
-                    getGrm().getPublisher().reload();
+                    clearCache(pgTable);                     
                 } else {
                     throw new GeoserverPublishException("Failed to find .shp file in the uploaded zip");
                 }

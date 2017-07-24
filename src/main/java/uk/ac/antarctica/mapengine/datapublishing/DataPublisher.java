@@ -192,6 +192,10 @@ public abstract class DataPublisher {
             getEnv().getProperty("geoserver.local.username"),
             getEnv().getProperty("geoserver.local.password")
         ));
+        /* Reload Geoserver catalogue */
+        System.out.println("Reloading catalogue...");        
+        //getGrm().getPublisher().reload();
+        System.out.println("Done");
     }
     
     /**
@@ -446,47 +450,41 @@ public abstract class DataPublisher {
     /**
      * Unpublish an existing dataset by deleting it from PostGIS, unpublishing from Geoserver and deleting it from userlayers
      * @param String uuid
+     * @param String dataStore
      * @param String tableSchema
      * @param String tableName 
      */
-    protected void removeExistingData(String uuid, String tableSchema, String tableName) throws DataAccessException, GeoserverPublishException {
+    protected void removeExistingData(String uuid, String dataStore, String tableSchema, String tableName) throws DataAccessException, GeoserverPublishException {
         
         System.out.println("Entered removeExistingData()");
-        if (uuid == null || uuid.isEmpty()) {
-            /* Check for table already existing */
-            System.out.println("Insert (no UUID supplied)");
-            int nExisting = getMagicDataTpl().queryForObject(
-                "SELECT count(tablename) FROM pg_tables WHERE schemaname = '" + tableSchema + "' AND tablename = '" + tableName + "'", 
-                Integer.class
-            );
-            System.out.println("There are " + nExisting + " tables with this name");
-            if (nExisting > 0) {
-                /* Forbid the republication of the same data with different uuids - multiple versions will be very confusing for all! */
-                throw new GeoserverPublishException("This data is already published (table " + tableName + " already exists)");
-            }
-        } else {            
-            /* Drop any Geoserver feature corresponding to this table */
-            System.out.println("Update of " + uuid);
-            System.out.println("Unpublishing feature " + tableName + "...");
-            boolean  unpubOk = getGrm().getPublisher().unpublishFeatureType(
+        
+        /* Drop any Geoserver feature corresponding to this table */
+        boolean unpubOk = false;
+        if (getGrm().getReader().existsLayer(getEnv().getProperty("geoserver.local.userWorkspace"), tableName, true)) {
+            System.out.println("Unpublishing existing feature " + tableName + "...");
+            unpubOk = getGrm().getPublisher().unpublishFeatureType(
                 getEnv().getProperty("geoserver.local.userWorkspace"),
-                getEnv().getProperty("geoserver.local.userPostgis"),
+                dataStore,
                 tableName
             );
-            System.out.println("Unpublish status " + unpubOk);
-            /* Drop any Geoserver style relating to the table */
-            System.out.println("Remove any style with name " + tableName + "...");
-            unpubOk = getGrm().getPublisher().removeStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), tableName, true);
-            System.out.println("Removal status " + unpubOk);
-            /* Drop the existing table, including any sequence and index previously created by ogr2ogr */
-            System.out.println("Drop underlying PostGIS table " + tableSchema + "." + tableName + "...");
-            getMagicDataTpl().execute("DROP TABLE IF EXISTS " + tableSchema + "." + tableName + " CASCADE");
-            System.out.println("Done");
-            /* Drop any record of this feature in the user features table */
-            //System.out.println("Delete layer from userlayers table...");
-            //getMagicDataTpl().update("DELETE FROM " + getEnv().getProperty("postgres.local.userlayersTable") + " WHERE id=?", uuid);
-            //System.out.println("Done");
         }
+        System.out.println("Unpublish feature type status " + unpubOk);
+        /* Drop any Geoserver style relating to the table */
+        unpubOk = false;
+        if (getGrm().getReader().existsStyle(getEnv().getProperty("geoserver.local.userWorkspace"), tableName)) {
+            System.out.println("Remove existing style with name " + tableName + "...");
+            unpubOk = getGrm().getPublisher().removeStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), tableName, true);
+        }            
+        System.out.println("Removal of style status " + unpubOk);
+        /* Drop the existing table, including any sequence and index previously created by ogr2ogr */
+        System.out.println("Drop underlying PostGIS table " + tableSchema + "." + tableName + "...");
+        getMagicDataTpl().execute("DROP TABLE IF EXISTS " + tableSchema + "." + tableName + " CASCADE");
+        System.out.println("Done");
+        /* Drop any record of this feature in the user features table */
+        //System.out.println("Delete layer from userlayers table...");
+        //getMagicDataTpl().update("DELETE FROM " + getEnv().getProperty("postgres.local.userlayersTable") + " WHERE id=?", uuid);
+        //System.out.println("Done");
+        
         System.out.println("Exited removeExistingData()");
     }
     

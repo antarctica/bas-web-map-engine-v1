@@ -20,7 +20,9 @@ magic.classes.UserLayerManager = function(options) {
     
     this.userPayloadConfig = magic.runtime.userdata ? (magic.runtime.userdata.layers || {}) : {};
     
-    this.userLayerData = {};   
+    this.userLayerData = {}; 
+    
+    this.fileUpload = null;
     
     /* Fetch user layer data from server */
     this.fetchLayers(jQuery.proxy(this.initialise, this));
@@ -41,7 +43,7 @@ magic.classes.UserLayerManager.prototype.initialise = function(uldata) {
         '</div>';
     this.content = 
         '<div id="' + this.id + '-content">' +                                   
-            '<form id="' + this.id + '-form" class="form-horizontal" role="form">' +  
+            '<form id="' + this.id + '-form" class="form-horizontal" role="form" enctype="multipart/form-data">' +  
                 '<input type="hidden" id="' + this.id + '-layer-id"></input>' + 
                 '<input type="hidden" id="' + this.id + '-layer-styledef"></input>' + 
                 '<div class="form-group form-group-sm col-sm-12"><strong>Select a user layer</strong></div>' +
@@ -176,9 +178,7 @@ magic.classes.UserLayerManager.prototype.initialise = function(uldata) {
             target: this.id + "-layer-style-edit", 
             formInput: this.id + "-layer-styledef",
             styleMode: this.id + "-layer-style-mode"
-        });
-        /* Initialise drag-drop zone */
-        this.initDropzone();
+        });        
         /* Fetch layers */
         this.refreshAfterUpdate(uldata);
         /* Set initial button states */
@@ -282,7 +282,7 @@ magic.classes.UserLayerManager.prototype.initialise = function(uldata) {
         this.cancBtn.click(jQuery.proxy(function() {
             this.stylerPopup.deactivate();
             this.mgrForm[0].reset();
-            this.editFs.addClass("hidden");
+            this.hideEditForm();
             this.setButtonStates({
                 addBtn: false, editBtn: !this.userLayerSelected(), delBtn: !this.userLayerSelected(), bmkBtn: true
             });              
@@ -305,6 +305,8 @@ magic.classes.UserLayerManager.prototype.initialise = function(uldata) {
 magic.classes.UserLayerManager.prototype.showEditForm = function(populator) {
     this.editFs.removeClass("hidden");    
     this.mgrForm[0].reset();
+    /* Initialise drag-drop zone */
+    this.initDropzone();
     if (populator != null) {
         this.elTitle.html('<strong>Edit existing layer</strong>');
         this.payloadToForm(populator);
@@ -320,6 +322,17 @@ magic.classes.UserLayerManager.prototype.showEditForm = function(populator) {
     });     
     this.mgrForm.find("input").first().focus();
     this.ddLayers.prop("disabled", true);
+};
+
+/**
+ * Hide the edit layer form
+ */
+magic.classes.UserLayerManager.prototype.hideEditForm = function() {    
+    if (this.fileUpload != null) {
+        Dropzone.forElement("div#publish-files-dz").destroy();
+    }
+    this.fileUpload = null;
+    this.editFs.addClass("hidden");  
 };
 
 /**
@@ -594,12 +607,11 @@ magic.classes.UserLayerManager.prototype.initDropzone = function() {
         '</div>';
     var ulm = this;
     var saveBtn = this.saveBtn;
-    jQuery("div#publish-files-dz").dropzone({
+    this.fileUpload = new Dropzone("div#publish-files-dz", {
         url: magic.config.paths.baseurl + "/userlayers/save",
         paramName: "file", /* The name that will be used to transfer the file */
         maxFilesize: 100,  /* Maximum file size, in MB */
-        uploadMultiple: false,
-        autoDiscover: false,
+        uploadMultiple: false,        
         autoProcessQueue: false,
         maxFiles: 1,
         parallelUploads: 1,
@@ -618,7 +630,7 @@ magic.classes.UserLayerManager.prototype.initDropzone = function() {
                     });                             
                     this.ulm.ddLayers.prop("disabled", false);
                     setTimeout(jQuery.proxy(function() {
-                        this.editFs.addClass("hidden");
+                        this.hideEditForm();
                     }, this.ulm), 2000);
                     this.ulm.fetchLayers(jQuery.proxy(this.ulm.refreshAfterUpdate, this.ulm));                   
                 } else {
@@ -661,10 +673,14 @@ magic.classes.UserLayerManager.prototype.initDropzone = function() {
                 if (ok) {
                     var formdata = this.ulm.formToPayload();
                     /* Add the other form parameters to the dropzone POST */                    
-                    this.pfdz.on("sending", function(file, xhr, data) {                        
+                    this.pfdz.on("sending", function(file, xhr, data) {                         
+                        console.log("Sending handler...");
+                        console.log(formdata);
                         jQuery.each(formdata, function(key, val) {
+                            console.log("Append " + key + " with value " + val);
                             data.append(key, val);
-                        });                        
+                        });      
+                        console.log("Done");
                     });
                     if (!jQuery.isArray(this.pfdz.files) || this.pfdz.files.length == 0) {
                         /* No upload file, so assume only the other fields are to change and process form data */

@@ -37,7 +37,7 @@ public class CsvPublisher extends DataPublisher {
 
         /* Deduce table column types from CSV values and create the table */
         LinkedHashMap<String, String> columnTypes = getColumnTypeDictionary(ud.getUfmd().getUploaded());
-        removeExistingData(ud.getUfmd().getUuid(), pgUserSchema, pgTable);
+        removeExistingData(ud.getUfmd().getUuid(), ud.getUfue().getUserDatastore(), pgUserSchema, pgTable);
         StringBuilder ctSql = new StringBuilder("CREATE TABLE " + destTableName + " (\n");
         ctSql.append("pgid serial,\n");
         for (String key : columnTypes.keySet()) {
@@ -69,9 +69,7 @@ public class CsvPublisher extends DataPublisher {
         /* Insert/update the userlayers table record */
         updateUserlayersRecord(ud);
         /* Kill any stored cache */
-        clearCache(destTableName);
-        /* Reload Geoserver catalogue */
-        getGrm().getPublisher().reload();        
+        clearCache(pgTable);          
     }
     
     /**
