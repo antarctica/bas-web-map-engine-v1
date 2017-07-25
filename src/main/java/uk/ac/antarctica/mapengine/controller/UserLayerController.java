@@ -9,10 +9,12 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
+import it.geosolutions.geoserver.rest.GeoServerRESTManager;
 import it.geosolutions.geoserver.rest.decoder.RESTLayer;
 import it.geosolutions.geoserver.rest.decoder.RESTResource;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.Date;
@@ -113,7 +115,8 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
      * @param String op
      * @throws Exception
      */
-    @RequestMapping(value = "/userlayers/{id}/{op}", method = RequestMethod.GET, produces = {"application/gpx+xml", "application/vnd.google-earth.kml+xml", "application/json; charset=utf-8"})
+    @RequestMapping(value = "/userlayers/{id}/{op}", method = RequestMethod.GET, 
+            produces = {"application/gpx+xml", "application/vnd.google-earth.kml+xml", "application/zip", "application/json; charset=utf-8"})
     @ResponseBody
     public void getUserlayerField(HttpServletRequest request, HttpServletResponse response,
         @PathVariable("id") String id,
@@ -128,11 +131,15 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
                 );
                 if (layer != null && !layer.isEmpty()) {
                     boolean foundIt = false;
-                    DataPublisher pub = applicationContext.getBean(NoUploadPublisher.class);
-                    if (pub.getGrm().getReader().existsLayer(getEnv().getProperty("geoserver.local.userWorkspace"), layer, true)) {
-                        RESTLayer gsLayer = pub.getGrm().getReader().getLayer(getEnv().getProperty("geoserver.local.userWorkspace"), layer);
+                    GeoServerRESTManager grm = new GeoServerRESTManager(
+                        new URL(getEnv().getProperty("geoserver.local.url")), 
+                        getEnv().getProperty("geoserver.local.username"), 
+                        getEnv().getProperty("geoserver.local.password")
+                    );
+                    if (grm.getReader().existsLayer(getEnv().getProperty("geoserver.local.userWorkspace"), layer, true)) {
+                        RESTLayer gsLayer = grm.getReader().getLayer(getEnv().getProperty("geoserver.local.userWorkspace"), layer);
                         if (gsLayer != null) {
-                            RESTResource gsFt = pub.getGrm().getReader().getResource(gsLayer);
+                            RESTResource gsFt = grm.getReader().getResource(gsLayer);
                             if (gsFt != null) {
                                 foundIt = true;
                                 JsonArray ja = new JsonArray();
@@ -140,19 +147,19 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
                                 ja.add(new JsonPrimitive(gsFt.getMinY()));
                                 ja.add(new JsonPrimitive(gsFt.getMaxX()));
                                 ja.add(new JsonPrimitive(gsFt.getMaxY()));
-                                writeOut(response, 200, "application/json; charset=utf-8", ja.toString());
+                                writeOut(response, 200, "application/json; charset=utf-8", ja.toString(), null);
                             }
                         }
                     } 
                     if (!foundIt) {
-                        writeOut(response, 400, "application/json; charset=utf-8", "Layer with id " + id + " not found");                        
+                        writeOut(response, 400, "application/json; charset=utf-8", "Layer with id " + id + " not found", null);                        
                     }
                 } else {
-                    writeOut(response, 400, "application/json; charset=utf-8", "Failed to find readable layer record with id " + id);                    
+                    writeOut(response, 400, "application/json; charset=utf-8", "Failed to find readable layer record with id " + id, null);                    
                 }
                 break;
             case "data":
-                List<Map<String, Object>> ulDataList = getMagicDataTpl().queryForList("SELECT filetype, upload FROM " + getEnv().getProperty("postgres.local.userlayersTable") + " " + 
+                List<Map<String, Object>> ulDataList = getMagicDataTpl().queryForList("SELECT filetype, upload, layer FROM " + getEnv().getProperty("postgres.local.userlayersTable") + " " + 
                     "WHERE id=? AND (allowed_usage='public' OR allowed_usage='login' OR (allowed_usage='owner' AND owner=?))", 
                     id, userName
                 );
@@ -160,19 +167,21 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
                     Map<String, Object> ulData = ulDataList.get(0);
                     byte[] data = (byte[])ulData.get("upload");
                     String type = (String)ulData.get("filetype");
+                    String filename = (String)ulData.get("layer") + "." + type;
                     switch(type) {
                         case "gpx": mimeType = "application/gpx+xml"; break;
                         case "kml": mimeType = "application/vnd.google-earth.kml+xml"; break;
                         case "csv": mimeType = "text/csv"; break;
+                        case "zip": mimeType = "application/zip"; break;
                         default: break;
                     }
-                    writeOut(response, 200, mimeType, data);
+                    writeOut(response, 200, mimeType, data, filename);
                 } else {
-                    writeOut(response, 400, "application/json; charset=utf-8", "Failed to find readable layer record with id " + id);
+                    writeOut(response, 400, "application/json; charset=utf-8", "Failed to find readable layer record with id " + id, null);
                 }
                 break;
             default:
-                writeOut(response, 400, "application/json; charset=utf-8", "Unrecognised operation " + op);
+                writeOut(response, 400, "application/json; charset=utf-8", "Unrecognised operation " + op, null);
                 break;
         }        
     }
@@ -334,14 +343,19 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
      * @param int status
      * @param String mimeType
      * @param Object output
+     * @param String filename
      * @throws IOException 
      */
-    private void writeOut(HttpServletResponse response, int status, String mimeType, Object output) throws IOException {
+    private void writeOut(HttpServletResponse response, int status, String mimeType, Object output, String filename) throws IOException {
         ByteArrayInputStream bais;
         if (output instanceof String) {
             bais = new ByteArrayInputStream(((String) output).getBytes(StandardCharsets.UTF_8));
         } else if (output instanceof byte[]) {
             bais = new ByteArrayInputStream((byte[])output);
+            if (filename == null) {
+                filename = "data.txt";
+            }
+            response.addHeader("Content-Disposition", "inline; filename=\"" + filename + "\"");
         } else {
             output = "Unrecognised output type";
             bais = new ByteArrayInputStream(((String) output).getBytes(StandardCharsets.UTF_8));
