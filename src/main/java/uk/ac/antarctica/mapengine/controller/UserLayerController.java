@@ -8,7 +8,12 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
+import it.geosolutions.geoserver.rest.decoder.RESTLayer;
+import it.geosolutions.geoserver.rest.decoder.RESTResource;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.Enumeration;
@@ -18,7 +23,9 @@ import java.util.Map;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.geotools.ows.ServiceException;
 import org.postgresql.util.PGobject;
 import org.springframework.beans.BeansException;
@@ -42,7 +49,8 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import uk.ac.antarctica.mapengine.datapublishing.CsvPublisher;
 import uk.ac.antarctica.mapengine.datapublishing.DataPublisher;
 import uk.ac.antarctica.mapengine.datapublishing.DataPublisher.GeoserverPublishException;
-import uk.ac.antarctica.mapengine.datapublishing.GpxKmlPublisher;
+import uk.ac.antarctica.mapengine.datapublishing.GpxPublisher;
+import uk.ac.antarctica.mapengine.datapublishing.KmlPublisher;
 import uk.ac.antarctica.mapengine.datapublishing.NoUploadPublisher;
 import uk.ac.antarctica.mapengine.datapublishing.ShpZipPublisher;
 import uk.ac.antarctica.mapengine.model.UploadedData;
@@ -99,6 +107,82 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
         return(ret);
     }
     
+    /**
+     * Update a user layer whose data is POST-ed (with no uploaded file)
+     * @param String id
+     * @param String op
+     * @throws Exception
+     */
+    @RequestMapping(value = "/userlayers/{id}/{op}", method = RequestMethod.GET, produces = {"application/gpx+xml", "application/vnd.google-earth.kml+xml", "application/json; charset=utf-8"})
+    @ResponseBody
+    public void getUserlayerField(HttpServletRequest request, HttpServletResponse response,
+        @PathVariable("id") String id,
+        @PathVariable("op") String op) throws Exception {
+        String mimeType = "application/json; charset=utf-8";
+        String userName = request.getUserPrincipal().getName();        
+        switch(op) {
+            case "extent":
+                String layer = getMagicDataTpl().queryForObject("SELECT layer FROM " + getEnv().getProperty("postgres.local.userlayersTable") + " " +
+                    "WHERE id=? AND (allowed_usage='public' OR allowed_usage='login' OR (allowed_usage='owner' AND owner=?))", String.class, 
+                    id, userName
+                );
+                if (layer != null && !layer.isEmpty()) {
+                    boolean foundIt = false;
+                    DataPublisher pub = applicationContext.getBean(NoUploadPublisher.class);
+                    if (pub.getGrm().getReader().existsLayer(getEnv().getProperty("geoserver.local.userWorkspace"), layer, true)) {
+                        RESTLayer gsLayer = pub.getGrm().getReader().getLayer(getEnv().getProperty("geoserver.local.userWorkspace"), layer);
+                        if (gsLayer != null) {
+                            RESTResource gsFt = pub.getGrm().getReader().getResource(gsLayer);
+                            if (gsFt != null) {
+                                foundIt = true;
+                                JsonArray ja = new JsonArray();
+                                ja.add(new JsonPrimitive(gsFt.getMinX()));
+                                ja.add(new JsonPrimitive(gsFt.getMinY()));
+                                ja.add(new JsonPrimitive(gsFt.getMaxX()));
+                                ja.add(new JsonPrimitive(gsFt.getMaxY()));
+                                writeOut(response, 200, "application/json; charset=utf-8", ja.toString());
+                            }
+                        }
+                    } 
+                    if (!foundIt) {
+                        writeOut(response, 400, "application/json; charset=utf-8", "Layer with id " + id + " not found");                        
+                    }
+                } else {
+                    writeOut(response, 400, "application/json; charset=utf-8", "Failed to find readable layer record with id " + id);                    
+                }
+                break;
+            case "data":
+                List<Map<String, Object>> ulDataList = getMagicDataTpl().queryForList("SELECT filetype, upload FROM " + getEnv().getProperty("postgres.local.userlayersTable") + " " + 
+                    "WHERE id=? AND (allowed_usage='public' OR allowed_usage='login' OR (allowed_usage='owner' AND owner=?))", 
+                    id, userName
+                );
+                if (!ulDataList.isEmpty() && ulDataList.size() == 1) {
+                    Map<String, Object> ulData = ulDataList.get(0);
+                    byte[] data = (byte[])ulData.get("upload");
+                    String type = (String)ulData.get("filetype");
+                    switch(type) {
+                        case "gpx": mimeType = "application/gpx+xml"; break;
+                        case "kml": mimeType = "application/vnd.google-earth.kml+xml"; break;
+                        case "csv": mimeType = "text/csv"; break;
+                        default: break;
+                    }
+                    writeOut(response, 200, mimeType, data);
+                } else {
+                    writeOut(response, 400, "application/json; charset=utf-8", "Failed to find readable layer record with id " + id);
+                }
+                break;
+            default:
+                writeOut(response, 400, "application/json; charset=utf-8", "Unrecognised operation " + op);
+                break;
+        }        
+    }
+    
+    /**
+     * Save an uploaded layer record
+     * @param HttpServletRequest request
+     * @return
+     * @throws Exception 
+     */    
     @RequestMapping(value = "/userlayers/save", method = RequestMethod.POST, consumes = "multipart/form-data", produces = {"application/json"})
     public ResponseEntity<String> saveUserLayerData(MultipartHttpServletRequest request) throws Exception {
                 
@@ -118,7 +202,7 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
             System.out.println("*** End of POST parameters ***");
             Map<String, MultipartFile> fmp = request.getFileMap();
             if (fmp == null || fmp.isEmpty()) {
-                        
+                ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "No file was uploaded");
             } else {
                 /* Process file upload alongside attribute data */
                 for (MultipartFile mpf : request.getFileMap().values()) {
@@ -136,8 +220,10 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
                         DataPublisher pub = null;
                         switch(extension) {
                             case "gpx":
+                                pub = applicationContext.getBean(GpxPublisher.class);
+                                break;
                             case "kml":
-                                pub = applicationContext.getBean(GpxKmlPublisher.class);
+                                pub = applicationContext.getBean(KmlPublisher.class);
                                 break;
                             case "csv":
                                 pub = applicationContext.getBean(CsvPublisher.class);
@@ -240,7 +326,32 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
             ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "You are not the owner of this user layer");
         }       
         return (ret);
-    }    
+    }  
+    
+    /**
+     * Write response to the output body
+     * @param HttpServletResponse response
+     * @param int status
+     * @param String mimeType
+     * @param Object output
+     * @throws IOException 
+     */
+    private void writeOut(HttpServletResponse response, int status, String mimeType, Object output) throws IOException {
+        ByteArrayInputStream bais;
+        if (output instanceof String) {
+            bais = new ByteArrayInputStream(((String) output).getBytes(StandardCharsets.UTF_8));
+        } else if (output instanceof byte[]) {
+            bais = new ByteArrayInputStream((byte[])output);
+        } else {
+            output = "Unrecognised output type";
+            bais = new ByteArrayInputStream(((String) output).getBytes(StandardCharsets.UTF_8));
+            status = 400;
+            mimeType = "application/json; charset=utf-8";
+        }
+        response.setContentType(mimeType);
+        response.setStatus(status);
+        IOUtils.copy(bais, response.getOutputStream());
+    }
     
     /**
      * Prepare string data to go into a PostgreSQL json field

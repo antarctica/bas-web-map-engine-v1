@@ -1,5 +1,5 @@
 /*
- * Publishing subclass for GPX and KML data types
+ * Publishing subclass for GPX data type
  */
 package uk.ac.antarctica.mapengine.datapublishing;
 
@@ -12,17 +12,17 @@ import org.springframework.stereotype.Component;
 import uk.ac.antarctica.mapengine.model.UploadedData;
 
 @Component
-public class GpxKmlPublisher extends DataPublisher {
+public class GpxPublisher extends DataPublisher {
 
     /**
-     * Publishing workflow for uploaded GPX or KML file
+     * Publishing workflow for uploaded GPX file
      * @param UploadedData ud
      * @return String
      */
     @Override
     public void publish(UploadedData ud) throws GeoserverPublishException, IOException, DataAccessException {
                 
-        String pgTempSchema = "";
+        String pgTempSchema;
         String uploadedExtension = FilenameUtils.getExtension(ud.getUfmd().getUploaded().getName());
         String uploadedBasename = FilenameUtils.getBaseName(ud.getUfmd().getUploaded().getName());
         if (uploadedBasename.length() > 30) {
@@ -33,7 +33,7 @@ public class GpxKmlPublisher extends DataPublisher {
         pgTempSchema = createPgSchema(null);
         String pgUserSchema = ud.getUfue().getUserPgSchema();
 
-        /* Convert GPX/KML to PostGIS tables in the temporary schema via ogr2ogr */
+        /* Convert GPX to PostGIS tables in the temporary schema via ogr2ogr */
         executeOgr2ogr(ud.getUfmd().getUploaded(), null, pgTempSchema);
 
         /* Normal termination - ogr2ogr has created routes, tracks and waypoints tables - not all of these will have any content depending on the data - delete all empty ones */
@@ -77,6 +77,7 @@ public class GpxKmlPublisher extends DataPublisher {
                         configureFeatureType(ud.getUfmd(), destTableName), 
                         configureLayerData(styleName)
                     )) {
+                        deletePgSchema(pgTempSchema);
                         throw new GeoserverPublishException("Publishing PostGIS table " + destTableName + " to Geoserver failed");
                     }
                     /* Finally insert/update the userlayers table record */

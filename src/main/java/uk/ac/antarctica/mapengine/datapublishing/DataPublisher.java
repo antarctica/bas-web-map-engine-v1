@@ -420,7 +420,7 @@ public abstract class DataPublisher {
         /* Don't really understand why Linux wants this string UNQUOTED as it has spaces in it - all the examples do, however if you quote it it looks like ogr2ogr
          * attempts to create the database which it doesn't have the privileges to do */
         ogr2ogr.addArgument("PG:host=localhost dbname=magic schemas=${PGSCHEMA} user=${PGUSER} password=${PGPASS}", true);
-        ogr2ogr.addArgument("${TOCONVERT}", true);
+        ogr2ogr.addArgument("${TOCONVERT}", toConvert.getAbsolutePath().endsWith(".gpx"));
         if (tableName != null) {
             /* Strip schema name if present */
             ogr2ogr.addArgument("-nln");
@@ -431,7 +431,7 @@ public abstract class DataPublisher {
         /* Send stdout and stderr to specific byte arrays so that the end user will get some feedback about the problem */
         ByteArrayOutputStream ogrStdout = new ByteArrayOutputStream();
         ByteArrayOutputStream ogrStderr = new ByteArrayOutputStream();
-        PumpStreamHandler pumpStreamHandler = new PumpStreamHandler(ogrStdout, ogrStderr); 
+        PumpStreamHandler pumpStreamHandler = new PumpStreamHandler(ogrStdout, ogrStderr);
         executor.setStreamHandler(pumpStreamHandler);
         executor.setExitValue(0);
         ExecuteWatchdog watchdog = new ExecuteWatchdog(30000);  /* Time process out after 30 seconds */
@@ -630,7 +630,7 @@ public abstract class DataPublisher {
      * Create a standardised name for a file/table/schema - done by lowercasing,
      * converting all non-alphanumerics to _ and sequences of _ to single _
      * @param String name
-     * @param boolean allowDot - allow a period to delimit the suffix in a filename
+     * @param boolean allowDot - allow a single period to delimit the suffix in a filename
      * @param int lengthLimit - maximum string length, -1 to allow any
      * @return String
      */
@@ -638,6 +638,10 @@ public abstract class DataPublisher {
         String stdName = "";
         if (name != null && !name.isEmpty()) {
             stdName = name.toLowerCase().replaceAll(allowDot ? "[^a-z0-9.]" : "[^a-z0-9]", "_").replaceAll("_{2,}", "_").replaceFirst("_$", "");
+            if (allowDot) {
+                int lastDot = stdName.lastIndexOf(".");
+                stdName = stdName.substring(0, lastDot).replaceAll("\\.", "_") + stdName.substring(lastDot);
+            }
             if (Character.isDigit(stdName.charAt(0))) {
                 /* Disallow an initial digit, bad for PostGIS and Geoserver */
                 stdName = "x" + stdName;
