@@ -376,7 +376,7 @@ public class OgcServicesController implements ServletContextAware {
             String userlayerSql;
             Object[] args = new Object[]{};        
             if (userName == null) {
-                userlayerSql = "SELECT layer FROM " + env.getProperty("postgres.local.userlayersTable") + " WHERE layer=? AND allowed_usage='public'";
+                userlayerSql = "SELECT layer FROM " + env.getProperty("postgres.local.userlayersTable") + " WHERE allowed_usage='public'";
             } else {
                 userlayerSql = "SELECT layer FROM " + env.getProperty("postgres.local.userlayersTable") + " " + 
                     "WHERE allowed_usage='public' OR allowed_usage='login' OR (allowed_usage='owner' AND owner=?)";
@@ -398,17 +398,38 @@ public class OgcServicesController implements ServletContextAware {
                 DocumentBuilder db = dbf.newDocumentBuilder();
                 Document doc = db.parse(new ByteArrayInputStream(caps.getBytes(StandardCharsets.UTF_8)));
                 NodeList layers = doc.getElementsByTagName("Layer");
+                ArrayList<Node> layerList = new ArrayList();
                 for (int i = 0; i < layers.getLength(); i++) {
-                    Node layer = layers.item(i);
-                    Node layerName = layer.getFirstChild();
-                    if (layerName != null && layerName.getNodeName().equals("Name")) {
+                    layerList.add(layers.item(i));
+                }
+                int nKept = 0, nRemoved = 0;
+                for (int i = 0; i < layerList.size(); i++) {
+                    System.out.println("Layer " + i);
+                    Node layer = layerList.get(i);
+                    NodeList layerChildren = layer.getChildNodes();
+                    Node layerName = null;
+                    for (int j = 0; j < layerChildren.getLength(); j++) {
+                        if (layerChildren.item(j).getNodeName().equals("Name")) {
+                            layerName = layerChildren.item(j);
+                            break;
+                        }
+                    }
+                    if (layerName != null) {
+                        System.out.println("Found a name node");
                         String nameText = layerName.getTextContent();
+                        System.out.println("Layer name is " + nameText);
                         nameText = nameText.substring(nameText.indexOf(":")+1);
                         if (!userlayerDict.containsKey(nameText)) {
+                            System.out.println("Not in dictionary => remove");
                             layer.getParentNode().removeChild(layer);
+                            nRemoved++;
+                        } else {
+                            System.out.println("In dictionary => keep");
+                            nKept++;
                         }
                     }
                 }
+                System.out.println("Kept " + nKept + ", removed " + nRemoved);
                 doc.normalizeDocument();
                 /* https://stackoverflow.com/questions/865039/how-to-create-an-inputstream-from-a-document-or-node */
                 ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
