@@ -4,12 +4,14 @@
 
 package uk.ac.antarctica.mapengine.controller;
 
+import it.geosolutions.geoserver.rest.HTTPUtils;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
@@ -18,6 +20,7 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.imageio.ImageIO;
@@ -30,6 +33,16 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.auth.AuthScope;
@@ -45,6 +58,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.geotools.ows.ServiceException;
+import org.w3c.dom.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
@@ -57,6 +71,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.context.ServletContextAware;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 @Controller
 public class OgcServicesController implements ServletContextAware {        
@@ -167,7 +184,11 @@ public class OgcServicesController implements ServletContextAware {
                     /* GetCapabilities document in text/xml */
                     String version = getQueryParameter(params, "version");
                     mimeType = "text/xml";
-                    getFromUrl(response, serviceUrl + "?service=wms&request=getcapabilities" + (version != null ? "&version=" + version : ""), mimeType, false);                    
+                    if (servicedata == null) {
+                        getUserlayersCapsFromUrl(response, request, serviceUrl + "?service=wms&request=getcapabilities" + (version != null ? "&version=" + version : ""), mimeType);
+                    } else {
+                        getFromUrl(response, serviceUrl + "?service=wms&request=getcapabilities" + (version != null ? "&version=" + version : ""), mimeType, false); 
+                    }
                     break;
                 case "getmap":
                 case "getlegendgraphic":
@@ -314,11 +335,15 @@ public class OgcServicesController implements ServletContextAware {
      * @param String mimeType
      * @param String message 
      */
-    private void writeErrorResponse(HttpServletResponse response, int status, String mimeType, String message) throws IOException {
+    private void writeErrorResponse(HttpServletResponse response, int status, String mimeType, String message) {
         String jsonOut = "{\"status\":" + status + ",\"message\":\"" + message + "\"}";
         response.setStatus(status);
         response.setContentType(mimeType);
-        IOUtils.copy(new ByteArrayInputStream(jsonOut.getBytes(StandardCharsets.UTF_8)), response.getOutputStream());
+        try {
+            IOUtils.copy(new ByteArrayInputStream(jsonOut.getBytes(StandardCharsets.UTF_8)), response.getOutputStream());
+        } catch (IOException ioe) {
+            System.out.println("Error writing message to response stream!");
+        }
     }
     
     /**
@@ -333,6 +358,79 @@ public class OgcServicesController implements ServletContextAware {
         } else {
             return(new ArrayList());
         }
+    }
+    
+    /**
+     * Post-apply user layer secuirity checks to the GetCaps document
+     * @param HttpServletResponse response
+     * @param HttpServletRequest request
+     * @param String url
+     * @param String mimeType 
+     */
+    private void getUserlayersCapsFromUrl(HttpServletResponse response, HttpServletRequest request, String url, String mimeType) {
+        
+        String userName = request.getUserPrincipal() == null ? null : request.getUserPrincipal().getName();
+        
+        try {
+            /* Compute the set of layers this user has access to */
+            String userlayerSql;
+            Object[] args = new Object[]{};        
+            if (userName == null) {
+                userlayerSql = "SELECT layer FROM " + env.getProperty("postgres.local.userlayersTable") + " WHERE layer=? AND allowed_usage='public'";
+            } else {
+                userlayerSql = "SELECT layer FROM " + env.getProperty("postgres.local.userlayersTable") + " " + 
+                    "WHERE allowed_usage='public' OR allowed_usage='login' OR (allowed_usage='owner' AND owner=?)";
+                args = new Object[]{userName};
+            }
+            List<Map<String,Object>> listLayers = magicDataTpl.queryForList(userlayerSql, args);
+            /* Now have the list - create an easy-to-read dictionary */
+            HashMap<String,Boolean> userlayerDict = new HashMap();
+            if (listLayers != null) {
+                for (Map lnm : listLayers) {
+                    userlayerDict.put((String)lnm.get("layer"), Boolean.TRUE);
+                }
+            }
+            /* Now get the Capabilities document and parse for the layers, removing those that don't have dictionary entries */
+            String caps = HTTPUtils.get(url);
+            if (caps != null) {
+                DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+                dbf.setValidating(false);
+                DocumentBuilder db = dbf.newDocumentBuilder();
+                Document doc = db.parse(new ByteArrayInputStream(caps.getBytes(StandardCharsets.UTF_8)));
+                NodeList layers = doc.getElementsByTagName("Layer");
+                for (int i = 0; i < layers.getLength(); i++) {
+                    Node layer = layers.item(i);
+                    Node layerName = layer.getFirstChild();
+                    if (layerName != null && layerName.getNodeName().equals("Name")) {
+                        String nameText = layerName.getTextContent();
+                        nameText = nameText.substring(nameText.indexOf(":")+1);
+                        if (!userlayerDict.containsKey(nameText)) {
+                            layer.getParentNode().removeChild(layer);
+                        }
+                    }
+                }
+                doc.normalizeDocument();
+                /* https://stackoverflow.com/questions/865039/how-to-create-an-inputstream-from-a-document-or-node */
+                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                Source xmlSource = new DOMSource(doc);
+                Result outputTarget = new StreamResult(outputStream);
+                TransformerFactory.newInstance().newTransformer().transform(xmlSource, outputTarget);
+                InputStream is = new ByteArrayInputStream(outputStream.toByteArray());                
+                response.setContentType(mimeType);
+                IOUtils.copy(is, response.getOutputStream());
+            } else {
+                writeErrorResponse(response, 400, "application/json", "Failed to retrieve GetCapabilities document from " + url);
+            }
+        } catch (SAXException sax) {
+            System.out.println("Error parsing GetCaps document : " + sax.getMessage());
+            writeErrorResponse(response, 500, "application/json", "Error parsing GetCapabilities document from " + url + ": " + sax.getMessage());
+        } catch (IOException | ParserConfigurationException | TransformerConfigurationException ioe) {
+            System.out.println("Error parsing GetCaps document : " + ioe.getMessage());
+            writeErrorResponse(response, 500, "application/json", "Error parsing GetCapabilities document from " + url + ": " + ioe.getMessage());
+        } catch (TransformerException tre) {
+            System.out.println("Error parsing GetCaps document : " + tre.getMessage());
+            writeErrorResponse(response, 500, "application/json", "Error parsing GetCapabilities document from " + url + ": " + tre.getMessage());
+        } 
     }
     
     /**
@@ -447,7 +545,7 @@ public class OgcServicesController implements ServletContextAware {
     @Override
     public void setServletContext(ServletContext sc) {
         this.context = sc;
-    }   
+    } 
     
     public class RestrictedDataException extends Exception {
         public RestrictedDataException(String message) {

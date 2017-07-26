@@ -6,12 +6,14 @@ package uk.ac.antarctica.mapengine.controller;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import it.geosolutions.geoserver.rest.GeoServerRESTReader;
 import it.geosolutions.geoserver.rest.HTTPUtils;
 import it.geosolutions.geoserver.rest.decoder.RESTCoverage;
 import it.geosolutions.geoserver.rest.decoder.RESTFeatureType;
 import it.geosolutions.geoserver.rest.decoder.RESTLayer;
 import it.geosolutions.geoserver.rest.decoder.RESTLayerList;
+import it.geosolutions.geoserver.rest.decoder.RESTResource;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.regex.Matcher;
@@ -71,7 +73,7 @@ public class GeoserverRestController {
                 if (name != null) {
                     Matcher m = reFilter.matcher(name);
                     if (m.matches()) {
-                        JsonObject attrData = getLayerAttributes(request, name);
+                        JsonObject attrData = getLayerAttributes(name);
                         if (attrData.has("feature_name")) {
                             filteredList.add(attrData);
                         }
@@ -160,29 +162,20 @@ public class GeoserverRestController {
     @ResponseBody
     public void geoserverMetadataForLayer(HttpServletRequest request, HttpServletResponse response, @PathVariable("layer") String layer)
         throws ServletException, IOException, ServiceException {        
-        IOUtils.copy(IOUtils.toInputStream(getLayerAttributes(request, layer).toString()), response.getOutputStream());       
+        IOUtils.copy(IOUtils.toInputStream(getLayerAttributes(layer).toString()), response.getOutputStream());       
     }
     
     /**
      * Retrieve layer attribues, feature name/workspace and geometry type
-     * @param HttpServletRequest request
      * @param String layer
      * @return JsonObject
      * @throws MalformedURLException 
      */
-    private JsonObject getLayerAttributes(HttpServletRequest request, String layer) throws MalformedURLException {
+    private JsonObject getLayerAttributes(String layer) throws MalformedURLException {
         
         JsonObject jo = new JsonObject();
-        
-        int port = request.getServerPort();
-        String serverName = request.getServerName();
-        String geoserverUrl;            
-        if (serverName.equals("localhost")) {
-            /* For testing on local VMs */
-            geoserverUrl = "http://localhost:8080/geoserver/wms";
-        } else {
-            geoserverUrl = env.getProperty("geoserver.local.url") + "/wms";
-        }
+              
+        String geoserverUrl = env.getProperty("geoserver.local.url") + "/wms";                    
         jo.addProperty("wms_source", geoserverUrl);
         
         RESTLayer gsl = getReader().getLayer(layer);
