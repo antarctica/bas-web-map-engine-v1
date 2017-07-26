@@ -59,10 +59,18 @@ magic.classes.UserLayerManager.prototype.initialise = function(uldata) {
                                     'data-toggle="tooltip" data-placement="left" title="Check/uncheck to toggle layer visibility"></input> is currently visible' + 
                             '</label>' + 
                         '</div>' + 
-                        '<button id="' + this.id + '-layer-ztl" class="btn btn-xs btn-primary" style="margin-left:10px" type="button" ' + 
-                            'data-toggle="tooltip" data-placement="top" title="Zoom to layer extent">' + 
-                            '<span class="fa fa-arrows-alt"></span> Zoom to extent' + 
-                        '</button>' +
+                        '<div class="btn-group" style="margin-left:10px">' + 
+                            '<button type="button" class="btn btn-xs btn-default dropdown-toggle" data-toggle="dropdown">' + 
+                                'Actions&nbsp;&nbsp;<span class="fa fa-bars"></span>&nbsp;&nbsp;<span class="caret"></span>' + 
+                            '</button>' + 
+                            '<ul class="dropdown-menu">' + 
+                                '<li><a id="' + this.id + '-layer-ztl" href="Javascript:void(0)">Zoom to layer extent</a></li>' + 
+                                '<li role="separator" class="divider"></li>' + 
+                                '<li><a id="' + this.id + '-layer-wms" href="Javascript:void(0)">OGC WMS</a></li>' + 
+                                '<li><a id="' + this.id + '-layer-url" href="Javascript:void(0)">Direct data URL</a></li>' + 
+                                '<li><a id="' + this.id + '-layer-dld" href="Javascript:void(0)">Download data</a></li>' + 
+                            '</ul>' + 
+                        '</div>' + 
                     '</div>' + 
                 '</div>' + 
                 '<div class="form-group form-group-sm col-sm-12">' +
@@ -77,15 +85,7 @@ magic.classes.UserLayerManager.prototype.initialise = function(uldata) {
                     '<button id="' + this.id + '-layer-delete" class="btn btn-xs btn-danger" type="button" style="margin-left:5px" ' + 
                         'data-toggle="tooltip" data-placement="top" title="Delete selected layer">' + 
                         '<span class="fa fa-times-circle"></span> Delete' + 
-                    '</button>' + 
-                    '<button id="' + this.id + '-layer-wms" class="btn btn-xs btn-primary" type="button" style="margin-left:5px" ' + 
-                        'data-toggle="tooltip" data-placement="top" title="WMS service for layer">' + 
-                        '<span class="fa fa-globe"></span> WMS' + 
                     '</button>' +                    
-                    '<button id="' + this.id + '-layer-dld" class="btn btn-xs btn-primary" type="button" style="margin-left:5px" ' + 
-                        'data-toggle="tooltip" data-placement="top" title="Direct data download">' + 
-                        '<span class="fa fa-download"></span> Get data' + 
-                    '</button>' +
                 '</div>' +  
                 '<div class="col-sm-12 well well-sm edit-view-fs hidden">' +
                     '<div id="' + this.id + '-layer-edit-title" class="form-group form-group-sm col-sm-12"><strong>Upload a new layer</strong></div>' + 
@@ -168,9 +168,10 @@ magic.classes.UserLayerManager.prototype.initialise = function(uldata) {
         this.ddLayers  = jQuery("#" + this.id + "-layers");
         this.divVis    = jQuery("#" + this.id + "-layer-vis-div");
         this.cbVis     = jQuery("#" + this.id + "-layer-vis");
-        this.ztlBtn    = jQuery("#" + this.id + "-layer-ztl");
-        this.wmsBtn    = jQuery("#" + this.id + "-layer-wms");
-        this.dldBtn    = jQuery("#" + this.id + "-layer-dld");
+        this.ztlLink   = jQuery("#" + this.id + "-layer-ztl");
+        this.wmsLink   = jQuery("#" + this.id + "-layer-wms");
+        this.urlLink   = jQuery("#" + this.id + "-layer-url");
+        this.dldLink   = jQuery("#" + this.id + "-layer-dld");
         this.addBtn    = jQuery("#" + this.id + "-layer-add");
         this.editBtn   = jQuery("#" + this.id + "-layer-edit");
         this.delBtn    = jQuery("#" + this.id + "-layer-delete");
@@ -193,12 +194,12 @@ magic.classes.UserLayerManager.prototype.initialise = function(uldata) {
         this.refreshAfterUpdate(uldata);
         /* Set initial button states */
         this.setButtonStates({
-            addBtn: false, editBtn: true, delBtn: true, wmsBtn: true, dldBtn: true
+            addBtn: false, editBtn: true, delBtn: true
         });
         /* Assign handlers - changing layer dropdown value*/
         this.ddLayers.change(jQuery.proxy(function() {
             this.setButtonStates({
-                addBtn: false, editBtn: !this.userLayerSelected(), delBtn: !this.userLayerSelected(), wmsBtn: false, dldBtn: false
+                addBtn: false, editBtn: !this.userLayerSelected(), delBtn: !this.userLayerSelected()
             });
             this.stylerPopup.deactivate();
             var layerId = this.selectedLayerId();
@@ -210,10 +211,14 @@ magic.classes.UserLayerManager.prototype.initialise = function(uldata) {
                 var layer = this.userLayerData[layerId].olLayer;                
                 if (layer != null) {                    
                     this.cbVis.prop("checked", layer.getVisible());
-                    this.ztlBtn.prop("disabled", !layer.getVisible());
+                    if (layer.getVisible()) {
+                        this.ztlLink.closest("li").removeClass("disabled");
+                    } else {
+                        this.ztlLink.closest("li").addClass("disabled");
+                    }
                 } else {
                     this.cbVis.prop("checked", false);
-                    this.ztlBtn.prop("disabled", true);
+                    this.ztlLink.closest("li").addClass("disabled");
                 }
             }
         }, this));
@@ -223,10 +228,17 @@ magic.classes.UserLayerManager.prototype.initialise = function(uldata) {
             if (selId != null && selId != "") {
                 this.prepLayer(this.userLayerData[selId], this.cbVis.prop("checked"));               
             }
-            this.ztlBtn.prop("disabled", !this.cbVis.prop("checked"));
+            if (this.cbVis.prop("checked")) {
+                this.ztlLink.closest("li").removeClass("disabled");
+            } else {
+                this.ztlLink.closest("li").addClass("disabled");
+            }
         }, this));
         /* Zoom to layer button handler */
-        this.ztlBtn.click(jQuery.proxy(function() {
+        this.ztlLink.click(jQuery.proxy(function(evt) {
+            if (jQuery(evt.currentTarget).closest("li").hasClass("disabled")) {
+                return(false);
+            }
             var selId = this.selectedLayerId();
             if (selId != null && selId != "") {
                 jQuery.ajax({
@@ -256,19 +268,33 @@ magic.classes.UserLayerManager.prototype.initialise = function(uldata) {
                 this.styleEdit.removeClass("hidden");                
             }
         }, this));        
-        /* WMS URL button */
-        this.wmsBtn.click(jQuery.proxy(function() {             
+        /* WMS URL link */
+        this.wmsLink.click(jQuery.proxy(function() {             
             bootbox.prompt({
                 "title": "WMS URL",
                 "value": this.layerWmsUrl(),
                 "callback": function(){}
             });
         }, this));
-        /* WMS URL button */
-        this.dldBtn.click(jQuery.proxy(function() {             
-            var selId = this.selectedLayerId();
-            if (selId != null && selId != "") {
-                window.open(magic.config.paths.baseurl + "/userlayers/" + selId + "/data");
+        /* Direct data URL link */
+        this.urlLink.click(jQuery.proxy(function() {             
+            bootbox.prompt({
+                "title": "Direct data feed URL",
+                "value": this.layerDirectUrl(),
+                "callback": function(){}
+            });
+        }, this));        
+        /* Data download link */
+        this.dldLink.click(jQuery.proxy(function() {
+            var dldUrl = this.layerDirectUrl();
+            if (dldUrl) {
+                window.open(dldUrl);
+            } else {
+                bootbox.alert(
+                    '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                        '<p>Please select a layer</p>' + 
+                    '</div>'
+                );
             }
         }, this));
         /* New layer button */
@@ -324,7 +350,7 @@ magic.classes.UserLayerManager.prototype.initialise = function(uldata) {
             this.mgrForm[0].reset();
             this.hideEditForm();
             this.setButtonStates({
-                addBtn: false, editBtn: !this.userLayerSelected(), delBtn: !this.userLayerSelected(), wmsBtn: true, dldBtn: true
+                addBtn: false, editBtn: !this.userLayerSelected(), delBtn: !this.userLayerSelected()
             });              
             this.ddLayers.removeClass("disabled");    
             this.ddLayers.prop("disabled", false);
@@ -358,7 +384,7 @@ magic.classes.UserLayerManager.prototype.showEditForm = function(populator) {
         this.styleEdit.addClass("hidden");
     }
     this.setButtonStates({
-        addBtn: true, editBtn: true, delBtn: true, wmsBtn: true, dldBtn: true
+        addBtn: true, editBtn: true, delBtn: true
     });     
     this.mgrForm.find("input").first().focus();
     this.ddLayers.prop("disabled", true);
@@ -554,11 +580,19 @@ magic.classes.UserLayerManager.prototype.selectedLayerId = function() {
 };
 
 /**
- * Return the load URL for the selected layer
+ * Return the WMS URL for the selected layer
  */
 magic.classes.UserLayerManager.prototype.layerWmsUrl = function() {
     //TODO  
     console.log("Not implemented");
+    return("http://localhost:8080/geoserver/user/wms?request=getmap&layers=stuff");
+};
+
+/**
+ * Return the direct data URL for the selected layer
+ */
+magic.classes.UserLayerManager.prototype.layerDirectUrl = function() {
+    return(this.selectedLayerId() ? magic.config.paths.baseurl + "/userlayers/" + this.selectedLayerId() + "/data" : "");
 };
 
 /**
@@ -678,7 +712,7 @@ magic.classes.UserLayerManager.prototype.initDropzone = function() {
                     /* Successful save */
                     magic.modules.Common.buttonClickFeedback(this.ulm.id, true, response.detail);
                     this.ulm.setButtonStates({
-                        addBtn: false, editBtn: !this.ulm.userLayerSelected(), delBtn: !this.ulm.userLayerSelected(), wmsBtn: true, dldBtn: true
+                        addBtn: false, editBtn: !this.ulm.userLayerSelected(), delBtn: !this.ulm.userLayerSelected()
                     });                             
                     this.ulm.ddLayers.prop("disabled", false);
                     setTimeout(jQuery.proxy(function() {
@@ -752,7 +786,7 @@ magic.classes.UserLayerManager.prototype.initDropzone = function() {
                                 console.log("save click handler");
                                 magic.modules.Common.buttonClickFeedback(this.id, jQuery.isNumeric(response) || response.status < 400, response.detail);
                                 this.setButtonStates({
-                                    addBtn: false, editBtn: !this.userLayerSelected(), delBtn: !this.userLayerSelected(), wmsBtn: true, dldBtn: true
+                                    addBtn: false, editBtn: !this.userLayerSelected(), delBtn: !this.userLayerSelected()
                                 });                               
                                 this.ddLayers.prop("disabled", false);
                                 setTimeout(jQuery.proxy(function() {

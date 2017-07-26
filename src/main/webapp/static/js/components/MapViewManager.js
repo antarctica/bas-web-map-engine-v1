@@ -146,6 +146,7 @@ magic.classes.MapViewManager = function(options) {
         /* Bookmarkable URL button */
         this.bmkBtn.click(jQuery.proxy(function() {             
             bootbox.prompt({
+                "size": "small",
                 "title": "Bookmarkable URL",
                 "value": this.selectedMapLoadUrl(),
                 "callback": function(result){}

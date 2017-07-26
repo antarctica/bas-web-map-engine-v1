@@ -109,6 +109,37 @@ public class OgcServicesController implements ServletContextAware {
     }
     
     /**
+     * Proxy for OGC readonly WMS and WFS services for user data (applies extra security based on userlayers table)
+     * @param HttpServletRequest request,
+     * @param HttpServletResponse response,
+     * @param String service (wms|wfs)
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/ogc/user/{service}", method = RequestMethod.GET)
+    public void ogcUserGateway(
+        HttpServletRequest request, 
+        HttpServletResponse response, 
+        @PathVariable("service") String service
+    ) throws ServletException, IOException, ServiceException {                
+        try {
+            switch(service) {
+                case "wms":
+                    callWms(request, response, null);
+                    break;
+                case "wfs":
+                    callWfs(request, response, null);
+                    break;
+                default:
+                    throw new ServletException("Unrecognised service : " + service);
+            }
+        } catch(DataAccessException dae) {
+            throw new ServletException("Exception : " + dae.getMessage());
+        }        
+    }
+    
+    /**
      * WMS proxy
      * @param HttpServletRequest request
      * @param HttpServletResponse response
@@ -116,7 +147,7 @@ public class OgcServicesController implements ServletContextAware {
      */
     private void callWms(HttpServletRequest request, HttpServletResponse response, Map<String, Object> servicedata) throws ServletException, IOException {
         
-        String mimeType = null;                
+        String mimeType;                
         List<NameValuePair> params = decomposeQueryString(request);
         
         String operation = getQueryParameter(params, "request");
@@ -124,13 +155,19 @@ public class OgcServicesController implements ServletContextAware {
             throw new ServletException("Query string >" + request.getQueryString() + "< contains no 'request' parameter");
         }
         
+        /* Apply additional security check based on userlayers table */
+        if (servicedata == null && !userLayerSecurityCheck(request, getQueryParameter(params, "layers"))) {
+            writeErrorResponse(response, 401, "application/json", "You are not authorised to view this layer");                
+        }
+        
+        String serviceUrl = (servicedata == null) ? env.getProperty("geoserver.local.url") + "/user/wms" : (String)servicedata.get("url");        
         try {
             switch(operation.toLowerCase()) {
                 case "getcapabilities": 
                     /* GetCapabilities document in text/xml */
                     String version = getQueryParameter(params, "version");
-                    getFromUrl(response, servicedata.get("url") + "?service=wms&request=getcapabilities" + (version != null ? "&version=" + version : ""), mimeType, false);
                     mimeType = "text/xml";
+                    getFromUrl(response, serviceUrl + "?service=wms&request=getcapabilities" + (version != null ? "&version=" + version : ""), mimeType, false);                    
                     break;
                 case "getmap":
                 case "getlegendgraphic":
@@ -138,14 +175,14 @@ public class OgcServicesController implements ServletContextAware {
                     if (mimeType == null) {
                         mimeType = "image/png";
                     }
-                    getFromUrl(response, servicedata.get("url") + "?" + request.getQueryString(), mimeType, !operation.toLowerCase().equals("getlegendgraphic"));
+                    getFromUrl(response, serviceUrl + "?" + request.getQueryString(), mimeType, !operation.toLowerCase().equals("getlegendgraphic"));
                     break;
                 case "getfeatureinfo":
                     mimeType = getQueryParameter(params, "info_format");
                     if (mimeType == null) {
                         mimeType = "application/json";
                     }
-                    getFromUrl(response, servicedata.get("url") + "?" + request.getQueryString(), mimeType, true);
+                    getFromUrl(response, serviceUrl + "?" + request.getQueryString(), mimeType, true);
                     break;
                 default:
                     throw new ServletException("Unsupported WMS operation : " + operation);
@@ -176,13 +213,7 @@ public class OgcServicesController implements ServletContextAware {
                 ImageIO.write(bi, "png", response.getOutputStream());  
                 g.dispose();
             } else {
-                mimeType = "application/json";
-                String jsonOut = "{\"status\":401,\"message\":\"" + rde.getMessage() + "\"}";
-                response.setStatus(401);
-                response.setContentType(mimeType);
-                ogcContent = new ByteArrayInputStream(jsonOut.getBytes(StandardCharsets.UTF_8));
-                IOUtils.copy(ogcContent, response.getOutputStream());
-                ogcContent.close();
+                writeErrorResponse(response, 401, "application/json", rde.getMessage());                 
             }                        
         }        
     }
@@ -193,26 +224,28 @@ public class OgcServicesController implements ServletContextAware {
      * @param HttpServletResponse response
      * @param Map<String, Object> servicedata
      */
-    private void callWfs(HttpServletRequest request, HttpServletResponse response, Map<String, Object> servicedata) throws ServletException, IOException {                
-                
-        if ((Boolean)servicedata.get("has_wfs")) {
+    private void callWfs(HttpServletRequest request, HttpServletResponse response, Map<String, Object> servicedata) throws ServletException, IOException { 
+               
+        boolean hasWfs = (servicedata == null) ? true : (Boolean)servicedata.get("has_wfs");
+        String serviceUrl = (servicedata == null) ? env.getProperty("geoserver.local.url") + "/user/wfs" : (String)servicedata.get("url");                
+        
+        if (hasWfs) {
             /* Service offers WFS - assume that the URL is a simple swap of 'wfs' for 'wms' at the end */            
             List<NameValuePair> params = decomposeQueryString(request);        
             String operation = getQueryParameter(params, "request");
             if (operation == null) {
                 throw new ServletException("Query string >" + request.getQueryString() + "< contains no 'request' parameter");
             }
-            String endpointUrl = (String)servicedata.get("url");
-            if (endpointUrl.endsWith("/")) {
-                endpointUrl = endpointUrl.substring(0, endpointUrl.length()-1);
+            /* Apply additional security check based on userlayers table */
+            if (servicedata == null && !userLayerSecurityCheck(request, getQueryParameter(params, "layers"))) {
+                writeErrorResponse(response, 401, "application/json", "You are not authorised to view this layer");                
             }
-            String wfsUrl = "";
-            if (!endpointUrl.endsWith("wfs")) {
-                if (endpointUrl.endsWith("wms")) {
-                    wfsUrl = endpointUrl.replaceFirst("wms$", "wfs");
-                } else {
-                    wfsUrl = endpointUrl + "/wfs";
-                }                
+            if (serviceUrl.endsWith("/")) {
+                serviceUrl = serviceUrl.substring(0, serviceUrl.length()-1);
+            }
+            String wfsUrl = serviceUrl.replaceFirst("wms$", "wfs");
+            if (!wfsUrl.endsWith("wfs")) {
+                wfsUrl = serviceUrl + "/wfs";
             }
             try {
                 String mimeType;
@@ -232,14 +265,47 @@ public class OgcServicesController implements ServletContextAware {
                         throw new ServletException("Unsupported WFS operation : " + operation);
                 }
             } catch(RestrictedDataException rde) {
-                String jsonOut = "{\"status\":401,\"message\":\"" + rde.getMessage() + "\"}";
-                response.setStatus(401);
-                response.setContentType("application/json");
-                IOUtils.copy(new ByteArrayInputStream(jsonOut.getBytes(StandardCharsets.UTF_8)), response.getOutputStream());
+                writeErrorResponse(response, 401, "application/json", rde.getMessage());               
             }
         } else {
             throw new ServletException("Service does not allow WFS"); 
         }       
+    }
+    
+    /**
+     * Check current user can access this layer, according to the userlayers table
+     * @param HttpServletRequest request
+     * @param String layer
+     * @return boolean
+     */
+    private boolean userLayerSecurityCheck(HttpServletRequest request, String layer) {
+        String userName = request.getUserPrincipal() == null ? null : request.getUserPrincipal().getName();
+        String userlayerSql;
+        Object[] args;
+        if (userName == null) {
+            userlayerSql = "SELECT count(id) FROM " + env.getProperty("postgres.local.userlayersTable") + " WHERE layer=? AND allowed_usage='public'";
+            args = new Object[]{layer};
+        } else {
+            userlayerSql = "SELECT count(id) FROM " + env.getProperty("postgres.local.userlayersTable") + " " + 
+                "WHERE layer=? AND (allowed_usage='public' OR allowed_usage='login' OR (allowed_usage='owner' AND owner=?))";
+            args = new Object[]{layer, userName};
+        }
+        int nrecs = magicDataTpl.queryForObject(userlayerSql, Integer.class, args);
+        return(nrecs == 1);
+    }
+    
+    /**
+     * Write error response to the output
+     * @param HttpServletResponse response
+     * @param int status
+     * @param String mimeType
+     * @param String message 
+     */
+    private void writeErrorResponse(HttpServletResponse response, int status, String mimeType, String message) throws IOException {
+        String jsonOut = "{\"status\":" + status + ",\"message\":\"" + message + "\"}";
+        response.setStatus(status);
+        response.setContentType(mimeType);
+        IOUtils.copy(new ByteArrayInputStream(jsonOut.getBytes(StandardCharsets.UTF_8)), response.getOutputStream());
     }
     
     /**
@@ -368,7 +434,7 @@ public class OgcServicesController implements ServletContextAware {
     @Override
     public void setServletContext(ServletContext sc) {
         this.context = sc;
-    }
+    }   
     
     public class RestrictedDataException extends Exception {
         public RestrictedDataException(String message) {
