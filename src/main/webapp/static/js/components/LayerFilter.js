@@ -89,11 +89,11 @@ magic.classes.LayerFilter = function(options) {
                                 'data-toggle="tooltip" data-placement="right" title="Enter date/time to filter on"></input>' + 
                         '</div>' + 
                         '<div class="form-group form-group-sm col-sm-12">' +
-                            '<button id="ftr-btn-go-' + this.nodeid + '" class="btn btn-primary btn-sm" type="button" ' + 
+                            '<button id="ftr-btn-go-' + this.nodeid + '" class="btn btn-primary btn-xs" type="button" ' + 
                                 'data-toggle="tooltip" data-placement="right" title="Set filter on layer" style="margin-right:5px">' + 
                                 '<span class="fa fa-filter"></span>Apply' + 
                             '</button>' +
-                            '<button id="ftr-btn-reset-' + this.nodeid + '" class="btn btn-danger btn-sm" type="button" ' + 
+                            '<button id="ftr-btn-reset-' + this.nodeid + '" class="btn btn-danger btn-xs" type="button" ' + 
                                 'data-toggle="tooltip" data-placement="right" title="Remove layer filter">' + 
                                 '<span class="fa fa-minus-circle"></span>Reset' + 
                             '</button>' +

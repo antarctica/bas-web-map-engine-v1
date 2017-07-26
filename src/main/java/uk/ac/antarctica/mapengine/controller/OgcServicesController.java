@@ -104,7 +104,9 @@ public class OgcServicesController implements ServletContextAware {
                     throw new ServletException("Unrecognised service : " + service);
             }
         } catch(DataAccessException dae) {
-            throw new ServletException("Exception : " + dae.getMessage() + ", probably due to non-existent service id");
+            writeErrorResponse(response, 400, "application/json", "Error : message was " + dae.getMessage());
+        } catch(RestrictedDataException rde) {
+            writeErrorResponse(response, 401, "application/json", rde.getMessage());
         }        
     }
     
@@ -135,8 +137,10 @@ public class OgcServicesController implements ServletContextAware {
                     throw new ServletException("Unrecognised service : " + service);
             }
         } catch(DataAccessException dae) {
-            throw new ServletException("Exception : " + dae.getMessage());
-        }        
+            writeErrorResponse(response, 400, "application/json", "Error : message was " + dae.getMessage());
+        } catch(RestrictedDataException rde) {
+            writeErrorResponse(response, 401, "application/json", rde.getMessage());
+        }  
     }
     
     /**
@@ -145,7 +149,8 @@ public class OgcServicesController implements ServletContextAware {
      * @param HttpServletResponse response
      * @param Map<String, Object> servicedata
      */
-    private void callWms(HttpServletRequest request, HttpServletResponse response, Map<String, Object> servicedata) throws ServletException, IOException {
+    private void callWms(HttpServletRequest request, HttpServletResponse response, Map<String, Object> servicedata) 
+        throws RestrictedDataException, ServletException, IOException {
         
         String mimeType;                
         List<NameValuePair> params = decomposeQueryString(request);
@@ -153,12 +158,7 @@ public class OgcServicesController implements ServletContextAware {
         String operation = getQueryParameter(params, "request");
         if (operation == null) {
             throw new ServletException("Query string >" + request.getQueryString() + "< contains no 'request' parameter");
-        }
-        
-        /* Apply additional security check based on userlayers table */
-        if (servicedata == null && !userLayerSecurityCheck(request, getQueryParameter(params, "layers"))) {
-            writeErrorResponse(response, 401, "application/json", "You are not authorised to view this layer");                
-        }
+        }                
         
         String serviceUrl = (servicedata == null) ? env.getProperty("geoserver.local.url") + "/user/wms" : (String)servicedata.get("url");        
         try {
@@ -171,6 +171,10 @@ public class OgcServicesController implements ServletContextAware {
                     break;
                 case "getmap":
                 case "getlegendgraphic":
+                    /* GetMap or GetLegendGraphic - apply additional security check based on userlayers table */
+                    if (servicedata == null && !userLayerSecurityCheck(request, getQueryParameter(params, "layers"))) {
+                        throw new RestrictedDataException("You are not authorised for access to layer " + getQueryParameter(params, "layers"));
+                    }
                     mimeType = getQueryParameter(params, "format");
                     if (mimeType == null) {
                         mimeType = "image/png";
@@ -178,6 +182,10 @@ public class OgcServicesController implements ServletContextAware {
                     getFromUrl(response, serviceUrl + "?" + request.getQueryString(), mimeType, !operation.toLowerCase().equals("getlegendgraphic"));
                     break;
                 case "getfeatureinfo":
+                    /* GetFeatureInfo - apply additional security check based on userlayers table */
+                    if (servicedata == null && !userLayerSecurityCheck(request, getQueryParameter(params, "layers"))) {
+                        throw new RestrictedDataException("You are not authorised for access to layer " + getQueryParameter(params, "layers"));
+                    }
                     mimeType = getQueryParameter(params, "info_format");
                     if (mimeType == null) {
                         mimeType = "application/json";
@@ -188,7 +196,6 @@ public class OgcServicesController implements ServletContextAware {
                     throw new ServletException("Unsupported WMS operation : " + operation);
             }
         } catch(RestrictedDataException rde) {
-            InputStream ogcContent = null;
             if (operation.toLowerCase().equals("getmap")) {
                 /* Output 256x256 transparent PNG image informing user of restricted access */
                 mimeType = "image/png";
@@ -224,7 +231,8 @@ public class OgcServicesController implements ServletContextAware {
      * @param HttpServletResponse response
      * @param Map<String, Object> servicedata
      */
-    private void callWfs(HttpServletRequest request, HttpServletResponse response, Map<String, Object> servicedata) throws ServletException, IOException { 
+    private void callWfs(HttpServletRequest request, HttpServletResponse response, Map<String, Object> servicedata) 
+        throws RestrictedDataException, ServletException, IOException { 
                
         boolean hasWfs = (servicedata == null) ? true : (Boolean)servicedata.get("has_wfs");
         String serviceUrl = (servicedata == null) ? env.getProperty("geoserver.local.url") + "/user/wfs" : (String)servicedata.get("url");                
@@ -236,10 +244,9 @@ public class OgcServicesController implements ServletContextAware {
             if (operation == null) {
                 throw new ServletException("Query string >" + request.getQueryString() + "< contains no 'request' parameter");
             }
-            /* Apply additional security check based on userlayers table */
-            if (servicedata == null && !userLayerSecurityCheck(request, getQueryParameter(params, "layers"))) {
-                writeErrorResponse(response, 401, "application/json", "You are not authorised to view this layer");                
-            }
+            if (servicedata == null && !userLayerSecurityCheck(request, getQueryParameter(params, "typenames"))) {
+                throw new RestrictedDataException("You are not authorised for access to layer " + getQueryParameter(params, "typenames"));
+                    }
             if (serviceUrl.endsWith("/")) {
                 serviceUrl = serviceUrl.substring(0, serviceUrl.length()-1);
             }
@@ -282,6 +289,12 @@ public class OgcServicesController implements ServletContextAware {
         String userName = request.getUserPrincipal() == null ? null : request.getUserPrincipal().getName();
         String userlayerSql;
         Object[] args;
+        if (layer.startsWith("user:")) {
+            layer = layer.substring(5);
+        } else {
+            /* This is not a user layer, so we defer to Geoserver to decide */
+            return(true);
+        }
         if (userName == null) {
             userlayerSql = "SELECT count(id) FROM " + env.getProperty("postgres.local.userlayersTable") + " WHERE layer=? AND allowed_usage='public'";
             args = new Object[]{layer};

@@ -583,9 +583,25 @@ magic.classes.UserLayerManager.prototype.selectedLayerId = function() {
  * Return the WMS URL for the selected layer
  */
 magic.classes.UserLayerManager.prototype.layerWmsUrl = function() {
-    //TODO  
-    console.log("Not implemented");
-    return("http://localhost:8080/geoserver/user/wms?request=getmap&layers=stuff");
+    var selId = this.selectedLayerId();
+    if (selId && this.userLayerData[selId]) {
+        var ld = this.userLayerData[selId];
+        return(magic.config.paths.baseurl + "/ogc/user/wms?SERVICE=WMS&" + 
+            "VERSION=1.3.0&" + 
+            "REQUEST=GetMap&" + 
+            "FORMAT=image/png&" + 
+            "TRANSPARENT=true&" + 
+            "LAYERS=" + ld.layer + "&" + 
+            "CRS=" + this.map.getView().getProjection().getCode() + "&" + 
+            "SRS=" + this.map.getView().getProjection().getCode() + "&" + 
+            "TILED=true&" + 
+            "WIDTH=1000&" + 
+            "HEIGHT=1000&" + 
+            "STYLES=&" + 
+            "BBOX=" + magic.runtime.viewdata.proj_extent.join(","));
+    } else {
+        return("");
+    }
 };
 
 /**
