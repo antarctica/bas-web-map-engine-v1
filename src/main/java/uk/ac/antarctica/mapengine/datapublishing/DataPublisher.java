@@ -226,8 +226,12 @@ public abstract class DataPublisher {
             fromName = "temp_" + UUID.randomUUID().toString();
         }
         /* Replace all non-lowercase alphanumerics with _ and truncate maximum allowed length */
-        String schemaName = "user_" + standardiseName(fromName, false, MAX_SCHEMANAME_LENGTH);        
-        getMagicDataTpl().execute("CREATE SCHEMA IF NOT EXISTS " + schemaName + " AUTHORIZATION " + getEnv().getProperty("datasource.magic.username"));
+        String schemaName = "user_" + standardiseName(fromName, false, MAX_SCHEMANAME_LENGTH);
+        /* Sigh - cope with the fact we only have Postgres 9.2 on the CCAMLR server where 'IF NOT EXISTS' is not implemented...duh */
+        int nsch = getMagicDataTpl().queryForObject("SELECT count(schema_name) FROM information_schema.schemata WHERE schema_name=?", Integer.class, schemaName);
+        if (nsch == 0) {
+            getMagicDataTpl().execute("CREATE SCHEMA " + schemaName + " AUTHORIZATION " + getEnv().getProperty("datasource.magic.username"));
+        }
         return(schemaName);
     }
     
@@ -419,7 +423,7 @@ public abstract class DataPublisher {
         ogr2ogr.addArgument("PostgreSQL", false);
         /* Don't really understand why Linux wants this string UNQUOTED as it has spaces in it - all the examples do, however if you quote it it looks like ogr2ogr
          * attempts to create the database which it doesn't have the privileges to do */
-        ogr2ogr.addArgument("PG:host=localhost dbname=magic schemas=${PGSCHEMA} user=${PGUSER} password=${PGPASS}", true);
+        ogr2ogr.addArgument("PG:host=localhost dbname=magic schemas=${PGSCHEMA} user=${PGUSER} password=${PGPASS}", false);
         ogr2ogr.addArgument("${TOCONVERT}", toConvert.getAbsolutePath().endsWith(".gpx"));
         if (tableName != null) {
             /* Strip schema name if present */
@@ -438,7 +442,13 @@ public abstract class DataPublisher {
         executor.setWatchdog(watchdog);
         int exitValue = -1;
         try {         
-            Map executionEnv = EnvironmentUtils.getProcEnvironment();            
+            Map executionEnv = EnvironmentUtils.getProcEnvironment();
+            boolean overrideLibraryPath = 
+                getEnv().getProperty("software.ld_library_path_override") != null && 
+                getEnv().getProperty("software.ld_library_path_override").equals("yes");
+            if (overrideLibraryPath) {
+                executionEnv.remove("LD_LIBRARY_PATH");
+            }
             executionEnv.put("GDAL_DATA", getEnv().getProperty("software.gdal_data"));
             executor.execute(ogr2ogr, executionEnv);
         } catch (IOException ex) {

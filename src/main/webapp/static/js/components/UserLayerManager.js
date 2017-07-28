@@ -522,12 +522,12 @@ magic.classes.UserLayerManager.prototype.prepLayer = function(layerData, visible
                 attribute_map: null
             }, defaultNodeAttrs);
             nd.source = jQuery.extend({}, {
-                wms_source: layerData.service, 
+                wms_source: magic.config.paths.baseurl + "/ogc/user/wms", 
                 feature_name: layerData.layer
             }, defaultSourceAttrs);
             var proj = this.map.getView().getProjection();    
             var wmsSource = new ol.source.TileWMS({
-                url: magic.modules.Endpoints.getOgcEndpoint(nd.source.wms_source, "wms"),
+                url: nd.source.wms_source,
                 params: {
                     "LAYERS": nd.source.feature_name,
                     "STYLES": "",

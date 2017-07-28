@@ -35,30 +35,30 @@
                             Enable map feature pop-ups
                         </label>                            
                     </div>
-                    <div class="col-sm-12 form-inline" th:switch="${profile}">
-                        <label class="checkbox-inline">
-                            <input type="checkbox" name="t3-controls" value="graticule"
-                                   data-toggle="tooltip" data-placement="top" title="Enable a labelled graticule"></input>
-                            Enable graticule
-                        </label>  
-                        <label class="checkbox-inline">
-                            <input type="checkbox" name="t3-controls" value="geolocation"
-                                   data-toggle="tooltip" data-placement="top" title="Show my position according to device GPS"></input>
-                            Current device position
-                        </label>
+                    <div class="col-sm-12 form-inline" th:switch="${profile}">                        
                         <div th:case="ccamlrgis">
-                            <label class="checkbox-inline hidden">
-                                <input type="checkbox" name="t3-controls" value="aircraft"
-                                       data-toggle="tooltip" data-placement="top" title="Show positions of BAS aircraft"></input>
-                                BAS aircraft positions
-                            </label>
-                            <label class="checkbox-inline hidden">
-                                <input type="checkbox" name="t3-controls" value="ships"
-                                       data-toggle="tooltip" data-placement="top" title="Show positions of BAS ships"></input>
-                                BAS ship positions
-                            </label>
+                            <label class="checkbox-inline">
+                                <input type="checkbox" name="t3-controls" value="graticule"
+                                       data-toggle="tooltip" data-placement="top" title="Enable a labelled graticule"></input>
+                                Enable graticule
+                            </label>  
+                            <label class="checkbox-inline">
+                                <input type="checkbox" name="t3-controls" value="geolocation"
+                                       data-toggle="tooltip" data-placement="top" title="Show my position according to device GPS"></input>
+                                Current device position
+                            </label>                            
                         </div>
                         <div th:case="*">
+                            <label class="checkbox-inline">
+                                <input type="checkbox" name="t3-controls" value="graticule"
+                                       data-toggle="tooltip" data-placement="top" title="Enable a labelled graticule"></input>
+                                Enable graticule
+                            </label>  
+                            <label class="checkbox-inline">
+                                <input type="checkbox" name="t3-controls" value="geolocation"
+                                       data-toggle="tooltip" data-placement="top" title="Show my position according to device GPS"></input>
+                                Current device position
+                            </label>
                             <label class="checkbox-inline">
                                 <input type="checkbox" name="t3-controls" value="aircraft"
                                        data-toggle="tooltip" data-placement="top" title="Show positions of BAS aircraft"></input>

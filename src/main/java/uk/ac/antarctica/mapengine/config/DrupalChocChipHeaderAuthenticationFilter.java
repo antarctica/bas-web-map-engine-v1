@@ -44,11 +44,15 @@ public class DrupalChocChipHeaderAuthenticationFilter extends OncePerRequestFilt
                 System.out.println("CCAMLR user " + userName + " is logged in");
                 Principal loggedInUser = request.getUserPrincipal();
                 if (loggedInUser == null || !loggedInUser.getName().equals(userName)) {
-                    System.out.println("Setting authentication context...");
-                    ArrayList<GrantedAuthority> authorities = new ArrayList();
-                    GrantedAuthority ga = new SimpleGrantedAuthority("ROLE_CCAMLR");
-                    authorities.add(ga);
-                    SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userName, "password", authorities));
+                    if (SecurityContextHolder.getContext().getAuthentication() != null) {
+                        System.out.println("Authentication context set");
+                    } else {
+                        System.out.println("Setting authentication context...");
+                        ArrayList<GrantedAuthority> authorities = new ArrayList();
+                        GrantedAuthority ga = new SimpleGrantedAuthority("ROLE_CCAMLR");
+                        authorities.add(ga);
+                        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userName, "password", authorities));
+                    }
                 }
             } else {
                 /* Probably logged out */
