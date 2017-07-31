@@ -484,6 +484,7 @@ magic.classes.UserLayerManager.prototype.setButtonStates = function(states) {
  * @return {ol.Layer}
  */
 magic.classes.UserLayerManager.prototype.prepLayer = function(layerData, visible) { 
+    var userEp = magic.modules.Endpoints.getUserDataEndpoint();
     if (typeof visible !== "boolean") {
         visible = this.userPayloadConfig[layerData.id] ? this.userPayloadConfig[layerData.id].visibility : false;
     }
@@ -522,12 +523,12 @@ magic.classes.UserLayerManager.prototype.prepLayer = function(layerData, visible
                 attribute_map: null
             }, defaultNodeAttrs);
             nd.source = jQuery.extend({}, {
-                wms_source: magic.config.paths.baseurl + "/ogc/user/wms", 
+                wms_source: layerData.service, 
                 feature_name: layerData.layer
             }, defaultSourceAttrs);
             var proj = this.map.getView().getProjection();    
             var wmsSource = new ol.source.TileWMS({
-                url: nd.source.wms_source,
+                url: magic.modules.Endpoints.getOgcEndpoint(nd.source.wms_source, "wms"),
                 params: {
                     "LAYERS": nd.source.feature_name,
                     "STYLES": "",

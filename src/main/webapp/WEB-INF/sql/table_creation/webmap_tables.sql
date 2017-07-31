@@ -18,6 +18,7 @@ CREATE TABLE webmap.endpoints
   admin_pass character varying(100), -- Administration/REST password for endpoint
   srs character varying(20), -- Spatial Reference System as an EPSG code
   has_wfs boolean, -- Whether a WFS service is available at the same endpoint (improved user experience on interactive layers possible)
+  is_user_service boolean, -- Whether this endpoint represents a WMS for user uploaded data
   CONSTRAINT endpoints_pkey PRIMARY KEY (id)
 )
 WITH (
@@ -38,6 +39,7 @@ COMMENT ON COLUMN webmap.endpoints.admin_user IS 'Administration/REST username f
 COMMENT ON COLUMN webmap.endpoints.admin_pass IS 'Administration/REST password for endpoint';
 COMMENT ON COLUMN webmap.endpoints.srs IS 'Spatial Reference System as an EPSG code';
 COMMENT ON COLUMN webmap.endpoints.has_wfs IS 'Whether a WFS service is available at the same endpoint (improved user experience on interactive layers possible)';
+COMMENT ON COLUMN webmap.endpoints.is_user_service IS 'Whether this endpoint represents a WMS for user uploaded data'
 
 CREATE TABLE webmap.maps
 (

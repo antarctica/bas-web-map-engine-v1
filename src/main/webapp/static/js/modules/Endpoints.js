@@ -45,7 +45,11 @@ magic.modules.Endpoints = function () {
             var proxEp = url;
             var matches = this.getEndpointsBy("url", url);
             if (matches.length > 0) {
-                proxEp = magic.config.paths.baseurl + "/ogc/" + matches[0]["id"] + "/" + service;
+                if (matches[0]["is_user_service"] === true) {
+                    proxEp = magic.config.paths.baseurl + "/ogc/user/" + service;
+                } else {
+                    proxEp = magic.config.paths.baseurl + "/ogc/" + matches[0]["id"] + "/" + service;
+                }
             } else {
                 proxEp = magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(url);
             }
@@ -60,7 +64,17 @@ magic.modules.Endpoints = function () {
         getEndpointBy: function(filterName, filterValue) {
             var matches = this.getEndpointsBy(filterName, filterValue);           
             return(matches.length > 0 ? matches[0] : null);
-        },        
+        },  
+        /**
+         * Get the endpoint corresponding to the user data service (should only be one or none)         
+         * @return {Object}
+         */
+        getUserDataEndpoint: function() {
+            var udes = jQuery.grep(magic.runtime.endpoints, function(ep) {
+                return(ep.is_user_service === true);
+            });
+            return(udes.length == 0 ? null : udes[0]);
+        },
         /**
          * Retrieve endpoint data corresponding to the input filter (match occurs if 'filter' found at start of endpoint, case-insensitive)
          * @param {string} filterName

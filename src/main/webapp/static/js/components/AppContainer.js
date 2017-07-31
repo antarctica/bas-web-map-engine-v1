@@ -166,7 +166,12 @@ magic.classes.AppContainer = function () {
     magic.runtime.layermanager = null;
     if (magic.runtime.username != "guest" && jQuery.inArray("layermanager", magic.runtime.mapdata.controls) != -1) {
         /* Activate layer upload manager tool */
-        magic.runtime.layermanager = new magic.classes.UserLayerManager({target: "layermanager-tool"});
+        if (magic.modules.Endpoints.getUserDataEndpoint() != null) {     
+            magic.runtime.layermanager = new magic.classes.UserLayerManager({target: "layermanager-tool"});
+        } else {
+            /* Hide the layer upload manager button */
+            jQuery("#layermanager-tool").closest("li").hide();
+        }
     } else {
         /* Hide the layer upload manager button */
         jQuery("#layermanager-tool").closest("li").hide();

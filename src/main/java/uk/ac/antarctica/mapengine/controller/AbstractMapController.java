@@ -285,7 +285,8 @@ public class AbstractMapController {
         if (location == null) {
             location = "cambridge";
         }
-        List<Map<String, Object>> eps = getMagicDataTpl().queryForList("SELECT id, name, url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs, has_wfs FROM " + 
+        List<Map<String, Object>> eps = getMagicDataTpl().queryForList(
+            "SELECT id, name, url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs, has_wfs, is_user_service FROM " + 
             getEnv().getProperty("postgres.local.endpointsTable") + " " +  
             "WHERE location=? ORDER BY name", location
         );
