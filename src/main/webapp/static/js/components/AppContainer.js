@@ -383,8 +383,8 @@ magic.classes.AppContainer.prototype.initMapMetadata = function() {
         jQuery("#applogo").attr("src", context.logo);
     }
     jQuery("#appurl").attr("href", context.metadata_url);
-    jQuery("link[rel='icon']").attr("href", magic.config.paths.baseurl + "/" + context.favicon);
-    jQuery("link[rel='shortcut icon']").attr("href", magic.config.paths.baseurl + "/" + context.favicon);
+    //jQuery("link[rel='icon']").attr("href", magic.config.paths.baseurl + "/" + context.favicon);
+    //jQuery("link[rel='shortcut icon']").attr("href", magic.config.paths.baseurl + "/" + context.favicon);
 };
 
 /**

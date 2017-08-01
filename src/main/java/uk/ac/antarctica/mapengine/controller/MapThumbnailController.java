@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -136,27 +137,30 @@ public class MapThumbnailController implements ServletContextAware {
     public void thumbnailData(HttpServletRequest request, HttpServletResponse response, @PathVariable("mapname") String mapname)
         throws ServletException, IOException, ServiceException, SQLException {
         
+        InputStream thumbStream = null;
         String contentType = "image/jpg";
-        InputStream is = null;
-        File defaultThumb = new File(getContext().getRealPath(DEFAULT_THUMBNAIL));
-                
+        String thumbUrl = getEnv().getProperty("default.thumbnailUrl");                          
         try (Connection conn = getMagicDataTpl().getDataSource().getConnection()) {            
             PreparedStatement ps = conn.prepareStatement("SELECT mime_type, thumbnail FROM " + getEnv().getProperty("postgres.local.thumbnailsTable") + " WHERE \"name\" = ?");
             ps.setString(1, mapname);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 contentType = rs.getString(1);
-                is = new ByteArrayInputStream(rs.getBytes(2));                
-            } else {
-                is = new FileInputStream(defaultThumb);
-            }           
+                thumbStream = new ByteArrayInputStream(rs.getBytes(2));                
+            }       
             rs.close();
             ps.close();               
         } catch (SQLException ex) {
-            is = new FileInputStream(defaultThumb);
+        }
+        if (thumbStream == null) {
+            if (thumbUrl != null && !thumbUrl.isEmpty()) {
+                thumbStream = new URL(thumbUrl).openStream();
+            } else {
+                thumbStream = new FileInputStream(new File(getContext().getRealPath(DEFAULT_THUMBNAIL)));
+            }      
         }
         response.setContentType(contentType);
-        IOUtils.copy(is, response.getOutputStream());
+        IOUtils.copy(thumbStream, response.getOutputStream());
     }
     
     /**

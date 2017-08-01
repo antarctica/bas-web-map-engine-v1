@@ -144,11 +144,16 @@ magic.classes.LayerTreeOptionsMenu.prototype.zoomToWmsExtent = function(caps, fe
                     return(false);
                 }
             });
-            if (bbox == null && jQuery.isArray(md["EX_GeographicBoundingBox"]) && md["EX_GeographicBoundingBox"].length == 4) {
-                /* Get bounding box by means of WGS84 one */
-                bbox = magic.modules.GeoUtils.extentFromWgs84Extent(md["EX_GeographicBoundingBox"]);
-            } else {
-                bbox = magic.runtime.viewdata.proj_extent;
+            if (bbox == null) {
+                if (jQuery.isArray(md["EX_GeographicBoundingBox"]) && md["EX_GeographicBoundingBox"].length == 4) {
+                    /* Get bounding box by means of WGS84 one */
+                    bbox = magic.modules.GeoUtils.extentFromWgs84Extent(md["EX_GeographicBoundingBox"]);
+                    if (bbox.length == 0) {
+                        bbox = magic.runtime.viewdata.proj_extent;
+                    }
+                } else {
+                    bbox = magic.runtime.viewdata.proj_extent;
+                }
             }
         } else if (jQuery.isArray(md["EX_GeographicBoundingBox"]) && md["EX_GeographicBoundingBox"].length == 4) {
             bbox = magic.modules.GeoUtils.extentFromWgs84Extent(md["EX_GeographicBoundingBox"]);
