@@ -3,31 +3,35 @@
  */
 package uk.ac.antarctica.mapengine.controller;
 
+import com.google.gson.Gson;
 import it.geosolutions.geoserver.rest.HTTPUtils;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.security.Principal;
-import javax.servlet.ServletContext;
+import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.context.ServletContextAware;
 import uk.ac.antarctica.mapengine.util.ActivityLogger;
 
 @Controller
-public class HomeController implements ServletContextAware {
+public class HomeController {
         
     @Autowired
     Environment env;
     
-    private ServletContext context;
+    @Autowired
+    private JdbcTemplate magicDataTpl;
+
+    /* JSON mapper */
+    private final Gson mapper = new Gson();    
     
     /**
      * Render top level page (this may need to be changed for different servers)   
@@ -320,7 +324,7 @@ public class HomeController implements ServletContextAware {
         /* Set username */
         String message = "";
         String activeProfile = getActiveProfile();
-        String username = getUserName(request, activeProfile);        
+        String username = getUserName(request);        
         model.addAttribute("username", username);
         model.addAttribute("profile", activeProfile);
         String pageTitle = env.getProperty("default.title") != null ? env.getProperty("default.title") : "";
@@ -344,7 +348,7 @@ public class HomeController implements ServletContextAware {
                     request.getSession().setAttribute("map", mapName);
                     model.addAttribute("map", mapName);
                     /* Issue data */
-                    if (issueNumber != null) {
+                    if (!username.equals("guest") && issueNumber != null) {
                         model.addAttribute("issuedata", getIssueData(issueNumber));
                     }  
                     /* User state information */
@@ -384,10 +388,9 @@ public class HomeController implements ServletContextAware {
     /**
      * Get user name
      * @param HttpServletRequest request
-     * @param String activeProfile
      * @return String
      */
-    private String getUserName(HttpServletRequest request, String activeProfile) {      
+    private String getUserName(HttpServletRequest request) {      
         Principal p = request.getUserPrincipal();
         return(p != null ? p.getName() : "guest");
     }        
@@ -400,14 +403,23 @@ public class HomeController implements ServletContextAware {
     private String getIssueData(Integer issue) {
         String data = "{}";
         if (issue != null) {
-            data = HTTPUtils.get(
-                    env.getProperty("redmine.local.url") + "/issues/" + issue + ".json",
-                    env.getProperty("redmine.local.username"), 
-                    env.getProperty("redmine.local.password")
-            );
+            String redmine = env.getProperty("redmine.local.url");
+            String issuesTable = env.getProperty("postgres.local.issuesTable");
+            if (redmine != null && !redmine.isEmpty()) {
+                /* BAS systems use MAGIC Redmine */
+                data = HTTPUtils.get(
+                        env.getProperty("redmine.local.url") + "/issues/" + issue + ".json",
+                        env.getProperty("redmine.local.username"), 
+                        env.getProperty("redmine.local.password")
+                );                    
+            } else if (issuesTable != null && !issuesTable.isEmpty()) {
+                /* Other systems will use the issues Postgres table */
+                Map<String, Object> issueRec = magicDataTpl.queryForMap("SELECT * FROM " + env.getProperty("postgres.local.issuesTable") + " WHERE id=?", issue);
+                data = mapper.toJsonTree(issueRec).toString();
+            }
             if (data == null || data.isEmpty()) {
                 data = "{}";
-            }            
+            }   
         }
         return(data);
     }
@@ -423,11 +435,6 @@ public class HomeController implements ServletContextAware {
             activeProfile = profiles[0];
         }
         return(activeProfile);
-    }
-
-    @Override
-    public void setServletContext(ServletContext sc) {
-        context = sc;
     }
 
 }

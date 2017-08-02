@@ -135,11 +135,11 @@ magic.classes.Geosearch = function (options) {
                         '<div class="checkbox geosearch-tmt" style="float:left">' +
                             '<label>' +
                                 '<input id="' + this.id + '-tmt" type="checkbox" checked ' +
-                                    'data-toggle="tooltip" data-placement="left" title="Zoom the map to this location"></input> Take me there' +
+                                    'data-toggle="tooltip" data-placement="bottom" title="Zoom the map to this location"></input> Take me there' +
                             '</label>' +
                         '</div>' +
                         '<div style="float:right">' +
-                            '<a class="fa fa-info-circle gaz-attribution" data-toggle="tooltip" data-placement="right" title="Show gazetteer sources">&nbsp;' +
+                            '<a class="fa fa-info-circle gaz-attribution" data-toggle="tooltip" data-placement="bottom" title="Show gazetteer sources">&nbsp;' +
                                 '<span class="fa fa-caret-down"></span>' +
                             '</a>' +
                         '</div>' +

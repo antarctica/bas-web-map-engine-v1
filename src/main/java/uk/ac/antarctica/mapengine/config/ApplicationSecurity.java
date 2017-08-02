@@ -117,13 +117,13 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
                 .addFilterBefore(chocChipFilter(), BasicAuthenticationFilter.class)
                 .authorizeRequests()
                 .antMatchers("/*.ico", "/static/**", "/ping", "/home/**", "/homed/**",
-                        "/maps/dropdown/**", "/maps/name/**", "/maps/id/**", "/thumbnails",
+                        "/maps/dropdown/**", "/maps/name/**", "/maps/id/**", "/thumbnails", "/feedback",
                         "/embedded_maps/dropdown/**", "/embedded_maps/name/**", "/embedded_maps/id/**",
                         "/usermaps/data", "/ogc/**",
                         "/thumbnail/show/**", "/prefs/get", "/gs/**").permitAll()
                 .antMatchers("/creator", "/creatord", "/embedded_creator", "/embedded_creatord",
                         "/restricted/**", "/restrictedd/**",
-                        "/userlayers/**", "/prefs/set",
+                        "/userlayers/**", "/prefs/set", "/feedback/issues/**",
                         "/maps/save", "/maps/update/**", "/maps/delete/**", "/maps/deletebyname/**",
                         "/embedded_maps/save", "/embedded_maps/update/**", "/embedded_maps/delete/**", "/embedded_maps/deletebyname/**",
                         "/usermaps/save", "/usermaps/update/**", "/usermaps/delete/**",
@@ -134,13 +134,13 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
             http
                 .authorizeRequests()
                 .antMatchers("/*.ico", "/static/**", "/ping", "/home/**", "/homed/**",
-                        "/maps/dropdown/**", "/maps/name/**", "/maps/id/**", "/thumbnails",
+                        "/maps/dropdown/**", "/maps/name/**", "/maps/id/**", "/thumbnails", "/feedback",
                         "/embedded_maps/dropdown/**", "/embedded_maps/name/**", "/embedded_maps/id/**",
                         "/usermaps/data", "/ogc/**",
                         "/thumbnail/show/**", "/prefs/get", "/gs/**").permitAll()
                 .antMatchers("/creator", "/creatord", "/embedded_creator", "/embedded_creatord",
                         "/restricted/**", "/restrictedd/**",
-                        "/userlayers/**", "/prefs/set",
+                        "/userlayers/**", "/prefs/set", "/feedback/issues/**",
                         "/maps/save", "/maps/update/**", "/maps/delete/**", "/maps/deletebyname/**",
                         "/embedded_maps/save", "/embedded_maps/update/**", "/embedded_maps/delete/**", "/embedded_maps/deletebyname/**",
                         "/usermaps/save", "/usermaps/update/**", "/usermaps/delete/**",

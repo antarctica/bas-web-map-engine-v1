@@ -142,7 +142,12 @@ magic.classes.Measurement = function(options) {
                         '</div>' +
                     '</div>' +
                     '<div id="' + this.id + '-elevation" role="tabpanel" class="tab-pane">' +
-                        '<div class="form-group form-group-sm">' +
+                        '<div id="' + this.id + '-no-dem-info" class="alert alert-info hidden">' +
+                            '<p>' +
+                                'There are no layers on this map which are declared as having elevation data, so elevation measurement is not currently available' + 
+                            '</p>' + 
+                        '</div>' +
+                        '<div id="' + this.id + '-dem-info" class="form-group form-group-sm">' +
                             '<p>Choose elevation units</p>' + 
                             '<div class="input-group">' +
                                 '<select id="' + this.id + '-elevation-units" class="form-control">' +
@@ -196,10 +201,14 @@ magic.classes.Measurement = function(options) {
             this.demLayers = this.getDemLayers();
             if (this.demLayers.length > 0) {
                 /* DEM layer on the map usable for elevation */
+                jQuery("#" + this.id + "-no-dem-info").addClass("hidden");
+                jQuery("#" + this.id + "-dem-info").removeClass("hidden");
                 jQuery("#" + this.id + "-elevation-units").focus();
                 this.actionType = "elevation";
             } else {
                 /* No suitable DEM => elevation is unavailable */
+                jQuery("#" + this.id + "-no-dem-info").removeClass("hidden");
+                jQuery("#" + this.id + "-dem-info").addClass("hidden");
                 jQuery("a[href='" + this.id + "-elevation']").prop("disabled", "disabled");
             }
             this.deactivate();
