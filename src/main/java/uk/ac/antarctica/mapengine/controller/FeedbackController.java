@@ -71,7 +71,7 @@ public class FeedbackController {
                 System.out.println(feedback.toString());
                 System.out.println("**** End of issue data ****");
                 try {
-                    magicDataTpl.update("INSERT INTO issuesTable VALUES(?,?,?,current_timestamp[)", new Object[]{
+                    magicDataTpl.update("INSERT INTO " + issuesTable + " (subject, description, reporter, updated_on) VALUES(?,?,?,current_timestamp)", new Object[]{
                         feedback.getSubject(),
                         feedback.getDescription(),
                         feedback.getReporter()
