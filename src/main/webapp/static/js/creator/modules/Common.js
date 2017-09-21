@@ -8,7 +8,9 @@ magic.modules.creator.Common = function () {
         /* Dictionary of layers and layer groups by identifier */
         layer_dictionary: null,
         /* Tab objects */
-        tabs: [],        
+        tabs: [],    
+        /* Currently shown index */
+        currentIndex: -1,
         /**
          * Initialise tabs
          */
@@ -16,27 +18,36 @@ magic.modules.creator.Common = function () {
             /* Initialise wizard progress bar */
             jQuery("#rootwizard").bootstrapWizard({
                 onTabShow: jQuery.proxy(function (tab, navigation, index) {
-                    var total = navigation.find("li").length;
-                    var current = index + 1;
-                    var percent = (current / total) * 100;
-                    jQuery("#rootwizard").find(".progress-bar").css({width: percent + "%"});
-                    if (index == total-1) {
-                        /* Need to load the map into the final tab */
-                        this.tabs[index].loadMap(this.map_context.getContext());
-                        jQuery("ul.pager li.finish").removeClass("hidden");
-                        jQuery("ul.pager li.previous").removeClass("hidden");
-                        jQuery("ul.pager li.next").addClass("hidden");
-                    } else {
-                        jQuery("ul.pager li.finish").addClass("hidden");
-                        jQuery("ul.pager li.next").removeClass("hidden");
-                        if (index == 0) {
-                            jQuery("ul.pager li.previous").addClass("hidden");
-                        } else {
+                    console.log("onTabShow event fired for tab " + index);
+                    if (index != this.currentIndex) {
+                        console.log("Not already showing this tab - ok");
+                        this.currentIndex = index;
+                        var total = navigation.find("li").length;
+                        var current = index + 1;
+                        var percent = (current / total) * 100;
+                        jQuery("#rootwizard").find(".progress-bar").css({width: percent + "%"});
+                        if (index == total-1) {
+                            /* Need to load the map into the final tab */
+                            this.tabs[index].loadMap(this.map_context.getContext());
+                            jQuery("ul.pager li.finish").removeClass("hidden");
                             jQuery("ul.pager li.previous").removeClass("hidden");
+                            jQuery("ul.pager li.next").addClass("hidden");
+                        } else {
+                            jQuery("ul.pager li.finish").addClass("hidden");
+                            jQuery("ul.pager li.next").removeClass("hidden");
+                            if (index == 0) {
+                                jQuery("ul.pager li.previous").addClass("hidden");
+                            } else {
+                                jQuery("ul.pager li.previous").removeClass("hidden");
+                            }
                         }
+                        console.log("End of onTabShow handler");
+                    } else {
+                        console.log("onTabShow event fired twice for tab " + index + " - ignoring");
                     }
                 }, this),
                 onNext: jQuery.proxy(function (tab, navigation, index) {
+                    console.log("onNext handler called");
                     var total = navigation.find("li").length;
                     if (this.tabs[index-1].validate()) {
                         if (jQuery.isFunction(this.tabs[index-1].saveContext)) {
@@ -47,8 +58,10 @@ magic.modules.creator.Common = function () {
                         } else {
                             jQuery("ul.pager li.finish").addClass("hidden");
                         }
+                        console.log("onNext handler returning true");
                         return(true);
                     } else {
+                        console.log("onNext handler returning false");
                         return(false);
                     }
                 }, this),

@@ -72,6 +72,7 @@ magic.modules.creator.Tab1 = function () {
         },
         validate: function() {
             /* Make sure a map source selection has been made */
+            console.log("Tab1 validate called");
             var checkRb = jQuery("input[type='radio'][name='_t1-action-rb']:checked");
             if (!checkRb) {
                 return(false);
@@ -92,6 +93,7 @@ magic.modules.creator.Tab1 = function () {
                     fg.removeClass("has-success").addClass("has-error");
                 }
             });
+            console.log("Tab1 validate returning " + ok);
             return(ok);
         },
         /**
@@ -106,7 +108,9 @@ magic.modules.creator.Tab1 = function () {
          * @param {object} context
          */
         saveContext: function (context) {
+            console.log("Tab1 saveContext called");
             magic.modules.creator.Common.formToDict(this.form_fields, context, "t1");
+            console.log("Tab1 saveContext returning");
         }
 
     });

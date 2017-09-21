@@ -27,7 +27,8 @@ import org.springframework.security.ldap.authentication.LdapAuthenticationProvid
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
-import org.springframework.security.web.savedrequest.DefaultSavedRequest;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
+import org.springframework.security.web.savedrequest.SavedRequest;
 import org.springframework.security.web.util.RegexRequestMatcher;
 import org.springframework.security.web.util.RequestMatcher;
 import uk.ac.antarctica.mapengine.config.ApplicationSecurity.CsrfSecurityRequestMatcher;
@@ -78,12 +79,19 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
         public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws ServletException, IOException {
             HttpSession session = request.getSession();
             if (session != null) {
-                DefaultSavedRequest dsr = (DefaultSavedRequest) session.getAttribute("SPRING_SECURITY_SAVED_REQUEST");
-                if (dsr != null) {
-                    getRedirectStrategy().sendRedirect(request, response, dsr.getRedirectUrl());
+                SavedRequest savedRequest = new HttpSessionRequestCache().getRequest(request, response);
+                if (savedRequest != null) {
+                    getRedirectStrategy().sendRedirect(request, response, savedRequest.getRedirectUrl());
                 } else {
                     super.onAuthenticationSuccess(request, response, authentication);
                 }
+// Spring Security < 3.0 - no longer works             
+//                DefaultSavedRequest dsr = (DefaultSavedRequest) session.getAttribute("SPRING_SECURITY_SAVED_REQUEST");
+//                if (dsr != null) {
+//                    getRedirectStrategy().sendRedirect(request, response, dsr.getRedirectUrl());
+//                } else {
+//                    super.onAuthenticationSuccess(request, response, authentication);
+//                }
             } else {
                 super.onAuthenticationSuccess(request, response, authentication);
             }

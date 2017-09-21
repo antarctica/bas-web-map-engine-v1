@@ -60,7 +60,7 @@ magic.modules.GeoUtils = function() {
         toDMS: function(coordinate, axis) {
             var out = "";
             if (axis == "lon") {
-                var sourceCoord = [coordinate, 0.0];
+                var sourceCoord = [coordinate, 0.1];
                 var destCoord = ol.coordinate.toStringHDMS(sourceCoord);
                 var divider = "N";
                 out = destCoord.substring(destCoord.indexOf(divider)+2);

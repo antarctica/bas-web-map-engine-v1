@@ -35,12 +35,16 @@ magic.modules.creator.Tab2 = function () {
          * @param {object} context
          */
         loadContext: function(context) {
+            console.log("Load context called...");
+            console.trace();
             if (context.data && jQuery.isArray(context.data.layers)) {
                 /* Translate the layer data into a sortable list */
-                jQuery("#t2-update-panel").hide();    
-                var layerTree = jQuery("ul.layertree");
-                layerTree.empty();               
-                this.processLayers(context.data.layers, layerTree);                
+                jQuery("#t2-update-panel").hide();
+                var layerTreeDiv = jQuery("#t2-layertree");                
+                layerTreeDiv.empty();
+                var layerTree = jQuery('<ul class="list-group layertree">');
+                layerTreeDiv.append(layerTree);
+                this.processLayers(context.data.layers, layerTree, 0);                
                 this.initSortableList(layerTree);                 
                 /* Assign the layer edit button handlers */
                 jQuery(".layer-name-button").click(jQuery.proxy(this.layerTreeButtonHandler, this));
@@ -48,25 +52,36 @@ magic.modules.creator.Tab2 = function () {
                 var btnNewLayer = jQuery("#t2-new-layer");
                 if (btnNewLayer) {
                     btnNewLayer.prop("disabled", false);
-                    btnNewLayer.click(jQuery.proxy(function(evt) {
+                    btnNewLayer.off("click").on("click", jQuery.proxy(function(evt) {
+                        console.log("Asked to create a new layer");
                         var id = magic.modules.creator.Common.layer_dictionary.put(jQuery.extend({}, magic.modules.creator.Data.BLANK_MAP_NEW_LAYER));
+                        console.log("Generated id is " + id);
                         var newLi = this.layerLiHtml(id, magic.modules.creator.Common.layer_dictionary.get(id)["name"]);
+                        console.log(newLi);
                         layerTree.append(newLi);
+                        console.log("Appended to layer tree");
                         newLi.find("button").click(jQuery.proxy(this.layerTreeButtonHandler, this));
+                        console.log("Finished");
                     }, this));
                 }
                 /* Add new layer group button handler */
                 var btnNewGroup = jQuery("#t2-new-group");
                 if (btnNewGroup) {
                     btnNewGroup.prop("disabled", false);
-                    btnNewGroup.click(jQuery.proxy(function(evt) {
+                    btnNewGroup.off("click").on("click", jQuery.proxy(function(evt) {
+                        console.log("Asked to create a new group");
                         var id = magic.modules.creator.Common.layer_dictionary.put(jQuery.extend({}, magic.modules.creator.Data.BLANK_MAP_NEW_GROUP));
+                        console.log("Generated id is " + id);
                         var newLi = this.groupLiHtml(id, magic.modules.creator.Common.layer_dictionary.get(id)["name"]);
+                        console.log(newLi);
                         layerTree.append(newLi);
+                        console.log("Appended to layer tree");
                         newLi.find("button").click(jQuery.proxy(this.layerTreeButtonHandler, this));
+                        console.log("Finished");
                     }, this));
                 }                               
             }
+            console.log("LoadContext complete");
         },
         saveContext: function(context) {
             var groupActive = jQuery("#t2-group-div").hasClass("group-form-active");
@@ -110,6 +125,7 @@ magic.modules.creator.Tab2 = function () {
          */
         initSortableList: function(layerTree) {
             /* http://camohub.github.io/jquery-sortable-lists/ */
+            console.log("initSortableList called...");
             layerTree.sortableLists({
                 placeholderCss: {"background-color": "#fcf8e3", "border": "2px dashed #fce04e"},
                 hintCss: {"background-color": "#dff0d8", "border": "2px dashed #5cb85c"},
@@ -126,6 +142,7 @@ magic.modules.creator.Tab2 = function () {
                 },
                 ignoreClass: "layer-name-button"
             });
+            console.log("initSortableList finished");
         },        
         /**
          * Drag sortable element handler - implements logic to decide whether a given drag is allowed
@@ -141,7 +158,7 @@ magic.modules.creator.Tab2 = function () {
             if (dropZone) {                            
                 if (dropZone.length > 0 && dropZone[0].id) {
                     /* Only allowed to be dropped within a group */
-                    allowed = magic.modules.creator.Common.layer_dictionary.get(dropZone[0].id).layers
+                    allowed = magic.modules.creator.Common.layer_dictionary.get(dropZone[0].id).layers;
                 } else if (dropZone.length == 0) {
                     /* Dropped at the top level */
                     allowed = true;
@@ -153,21 +170,27 @@ magic.modules.creator.Tab2 = function () {
          * Recursive routine to create list infrastructure for layer tree and to assign random ids
          * @param {array} layers
          * @param {element} parent
+         * @param {int} level
          */
-        processLayers: function(layers, parent) {
+        processLayers: function(layers, parent, level) {
+            console.log("processLayers called at level " + level + "...");
             for (var i = 0; i < layers.length; i++) {
+                console.log("Layer " + i);
                 var id = magic.modules.creator.Common.layer_dictionary.put(layers[i]);                
                 if (jQuery.isArray(layers[i].layers) && layers[i].layers.length > 0) {
                     /* A layer group */
                     var groupEl = this.groupLiHtml(id, layers[i].name);
                     parent.append(groupEl);
-                    this.processLayers(layers[i].layers, groupEl.children("ul"));
+                    console.log("This is a group => recurse");
+                    this.processLayers(layers[i].layers, groupEl.children("ul"), level+1);
                 } else {
                     /* A leaf node */   
                     var layerEl = this.layerLiHtml(id, layers[i].name);
+                    console.log("This is a leaf");
                     parent.append(layerEl);                    
                 }
             }
+            console.log("processLayers finished");
         },
         /**
          * HTML fragment for layer group list item
@@ -190,7 +213,7 @@ magic.modules.creator.Tab2 = function () {
             /* Unfortunately the sortable lists plugin doesn't allow dynamic addition of items to the tree, just d-n-d re-ordering of existing ones
              * Hence we have copied some of the event handlers here to allow open/close of dynamically added layer groups */
             li.children("span")
-                .css(jQuery.extend({"background-image": "url('" + this.open_img + "')"}, this.opener_css))
+                .css(this.opener_css)
                 .on("mousedown", jQuery.proxy(function(evt) {                    
 					if (li.hasClass("sortableListsClosed")) {
                         jQuery(evt.currentTarget).html(this.closeHtml);
