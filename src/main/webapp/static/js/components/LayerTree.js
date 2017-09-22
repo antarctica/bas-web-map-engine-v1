@@ -430,6 +430,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
         }
     }
     if (isWms) {
+        console.log(nd);
         if (nd.source.wms_source == "osm") {
             /* OpenStreetMap layer */
             layer = magic.modules.Endpoints.getMidLatitudeCoastLayer();
@@ -504,7 +505,10 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                 "srsname=" + (nd.source.srs || "EPSG:4326");
             vectorSource = new ol.source.Vector({
                 format: format,
-                loader: function(extent) {                   
+                loader: function(extent) {
+                    if (!jQuery.isArray(extent) || !(isFinite(extent[0]) && isFinite(extent[1]) && isFinite(extent[2]) && isFinite(extent[3]))) {
+                        extent = magic.runtime.view.getProjection().getExtent();
+                    }
                     var wfs = url + "&bbox=" + extent.join(",");
                     jQuery.ajax({
                         url: wfs,

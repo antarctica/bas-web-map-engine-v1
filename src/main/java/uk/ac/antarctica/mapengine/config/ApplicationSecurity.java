@@ -81,8 +81,10 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
             if (session != null) {
                 SavedRequest savedRequest = new HttpSessionRequestCache().getRequest(request, response);
                 if (savedRequest != null) {
+                    System.out.println("savedRequest will redirect to " + savedRequest.getRedirectUrl());
                     getRedirectStrategy().sendRedirect(request, response, savedRequest.getRedirectUrl());
                 } else {
+                    System.out.println("No savedRequest present");
                     super.onAuthenticationSuccess(request, response, authentication);
                 }
 // Spring Security < 3.0 - no longer works             

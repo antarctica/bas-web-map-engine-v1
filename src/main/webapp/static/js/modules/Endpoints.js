@@ -43,7 +43,12 @@ magic.modules.Endpoints = function () {
          */
         getOgcEndpoint: function(url, service) {
             var proxEp = url;
+            console.log("-------------Starting--------------------");
+            console.log("Matching " + url);
             var matches = this.getEndpointsBy("url", url);
+            console.log("------------------------------------------");
+            console.log(matches);
+            console.log("------------------------------------------");
             if (matches.length > 0) {
                 if (matches[0]["is_user_service"] === true) {
                     proxEp = magic.config.paths.baseurl + "/ogc/user/" + service;
@@ -51,8 +56,10 @@ magic.modules.Endpoints = function () {
                     proxEp = magic.config.paths.baseurl + "/ogc/" + matches[0]["id"] + "/" + service;
                 }
             } else {
-                proxEp = magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(url);
+                proxEp = magic.modules.Common.proxyUrl(url);
             }
+            console.log("Endpoint is " + proxEp);
+            console.log("------------Finished--------------------");
             return(proxEp);
         },       
         /**
@@ -88,7 +95,7 @@ magic.modules.Endpoints = function () {
                 } else if (filterName == "url") {
                     /* Remove wms/wfs from the end of the URL - the endpoints are the same */
                     filterValue = filterValue.replace(/(wms|wfs)$/, "");
-                    return(ep[filterName].toLowerCase().indexOf(filterValue.toLowerCase()) == 0);
+                    return(ep[filterName].toLowerCase().indexOf(filterValue.toLowerCase()) == 0)
                 } else if (filterName == "srs") {
                     /* Projections can be a comma-separated list */
                     var srsList = ep[filterName].toLowerCase().split(",");
@@ -97,7 +104,7 @@ magic.modules.Endpoints = function () {
                     return(ep[filterName].toLowerCase().indexOf(filterValue.toLowerCase()) == 0);
                 }
             }));
-        },        
+        },         
         /**
          * Get a suitable mid-latitudes coast layer (OSM, except if in a low bandwidth location, in which case default to Natural Earth)
          * @returns {ol.layer}

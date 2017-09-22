@@ -296,7 +296,7 @@ public class OgcServicesController implements ServletContextAware {
                 writeErrorResponse(response, 401, "application/json", rde.getMessage());               
             }
         } else {
-            throw new ServletException("Service does not allow WFS"); 
+            throw new RestrictedDataException("Service does not allow WFS"); 
         }       
     }
     
