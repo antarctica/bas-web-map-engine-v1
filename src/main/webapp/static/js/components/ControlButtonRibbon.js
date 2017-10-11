@@ -66,6 +66,11 @@ magic.classes.ControlButtonRibbon = function(config) {
                 this.appendControlButton(new magic.classes.ResetRotationButton("rotation", this).getButton()); 
                 break;
                 
+            case "globe3d":
+                /* Render map on 3D cesium globe */                                
+                this.appendControlButton(new magic.classes.Switch3DButton("globe3d", this).getButton()); 
+                break;
+                
             case "graticule":
                 /* Show graticule */                                
                 this.appendControlButton(new magic.classes.GraticuleButton("graticule", this).getButton()); 

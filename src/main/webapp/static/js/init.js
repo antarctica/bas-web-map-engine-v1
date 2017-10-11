@@ -41,6 +41,15 @@ var magic = {
         pingSession: function() {
             jQuery.get(magic.config.paths.baseurl + "/ping");
         },
+        /* Courtesy of https://stackoverflow.com/questions/11803215/how-to-include-multiple-js-files-using-jquery-getscript-method, Andrei's answer */
+        getScripts: function(scripts, callback) {
+            var progress = 0;
+            scripts.forEach(function(script) { 
+                jQuery.getScript(script, function () {
+                    if (++progress == scripts.length) callback();
+                }); 
+            });
+        },
         /* Eventually per-user */
         preferences: {
             coordinate: "dd",
