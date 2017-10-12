@@ -85,13 +85,13 @@ public class ProxyController {
         
         boolean proxied = false;
         String errorMessage = "";
-        
+                
         /* test for alias substitution */
         for (String a : ALIASES.keySet()) {
             if (url.startsWith(a)) {
                 url = url.replace(a, ALIASES.get(a));
             }
-        }
+        }        
         
         URL u = new URL(url);      
         

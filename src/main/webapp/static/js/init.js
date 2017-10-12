@@ -63,6 +63,4 @@ var magic = {
 /* Activate session keepalive by application request every 50 mins */
 setInterval("magic.runtime.pingSession()", 50*60*1000);
 
-/* To allow cesium to find all its worker scripts when in a subdirectory of 'static' */
-CESIUM_BASE_URL = "../static/";
 
