@@ -200,6 +200,7 @@ public class OgcServicesController implements ServletContextAware {
                     if (mimeType == null) {
                         mimeType = "image/png";
                     }
+                    System.out.println("About to get WMS data from " + serviceUrl + "?" + request.getQueryString());
                     getFromUrl(response, serviceUrl + "?" + request.getQueryString(), mimeType, !operation.toLowerCase().equals("getlegendgraphic"));
                     break;
                 case "getfeatureinfo":
@@ -466,12 +467,13 @@ public class OgcServicesController implements ServletContextAware {
                 
         HttpClientBuilder builder = HttpClients.custom();
         
-        //System.out.println("Retrieving " + url + "...");
+        System.out.println("=== getFromUrl: Retrieving " + url + "...");
                 
         if (secured) {
             String[] credentials = getOnwardCredentials(url);
             if (credentials != null) {
                 /* Stored credentials for authentication to a Geoserver instance */
+                System.out.println("Stored credentials present");
                 CredentialsProvider credsProvider = new BasicCredentialsProvider();
                 credsProvider.setCredentials(
                     new AuthScope(AuthScope.ANY),
@@ -483,6 +485,7 @@ public class OgcServicesController implements ServletContextAware {
         if (url.startsWith("https://")) {
             /* SSL - override SSL checking
              * See http://stackoverflow.com/questions/13626965/how-to-ignore-pkix-path-building-failed-sun-security-provider-certpath-suncertp */
+            System.out.println("https URL found");
             try {
                 System.setProperty ("jsse.enableSNIExtension", "false");
                 TrustManager[] trustAllCerts = new TrustManager[] {new X509TrustManager() {
@@ -501,11 +504,14 @@ public class OgcServicesController implements ServletContextAware {
                     public boolean verify(String hostname, SSLSession session) {return true;}
                 };
                 builder.setSSLSocketFactory(new SSLConnectionSocketFactory(sc, allHostsValid));
+                System.out.println("Got to end of certificate accept block");
             } catch(KeyManagementException | NoSuchAlgorithmException ex) {
+                System.out.println("Exception encountered : " + ex.getMessage());
                 return;
             }
         }     
                
+        System.out.println("Building client...");
         try (CloseableHttpClient httpclient = builder.build()) {
             RequestConfig requestConfig = RequestConfig.custom()
                 .setSocketTimeout(SOCKET_TIMEOUT)
@@ -516,6 +522,7 @@ public class OgcServicesController implements ServletContextAware {
             httpget.setConfig(requestConfig);
             try (CloseableHttpResponse httpResponse = httpclient.execute(httpget)) {
                 int status = httpResponse.getStatusLine().getStatusCode();
+                System.out.println("Status of GET is : " + status);
                 if (status == 401) {
                     throw new RestrictedDataException("You are not authorised to access this resource");
                 }

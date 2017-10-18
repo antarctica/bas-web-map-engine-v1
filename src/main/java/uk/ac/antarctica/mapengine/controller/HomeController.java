@@ -43,6 +43,7 @@ public class HomeController {
      */
     @RequestMapping(value = "/", method = RequestMethod.GET)
     public String topLevel(HttpServletRequest request, ModelMap model) throws ServletException, IOException {
+        System.out.println("***** Been redirected to fetch page / - will render default map from here!");
         return(renderPage(request, model, "map", env.getProperty("default.map"), null, null, false));        
     }        
     
