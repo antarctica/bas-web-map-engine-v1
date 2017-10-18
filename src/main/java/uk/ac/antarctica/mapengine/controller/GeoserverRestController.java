@@ -173,10 +173,7 @@ public class GeoserverRestController {
      */
     private JsonObject getLayerAttributes(String layer) throws MalformedURLException {
         
-        JsonObject jo = new JsonObject();
-              
-        String geoserverUrl = env.getProperty("geoserver.local.url") + "/wms";                    
-        jo.addProperty("wms_source", geoserverUrl);
+        JsonObject jo = new JsonObject();                      
         
         RESTLayer gsl = getReader().getLayer(layer);
         if (gsl != null) {
@@ -187,6 +184,7 @@ public class GeoserverRestController {
                     /* Translate longhand to JSON (Gson has trouble with circular refs) */                                        
                     jo.addProperty("feature_name", gsf.getNameSpace() + ":" + gsf.getNativeName());
                     jo.addProperty("name", gsf.getTitle());
+                    jo.addProperty("wms_source", env.getProperty("geoserver.local.url") + "/" + gsf.getNameSpace() + "/wms");
                     JsonArray attrs = new JsonArray();
                     for (RESTFeatureType.Attribute attr : gsf.getAttributes()) {                    
                         String binding = attr.getBinding();
@@ -207,6 +205,7 @@ public class GeoserverRestController {
                 /* Must be a coverage */
                 RESTCoverage gsc = gs.getCoverage(gsl);
                 jo.addProperty("feature_name", gsc.getNameSpace() + ":" + gsc.getNativeName());
+                jo.addProperty("wms_source", env.getProperty("geoserver.local.url") + "/" + gsc.getNameSpace() + "/wms");
                 jo.addProperty("name", gsc.getTitle());
                 jo.addProperty("geom_type", "raster");
             }

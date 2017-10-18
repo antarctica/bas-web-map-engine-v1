@@ -81,8 +81,15 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
             if (session != null) {
                 SavedRequest savedRequest = new HttpSessionRequestCache().getRequest(request, response);
                 if (savedRequest != null) {
-                    System.out.println("savedRequest will redirect to " + savedRequest.getRedirectUrl());
-                    getRedirectStrategy().sendRedirect(request, response, savedRequest.getRedirectUrl());
+                    String redirectTo = savedRequest.getRedirectUrl();                    
+                    /* Hack 2017-10-18 for Polar Code - translate any bslmagl style addresses to their load-balanced equivalents */
+                    //String aliases = env.getProperty("aliases.url");
+                    //if (aliases != null) {
+                    //    String[] fromTo = aliases.split(",");
+                    //    redirectTo = redirectTo.replace(fromTo[0], fromTo[1]);
+                    //}
+                    System.out.println("savedRequest will redirect to " + redirectTo);
+                    getRedirectStrategy().sendRedirect(request, response, redirectTo);
                 } else {
                     System.out.println("No savedRequest present");
                     super.onAuthenticationSuccess(request, response, authentication);

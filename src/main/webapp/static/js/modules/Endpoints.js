@@ -95,7 +95,17 @@ magic.modules.Endpoints = function () {
                 } else if (filterName == "url") {
                     /* Remove wms/wfs from the end of the URL - the endpoints are the same */
                     filterValue = filterValue.replace(/(wms|wfs)$/, "");
-                    return(ep[filterName].toLowerCase().indexOf(filterValue.toLowerCase()) == 0)
+                    var containsUrl = ep[filterName].toLowerCase().indexOf(filterValue.toLowerCase()) == 0;
+                    if (!containsUrl) {
+                        /* Check any of the aliases match */
+                        if (ep["url_aliases"]) {
+                            var aliases = ep["url_aliases"].split(",");
+                            for (var i = 0; !containsUrl && i < aliases.length; i++) {
+                                containsUrl = aliases[i].toLowerCase().indexOf(filterValue.toLowerCase()) == 0;                               
+                            }
+                        }
+                    }
+                    return(containsUrl);
                 } else if (filterName == "srs") {
                     /* Projections can be a comma-separated list */
                     var srsList = ep[filterName].toLowerCase().split(",");
