@@ -19,8 +19,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.servlet.configuration.EnableWebMvcSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.ldap.authentication.BindAuthenticator;
 import org.springframework.security.ldap.authentication.LdapAuthenticationProvider;
@@ -34,7 +34,7 @@ import org.springframework.security.web.util.RequestMatcher;
 import uk.ac.antarctica.mapengine.config.ApplicationSecurity.CsrfSecurityRequestMatcher;
 
 @Configuration
-@EnableWebSecurity(debug=true)
+@EnableWebMvcSecurity
 public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 
     @Autowired
@@ -102,7 +102,6 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 //                    super.onAuthenticationSuccess(request, response, authentication);
 //                }
             } else {
-                System.out.println("No session present");
                 super.onAuthenticationSuccess(request, response, authentication);
             }
         }
@@ -119,7 +118,6 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
             if (allowedMethods.matcher(request.getMethod()).matches()) {
                 return (false);
             } else if (request.getMethod().equals("GET")) {
-                System.out.println(request.getRequestURL());
                 return (proxyMatcher.matches(request));
             } else {
                 return (true);
@@ -134,7 +132,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
             /* Authentication via Drupal CHOCCHIPSSL cookie */
             http
                 .addFilterBefore(chocChipFilter(), BasicAuthenticationFilter.class)
-                .authorizeRequests()                   
+                .authorizeRequests()
                 .antMatchers("/*.ico", "/static/**", "/ping", "/home/**", "/homed/**",
                         "/maps/dropdown/**", "/maps/name/**", "/maps/id/**", "/thumbnails", "/feedback",
                         "/embedded_maps/dropdown/**", "/embedded_maps/name/**", "/embedded_maps/id/**",
