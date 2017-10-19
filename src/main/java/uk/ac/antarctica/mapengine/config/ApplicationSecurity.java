@@ -16,6 +16,7 @@ import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -48,6 +49,9 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private LdapContextSource contextSource;
+    
+    @Autowired
+    private JdbcTemplate magicDataTpl;
 
     @Value("${geoserver.local.adminUrl}")
     private String geoserverUrl;
@@ -63,7 +67,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
     
     @Bean
     public DrupalChocChipHeaderAuthenticationFilter chocChipFilter() {
-        return(new DrupalChocChipHeaderAuthenticationFilter(env.getProperty("authentication.ccamlr").equals("yes")));
+        return(new DrupalChocChipHeaderAuthenticationFilter(env, magicDataTpl));
     }
     
     /* End of CCAMLR additions */

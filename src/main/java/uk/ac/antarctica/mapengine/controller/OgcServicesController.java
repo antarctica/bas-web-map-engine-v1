@@ -200,7 +200,7 @@ public class OgcServicesController implements ServletContextAware {
                     if (mimeType == null) {
                         mimeType = "image/png";
                     }
-                    System.out.println("About to get WMS data from " + serviceUrl + "?" + request.getQueryString());
+                    //System.out.println("About to get WMS data from " + serviceUrl + "?" + request.getQueryString());
                     getFromUrl(response, serviceUrl + "?" + request.getQueryString(), mimeType, !operation.toLowerCase().equals("getlegendgraphic"));
                     break;
                 case "getfeatureinfo":
@@ -268,7 +268,7 @@ public class OgcServicesController implements ServletContextAware {
             }
             if (servicedata == null && !userLayerSecurityCheck(request, getQueryParameter(params, "typenames"))) {
                 throw new RestrictedDataException("You are not authorised for access to layer " + getQueryParameter(params, "typenames"));
-                    }
+            }
             if (serviceUrl.endsWith("/")) {
                 serviceUrl = serviceUrl.substring(0, serviceUrl.length()-1);
             }
@@ -465,27 +465,25 @@ public class OgcServicesController implements ServletContextAware {
      */
     private void getFromUrl(HttpServletResponse response, String url, String mimeType, boolean secured) throws IOException, RestrictedDataException { 
                 
-        HttpClientBuilder builder = HttpClients.custom();
+        /* Commented out until needed for debugging purposes - leads to MB of logs in no time... */
+        //System.out.println("=== getFromUrl: Retrieving " + url + "...");
         
-        System.out.println("=== getFromUrl: Retrieving " + url + "...");
+        int status = 200;     
+        InputStream authorisedContent = null;
+        CloseableHttpClient httpclient = null;
                 
-        if (secured) {
-            String[] credentials = getOnwardCredentials(url);
-            if (credentials != null) {
-                /* Stored credentials for authentication to a Geoserver instance */
-                System.out.println("Stored credentials present");
-                CredentialsProvider credsProvider = new BasicCredentialsProvider();
-                credsProvider.setCredentials(
-                    new AuthScope(AuthScope.ANY),
-                    new UsernamePasswordCredentials(credentials[0], credentials[1]));
-                builder.setDefaultCredentialsProvider(credsProvider);
-            }
-        }
+        HttpClientBuilder builder = HttpClients.custom();
+        RequestConfig requestConfig = RequestConfig.custom()
+            .setSocketTimeout(SOCKET_TIMEOUT)
+            .setConnectTimeout(CONNECT_TIMEOUT)
+            .setConnectionRequestTimeout(CONNECT_TIMEOUT)
+            .build();
+        HttpGet httpget = new HttpGet(url);
+        httpget.setConfig(requestConfig);
         
         if (url.startsWith("https://")) {
             /* SSL - override SSL checking
              * See http://stackoverflow.com/questions/13626965/how-to-ignore-pkix-path-building-failed-sun-security-provider-certpath-suncertp */
-            System.out.println("https URL found");
             try {
                 System.setProperty ("jsse.enableSNIExtension", "false");
                 TrustManager[] trustAllCerts = new TrustManager[] {new X509TrustManager() {
@@ -504,55 +502,62 @@ public class OgcServicesController implements ServletContextAware {
                     public boolean verify(String hostname, SSLSession session) {return true;}
                 };
                 builder.setSSLSocketFactory(new SSLConnectionSocketFactory(sc, allHostsValid));
-                System.out.println("Got to end of certificate accept block");
             } catch(KeyManagementException | NoSuchAlgorithmException ex) {
                 System.out.println("Exception encountered : " + ex.getMessage());
                 return;
             }
-        }     
-               
-        System.out.println("Building client...");
-        try (CloseableHttpClient httpclient = builder.build()) {
-            RequestConfig requestConfig = RequestConfig.custom()
-                .setSocketTimeout(SOCKET_TIMEOUT)
-                .setConnectTimeout(CONNECT_TIMEOUT)
-                .setConnectionRequestTimeout(CONNECT_TIMEOUT)
-                .build();
-            HttpGet httpget = new HttpGet(url);
-            httpget.setConfig(requestConfig);
-            try (CloseableHttpResponse httpResponse = httpclient.execute(httpget)) {
-                int status = httpResponse.getStatusLine().getStatusCode();
-                System.out.println("Status of GET is : " + status);
-                if (status == 401) {
-                    throw new RestrictedDataException("You are not authorised to access this resource");
-                }
-                response.setContentType(mimeType);
-                IOUtils.copy(httpResponse.getEntity().getContent(), response.getOutputStream());
-            }
         }
-    }
-    
-    /**
-     * Retrieve credentials stored at user login time which reside in the local SecurityContext
-     * @param String url
-     * @return String[]
-     */
-    private String[] getOnwardCredentials(String url) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null) {
-            for (GrantedAuthority ga : auth.getAuthorities()) {
-                if (ga.getAuthority().startsWith("geoserver:")) {
-                    String[] creds = ga.getAuthority().split(":");
-                    String applyToHost = creds[1];
-                    if (url.contains("localhost") || url.startsWith("http://" + applyToHost) || url.startsWith("https://" + applyToHost)) {
-                        if (creds.length == 4) {
-                            return(new String[]{creds[2], creds[3]});                 
-                        }
-                    }
+        
+        if (secured) {
+            /* Obtain credentials for each user role and test whether the requested data is available with each set in turn */      
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null) {
+                for (GrantedAuthority ga : auth.getAuthorities()) {
+                    String[] creds = ga.getAuthority().split(":");                                               
+                    if (creds[0].equals("geoserver") && creds.length == 4) {
+                        CredentialsProvider credsProvider = new BasicCredentialsProvider();
+                        credsProvider.setCredentials(
+                            new AuthScope(AuthScope.ANY),
+                            new UsernamePasswordCredentials(creds[2], creds[3]));
+                        builder.setDefaultCredentialsProvider(credsProvider);
+                        httpclient = builder.build();                            
+                        CloseableHttpResponse httpResponse = httpclient.execute(httpget);
+                        status = httpResponse.getStatusLine().getStatusCode();    
+                        if (status < 400) {
+                            authorisedContent = httpResponse.getEntity().getContent();
+                            break;
+                        } else {
+                            httpclient.close();
+                            httpclient = null;
+                        }                        
+                    }                    
                 }
             }
         }
-        return(null);
+        
+        if (authorisedContent == null && status != 401) {
+            /* No authentication present, or we have tried and failed with all available user authroities */
+            builder.setDefaultCredentialsProvider(null);
+            httpclient = builder.build();                            
+            CloseableHttpResponse httpResponse = httpclient.execute(httpget);
+            status = httpResponse.getStatusLine().getStatusCode();    
+            if (status < 400) {
+                authorisedContent = httpResponse.getEntity().getContent();
+            }
+        }
+        
+        if (authorisedContent != null) {
+            response.setContentType(mimeType);
+            IOUtils.copy(authorisedContent, response.getOutputStream()); 
+            if (httpclient != null) {
+                httpclient.close();
+            }
+        } else {
+            if (httpclient != null) {
+                httpclient.close();
+            }
+            throw new RestrictedDataException("You are not authorised to access this resource");
+        }                                 
     }
 
     /**

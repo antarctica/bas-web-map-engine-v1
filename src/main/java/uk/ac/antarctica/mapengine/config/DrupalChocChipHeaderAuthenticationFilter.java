@@ -9,6 +9,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
@@ -17,11 +19,14 @@ import javax.servlet.http.HttpServletResponse;
 import org.codehaus.plexus.util.cli.CommandLineException;
 import org.codehaus.plexus.util.cli.CommandLineUtils;
 import org.codehaus.plexus.util.cli.Commandline;
+import org.springframework.core.env.Environment;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
+import uk.ac.antarctica.mapengine.util.ProcessUtils;
 
 /**
  * Handles CCAMLR request headers to extract usernames
@@ -30,15 +35,18 @@ public class DrupalChocChipHeaderAuthenticationFilter extends OncePerRequestFilt
     
     private static final String PHP_PATH = "/usr/bin/php";
     
-    private boolean isCcamlr = false;
+    private final Environment env;
     
-    public DrupalChocChipHeaderAuthenticationFilter(boolean isCcamlr) {
-        this.isCcamlr = isCcamlr;
+    private final JdbcTemplate tpl;
+        
+    public DrupalChocChipHeaderAuthenticationFilter(Environment env, JdbcTemplate tpl) {
+        this.env = env;
+        this.tpl = tpl;
     }
         
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain fc) throws ServletException, IOException {
-        if (isCcamlr) {
+        if (env.getProperty("authentication.ccamlr").equals("yes")) {
             String userName = getCcamlrUserName(request);
             if (userName != null) {
                 System.out.println("CCAMLR user " + userName + " is logged in");
@@ -47,10 +55,25 @@ public class DrupalChocChipHeaderAuthenticationFilter extends OncePerRequestFilt
                     if (SecurityContextHolder.getContext().getAuthentication() != null) {
                         System.out.println("Authentication context set");
                     } else {
-                        System.out.println("Setting authentication context...");
+                        String hostname = ProcessUtils.execReadToString("hostname");
+                        String gsRolePassword = env.getProperty("authentication.roleUsersPassword");
+                        System.out.println("Setting authentication context on host " + hostname + "...");
                         ArrayList<GrantedAuthority> authorities = new ArrayList();
-                        GrantedAuthority ga = new SimpleGrantedAuthority("ROLE_CCAMLR");
-                        authorities.add(ga);
+                        String rolesTable = env.getProperty("postgres.local.rolesTable");
+                        if (rolesTable != null) {
+                            /* Get this user's roles as defined in the roles table and save them in the context */
+                            List<Map<String, Object>> roles = tpl.queryForList("SELECT role FROM " + rolesTable + " WHERE username=?", userName);                                                        
+                            if (roles != null && !roles.isEmpty()) {
+                                roles.forEach((m) -> {
+                                    String role = (String)m.get("role");
+                                    String gsRoleUser = role.replace("ROLE_", "").toLowerCase();                                    
+                                    System.out.println("Adding credentials for role : " + role + "...");
+                                    authorities.add(new SimpleGrantedAuthority("geoserver:" + hostname + ":" + gsRoleUser + ":" + gsRolePassword));
+                                });
+                            }
+                        }
+                        System.out.println("Adding role : ROLE_CCAMLR...");
+                        authorities.add(new SimpleGrantedAuthority("geoserver:" + hostname + ":ccamlr:" + gsRolePassword));                        
                         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userName, "password", authorities));
                     }
                 }
