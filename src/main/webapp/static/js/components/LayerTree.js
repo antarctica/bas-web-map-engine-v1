@@ -380,28 +380,28 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
     }           
     element.append(
             '<li class="list-group-item layer-list-group-item" id="layer-item-' + nd.id + '">' +
-                '<table style="table-layout:fixed; width:290px">' + 
+                '<table style="table-layout:fixed; width:100%">' + 
                     '<tr>' + 
-                        '<td style="width:15px">' + 
+                        '<td style="width:5%">' + 
                             '<a id="layer-info-' + nd.id + '" style="cursor:pointer" data-toggle="tooltip" data-placement="right" data-html="true" ' +
                                 'title="' + (isInteractive ? infoTitle + "<br />Click on map features for info" : infoTitle) + '">' +
                                 '<span class="fa fa-info-circle' + (isInteractive ? ' clickable' : ' non-clickable') + '"></span>' +                                
                             '</a>' +
                         '</td>' +
-                        '<td style="width:15px">' +
+                        '<td style="width:5%">' +
                             '<div id="vis-wrapper-' + nd.id + '" style="cursor:pointer" tabindex="0" class="layer-vis-wrapper"' + 
                             (isTimeDependent ? ' data-trigger="manual" data-toggle="popover" data-placement="bottom"' : '') + '>' + 
                             cb + 
                             '</div>' + 
                         '</td>' +
-                        '<td style="width:230px; padding-left:10px; text-overflow: ellipsis">' +  
+                        '<td style="width:80%; padding-left:10px; text-overflow: ellipsis">' +  
                             '<a href="Javascript:void(0)">' + 
                                 '<span id="layer-filter-badge-' + nd.id + '" class="badge filter-badge hidden" ' + 
                                 'data-toggle="tooltip" data-placement="right" title="">filter</span>' +
                             '</a>' + 
                             nameSpan +
                         '</td>' +   
-                        '<td style="width:25px">' +
+                        '<td style="width:10%">' +
                             '<a class="layer-tool" id="layer-opts-' + nd.id + '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
                                 '<span class="fa fa-bars"></span><b class="caret"></b>' +
                             '</a>' +

@@ -328,6 +328,7 @@ public class HomeController {
         String username = getUserName(request);        
         model.addAttribute("username", username);
         model.addAttribute("profile", activeProfile);
+        model.addAttribute("extlogin", env.getProperty("authentication.loginurl") != null ? "yes" : "no");
         String pageTitle = env.getProperty("default.title") != null ? env.getProperty("default.title") : "";
         String logo = env.getProperty("default.logo") != null ? env.getProperty("default.logo") : "/static/images/1x1.png";
         String favicon = env.getProperty("default.favicon") != null ? env.getProperty("default.favicon") : "bas.ico";

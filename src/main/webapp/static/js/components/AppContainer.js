@@ -233,17 +233,21 @@ magic.classes.AppContainer = function () {
     if (loginAnch.length > 0) {
         loginAnch.click(function (evt) {
             evt.preventDefault();
-            var pn = window.location.pathname.substring(1);     /* Strip leading '/' */
-            if (pn == "") {
-                pn = "/restricted" + (magic.runtime.debug ? "d" : "");
-                window.location.assign(pn);
+            if (magic.runtime.extlogin == "yes") {
+                window.location.assign(magic.config.paths.baseurl + "/login");
             } else {
-                var fp = pn.substring(0, pn.indexOf("/"));
-                if (fp.indexOf("home") >= 0) {
-                    window.location.assign(window.location.href.replace("/home", "/restricted"));
+                var pn = window.location.pathname.substring(1);     /* Strip leading '/' */
+                if (pn == "") {
+                    pn = "/restricted" + (magic.runtime.debug ? "d" : "");
+                    window.location.assign(pn);
                 } else {
-                    /* Legacy URL like /opsgis, retained to make old bookmarks go somewhere */
-                    window.location.assign(window.location.href.replace("/" + fp, "/restricted" + (magic.runtime.debug ? "d" : "") + "/" + fp));
+                    var fp = pn.substring(0, pn.indexOf("/"));
+                    if (fp.indexOf("home") >= 0) {
+                        window.location.assign(window.location.href.replace("/home", "/restricted"));
+                    } else {
+                        /* Legacy URL like /opsgis, retained to make old bookmarks go somewhere */
+                        window.location.assign(window.location.href.replace("/" + fp, "/restricted" + (magic.runtime.debug ? "d" : "") + "/" + fp));
+                    }
                 }
             }
         });
