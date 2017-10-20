@@ -18,9 +18,9 @@ magic.modules.creator.Common = function () {
             /* Initialise wizard progress bar */
             jQuery("#rootwizard").bootstrapWizard({
                 onTabShow: jQuery.proxy(function (tab, navigation, index) {
-                    console.log("onTabShow event fired for tab " + index);
+                    //console.log("onTabShow event fired for tab " + index);
                     if (index != this.currentIndex) {
-                        console.log("Not already showing this tab - ok");
+                        //console.log("Not already showing this tab - ok");
                         this.currentIndex = index;
                         var total = navigation.find("li").length;
                         var current = index + 1;
@@ -41,13 +41,13 @@ magic.modules.creator.Common = function () {
                                 jQuery("ul.pager li.previous").removeClass("hidden");
                             }
                         }
-                        console.log("End of onTabShow handler");
+                        //console.log("End of onTabShow handler");
                     } else {
-                        console.log("onTabShow event fired twice for tab " + index + " - ignoring");
+                        //console.log("onTabShow event fired twice for tab " + index + " - ignoring");
                     }
                 }, this),
                 onNext: jQuery.proxy(function (tab, navigation, index) {
-                    console.log("onNext handler called");
+                    //console.log("onNext handler called");
                     var total = navigation.find("li").length;
                     if (this.tabs[index-1].validate()) {
                         if (jQuery.isFunction(this.tabs[index-1].saveContext)) {
@@ -58,10 +58,10 @@ magic.modules.creator.Common = function () {
                         } else {
                             jQuery("ul.pager li.finish").addClass("hidden");
                         }
-                        console.log("onNext handler returning true");
+                        //console.log("onNext handler returning true");
                         return(true);
                     } else {
-                        console.log("onNext handler returning false");
+                        //console.log("onNext handler returning false");
                         return(false);
                     }
                 }, this),
@@ -135,7 +135,7 @@ magic.modules.creator.Common = function () {
             /* Now validate the assembled map context against the JSON schema in /static/js/json/web_map_schema.json
              * https://github.com/geraintluff/tv4 is the validator used */            
             jQuery.getJSON(magic.config.paths.baseurl + "/static/js/json/web_map_schema.json", jQuery.proxy(function(schema) {
-                //console.log(finalContext);
+                ////console.log(finalContext);
                 var validationResult = tv4.validate(finalContext, schema);
                 var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content");
                 var csrfHeader = jQuery("meta[name='_csrf_header']").attr("content");

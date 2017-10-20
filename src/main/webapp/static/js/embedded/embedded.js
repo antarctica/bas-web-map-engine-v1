@@ -291,7 +291,7 @@ function init() {
                                             url: gfiUrl,
                                             method: "GET"
                                         }).done(function(data) {
-                                            console.log(data);
+                                            //console.log(data);
                                             if (data.type == "FeatureCollection" && jQuery.isArray(data.features) && data.features.length > 0) {
                                                 if (!isApexContext()) {
                                                     var popupDiv = jQuery(embedded_overlay.getElement());

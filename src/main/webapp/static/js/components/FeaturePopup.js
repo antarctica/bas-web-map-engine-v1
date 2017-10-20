@@ -432,7 +432,6 @@ magic.classes.FeaturePopup.prototype.fixPopoverPosition = function() {
     }
     /* Fix horizontal positioning where content width allowed to vary e.g. when images are loaded */
     var po = jQuery("div.feature-popup-table-cont").parents("div.popover");
-    console.log(po.outerWidth());
     po.find("div.arrow").css("left", parseInt(100*116/po.innerWidth()) + "%");
 };
 

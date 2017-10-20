@@ -430,7 +430,6 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
         }
     }
     if (isWms) {
-        console.log(nd);
         if (nd.source.wms_source == "osm") {
             /* OpenStreetMap layer */
             layer = magic.modules.Endpoints.getMidLatitudeCoastLayer();

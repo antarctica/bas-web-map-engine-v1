@@ -43,12 +43,12 @@ magic.modules.Endpoints = function () {
          */
         getOgcEndpoint: function(url, service) {
             var proxEp = url;
-            console.log("-------------Starting--------------------");
-            console.log("Matching " + url);
+            //console.log("-------------Starting--------------------");
+            //console.log("Matching " + url);
             var matches = this.getEndpointsBy("url", url);
-            console.log("------------------------------------------");
-            console.log(matches);
-            console.log("------------------------------------------");
+            //console.log("------------------------------------------");
+            //console.log(matches);
+            //console.log("------------------------------------------");
             if (matches.length > 0) {
                 if (matches[0]["is_user_service"] === true) {
                     proxEp = magic.config.paths.baseurl + "/ogc/user/" + service;
@@ -58,8 +58,8 @@ magic.modules.Endpoints = function () {
             } else {
                 proxEp = magic.modules.Common.proxyUrl(url);
             }
-            console.log("Endpoint is " + proxEp);
-            console.log("------------Finished--------------------");
+            //console.log("Endpoint is " + proxEp);
+            //console.log("------------Finished--------------------");
             return(proxEp);
         },       
         /**

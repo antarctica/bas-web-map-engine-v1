@@ -723,7 +723,7 @@ magic.classes.UserLayerManager.prototype.initDropzone = function() {
         },
         init: function () {
             this.on("complete", jQuery.proxy(function(file) {
-                console.log("complete handler");
+                //console.log("complete handler");
                 var response = JSON.parse(file.xhr.responseText);                
                 if (response.status < 400) {
                     /* Successful save */
@@ -747,26 +747,26 @@ magic.classes.UserLayerManager.prototype.initDropzone = function() {
                     this.ulm.ddLayers.prop("disabled", false);
                 }
                 this.pfdz.removeAllFiles();
-                console.log("done complete handler");
+                //console.log("done complete handler");
             }, {pfdz: this, ulm: ulm})); 
             this.on("maxfilesexceeded", function(file) {
-                console.log("maxfilesexceeded handler");
+                //console.log("maxfilesexceeded handler");
                 this.removeAllFiles();
                 this.addFile(file);
-                console.log("done maxfilesexceeded handler");
+                //console.log("done maxfilesexceeded handler");
             });
             this.on("addedfile", function(file) {
-                console.log("addedfile handler");
+                //console.log("addedfile handler");
                 jQuery("div#publish-files-dz").find("p.name").html(magic.modules.Common.ellipsis(file.name, 18));
-                console.log("done addedfile handler");
+                //console.log("done addedfile handler");
             });
             this.on("error", jQuery.proxy(function(file, msg, theXhr) {
-                console.log("error handler");
-                console.log(file);
-                console.log(msg);
-                console.log(theXhr);
+                //console.log("error handler");
+                //console.log(file);
+                //console.log(msg);
+                //console.log(theXhr);
                 window.setTimeout(jQuery.proxy(this.removeAllFiles, this), 3000);
-                console.log("done error handler");
+                //console.log("done error handler");
             }, this));
             /* Save button */
             saveBtn.off("click").on("click", jQuery.proxy(function() {            
@@ -800,7 +800,7 @@ magic.classes.UserLayerManager.prototype.initDropzone = function() {
                                 }
                             })
                             .done(jQuery.proxy(function(response) {
-                                console.log("save click handler");
+                                //console.log("save click handler");
                                 magic.modules.Common.buttonClickFeedback(this.id, jQuery.isNumeric(response) || response.status < 400, response.detail);
                                 this.setButtonStates({
                                     addBtn: false, editBtn: !this.userLayerSelected(), delBtn: !this.userLayerSelected()
@@ -810,7 +810,7 @@ magic.classes.UserLayerManager.prototype.initDropzone = function() {
                                     this.hideEditForm();
                                 }, this), 2000);    
                                 this.fetchLayers(jQuery.proxy(this.refreshAfterUpdate, this)); 
-                                console.log("done save click handler");
+                                //console.log("done save click handler");
                             }, this.ulm))
                             .fail(function (xhr) {
                                 bootbox.alert(
@@ -831,15 +831,15 @@ magic.classes.UserLayerManager.prototype.initDropzone = function() {
                         /* Uploaded file present, so process via DropZone */
                         /* Add the other form parameters to the dropzone POST */                    
                         this.pfdz.on("sending", function(file, xhr, data) { 
-                            console.log("sending handler");
+                            //console.log("sending handler");
                             jQuery.each(formdata, function(key, val) {
                                 data.append(key, val);
                             });      
-                            console.log("done sending handler");
+                            //console.log("done sending handler");
                         });
-                        console.log("About to call processQueue()");
+                        //console.log("About to call processQueue()");
                         this.pfdz.processQueue();
-                        console.log("processQueue() called");
+                        //console.log("processQueue() called");
                     }
                 } else {
                     bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Please correct the marked errors in your input and try again</div>');

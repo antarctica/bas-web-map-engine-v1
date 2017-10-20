@@ -229,7 +229,7 @@ magic.modules.embedded_creator.Tab1 = function () {
             /* Now validate the assembled map context against the JSON schema in /static/js/json/embedded_web_map_schema.json
              * https://github.com/geraintluff/tv4 is the validator used */            
             jQuery.getJSON(magic.config.paths.baseurl + "/static/js/json/embedded_web_map_schema.json", jQuery.proxy(function(schema) {
-                console.log(context);
+                //console.log(context);
                 var validationResult = tv4.validate(context, schema);
                 var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content");
                 var csrfHeader = jQuery("meta[name='_csrf_header']").attr("content");
