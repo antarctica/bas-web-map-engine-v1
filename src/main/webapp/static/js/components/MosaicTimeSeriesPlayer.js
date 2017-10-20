@@ -20,10 +20,6 @@ magic.classes.MosaicTimeSeriesPlayer = function(options) {
     /* Movie interval handle */
     this.movie = null;  
     
-    /* Compensates for a repainting bug in Chrome - David 2017-06-21 */
-    this.chromeRefreshWorkaroundShow = null;
-    this.chromeRefreshWorkaroundHide = null;
-    
     this.template =
         '<div class="popover popover-auto-width movieplayer-popover" role="popover">' +
             '<div class="arrow"></div>' +
@@ -86,12 +82,12 @@ magic.classes.MosaicTimeSeriesPlayer = function(options) {
         }
         /* Set button and refresh rate handlers */               
         var btns = jQuery("#mplayer-form-" + this.nodeid).find("button");
-        jQuery(btns[0]).on("click", {pointer: "0"}, jQuery.proxy(this.showImage, this));
-        jQuery(btns[1]).on("click", {pointer: "-"}, jQuery.proxy(this.showImage, this));
-        jQuery(btns[2]).on("click", jQuery.proxy(this.changeMovieState, this));
-        jQuery(btns[3]).on("click",{pointer: "+"}, jQuery.proxy(this.showImage, this));
-        jQuery(btns[4]).on("click",{pointer: "1"}, jQuery.proxy(this.showImage, this));
-        jQuery("#mplayer-refresh-rate-" + this.nodeid).on("change", jQuery.proxy(function(evt) {        
+        jQuery(btns[0]).off("click").on("click", {pointer: "0"}, jQuery.proxy(this.showImage, this));
+        jQuery(btns[1]).off("click").on("click", {pointer: "-"}, jQuery.proxy(this.showImage, this));
+        jQuery(btns[2]).off("click").on("click", jQuery.proxy(this.changeMovieState, this));
+        jQuery(btns[3]).off("click").on("click",{pointer: "+"}, jQuery.proxy(this.showImage, this));
+        jQuery(btns[4]).off("click").on("click",{pointer: "1"}, jQuery.proxy(this.showImage, this));
+        jQuery("#mplayer-refresh-rate-" + this.nodeid).off("change").on("change", jQuery.proxy(function(evt) {        
             var playBtn = jQuery(btns[2]);
             if (playBtn.hasClass("fa-pause")) {
                 /* Movie is playing => stop it, so user can restart movie with new rate */
@@ -100,32 +96,21 @@ magic.classes.MosaicTimeSeriesPlayer = function(options) {
         }, this)); 
         /* Close button */
         jQuery(".movieplayer-popover").find("button.close").click(jQuery.proxy(function () {
+            this.stopMovie();
             this.deactivate();
-        }, this));
-        if (jQuery.isFunction(this.chromeRefreshWorkaroundShow)) {
-            this.chromeRefreshWorkaroundShow();
-        }
+        }, this));        
     }, this))
     .on("hidden.bs.popover", jQuery.proxy(function() {
-        this.stopMovie();
-        if (jQuery.isFunction(this.chromeRefreshWorkaroundHide)) {
-            this.chromeRefreshWorkaroundHide();
-        }
+        this.stopMovie();        
     }, this));        
     
 };
 
-magic.classes.MosaicTimeSeriesPlayer.prototype.activate = function(cb) {
-    if (jQuery.isFunction(cb)) {
-        this.chromeRefreshWorkaroundShow = cb;
-    }
+magic.classes.MosaicTimeSeriesPlayer.prototype.activate = function(cb) {    
     this.target.popover("show");
 };
 
-magic.classes.MosaicTimeSeriesPlayer.prototype.deactivate = function(cb) {
-    if (jQuery.isFunction(cb)) {
-        this.chromeRefreshWorkaroundHide = cb;
-    }
+magic.classes.MosaicTimeSeriesPlayer.prototype.deactivate = function(cb) {    
     this.target.popover("hide");
 };
 
