@@ -344,7 +344,7 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                                 '</a>' +
                             '</span>' +
                         '</div>' +
-                        '<div id="layer-group-panel-' + nd.id + '" class="panel-collapse collapse' + (groupExpanded ? " in" : "") + '">' +
+                        '<div id="layer-group-panel-' + nd.id + '" class="panel-collapse collapse' + (groupExpanded ? ' in' : '') + '">' +
                             '<div class="panel-body" style="padding:0px">' +
                                 '<ul class="list-group layer-list-group ' + (oneOnly ? 'one-only' : '') + '" id="layer-group-' + nd.id + '">' +
                                 '</ul>' +
@@ -903,7 +903,7 @@ magic.classes.LayerTree.prototype.setLayerVisibility = function(chk, forceOff) {
                 this.moviePlayers[md.id] = new magic.classes.MosaicTimeSeriesPlayer({
                     "nodeid": md.id, 
                     "target": "vis-wrapper-" + md.id, 
-                    "container": lgp ? "#" + lgp.prop("id") : "body",
+                    "container": "body", //lgp ? "#" + lgp.prop("id") : "body",
                     "layer": layer
                 });
             }

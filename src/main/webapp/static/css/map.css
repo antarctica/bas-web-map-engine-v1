@@ -6,6 +6,12 @@
 
 /* Global Styles */
 
+/* Get round Chrome rendering bugs - https://stackoverflow.com/questions/15152470/chrome-rendering-issue-fixed-position-anchor-with-ul-in-body */
+html, body {
+    height: 100%;
+    overflow: auto;
+}
+
 body {
     margin-top: 100px;
     background-color: #222;

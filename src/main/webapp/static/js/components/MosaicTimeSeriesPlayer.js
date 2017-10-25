@@ -41,7 +41,7 @@ magic.classes.MosaicTimeSeriesPlayer = function(options) {
                 '<button class="btn btn-primary btn-sm fa fa-fast-forward mosaic-player" type="button" role="button" ' + 
                     'data-toggle="tooltip" data-placement="top" title="Most recent image in series" disabled></button>' +
             '</div>' +
-            '<div class="form-group form-group-sm">' +
+            '<div class="form-group form-group-sm col-sm-12">' +
                 '<label class="col-sm-4 control-label" for="mplayer-refresh-rate-' + this.nodeid + '">Refresh</label>' + 
                 '<div class="col-sm-8">' + 
                     '<select id="mplayer-refresh-rate-' + this.nodeid + '" class="form-control" ' +
