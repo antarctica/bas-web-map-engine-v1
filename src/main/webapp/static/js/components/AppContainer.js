@@ -346,8 +346,9 @@ magic.classes.AppContainer = function () {
         /* Show the announcement unless cookie has been set */
         var announceModal = jQuery("#announcement-modal");
         var cookieName = "announcement_seen_" + magic.runtime.map_context.name;
-        if (announceModal.length > 0 && getCookie(cookieName) == "" && announceContent) {
+        if (announceModal.length > 0 && getCookie(cookieName) == "") {
             if (announceContent.indexOf(magic.config.paths.baseurl) != 0) {
+                console.log("Proxying triggered - announce link is : " + announceContent + ", base URL is : " + magic.config.paths.baseurl);
                 announceContent = magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(announceContent);
             }
             var modalBody = announceModal.find(".modal-body");
@@ -361,15 +362,15 @@ magic.classes.AppContainer = function () {
                             height: "auto", 
                             "max-height": "90%"
                         });
+                        jQuery("#announcement-close").on("click", function(evt) {
+                            if (jQuery("#announcement-dismiss").prop("checked")) {
+                                setCookie(cookieName, "yes", 1000);
+                            }
+                            announceModal.modal("hide");
+                        });
+                        announceModal.modal("show");
                     }
-                });
-                jQuery("#announcement-close").on("click", function(evt) {
-                    if (jQuery("#announcement-dismiss").prop("checked")) {
-                        setCookie(cookieName, "yes", 1000);
-                    }
-                    announceModal.modal("hide");
-                });
-                announceModal.modal("show");
+                });                
             }
         }
     }

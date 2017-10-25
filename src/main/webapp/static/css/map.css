@@ -797,3 +797,8 @@ div.watermark {
 div.styler-popover-content {
     width: 400px;
 }
+
+/* Set z-index for movie player popover to get round Chrome bug */
+div.movieplayer-popover {
+    z-index: 8000 !important;
+}

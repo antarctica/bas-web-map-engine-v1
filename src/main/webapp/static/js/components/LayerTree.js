@@ -47,6 +47,34 @@ magic.classes.LayerTree = function (target) {
     /* Z-index stacking (used to insert autoload WMS groups in the right place) */
     this.zIndexWmsStack = 0;
     
+    /* Defaults for filling out autoload nodes */
+    this.defaultNodeAttrs = {
+        legend_graphic: null,
+        refresh_rate: 0,
+        min_scale: 1,
+        max_scale: 50000000,
+        opacity: 1.0,
+        is_visible: false,
+        is_interactive: false,
+        is_filterable: false        
+    };
+    this.defaultSourceAttrs = {
+        style_name: null,
+        is_base: false,
+        is_singletile: false,
+        is_dem: false,
+        is_time_dependent: false
+    };
+    this.defaultAttributeAttrs = {
+        displayed: true,
+        nillable: true,
+        filterable: false,
+        alias: "",
+        ordinal: null,
+        unique_values: false
+    };
+    this.maxAttrs = 10;
+    
     var targetElement = jQuery("#" + this.target);
     /* Layer search form */
     targetElement.append(
@@ -329,6 +357,7 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
             if (nd.autoload === true) {
                 /* Layers to be autoloaded from local server later */
                 this.autoloadGroups[nd.id] = {
+                    expanded: groupExpanded,
                     filter: nd.autoload_filter,
                     popups: nd.autoload_popups === true,
                     insert: this.zIndexWmsStack
@@ -621,91 +650,83 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
  * Fetch the data for all autoload layers
  * @param {ol.Map} map
  */
-magic.classes.LayerTree.prototype.initAutoLoadGroups = function(map) {
-    var defaultNodeAttrs = {
-        legend_graphic: null,
-        refresh_rate: 0,
-        min_scale: 1,
-        max_scale: 50000000,
-        opacity: 1.0,
-        is_visible: false,
-        is_interactive: false,
-        is_filterable: false        
-    };
-    var defaultSourceAttrs = {
-        style_name: null,
-        is_base: false,
-        is_singletile: false,
-        is_dem: false,
-        is_time_dependent: false
-    };
-    var defaultAttributeAttrs = {
-        displayed: true,
-        nillable: true,
-        filterable: false,
-        alias: "",
-        ordinal: null,
-        unique_values: false
-    };
-    var maxAttrs = 10;
+magic.classes.LayerTree.prototype.initAutoLoadGroups = function(map) {    
     jQuery.each(this.autoloadGroups, jQuery.proxy(function(grpid, grpo) {
-        var element = jQuery("#layer-group-" + grpid);
-        if (element.length > 0) {
-            jQuery.ajax({
-                url: magic.config.paths.baseurl + "/gs/layers/filter/" + encodeURIComponent(grpo.filter), 
-                method: "GET",
-                dataType: "json",
-                contentType: "application/json"
-            }).done(jQuery.proxy(function(data) {
-                if (jQuery.isArray(data)) {
-                    /* Alphabetical order of name */
-                    data.sort(function(a, b) {
-                        return(a.name.localeCompare(b.name));
-                    });
-                    for (var i = 0; i < data.length; i++) {
-                        var nd = jQuery.extend({}, {
-                            id: magic.modules.Common.uuid(),
-                            name: data[i].name,
-                            geom_type: data[i].geom_type,
-                            attribute_map: data[i].attribute_map
-                        }, defaultNodeAttrs);
-                        nd.source = jQuery.extend({}, {
-                            wms_source: magic.modules.Endpoints.getOgcEndpoint(data[i].wms_source, "wms"), 
-                            feature_name: data[i].feature_name
-                        }, defaultSourceAttrs);
-                        nd.is_interactive = grpo.popups === true;
-                        if (jQuery.isArray(nd.attribute_map)) {
-                            for (var j = 0; j < nd.attribute_map.length; j++) {
-                                /* Allow only 'maxAttrs' attributes to be displayed - http://redmine.nerc-bas.ac.uk/issues/4540 */
-                                nd.attribute_map[j] = jQuery.extend({}, nd.attribute_map[j], defaultAttributeAttrs, {displayed: j < maxAttrs});
-                            }                            
-                        } else {
-                            nd.is_interactive = false;
-                        }
-                        /* Should now have a node from which to create a WMS layer */
-                        this.addDataNode(nd, element);
-                        nd.layer.setZIndex(grpo.insert);
-                        if (map) {                            
-                            map.addLayer(nd.layer);
-                        }
-                    }
-                    this.initLayerSearchTypeahead();
-                    this.assignLayerSearchFormHandlers();
-                    this.layerGroupDivs = jQuery("#" + this.target).find("div.layer-group");
-                    this.assignLayerGroupHandlers(null);
-                    this.assignLayerHandlers(null);  
-                    this.assignOneOnlyLayerGroupHandlers();
-                    this.refreshTreeIndicators();              
-                }                   
-            }, this)).fail(jQuery.proxy(function(xhr) {
-                bootbox.alert(
-                    '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                        '<p>' + JSON.parse(xhr.responseText)["detail"] + '</p>' + 
-                    '</div>'
-                );
-            }, this));                                
-        }
+        if (grpo.expanded) {
+            /* Group starts expanded => layers need to be loaded now */
+            this.populateAutoloadGroup(map, grpid, grpo);
+        } else {
+            /* Group starts collapsed => layers can be lazily loaded for better map performance */
+            jQuery("a[href='#layer-group-panel-" + grpid + "']").one("click", {id: grpid, o: grpo}, jQuery.proxy(function(evt) {
+                this.populateAutoloadGroup(map, evt.data.id, evt.data.o);
+            }, this));
+        }        
     }, this));
+};
+
+/**
+ * Populate an auto-load layer group
+ * @param {ol.Map} map
+ * @param {String} grpid
+ * @param {Object} grpo
+ */
+magic.classes.LayerTree.prototype.populateAutoloadGroup = function(map, grpid, grpo) { 
+    var element = jQuery("#layer-group-" + grpid);
+    if (element.length > 0) {
+        jQuery.ajax({
+            url: magic.config.paths.baseurl + "/gs/layers/filter/" + encodeURIComponent(grpo.filter), 
+            method: "GET",
+            dataType: "json",
+            contentType: "application/json"
+        }).done(jQuery.proxy(function(data) {
+            if (jQuery.isArray(data)) {
+                /* Alphabetical order of name */
+                data.sort(function(a, b) {
+                    return(a.name.localeCompare(b.name));
+                });
+                for (var i = 0; i < data.length; i++) {
+                    var nd = jQuery.extend({}, {
+                        id: magic.modules.Common.uuid(),
+                        name: data[i].name,
+                        geom_type: data[i].geom_type,
+                        attribute_map: data[i].attribute_map
+                    }, this.defaultNodeAttrs);
+                    nd.source = jQuery.extend({}, {
+                        wms_source: magic.modules.Endpoints.getOgcEndpoint(data[i].wms_source, "wms"), 
+                        feature_name: data[i].feature_name
+                    }, this.defaultSourceAttrs);
+                    nd.is_interactive = grpo.popups === true;
+                    if (jQuery.isArray(nd.attribute_map)) {
+                        for (var j = 0; j < nd.attribute_map.length; j++) {
+                            /* Allow only 'maxAttrs' attributes to be displayed - http://redmine.nerc-bas.ac.uk/issues/4540 */
+                            nd.attribute_map[j] = jQuery.extend({}, nd.attribute_map[j], this.defaultAttributeAttrs, {displayed: j < this.maxAttrs});
+                        }                            
+                    } else {
+                        nd.is_interactive = false;
+                    }
+                    /* Should now have a node from which to create a WMS layer */
+                    this.addDataNode(nd, element);
+                    nd.layer.setZIndex(grpo.insert);
+                    if (map) {                            
+                        map.addLayer(nd.layer);
+                    }
+                }
+                this.initLayerSearchTypeahead();
+                this.assignLayerSearchFormHandlers();
+                this.layerGroupDivs = jQuery("#" + this.target).find("div.layer-group");
+                this.assignLayerGroupHandlers(null);
+                this.assignLayerHandlers(null);  
+                this.assignOneOnlyLayerGroupHandlers();
+                this.refreshTreeIndicators();              
+            }                   
+        }, this)).fail(function(xhr) {
+            bootbox.alert(
+                '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                    '<p>' + JSON.parse(xhr.responseText)["detail"] + '</p>' + 
+                '</div>'
+            );
+        });                                
+    }
 };
 
 /**
