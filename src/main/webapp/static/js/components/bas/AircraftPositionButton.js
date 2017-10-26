@@ -123,7 +123,7 @@ magic.classes.AircraftPositionButton.prototype.activate = function () {
  */
 magic.classes.AircraftPositionButton.prototype.deactivate = function () {
     this.active = false;
-    if (this.timer = null) {
+    if (this.timer == null) {
         window.clearInterval(this.timer);
         this.timer = null;
     }

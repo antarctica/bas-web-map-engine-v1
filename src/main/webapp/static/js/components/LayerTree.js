@@ -124,16 +124,16 @@ magic.classes.LayerTree = function (target) {
     
     this.collapsed = false;
     
-    if (jQuery.isEmptyObject(this.autoloadGroups)) {
-        this.initLayerSearchTypeahead();
-        this.assignLayerSearchFormHandlers();
-        this.layerGroupDivs = jQuery("#" + this.target).find("div.layer-group");
-        this.assignLayerGroupHandlers(null);
-        this.assignLayerHandlers(null);  
-        this.assignOneOnlyLayerGroupHandlers();
-        this.refreshTreeIndicators();
-    }
-        
+    /* Compile list of layer groups */
+    this.layerGroupDivs = jQuery("#" + this.target).find("div.layer-group"); 
+    
+    /* Set up the layer search */
+    this.initLayerSearchTypeahead();    
+
+    /* Assign all handlers */
+    this.initHandlers(null);  
+    this.refreshTreeIndicators(); 
+    //this.chromeRefreshWorkaround();
 };
 
 magic.classes.LayerTree.prototype.getTarget = function () {
@@ -269,10 +269,17 @@ magic.classes.LayerTree.prototype.assignLayerHandlers = function(belowElt) {
 };
 
 /**
- * Radio button layer groups - assign handlers for the "turn all layers off" button  
+ * Radio button layer groups - assign handlers for the "turn all layers off" button, optionally below a specified element
+ * @param {jQuery.object} belowElt 
  */
-magic.classes.LayerTree.prototype.assignOneOnlyLayerGroupHandlers = function() {        
-    jQuery("a[id^='group-rb-off-']").each(jQuery.proxy(function(idx, elt) {
+magic.classes.LayerTree.prototype.assignOneOnlyLayerGroupHandlers = function(belowElt) {
+    var layerRbs;
+    if (belowElt) {
+        layerRbs = belowElt.find("a[id^='group-rb-off-']");
+    } else {
+        layerRbs = jQuery("a[id^='layer-info-']");
+    }    
+    layerRbs.each(jQuery.proxy(function(idx, elt) {
         var allOff = jQuery(elt);
         allOff.click(jQuery.proxy(function(evt) {
             var groupsDone = {};
@@ -288,27 +295,13 @@ magic.classes.LayerTree.prototype.assignOneOnlyLayerGroupHandlers = function() {
 };
 
 /**
- * Add handlers for "search for data layer" form
+ * Initialise handlers
+ * @param {jQuery.object} belowElt 
  */
-magic.classes.LayerTree.prototype.assignLayerSearchFormHandlers = function() {
-        
-    /* Expand search form */
-    jQuery("span.layer-tree-search").on("click", function (evt) {
-        evt.stopPropagation();
-        var pnl = jQuery(".layersearch-panel");
-        pnl.removeClass("hidden").addClass("show");
-        /* To work round the time lag with showing the typeahead in the previously hidden form
-         * see: https://github.com/twitter/typeahead.js/issues/712 */          
-        setTimeout(function() {
-            pnl.find("input").focus();
-        }, 100);            
-    });
-
-    /* Collapse search form */
-    jQuery(".layersearch-form").find(".close").on("click", function (evt) {
-        evt.stopPropagation();
-        jQuery(".layersearch-panel").removeClass("show").addClass("hidden");
-    });      
+magic.classes.LayerTree.prototype.initHandlers = function(belowElt) {
+    this.assignLayerGroupHandlers(belowElt);
+    this.assignLayerHandlers(belowElt);  
+    this.assignOneOnlyLayerGroupHandlers(belowElt);        
 };
 
 /**
@@ -650,18 +643,18 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
  * Fetch the data for all autoload layers
  * @param {ol.Map} map
  */
-magic.classes.LayerTree.prototype.initAutoLoadGroups = function(map) {    
+magic.classes.LayerTree.prototype.initAutoLoadGroups = function(map) { 
     jQuery.each(this.autoloadGroups, jQuery.proxy(function(grpid, grpo) {
         if (grpo.expanded) {
             /* Group starts expanded => layers need to be loaded now */
-            this.populateAutoloadGroup(map, grpid, grpo);
+            this.populateAutoloadGroup(map, grpid, grpo);            
         } else {
             /* Group starts collapsed => layers can be lazily loaded for better map performance */
             jQuery("a[href='#layer-group-panel-" + grpid + "']").one("click", {id: grpid, o: grpo}, jQuery.proxy(function(evt) {
                 this.populateAutoloadGroup(map, evt.data.id, evt.data.o);
             }, this));
         }        
-    }, this));
+    }, this));   
 };
 
 /**
@@ -710,14 +703,10 @@ magic.classes.LayerTree.prototype.populateAutoloadGroup = function(map, grpid, g
                     if (map) {                            
                         map.addLayer(nd.layer);
                     }
-                }
-                this.initLayerSearchTypeahead();
-                this.assignLayerSearchFormHandlers();
-                this.layerGroupDivs = jQuery("#" + this.target).find("div.layer-group");
-                this.assignLayerGroupHandlers(null);
-                this.assignLayerHandlers(null);  
-                this.assignOneOnlyLayerGroupHandlers();
-                this.refreshTreeIndicators();              
+                    this.nodeLayerTranslation[nd.id] = nd.layer;
+                    this.initHandlers(element);
+                    this.refreshTreeIndicators(element.parents("div.layer-group"));
+                }                        
             }                   
         }, this)).fail(function(xhr) {
             bootbox.alert(
@@ -733,19 +722,13 @@ magic.classes.LayerTree.prototype.populateAutoloadGroup = function(map, grpid, g
  * Initialise typeahead handlers and config for layer search 
  */
 magic.classes.LayerTree.prototype.initLayerSearchTypeahead = function() {
-    var nlData = [];
-    jQuery.each(this.nodeLayerTranslation, function(nodeId, layer) {
-        nlData.push({"id": nodeId, "layer": layer.get("name")});
-    });
-    nlData.sort(function(a, b) {
-        return(a.layer.localeCompare(b.layer));
-    });
+    
     jQuery("#" + this.id + "-layersearch-ta").typeahead(
         {minLength: 2, highlight: true}, 
         {
             limit: 100,
             async: true,
-            source: this.layerMatcher(nlData),
+            source: jQuery.proxy(this.layerMatcher, this)(),
             templates: {
                 notFound: '<p class="suggestion">No results</p>',
                 header: '<div class="suggestion-group-header">Data layers</div>',
@@ -757,6 +740,24 @@ magic.classes.LayerTree.prototype.initLayerSearchTypeahead = function() {
     )
     .on("typeahead:autocompleted", jQuery.proxy(this.layerSearchSuggestionSelectHandler, this))
     .on("typeahead:selected", jQuery.proxy(this.layerSearchSuggestionSelectHandler, this));
+    
+    /* Expand search form */
+    jQuery("span.layer-tree-search").on("click", function (evt) {
+        evt.stopPropagation();
+        var pnl = jQuery(".layersearch-panel");
+        pnl.removeClass("hidden").addClass("show");
+        /* To work round the time lag with showing the typeahead in the previously hidden form
+         * see: https://github.com/twitter/typeahead.js/issues/712 */          
+        setTimeout(function() {
+            pnl.find("input").focus();
+        }, 100);            
+    });
+
+    /* Collapse search form */
+    jQuery(".layersearch-form").find(".close").on("click", function (evt) {
+        evt.stopPropagation();
+        jQuery(".layersearch-panel").removeClass("show").addClass("hidden");
+    });      
 };
 
 /**
@@ -903,7 +904,7 @@ magic.classes.LayerTree.prototype.setLayerVisibility = function(chk, forceOff) {
                 this.moviePlayers[md.id] = new magic.classes.MosaicTimeSeriesPlayer({
                     "nodeid": md.id, 
                     "target": "vis-wrapper-" + md.id, 
-                    "container": "body", //lgp ? "#" + lgp.prop("id") : "body",
+                    "container": lgp ? "#" + lgp.prop("id") : "body",
                     "layer": layer
                 });
             }
@@ -1163,14 +1164,20 @@ magic.classes.LayerTree.prototype.getLayerByFeatureName = function(fname) {
 
 /**
  * Typeahead handler for layer search
- * @param {Array} data
  * @return {Function}
  */
-magic.classes.LayerTree.prototype.layerMatcher = function(data) {
+magic.classes.LayerTree.prototype.layerMatcher = function() {
+    var nlData = [];
+    jQuery.each(this.nodeLayerTranslation, function(nodeId, layer) {
+        nlData.push({"id": nodeId, "layer": layer.get("name")});
+    });
+    nlData.sort(function(a, b) {
+        return(a.layer.localeCompare(b.layer));
+    });
     return(function(query, callback) {
         var matches = [];
         var re = new RegExp(query, "i");
-        $.each(data, function(itemno, item) {
+        jQuery.each(nlData, function(itemno, item) {
             if (re.test(item.layer)) {
                 matches.push(item.layer);
             }
@@ -1211,3 +1218,18 @@ magic.classes.LayerTree.prototype.userGroupExpanded = function(groupId, defVal) 
     }
     return(attrVal);
 };
+
+/**
+ * Chrome-specific hack to avoid random disappearing elements in layer tree 
+ */
+magic.classes.LayerTree.prototype.chromeRefreshWorkaround = function() {
+    if (navigator.appVersion.toLowerCase().indexOf("chrome") >= 0) {
+        console.log("Chrome refresh workaround - test periodically if this is still needed!");
+        /* Force a refresh via tiny resize and back */
+        var lt = jQuery("#" + this.target);
+        var ltw = parseInt(lt.css("width").replace("px", ""));
+        lt.css("width", (ltw+1) + "px");
+        lt.css("width", ltw + "px");
+    }
+};
+ 
