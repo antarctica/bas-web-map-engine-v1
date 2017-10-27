@@ -306,6 +306,7 @@ magic.classes.FeaturePopup.prototype.selectFeature = function() {
         jQuery("#" + this.popupId + "-pager-xofy").html("Showing " + (this.featurePointer+1) + " of " + this.featureCollection.length);
     }
     /* Show the relevant title from the markup */
+    // TODO all jQuery searches are too wide - they pick up popovers from the other map when there is an inset - need to narrow!
     jQuery("span.feature-popup-title-cont").each(jQuery.proxy(function(idx, elt) {
         if (idx == this.featurePointer) {
             jQuery(elt).removeClass("hidden").addClass("show");

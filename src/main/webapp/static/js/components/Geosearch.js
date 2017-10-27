@@ -59,7 +59,7 @@ magic.classes.Geosearch = function (options) {
             ]
         }
     });
-    /* Don't add layer to map at creation time - other mnap layers may not have finished loading */
+    /* Don't add layer to map at creation time - other map layers may not have finished loading */
     this.layerAdded = false;    
 
     /* List of already performed place-name searches */

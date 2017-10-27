@@ -1,0 +1,55 @@
+{
+    "title": "Rothera reports",
+    "type": "object",
+    "formOrder": [
+        "title", "description", "place", "season", "people", "keywords"
+    ],
+    "properties": {         
+        "title": {
+            "type": "string",
+            "title": "Report title",
+            "tooltip": "Allowed characters are alphanumerics, space, underscore, hyphen, apostrophe, comma, period, colon",
+            "required": false,
+            "validator": "^[A-Za-z0-9\\- _,:'\\.]+$",
+            "minLength": 5
+        },    
+        "description": {
+            "type": "string",
+            "title": "Description",
+			"tooltip": "Longer more informative description of fieldwork",
+            "required": false,
+            "inputType": "textarea",
+            "height": "100px"
+        },
+        "place": {
+            "type": "string",
+            "title": "Location",
+			"tooltip": "Location of the fieldwork",
+            "required": false,
+            "inputType": "placename",
+            "complex": true
+        },
+        "season": {
+            "type": "string",
+            "title": "Season",
+            "tooltip": "Fieldwork season or duration",
+            "required": false,
+            "inputType": "season",
+			"complex": true
+        },
+        "people": {
+            "type": "array",
+            "title": "Personnel",
+            "tooltip": "Name(s) of fieldwork participants (click to enter a new name in the field)",
+            "required": false,
+            "inputType": "tagsinput"            
+        },
+        "keywords": {
+            "type": "array",
+            "title": "Keywords",
+            "tooltip": "Enter as many meaningful keywords as possible (click to enter a new tag in the field)",
+            "required": false,
+            "inputType": "tagsinput"            
+        }
+    }
+}

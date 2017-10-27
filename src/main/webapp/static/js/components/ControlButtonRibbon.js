@@ -83,12 +83,18 @@ magic.classes.ControlButtonRibbon = function(config) {
             
             case "aircraft":
                 /* Positions of BAS aircraft */                                
-                this.appendControlButton(new magic.classes.AircraftPositionButton("aircraft-position", this).getButton()); 
+                this.appendControlButton(new magic.classes.AircraftPositionButton("aircraft-position", this, {
+                    "title": "BAS aircraft",
+                    "iconClass": "fa fa-plane"
+                }).getButton()); 
                 break;
                 
             case "ships":
                 /* Positions of BAS ships */                                
-                this.appendControlButton(new magic.classes.ShipPositionButton("ship-position", this).getButton()); 
+                this.appendControlButton(new magic.classes.ShipPositionButton("ship-position", this, {
+                    "title": "BAS ships",
+                    "iconClass": "fa fa-ship"
+                }).getButton()); 
                 break;       
                 
             default:
