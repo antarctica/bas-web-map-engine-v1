@@ -28,6 +28,13 @@ magic.classes.GeneralSearch = function (options) {
     
     /* Icon to be used on the map (should be a path under static/images, without the .png on the end */
     this.mapicon = options.mapicon || "marker_red";
+    
+    /* Whether the search control fires a 'mapinteractionactivated' event */
+    this.mapinteraction = options.mapinteraction;
+    
+    /* Callbacks for activate/deactivate */
+    this.activateCallback = options.activateCallback || null;
+    this.deactivateCallback = options.deactivateCallback || null;
 
     /* === Internal properties === */
     this.active = false;
@@ -50,10 +57,7 @@ magic.classes.GeneralSearch = function (options) {
             '<div class="arrow"></div>' +
             '<h3 class="popover-title"></h3>' +
             '<div class="popover-content' + (this.popoverContentClass ? ' ' + this.popoverContentClass : '') + '"></div>' +
-        '</div>';;   
-    
-    /* Popover content */
-    this.content = "";    
+        '</div>';;       
 };
 
 magic.classes.GeneralSearch.prototype.getTarget = function () {
@@ -75,33 +79,37 @@ magic.classes.GeneralSearch.prototype.assignCloseButtonHandler = function () {
 };    
 
 /**
- * Activate the geosearch control
- * @param {boolean} quiet whether to fire event
+ * Activate the search control
  */
-magic.classes.GeneralSearch.prototype.activate = function (quiet) {    
+magic.classes.GeneralSearch.prototype.activate = function () {    
     if (!this.layerAdded) {
         this.map.addLayer(this.layer);
         this.layer.setZIndex(1000);
         this.layerAdded = true;
     }
-    if (!quiet) {
+    if (this.mapinteraction) {
         /* Trigger mapinteractionactivated event */
         jQuery(document).trigger("mapinteractionactivated", [this]);
     }
     this.active = true;
-    this.layer.setVisible(true);   
+    this.layer.setVisible(true); 
+    if (jQuery.isFunction(this.activateCallback)) {
+        this.activateCallback();
+    }
 };
 
 /**
- * Activate the geosearch control
- * @param {boolean} quiet whether to fire event
+ * Deactivate the search control
  */
-magic.classes.GeneralSearch.prototype.deactivate = function (quiet) {
+magic.classes.GeneralSearch.prototype.deactivate = function () {
     this.active = false;
     this.layer.setVisible(false);
-    if (!quiet) {
+    if (this.mapinteraction) {
         /* Trigger mapinteractiondeactivated event */
         jQuery(document).trigger("mapinteractiondeactivated", [this]);
+    }
+    if (jQuery.isFunction(this.deactivateCallback)) {
+        this.deactivateCallback();
     }
 };
 

@@ -246,7 +246,7 @@ magic.classes.Geosearch.prototype.activate = function (quiet) {
 };
 
 /**
- * Activate the geosearch control
+ * Deactivate the geosearch control
  * @param {boolean} quiet whether to fire event
  */
 magic.classes.Geosearch.prototype.deactivate = function (quiet) {
