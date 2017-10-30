@@ -12,10 +12,6 @@ magic.classes.AppContainer = function () {
      * magic.runtime.preferencedata
      */ 
     
-    /* Global map container (contains the map div) */
-    magic.runtime.map_container = jQuery("#map-container");
-    magic.runtime.map_div = magic.runtime.map_container.children(":first");
-    
     /* Set container sizes */
     this.fitMapToViewport(); 
     
@@ -27,6 +23,7 @@ magic.classes.AppContainer = function () {
         } catch(e) {}
     }
     
+    //TODO refactor of all the globals!
     /* Initialise map view (returns the initialisation values for the view) */
     magic.runtime.viewdata = this.initView();
     
@@ -43,7 +40,7 @@ magic.classes.AppContainer = function () {
     magic.runtime.issueinfo = new magic.classes.IssueInformation({target: "issue-info"});
 
     /* Set up drag and drop interaction for quick visualisation of GPX and KML files */
-    magic.runtime.ddGpxKml = new magic.classes.DragDropGpxKml({});
+    var ddGpxKml = new magic.classes.DragDropGpxKml({});
     
     /* Set up OL map */
     magic.runtime.map = new ol.Map({
@@ -65,7 +62,7 @@ magic.classes.AppContainer = function () {
                 }
             })
         ],
-        interactions: ol.interaction.defaults().extend([magic.runtime.ddGpxKml.getDdInteraction()]),
+        interactions: ol.interaction.defaults().extend([ddGpxKml.getDdInteraction()]),
         target: "map",
         view: magic.runtime.view
     });
@@ -131,6 +128,13 @@ magic.classes.AppContainer = function () {
     magic.runtime.downloadrepo = this.allocateNavbarTool("download_data", "DownloadRepo", {
         target: "repo-tool"
     }, false);
+    
+    /* Rothera fieldwork reports search */
+    magic.runtime.reportsearch = this.allocateNavbarTool("rothera_reports", "RotheraReportSearch", {
+        id: "rothera-reports-tool",
+        target: "rothera-reports-tool",
+        caption: "Search for fieldwork reports"
+    }, true);
     
     /* End of navigation bar toolset */
     
@@ -268,16 +272,17 @@ magic.classes.AppContainer.prototype.initView = function() {
 magic.classes.AppContainer.prototype.fitMapToViewport = function () {
     var sideBar = jQuery("div#layer-tree");
     var sbWidth = 0;
+    var mapContainer = jQuery("#map-container");
     if (sideBar.length == 0 || sideBar.is(":hidden")) {
         /* Set map to start at left margin */
-        magic.runtime.map_container.css("left", 0);
+        mapContainer.css("left", 0);
     } else {
         /* Restore sidebar */
         sbWidth = sideBar.width();
-        magic.runtime.map_container.css("left", sbWidth);
+        mapContainer.css("left", sbWidth);
     }
-    magic.runtime.map_container.height(window.innerHeight - jQuery("div.navbar-header").height());
-    magic.runtime.map_container.width(window.innerWidth - sbWidth);
+    mapContainer.height(window.innerHeight - jQuery("div.navbar-header").height());
+    mapContainer.width(window.innerWidth - sbWidth);
     if (magic.runtime.map) {
         magic.runtime.map.updateSize();
     }

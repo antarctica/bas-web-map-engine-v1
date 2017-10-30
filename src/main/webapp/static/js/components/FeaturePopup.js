@@ -28,7 +28,7 @@ magic.classes.FeaturePopup = function(options) {
     
     if (jQuery("#" + this.popupId).length == 0) {
         /* Popup div needs creating */
-        magic.runtime.map_container.after(
+        jQuery("#map-container").after(
             '<!-- Pop-up overlay -->' + 
             '<div id="' + this.popupId + '" class="ol-popup">' + 
                 '<div id="' + this.popupId + '-content"></div>' + 
@@ -44,7 +44,7 @@ magic.classes.FeaturePopup = function(options) {
     
     /* Text continuation markup (always done in main map as will never fit in an inset!) */
     if (jQuery(this.continuation).length == 0) {
-        magic.runtime.map_container.after(
+        jQuery("#map-container").after(
             '<!-- Full attribute set modal -->' + 
             '<div class="modal fade" id="' + this.continuation + '" tabindex="-1" role="dialog" aria-labelledby="' + this.continuation + '-title" aria-hidden="true">' + 
                 '<div class="modal-dialog">' + 
@@ -94,7 +94,7 @@ magic.classes.FeaturePopup.prototype.show = function(showAt, featureData) {
             placement: jQuery.proxy(function() {
                 var placement = "bottom",
                     popoverLocation = this.map.getPixelFromCoordinate(showAt),
-                    mapHeight = magic.runtime.map_div.outerHeight(),
+                    mapHeight = jQuery("#map-container").children(":first").outerHeight(),
                     mtop = popoverLocation[1] - 400,
                     mbtm = popoverLocation[1] + 400;
                 if (mbtm > mapHeight) {
