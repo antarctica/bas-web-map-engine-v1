@@ -526,7 +526,8 @@ magic.classes.UserLayerManager.prototype.prepLayer = function(layerData, visible
                 wms_source: layerData.service, 
                 feature_name: layerData.layer
             }, defaultSourceAttrs);
-            var proj = this.map.getView().getProjection();    
+            var proj = this.map.getView().getProjection(); 
+            var resolutions = magic.runtime.map.getView().getResolutions();
             var wmsSource = new ol.source.TileWMS({
                 url: magic.modules.Endpoints.getOgcEndpoint(nd.source.wms_source, "wms"),
                 params: {
@@ -539,7 +540,7 @@ magic.classes.UserLayerManager.prototype.prepLayer = function(layerData, visible
                     "TILED": true
                 },
                 tileGrid: new ol.tilegrid.TileGrid({
-                    resolutions: magic.runtime.viewdata.resolutions,
+                    resolutions: resolutions,
                     origin: proj.getExtent().slice(0, 2)
                 }),
                 projection: proj
@@ -548,8 +549,8 @@ magic.classes.UserLayerManager.prototype.prepLayer = function(layerData, visible
                 name: nd.name,
                 visible: visible,
                 opacity: this.userPayloadConfig[layerData.id] ? this.userPayloadConfig[layerData.id].opacity : 1.0,
-                minResolution: magic.runtime.viewdata.resolutions[magic.runtime.viewdata.resolutions.length-1],
-                maxResolution: magic.runtime.viewdata.resolutions[0]+1,
+                minResolution: resolutions[resolutions.length-1],
+                maxResolution: resolutions[0]+1,
                 metadata: nd,
                 source: wmsSource
             });
@@ -599,7 +600,7 @@ magic.classes.UserLayerManager.prototype.layerWmsUrl = function() {
             "WIDTH=1000&" + 
             "HEIGHT=1000&" + 
             "STYLES=&" + 
-            "BBOX=" + magic.runtime.viewdata.proj_extent.join(","));
+            "BBOX=" + magic.runtime.map.getView().getProjection().getExtent().join(","));
     } else {
         return("");
     }

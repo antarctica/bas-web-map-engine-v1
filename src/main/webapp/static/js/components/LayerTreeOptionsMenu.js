@@ -139,7 +139,7 @@ magic.classes.LayerTreeOptionsMenu.prototype.zoomToWmsExtent = function(caps, fe
         var md = caps[featureName];
         if (jQuery.isArray(md["BoundingBox"]) && md["BoundingBox"].length > 0) {
             jQuery.each(md["BoundingBox"], function(idx, bb) {
-                if (bb.crs == magic.runtime.viewdata.projection.getCode()) {
+                if (bb.crs == magic.runtime.map.getView().getProjection().getCode()) {
                     bbox = bb.extent;
                     return(false);
                 }
@@ -149,19 +149,19 @@ magic.classes.LayerTreeOptionsMenu.prototype.zoomToWmsExtent = function(caps, fe
                     /* Get bounding box by means of WGS84 one */
                     bbox = magic.modules.GeoUtils.extentFromWgs84Extent(md["EX_GeographicBoundingBox"]);
                     if (bbox.length == 0) {
-                        bbox = magic.runtime.viewdata.proj_extent;
+                        bbox = magic.runtime.map.getView().getProjection().getExtent();
                     }
                 } else {
-                    bbox = magic.runtime.viewdata.proj_extent;
+                    bbox = magic.runtime.map.getView().getProjection().getExtent();
                 }
             }
         } else if (jQuery.isArray(md["EX_GeographicBoundingBox"]) && md["EX_GeographicBoundingBox"].length == 4) {
             bbox = magic.modules.GeoUtils.extentFromWgs84Extent(md["EX_GeographicBoundingBox"]);
         } else {
-            bbox = magic.runtime.viewdata.proj_extent;
+            bbox = magic.runtime.map.getView().getProjection().getExtent();
         }
     } else {
-        bbox = magic.runtime.viewdata.proj_extent;
+        bbox = magic.runtime.map.getView().getProjection().getExtent();
     }
     magic.runtime.map.getView().fit(bbox, magic.runtime.map.getSize());
 };
@@ -178,7 +178,7 @@ magic.classes.LayerTreeOptionsMenu.prototype.zoomToExtent = function() {
             magic.modules.Common.getCapabilities(wmsUrl, jQuery.proxy(this.zoomToWmsExtent, this), md.source.feature_name);            
         } else {
             /* Vector layers have an extent enquiry method */
-            var extent = magic.runtime.viewdata.proj_extent;
+            var extent = magic.runtime.map.getView().getProjection().getExtent();
             if (jQuery.isFunction(this.layer.getSource().getExtent)) {                
                 extent = this.layer.getSource().getExtent();
             } else {
@@ -191,7 +191,7 @@ magic.classes.LayerTreeOptionsMenu.prototype.zoomToExtent = function() {
         }
     } else {
         /* Default to projection extent */
-        magic.runtime.map.getView().fit(magic.runtime.viewdata.proj_extent, magic.runtime.map.getSize());
+        magic.runtime.map.getView().fit(magic.runtime.map.getView().getProjection().getExtent(), magic.runtime.map.getSize());
     }   
 };
 

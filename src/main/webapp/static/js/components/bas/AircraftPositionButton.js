@@ -29,14 +29,14 @@ magic.classes.AircraftPositionButton.prototype.getData = function() {
                 outside: []
             };   
             var feats = this.geoJson.readFeatures(data);
-            var projExtent = magic.modules.GeoUtils.projectionLatLonExtent(magic.runtime.viewdata.projection.getCode());
+            var projExtent = magic.modules.GeoUtils.projectionLatLonExtent(magic.runtime.map.getView().getProjection().getCode());
             jQuery.each(feats, jQuery.proxy(function(idx, f) {
                 var props = jQuery.extend({}, f.getProperties());
                 var fclone = f.clone();
                 fclone.setProperties(props);
                 if (f.getGeometry().intersectsExtent(projExtent)) {                            
-                    fclone.getGeometry().transform("EPSG:4326", magic.runtime.viewdata.projection);
-                    fclone.setStyle(magic.modules.VectorStyles["bas_aircraft"](magic.runtime.viewdata.projection));
+                    fclone.getGeometry().transform("EPSG:4326", magic.runtime.map.getView().getProjection().getCode());
+                    fclone.setStyle(magic.modules.VectorStyles["bas_aircraft"](magic.runtime.map.getView().getProjection().getCode()));
                     this.data.inside.push(fclone);
                 } else {
                     fclone.getGeometry().transform("EPSG:4326", "EPSG:3857");

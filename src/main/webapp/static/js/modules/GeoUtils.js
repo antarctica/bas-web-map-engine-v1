@@ -363,7 +363,7 @@ magic.modules.GeoUtils = function() {
             if (this.isCircumpolar(lon0, lon1)) {
                 /* Pan-Antarctic request */
                 var extPt = new ol.geom.Point([0, lat1]);
-                extPt.transform(sourceProj, magic.runtime.viewdata.projection);
+                extPt.transform(sourceProj, magic.runtime.map.getView().getProjection().getCode());
                 var ymax = extPt.getCoordinates()[1];
                 finalExtent = [-ymax, -ymax, ymax, ymax];
             } else {
@@ -376,7 +376,7 @@ magic.modules.GeoUtils = function() {
                 }
                 for (var i = 0; i < bbox.length; i++) {
                     var densifiedPoly = this.densify(bbox[i]);
-                    densifiedPoly.transform(sourceProj, magic.runtime.viewdata.projection);                    
+                    densifiedPoly.transform(sourceProj, magic.runtime.map.getView().getProjection().getCode());                    
                     if (finalExtent == null) {
                         finalExtent = densifiedPoly.getExtent();
                     } else {
@@ -419,9 +419,9 @@ magic.modules.GeoUtils = function() {
          * @returns {float}
          */
         getCurrentMapScale: function(map) {
-            map = map || magic.runtime.map;            
-            var resolution = map ? map.getView().getResolution() : magic.runtime.viewdata.resolutions[0];
-            var units = map ? map.getView().getProjection().getUnits() : magic.runtime.viewdata.projection.getUnits();
+            map = map || magic.runtime.map;   
+            var resolution = map.getView().getResolution();
+            var units = map.getView().getProjection().getUnits();
             var dpi = 25.4 / 0.28;
             var mpu = ol.proj.METERS_PER_UNIT[units];
             var scale = resolution * mpu * 39.37 * dpi; /* NB magic numbers */
@@ -434,9 +434,10 @@ magic.modules.GeoUtils = function() {
          * @returns {float}
          */
         getResolutionFromScale: function(scale) {
-            var res = magic.runtime.viewdata.resolutions[0];
+            var resolutions = magic.runtime.map.getView().getResolutions();
+            var res = resolutions[0];
             if (!isNaN(scale)) {
-                var units = magic.runtime.viewdata.projection.getUnits();
+                var units = magic.runtime.map.getView().getProjection().getUnits();
                 var dpi = 25.4 / 0.28;
                 var mpu = ol.proj.METERS_PER_UNIT[units];
                 res = parseFloat(scale)/(mpu * 39.37 * dpi);

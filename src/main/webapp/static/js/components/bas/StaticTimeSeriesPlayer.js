@@ -147,7 +147,7 @@ magic.classes.StaticTimeSeriesPlayer.prototype.updateLayer = function() {
     jQuery("#granule-date-" + this.nodeid).html(this.formatTime());
     this.layer.setSource(new ol.source.ImageStatic({
         url: magic.config.paths.baseurl + "/proxy/static?service=" + this.service + "&t=" + t,
-        projection: magic.runtime.viewdata.projection,
+        projection: magic.runtime.map.getView().getProjection().getCode(),
         imageExtent: this.extent
     }));
 };

@@ -60,12 +60,13 @@ magic.classes.GraticuleButton = function (name, ribbon) {
                     params: {"LAYERS": gratEp.graticule_layer},
                     projection: projection
                 }));
+                var resolutions = magic.runtime.map.getView().getResolutions();
                 this.graticuleLayer = new ol.layer.Image({
                     name: "automated_graticule_layer",
                     visible: true,
                     source: wmsSource,
-                    minResolution: magic.runtime.viewdata.resolutions[magic.runtime.viewdata.resolutions.length-1],
-                    maxResolution: magic.runtime.viewdata.resolutions[0]+1
+                    minResolution: resolutions[resolutions.length-1],
+                    maxResolution: resolutions[0]+1
                 });                
                 magic.runtime.map.addLayer(this.graticuleLayer);
                 /* Send to top of WMS layer stack (vectors will be on top of it) */

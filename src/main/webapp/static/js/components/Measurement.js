@@ -414,8 +414,8 @@ magic.classes.Measurement.prototype.geodesicLength = function() {
     var geodesicLength = 0.0;
     var coords = this.sketch.getGeometry().getCoordinates();
     for (var i = 0, ii = coords.length - 1; i < ii; ++i) {
-        var c1 = ol.proj.transform(coords[i], magic.runtime.viewdata.projection, 'EPSG:4326');
-        var c2 = ol.proj.transform(coords[i + 1], magic.runtime.viewdata.projection, 'EPSG:4326');
+        var c1 = ol.proj.transform(coords[i], magic.runtime.map.getView().getProjection().getCode(), 'EPSG:4326');
+        var c2 = ol.proj.transform(coords[i + 1], magic.runtime.map.getView().getProjection().getCode(), 'EPSG:4326');
         geodesicLength += magic.modules.GeoUtils.WGS84.haversineDistance(c1, c2);
     }    
     return(geodesicLength);
@@ -426,7 +426,7 @@ magic.classes.Measurement.prototype.geodesicLength = function() {
  * @returns {float}
  */
 magic.classes.Measurement.prototype.geodesicArea = function() {    
-    var polyClone = this.sketch.getGeometry().clone().transform(magic.runtime.viewdata.projection, "EPSG:4326");    
+    var polyClone = this.sketch.getGeometry().clone().transform(magic.runtime.map.getView().getProjection().getCode(), "EPSG:4326");    
     return(Math.abs(magic.modules.GeoUtils.WGS84.geodesicArea(polyClone.getLinearRing[0].getCoordinates())));
 };
 

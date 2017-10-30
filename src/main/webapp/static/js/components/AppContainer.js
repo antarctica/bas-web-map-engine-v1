@@ -23,9 +23,8 @@ magic.classes.AppContainer = function () {
         } catch(e) {}
     }
     
-    //TODO refactor of all the globals!
     /* Initialise map view (returns the initialisation values for the view) */
-    magic.runtime.viewdata = this.initView();
+    this.initView();
     
     /* Set up layer tree */
     magic.runtime.mapdata = magic.runtime.map_context.data;
@@ -220,6 +219,7 @@ magic.classes.AppContainer.prototype.allocateNavbarTool = function(name, classNa
  * @return {object} 
  */
 magic.classes.AppContainer.prototype.initView = function() {
+    //TODO
     var viewData = magic.runtime.map_context.data;
     var proj = ol.proj.get(viewData.projection);    
     var viewDefaults;

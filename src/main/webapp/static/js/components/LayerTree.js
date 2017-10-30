@@ -436,13 +436,14 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
             );            
     /* Create a data layer */
     var layer = null;
-    var proj = magic.runtime.viewdata.projection;            
+    var proj = magic.runtime.map.getView().getProjection().getCode(); 
+    var resolutions = magic.runtime.map.getView().getResolutions();
     /* Get min/max resolution */  
     var minRes = undefined, maxRes = undefined;
     if (!(nd.source.wms_source && nd.source.wms_source == "osm")) {
-        if (magic.runtime.viewdata.resolutions) {
-            minRes = magic.runtime.viewdata.resolutions[magic.runtime.viewdata.resolutions.length-1];
-            maxRes = magic.runtime.viewdata.resolutions[0]+1;   /* Note: OL applies this one exclusively, whereas minRes is inclusive - duh! */  
+        if (resolutions) {
+            minRes = resolutions[resolutions.length-1];
+            maxRes = resolutions[0]+1;   /* Note: OL applies this one exclusively, whereas minRes is inclusive - duh! */  
             if (jQuery.isNumeric(nd.minScale)) {
                 minRes = magic.modules.GeoUtils.getResolutionFromScale(nd.min_scale);
             }
@@ -490,7 +491,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                     "TILED": true
                 },
                 tileGrid: new ol.tilegrid.TileGrid({
-                    resolutions: magic.runtime.viewdata.resolutions,
+                    resolutions: resolutions,
                     origin: proj.getExtent().slice(0, 2)
                 }),
                 projection: proj
@@ -516,7 +517,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
     } else if (nd.source.geojson_source) {
         /* GeosJSON layer */
         var vectorSource;
-        var labelRotation = nd.source.feature_name ? 0.0 : -magic.runtime.viewdata.rotation;
+        var labelRotation = nd.source.feature_name ? 0.0 : -magic.runtime.getView().getRotation();
         var format = new ol.format.GeoJSON();
         var url = nd.source.geojson_source;
         if (nd.source.feature_name) {                           
@@ -574,7 +575,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
         this.layersBySource["geojson"].push(layer);
     } else if (nd.source.gpx_source) {
         /* GPX layer */
-        var labelRotation = -magic.runtime.viewdata.rotation;
+        var labelRotation = -magic.runtime.getView().getRotation();
         layer = new ol.layer.Image({
             name: nd.name,
             visible: isVisible,
@@ -610,7 +611,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
         this.layersBySource["gpx"].push(layer);
     } else if (nd.source.kml_source) {
         /* KML source */
-        var labelRotation = -magic.runtime.viewdata.rotation;
+        var labelRotation = -magic.runtime.getView().getRotation();
         var kmlStyle = this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map), labelRotation);
         layer = new ol.layer.Image({
             name: nd.name,

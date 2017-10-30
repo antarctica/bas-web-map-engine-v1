@@ -203,7 +203,11 @@ magic.classes.Geosearch.prototype.activate = function (quiet) {
                     var feat = this.searchSuggestions[name].feature;
                     if (!feat) {
                         /* Create the feature */
-                        var trCoord = ol.proj.transform([this.searchSuggestions[name].lon, this.searchSuggestions[name].lat], "EPSG:4326", magic.runtime.viewdata.projection);
+                        var trCoord = ol.proj.transform(
+                            [this.searchSuggestions[name].lon, this.searchSuggestions[name].lat], 
+                            "EPSG:4326", 
+                            magic.runtime.map.getView().getProjection().getCode()
+                        );
                         feat = new ol.Feature({
                             geometry: new ol.geom.Point(trCoord),
                             suggestion: true
@@ -386,13 +390,14 @@ magic.classes.Geosearch.prototype.placenameSearchHandler = function (evt) {
  */
 magic.classes.Geosearch.prototype.computeProjectedGeometry = function (gaz, data) {
     var pt;
+    var projCode = magic.runtime.map.getView().getProjection().getCode();
     if (
-        (gaz == "sgssi" && magic.runtime.viewdata.projection.getCode() == "EPSG:3031") ||
-        (gaz != "sgssi" && magic.runtime.viewdata.projection.getCode() == "EPSG:3762")
+        (gaz == "sgssi" && projCode == "EPSG:3031") ||
+        (gaz != "sgssi" && projCode == "EPSG:3762")
         ) {
         /* South Georgia gazetteer being used in an Antarctic map context, or Antarctic gazetteer in a South Georgia one - need to reproject coordinates */
         pt = new ol.geom.Point([data.lon, data.lat]);
-        pt.transform("EPSG:4326", magic.runtime.viewdata.projection.getCode());
+        pt.transform("EPSG:4326", projCode);
     } else {
         pt = new ol.geom.Point([data.x, data.y]);
     }
@@ -448,7 +453,7 @@ magic.classes.Geosearch.prototype.positionSearchHandler = function (evt) {
     if (magic.modules.GeoUtils.validCoordinate(lon.val(), false, false) && magic.modules.GeoUtils.validCoordinate(lat.val(), true, false)) {
         /* Co-ordinates check out */
         var position = new ol.geom.Point([lon.val(), lat.val()]);
-        position.transform("EPSG:4326", magic.runtime.viewdata.projection);
+        position.transform("EPSG:4326", magic.runtime.map.getView().getProjection().getCode());
         var feat = new ol.Feature({
             geometry: position,
             lon: lon.val(),

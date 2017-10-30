@@ -50,8 +50,8 @@ magic.classes.OverviewMap.prototype.initControl = function() {
         className: "ol-overviewmap custom-overview-map",        
         layers: this.getOverviewLayers(),
         view: new ol.View({
-            projection: magic.runtime.viewdata.projection,
-            rotation: magic.runtime.viewdata.rotation
+            projection: magic.runtime.map.getView().getProjection().getCode(),
+            rotation: magic.runtime.map.getView().getRotation()
         })
     });        
     magic.runtime.map.addControl(this.control);
