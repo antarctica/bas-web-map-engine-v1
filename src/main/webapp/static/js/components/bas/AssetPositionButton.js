@@ -7,7 +7,7 @@ magic.classes.AssetPositionButton = function (name, ribbon, options) {
     this.ribbon = ribbon;
 
     /* Internal properties */
-    this.title = "Latest positions of " + (options.title || " asset");
+    this.title = (options.title || "Asset") + " positions";
     this.iconClass = options.iconClass || "fa fa-circle";
     
     this.inactiveTitle = "Show latest " + this.title + " positions";
@@ -33,7 +33,7 @@ magic.classes.AssetPositionButton = function (name, ribbon, options) {
         
     this.btn = jQuery('<button>', {
         "id": "btn-" + this.name,
-        "class": "btn btn-default",
+        "class": "btn btn-default ribbon-middle-tool",
         "data-toggle": "tooltip",
         "data-placement": "bottom",
         "title": this.inactiveTitle,

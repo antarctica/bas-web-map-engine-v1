@@ -64,12 +64,7 @@ magic.classes.ControlButtonRibbon = function(config) {
             case "rotation":
                 /* Reset the rotation of the map */                                
                 this.appendControlButton(new magic.classes.ResetRotationButton("rotation", this).getButton()); 
-                break;
-                
-            case "globe3d":
-                /* Render map on 3D cesium globe */                                
-                this.appendControlButton(new magic.classes.Switch3DButton("globe3d", this).getButton()); 
-                break;
+                break;       
                 
             case "graticule":
                 /* Show graticule */                                
@@ -144,10 +139,10 @@ magic.classes.ControlButtonRibbon.prototype.createControlButton = function(name,
         modifierClass = "ribbon-first-tool";        
     } else if (ribbonPos == this.buttons.length) {
         /* Last button in toolbar does minimise */
-        modifierClass = "minimise-button";
+        modifierClass = "ribbon-last-tool minimise-button";
     } else if (ribbonPos < 0) {
         /* Convention for a maximise button */
-        modifierClass = "maximise-button";
+        modifierClass = "ribbon-last-tool maximise-button";
     }
     var btn = jQuery('<button>', {
         "id": "btn-" + name,

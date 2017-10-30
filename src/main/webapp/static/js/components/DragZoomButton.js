@@ -17,7 +17,7 @@ magic.classes.DragZoomButton = function(name, ribbon) {
     
     this.btn = jQuery('<button>', {
         "id": "btn-" + this.name,
-        "class": "btn btn-default",
+        "class": "btn btn-default ribbon-middle-tool",
         "data-toggle": "tooltip",
         "data-placement": "bottom",
         "title": this.inactiveTitle,

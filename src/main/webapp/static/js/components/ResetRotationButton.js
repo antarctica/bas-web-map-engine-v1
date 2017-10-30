@@ -13,7 +13,7 @@ magic.classes.ResetRotationButton = function(name, ribbon) {
    
     this.btn = jQuery('<button>', {
         "id": "btn-" + this.name,
-        "class": "btn btn-default disabled",
+        "class": "btn btn-default ribbon-middle-tool disabled",
         "data-toggle": "tooltip",
         "data-placement": "bottom",
         "title": this.title,

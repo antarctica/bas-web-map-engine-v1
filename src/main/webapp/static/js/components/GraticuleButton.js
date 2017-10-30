@@ -16,7 +16,7 @@ magic.classes.GraticuleButton = function (name, ribbon) {
 
     this.btn = jQuery('<button>', {
         "id": "btn-" + this.name,
-        "class": "btn btn-default active",
+        "class": "btn btn-default ribbon-middle-tool active",
         "data-toggle": "tooltip",
         "data-placement": "bottom",
         "title": this.activeTitle,

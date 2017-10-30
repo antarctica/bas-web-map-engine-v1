@@ -64,11 +64,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
     }
     
     /* Added for CCAMLR pre-authentication via Drupal cookie */
-    
-    @Bean
-    public DrupalChocChipHeaderAuthenticationFilter chocChipFilter() {
-        return(new DrupalChocChipHeaderAuthenticationFilter(env, magicDataTpl));
-    }
+   
     
     /* End of CCAMLR additions */
 
@@ -134,8 +130,9 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
         
         if (env.getProperty("authentication.ccamlr").equals("yes")) {
             /* Authentication via Drupal CHOCCHIPSSL cookie */
+            System.out.println("CCAMLR authentication via Drupal ChocChip filter");
             http
-                .addFilterBefore(chocChipFilter(), BasicAuthenticationFilter.class)
+                .addFilterBefore(new DrupalChocChipHeaderAuthenticationFilter(env, magicDataTpl), BasicAuthenticationFilter.class)
                 .authorizeRequests()
                 .antMatchers("/*.ico", "/static/**", "/ping", "/home/**", "/homed/**",
                         "/maps/dropdown/**", "/maps/name/**", "/maps/id/**", "/thumbnails", "/feedback",
@@ -152,6 +149,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
                 .fullyAuthenticated();                    
         } else {
             /* Form-based authentication of some kind */
+            System.out.println("Ordinary authentication via login form");
             http
                 .authorizeRequests()
                 .antMatchers("/*.ico", "/static/**", "/ping", "/home/**", "/homed/**",

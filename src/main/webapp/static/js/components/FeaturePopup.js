@@ -34,9 +34,10 @@ magic.classes.FeaturePopup = function(options) {
                 '<div id="' + this.popupId + '-content"></div>' + 
             '</div>'
         );
-    }    
+    }
+    this.popupElt = jQuery("#" + this.popupId);
     this.popup = new ol.Overlay({
-        element: jQuery("#" + this.popupId)[0],
+        element: this.popupElt[0],
         positioning: "center-center"
     });
     this.map.addOverlay(this.popup);
@@ -89,7 +90,7 @@ magic.classes.FeaturePopup.prototype.show = function(showAt, featureData) {
             initPager: false,
             featureCollection: featureData
         });
-        jQuery("#" + this.popupId).popover({
+        this.popupElt.popover({
             placement: jQuery.proxy(function() {
                 var placement = "bottom",
                     popoverLocation = this.map.getPixelFromCoordinate(showAt),
@@ -109,8 +110,8 @@ magic.classes.FeaturePopup.prototype.show = function(showAt, featureData) {
         }).on("shown.bs.popover", jQuery.proxy(function() {
             this.selectFeature();            
             /* Close button */
-            jQuery("span.feature-popup-title-cont").find("button.close").click(jQuery.proxy(function() { 
-                jQuery("#" + this.popupId).popover("hide");
+            jQuery("span[id^='" + this.popupId + "-title-']").find("button.close").click(jQuery.proxy(function() { 
+                this.popupElt.popover("hide");
             }, this));
         }, this));
         jQuery("#" + this.popupId).popover("show");
@@ -120,7 +121,7 @@ magic.classes.FeaturePopup.prototype.show = function(showAt, featureData) {
  * Hide (i.e. destroy) the popup
  */
 magic.classes.FeaturePopup.prototype.hide = function() {
-    jQuery("#" + this.popupId).popover("destroy");
+    this.popupElt.popover("destroy");
 };
 
 /**
@@ -131,8 +132,10 @@ magic.classes.FeaturePopup.prototype.title = function() {
     var content = "";
     jQuery.each(this.featureCollection, jQuery.proxy(function(i, feat) {
         var name = feat.layer.get("name");        
-        content += '<span class="feature-popup-title-cont ' + (i > 0 ? "hidden" : "show") + '">' + magic.modules.Common.ellipsis(name, 20) +
-                   '<button type="button" style="float:right" class="close">&times;</button></span>';      
+        content += '<span id="' + this.popupId + '-title-' + i + '" class="feature-popup-title-cont ' + (i > 0 ? "hidden" : "show") + '">' + 
+                        magic.modules.Common.ellipsis(name, 25) +
+                        '<button type="button" style="float:right" class="close">&times;</button>' + 
+                    '</span>';      
     }, this));    
     return(content);
     
@@ -144,9 +147,8 @@ magic.classes.FeaturePopup.prototype.title = function() {
  */
 magic.classes.FeaturePopup.prototype.basicMarkup = function() {    
     var content = "";
-    //var basicSchema = ["name", "lon", "lat", "date"];
     jQuery.each(this.featureCollection, jQuery.proxy(function(i, feat) {
-        content += '<div class="feature-popup-table-cont ' + (i > 0 ? "hidden" : "show") + '">';
+        content += '<div id="' + this.popupId + '-table-' + i + '" class="feature-popup-table-cont ' + (i > 0 ? "hidden" : "show") + '">';
         content += '<table class="table table-striped table-condensed feature-popup-table">';
         var nDisplayed = 0, nAttrs = -1, isVectorFeat = false;
         if (feat.layer) {            
@@ -300,14 +302,13 @@ magic.classes.FeaturePopup.prototype.minimumPopupAttrs = function(feat) {
  * Display the attribute markup for the feature at the given index
  * @returns {undefined}
  */
-magic.classes.FeaturePopup.prototype.selectFeature = function() {
+magic.classes.FeaturePopup.prototype.selectFeature = function() {   
     if (this.featureCollection.length > 1) {
         /* Update "showing x of y" message */
         jQuery("#" + this.popupId + "-pager-xofy").html("Showing " + (this.featurePointer+1) + " of " + this.featureCollection.length);
     }
     /* Show the relevant title from the markup */
-    // TODO all jQuery searches are too wide - they pick up popovers from the other map when there is an inset - need to narrow!
-    jQuery("span.feature-popup-title-cont").each(jQuery.proxy(function(idx, elt) {
+    jQuery("span[id^='" + this.popupId + "-title-']").each(jQuery.proxy(function(idx, elt) {
         if (idx == this.featurePointer) {
             jQuery(elt).removeClass("hidden").addClass("show");
         } else {
@@ -315,64 +316,64 @@ magic.classes.FeaturePopup.prototype.selectFeature = function() {
         }
     }, this));
     /* Show the relevant div from the combined markup */
-    jQuery("div.feature-popup-table-cont").each(jQuery.proxy(function(idx, elt) {
+    jQuery("div[id^='" + this.popupId + "-table-']").each(jQuery.proxy(function(idx, elt) {
         if (idx == this.featurePointer) {
             jQuery(elt).removeClass("hidden").addClass("show");
         } else {
             jQuery(elt).removeClass("show").addClass("hidden");
         }
-    }, this));
-    /* Add long field popup extension handler */
-    jQuery("div.feature-popup-table-cont").find("button.long-field-extension").each(function(i, b) {
-        var divs = jQuery(b).children("div");
-        if (divs.length > 0) {
-            jQuery(b).popover({
-                title: false,
-                html: true,
-                content: '<div style="width:200px">' + jQuery(divs[0]).html() + '</div>'
-            });
-        }
-    });
-    /* Add full attribute set modal handler */
-    jQuery("div.feature-popup-table-cont").find("button[id^='" + this.popupId + "-full-attr-set-']").off("click").on("click", jQuery.proxy(function(evt) {
-        var btnId = evt.currentTarget.id;
-        var fidx = parseInt(btnId.substring(btnId.lastIndexOf("-")+1));
-        if (!isNaN(fidx) && fidx < this.featureCollection.length) {
-            /* Got an index into the current feature collection */
-            var attrdata = this.featureCollection[fidx];
-            var keys = [];
-            for (var k in attrdata) {
-                if (k != "layer" && k != "bbox" && k != "geometry") {
-                    keys.push(k);
-                }
+        /* Add extension popover for long fields */
+        jQuery(elt).find("button.long-field-extension").each(function(i, b) {
+            var divs = jQuery(b).children("div");
+            if (divs.length > 0) {
+                jQuery(b).popover({
+                    title: false,
+                    html: true,
+                    content: '<div style="width:200px">' + jQuery(divs[0]).html() + '</div>'
+                });
             }
-            var content = '<table class="table table-striped table-condensed feature-popup-table">';
-            jQuery.each(keys.sort(), function(idx, key) {
-                var value = attrdata[key];
-                if (jQuery.isNumeric(value)) { 
-                    /* Changed 2016-11-02 David - should show zero values in e.g. speed attributes */
-                    content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td align="right">' + value + '</td></tr>';
-                } else if (value && key.toLowerCase().indexOf("geom") == -1) {
-                    /* Test for Redmine markup-style link with alias of form "<alias>":<url> which should be translated */
-                    /* NOTE: David 2016-11-02 - suppress null non-numeric values in the pop-up */
-                    var finalValue = "";
-                    if (value) {
-                        var quote1 = value.indexOf("\"");
-                        var quote2 = value.lastIndexOf("\"");
-                        if (quote1 != -1 && quote2 != -1) {
-                            finalValue = magic.modules.Common.linkify(value.substring(quote2+2), value.substring(quote1+1, quote2));
-                        } else {
-                            finalValue = magic.modules.Common.linkify(value);
-                        }     
+        });
+        /* Add full attribute set modal handler */
+        jQuery(elt).find("button[id^='" + this.popupId + "-full-attr-set-']").off("click").on("click", jQuery.proxy(function(evt) {
+            var btnId = evt.currentTarget.id;
+            var fidx = parseInt(btnId.substring(btnId.lastIndexOf("-")+1));
+            if (!isNaN(fidx) && fidx < this.featureCollection.length) {
+                /* Got an index into the current feature collection */
+                var attrdata = this.featureCollection[fidx];
+                var keys = [];
+                for (var k in attrdata) {
+                    if (k != "layer" && k != "bbox" && k != "geometry") {
+                        keys.push(k);
                     }
-                    content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td>' + finalValue + '</td></tr>';
                 }
-            });
-            content += '</table>';
-            jQuery("#" + this.continuation + "-content").html(content);
-            jQuery("#" + this.continuation).modal("show");            
-        }
-    }, this));
+                var content = '<table class="table table-striped table-condensed feature-popup-table">';
+                jQuery.each(keys.sort(), function(idx, key) {
+                    var value = attrdata[key];
+                    if (jQuery.isNumeric(value)) { 
+                        /* Changed 2016-11-02 David - should show zero values in e.g. speed attributes */
+                        content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td align="right">' + value + '</td></tr>';
+                    } else if (value && key.toLowerCase().indexOf("geom") == -1) {
+                        /* Test for Redmine markup-style link with alias of form "<alias>":<url> which should be translated */
+                        /* NOTE: David 2016-11-02 - suppress null non-numeric values in the pop-up */
+                        var finalValue = "";
+                        if (value) {
+                            var quote1 = value.indexOf("\"");
+                            var quote2 = value.lastIndexOf("\"");
+                            if (quote1 != -1 && quote2 != -1) {
+                                finalValue = magic.modules.Common.linkify(value.substring(quote2+2), value.substring(quote1+1, quote2));
+                            } else {
+                                finalValue = magic.modules.Common.linkify(value);
+                            }     
+                        }
+                        content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td>' + finalValue + '</td></tr>';
+                    }
+                });
+                content += '</table>';
+                jQuery("#" + this.continuation + "-content").html(content);
+                jQuery("#" + this.continuation).modal("show");            
+            }
+        }, this));
+    }, this));       
     if (this.featureCollection.length > 1) {
         /* Do we need to add handlers for pager buttons? */
         if (!this.initPager) {
@@ -426,14 +427,13 @@ magic.classes.FeaturePopup.prototype.selectFeature = function() {
  * Make sure the popover arrow is anchored to the location of the first feature in the list, and remains so anchored through dynamic content changes
  */
 magic.classes.FeaturePopup.prototype.fixPopoverPosition = function() {
-    var parentPopover = jQuery("div.feature-popup-table-cont").parents("div.popover");
+    var parentPopover = jQuery("div[id^='" + this.popupId + "-table-']").first().parents("div.popover");
     if (parentPopover.hasClass("top")) {
         /* Redjustment potentially necessary */   
         parentPopover.css("top", -parentPopover.outerHeight() + "px");
     }
     /* Fix horizontal positioning where content width allowed to vary e.g. when images are loaded */
-    var po = jQuery("div.feature-popup-table-cont").parents("div.popover");
-    po.find("div.arrow").css("left", parseInt(100*116/po.innerWidth()) + "%");
+    parentPopover.find("div.arrow").css("left", parseInt(100*116/parentPopover.innerWidth()) + "%");
 };
 
 /**

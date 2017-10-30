@@ -46,7 +46,9 @@ public class DrupalChocChipHeaderAuthenticationFilter extends OncePerRequestFilt
         
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain fc) throws ServletException, IOException {
+        System.out.println("CCAMLR Drupal ChocChip filter entered");
         if (env.getProperty("authentication.ccamlr").equals("yes")) {
+            System.out.println("CCAMLR authentication required");
             String userName = getCcamlrUserName(request);
             if (userName != null) {
                 System.out.println("CCAMLR user " + userName + " is logged in");
@@ -83,6 +85,7 @@ public class DrupalChocChipHeaderAuthenticationFilter extends OncePerRequestFilt
                 SecurityContextHolder.clearContext();
             }
         }
+        System.out.println("About to do filter...");
         fc.doFilter(request, response);
     }
     
