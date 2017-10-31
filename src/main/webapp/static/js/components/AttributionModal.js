@@ -212,7 +212,7 @@ magic.classes.AttributionModal.prototype.populateRecordRamadda = function(data) 
 magic.classes.AttributionModal.prototype.populateRecordWms = function(getCaps, featureName) {
     var rec = {};
     if (getCaps && getCaps[featureName]) {
-        var proj = magic.runtime.viewdata.projection.getCode();
+        var proj = magic.runtime.map.getView().getProjection().getCode();
         var caps = getCaps[featureName];
         /* Read abstract */
         rec["abstract"] = caps["Abstract"] || "";
@@ -241,13 +241,13 @@ magic.classes.AttributionModal.prototype.populateRecordWms = function(getCaps, f
             "WIDTH=1000&" + 
             "HEIGHT=1000&" + 
             "STYLES=&" + 
-            "BBOX=" + magic.runtime.viewdata.proj_extent.join(",");
+            "BBOX=" + magic.runtime.map.getView().getProjection().getExtent().join(",");
         /* Read keywords */
         rec["keywords"] = caps["KeywordList"] ? caps["KeywordList"].join("<br />") : "";
         /* Read SRS bounding box */
         if (jQuery.isArray(caps["BoundingBox"])) {
             jQuery.each(caps["BoundingBox"], function(idx, bb) {
-                if (bb.crs == magic.runtime.viewdata.projection.getCode()) {
+                if (bb.crs == magic.runtime.map.getView().getProjection().getCode()) {
                     rec["bboxsrs"] = magic.modules.GeoUtils.formatBbox(bb.extent, 0);
                     return(false);
                 }

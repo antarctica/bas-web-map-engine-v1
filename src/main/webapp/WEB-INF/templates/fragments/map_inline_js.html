@@ -13,6 +13,7 @@
         prefsRequest = payloadRequest.then(function(payload) {                                        
             magic.runtime.map_context = jQuery.extend({}, payload, backendVars);
             magic.runtime.map_context.data = JSON.parse(payload.data.value);
+            magic.runtime.map_context.capabilities = {};
             magic.runtime.map_context.userdata = magic.runtime.map_context.userdata ? JSON.parse(magic.runtime.map_context.userdata.data.value) : {};                    
             return(jQuery.ajax({
                 url: magic.config.paths.baseurl + "/prefs/get",

@@ -134,7 +134,7 @@ magic.modules.VectorStyles = function () {
                     case "ship": type = "ship"; break;
                     case "aeroplane": type = "airplane"; break;
                     case "helicopter": type = "helicopter"; break;
-                    default: break;
+                    default: type = "airplane"; break;
                 }
                 if (name != "unknown asset" && props["description"]) {
                     name = props["description"] + " (" + name + ")";

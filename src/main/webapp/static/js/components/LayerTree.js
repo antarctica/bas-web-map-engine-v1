@@ -525,7 +525,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
     } else if (nd.source.geojson_source) {
         /* GeosJSON layer */
         var vectorSource;
-        var labelRotation = nd.source.feature_name ? 0.0 : -magic.runtime.getView().getRotation();
+        var labelRotation = nd.source.feature_name ? 0.0 : -magic.runtime.map_context.data.rotation;
         var format = new ol.format.GeoJSON();
         var url = nd.source.geojson_source;
         if (nd.source.feature_name) {                           
@@ -583,7 +583,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
         this.layersBySource["geojson"].push(layer);
     } else if (nd.source.gpx_source) {
         /* GPX layer */
-        var labelRotation = -magic.runtime.getView().getRotation();
+        var labelRotation = -magic.runtime.map_context.data.rotation;
         layer = new ol.layer.Image({
             name: nd.name,
             visible: isVisible,
@@ -619,7 +619,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
         this.layersBySource["gpx"].push(layer);
     } else if (nd.source.kml_source) {
         /* KML source */
-        var labelRotation = -magic.runtime.getView().getRotation();
+        var labelRotation = -magic.runtime.map_context.data.rotation;
         var kmlStyle = this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map), labelRotation);
         layer = new ol.layer.Image({
             name: nd.name,

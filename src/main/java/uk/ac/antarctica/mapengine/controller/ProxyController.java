@@ -61,7 +61,7 @@ public class ProxyController {
     
     private static final HashMap<String, String> CREDENTIALS = new HashMap();
     static {        
-        CREDENTIALS.put("http://tracker.aad.gov.au", "comnap:Koma5vudri:Tracker");
+        CREDENTIALS.put("http://tracker.aad.gov.au/geojson.py", "comnap:Koma5vudri:Tracker");
     }
     
     /* Cope with haproxy reverse proxying mess where some https:// URLs give Java "unrecognized_name" errors due to broken SSL implementation - David 2017-03-30 */
@@ -85,6 +85,8 @@ public class ProxyController {
         
         boolean proxied = false;
         String errorMessage = "";
+        
+        System.out.println("Entering proxy...");
                 
         /* test for alias substitution */
         for (String a : ALIASES.keySet()) {
@@ -115,44 +117,43 @@ public class ProxyController {
                                 proxied = true;
                             } else if (credParts.length == 3) {
                                 /* Apply HTTP Digest Auth */
+                                System.out.println("Apply Digest Auth...");
                                 URL obj = new URL(url);
                                 URLConnection conn = obj.openConnection();
                                 Map<String, List<String>> map = conn.getHeaderFields();
-                                if (map.containsKey("WWW-Authenticate")) {
-                                    String wwwAuth = map.get("WWW-Authenticate").get(0);
-                                    if (!wwwAuth.isEmpty()) {
-                                        /* Server returned a plausible header giving information on how to authenticate */
-                                        System.out.println("Got WWW-Authenticate header : " + wwwAuth);
-                                        HttpHost targetHost = new HttpHost(obj.getHost(), obj.getPort(), obj.getProtocol());
-                                        CloseableHttpClient httpClient = HttpClients.createDefault();
-                                        HttpClientContext context = HttpClientContext.create();
-                                        CredentialsProvider credsProvider = new BasicCredentialsProvider();
-                                        credsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(credParts[0], credParts[1]));
-                                        AuthCache authCache = new BasicAuthCache();
-                                        DigestScheme digestScheme = new DigestScheme();
-                                        /* Extract the digest parameters */
-                                        String[] kvps = wwwAuth.split(",\\s?");
-                                        for (String kvp : kvps) {
-                                            String[] kvArr = kvp.split("=");
-                                            if (kvArr.length == 2) {
-                                                String k = kvArr[0].replace("\\\\\"", "");
-                                                String v = kvArr[1].replace("\\\\\"", "");
-                                                if (k.toLowerCase().equals("digest realm")) {
-                                                    k = "realm";
-                                                }
-                                                System.out.println("Set digest override parameter " + k + " to " + v);
-                                                digestScheme.overrideParamter(k, v);
+                                String wwwAuth = getNamedHeader("www-authenticate", map); 
+                                if (!wwwAuth.isEmpty()) {
+                                    /* Server returned a plausible header giving information on how to authenticate */
+                                    System.out.println("Got WWW-Authenticate header : " + wwwAuth);
+                                    HttpHost targetHost = new HttpHost(obj.getHost(), obj.getPort(), obj.getProtocol());
+                                    CloseableHttpClient httpClient = HttpClients.createDefault();
+                                    HttpClientContext context = HttpClientContext.create();
+                                    CredentialsProvider credsProvider = new BasicCredentialsProvider();
+                                    credsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(credParts[0], credParts[1]));
+                                    AuthCache authCache = new BasicAuthCache();
+                                    DigestScheme digestScheme = new DigestScheme();
+                                    /* Extract the digest parameters */
+                                    String[] kvps = wwwAuth.split(",\\s?");
+                                    for (String kvp : kvps) {
+                                        String[] kvArr = kvp.split("=");
+                                        if (kvArr.length == 2) {
+                                            String k = kvArr[0].replace("\\\\\"", "");
+                                            String v = kvArr[1].replace("\\\\\"", "");
+                                            if (k.toLowerCase().equals("digest realm")) {
+                                                k = "realm";
                                             }
+                                            System.out.println("Set digest override parameter " + k + " to " + v);
+                                            digestScheme.overrideParamter(k, v);
                                         }
-                                        authCache.put(new HttpHost(key), digestScheme);
-                                        context.setCredentialsProvider(credsProvider);
-                                        context.setAuthCache(authCache);
-                                        HttpGet httpget = new HttpGet(url);
-                                        CloseableHttpResponse httpResp = httpClient.execute(targetHost, httpget, context);
-                                        IOUtils.copy(httpResp.getEntity().getContent(), response.getOutputStream());
-                                        proxied = true;
                                     }
-                                }                                
+                                    authCache.put(new HttpHost(key), digestScheme);
+                                    context.setCredentialsProvider(credsProvider);
+                                    context.setAuthCache(authCache);
+                                    HttpGet httpget = new HttpGet(url);
+                                    CloseableHttpResponse httpResp = httpClient.execute(targetHost, httpget, context);
+                                    IOUtils.copy(httpResp.getEntity().getContent(), response.getOutputStream());
+                                    proxied = true;
+                                }
                             }
                         } else {
                             /* No authentication required */
@@ -236,6 +237,31 @@ public class ProxyController {
             env.getProperty("redmine.local.password")
         );
         IOUtils.copy(IOUtils.toInputStream(content), response.getOutputStream());         
+    }
+    
+    /**
+     * Look for the named header, case insensitive
+     * @param String headerName
+     * @param Map<String, List<String>> headers
+     * @return String 
+     */
+    private String getNamedHeader(String headerName, Map<String, List<String>> headers) {
+        String namedHeaderStr = "";
+        System.out.println("Find header " + headerName);
+        String lcName = headerName.toLowerCase();
+        for (String hn : headers.keySet()) {
+            if (hn != null) {
+                System.out.println("Checking " + hn);
+                String lcHn = hn.toLowerCase();
+                if (lcName.equals(lcHn)) {
+                    /* Found it - case insensitive */                
+                    namedHeaderStr = headers.get(hn).get(0);
+                    System.out.println("Found header - value is " + namedHeaderStr);
+                    break;
+                }
+            }
+        }
+        return(namedHeaderStr);
     }
     
 }
