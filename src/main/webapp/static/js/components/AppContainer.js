@@ -89,7 +89,7 @@ magic.classes.AppContainer = function () {
         "overview_map": this.allocateNavbarTool("overview_map", "OverviewMap", {
             target: "overview-map-tool",
             layertree: this.layertree
-        },
+        }),
         "feedback": this.allocateNavbarTool("feedback", "Feedback", {
             target: "feedback-tool"
         }),
