@@ -411,7 +411,7 @@ magic.classes.Geosearch.prototype.computeProjectedGeometry = function (gaz, data
  */
 magic.classes.Geosearch.prototype.flyTo = function (location, done) {
     var duration = 2000;
-    var zoom = magic.runtime.view.getZoom();
+    var zoom = magic.runtime.map.getView().getZoom();
     var parts = 2;
     var called = false;
     function callback(complete) {
@@ -424,11 +424,11 @@ magic.classes.Geosearch.prototype.flyTo = function (location, done) {
             done(complete);
         }
     }
-    magic.runtime.view.animate({
+    magic.runtime.map.getView().animate({
         center: location,
         duration: duration
     }, callback);
-    magic.runtime.view.animate({
+    magic.runtime.map.getView().animate({
         zoom: zoom - 1,
         duration: duration / 2
     }, {

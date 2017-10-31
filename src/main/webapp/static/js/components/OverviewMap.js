@@ -9,6 +9,8 @@ magic.classes.OverviewMap = function(options) {
       
     this.target = jQuery("#" + options.target);
     
+    this.layertree = options.layertree || null;
+    
     /* Internal */
     this.control = null;
     this.template = 
@@ -72,8 +74,8 @@ magic.classes.OverviewMap.prototype.getTemplate = function() {
  */
 magic.classes.OverviewMap.prototype.getOverviewLayers = function() {
     var oLayers = [];
-    if (magic.runtime.layertree) {
-        jQuery.each(magic.runtime.layertree.getBaseLayers(), jQuery.proxy(function(bi, bl) {
+    if (this.layertree != null) {
+        jQuery.each(this.layertree.getBaseLayers(), jQuery.proxy(function(bi, bl) {
             if (bl.getVisible()) {
                 /* This is the visible base layer */
                 oLayers.push(bl);
@@ -81,7 +83,7 @@ magic.classes.OverviewMap.prototype.getOverviewLayers = function() {
             }
         }, this));
         if (oLayers.length > 0) {
-            jQuery.each(magic.runtime.layertree.getWmsOverlayLayers(), jQuery.proxy(function(oi, olyr) {
+            jQuery.each(this.layertree.getWmsOverlayLayers(), jQuery.proxy(function(oi, olyr) {
                 var md = olyr.get("metadata");
                 if (md.source && md.source.wms_source) {  
                     var featName = md.source.feature_name;

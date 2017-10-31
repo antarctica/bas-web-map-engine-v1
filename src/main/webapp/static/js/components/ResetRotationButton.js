@@ -22,7 +22,7 @@ magic.classes.ResetRotationButton = function(name, ribbon) {
         "html": '<span class="glyphicon glyphicon-repeat"></span>'
     });
     this.btn.on("click", jQuery.proxy(function() {
-        magic.runtime.view.setRotation(this.originalRotation);
+        magic.runtime.map.getView().setRotation(this.originalRotation);
         this.btn.addClass("disabled");
     }, this));
     

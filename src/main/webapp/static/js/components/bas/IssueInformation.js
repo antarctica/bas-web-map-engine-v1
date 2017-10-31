@@ -8,7 +8,7 @@ magic.classes.IssueInformation = function(options) {
     this.target = options.target || "issue-info";
     
     /* Issue data (in Redmine JSON format) - probably very BAS-specific */
-    this.issueData = options.data || magic.runtime.issuedata;
+    this.issueData = options.data || magic.runtime.map_context.issuedata;
     
     /* Set up link handler */    
     jQuery("#" + this.target).click(jQuery.proxy(function(evt) {

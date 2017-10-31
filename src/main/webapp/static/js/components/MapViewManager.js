@@ -201,7 +201,7 @@ magic.classes.MapViewManager = function(options) {
                     id:             jQuery("#" + this.id + "-id").val(),
                     name:           nameInput.val(),
                     allowed_usage:  jQuery("#" + this.id + "-allowed_usage").val(),
-                    basemap:        jQuery("#" + this.id + "-basemap").val() || magic.runtime.mapname,
+                    basemap:        jQuery("#" + this.id + "-basemap").val() || magic.runtime.map_context.mapname,
                     data:           this.mapPayload()
                 };
                 var saveUrl = magic.config.paths.baseurl + "/usermaps/" + (formdata.id ? "update/" + formdata.id : "save");                

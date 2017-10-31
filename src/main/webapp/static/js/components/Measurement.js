@@ -469,7 +469,7 @@ magic.classes.Measurement.prototype.createMeasurementtip = function() {
 
 magic.classes.Measurement.prototype.queryElevation = function(evt) {
     if (jQuery.isArray(this.demLayers) && this.demLayers.length > 0) {        
-        var viewResolution = magic.runtime.view.getResolution();
+        var viewResolution = magic.runtime.map.getView().getResolution();
         var demFeats = jQuery.map(this.demLayers, function(l, idx) {
             if (l.getVisible()) {
                 return(l.get("metadata").source.feature_name);
@@ -478,7 +478,7 @@ magic.classes.Measurement.prototype.queryElevation = function(evt) {
         if (demFeats.length > 0) {
             /* TODO - may need a proxy in some cases */
             var url = this.demLayers[0].getSource().getGetFeatureInfoUrl(
-                evt.coordinate, viewResolution, magic.runtime.view.getProjection().getCode(),
+                evt.coordinate, viewResolution, magic.runtime.map.getView().getProjection().getCode(),
                 {
                     "LAYERS": demFeats.join(","),
                     "QUERY_LAYERS": demFeats.join(","),
@@ -486,7 +486,7 @@ magic.classes.Measurement.prototype.queryElevation = function(evt) {
                     "FEATURE_COUNT": this.demLayers.length
                 });
             if (url) {
-                var ll = ol.proj.transform(evt.coordinate, magic.runtime.view.getProjection().getCode(), "EPSG:4326");
+                var ll = ol.proj.transform(evt.coordinate, magic.runtime.map.getView().getProjection().getCode(), "EPSG:4326");
                 var element = this.heightPopup.getElement();
                 jQuery(element).popover("destroy");
                 this.heightPopup.setPosition(evt.coordinate);

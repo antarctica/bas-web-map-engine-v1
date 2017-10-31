@@ -1,10 +1,12 @@
 /* Layer tree */
 
-magic.classes.LayerTree = function (target) {
+magic.classes.LayerTree = function (target, container) {
 
     this.target = target || "layer-tree";
+    
+    this.container = container;
    
-    this.treedata = magic.runtime.mapdata.layers || [];
+    this.treedata = magic.runtime.map_context.data.layers || [];
     
     /* User saved map payload of form:
      * {
@@ -21,7 +23,7 @@ magic.classes.LayerTree = function (target) {
      *     }
      * }
      */
-    this.userdata = magic.runtime.userdata;
+    this.userdata = magic.runtime.map_context.userdata;
 
     /* Dictionary mapping from a node UUID to an OL layer */
     this.nodeLayerTranslation = {};
@@ -169,11 +171,11 @@ magic.classes.LayerTree.prototype.getCollapsed = function () {
 magic.classes.LayerTree.prototype.setCollapsed = function (collapsed) {
     if (collapsed) {
         jQuery("#" + this.target).hide({
-            complete: magic.runtime.appcontainer.fitMapToViewport
+            complete: this.container.fitMapToViewport
         });
     } else {
         jQuery("#" + this.target).show({
-            complete: magic.runtime.appcontainer.fitMapToViewport
+            complete: this.container.fitMapToViewport
         });
     }
     this.collapsed = collapsed;
@@ -529,7 +531,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                 format: format,
                 loader: function(extent) {
                     if (!jQuery.isArray(extent) || !(isFinite(extent[0]) && isFinite(extent[1]) && isFinite(extent[2]) && isFinite(extent[3]))) {
-                        extent = magic.runtime.view.getProjection().getExtent();
+                        extent = magic.runtime.map.getView().getProjection().getExtent();
                     }
                     var wfs = url + "&bbox=" + extent.join(",");
                     jQuery.ajax({

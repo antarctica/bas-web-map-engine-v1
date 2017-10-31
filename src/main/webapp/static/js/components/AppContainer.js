@@ -9,44 +9,40 @@ magic.classes.AppContainer = function () {
      * 
      * User preferences in:
      * 
-     * magic.runtime.preferencedata
+     * magic.runtime.map_context.preferencedata
      */ 
     
     /* Set container sizes */
     this.fitMapToViewport(); 
     
-    /* Get issue data if supplied */
+    /* Get issue data if supplied, and create issue information panel */
     magic.runtime.search = {};
-    if (!jQuery.isEmptyObject(magic.runtime.issuedata)) {
+    if (!jQuery.isEmptyObject(magic.runtime.map_context.issuedata)) {
         try {
-            magic.runtime.search = JSON.parse(magic.runtime.issuedata.description);
+            magic.runtime.search = JSON.parse(magic.runtime.map_context.issuedata.description);
         } catch(e) {}
-    }
-    
-    /* Initialise map view (returns the initialisation values for the view) */
-    this.initView();
-    
-    /* Set up layer tree */
-    magic.runtime.mapdata = magic.runtime.map_context.data;
-    magic.runtime.repository = magic.runtime.map_context.repository;
-    magic.runtime.endpoints = magic.runtime.map_context.endpoints;
-    magic.runtime.layertree = new magic.classes.LayerTree("layer-tree");
+    }    
+    new magic.classes.IssueInformation({target: "issue-info"});
     
     /* User unit preferences */
-    magic.runtime.preferences = new magic.classes.UserPreferences({target: "unit-prefs", preferences: magic.runtime.preferencedata});   
+    magic.runtime.preferences = new magic.classes.UserPreferences({target: "unit-prefs", preferences: magic.runtime.map_context.preferencedata});
     
-    /* Issue information panel */
-    magic.runtime.issueinfo = new magic.classes.IssueInformation({target: "issue-info"});
+    /* Initialise map view (returns the initialisation values for the view) */
+    var view = this.initView();
+    
+    /* Set up layer tree */    
+    magic.runtime.endpoints = magic.runtime.map_context.endpoints;
+    this.layertree = new magic.classes.LayerTree("layer-tree", this);                   
 
     /* Set up drag and drop interaction for quick visualisation of GPX and KML files */
-    var ddGpxKml = new magic.classes.DragDropGpxKml({});
+    this.ddGpxKml = new magic.classes.DragDropGpxKml({});
     
     /* Set up OL map */
     magic.runtime.map = new ol.Map({
         renderer: "canvas",
         loadTilesWhileAnimating: true,
         loadTilesWhileInteracting: true,
-        layers: magic.runtime.layertree.getLayers(),
+        layers: this.layertree.getLayers(),
         controls: [
             new ol.control.ScaleLine({minWidth: 100, className: "custom-scale-line-top", units: "metric"}),
             new ol.control.ScaleLine({minWidth: 100, className: "custom-scale-line-bottom", units: "imperial"}),
@@ -61,16 +57,16 @@ magic.classes.AppContainer = function () {
                 }
             })
         ],
-        interactions: ol.interaction.defaults().extend([ddGpxKml.getDdInteraction()]),
+        interactions: ol.interaction.defaults().extend([this.ddGpxKml.getDdInteraction()]),
         target: "map",
-        view: magic.runtime.view
+        view: view
     });
 
     /* List of interactive map tools, to ensure only one can listen to map clicks/pointer moves at any one time */
     magic.runtime.map_interaction_tools = [];
 
     /* Control button ribbon */    
-    magic.runtime.controls = new magic.classes.ControlButtonRibbon(magic.runtime.mapdata.controls);
+    magic.runtime.controls = new magic.classes.ControlButtonRibbon(magic.runtime.map_context.data.controls);
 
     /* Create a popup overlay and add handler to show it on clicking a feature */
     magic.runtime.featureinfotool = new magic.classes.FeatureInfoTool();
@@ -91,7 +87,7 @@ magic.classes.AppContainer = function () {
     
     /* Geosearch */
     magic.runtime.geosearch = this.allocateNavbarTool("geosearch", "Geosearch", {
-        gazetteers: magic.runtime.mapdata.gazetteers,
+        gazetteers: magic.runtime.map_context.data.gazetteers,
         target: "geosearch-tool"
     }, true);
 
@@ -102,7 +98,8 @@ magic.classes.AppContainer = function () {
     
     /* Overview map */
     magic.runtime.overview = this.allocateNavbarTool("overview_map", "OverviewMap", {
-        target: "overview-map-tool"
+        target: "overview-map-tool",
+        layertree: this.layertree
     }, false);
     if (magic.runtime.overview != null) {
         magic.runtime.overview.setEnabledStatus();
@@ -166,7 +163,7 @@ magic.classes.AppContainer = function () {
     this.setVectorLayerLabelHandler();
     
     /* Add all the markup and layers for autoload groups */
-    magic.runtime.layertree.initAutoLoadGroups(magic.runtime.map);    
+    this.layertree.initAutoLoadGroups(magic.runtime.map);    
    
     /* Display watermark if required */
     this.displayWatermark();
@@ -199,8 +196,8 @@ magic.classes.AppContainer.prototype.initMapMetadata = function() {
  */
 magic.classes.AppContainer.prototype.allocateNavbarTool = function(name, className, opts, interactsMap, loggedIn) {
     var tool = null;
-    var rejectUse = loggedIn && magic.runtime.username == "guest";
-    if (!rejectUse && jQuery.inArray(name, magic.runtime.mapdata.controls) != -1) {
+    var rejectUse = loggedIn && magic.runtime.map_context.username == "guest";
+    if (!rejectUse && jQuery.inArray(name, magic.runtime.map_context.data.controls) != -1) {
         /* Activate tool */
         tool = new magic.classes[className](opts);
         if (interactsMap) {
@@ -219,39 +216,38 @@ magic.classes.AppContainer.prototype.allocateNavbarTool = function(name, classNa
  * @return {object} 
  */
 magic.classes.AppContainer.prototype.initView = function() {
-    //TODO
+    var view;
     var viewData = magic.runtime.map_context.data;
-    var proj = ol.proj.get(viewData.projection);    
-    var viewDefaults;
+    var proj = ol.proj.get(viewData.projection); 
     /* Determine centre of map - could come from basic view, a search string or user map data */
     var mapCenter = magic.runtime.search.center || viewData.center;
-    if (!jQuery.isEmptyObject(magic.runtime.userdata)) {
-        mapCenter = magic.runtime.userdata.center;
+    if (!jQuery.isEmptyObject(magic.runtime.map_context.userdata)) {
+        mapCenter = magic.runtime.map_context.userdata.center;
     }
     /* Determine zoom of map - could come from basic view, a search string or user map data */
     var mapZoom = magic.runtime.search.zoom || viewData.zoom;
-    if (!jQuery.isEmptyObject(magic.runtime.userdata)) {
-        mapZoom = magic.runtime.userdata.zoom;
+    if (!jQuery.isEmptyObject(magic.runtime.map_context.userdata)) {
+        mapZoom = magic.runtime.map_context.userdata.zoom;
     }
     var mapRotation = viewData.rotation ? magic.modules.Common.toRadians(viewData.rotation) : 0.0;
-    if (!jQuery.isEmptyObject(magic.runtime.userdata)) {
-        mapRotation = magic.runtime.userdata.rotation || 0.0;
+    if (!jQuery.isEmptyObject(magic.runtime.map_context.userdata)) {
+        mapRotation = magic.runtime.map_context.userdata.rotation || 0.0;
     }
     if (viewData.projection == "EPSG:3857") {
         /* Spherical Mercator (OSM/Google) - note DON'T set projection extent as bizarre 15km shifts */
-        viewDefaults = {
+        view = new ol.View({
             center: mapCenter,        
             rotation: mapRotation,
             zoom: mapZoom,
             projection: proj,
             minZoom: 1, 
             maxZoom: 20
-        };
+        });
     } else {
         /* Other projection */
         proj.setExtent(viewData.proj_extent);
         proj.setWorldExtent(viewData.proj_extent);   
-        viewDefaults = {
+        view = new ol.View({
             center: mapCenter,        
             rotation: mapRotation,
             zoom: mapZoom,
@@ -260,10 +256,9 @@ magic.classes.AppContainer.prototype.initView = function() {
             extent: viewData.proj_extent,
             maxResolution: viewData.resolutions[0], 
             resolutions: viewData.resolutions
-        };
-    }    
-    magic.runtime.view = new ol.View(viewDefaults);
-    return(viewDefaults);
+        });
+    }        
+    return(view);
 };
 
 /**
@@ -308,12 +303,12 @@ magic.classes.AppContainer.prototype.displayLoginMenu = function () {
     if (loginAnch.length > 0) {
         loginAnch.click(function (evt) {
             evt.preventDefault();
-            if (magic.runtime.extlogin == "yes") {
+            if (magic.runtime.map_context.extlogin == "yes") {
                 window.location.assign(magic.config.paths.baseurl + "/login");
             } else {
                 var pn = window.location.pathname.substring(1);     /* Strip leading '/' */
                 if (pn == "") {
-                    pn = "/restricted" + (magic.runtime.debug ? "d" : "");
+                    pn = "/restricted" + (magic.runtime.map_context.debug ? "d" : "");
                     window.location.assign(pn);
                 } else {
                     var fp = pn.substring(0, pn.indexOf("/"));
@@ -321,7 +316,7 @@ magic.classes.AppContainer.prototype.displayLoginMenu = function () {
                         window.location.assign(window.location.href.replace("/home", "/restricted"));
                     } else {
                         /* Legacy URL like /opsgis, retained to make old bookmarks go somewhere */
-                        window.location.assign(window.location.href.replace("/" + fp, "/restricted" + (magic.runtime.debug ? "d" : "") + "/" + fp));
+                        window.location.assign(window.location.href.replace("/" + fp, "/restricted" + (magic.runtime.map_context.debug ? "d" : "") + "/" + fp));
                     }
                 }
             }

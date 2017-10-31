@@ -19,8 +19,8 @@
         <script th:inline="javascript">
             /*<![CDATA[*/
             var bg = [[${background}]];
-            magic.runtime.debug = [[${debug}]];
-            magic.runtime.extlogin = [[${extlogin}]];
+            var debug = [[${debug}]];
+            var extlogin = [[${extlogin}]];
             /*]]>*/
         </script>
         <script type="text/javascript">
@@ -34,19 +34,19 @@
                 /* Login behaviour */
                 jQuery("#log-in-user").click(function (evt) {
                     evt.preventDefault();
-                    if (magic.runtime.extlogin == "yes") {
+                    if (extlogin == "yes") {
                         window.location = magic.config.paths.baseurl + "/login";
                     } else {
-                        window.location = magic.config.paths.baseurl + "/restricted" + (magic.runtime.debug ? "d" : "");
+                        window.location = magic.config.paths.baseurl + "/restricted" + (debug ? "d" : "");
                     }
                 });
                 var btnLoginCreate = jQuery("#console-log-in-create");
                 if (btnLoginCreate.length > 0) {
                     btnLoginCreate.click(function(evt) {
-                        if (magic.runtime.extlogin == "yes") {
+                        if (extlogin == "yes") {
                             window.location = magic.config.paths.baseurl + "/login";
                         } else {
-                            window.location = magic.config.paths.baseurl + "/restricted" + (magic.runtime.debug ? "d" : "");
+                            window.location = magic.config.paths.baseurl + "/restricted" + (debug ? "d" : "");
                         }
                     });
                 }
@@ -61,14 +61,14 @@
                 var btnCreateNew = jQuery("#console-create-new-map");
                 if (btnCreateNew.length > 0) {
                     btnCreateNew.click(function(evt) {
-                        window.open(magic.config.paths.baseurl + "/creator" + (magic.runtime.debug ? "d" : ""), "_blank");
+                        window.open(magic.config.paths.baseurl + "/creator" + (debug ? "d" : ""), "_blank");
                     });
                 }
                 
                 /* Background colour */
                 jQuery("body").css("background-color", bg);
                 
-                magic.runtime.webmap_panel = new magic.classes.console.WebMapPanel();
+                new magic.classes.console.WebMapPanel();
                                 
             });
             

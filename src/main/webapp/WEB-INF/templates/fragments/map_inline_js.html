@@ -1,0 +1,50 @@
+<script th:fragment="layout">
+    /* <![CDATA[*/
+    backendVars = {
+        mapname: [[${map}]],          
+        username: [[${username}]],
+        usermapid: [[${usermapid}]],
+        issuedata: JSON.parse([[${issuedata}]]),
+        debug: [[${debug}]],
+        extlogin: [[${extlogin}]]
+    };
+    
+    function fetchPayload() {
+        var payloadUrl = magic.config.paths.baseurl + "/maps/name/" + backendVars.mapname;
+        if (backendVars.usermapid) {
+            payloadUrl += "/" + backendVars.usermapid;
+        }
+        var payloadRequest = jQuery.ajax({
+            url: payloadUrl,
+            method: "GET",
+            dataType: "json"
+        }), 
+        prefsRequest = payloadRequest.then(function(payload) {                                        
+            magic.runtime.map_context = jQuery.extend({}, payload, backendVars);
+            magic.runtime.map_context.data = JSON.parse(payload.data.value);
+            magic.runtime.map_context.userdata = magic.runtime.map_context.userdata ? JSON.parse(magic.runtime.map_context.userdata.data.value) : {};                    
+            return(jQuery.ajax({
+                url: magic.config.paths.baseurl + "/prefs/get",
+                method: "GET",
+                dataType: "json"
+            }));
+        });
+
+        prefsRequest.done(function(prefs) {                    
+            magic.runtime.map_context.preferencedata = prefs;
+            new magic.classes.AppContainer();
+        });
+        prefsRequest.fail(function(xhr, status) {
+            bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to get payload and preferences for map ' + backendVars.mapname + '</div>');
+        });
+    }
+
+    Dropzone.autoDiscover = false;
+    jQuery(document).ready(function () { 
+        jQuery('[data-toggle="tooltip"]').tooltip();
+        /* For dynamic tooltips - http://stackoverflow.com/questions/9958825/how-do-i-bind-twitter-bootstrap-tooltips-to-dynamically-created-elements */
+        jQuery("body").tooltip({selector: '[data-toggle="tooltip"]'});
+        fetchPayload();                
+    });
+    /*]]>*/    
+</script>    

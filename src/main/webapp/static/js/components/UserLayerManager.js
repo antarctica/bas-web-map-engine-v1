@@ -18,7 +18,7 @@ magic.classes.UserLayerManager = function(options) {
     
     this.zIndexWmsStack = -1;    
     
-    this.userPayloadConfig = magic.runtime.userdata ? (magic.runtime.userdata.layers || {}) : {};
+    this.userPayloadConfig = magic.runtime.map_context.userdata ? (magic.runtime.map_context.userdata.layers || {}) : {};
     
     this.userLayerData = {}; 
       
@@ -438,7 +438,7 @@ magic.classes.UserLayerManager.prototype.refreshAfterUpdate = function(uldata) {
     jQuery.each(uldata, jQuery.proxy(function(iul, ul) {
         if (currentUser == null || ul.owner != currentUser) {
             currentUser = ul.owner;
-            ulGroup = jQuery("<optgroup>", {label: currentUser == magic.runtime.username ? "Your uploaded layers" : "Community uploaded layers"});
+            ulGroup = jQuery("<optgroup>", {label: currentUser == magic.runtime.map_context.username ? "Your uploaded layers" : "Community uploaded layers"});
             this.ddLayers.append(ulGroup);
         }
         var ulOpt = jQuery("<option>", {value: ul.id});
@@ -458,7 +458,7 @@ magic.classes.UserLayerManager.prototype.userLayerSelected = function() {
     if (selItem == null || selItem == "") {
         return(false);
     }
-    return(this.userLayerData[this.ddLayers.val()].owner == magic.runtime.username);
+    return(this.userLayerData[this.ddLayers.val()].owner == magic.runtime.map_context.username);
 };
 
 /**

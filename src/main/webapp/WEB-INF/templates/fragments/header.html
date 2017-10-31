@@ -15,61 +15,7 @@
         <title></title>
         <link th:href="@{'/static/buildcss/allcss.map.' + ${profile} + '.css'}" rel="stylesheet"></link>            
         <script th:src="@{'/static/buildjs/alljs.map.' + ${profile} + '.js'}"></script>
-        <script th:inline="javascript">
-            /*<![CDATA[*/
-            magic.runtime.mapname = [[${map}]];          
-            magic.runtime.username = [[${username}]];
-            magic.runtime.usermapid = [[${usermapid}]];
-            magic.runtime.issuedata = JSON.parse([[${issuedata}]]);
-            magic.runtime.extlogin = [[${extlogin}]];
-            /*]]>*/
-        </script>
-        <script type="text/javascript">
-            /* <![CDATA[*/
-            function fetchPayload() {
-                var payloadUrl = magic.config.paths.baseurl + "/maps/name/" + magic.runtime.mapname;
-                if (magic.runtime.usermapid) {
-                    payloadUrl += "/" + magic.runtime.usermapid;
-                }
-                var payloadRequest = jQuery.ajax({
-                    url: payloadUrl,
-                    method: "GET",
-                    dataType: "json"
-                }), 
-                prefsRequest = payloadRequest.then(function(payload) {                                        
-                    magic.runtime.map_context = jQuery.extend({}, payload);
-                    magic.runtime.map_context.data = JSON.parse(payload.data.value);
-                    magic.runtime.userdata = magic.runtime.map_context.userdata ? JSON.parse(magic.runtime.map_context.userdata.data.value) : {};
-                    return(jQuery.ajax({
-                        url: magic.config.paths.baseurl + "/prefs/get",
-                        method: "GET",
-                        dataType: "json"
-                    }));
-                });
-                
-                prefsRequest.done(function(prefs) {                    
-                    magic.runtime.preferencedata = prefs;
-                    magic.runtime.appcontainer = new magic.classes.AppContainer();
-                });
-                prefsRequest.fail(function(xhr, status) {
-                    var detail = JSON.parse(xhr.responseText)["detail"];
-                    bootbox.alert(
-                        '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                            '<p>Failed to get payload and preferences for map ' + magic.runtime.mapname + ' - details below:</p>' + 
-                            '<p>' + detail + '</p>' + 
-                        '</div>'
-                    );
-                });
-            }
-            Dropzone.autoDiscover = false;
-            jQuery(document).ready(function () {  
-                jQuery('[data-toggle="tooltip"]').tooltip();
-                /* For dynamic tooltips - http://stackoverflow.com/questions/9958825/how-do-i-bind-twitter-bootstrap-tooltips-to-dynamically-created-elements */
-                jQuery("body").tooltip({ selector: '[data-toggle="tooltip"]'});
-                fetchPayload();               
-            });
-            /*]]>*/
-        </script>
+        <script type="text/javascript" th:include="map_inline_js :: layout"></script>
     </head>
     <head th:fragment="debug_layout">
         <meta http-equiv="X-UA-Compatible" content="IE=edge"></meta>
@@ -145,58 +91,8 @@
         <script src="/static/js/components/bas/AircraftPositionButton.js"></script>
         <script src="/static/js/components/bas/ShipPositionButton.js"></script>
         <script src="/static/js/components/bas/StaticTimeSeriesPlayer.js"></script>
-        <script src="/static/js/components/bas/IssueInformation.js"></script>
-        <script th:inline="javascript">
-            /*<![CDATA[*/
-            magic.runtime.mapname = [[${map}]];          
-            magic.runtime.username = [[${username}]];
-            magic.runtime.usermapid = [[${usermapid}]];
-            magic.runtime.issuedata = JSON.parse([[${issuedata}]]);
-            magic.runtime.debug = [[${debug}]];
-            magic.runtime.extlogin = [[${extlogin}]];
-            /*]]>*/
-        </script>
-        <script type="text/javascript">
-            /* <![CDATA[*/
-            function fetchPayload() {
-                var payloadUrl = magic.config.paths.baseurl + "/maps/name/" + magic.runtime.mapname;
-                if (magic.runtime.usermapid) {
-                    payloadUrl += "/" + magic.runtime.usermapid;
-                }
-                var payloadRequest = jQuery.ajax({
-                    url: payloadUrl,
-                    method: "GET",
-                    dataType: "json"
-                }), 
-                prefsRequest = payloadRequest.then(function(payload) {                                        
-                    magic.runtime.map_context = jQuery.extend({}, payload);
-                    magic.runtime.map_context.data = JSON.parse(payload.data.value);
-                    magic.runtime.userdata = magic.runtime.map_context.userdata ? JSON.parse(magic.runtime.map_context.userdata.data.value) : {};
-                    return(jQuery.ajax({
-                        url: magic.config.paths.baseurl + "/prefs/get",
-                        method: "GET",
-                        dataType: "json"
-                    }));
-                });
-                
-                prefsRequest.done(function(prefs) {                    
-                    magic.runtime.preferencedata = prefs;
-                    magic.runtime.appcontainer = new magic.classes.AppContainer();
-                });
-                prefsRequest.fail(function(xhr, status) {
-                    bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to get payload and preferences for map ' + magic.runtime.mapname + '</div>');
-                });
-            }
-
-            Dropzone.autoDiscover = false;
-            jQuery(document).ready(function () { 
-                jQuery('[data-toggle="tooltip"]').tooltip();
-                /* For dynamic tooltips - http://stackoverflow.com/questions/9958825/how-do-i-bind-twitter-bootstrap-tooltips-to-dynamically-created-elements */
-                jQuery("body").tooltip({selector: '[data-toggle="tooltip"]'});
-                fetchPayload();                
-            });
-            /*]]>*/
-        </script>
+        <script src="/static/js/components/bas/IssueInformation.js"></script>        
+        <script type="text/javascript" th:include="map_inline_js :: layout"></script>
     </head>
     <body>        
     </body>
