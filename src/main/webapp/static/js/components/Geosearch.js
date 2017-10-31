@@ -24,9 +24,9 @@ magic.classes.Geosearch = function (options) {
         }, this));
     }, this));
 
-    this.suggestionStyle = this.getIconStyle(0.6, "marker_orange"); /* "Ghost" style for mouseovers of suggestions */
-    this.invisibleStyle = this.getIconStyle(0.0, "marker_orange");  /* Removed style */
-    this.resultStyle = this.getIconStyle(0.8, "marker_green");      /* Actual search result style */
+    this.suggestionStyle = magic.modules.Common.getIconStyle(0.6, "marker_orange"); /* "Ghost" style for mouseovers of suggestions */
+    this.invisibleStyle = magic.modules.Common.getIconStyle(0.0, "marker_orange");  /* Removed style */
+    this.resultStyle = magic.modules.Common.getIconStyle(0.8, "marker_green");      /* Actual search result style */
 
     /* Corresponding layer */
     this.layer = new ol.layer.Vector({
@@ -158,6 +158,10 @@ magic.classes.Geosearch = function (options) {
     })
     .on("shown.bs.popover", jQuery.proxy(this.activate, this))
     .on("hidden.bs.popover", jQuery.proxy(this.deactivate, this));
+};
+
+magic.classes.Geosearch.prototype.interactsMap = function () {
+    return(true);
 };
 
 magic.classes.Geosearch.prototype.getTarget = function () {
@@ -488,22 +492,4 @@ magic.classes.Geosearch.prototype.searchInit = function () {
     jQuery.map(suggestions, jQuery.proxy(function (f) {
         this.layer.getSource().removeFeature(f);
     }, this));
-};
-
-/**
- * Create a style with the given opacity
- * @param {float} opacity
- * @param {String} icon
- * @returns {ol.style.Style}
- */
-magic.classes.Geosearch.prototype.getIconStyle = function (opacity, icon) {
-    return(new ol.style.Style({
-        image: new ol.style.Icon({
-            anchor: [0.5, 1],
-            anchorXUnits: "fraction",
-            anchorYUnits: "fraction",
-            opacity: opacity,
-            src: magic.config.paths.baseurl + "/static/images/" + icon + ".png"
-        })
-    }));
 };

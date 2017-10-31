@@ -210,6 +210,23 @@ magic.modules.Common = function () {
             }            
         },
         /**
+         * Create a style with the given opacity
+         * @param {float} opacity
+         * @param {String} icon
+         * @returns {ol.style.Style}
+         */
+        getIconStyle: function() {
+            return(new ol.style.Style({
+                image: new ol.style.Icon({
+                    anchor: [0.5, 1],
+                    anchorXUnits: "fraction",
+                    anchorYUnits: "fraction",
+                    opacity: opacity,
+                    src: magic.config.paths.baseurl + "/static/images/" + icon + ".png"
+                })
+            }));
+        },
+        /**
          * Make some different choices for icon style for points to allow more distinction between layers on the map
          * Supports:
          * - circle
@@ -388,8 +405,8 @@ magic.modules.Common = function () {
          * @param {string} typename
          */
         getCapabilities: function(url, callback, typename) {
-            if (magic.runtime.capabilities[url]) {
-                callback(magic.runtime.capabilities[url], typename);
+            if (magic.runtime.map_context.capabilities[url]) {
+                callback(magic.runtime.map_context.capabilities[url], typename);
             } else {
                 var parser = new ol.format.WMSCapabilities();                
                 var jqXhr = jQuery.get(this.getWxsRequestUrl(url, "GetCapabilities"), jQuery.proxy(function(response) {
@@ -403,8 +420,8 @@ magic.modules.Common = function () {
                                 this.getFeatureTypes(ftypes, layers);                                
                             }
                             if (ftypes != null) {
-                                magic.runtime.capabilities[url] = ftypes;
-                                callback(magic.runtime.capabilities[url], typename);
+                                magic.runtime.map_context.capabilities[url] = ftypes;
+                                callback(magic.runtime.map_context.capabilities[url], typename);
                             } else {
                                 callback(null, typename);
                             }                            

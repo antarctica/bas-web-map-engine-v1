@@ -232,6 +232,10 @@ magic.classes.Measurement = function(options) {
     }, this));
 };
 
+magic.classes.Measurement.prototype.interactsMap = function () {
+    return(true);
+};
+
 magic.classes.Measurement.prototype.getTarget = function() {
     return(this.target);
 };

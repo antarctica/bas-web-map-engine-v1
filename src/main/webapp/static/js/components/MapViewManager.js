@@ -417,3 +417,7 @@ magic.classes.MapViewManager.prototype.selectedMapLoadUrl = function() {
     }
     return(url);   
 };
+
+magic.classes.MapViewManager.prototype.interactsMap = function () {
+    return(false);
+};

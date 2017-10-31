@@ -37,6 +37,12 @@ magic.classes.LayerTree = function (target, container) {
         "kml": []
     };
     
+    /* Create an attribution modal for legend/metadata */
+    this.attribution = new magic.classes.AttributionModal({target: "attribution-modal"});
+    
+    /* Cache of granule information for time-series players, for performance */
+    this.timeSeriesCache = {};
+    
     /* Performance - avoid a DOM-wide search whenever tree refreshed to show visibilities */
     this.layerGroupDivs = [];
     
@@ -239,7 +245,7 @@ magic.classes.LayerTree.prototype.assignLayerHandlers = function(belowElt) {
     layerInfo.on("click", jQuery.proxy(function (evt) {
         var id = evt.currentTarget.id;
         var nodeid = this.getNodeId(id);
-        magic.runtime.attribution.show(this.nodeLayerTranslation[nodeid]);
+        this.attribution.show(this.nodeLayerTranslation[nodeid]);
     }, this));
 
     /* Layer dropdown handlers */
@@ -389,8 +395,8 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
     }
     /* Determine visibility */
     var isVisible = this.userLayerAttribute(nd.id, "visibility", nd.is_visible);   
-    if (magic.runtime.search && magic.runtime.search.visible && magic.runtime.search.visible[name]) {
-        isVisible = magic.runtime.search.visible[name];
+    if (magic.runtime.map_context.search && magic.runtime.map_context.search.visible && magic.runtime.map_context.search.visible[name]) {
+        isVisible = magic.runtime.map_context.search.visible[name];
     }
     /* Determine opacity */
     var layerOpacity = this.userLayerAttribute(nd.id, "opacity", nd.opacity);   
@@ -908,7 +914,8 @@ magic.classes.LayerTree.prototype.setLayerVisibility = function(chk, forceOff) {
                     "nodeid": md.id, 
                     "target": "vis-wrapper-" + md.id, 
                     "container": lgp ? "#" + lgp.prop("id") : "body",
-                    "layer": layer
+                    "layer": layer,
+                    "cache": this.timeSeriesCache
                 });
             }
             if (chk.prop("checked")) {

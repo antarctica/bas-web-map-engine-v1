@@ -19,3 +19,8 @@ magic.classes.DownloadRepo = function(options) {
         this.target.closest("li").hide();
     }
 };
+
+magic.classes.DownloadRepo.prototype.interactsMap = function () {
+    return(false);
+};
+

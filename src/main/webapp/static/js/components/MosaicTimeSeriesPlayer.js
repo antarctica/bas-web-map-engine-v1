@@ -11,14 +11,17 @@ magic.classes.MosaicTimeSeriesPlayer = function(options) {
     
     this.layer = options.layer;
     
+    /* Cached granule repo */
+    this.cache = options.cache;
+    
     /* Internal */
     this.imagePointer = -1;
     
     /* Image granules */
-    this.granules = null;
+    this.granules = null;    
     
     /* Movie interval handle */
-    this.movie = null;  
+    this.movie = null; 
     
     this.template =
         '<div class="popover popover-auto-width movieplayer-popover" role="popover">' +
@@ -69,14 +72,14 @@ magic.classes.MosaicTimeSeriesPlayer = function(options) {
         var params = this.layer.getSource().getParams();
         var featureType = params["LAYERS"];
         if (featureType) {
-            if (magic.runtime.timeSeriesCache[this.nodeid]) {
+            if (this.cache[this.nodeid]) {
                 /* Use session cached granule data */
-                this.loadGranules(magic.runtime.timeSeriesCache[this.nodeid]);
+                this.loadGranules(this.cache[this.nodeid]);
             } else {
                 /* Fetch the granule data - could be slow and costly for big datasets */
                 jQuery.getJSON(magic.config.paths.baseurl + "/gs/granules/" + featureType, jQuery.proxy(function(data) {
                     this.loadGranules(data);
-                    magic.runtime.timeSeriesCache[this.nodeid] = data;
+                    this.cache[this.nodeid] = data;
                 }, this));
             }
         }

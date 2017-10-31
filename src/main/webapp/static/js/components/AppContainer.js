@@ -16,10 +16,10 @@ magic.classes.AppContainer = function () {
     this.fitMapToViewport(); 
     
     /* Get issue data if supplied, and create issue information panel */
-    magic.runtime.search = {};
+    magic.runtime.map_context.search = {};
     if (!jQuery.isEmptyObject(magic.runtime.map_context.issuedata)) {
         try {
-            magic.runtime.search = JSON.parse(magic.runtime.map_context.issuedata.description);
+            magic.runtime.map_context.search = JSON.parse(magic.runtime.map_context.issuedata.description);
         } catch(e) {}
     }    
     new magic.classes.IssueInformation({target: "issue-info"});
@@ -62,76 +62,52 @@ magic.classes.AppContainer = function () {
         view: view
     });
 
-    /* List of interactive map tools, to ensure only one can listen to map clicks/pointer moves at any one time */
-    magic.runtime.map_interaction_tools = [];
-
-    /* Control button ribbon */    
-    magic.runtime.controls = new magic.classes.ControlButtonRibbon(magic.runtime.map_context.data.controls);
+    /* Initialise map control button ribbon */    
+    new magic.classes.ControlButtonRibbon(magic.runtime.map_context.data.controls);
 
     /* Create a popup overlay and add handler to show it on clicking a feature */
-    magic.runtime.featureinfotool = new magic.classes.FeatureInfoTool();
-    magic.runtime.featureinfotool.activate();
-
-    /* Create an attribution modal for legend/metadata */
-    magic.runtime.attribution = new magic.classes.AttributionModal({target: "attribution-modal"});
+    this.featureinfotool = new magic.classes.FeatureInfoTool();
+    this.featureinfotool.activate();
     
     /* Create information modal */
-    magic.runtime.mapinfo = new magic.classes.InfoModal({target: "information-modal", infolink: magic.runtime.map_context.infolink});
+    new magic.classes.InfoModal({target: "information-modal", infolink: magic.runtime.map_context.infolink});
     
     /* Create WGS84 inset map with single OSM layer */
     magic.runtime.inset = new magic.classes.InsetMap({});
 
     /**
      * Allocation and initialise the navigation bar toolset
-     */
-    
-    /* Geosearch */
-    magic.runtime.geosearch = this.allocateNavbarTool("geosearch", "Geosearch", {
-        gazetteers: magic.runtime.map_context.data.gazetteers,
-        target: "geosearch-tool"
-    }, true);
-
-    /* Measurement*/
-    magic.runtime.measurement = this.allocateNavbarTool("measurement", "Measurement", {
-        target: "measure-tool"
-    }, true);
-    
-    /* Overview map */
-    magic.runtime.overview = this.allocateNavbarTool("overview_map", "OverviewMap", {
-        target: "overview-map-tool",
-        layertree: this.layertree
-    }, false);
-    if (magic.runtime.overview != null) {
-        magic.runtime.overview.setEnabledStatus();
-    }
-    
-    /* User feedback */
-    magic.runtime.feedback = this.allocateNavbarTool("feedback", "Feedback", {
-        target: "feedback-tool"
-    }, false);
-    
-    /* User map view manager */
-    magic.runtime.viewmanager = this.allocateNavbarTool("viewmanager", "MapViewManager", {
-        target: "viewmanager-tool"
-    }, false);
-    
-    /* User layer upload manager */
-    magic.runtime.layermanager = this.allocateNavbarTool("layermanager", "UserLayerManager", {
-        target: "layermanager-tool"
-    }, false, true);
-   
-    /* Data download from repository */
-    magic.runtime.downloadrepo = this.allocateNavbarTool("download_data", "DownloadRepo", {
-        target: "repo-tool"
-    }, false);
-    
-    /* Rothera fieldwork reports search */
-    magic.runtime.reportsearch = this.allocateNavbarTool("rothera_reports", "RotheraReportSearch", {
-        id: "rothera-reports-tool",
-        target: "rothera-reports-tool",
-        caption: "Search for fieldwork reports"
-    }, true);
-    
+     */    
+    this.navbarTools = {
+        "geosearch": this.allocateNavbarTool("geosearch", "Geosearch", {
+            gazetteers: magic.runtime.map_context.data.gazetteers,
+            target: "geosearch-tool"
+        }),
+        "measurement": this.allocateNavbarTool("measurement", "Measurement", {
+            target: "measure-tool"
+        }),
+        "overview_map": this.allocateNavbarTool("overview_map", "OverviewMap", {
+            target: "overview-map-tool",
+            layertree: this.layertree
+        },
+        "feedback": this.allocateNavbarTool("feedback", "Feedback", {
+            target: "feedback-tool"
+        }),
+        "viewmanager": this.allocateNavbarTool("viewmanager", "MapViewManager", {
+            target: "viewmanager-tool"
+        }),
+        "layermanager": this.allocateNavbarTool("layermanager", "UserLayerManager", {
+            target: "layermanager-tool"
+        }, true),
+        "download_data": this.allocateNavbarTool("download_data", "DownloadRepo", {
+            target: "repo-tool"
+        }),
+        "rothera_reports": this.allocateNavbarTool("rothera_reports", "RotheraReportSearch", {
+            id: "rothera-reports-tool",
+            target: "rothera-reports-tool",
+            caption: "Search for fieldwork reports"
+        })
+    };  
     /* End of navigation bar toolset */
     
     /* Updates height of map when window resizes */
@@ -142,8 +118,8 @@ magic.classes.AppContainer = function () {
     /* Set handlers for overview map status change when view resolution changes */
     magic.runtime.map.getView().on("change:resolution", function (evt) {
         /* Disable the overview map for very zoomed out levels (gives no useful info and looks awful) */
-        if (magic.runtime.overview) {
-            magic.runtime.overview.setEnabledStatus();
+        if (this.navbarTools["overview_map"]) {
+            this.navbarTools["overview_map"].setEnabledStatus();
         }
     }, this);
 
@@ -191,18 +167,14 @@ magic.classes.AppContainer.prototype.initMapMetadata = function() {
  * @param {String} name
  * @param {String} className
  * @param {Object} opts
- * @param {boolean} interactsMap
  * @param {boolean} loggedIn defaults false, set true to only show tool for logged in users
  */
-magic.classes.AppContainer.prototype.allocateNavbarTool = function(name, className, opts, interactsMap, loggedIn) {
+magic.classes.AppContainer.prototype.allocateNavbarTool = function(name, className, opts, loggedIn) {
     var tool = null;
     var rejectUse = loggedIn && magic.runtime.map_context.username == "guest";
     if (!rejectUse && jQuery.inArray(name, magic.runtime.map_context.data.controls) != -1) {
         /* Activate tool */
-        tool = new magic.classes[className](opts);
-        if (interactsMap) {
-            magic.runtime.map_interaction_tools.push(tool);
-        }
+        tool = new magic.classes[className](opts);       
         jQuery("#" + opts.target).closest("li").show();
     } else {
         /* Hide the tool button if it was not asked for */
@@ -220,12 +192,12 @@ magic.classes.AppContainer.prototype.initView = function() {
     var viewData = magic.runtime.map_context.data;
     var proj = ol.proj.get(viewData.projection); 
     /* Determine centre of map - could come from basic view, a search string or user map data */
-    var mapCenter = magic.runtime.search.center || viewData.center;
+    var mapCenter = magic.runtime.map_context.search.center || viewData.center;
     if (!jQuery.isEmptyObject(magic.runtime.map_context.userdata)) {
         mapCenter = magic.runtime.map_context.userdata.center;
     }
     /* Determine zoom of map - could come from basic view, a search string or user map data */
-    var mapZoom = magic.runtime.search.zoom || viewData.zoom;
+    var mapZoom = magic.runtime.map_context.search.zoom || viewData.zoom;
     if (!jQuery.isEmptyObject(magic.runtime.map_context.userdata)) {
         mapZoom = magic.runtime.map_context.userdata.zoom;
     }
@@ -328,40 +300,42 @@ magic.classes.AppContainer.prototype.displayLoginMenu = function () {
  *  Listen for controls being activated/deactivated 
  */
 magic.classes.AppContainer.prototype.setMapInteractionToolHandlers = function () {
-    jQuery(document).on("mapinteractionactivated", function (evt, tool) {
+    jQuery(document).on("mapinteractionactivated", jQuery.proxy(function (evt, tool) {
         if (evt) {
-            jQuery.each(magic.runtime.map_interaction_tools, function (mti, mt) {
-                if (tool != mt) {
+            jQuery.each(this.navbarTools, jQuery.proxy(function (toolName, toolObj) {
+                if (jQuery.isFunction(toolObj.interactsMap) && toolObj.interactsMap() === true && tool != toolObj) {
                     /* Deactivate tool and remove popover if required */
-                    if (jQuery.isFunction(mt.deactivate)) {
-                        mt.deactivate(true);
+                    if (jQuery.isFunction(toolObj.deactivate)) {
+                        toolObj.deactivate(true);
                     }
-                    if (jQuery.isFunction(mt.getTarget)) {
-                        mt.getTarget().popover("hide");
+                    if (jQuery.isFunction(toolObj.getTarget)) {
+                        toolObj.getTarget().popover("hide");
                     }
                 }
-            });
-            if (tool != magic.runtime.measurement) {
+            }, this));
+            if (tool != this.navbarTools("measurement")) {
                 /* Allow clicking on features (gets in the way bigtime when measuring!) */
-                magic.runtime.featureinfotool.activate();
+                this.featureinfotool.activate();
             } else {
-                magic.runtime.featureinfotool.deactivate();
+                this.featureinfotool.deactivate();
             }
         }
-    }); 
-    jQuery(document).on("mapinteractiondeactivated", function (evt, tool) {
+    }, this)); 
+    jQuery(document).on("mapinteractiondeactivated", jQuery.proxy(function (evt, tool) {
         if (evt) {
             var nActive = 0;
-            jQuery.each(magic.runtime.map_interaction_tools, function (mti, mt) {
-                if (jQuery.isFunction(mt.isActive) && mt.isActive()) {
-                    nActive++;
+            jQuery.each(this.navbarTools, function (toolName, toolObj) {
+                if (jQuery.isFunction(toolObj.interactsMap) && toolObj.interactsMap() === true && tool != toolObj) {
+                    if (jQuery.isFunction(toolObj.isActive) && toolObj.isActive()) {
+                        nActive++;
+                    }
                 }
             });
             if (nActive == 0) {
-                magic.runtime.featureinfotool.activate();
+                this.featureinfotool.activate();
             }
         }
-    }); 
+    }, this)); 
 };
 
 /**
@@ -391,24 +365,24 @@ magic.classes.AppContainer.prototype.enableScalelinePopover = function() {
  * Enable a popover on hover over the map scale line
  */
 magic.classes.AppContainer.prototype.setVectorLayerLabelHandler = function() {
-    magic.runtime.map.on("pointermove", function(evt) {
-        jQuery.each(magic.runtime.highlighted, function(idx, hl) {
+    magic.runtime.map.on("pointermove", jQuery.proxy(function(evt) {
+        jQuery.each(this.highlighted, function(idx, hl) {
             magic.modules.Common.labelVisibility(hl.feature, hl.layer, false, 1);
         });        
-        magic.runtime.highlighted = [];
+        this.highlighted = [];
         var fcount = 0;
         evt.map.forEachFeatureAtPixel(evt.pixel, function(feat, layer) {
             if (layer != null) {                
                 if (fcount == 0) {
-                    magic.runtime.highlighted.push({feature: feat, layer: layer});
+                    this.highlighted.push({feature: feat, layer: layer});
                 }
                 fcount++;
             }
         }, this);
         if (fcount > 0) {
-            magic.modules.Common.labelVisibility(magic.runtime.highlighted[0].feature, magic.runtime.highlighted[0].layer, true, fcount);
+            magic.modules.Common.labelVisibility(this.highlighted[0].feature, this.highlighted[0].layer, true, fcount);
         }
-    }); 
+    }, this)); 
 };
 
 /**

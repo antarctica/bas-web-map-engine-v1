@@ -153,6 +153,10 @@ magic.classes.Feedback = function(options) {
     }, this));           
 };
 
+magic.classes.Feedback.prototype.interactsMap = function () {
+    return(false);
+};
+
 /**
  * Save the state of a map in a replayable JSON form
  * @returns {Object}

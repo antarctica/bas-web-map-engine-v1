@@ -37,6 +37,7 @@ magic.classes.OverviewMap = function(options) {
         }, this));
     }, this));
     jQuery(document).on("baselayerchanged", jQuery.proxy(this.initControl, this));
+    /* Note: may need to set enabled status...David 2017-10-31 */
 };
 
 magic.classes.OverviewMap.prototype.initControl = function() {
@@ -58,6 +59,10 @@ magic.classes.OverviewMap.prototype.initControl = function() {
     });        
     magic.runtime.map.addControl(this.control);
     jQuery("button[title='Overview map']").addClass("hidden");
+};
+
+magic.classes.OverviewMap.prototype.interactsMap = function () {
+    return(false);
 };
 
 magic.classes.OverviewMap.prototype.getTarget = function() {

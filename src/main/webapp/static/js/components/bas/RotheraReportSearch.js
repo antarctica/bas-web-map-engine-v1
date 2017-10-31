@@ -42,3 +42,8 @@ magic.classes.RotheraReportSearch.prototype.markup = function () {
     );
 };
 
+magic.classes.RotheraReportSearch.prototype.interactsMap = function () {
+    return(true);
+};
+
+

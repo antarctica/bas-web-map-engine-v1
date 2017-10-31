@@ -882,3 +882,6 @@ magic.classes.UserLayerManager.prototype.initDropzone = function() {
     });
 };
 
+magic.classes.UserLayerManager.prototype.interactsMap = function () {
+    return(false);
+};

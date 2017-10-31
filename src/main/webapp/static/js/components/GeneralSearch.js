@@ -44,7 +44,7 @@ magic.classes.GeneralSearch = function (options) {
         name: this.layername,
         visible: true,
         source: new ol.source.Vector({features: []}),
-        style: this.getIconStyle(0.8, this.mapicon),
+        style: magic.modules.Common.getIconStyle(0.8, this.mapicon),
         metadata: {}
     });
     
@@ -111,22 +111,4 @@ magic.classes.GeneralSearch.prototype.deactivate = function () {
     if (jQuery.isFunction(this.deactivateCallback)) {
         this.deactivateCallback();
     }
-};
-
-/**
- * Create a style with the given opacity
- * @param {float} opacity
- * @param {String} icon
- * @returns {ol.style.Style}
- */
-magic.classes.GeneralSearch.prototype.getIconStyle = function (opacity, icon) {
-    return(new ol.style.Style({
-        image: new ol.style.Icon({
-            anchor: [0.5, 1],
-            anchorXUnits: "fraction",
-            anchorYUnits: "fraction",
-            opacity: opacity,
-            src: magic.config.paths.baseurl + "/static/images/" + icon + ".png"
-        })
-    }));
 };
