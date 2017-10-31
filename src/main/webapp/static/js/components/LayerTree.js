@@ -444,8 +444,8 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
             );            
     /* Create a data layer */
     var layer = null;
-    var proj = magic.runtime.map.getView().getProjection().getCode(); 
-    var resolutions = magic.runtime.map.getView().getResolutions();
+    var proj = ol.proj.get(magic.runtime.map_context.data.projection); 
+    var resolutions = magic.runtime.map_context.data.resolutions;
     /* Get min/max resolution */  
     var minRes = undefined, maxRes = undefined;
     if (!(nd.source.wms_source && nd.source.wms_source == "osm")) {
@@ -537,7 +537,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                 format: format,
                 loader: function(extent) {
                     if (!jQuery.isArray(extent) || !(isFinite(extent[0]) && isFinite(extent[1]) && isFinite(extent[2]) && isFinite(extent[3]))) {
-                        extent = magic.runtime.map.getView().getProjection().getExtent();
+                        extent = magic.runtime.map_context.data.proj_extent;
                     }
                     var wfs = url + "&bbox=" + extent.join(",");
                     jQuery.ajax({

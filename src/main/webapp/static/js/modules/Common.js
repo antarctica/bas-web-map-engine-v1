@@ -215,7 +215,7 @@ magic.modules.Common = function () {
          * @param {String} icon
          * @returns {ol.style.Style}
          */
-        getIconStyle: function() {
+        getIconStyle: function(opacity, icon) {
             return(new ol.style.Style({
                 image: new ol.style.Icon({
                     anchor: [0.5, 1],

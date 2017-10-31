@@ -12,6 +12,8 @@ magic.classes.AppContainer = function () {
      * magic.runtime.map_context.preferencedata
      */ 
     
+    this.highlighted = [];
+    
     /* Set container sizes */
     this.fitMapToViewport(); 
     
@@ -63,10 +65,10 @@ magic.classes.AppContainer = function () {
     });
 
     /* Initialise map control button ribbon */    
-    new magic.classes.ControlButtonRibbon(magic.runtime.map_context.data.controls);
+    new magic.classes.ControlButtonRibbon(magic.runtime.map_context.data.controls, "map", "map-container");
 
     /* Create a popup overlay and add handler to show it on clicking a feature */
-    this.featureinfotool = new magic.classes.FeatureInfoTool();
+    this.featureinfotool = new magic.classes.FeatureInfoTool("feature-info-tool", "map-container");
     this.featureinfotool.activate();
     
     /* Create information modal */
@@ -303,7 +305,7 @@ magic.classes.AppContainer.prototype.setMapInteractionToolHandlers = function ()
     jQuery(document).on("mapinteractionactivated", jQuery.proxy(function (evt, tool) {
         if (evt) {
             jQuery.each(this.navbarTools, jQuery.proxy(function (toolName, toolObj) {
-                if (jQuery.isFunction(toolObj.interactsMap) && toolObj.interactsMap() === true && tool != toolObj) {
+                if (toolObj != null && jQuery.isFunction(toolObj.interactsMap) && toolObj.interactsMap() === true && tool != toolObj) {
                     /* Deactivate tool and remove popover if required */
                     if (jQuery.isFunction(toolObj.deactivate)) {
                         toolObj.deactivate(true);
@@ -313,7 +315,7 @@ magic.classes.AppContainer.prototype.setMapInteractionToolHandlers = function ()
                     }
                 }
             }, this));
-            if (tool != this.navbarTools("measurement")) {
+            if (tool != this.navbarTools["measurement"]) {
                 /* Allow clicking on features (gets in the way bigtime when measuring!) */
                 this.featureinfotool.activate();
             } else {
@@ -325,7 +327,7 @@ magic.classes.AppContainer.prototype.setMapInteractionToolHandlers = function ()
         if (evt) {
             var nActive = 0;
             jQuery.each(this.navbarTools, function (toolName, toolObj) {
-                if (jQuery.isFunction(toolObj.interactsMap) && toolObj.interactsMap() === true && tool != toolObj) {
+                if (toolObj != null && jQuery.isFunction(toolObj.interactsMap) && toolObj.interactsMap() === true && tool != toolObj) {
                     if (jQuery.isFunction(toolObj.isActive) && toolObj.isActive()) {
                         nActive++;
                     }
@@ -371,14 +373,14 @@ magic.classes.AppContainer.prototype.setVectorLayerLabelHandler = function() {
         });        
         this.highlighted = [];
         var fcount = 0;
-        evt.map.forEachFeatureAtPixel(evt.pixel, function(feat, layer) {
+        evt.map.forEachFeatureAtPixel(evt.pixel, jQuery.proxy(function(feat, layer) {
             if (layer != null) {                
                 if (fcount == 0) {
                     this.highlighted.push({feature: feat, layer: layer});
                 }
                 fcount++;
             }
-        }, this);
+        }, this), this);
         if (fcount > 0) {
             magic.modules.Common.labelVisibility(this.highlighted[0].feature, this.highlighted[0].layer, true, fcount);
         }

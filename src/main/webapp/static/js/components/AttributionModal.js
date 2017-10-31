@@ -21,7 +21,7 @@ magic.classes.AttributionModal = function(options) {
     ];
     var attributionMarkup = jQuery("#attribution-modal");
     if (attributionMarkup.length == 0) {
-        magic.runtime.map_container.after(
+        jQuery("#map-container").after(
             '<!-- Attribution modal -->' + 
             '<div class="modal fade" id="attribution-modal" tabindex="-1" role="dialog" aria-labelledby="attribution-title" aria-hidden="true">' + 
                 '<div class="modal-dialog modal-sm">' + 

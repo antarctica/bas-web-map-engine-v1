@@ -1,23 +1,25 @@
 /* Ribbon of map control buttons */
 
-magic.classes.ControlButtonRibbon = function(config) {
+magic.classes.ControlButtonRibbon = function(config, mapDiv, mapContainer) {
     
     this.buttons = config || [];
+    
+    this.mapDiv = jQuery("#" + mapDiv);
+    
+    this.mapContainer = jQuery("#" + mapContainer);
            
     var id = "control-button-ribbon", ribbonId = id + "-group", maximiseId = "maximise-" + ribbonId;
     
     /* Get position for ribbon */
-    var ribbonTop = "0px", ribbonLeft = "0px";
-    if (!magic.runtime.map_embedded) {
-        /* Not an embedded map, so subtract off the height of the navigation bar */
-        var nav = jQuery("nav.navbar");
-        if (nav.length > 0) {            
-            ribbonTop = (nav.outerHeight()-50) + "px";
-        }
+    var ribbonTop = "0px", ribbonLeft = "0px";        
+    /* Subtract off the height of the navigation bar */
+    var nav = jQuery("nav.navbar");
+    if (nav.length > 0) {            
+        ribbonTop = (nav.outerHeight()-50) + "px";
     }
         
     /* Add the outer markup and the maximise button */
-    var insertAt = magic.runtime.map_div.find("div.ol-overlaycontainer-stopevent");
+    var insertAt = this.mapDiv.find("div.ol-overlaycontainer-stopevent");
     insertAt.prepend(
         '<div id="' + id + '" style="position:absolute; left:  ' + ribbonLeft + '; top: ' + ribbonTop + '" class="btn-toolbar">' + 
             '<div id="' + ribbonId + '" class="btn-group button-ribbon show"></div>' +   
@@ -29,7 +31,7 @@ magic.classes.ControlButtonRibbon = function(config) {
     
     /* Initialise tooltips and popovers */
     jQuery("body").tooltip({selector: "[data-toggle=tooltip]", container: "body"});
-    magic.runtime.map_container.popover({selector: "[data-toggle=popover]", container: "#" + magic.runtime.map_div[0].id});
+    this.mapContainer.popover({selector: "[data-toggle=popover]", container: "#" + this.mapDiv[0].id});
     
     jQuery.each(this.buttons, jQuery.proxy(function(bidx, bname) {                
         switch(bname) {
@@ -163,12 +165,12 @@ magic.classes.ControlButtonRibbon.prototype.zoomToMaxExtent = function() {
     /* Unclear what the action of this button should be - currently set to restore the initial view, more appropriate for zoomed-in maps 
      * David 06/01/2016 */
 //    if (magic.runtime.viewdata.resolutions) {
-//        magic.runtime.map.getView().setResolution(magic.runtime.viewdata.resolutions[0]);
+//        magic.runtime.map.getView().setResolution(magic.runtime.map_context.data.resolutions[0]);
 //    } else {
-//        magic.runtime.map.getView().setZoom(magic.runtime.viewdata.minZoom);
+//        magic.runtime.map.getView().setZoom(magic.runtime.map_context.data.minZoom);
 //    }
-    magic.runtime.map.getView().setZoom(magic.runtime.viewdata.zoom);
-    magic.runtime.map.getView().setCenter(magic.runtime.viewdata.center);
+    magic.runtime.map.getView().setZoom(magic.runtime.map_context.data.zoom);
+    magic.runtime.map.getView().setCenter(magic.runtime.map_context.data.center);
 };
 
 /**

@@ -1,9 +1,11 @@
 /* Get information about features */
 
-magic.classes.FeatureInfoTool = function(name) {
+magic.classes.FeatureInfoTool = function(name, mapContainer) {
 
     /* API property */
     this.name = name || "feature-info-tool";
+    
+    this.mapContainer = jQuery("#" + mapContainer);
 
     /* Internal properties */
     this.active = false;   
@@ -22,7 +24,7 @@ magic.classes.FeatureInfoTool.prototype.isActive = function () {
  */
 magic.classes.FeatureInfoTool.prototype.activate = function () {    
     this.active = true;       
-    magic.runtime.map_container.css("cursor", "help");
+    this.mapContainer.css("cursor", "help");
     magic.runtime.map.on("singleclick", this.queryFeatures, this);
 };
 
@@ -33,7 +35,7 @@ magic.classes.FeatureInfoTool.prototype.deactivate = function () {
     this.active = false;        
     /* Remove map click handler */
     this.featureinfo.hide();
-    magic.runtime.map_container.css("cursor", "default");
+    this.mapContainer.css("cursor", "default");
     magic.runtime.map.un("singleclick", this.queryFeatures, this);        
 };
 

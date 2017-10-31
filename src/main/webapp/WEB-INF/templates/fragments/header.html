@@ -15,7 +15,19 @@
         <title></title>
         <link th:href="@{'/static/buildcss/allcss.map.' + ${profile} + '.css'}" rel="stylesheet"></link>            
         <script th:src="@{'/static/buildjs/alljs.map.' + ${profile} + '.js'}"></script>
-        <script type="text/javascript" th:include="map_inline_js :: layout"></script>
+        <script th:inline="javascript">
+            /*<![CDATA[*/
+            backendVars = {
+                mapname: [[${map}]],          
+                username: [[${username}]],
+                usermapid: [[${usermapid}]],
+                issuedata: JSON.parse([[${issuedata}]]),
+                debug: [[${debug}]],
+                extlogin: [[${extlogin}]]
+            };    
+            /*]]>*/
+        </script>
+        <script type="text/javascript" th:include="fragments/map_inline_js :: layout"></script>
     </head>
     <head th:fragment="debug_layout">
         <meta http-equiv="X-UA-Compatible" content="IE=edge"></meta>
@@ -91,8 +103,20 @@
         <script src="/static/js/components/bas/AircraftPositionButton.js"></script>
         <script src="/static/js/components/bas/ShipPositionButton.js"></script>
         <script src="/static/js/components/bas/StaticTimeSeriesPlayer.js"></script>
-        <script src="/static/js/components/bas/IssueInformation.js"></script>        
-        <script type="text/javascript" th:include="map_inline_js :: layout"></script>
+        <script src="/static/js/components/bas/IssueInformation.js"></script>
+        <script th:inline="javascript">
+            /*<![CDATA[*/
+            backendVars = {
+                mapname: [[${map}]],          
+                username: [[${username}]],
+                usermapid: [[${usermapid}]],
+                issuedata: JSON.parse([[${issuedata}]]),
+                debug: [[${debug}]],
+                extlogin: [[${extlogin}]]
+            };    
+            /*]]>*/
+        </script>        
+        <script type="text/javascript" th:include="fragments/map_inline_js :: layout"></script>
     </head>
     <body>        
     </body>

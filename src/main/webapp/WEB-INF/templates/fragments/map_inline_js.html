@@ -1,14 +1,5 @@
 <script th:fragment="layout">
-    /* <![CDATA[*/
-    backendVars = {
-        mapname: [[${map}]],          
-        username: [[${username}]],
-        usermapid: [[${usermapid}]],
-        issuedata: JSON.parse([[${issuedata}]]),
-        debug: [[${debug}]],
-        extlogin: [[${extlogin}]]
-    };
-    
+    /* <![CDATA[*/    
     function fetchPayload() {
         var payloadUrl = magic.config.paths.baseurl + "/maps/name/" + backendVars.mapname;
         if (backendVars.usermapid) {
