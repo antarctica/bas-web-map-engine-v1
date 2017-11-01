@@ -134,12 +134,12 @@ magic.modules.VectorStyles = function () {
                     case "ship": type = "ship"; break;
                     case "aeroplane": type = "airplane"; break;
                     case "helicopter": type = "helicopter"; break;
-                    default: type = "airplane"; break;
+                    default: break;
                 }
                 if (name != "unknown asset" && props["description"]) {
                     name = props["description"] + " (" + name + ")";
                 }
-                var roundel = magic.config.paths.baseurl + "/static/images/" + type + "_" + colour + "_roundel.png"
+                var roundel = magic.config.paths.baseurl + "/static/images/" + type + "_" + colour + "_roundel.png";
                 for (var i = 0; i < geoms.length; i++) {
                     var gtype = magic.modules.Common.getGeometryType(geoms[i]);
                     if (gtype == "point") {

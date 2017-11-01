@@ -808,3 +808,12 @@ div.watermark {
 div.styler-popover-content {
     width: 400px;
 }
+
+/* Fieldwork report search popover style */
+div.reports-popover-content {
+    width: 400px;
+}
+
+div.reports-popover-content .bootstrap-tagsinput {
+    width: 100% !important;
+}

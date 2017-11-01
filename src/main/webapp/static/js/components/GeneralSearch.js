@@ -29,13 +29,6 @@ magic.classes.GeneralSearch = function (options) {
     /* Icon to be used on the map (should be a path under static/images, without the .png on the end */
     this.mapicon = options.mapicon || "marker_red";
     
-    /* Whether the search control fires a 'mapinteractionactivated' event */
-    this.mapinteraction = options.mapinteraction;
-    
-    /* Callbacks for activate/deactivate */
-    this.activateCallback = options.activateCallback || null;
-    this.deactivateCallback = options.deactivateCallback || null;
-
     /* === Internal properties === */
     this.active = false;
 
@@ -80,35 +73,97 @@ magic.classes.GeneralSearch.prototype.assignCloseButtonHandler = function () {
 
 /**
  * Activate the search control
+ * @param {Function} callback
  */
-magic.classes.GeneralSearch.prototype.activate = function () {    
+magic.classes.GeneralSearch.prototype.activate = function (callback) {    
     if (!this.layerAdded) {
         this.map.addLayer(this.layer);
         this.layer.setZIndex(1000);
         this.layerAdded = true;
     }
-    if (this.mapinteraction) {
+    if (this.interactsMap()) {
         /* Trigger mapinteractionactivated event */
         jQuery(document).trigger("mapinteractionactivated", [this]);
     }
     this.active = true;
     this.layer.setVisible(true); 
-    if (jQuery.isFunction(this.activateCallback)) {
-        this.activateCallback();
+    if (jQuery.isFunction(callback)) {
+        jQuery.proxy(callback, this)();
     }
 };
 
 /**
  * Deactivate the search control
+ * @param {Function} callback
  */
-magic.classes.GeneralSearch.prototype.deactivate = function () {
+magic.classes.GeneralSearch.prototype.deactivate = function (callback) {
     this.active = false;
     this.layer.setVisible(false);
     if (this.mapinteraction) {
         /* Trigger mapinteractiondeactivated event */
         jQuery(document).trigger("mapinteractiondeactivated", [this]);
     }
-    if (jQuery.isFunction(this.deactivateCallback)) {
-        this.deactivateCallback();
+    if (jQuery.isFunction(callback)) {
+        jQuery.proxy(callback, this)();
     }
+};
+
+magic.classes.GeneralSearch.prototype.interactsMap = function () {
+    return(false);
+};
+
+/**
+ * Add a Bootstrap tagsinput plugin widget to the input with given id
+ * @param {string} id
+ */
+magic.classes.GeneralSearch.prototype.addTagsInput = function (id) {
+    var elt = jQuery("#" + this.id + "-" + id);
+    if (elt.length > 0) {
+        var tooltip = elt.attr("title");
+        elt.tagsinput({
+            trimValue: true,
+            allowDuplicates: false,
+            cancelConfirmKeysOnEmpty: false
+        });
+        if (tooltip) {
+            /* Locate the input added by the tagsInput plugin to attach tooltip */
+            var btInput = elt.closest("div").find(".bootstrap-tagsinput :input");
+            if (btInput) {
+                btInput.attr("data-toggle", "tooltip");
+                btInput.attr("data-placement", "bottom");
+                btInput.attr("title", tooltip);
+            }
+        }
+    }
+};
+
+/**
+ * Add a season selectpr plugin widget to the input with given id
+ * @param {string} id
+ * @param {integer} startYear
+ * @param {integer} endYear
+ */
+magic.classes.GeneralSearch.prototype.addSeasonSelect = function (id, startYear, endYear) {
+    var rangeElt = jQuery("#" + this.id + "-" + id + "-range");
+    var startElt = jQuery("#" + this.id + "-" + id + "-start");
+    var endElt = jQuery("#" + this.id + "-" + id + "-end");    
+    if (startElt.length > 0) {
+        startElt.empty();
+        for (var y = startYear; y <= endYear; y++) {
+            var opt = jQuery("<option>", {value: y});
+            opt.text(y + "-" + ((y+1) + "").substr(2));            
+            startElt.append(opt);
+        }
+    }
+    if (endElt.length > 0) {
+        endElt.empty();
+        for (var y = startYear; y <= endYear; y++) {
+            var opt = jQuery("<option>", {value: y});
+            opt.text(y + "-" + ((y+1) + "").substr(2));            
+            endElt.append(opt);
+        }
+    }
+    rangeElt.change(function(evt) {
+        endElt.prop("disabled", jQuery(evt.currentTarget).val() == "in");       
+    });
 };

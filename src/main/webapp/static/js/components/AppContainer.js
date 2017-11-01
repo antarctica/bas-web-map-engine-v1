@@ -107,7 +107,9 @@ magic.classes.AppContainer = function () {
         "rothera_reports": this.allocateNavbarTool("rothera_reports", "RotheraReportSearch", {
             id: "rothera-reports-tool",
             target: "rothera-reports-tool",
-            caption: "Search for fieldwork reports"
+            caption: "Search fieldwork reports",
+            mapicon: "field_report",
+            popoverContentClass: "reports-popover-content"
         })
     };  
     /* End of navigation bar toolset */

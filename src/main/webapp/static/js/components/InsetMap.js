@@ -131,14 +131,14 @@ magic.classes.InsetMap.prototype.initMap = function() {
         });        
         this.highlighted = [];
         var fcount = 0;
-        evt.map.forEachFeatureAtPixel(evt.pixel, function(feat, layer) {
+        evt.map.forEachFeatureAtPixel(evt.pixel, jQuery.proxy(function(feat, layer) {
             if (layer != null) {
                 if (fcount == 0) {
                     this.highlighted.push({feature: feat, layer: layer});
                 }
                 fcount++;
             }
-        }, this);
+        }, this), this);
         if (fcount > 0) {
             magic.modules.Common.labelVisibility(this.highlighted[0].feature, this.highlighted[0].layer, true, fcount);
         }

@@ -62,11 +62,7 @@ magic.classes.AircraftPositionButton.prototype.getData = function() {
             }                  
         }, this),
         error: function(jqXhr, status, msg) {
-            if (status && msg) {
-                bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Error: ' + status + ' ' + msg + ' getting aircraft positions - potential network outage?</div>');
-            } else {
-                bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to get aircraft positional data - potential network outage?</div>');
-            }      
+            console.log("Failed to get aircraft positional data - potential network outage?");
         }
     });
 };

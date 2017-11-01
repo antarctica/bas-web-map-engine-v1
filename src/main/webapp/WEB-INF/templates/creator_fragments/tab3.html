@@ -110,17 +110,26 @@
                             <input type="checkbox" name="t3-controls" value="layermanager"
                                    data-toggle="tooltip" data-placement="top" title="Enable logged-in users to manage custom layer uploads"></input>
                             Custom layer upload management
-                        </label> 
-                        <label class="checkbox-inline hidden" th:case="ccamlrgis">
-                            <input type="checkbox" name="t3-controls" value="feedback"
-                                   data-toggle="tooltip" data-placement="top" title="Enable user feedback for data and interface problems"></input>
-                            User feedback tool
-                        </label>     
-                        <label class="checkbox-inline" th:case="*">
-                            <input type="checkbox" name="t3-controls" value="feedback"
-                                   data-toggle="tooltip" data-placement="top" title="Enable user feedback for data and interface problems"></input>
-                            User feedback tool
-                        </label>                        
+                        </label>
+                        <div th:case="ccamlrgis">
+                            <label class="checkbox-inline hidden">
+                                <input type="checkbox" name="t3-controls" value="feedback"
+                                       data-toggle="tooltip" data-placement="top" title="Enable user feedback for data and interface problems"></input>
+                                User feedback tool
+                            </label>
+                        </div>
+                        <div th:case="*">
+                            <label class="checkbox-inline">
+                                <input type="checkbox" name="t3-controls" value="rothera_reports"
+                                       data-toggle="tooltip" data-placement="top" title="Enable search of past Rothera fieldwork reports"></input>
+                                Searchable fieldwork reports
+                            </label>
+                            <label class="checkbox-inline">
+                                <input type="checkbox" name="t3-controls" value="feedback"
+                                       data-toggle="tooltip" data-placement="top" title="Enable user feedback for data and interface problems"></input>
+                                User feedback tool
+                            </label>
+                        </div>
                     </div>
                 </div>
             </div>
