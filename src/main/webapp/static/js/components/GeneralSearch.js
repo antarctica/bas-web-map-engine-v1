@@ -149,6 +149,9 @@ magic.classes.GeneralSearch.prototype.addSeasonSelect = function (id, startYear,
     var endElt = jQuery("#" + this.id + "-" + id + "-end");    
     if (startElt.length > 0) {
         startElt.empty();
+        var opt = jQuery("<option>", {value: "any"});
+        opt.text("Any");
+        startElt.append(opt);
         for (var y = startYear; y <= endYear; y++) {
             var opt = jQuery("<option>", {value: y});
             opt.text(y + "-" + ((y+1) + "").substr(2));            
@@ -164,6 +167,19 @@ magic.classes.GeneralSearch.prototype.addSeasonSelect = function (id, startYear,
         }
     }
     rangeElt.change(function(evt) {
-        endElt.prop("disabled", jQuery(evt.currentTarget).val() == "in");       
+        endElt.prop("disabled", jQuery(evt.currentTarget).val() != "between");       
     });
+};
+
+/**
+ * Format error messages about problem fields from validation
+ * @param {Object} errors
+ * @return {String}
+ */
+magic.classes.GeneralSearch.prototype.formatErrors = function (errors) {
+    var html = "";
+    for (var errkey in errors) {
+        html += '<p>' + errkey + ' - ' + errors[errkey] + '</p>';
+    }
+    return(html);
 };
