@@ -52,7 +52,7 @@ magic.classes.RotheraReportSearch = function (options) {
                 bootbox.alert(
                     '<div class="alert alert-danger" style="margin-bottom:0">' + 
                         '<p>Please correct the problems indicated below:</p>' + 
-                        this.formatErrors(errors);
+                        this.formatErrors(errors) + 
                     '</div>'
                 );
             }
@@ -95,7 +95,7 @@ magic.classes.RotheraReportSearch.prototype.payload = function () {
             break;
         default:
             payload["startdate"] = startDate;
-            payload["enddate"] = startDate.substr(0, 4) + "-" + this.SEASON_END_DAY;
+            payload["enddate"] = endDate;
             break;
     }
     return(payload);

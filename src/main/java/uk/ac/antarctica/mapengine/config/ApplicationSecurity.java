@@ -163,7 +163,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
                         "/maps/save", "/maps/update/**", "/maps/delete/**", "/maps/deletebyname/**",
                         "/embedded_maps/save", "/embedded_maps/update/**", "/embedded_maps/delete/**", "/embedded_maps/deletebyname/**",
                         "/usermaps/save", "/usermaps/update/**", "/usermaps/delete/**",
-                        "/thumbnail/save/**", "/thumbnail/delete/**")
+                        "/thumbnail/save/**", "/thumbnail/delete/**", "/rothera_reports")
                 .fullyAuthenticated()
                 .and()
                 .formLogin()
