@@ -86,7 +86,8 @@ magic.classes.GeneralSearch.prototype.activate = function (callback) {
         jQuery(document).trigger("mapinteractionactivated", [this]);
     }
     this.active = true;
-    this.layer.setVisible(true); 
+    this.layer.setVisible(true);
+    this.assignCloseButtonHandler();
     if (jQuery.isFunction(callback)) {
         jQuery.proxy(callback, this)();
     }

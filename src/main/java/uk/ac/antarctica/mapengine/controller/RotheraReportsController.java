@@ -56,7 +56,7 @@ public class RotheraReportsController {
         System.out.println(payload);
         String baseQuery = 
             "SELECT a.id, a.title, a.description, a.startdate, a.enddate, a.filename, a.strpeople, a.strkeywords, " +
-            "b.strplacename, b.convhull, st_centroid(b.convhull) as centroid FROM " +
+            "b.strplacename, st_centroid(b.convhull) as centroid FROM " +
             "(" +
             "SELECT id, title, description, startdate, enddate, filename, " +
             "array_to_string(people, '~') AS strpeople, array_to_string(keywords, '~') AS strkeywords FROM " + ROTHERA_REPORTS_TABLE +
@@ -89,10 +89,10 @@ public class RotheraReportsController {
             /* Now decompose location names into individual words to compensate for 'Mount Hope', 'Hope, Mount' etc */
             for (int i = 0; i < locationNames.length; i++) {
                 String[] locWords = locationNames[i].split("[\\s,]+");
-                locationsClause.append((i > 0 ? " AND " : ""));
+                locationsClause.append((i > 0 ? " OR " : ""));
                 locationsClause.append("(");
                 for (int j = 0; j < locWords.length; j++) {
-                    locationsClause.append((j > 0 ? " OR " : ""));
+                    locationsClause.append((j > 0 ? " AND " : ""));
                     locationsClause.append("lower(unaccent(strplacename)) LIKE ?");
                     sqlArgs.add("%" + locWords[j].toLowerCase() + "%");
                 }
@@ -110,10 +110,10 @@ public class RotheraReportsController {
             /* Now decompose participant names into individual words to compensate for 'Mike Bentley', 'Bentley, Mike' etc */
             for (int i = 0; i < peopleNames.length; i++) {
                 String[] nameWords = peopleNames[i].split("[\\s,]+");
-                peopleClause.append((i > 0 ? " AND " : ""));
+                peopleClause.append((i > 0 ? " OR " : ""));
                 peopleClause.append("(");
                 for (int j = 0; j < nameWords.length; j++) {
-                    peopleClause.append((j > 0 ? " OR " : ""));
+                    peopleClause.append((j > 0 ? " AND " : ""));
                     peopleClause.append("lower(unaccent(strpeople)) LIKE ?");
                     sqlArgs.add("%" + nameWords[j].toLowerCase() + "%");
                 }
@@ -128,21 +128,15 @@ public class RotheraReportsController {
         if (keywordList != null && !keywordList.isEmpty()) {
             /* Build keyword enquiry - first get keywords into an array */
             String[] keywords = keywordList.split(",");
-            /* Now decompose participant names into individual words to compensate for 'Mike Bentley', 'Bentley, Mike' etc */
+            keywordsClause.append("(");
             for (int i = 0; i < keywords.length; i++) {
-                String[] keywordWords = keywords[i].split("[\\s,]+");
                 keywordsClause.append((i > 0 ? " AND " : ""));
-                keywordsClause.append("(");
-                for (int j = 0; j < keywordWords.length; j++) {
-                    String kwMatch = "%" + keywordWords[j].toLowerCase() + "%";
-                    keywordsClause.append((j > 0 ? " OR " : ""));
-                    keywordsClause.append("(lower(title) LIKE ? OR lower(description) LIKE ? OR lower(strkeywords) LIKE ?)");
-                    sqlArgs.add(kwMatch);
-                    sqlArgs.add(kwMatch);
-                    sqlArgs.add(kwMatch);
-                }
-                keywordsClause.append(")");                
+                keywordsClause.append("(lower(title) LIKE ? OR lower(description) LIKE ? OR lower(strkeywords) LIKE ?)");
+                sqlArgs.add("%" + keywords[i] + "%");
+                sqlArgs.add("%" + keywords[i] + "%");
+                sqlArgs.add("%" + keywords[i] + "%");                                                           
             }
+            keywordsClause.append(")");     
             sqlQueryBuilder.append(keywordsClause.toString());
             sqlQueryBuilder.append(" AND ");
         }
@@ -152,7 +146,7 @@ public class RotheraReportsController {
         String endDate = jo.get("enddate").getAsString();
         if (startDate != null && !startDate.isEmpty() && endDate != null && !endDate.isEmpty()) {
             /* Build date enquiry */
-            datesClause.append("(startdate IS NOT NULL AND startdate <= to_date(?, 'YYYY-MM-DD') AND enddate IS NOT NULL AND enddate >= to_date(?, 'YYYY-MM-DD'))");
+            datesClause.append("(startdate IS NOT NULL AND startdate >= to_date(?, 'YYYY-MM-DD') AND enddate IS NOT NULL AND enddate <= to_date(?, 'YYYY-MM-DD'))");
             sqlArgs.add(startDate);
             sqlArgs.add(endDate);
             sqlQueryBuilder.append(datesClause.toString());
