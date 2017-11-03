@@ -40,6 +40,7 @@ public class RotheraReportsController {
     
     private static final String ROTHERA_REPORTS_TABLE = "opsgis2.rothera_reports";
     private static final String ROTHERA_REPORTS_PLACES_TABLE = "opsgis2.rothera_report_places";
+    private static final int MAX_RECORDS = 100;
     
     /**
      * Search for Rothera Fieldwork reports (highly BAS-specific - do not offer this externally)
@@ -56,7 +57,7 @@ public class RotheraReportsController {
         System.out.println(payload);
         String baseQuery = 
             "SELECT a.id, a.title, a.description, a.startdate, a.enddate, a.filename, a.strpeople, a.strkeywords, " +
-            "b.strplacename, st_centroid(b.convhull) as centroid FROM " +
+            "b.strplaces, st_astext(st_transform(st_centroid(b.convhull),4326)) as centroid FROM " +
             "(" +
             "SELECT id, title, description, startdate, enddate, filename, " +
             "array_to_string(people, '~') AS strpeople, array_to_string(keywords, '~') AS strkeywords FROM " + ROTHERA_REPORTS_TABLE +
@@ -65,6 +66,7 @@ public class RotheraReportsController {
             "(" +
             "SELECT " + ROTHERA_REPORTS_TABLE + ".id AS id, " +
             "string_agg(distinct " + ROTHERA_REPORTS_PLACES_TABLE + ".placename, '~') AS strplacename, " +
+            "string_agg(distinct " + ROTHERA_REPORTS_PLACES_TABLE + ".placename || ' ' || st_astext(st_geomfromtext('POINT(' || " + ROTHERA_REPORTS_PLACES_TABLE + ".lon || ' ' || " + ROTHERA_REPORTS_PLACES_TABLE + ".lat || ')', 4326)), '~') AS strplaces, " +
             "st_convexhull(st_collect(" + ROTHERA_REPORTS_PLACES_TABLE + ".geom)) AS convhull FROM " + ROTHERA_REPORTS_TABLE + ", " + ROTHERA_REPORTS_PLACES_TABLE + " " +
             "WHERE " + ROTHERA_REPORTS_TABLE + ".id = " + ROTHERA_REPORTS_PLACES_TABLE + ".reportid GROUP BY " + ROTHERA_REPORTS_TABLE + ".id" +
             ") b " +
@@ -87,6 +89,7 @@ public class RotheraReportsController {
             /* Build location enquiry - first get location names into an array */
             String[] locationNames = locations.split(",");
             /* Now decompose location names into individual words to compensate for 'Mount Hope', 'Hope, Mount' etc */
+            locationsClause.append("(");
             for (int i = 0; i < locationNames.length; i++) {
                 String[] locWords = locationNames[i].split("[\\s,]+");
                 locationsClause.append((i > 0 ? " OR " : ""));
@@ -98,6 +101,7 @@ public class RotheraReportsController {
                 }
                 locationsClause.append(")");                
             }
+            locationsClause.append(")"); 
             sqlQueryBuilder.append(locationsClause.toString());
             sqlQueryBuilder.append(" AND ");
         }
@@ -108,6 +112,7 @@ public class RotheraReportsController {
             /* Build participant enquiry - first get names into an array */
             String[] peopleNames = people.split(",");
             /* Now decompose participant names into individual words to compensate for 'Mike Bentley', 'Bentley, Mike' etc */
+            peopleClause.append("(");
             for (int i = 0; i < peopleNames.length; i++) {
                 String[] nameWords = peopleNames[i].split("[\\s,]+");
                 peopleClause.append((i > 0 ? " OR " : ""));
@@ -119,6 +124,7 @@ public class RotheraReportsController {
                 }
                 peopleClause.append(")");                
             }
+            peopleClause.append(")");
             sqlQueryBuilder.append(peopleClause.toString());
             sqlQueryBuilder.append(" AND ");
         }
@@ -152,7 +158,7 @@ public class RotheraReportsController {
             sqlQueryBuilder.append(datesClause.toString());
         }
         /* Strip final ' AND ' if present */
-        String sqlQuery = sqlQueryBuilder.toString().replace("\\sAND\\s$", "");
+        String sqlQuery = sqlQueryBuilder.toString().replace("\\sAND\\s$", " LIMIT " + MAX_RECORDS);
         System.out.println(sqlQuery);
         try {            
             String [] sqlArgsArr = sqlArgs.toArray(new String[sqlArgs.size()]);

@@ -173,7 +173,7 @@ magic.modules.Common = function () {
                 var styling = {};
                 if (geomType.toLowerCase().indexOf("point") >= 0) {
                     /* Create image */
-                    styling.image = this.getPointImageStyle(paletteEntry)                 
+                    styling.image = this.getPointImageStyle(paletteEntry);                 
                 } else if (geomType.toLowerCase().indexOf("linestring") >= 0) {
                     styling.stroke = new ol.style.Stroke({
                         color: this.rgbToDec(this.color_palette[paletteEntry]),
@@ -213,12 +213,13 @@ magic.modules.Common = function () {
          * Create a style with the given opacity
          * @param {float} opacity
          * @param {String} icon
+         * @param {Array} anchor
          * @returns {ol.style.Style}
          */
-        getIconStyle: function(opacity, icon) {
+        getIconStyle: function(opacity, icon, anchor) {
             return(new ol.style.Style({
                 image: new ol.style.Icon({
-                    anchor: [0.5, 1],
+                    anchor: anchor || [0.5, 1],
                     anchorXUnits: "fraction",
                     anchorYUnits: "fraction",
                     opacity: opacity,

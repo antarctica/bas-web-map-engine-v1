@@ -27,7 +27,9 @@ magic.classes.GeneralSearch = function (options) {
     this.map = options.map || magic.runtime.map;
     
     /* Icon to be used on the map (should be a path under static/images, without the .png on the end */
-    this.mapicon = options.mapicon || "marker_red";
+    this.styleFunction = options.styleFunction || function(f) {
+        return(magic.modules.Common.getIconStyle(0.8, "marker_red"));
+    };
     
     /* === Internal properties === */
     this.active = false;
@@ -37,7 +39,7 @@ magic.classes.GeneralSearch = function (options) {
         name: this.layername,
         visible: true,
         source: new ol.source.Vector({features: []}),
-        style: magic.modules.Common.getIconStyle(0.8, this.mapicon),
+        style: this.styleFunction,
         metadata: {}
     });
     
@@ -136,40 +138,6 @@ magic.classes.GeneralSearch.prototype.addTagsInput = function (id) {
             }
         }
     }
-};
-
-/**
- * Add a season selectpr plugin widget to the input with given id
- * @param {string} id
- * @param {integer} startYear
- * @param {integer} endYear
- */
-magic.classes.GeneralSearch.prototype.addSeasonSelect = function (id, startYear, endYear) {
-    var rangeElt = jQuery("#" + this.id + "-" + id + "-range");
-    var startElt = jQuery("#" + this.id + "-" + id + "-start");
-    var endElt = jQuery("#" + this.id + "-" + id + "-end");    
-    if (startElt.length > 0) {
-        startElt.empty();
-        var opt = jQuery("<option>", {value: "any"});
-        opt.text("Any");
-        startElt.append(opt);
-        for (var y = startYear; y <= endYear; y++) {
-            var opt = jQuery("<option>", {value: y});
-            opt.text(y + "-" + ((y+1) + "").substr(2));            
-            startElt.append(opt);
-        }
-    }
-    if (endElt.length > 0) {
-        endElt.empty();
-        for (var y = startYear; y <= endYear; y++) {
-            var opt = jQuery("<option>", {value: y});
-            opt.text(y + "-" + ((y+1) + "").substr(2));            
-            endElt.append(opt);
-        }
-    }
-    rangeElt.change(function(evt) {
-        endElt.prop("disabled", jQuery(evt.currentTarget).val() != "between");       
-    });
 };
 
 /**
