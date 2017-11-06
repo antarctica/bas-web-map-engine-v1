@@ -12,6 +12,7 @@ magic.classes.AppContainer = function () {
      * magic.runtime.map_context.preferencedata
      */ 
     
+    /* Mouseover highlights */
     this.highlighted = [];
     
     /* Set container sizes */
@@ -366,12 +367,16 @@ magic.classes.AppContainer.prototype.enableScalelinePopover = function() {
 };
 
 /**
- * Enable a popover on hover over the map scale line
+ * Enable a mouseover label on vector layers
  */
 magic.classes.AppContainer.prototype.setVectorLayerLabelHandler = function() {
     magic.runtime.map.on("pointermove", jQuery.proxy(function(evt) {
         jQuery.each(this.highlighted, function(idx, hl) {
             magic.modules.Common.labelVisibility(hl.feature, hl.layer, false, 1);
+            /* Check for additional mouseout handler */
+            if (jQuery.isFunction(hl.layer.get("mouseout"))) {
+                hl.layer.get("mouseout")(hl.feature);
+            } 
         });        
         this.highlighted = [];
         var fcount = 0;
@@ -381,8 +386,12 @@ magic.classes.AppContainer.prototype.setVectorLayerLabelHandler = function() {
                     this.highlighted.push({feature: feat, layer: layer});
                 }
                 fcount++;
+                /* Check for additional mouseover handler */
+                if (jQuery.isFunction(layer.get("mouseover"))) {
+                    layer.get("mouseover")(feat);
+                } 
             }
-        }, this), this);
+        }, this));
         if (fcount > 0) {
             magic.modules.Common.labelVisibility(this.highlighted[0].feature, this.highlighted[0].layer, true, fcount);
         }

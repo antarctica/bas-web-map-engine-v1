@@ -39,14 +39,16 @@ magic.classes.RotheraReportSearch = function (options) {
         content: this.markup()
     })
     .on("shown.bs.popover", jQuery.proxy(function() {
-        this.activate(function() {
+        this.activate(jQuery.proxy(function() {
             this.addTagsInput("locations");
             this.addTagsInput("people");
             this.addTagsInput("keywords");
             this.seasonSelect = new magic.classes.SeasonSelect(this.id + "-season-select-div");
             this.layer.set("fetcher", jQuery.proxy(this.fullFeatureDataFetch, this), true);
-            jQuery("#" + this.id + "-locations").closest("div").find(".bootstrap-tagsinput :input").focus();
-        });
+            this.layer.set("mouseover", jQuery.proxy(this.mouseoverHandler, this), true);
+            this.layer.set("mouseout", jQuery.proxy(this.mouseoutHandler, this), true);
+            jQuery("#" + this.id + "-locations").closest("div").find(".bootstrap-tagsinput :input").focus();            
+        }, this));
         /* Add 'shade' button clickhandler to temporarily show/hide form to enable a better map view */
         jQuery("#" + this.id + "-shade").click(jQuery.proxy(function(evt) {
             var shadeBtn = jQuery(evt.currentTarget);
@@ -112,20 +114,21 @@ magic.classes.RotheraReportSearch = function (options) {
                                         var placeGeom = new ol.geom.Point([parseFloat(placeStrCoords[0]), parseFloat(placeStrCoords[1])]);
                                         placeGeom.transform("EPSG:4326", magic.runtime.map.getView().getProjection().getCode());
                                         var placeAttrs = {
-                                            type: "fieldwork-location",
+                                            id: featureData.id + "-location",
                                             name: parts[0],
                                             layer: this.layer,
                                             geometry: placeGeom,
-                                            ignoreClicks: true
-                                        };
+                                            ignoreClicks: true,
+                                            hidden: true                                        };
                                         var placeFeat = new ol.Feature(placeAttrs);
                                         this.layer.getSource().addFeature(placeFeat); 
                                         /* Plot a line feature between centroid and satellite */
                                         var lineAttrs = {
-                                            type: "fieldwork-connecting-line",
+                                            id: featureData.id + "-connector",
                                             geometry: new ol.geom.LineString([geom.getCoordinates(), placeGeom.getCoordinates()]),
                                             layer: this.layer,
-                                            ignoreClicks: true
+                                            ignoreClicks: true,
+                                            hidden: true
                                         };
                                         var lineFeat = new ol.Feature(lineAttrs);
                                         this.layer.getSource().addFeature(lineFeat);
@@ -231,36 +234,69 @@ magic.classes.RotheraReportSearch.prototype.markup = function () {
  */
 magic.classes.RotheraReportSearch.prototype.styleFunction = function (f) {
     var style = null;
-    switch(f.get("type")) {
-        case "fieldwork-centroid":
-            style = magic.modules.Common.getIconStyle(1.0, "field_report", [0.5, 0.5]);
-            break;
-        case "fieldwork-location":
+    if (f.get("id").indexOf("-location") != -1) {
+        var opacity1 = 1.0;
+        var opacity2 = 0.8;
+        if (f.get("hidden")) {
+            opacity1 = opacity2 = 0.0;
+        } else {
             style = new ol.style.Style({
                 image: new ol.style.Circle({
                     fill: new ol.style.Fill({
-                        color: magic.modules.Common.rgbToDec("#ff0000", 0.8)
+                        color: magic.modules.Common.rgbToDec("#ff0000", opacity2)
                     }),
                     radius: 3,
                     stroke: new ol.style.Stroke({
-                        color: magic.modules.Common.rgbToDec("#ff0000", 1.0),
+                        color: magic.modules.Common.rgbToDec("#ff0000", opacity1),
                         width: 1
                     })
+                }),
+                text: new ol.style.Text({
+                    font: "Arial",
+                    scale: 1.2,
+                    offsetX: 0,
+                    offsetY: -10,
+                    text: f.get("name"),
+                    textAlign: "left",
+                    fill: new ol.style.Fill({
+                        color: magic.modules.Common.rgbToDec("#ff0000", opacity1)
+                    })                    
                 })
             });
-            break;
-        case "fieldwork-connecting-line":
-            style = new ol.style.Style({
-                stroke: new ol.style.Stroke({
-                    color: magic.modules.Common.rgbToDec("#ff0000", 0.5),
-                    width: 1.5
-                })
-            });
-            break;
-        default:
-            break;
-    }   
+        }        
+    } else if (f.get("id").indexOf("-connector") != -1) {
+        var opacity = f.get("hidden") ? 0.0 : 0.5;
+        style = new ol.style.Style({
+            stroke: new ol.style.Stroke({
+                color: magic.modules.Common.rgbToDec("#ff0000", opacity),
+                width: 1.5
+            })
+        });
+    } else {
+        style = magic.modules.Common.getIconStyle(1.0, "field_report", [0.5, 0.5]);
+    }    
     return(style);
+};
+
+/**
+ * Mouseover handler for a report feature 
+ */
+magic.classes.RotheraReportSearch.prototype.mouseoverHandler = function(feat) {
+    jQuery.each(this.layer.getSource().getFeatures(), function(idx, f) {
+        if (f != feat && f.get("id").indexOf(feat.get("id") == 0)) {
+            /* This is an associated feature which must be shown */
+            f.set("hidden", false);
+        }
+    });
+};
+
+/**
+ * Mouseout handler for a report feature 
+ */
+magic.classes.RotheraReportSearch.prototype.mouseoutHandler = function() {
+    jQuery.each(this.layer.getSource().getFeatures(), function(idx, f) {
+        f.set("hidden", true);
+    });
 };
 
 /**
