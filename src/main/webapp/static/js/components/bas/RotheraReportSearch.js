@@ -1,53 +1,39 @@
 /* Search for Rothera field reports as a Bootstrap popover */
 
 magic.classes.RotheraReportSearch = function (options) { 
-    
-    options.styleFunction = function(f) {
-        var style = null;
-        if (f.get("report")) {
-            style = magic.modules.Common.getIconStyle(1.0, "field_report", [0.5, 0.5]);
-        } else if (f.get("type") == "line") {
-            style = new ol.style.Style({
-                stroke: new ol.style.Stroke({
-                    color: magic.modules.Common.rgbToDec("#ff0000", 0.5),
-                    width: 1.5
-                })
-            });
-        } else {
-            style = new ol.style.Style({
-                image: new ol.style.Circle({
-                    fill: new ol.style.Fill({
-                        color: magic.modules.Common.rgbToDec("#ff0000", 0.8)
-                    }),
-                    radius: 3,
-                    stroke: new ol.style.Stroke({
-                        color: magic.modules.Common.rgbToDec("#ff0000", 1.0),
-                        width: 1
-                    })
-                })
-            });
-        }
-        return(style);
-    };
-    
+   
     magic.classes.GeneralSearch.call(this, options);
+    
+    /* Set style function */
+    this.layer.setStyle(this.styleFunction);
     
     /* Season selector widget */
     this.seasonSelect = null;
     
     /* Attribute map for pop-ups */
     this.attribute_map = [
-        {name: "id", alias: "MODES id", displayed: true},
-        {name: "title", alias: "Title", displayed: true},
-        {name: "description", alias: "Description", displayed: true},
-        {name: "people", alias: "Personnel", displayed: true},
-        {name: "season", alias: "Season", displayed: true},
-        {name: "report", alias: "Report file", displayed: true}
+        {name: "id", alias: "MODES id", displayed: true, "type": "xsd:string"},
+        {name: "title", alias: "Title", displayed: true, "type": "xsd:string"},
+        {name: "description", alias: "Description", displayed: true, "type": "xsd:string"},
+        {name: "people", alias: "Personnel", displayed: true, "type": "xsd:string"},
+        {name: "season", alias: "Season", displayed: true, "type": "xsd:string"},
+        {name: "report", alias: "Report file", displayed: true, "type": "xsd:string"}
     ];
+    this.layer.set("metadata", {
+        attribute_map: this.attribute_map
+    });
     
     this.target.popover({
         template: this.template,
-        title: '<span><big><strong>' + this.caption + '</strong></big><button type="button" class="close">&times;</button></span>',
+        title: 
+            '<span>' + 
+                '<big><strong>' + this.caption + '</strong></big>' + 
+                '<button id="' + this.id + '-shade" class="btn btn-sm btn-default" type="button" style="margin-left:5px" ' + 
+                    'data-toggle="tooltip" data-placement="bottom" title="Hide the form to see the map better">' + 
+                    '<i class="fa fa-caret-up"></i>' + 
+                '</button>' +
+                '<button type="button" class="close">&times;</button>' + 
+            '</span>',
         container: "body",
         html: true,
         content: this.markup()
@@ -58,7 +44,34 @@ magic.classes.RotheraReportSearch = function (options) {
             this.addTagsInput("people");
             this.addTagsInput("keywords");
             this.seasonSelect = new magic.classes.SeasonSelect(this.id + "-season-select-div");
+            this.layer.set("fetcher", jQuery.proxy(this.fullFeatureDataFetch, this), true);
+            jQuery("#" + this.id + "-locations").closest("div").find(".bootstrap-tagsinput :input").focus();
         });
+        /* Add 'shade' button clickhandler to temporarily show/hide form to enable a better map view */
+        jQuery("#" + this.id + "-shade").click(jQuery.proxy(function(evt) {
+            var shadeBtn = jQuery(evt.currentTarget);
+            var contentDiv = jQuery("#" + this.id + "-form").closest(".popover-content");
+            shadeBtn.closest("h3").css("width", contentDiv.css("width"));
+            var btnIcon = shadeBtn.find("i");
+            if (btnIcon.hasClass("fa-caret-up")) {
+                contentDiv.addClass("hidden");
+                btnIcon.removeClass("fa-caret-up").addClass("fa-caret-down");
+                shadeBtn.attr("data-original-title", "Show the form again").tooltip("fixTitle");
+            } else {
+                contentDiv.removeClass("hidden");
+                btnIcon.removeClass("fa-caret-down").addClass("fa-caret-up");
+                shadeBtn.attr("data-original-title", "Hide the form to see the map better").tooltip("fixTitle");
+            }            
+        }, this));
+        /* Add reset button clickhandler */
+        jQuery("#" + this.id + "-reset").click(jQuery.proxy(function(evt) {
+            this.resetTagsInput("locations");
+            this.resetTagsInput("people");
+            this.resetTagsInput("keywords");
+            this.seasonSelect.reset();
+            this.layer.getSource().clear();
+            jQuery("#" + this.id + "-results").addClass("hidden").html("");
+        }, this));
         /* Add search button click handler */
         jQuery("#" + this.id + "-search").click(jQuery.proxy(function(evt) {
             var errors = {};
@@ -84,16 +97,7 @@ magic.classes.RotheraReportSearch = function (options) {
                         for (var i = 0; i < response.length; i++) {
                             var featureData = response[i];
                             if (featureData.centroid != null) {
-                                var attrs = {
-                                    id: featureData.id,
-                                    title: featureData.title,
-                                    description: featureData.description,
-                                    people: featureData.strpeople ? featureData.strpeople.replace("~", "<br/>") : "Unspecified",
-                                    season: featureData.startdate && featureData.enddate 
-                                        ? featureData.startdate.substring(featureData.startdate.length-4) + "-" + featureData.enddate.substring(featureData.enddate.length-4)
-                                        : "Unspecified",
-                                    report: featureData.filename
-                                };
+                                
                                 /* Get geometry of centroid of activity */
                                 var strCoords = featureData.centroid.replace(/^POINT\(/, "").replace(/\)$/, "").split(" ");
                                 var geom = new ol.geom.Point([parseFloat(strCoords[0]), parseFloat(strCoords[1])]);
@@ -108,23 +112,33 @@ magic.classes.RotheraReportSearch = function (options) {
                                         var placeGeom = new ol.geom.Point([parseFloat(placeStrCoords[0]), parseFloat(placeStrCoords[1])]);
                                         placeGeom.transform("EPSG:4326", magic.runtime.map.getView().getProjection().getCode());
                                         var placeAttrs = {
+                                            type: "fieldwork-location",
                                             name: parts[0],
-                                            geometry: placeGeom
+                                            layer: this.layer,
+                                            geometry: placeGeom,
+                                            ignoreClicks: true
                                         };
                                         var placeFeat = new ol.Feature(placeAttrs);
                                         this.layer.getSource().addFeature(placeFeat); 
                                         /* Plot a line feature between centroid and satellite */
                                         var lineAttrs = {
-                                            type: "line",
-                                            geometry: new ol.geom.LineString([geom.getCoordinates(), placeGeom.getCoordinates()])
+                                            type: "fieldwork-connecting-line",
+                                            geometry: new ol.geom.LineString([geom.getCoordinates(), placeGeom.getCoordinates()]),
+                                            layer: this.layer,
+                                            ignoreClicks: true
                                         };
                                         var lineFeat = new ol.Feature(lineAttrs);
                                         this.layer.getSource().addFeature(lineFeat);
                                     }
                                 }
                                 /* Plot a feature at the centroid of the fieldwork activity locations */                                
-                                attrs.geometry = geom;
-                                var feat = new ol.Feature(attrs);
+                                var feat = new ol.Feature({
+                                    id: featureData.id, 
+                                    type: "fieldwork-centroid", 
+                                    geometry: geom, 
+                                    layer: this.layer,
+                                    ignoreClicks: false
+                                });
                                 this.layer.getSource().addFeature(feat); 
                             }            
                         }
@@ -199,13 +213,91 @@ magic.classes.RotheraReportSearch.prototype.markup = function () {
         '</div>' +
         '<div class="form-group form-group-sm">' +
             '<button id="' + this.id + '-search" class="btn btn-sm btn-primary" type="button" ' + 
-                'data-toggle="tooltip" data-placement="right" title="Show locations having fieldwork reports on the map">' + 
+                'data-toggle="tooltip" data-placement="bottom" title="Show locations having fieldwork reports on the map">' + 
                 'Search reports&nbsp;<span class="fa fa-angle-double-right"></span>' + 
                 '<span id="' + this.id + '-results" class="badge badge-alert hidden" style="margin-left:10px"></span>' +
+            '</button>' + 
+            '<button id="' + this.id + '-reset" class="btn btn-sm btn-danger" type="button" style="margin-left:5px" ' + 
+                'data-toggle="tooltip" data-placement="bottom" title="Reset the form and clear results">' + 
+                'Reset form' + 
             '</button>' +            
         '</div>' +           
     '</form>'
     );
+};
+
+/**
+ * Styling for the various feature types
+ */
+magic.classes.RotheraReportSearch.prototype.styleFunction = function (f) {
+    var style = null;
+    switch(f.get("type")) {
+        case "fieldwork-centroid":
+            style = magic.modules.Common.getIconStyle(1.0, "field_report", [0.5, 0.5]);
+            break;
+        case "fieldwork-location":
+            style = new ol.style.Style({
+                image: new ol.style.Circle({
+                    fill: new ol.style.Fill({
+                        color: magic.modules.Common.rgbToDec("#ff0000", 0.8)
+                    }),
+                    radius: 3,
+                    stroke: new ol.style.Stroke({
+                        color: magic.modules.Common.rgbToDec("#ff0000", 1.0),
+                        width: 1
+                    })
+                })
+            });
+            break;
+        case "fieldwork-connecting-line":
+            style = new ol.style.Style({
+                stroke: new ol.style.Stroke({
+                    color: magic.modules.Common.rgbToDec("#ff0000", 0.5),
+                    width: 1.5
+                })
+            });
+            break;
+        default:
+            break;
+    }   
+    return(style);
+};
+
+/**
+ * Fetch the full attribute data for a feature in the layer, to avoid large bulk data transfers
+ * @param {Function} callback
+ * @param {Object} fdata
+ * @param {int} i
+ */
+magic.classes.RotheraReportSearch.prototype.fullFeatureDataFetch = function(callback, fdata, i) {
+    jQuery.ajax({
+        url: magic.config.paths.baseurl + "/rothera_reports/data?id=" + encodeURIComponent(fdata.id), 
+        method: "GET",
+        dataType: "json",
+        contentType: "application/json"
+    })
+    .done(jQuery.proxy(function(response) {
+        var newdata = {
+            id: response.id,
+            title: response.title,
+            description: response.description.replace("~", "'"),
+            people: response.people ? (response.people.split("~").join("<br/>")) : "",
+            season: response.startdate && response.enddate 
+                ? response.startdate.substr(response.startdate.length-4) + " - " + (parseInt(response.startdate.substr(response.startdate.length-4))+1)
+                :  + "Unspecified",
+            report: magic.config.paths.baseurl + "/rothera_reports/serve?name=" + response.filename
+        };
+        fdata = jQuery.extend(fdata, newdata);
+        callback(fdata, i);
+    }, this))
+    .fail(function (xhr) {
+        bootbox.alert(
+            '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                '<p>Failed to get full attribute data for this report - reason detailed below:</p>' + 
+                '<p>' + JSON.parse(xhr.responseText)["detail"] + '</p>' + 
+            '</div>'
+        );
+    });   
 };
 
 magic.classes.RotheraReportSearch.prototype.interactsMap = function () {

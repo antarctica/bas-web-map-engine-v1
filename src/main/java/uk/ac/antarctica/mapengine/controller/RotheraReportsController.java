@@ -22,6 +22,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import uk.ac.antarctica.mapengine.util.PackagingUtils;
@@ -40,7 +41,6 @@ public class RotheraReportsController {
     
     private static final String ROTHERA_REPORTS_TABLE = "opsgis2.rothera_reports";
     private static final String ROTHERA_REPORTS_PLACES_TABLE = "opsgis2.rothera_report_places";
-    private static final int MAX_RECORDS = 100;
     
     /**
      * Search for Rothera Fieldwork reports (highly BAS-specific - do not offer this externally)
@@ -56,7 +56,7 @@ public class RotheraReportsController {
         ResponseEntity<String> ret;
         System.out.println(payload);
         String baseQuery = 
-            "SELECT a.id, a.title, a.description, a.startdate, a.enddate, a.filename, a.strpeople, a.strkeywords, " +
+            "SELECT a.id, " +
             "b.strplaces, st_astext(st_transform(st_centroid(b.convhull),4326)) as centroid FROM " +
             "(" +
             "SELECT id, title, description, startdate, enddate, filename, " +
@@ -158,7 +158,7 @@ public class RotheraReportsController {
             sqlQueryBuilder.append(datesClause.toString());
         }
         /* Strip final ' AND ' if present */
-        String sqlQuery = sqlQueryBuilder.toString().replace("\\sAND\\s$", " LIMIT " + MAX_RECORDS);
+        String sqlQuery = sqlQueryBuilder.toString().replace("\\sAND\\s$", "");
         System.out.println(sqlQuery);
         try {            
             String [] sqlArgsArr = sqlArgs.toArray(new String[sqlArgs.size()]);
@@ -170,4 +170,31 @@ public class RotheraReportsController {
         return (ret);
     }
     
+    /**
+     * Get full data for report with supplied MODES id
+     * @param HttpServletRequest request,
+     * @param String id
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/rothera_reports/data", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
+    @ResponseBody
+    public ResponseEntity<String> fetchReportData(HttpServletRequest request,
+        @RequestParam(value="id", required=true) String id) throws Exception {
+        ResponseEntity<String> ret;
+        System.out.println(id);
+        try {
+            Map<String, Object> record = magicDataTpl.queryForMap(
+                "SELECT id, title, description, startdate, enddate, filename, array_to_string(people, '~') as people FROM " + ROTHERA_REPORTS_TABLE + " WHERE id=?", 
+                id
+            );
+            System.out.println(mapper.toJsonTree(record).toString());
+            ret = PackagingUtils.packageResults(HttpStatus.OK, mapper.toJsonTree(record).toString(), null);
+        } catch(DataAccessException dae) {
+            ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Error occurred, message was: " + dae.getMessage());
+        }        
+        return (ret);
+    }
+  
 }

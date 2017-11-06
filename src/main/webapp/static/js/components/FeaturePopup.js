@@ -106,13 +106,14 @@ magic.classes.FeaturePopup.prototype.show = function(showAt, featureData) {
             animation: false,
             title: this.title(),
             html: true,
-            content: this.basicMarkup()  /* Basic feature attributes i.e. name, lon, lat */
+            content: this.markup()  /* Basic feature attributes i.e. name, lon, lat */
         }).on("shown.bs.popover", jQuery.proxy(function() {
-            this.selectFeature();            
             /* Close button */
             jQuery("span[id^='" + this.popupId + "-title-']").find("button.close").click(jQuery.proxy(function() { 
                 this.popupElt.popover("hide");
             }, this));
+            /* Do feature select */
+            this.selectFeature();                 
         }, this));
         jQuery("#" + this.popupId).popover("show");
     }
@@ -132,10 +133,11 @@ magic.classes.FeaturePopup.prototype.title = function() {
     var content = "";
     jQuery.each(this.featureCollection, jQuery.proxy(function(i, feat) {
         var name = feat.layer.get("name");        
-        content += '<span id="' + this.popupId + '-title-' + i + '" class="feature-popup-title-cont ' + (i > 0 ? "hidden" : "show") + '">' + 
-                        magic.modules.Common.ellipsis(name, 25) +
-                        '<button type="button" style="float:right" class="close">&times;</button>' + 
-                    '</span>';      
+        content += 
+            '<span id="' + this.popupId + '-title-' + i + '" class="feature-popup-title-cont ' + (i > 0 ? "hidden" : "show") + '">' + 
+                magic.modules.Common.ellipsis(name, 25) +
+                '<button type="button" style="float:right" class="close">&times;</button>' + 
+            '</span>';      
     }, this));    
     return(content);
     
@@ -145,80 +147,14 @@ magic.classes.FeaturePopup.prototype.title = function() {
  * Create basic (name, lon, lat) data markup for feature set
  * @return {string} description
  */
-magic.classes.FeaturePopup.prototype.basicMarkup = function() {    
+magic.classes.FeaturePopup.prototype.markup = function() {    
     var content = "";
-    jQuery.each(this.featureCollection, jQuery.proxy(function(i, feat) {
-        content += '<div id="' + this.popupId + '-table-' + i + '" class="feature-popup-table-cont ' + (i > 0 ? "hidden" : "show") + '">';
-        content += '<table class="table table-striped table-condensed feature-popup-table">';
-        var nDisplayed = 0, nAttrs = -1, isVectorFeat = false;
-        if (feat.layer) {            
-            var md = feat.layer.get("metadata");
-            if (md) {
-                var attrMap = md.attribute_map;
-                if (jQuery.isArray(attrMap) && attrMap.length > 0) {
-                    /* Sort attribute map according to the ordinals (added by David 08/04/2016 in response to request by Alex B-J) */                
-                    attrMap.sort(function(a, b) {
-                        var orda = a["ordinal"] || 999;
-                        var ordb = b["ordinal"] || 999;
-                        return((orda < ordb) ? -1 : (orda > ordb) ? 1 : 0);
-                    });                                       
-                } else {
-                    /* Create suitable attribute map from name/lat/lon */
-                    attrMap = this.minimumPopupAttrs(feat);
-                    isVectorFeat = true;
-                }
-                nAttrs = attrMap.length;
-                jQuery.each(attrMap, jQuery.proxy(function(idx, attrdata) {
-                    var extension = false;
-                    if (attrdata.displayed === true) {
-                        var nameStr = attrdata.alias || attrdata.name;
-                        if (attrdata.type == "xsd:string") {
-                            var finalValue = "";
-                            if (feat[attrdata.name]) {
-                                /* Attribute has a value, so worth displaying */
-                                var quote1 = feat[attrdata.name].indexOf("\"");
-                                var quote2 = feat[attrdata.name].lastIndexOf("\"");
-                                if (quote1 != -1 && quote2 != -1) {
-                                    /* This is a link with an alias i.e. "<linktext>":<url> */
-                                    finalValue = magic.modules.Common.linkify(feat[attrdata.name].substring(quote2+2), feat[attrdata.name].substring(quote1+1, quote2));
-                                } else {
-                                    var longContent = magic.modules.Common.linkify(feat[attrdata.name]);
-                                    if (feat[attrdata.name].length > this.LONG_FIELD_THRESHOLD) {
-                                        /* Long field attribute, not a long link */
-                                        finalValue += 
-                                            '<button class="btn btn-default btn-sm long-field-extension" role="button" data-toggle="popover" data-placement="right">' + 
-                                                '<span class="fa fa-ellipsis-h"></span>' + 
-                                                '<div style="display:none">' + longContent + '</div>' + 
-                                            '</button>';
-                                        extension = true;
-                                    } else {
-                                        finalValue = longContent;
-                                    }
-                                }
-                                content += '<tr><td>' + nameStr + '</td><td' + (extension ? ' align="right"' : '') + '>' + finalValue + '</td></tr>';
-                                nDisplayed++;
-                            }                            
-                        } else { 
-                            if (feat[attrdata.name] || jQuery.isNumeric(feat[attrdata.name])) {
-                                /* Attribute has a non-null value, so worth displaying */
-                                var attrOut = this.attributeValue(attrdata.name, feat[attrdata.name]);
-                                if (attrOut != "") {
-                                    content += '<tr><td>' + nameStr + '</td><td align="right">' + this.attributeValue(attrdata.name, feat[attrdata.name]) + '</td></tr>';
-                                    nDisplayed++;
-                                }
-                            }
-                        }                        
-                    }
-                }, this));
-            }
-        }
-        if (nAttrs == -1 || nAttrs > nDisplayed || isVectorFeat) {
-            content += '<tr><td colspan="2" align="center"><button type="button" id="' + this.popupId + '-full-attr-set-' + i + '" class="btn btn-primary btn-xs">Full attribute set</button></td></tr>';
-        }
-        content += '</table>';
-        content += '</div>';
-    }, this));
-    
+    jQuery.each(this.featureCollection, jQuery.proxy(function(i, feat) {        
+        /* Note: any features whose full data is Ajax-fetched will have a dummy entry created here */
+       content += '<div id="' + this.popupId + '-table-' + i + '" class="feature-popup-table-cont ' + (i > 0 ? "hidden" : "show") + '">';
+       content += this.featureAttributeTableMarkup(feat, i);
+       content += '</div>';
+    }, this));    
     if (this.featureCollection.length > 1) {
         /* Output a pager in initial configuration i.e. viewing first feature */               
         content += 
@@ -240,6 +176,83 @@ magic.classes.FeaturePopup.prototype.basicMarkup = function() {
                 '</div>' + 
             '</div>';
     }
+    return(content);
+};
+
+/**
+ * Return popup content for a feature in the collection
+ * @param {ol.Feature} feat
+ * @param {int} i index into feature collection
+ * @return {String}
+ */
+magic.classes.FeaturePopup.prototype.featureAttributeTableMarkup = function(feat, i) {
+    var content = '<table class="table table-striped table-condensed feature-popup-table">';
+    var nDisplayed = 0, nAttrs = -1, isVectorFeat = false;
+    if (feat.layer) {            
+        var md = feat.layer.get("metadata");
+        if (md) {
+            var attrMap = md.attribute_map;
+            if (jQuery.isArray(attrMap) && attrMap.length > 0) {
+                /* Sort attribute map according to the ordinals (added by David 08/04/2016 in response to request by Alex B-J) */                
+                attrMap.sort(function(a, b) {
+                    var orda = a["ordinal"] || 999;
+                    var ordb = b["ordinal"] || 999;
+                    return((orda < ordb) ? -1 : (orda > ordb) ? 1 : 0);
+                });                                       
+            } else {
+                /* Create suitable attribute map from name/lat/lon */
+                attrMap = this.minimumPopupAttrs(feat);
+                isVectorFeat = true;
+            }
+            nAttrs = attrMap.length;
+            jQuery.each(attrMap, jQuery.proxy(function(idx, attrdata) {
+                var extension = false;
+                if (attrdata.displayed === true) {
+                    var nameStr = attrdata.alias || attrdata.name;
+                    if (attrdata.type == "xsd:string") {
+                        var finalValue = "";
+                        if (feat[attrdata.name]) {
+                            /* Attribute has a value, so worth displaying */
+                            var quote1 = feat[attrdata.name].indexOf("\"");
+                            var quote2 = feat[attrdata.name].lastIndexOf("\"");
+                            if (quote1 != -1 && quote2 != -1) {
+                                /* This is a link with an alias i.e. "<linktext>":<url> */
+                                finalValue = magic.modules.Common.linkify(feat[attrdata.name].substring(quote2+2), feat[attrdata.name].substring(quote1+1, quote2));
+                            } else {
+                                var longContent = magic.modules.Common.linkify(feat[attrdata.name]);
+                                if (feat[attrdata.name].length > this.LONG_FIELD_THRESHOLD) {
+                                    /* Long field attribute, not a long link */
+                                    finalValue += 
+                                        '<button class="btn btn-default btn-sm long-field-extension" role="button" data-toggle="popover" data-placement="right">' + 
+                                            '<span class="fa fa-ellipsis-h"></span>' + 
+                                            '<div style="display:none">' + longContent + '</div>' + 
+                                        '</button>';
+                                    extension = true;
+                                } else {
+                                    finalValue = longContent;
+                                }
+                            }
+                            content += '<tr><td>' + nameStr + '</td><td' + (extension ? ' align="right"' : '') + '>' + finalValue + '</td></tr>';
+                            nDisplayed++;
+                        }                            
+                    } else { 
+                        if (feat[attrdata.name] || jQuery.isNumeric(feat[attrdata.name])) {
+                            /* Attribute has a non-null value, so worth displaying */
+                            var attrOut = this.attributeValue(attrdata.name, feat[attrdata.name]);
+                            if (attrOut != "") {
+                                content += '<tr><td>' + nameStr + '</td><td align="right">' + this.attributeValue(attrdata.name, feat[attrdata.name]) + '</td></tr>';
+                                nDisplayed++;
+                            }
+                        }
+                    }                        
+                }
+            }, this));
+        }
+    }
+    if (nAttrs == -1 || nAttrs > nDisplayed || isVectorFeat) {
+        content += '<tr><td colspan="2" align="center"><button type="button" id="' + this.popupId + '-full-attr-set-' + i + '" class="btn btn-primary btn-xs">Full attribute set</button></td></tr>';
+    }
+    content += '</table>';
     return(content);
 };
 
@@ -318,21 +331,19 @@ magic.classes.FeaturePopup.prototype.selectFeature = function() {
     /* Show the relevant div from the combined markup */
     jQuery("div[id^='" + this.popupId + "-table-']").each(jQuery.proxy(function(idx, elt) {
         if (idx == this.featurePointer) {
+            var fdata = this.featureCollection[idx];
+            if (jQuery.isFunction(fdata.layer.get("fetcher"))) {
+                fdata.layer.get("fetcher")(jQuery.proxy(function(fdata, i) {
+                    jQuery(elt).html(this.featureAttributeTableMarkup(fdata, i));
+                    this.longFieldPopoverHandler(elt);
+                }, this), fdata, idx);
+        } 
             jQuery(elt).removeClass("hidden").addClass("show");
         } else {
             jQuery(elt).removeClass("show").addClass("hidden");
         }
         /* Add extension popover for long fields */
-        jQuery(elt).find("button.long-field-extension").each(function(i, b) {
-            var divs = jQuery(b).children("div");
-            if (divs.length > 0) {
-                jQuery(b).popover({
-                    title: false,
-                    html: true,
-                    content: '<div style="width:200px">' + jQuery(divs[0]).html() + '</div>'
-                });
-            }
-        });
+        this.longFieldPopoverHandler(elt);        
         /* Add full attribute set modal handler */
         jQuery(elt).find("button[id^='" + this.popupId + "-full-attr-set-']").off("click").on("click", jQuery.proxy(function(evt) {
             var btnId = evt.currentTarget.id;
@@ -342,7 +353,7 @@ magic.classes.FeaturePopup.prototype.selectFeature = function() {
                 var attrdata = this.featureCollection[fidx];
                 var keys = [];
                 for (var k in attrdata) {
-                    if (k != "layer" && k != "bbox" && k != "geometry") {
+                    if (k != "layer" && k != "bbox" && k != "geometry" && k != "ignoreClicks") {
                         keys.push(k);
                     }
                 }
@@ -421,6 +432,23 @@ magic.classes.FeaturePopup.prototype.selectFeature = function() {
             this.initPager = true;
         }        
     }    
+};
+
+/**
+ * Add a popover to show the content of long text fields
+ * @param {Object} elt
+ */
+magic.classes.FeaturePopup.prototype.longFieldPopoverHandler = function(elt) {
+    jQuery(elt).find("button.long-field-extension").each(function(i, b) {
+        var divs = jQuery(b).children("div");
+        if (divs.length > 0) {
+            jQuery(b).popover({
+                title: false,
+                html: true,
+                content: '<div style="width:200px">' + jQuery(divs[0]).html() + '</div>'
+            });
+        }
+    });
 };
 
 /**

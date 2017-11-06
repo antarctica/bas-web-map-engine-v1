@@ -108,6 +108,7 @@ magic.classes.AppContainer = function () {
             id: "rothera-reports-tool",
             target: "rothera-reports-tool",
             caption: "Search fieldwork reports",
+            layername: "Rothera fieldwork reports",
             popoverContentClass: "reports-popover-content"
         })
     };  

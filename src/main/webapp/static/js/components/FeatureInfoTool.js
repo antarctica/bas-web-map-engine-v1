@@ -98,10 +98,7 @@ magic.classes.FeatureInfoTool.prototype.queryFeatures = function(evt) {
                         }
                         if (jQuery.isArray(data.features) && data.features.length > 0) {
                             jQuery.each(data.features, function(idx, f) {
-                                if (f.geometry) {                                    
-                                    var capBits = f.id.split(/[^A-Za-z0-9]/);
-                                    capBits = capBits.slice(0, capBits.length-1);
-                                    var caption = magic.modules.Common.initCap(capBits.join(" "));                        
+                                if (f.geometry) {                                                                                            
                                     fprops.push(jQuery.extend({}, f.properties, {"layer": layer}));                                       
                                 }
                             });
@@ -111,8 +108,8 @@ magic.classes.FeatureInfoTool.prototype.queryFeatures = function(evt) {
             }
         }
     });
-    jQuery.when.apply($, deferreds).done(jQuery.proxy(function() {
-        this.featureinfo.show(evt.coordinate, fprops)
+    jQuery.when.apply(jQuery, deferreds).done(jQuery.proxy(function() {
+        this.featureinfo.show(evt.coordinate, fprops);
     }, this));
 };
 
@@ -129,13 +126,13 @@ magic.classes.FeatureInfoTool.prototype.featuresAtPixel = function(px) {
             if (clusterMembers && jQuery.isArray(clusterMembers)) {
                 /* Unpack cluster features */
                 jQuery.each(clusterMembers, function(fi, f) {
-                    if (f.getGeometry()) {
+                    if (!f.get("ignoreClicks") && f.getGeometry()) {
                         var exProps = f.getProperties();
                         fprops.push(jQuery.extend({}, exProps, {"layer": layer}));                           
                     }                    
                 });
             } else {
-                if (feature.getGeometry()) {
+                if (!feature.get("ignoreClicks") && feature.getGeometry()) {
                     var exProps = feature.getProperties();
                     fprops.push(jQuery.extend({}, exProps, {"layer": layer}));
                 }          

@@ -24,12 +24,7 @@ magic.classes.GeneralSearch = function (options) {
     this.layername = options.layername || this.dialogId;
     
     /* Map to add layer to */
-    this.map = options.map || magic.runtime.map;
-    
-    /* Icon to be used on the map (should be a path under static/images, without the .png on the end */
-    this.styleFunction = options.styleFunction || function(f) {
-        return(magic.modules.Common.getIconStyle(0.8, "marker_red"));
-    };
+    this.map = options.map || magic.runtime.map;    
     
     /* === Internal properties === */
     this.active = false;
@@ -133,10 +128,21 @@ magic.classes.GeneralSearch.prototype.addTagsInput = function (id) {
             var btInput = elt.closest("div").find(".bootstrap-tagsinput :input");
             if (btInput) {
                 btInput.attr("data-toggle", "tooltip");
-                btInput.attr("data-placement", "bottom");
+                btInput.attr("data-placement", "top");
                 btInput.attr("title", tooltip);
             }
         }
+    }
+};
+
+/**
+ * Reset a Bootstrap tagsinput plugin widget by removing all entered values
+ * @param {string} id
+ */
+magic.classes.GeneralSearch.prototype.resetTagsInput = function (id) {
+    var elt = jQuery("#" + this.id + "-" + id);
+    if (elt.length > 0) {
+        elt.tagsinput("removeAll");
     }
 };
 

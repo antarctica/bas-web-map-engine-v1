@@ -127,6 +127,15 @@ magic.classes.SeasonSelect.prototype.payload = function() {
     return(payload);
 };
 
+magic.classes.SeasonSelect.prototype.reset = function () {
+    jQuery("#" + this.baseId + "-range").val("in");
+    var startElt = jQuery("#" + this.baseId + "-start");
+    startElt.val("any");
+    startElt.css("width", (this.popoverWidth - 130) + "px");
+    var endElt = jQuery("#" + this.baseId + "-end");    
+    endElt.closest("div").addClass("hidden");
+};
+
 magic.classes.SeasonSelect.prototype.validate = function (errors) {
     var valid = true;
     /* No fields are required - just validate range not wrong way round if 'between' selected */
