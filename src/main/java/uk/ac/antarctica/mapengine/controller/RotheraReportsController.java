@@ -7,12 +7,17 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
@@ -41,6 +46,8 @@ public class RotheraReportsController {
     
     private static final String ROTHERA_REPORTS_TABLE = "opsgis2.rothera_reports";
     private static final String ROTHERA_REPORTS_PLACES_TABLE = "opsgis2.rothera_report_places";
+    
+    private static final String REPORTS_DIRECTORY = "/data/magic_external/rothera_fieldwork_reports";
     
     /**
      * Search for Rothera Fieldwork reports (highly BAS-specific - do not offer this externally)
@@ -195,6 +202,43 @@ public class RotheraReportsController {
             ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Error occurred, message was: " + dae.getMessage());
         }        
         return (ret);
+    }
+    
+    /**
+     * Get full data for report with supplied MODES id
+     * @param HttpServletRequest request,
+     * @param String id
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/rothera_reports/serve", method = RequestMethod.GET, produces = {"image/jpg", "image/jpeg", "application/pdf", "application/vnd.ms-excel"})
+    @ResponseBody
+    public void serveReport(HttpServletRequest request, HttpServletResponse response,
+        @RequestParam(value="filename", required=true) String filename) throws Exception {
+        String reportFileName = REPORTS_DIRECTORY + "/" + filename;
+        File reportFile = new File(reportFileName);
+        String extension = FilenameUtils.getExtension(reportFileName);
+        String mimeType = "application/pdf";
+        if (reportFile.canRead()) {            
+            switch(extension) {
+                case "xls":
+                    mimeType = "application/vnd.ms-excel";
+                    break;
+                case "jpg":
+                    mimeType = "image/jpeg";
+                    break;
+                default:
+                    break;
+            }
+            response.setContentType(mimeType);
+            response.setHeader("Content-Disposition","attachment;filename=" + filename);
+            FileInputStream fis = new FileInputStream(reportFile);
+            IOUtils.copyLarge(fis, response.getOutputStream());
+        } else {
+            response.setContentType("text/plain");
+            IOUtils.write("No readable file " + filename, response.getOutputStream());
+        }
     }
   
 }

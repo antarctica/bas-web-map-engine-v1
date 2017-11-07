@@ -357,7 +357,7 @@ magic.classes.RotheraReportSearch.prototype.fullFeatureDataFetch = function(call
             season: response.startdate && response.enddate 
                 ? response.startdate.substr(response.startdate.length-4) + " - " + (parseInt(response.startdate.substr(response.startdate.length-4))+1)
                 :  + "Unspecified",
-            report: magic.config.paths.baseurl + "/rothera_reports/serve?name=" + response.filename
+            report: magic.config.paths.baseurl + "/rothera_reports/serve?filename=" + response.filename
         };
         fdata = jQuery.extend(fdata, newdata);
         callback(fdata, i);
