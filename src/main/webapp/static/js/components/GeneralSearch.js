@@ -138,6 +138,20 @@ magic.classes.GeneralSearch.prototype.addTagsInput = function (id) {
 };
 
 /**
+ * Populate a Bootstrap tagsinput plugin widget with the give value
+ * @param {string} id
+ * @param {string} value comma-separated string representing array of values
+ */
+magic.classes.GeneralSearch.prototype.populateTagsInput = function (id, value) {
+    var elt = jQuery("#" + this.id + "-" + id);
+    if (elt.length > 0) {
+        jQuery.each(value.split(","), function(idx, v) {
+            elt.tagsinput("add", v);
+        });
+    }
+};
+
+/**
  * Reset a Bootstrap tagsinput plugin widget by removing all entered values
  * @param {string} id
  */

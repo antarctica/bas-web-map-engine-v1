@@ -10,6 +10,9 @@ magic.classes.RotheraReportSearch = function (options) {
     /* Season selector widget */
     this.seasonSelect = null;    
     
+    /* Saved search, for re-populating the dialog when the popover has been hidden */
+    this.savedSearch = {};
+    
     /* Attribute map for pop-ups */
     this.attribute_map = [
         {name: "id", alias: "MODES id", displayed: true, "type": "xsd:string"},
@@ -45,12 +48,16 @@ magic.classes.RotheraReportSearch = function (options) {
             this.layer.set("mouseout", jQuery.proxy(this.mouseoutHandler, this), true);
             jQuery("#" + this.id + "-locations").closest("div").find(".bootstrap-tagsinput :input").focus();            
         }, this));
+        if (this.isActive() && !jQuery.isEmptyObject(this.savedSearch)) {
+            this.restoreSearchState();
+        }
         /* Add 'shade' button clickhandler to temporarily show/hide form to enable a better map view */
         jQuery("#" + this.id + "-shade").click(jQuery.proxy(function(evt) {
             this.target.popover("hide");
         }, this));
         /* Add reset button clickhandler */
         jQuery("#" + this.id + "-reset").click(jQuery.proxy(function(evt) {
+            this.savedSearch = {};
             this.resetTagsInput("locations");
             this.resetTagsInput("people");
             this.resetTagsInput("keywords");
@@ -62,6 +69,7 @@ magic.classes.RotheraReportSearch = function (options) {
         jQuery("#" + this.id + "-search").click(jQuery.proxy(function(evt) {
             var errors = {};
             if (this.validate(errors)) {
+                this.saveSearchState();
                 jQuery.ajax({
                     url: magic.config.paths.baseurl + "/rothera_reports", 
                     data: JSON.stringify(this.payload()), 
@@ -73,6 +81,7 @@ magic.classes.RotheraReportSearch = function (options) {
                     }
                 })
                 .done(jQuery.proxy(function(response) {
+                        bootbox.hideAll();
                         /* Feed back the number of results */
                         var resultsBadge = jQuery("#" + this.id + "-results");
                         resultsBadge.html(response.length);
@@ -111,7 +120,11 @@ magic.classes.RotheraReportSearch = function (options) {
                             '<p>' + JSON.parse(xhr.responseText)["detail"] + '</p>' + 
                         '</div>'
                     );
-                });    
+                });
+                bootbox.dialog({
+                    title: "Please wait",
+                    message: '<p><i class="fa fa-spin fa-spinner"></i> Searching for reports...</p>'
+                });                
             } else {
                 bootbox.alert(
                     '<div class="alert alert-danger" style="margin-bottom:0">' + 
@@ -138,6 +151,27 @@ magic.classes.RotheraReportSearch.prototype.payload = function () {
     payload["keywords"] = jQuery("#" + this.id + "-keywords").val();
     payload = jQuery.extend(payload, this.seasonSelect.payload());    
     return(payload);
+};
+
+/**
+ * Save the search values for pre-populating the form on re-show
+ */
+magic.classes.RotheraReportSearch.prototype.saveSearchState = function () {
+    this.savedSearch = {};
+    this.savedSearch["locations"] = jQuery("#" + this.id + "-locations").val();
+    this.savedSearch["people"] = jQuery("#" + this.id + "-people").val();
+    this.savedSearch["keywords"] = jQuery("#" + this.id + "-keywords").val();
+    this.savedSearch["season"] = jQuery.extend(this.savedSearch, this.seasonSelect.saveState());    
+};
+
+/**
+ * Restore saved search on re-show of the form pop-up
+ */
+magic.classes.RotheraReportSearch.prototype.restoreSearchState = function () {
+    this.populateTagsInput("locations", this.savedSearch['locations']);
+    this.populateTagsInput("people", this.savedSearch['people']);
+    this.populateTagsInput("keywords", this.savedSearch['keywords']);   
+    this.seasonSelect.restoreState(this.savedSearch['season']);    
 };
 
 /**

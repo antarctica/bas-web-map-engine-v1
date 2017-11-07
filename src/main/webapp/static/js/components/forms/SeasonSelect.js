@@ -47,75 +47,76 @@ magic.classes.SeasonSelect = function(containerId, baseId, startYear, endYear, p
     );
     
     /* Fill in options markup */
-    var rangeElt = jQuery("#" + this.baseId + "-range");
-    var startElt = jQuery("#" + this.baseId + "-start");
-    var endElt = jQuery("#" + this.baseId + "-end");    
-    if (startElt.length > 0) {
-        startElt.empty();       
-        for (var y = this.startYear; y <= this.endYear; y++) {
-            var opt = jQuery('<option>', {value: y});
-            opt.text(y + "-" + ((y+1) + "").substr(2));            
-            startElt.append(opt);
-        }
-    }
-    if (endElt.length > 0) {
-        endElt.empty();
-        for (var y = this.startYear; y <= this.endYear; y++) {
-            var opt = jQuery('<option>', {value: y});
-            opt.text(y + "-" + ((y+1) + "").substr(2));            
-            endElt.append(opt);
-        }
-    }
-    rangeElt.change(jQuery.proxy(function(evt) {
-        var rangeVal = jQuery(evt.currentTarget).val();
-        if (rangeVal == "any") {
-            /* Show only first list */
-            startElt.closest("div").addClass("hidden");
-            endElt.closest("div").addClass("hidden"); 
-            rangeElt.css("width", (this.popoverWidth - 30) + "px");
-        } else if (rangeVal == "between") {
-            /* Change layout to show second list */
-            rangeElt.css("width", 0.33*(this.popoverWidth - 80) + "px");
-            startElt.closest("div").removeClass("hidden");
-            startElt.css("width", 0.33*(this.popoverWidth - 80) + "px");
-            endElt.closest("div").removeClass("hidden");
-            endElt.css("width", 0.33*(this.popoverWidth - 80) + "px");            
-        } else {
-            /* Restore layout to hide second list */
-            startElt.closest("div").removeClass("hidden");
-            rangeElt.css("width", 0.5*(this.popoverWidth - 30) + "px");
-            startElt.css("width", 0.5*(this.popoverWidth - 30) + "px");
-            endElt.closest("div").addClass("hidden");
-        }  
-        console.log(this.startYear);
-        console.log(this.endYear);
-        switch(rangeVal) {
-            case "between":
-                startElt.val(this.startYear);
-                endElt.val(this.endYear);
-                break;
-            case "before":
-                startElt.val(this.endYear);
-                break;
-            case "after":
-                startElt.val(this.startYear);
-                break;
-            case "in":
-                startElt.val(this.startYear);
-                break;
-            default:
-                startElt.val("any");
-                break;
-        }        
-    }, this));
+    this.rangeElt = jQuery("#" + this.baseId + "-range");
+    this.startElt = jQuery("#" + this.baseId + "-start");
+    this.endElt = jQuery("#" + this.baseId + "-end");  
     
+    if (this.startElt.length > 0) {
+        this.startElt.empty();       
+        for (var y = this.startYear; y <= this.endYear; y++) {
+            var opt = jQuery('<option>', {value: y});
+            opt.text(y + "-" + ((y+1) + "").substr(2));            
+            this.startElt.append(opt);
+        }
+    }
+    if (this.endElt.length > 0) {
+        this.endElt.empty();
+        for (var y = this.startYear; y <= this.endYear; y++) {
+            var opt = jQuery('<option>', {value: y});
+            opt.text(y + "-" + ((y+1) + "").substr(2));            
+            this.endElt.append(opt);
+        }
+    }
+    this.rangeElt.change(jQuery.proxy(function(evt) {
+        this.rangeChanger(jQuery(evt.currentTarget).val());        
+    }, this));    
+};
+
+magic.classes.SeasonSelect.prototype.rangeChanger = function(value, start, end) {
+    if (value == "any") {
+        /* Show only first list */
+        this.startElt.closest("div").addClass("hidden");
+        this.endElt.closest("div").addClass("hidden"); 
+        this.rangeElt.css("width", (this.popoverWidth - 30) + "px");
+    } else if (value == "between") {
+        /* Change layout to show second list */
+        this.rangeElt.css("width", 0.33*(this.popoverWidth - 80) + "px");
+        this.startElt.closest("div").removeClass("hidden");
+        this.startElt.css("width", 0.33*(this.popoverWidth - 80) + "px");
+        this.endElt.closest("div").removeClass("hidden");
+        this.endElt.css("width", 0.33*(this.popoverWidth - 80) + "px");            
+    } else {
+        /* Restore layout to hide second list */
+        this.startElt.closest("div").removeClass("hidden");
+        this.rangeElt.css("width", 0.5*(this.popoverWidth - 30) + "px");
+        this.startElt.css("width", 0.5*(this.popoverWidth - 30) + "px");
+        this.endElt.closest("div").addClass("hidden");
+    }          
+    switch(value) {
+        case "between":
+            this.startElt.val(start || this.startYear);
+            this.endElt.val(end || this.endYear);
+            break;
+        case "before":
+            this.startElt.val(start || this.endYear);
+            break;
+        case "after":
+            this.startElt.val(start || this.startYear);
+            break;
+        case "in":
+            this.startElt.val(start || this.startYear);
+            break;
+        default:
+            this.startElt.val("any");
+            break;
+    }        
 };
 
 magic.classes.SeasonSelect.prototype.payload = function() {
     var payload = {};
-    var rangeSelector = jQuery("#" + this.baseId + "-range").val();
-    var startSeason = jQuery("#" + this.baseId + "-start").val();
-    var endSeason = jQuery("#" + this.baseId + "-end").val();      
+    var rangeSelector = this.rangeElt.val();
+    var startSeason = this.startElt.val();
+    var endSeason = this.endElt.val();      
     switch (rangeSelector) {
         case "before":
             payload["startdate"] = this.RECORD_START_YEAR + "-" + this.SEASON_START_DAY;
@@ -142,21 +143,33 @@ magic.classes.SeasonSelect.prototype.payload = function() {
 };
 
 magic.classes.SeasonSelect.prototype.reset = function () {
-    jQuery("#" + this.baseId + "-range").val("in");
-    var startElt = jQuery("#" + this.baseId + "-start");
-    startElt.val("any");
-    startElt.css("width", (this.popoverWidth - 130) + "px");
-    var endElt = jQuery("#" + this.baseId + "-end");    
-    endElt.closest("div").addClass("hidden");
+    this.rangeElt.val("any");
+    this.startElt.closest("div").addClass("hidden");
+    this.endElt.closest("div").addClass("hidden"); 
+    this.rangeElt.css("width", (this.popoverWidth - 30) + "px");
+};
+
+magic.classes.SeasonSelect.prototype.saveState = function () {
+    return({
+        range: this.rangeElt.val(),
+        start: this.startElt.val(),
+        end: this.endElt.val()
+    });    
+};
+
+magic.classes.SeasonSelect.prototype.restoreState = function (state) {
+    if (state && !jQuery.isEmptyObject(state)) {
+        this.rangeElt.val(state.range);
+        this.rangeChanger(state.range, state.start, state.end);
+    }    
 };
 
 magic.classes.SeasonSelect.prototype.validate = function (errors) {
     var valid = true;
     /* No fields are required - just validate range not wrong way round if 'between' selected */
-    var rangeSelect = jQuery("#" + this.baseId + "-range");
-    var fg = rangeSelect.closest("div.form-group");
-    if (rangeSelect.val() == "between") {
-        valid = jQuery("#" + this.baseId + "-start").val() <= jQuery("#" + this.baseId + "-end").val();
+    var fg = this.rangeElt.closest("div.form-group");
+    if (this.rangeElt.val() == "between") {
+        valid = this.startElt.val() <= this.endElt.val();
         if (!valid) {
             fg.addClass("has-error");
             errors["Season end date"] = "should be after start date";
