@@ -85,9 +85,9 @@ magic.modules.creator.Common = function () {
                 this.saveContext(this.map_context.getContext());
             }, this));
             /* Tooltips */
-            jQuery('[data-toggle="tooltip"]').tooltip();
+            jQuery('[data-toggle="tooltip"]').tooltip({trigger: "hover"});
             /* For dynamic tooltips - http://stackoverflow.com/questions/9958825/how-do-i-bind-twitter-bootstrap-tooltips-to-dynamically-created-elements */
-            jQuery("body").tooltip({ selector: '[data-toggle="tooltip"]'});
+            jQuery("body").tooltip({selector: '[data-toggle="tooltip"]', trigger: "hover"});
             /* See http://stackoverflow.com/questions/26023008/bootstrap-3-tooltip-on-tabs */
             jQuery('[data-toggle="tab"]').tooltip({
                 trigger: "hover",

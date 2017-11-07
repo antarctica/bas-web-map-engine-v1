@@ -64,6 +64,7 @@ magic.classes.GeneralSearch.prototype.isActive = function () {
 
 magic.classes.GeneralSearch.prototype.assignCloseButtonHandler = function () {
     jQuery("." + this.popoverClass).find("button.close").click(jQuery.proxy(function () {
+        this.deactivate();
         this.target.popover("hide");
     }, this));
 };    
@@ -96,6 +97,7 @@ magic.classes.GeneralSearch.prototype.activate = function (callback) {
  */
 magic.classes.GeneralSearch.prototype.deactivate = function (callback) {
     this.active = false;
+    this.layer.getSource().clear();
     this.layer.setVisible(false);
     if (this.mapinteraction) {
         /* Trigger mapinteractiondeactivated event */
@@ -128,7 +130,7 @@ magic.classes.GeneralSearch.prototype.addTagsInput = function (id) {
             var btInput = elt.closest("div").find(".bootstrap-tagsinput :input");
             if (btInput) {
                 btInput.attr("data-toggle", "tooltip");
-                btInput.attr("data-placement", "top");
+                btInput.attr("data-placement", "right");
                 btInput.attr("title", tooltip);
             }
         }

@@ -36,7 +36,7 @@ magic.classes.DragDropGpxKml = function(options) {
             }
         });
         this.map.addLayer(layer);        
-        this.map.getView().fit(vectorSource.getExtent(), magic.runtime.map.getSize());
+        this.map.getView().fit(vectorSource.getExtent(), {padding: [20, 20, 20, 20]});
         this.userlayers.push(layer);
     }, this));
     

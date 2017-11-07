@@ -336,6 +336,7 @@ magic.classes.FeaturePopup.prototype.selectFeature = function() {
                 fdata.layer.get("fetcher")(jQuery.proxy(function(fdata, i) {
                     jQuery(elt).html(this.featureAttributeTableMarkup(fdata, i));
                     this.longFieldPopoverHandler(elt);
+                    this.fixPopoverPosition();
                 }, this), fdata, idx);
         } 
             jQuery(elt).removeClass("hidden").addClass("show");
@@ -353,7 +354,7 @@ magic.classes.FeaturePopup.prototype.selectFeature = function() {
                 var attrdata = this.featureCollection[fidx];
                 var keys = [];
                 for (var k in attrdata) {
-                    if (k != "layer" && k != "bbox" && k != "geometry" && k != "ignoreClicks") {
+                    if (k != "layer" && k != "bbox" && k != "geometry" && k.indexOf("_") != 0) {
                         keys.push(k);
                     }
                 }

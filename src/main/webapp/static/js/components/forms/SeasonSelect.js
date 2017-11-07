@@ -26,15 +26,16 @@ magic.classes.SeasonSelect = function(containerId, baseId, startYear, endYear, p
     this.container.append(
         '<div class="form-inline">' +             
             '<div class="form-group form-group-sm">' + 
-                '<select id="' + this.baseId + '-range" class="form-control" style="width:100px">' + 
-                    '<option value="in" selected="selected">In</option>' + 
+                '<select id="' + this.baseId + '-range" class="form-control" style="width:' + (this.popoverWidth - 30) + 'px">' + 
+                    '<option value="any" selected="selected">Any</option>' +
+                    '<option value="in">In</option>' + 
                     '<option value="before">Before</option>' + 
                     '<option value="after">After</option>' + 
                     '<option value="between">Between</option>' + 
                 '</select>' + 
             '</div>' + 
-            '<div class="form-group form-group-sm">' + 
-                '<select id="' + this.baseId + '-start" class="form-control" style="width:' + (this.popoverWidth - 130) + 'px">' +                         
+            '<div class="form-group form-group-sm hidden">' + 
+                '<select id="' + this.baseId + '-start" class="form-control">' +                         
                 '</select>' + 
             '</div>' + 
             '<div class="form-group form-group-sm hidden">' + 
@@ -50,12 +51,9 @@ magic.classes.SeasonSelect = function(containerId, baseId, startYear, endYear, p
     var startElt = jQuery("#" + this.baseId + "-start");
     var endElt = jQuery("#" + this.baseId + "-end");    
     if (startElt.length > 0) {
-        startElt.empty();
-        var opt = jQuery("<option>", {value: "any"});
-        opt.text("Any");
-        startElt.append(opt);
+        startElt.empty();       
         for (var y = this.startYear; y <= this.endYear; y++) {
-            var opt = jQuery("<option>", {value: y});
+            var opt = jQuery('<option>', {value: y});
             opt.text(y + "-" + ((y+1) + "").substr(2));            
             startElt.append(opt);
         }
@@ -63,23 +61,34 @@ magic.classes.SeasonSelect = function(containerId, baseId, startYear, endYear, p
     if (endElt.length > 0) {
         endElt.empty();
         for (var y = this.startYear; y <= this.endYear; y++) {
-            var opt = jQuery("<option>", {value: y});
+            var opt = jQuery('<option>', {value: y});
             opt.text(y + "-" + ((y+1) + "").substr(2));            
             endElt.append(opt);
         }
     }
     rangeElt.change(jQuery.proxy(function(evt) {
         var rangeVal = jQuery(evt.currentTarget).val();
-        if (rangeVal == "between") {
+        if (rangeVal == "any") {
+            /* Show only first list */
+            startElt.closest("div").addClass("hidden");
+            endElt.closest("div").addClass("hidden"); 
+            rangeElt.css("width", (this.popoverWidth - 30) + "px");
+        } else if (rangeVal == "between") {
             /* Change layout to show second list */
-            startElt.css("width", (0.5*(this.popoverWidth - 180)) + "px");
+            rangeElt.css("width", 0.33*(this.popoverWidth - 80) + "px");
+            startElt.closest("div").removeClass("hidden");
+            startElt.css("width", 0.33*(this.popoverWidth - 80) + "px");
             endElt.closest("div").removeClass("hidden");
-            endElt.css("width", (0.5*(this.popoverWidth - 180)) + "px");            
+            endElt.css("width", 0.33*(this.popoverWidth - 80) + "px");            
         } else {
             /* Restore layout to hide second list */
-            startElt.css("width", (this.popoverWidth - 130) + "px");
+            startElt.closest("div").removeClass("hidden");
+            rangeElt.css("width", 0.5*(this.popoverWidth - 30) + "px");
+            startElt.css("width", 0.5*(this.popoverWidth - 30) + "px");
             endElt.closest("div").addClass("hidden");
         }  
+        console.log(this.startYear);
+        console.log(this.endYear);
         switch(rangeVal) {
             case "between":
                 startElt.val(this.startYear);
@@ -89,6 +98,9 @@ magic.classes.SeasonSelect = function(containerId, baseId, startYear, endYear, p
                 startElt.val(this.endYear);
                 break;
             case "after":
+                startElt.val(this.startYear);
+                break;
+            case "in":
                 startElt.val(this.startYear);
                 break;
             default:
@@ -103,25 +115,27 @@ magic.classes.SeasonSelect.prototype.payload = function() {
     var payload = {};
     var rangeSelector = jQuery("#" + this.baseId + "-range").val();
     var startSeason = jQuery("#" + this.baseId + "-start").val();
-    var endSeason = jQuery("#" + this.baseId + "-end").val();  
-    var startDate = startSeason == "any" ? this.RECORD_START_YEAR + "-" + this.SEASON_START_DAY : startSeason + "-" + this.SEASON_START_DAY;
-    var endDate = startSeason == "any" ? this.endYear + "-" + this.SEASON_END_DAY : endSeason + "-" + this.SEASON_END_DAY;
+    var endSeason = jQuery("#" + this.baseId + "-end").val();      
     switch (rangeSelector) {
         case "before":
             payload["startdate"] = this.RECORD_START_YEAR + "-" + this.SEASON_START_DAY;
-            payload["enddate"] = startDate;
+            payload["enddate"] = startSeason + "-" + this.SEASON_START_DAY;
             break;
         case "after":
-            payload["startdate"] = startDate;
-            payload["enddate"] =  + "-" + this.SEASON_END_DAY;
+            payload["startdate"] = startSeason + "-" + this.SEASON_END_DAY;
+            payload["enddate"] = this.endYear + "-" + this.SEASON_END_DAY;
             break;
         case "between":
-            payload["startdate"] = startDate;
-            payload["enddate"] = endDate;
+            payload["startdate"] = startSeason + "-" + this.SEASON_START_DAY;
+            payload["enddate"] = endSeason + "-" + this.SEASON_END_DAY;
             break;
-        default:
-            payload["startdate"] = startDate;
-            payload["enddate"] = endDate;
+        case "in":
+            payload["startdate"] = startSeason + "-" + this.SEASON_START_DAY;
+            payload["enddate"] = startSeason + "-" + this.SEASON_END_DAY;
+            break;
+        default:    /* Any */
+            payload["startdate"] = this.RECORD_START_YEAR + "-" + this.SEASON_START_DAY;
+            payload["enddate"] = this.endYear + "-" + this.SEASON_END_DAY;
             break;
     }
     return(payload);
