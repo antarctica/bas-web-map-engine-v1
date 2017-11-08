@@ -372,24 +372,16 @@ magic.classes.AppContainer.prototype.enableScalelinePopover = function() {
 magic.classes.AppContainer.prototype.setVectorLayerLabelHandler = function() {
     magic.runtime.map.on("pointermove", jQuery.proxy(function(evt) {
         jQuery.each(this.highlighted, function(idx, hl) {
-            magic.modules.Common.labelVisibility(hl.feature, hl.layer, false, 1);
-            /* Check for additional mouseout handler */
-            if (jQuery.isFunction(hl.layer.get("mouseout"))) {
-                hl.layer.get("mouseout")(hl.feature);
-            } 
+            magic.modules.Common.labelVisibility(hl.feature, hl.layer, false, 1);            
         });        
         this.highlighted = [];
         var fcount = 0;
         evt.map.forEachFeatureAtPixel(evt.pixel, jQuery.proxy(function(feat, layer) {
             if (layer != null) {                
                 if (fcount == 0) {
-                    this.highlighted.push({feature: feat, layer: layer});
+                    this.highlighted.push({feature: feat, layer: layer});                    
                 }
-                fcount++;
-                /* Check for additional mouseover handler */
-                if (jQuery.isFunction(layer.get("mouseover"))) {
-                    layer.get("mouseover")(feat);
-                } 
+                fcount++;                
             }
         }, this));
         if (fcount > 0) {

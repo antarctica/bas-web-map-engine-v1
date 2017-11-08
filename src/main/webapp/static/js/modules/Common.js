@@ -298,13 +298,21 @@ magic.modules.Common = function () {
          * @param {int} fcount number of features at this pixel location
          */
         labelVisibility: function(feat, layer, vis, fcount) {
+            if (feat.get("_ignoreHovers")) {
+                return;
+            }
             var style = null;
             if (feat.getStyleFunction()) {
                 style = (jQuery.proxy(feat.getStyleFunction(), feat))()[0];
             } else if (feat.getStyle()) {
                 style = feat.getStyle();
             } else if (jQuery.isFunction(layer.getStyleFunction) && layer.getStyleFunction()) {
-                style = layer.getStyleFunction()(feat, 0)[0];
+                var styleFnRet = layer.getStyleFunction()(feat, 0);
+                if (jQuery.isArray(styleFnRet)) {
+                    style = styleFnRet[0];
+                } else {
+                    style = styleFnRet;
+                }
             } else if (jQuery.isFunction(layer.getStyle) && layer.getStyle()) {
                 style = layer.getStyle();
             }

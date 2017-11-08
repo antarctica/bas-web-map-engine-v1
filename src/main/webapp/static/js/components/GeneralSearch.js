@@ -62,18 +62,19 @@ magic.classes.GeneralSearch.prototype.isActive = function () {
     return(this.active);
 };
 
-magic.classes.GeneralSearch.prototype.assignCloseButtonHandler = function () {
+magic.classes.GeneralSearch.prototype.assignCloseButtonHandler = function (callback) {
     jQuery("." + this.popoverClass).find("button.close").click(jQuery.proxy(function () {
-        this.deactivate();
+        this.deactivate(callback);
         this.target.popover("hide");
     }, this));
 };    
 
 /**
  * Activate the search control
- * @param {Function} callback
+ * @param {Function} onActivate
+ * @param {Function} onDeactivate
  */
-magic.classes.GeneralSearch.prototype.activate = function (callback) {    
+magic.classes.GeneralSearch.prototype.activate = function (onActivate, onDeactivate) {    
     if (!this.layerAdded) {
         this.map.addLayer(this.layer);
         this.layer.setZIndex(1000);
@@ -85,9 +86,9 @@ magic.classes.GeneralSearch.prototype.activate = function (callback) {
     }
     this.active = true;
     this.layer.setVisible(true);
-    this.assignCloseButtonHandler();
-    if (jQuery.isFunction(callback)) {
-        jQuery.proxy(callback, this)();
+    this.assignCloseButtonHandler(onDeactivate);
+    if (jQuery.isFunction(onActivate)) {
+        onActivate();
     }
 };
 
@@ -104,7 +105,7 @@ magic.classes.GeneralSearch.prototype.deactivate = function (callback) {
         jQuery(document).trigger("mapinteractiondeactivated", [this]);
     }
     if (jQuery.isFunction(callback)) {
-        jQuery.proxy(callback, this)();
+        callback();
     }
 };
 

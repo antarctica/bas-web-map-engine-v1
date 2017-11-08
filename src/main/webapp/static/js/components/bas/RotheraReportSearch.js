@@ -13,6 +13,9 @@ magic.classes.RotheraReportSearch = function (options) {
     /* Saved search, for re-populating the dialog when the popover has been hidden */
     this.savedSearch = {};
     
+    /* Currently moused-over feature (displays spider of locations) */
+    this.mousedOver = null;
+    
     /* Attribute map for pop-ups */
     this.attribute_map = [
         {name: "id", alias: "MODES id", displayed: true, "type": "xsd:string"},
@@ -44,10 +47,9 @@ magic.classes.RotheraReportSearch = function (options) {
             this.addTagsInput("keywords");
             this.seasonSelect = new magic.classes.SeasonSelect(this.id + "-season-select-div");
             this.layer.set("fetcher", jQuery.proxy(this.fullFeatureDataFetch, this), true);
-            this.layer.set("mouseover", jQuery.proxy(this.mouseoverHandler, this), true);
-            this.layer.set("mouseout", jQuery.proxy(this.mouseoutHandler, this), true);
+            this.setHoverHandlers();
             jQuery("#" + this.id + "-locations").closest("div").find(".bootstrap-tagsinput :input").focus();            
-        }, this));
+        }, this), jQuery.proxy(this.clearHoverHandlers, this));
         if (this.isActive() && !jQuery.isEmptyObject(this.savedSearch)) {
             this.restoreSearchState();
         }
@@ -63,7 +65,7 @@ magic.classes.RotheraReportSearch = function (options) {
             this.resetTagsInput("keywords");
             this.seasonSelect.reset();
             this.layer.getSource().clear();
-            jQuery("#" + this.id + "-results").addClass("hidden").html("");
+            jQuery("#" + this.id + "-results").addClass("hidden").html("");            
         }, this));
         /* Add search button click handler */
         jQuery("#" + this.id + "-search").click(jQuery.proxy(function(evt) {
@@ -103,6 +105,7 @@ magic.classes.RotheraReportSearch = function (options) {
                                     geometry: geom, 
                                     layer: this.layer,
                                     _ignoreClicks: false,
+                                    _ignoreHovers: false,
                                     _locations: featureData.strplaces,
                                     _associates: []
                                 });
@@ -111,7 +114,7 @@ magic.classes.RotheraReportSearch = function (options) {
                         }
                         if (response.length > 1) {
                             this.map.getView().fit(this.layer.getSource().getExtent(), {padding: [20, 20, 20, 20]});
-                        }
+                        }                        
                     }, this))
                 .fail(function (xhr) {
                     bootbox.alert(
@@ -277,61 +280,85 @@ magic.classes.RotheraReportSearch.prototype.styleFunction = function (f) {
  * Mouseover handler for a report feature 
  * @param {ol.Feature} feat
  */
-magic.classes.RotheraReportSearch.prototype.mouseoverHandler = function(feat) {
-    var fid = feat.get("id");
-    if (jQuery.isArray(feat.get("_associates"))) {
-        if (feat.get("_associates").length == 0) {
-            /* The associated features spider (locations and connectors) need first to be created */
-            var associates = [];
-            if (feat.get("_locations")) {
-                var placeData = feat.get("_locations").split("~");
-                for (var j = 0; j < placeData.length; j++) {
-                    var parts = placeData[j].split(/\sPOINT\(/);
-                    var placeStrCoords = parts[1].replace(/\)$/, "").split(" ");
-                    var placeGeom = new ol.geom.Point([parseFloat(placeStrCoords[0]), parseFloat(placeStrCoords[1])]);
-                    placeGeom.transform("EPSG:4326", magic.runtime.map.getView().getProjection().getCode());
-                    var placeAttrs = {
-                        id: fid + "-location",
-                        name: parts[0],
-                        layer: this.layer,
-                        geometry: placeGeom,
-                        hidden: true,
-                        _ignoreClicks: true
-                    };
-                    var placeFeat = new ol.Feature(placeAttrs);
-                    this.layer.getSource().addFeature(placeFeat); 
-                    associates.push(placeFeat);
-                    /* Plot a line feature between centroid and satellite */
-                    var lineAttrs = {
-                        id: fid + "-connector",
-                        geometry: new ol.geom.LineString([feat.getGeometry().getCoordinates(), placeGeom.getCoordinates()]),
-                        layer: this.layer,
-                        hidden: true,
-                        _ignoreClicks: true                                            
-                    };
-                    var lineFeat = new ol.Feature(lineAttrs);
-                    this.layer.getSource().addFeature(lineFeat);
-                    associates.push(lineFeat);
+magic.classes.RotheraReportSearch.prototype.mouseover = function(feat) {    
+    if (feat) {
+        var fid = feat.get("id");
+        if (!feat.get("_ignoreHovers") && jQuery.isArray(feat.get("_associates"))) {
+            if (feat.get("_associates").length == 0) {
+                /* The associated features spider (locations and connectors) need first to be created */
+                var associates = [];
+                if (feat.get("_locations")) {
+                    var placeData = feat.get("_locations").split("~");
+                    for (var j = 0; j < placeData.length; j++) {
+                        var parts = placeData[j].split(/\sPOINT\(/);
+                        var placeStrCoords = parts[1].replace(/\)$/, "").split(" ");
+                        var placeGeom = new ol.geom.Point([parseFloat(placeStrCoords[0]), parseFloat(placeStrCoords[1])]);
+                        placeGeom.transform("EPSG:4326", magic.runtime.map.getView().getProjection().getCode());
+                        var placeAttrs = {
+                            id: fid + "-location",
+                            name: parts[0],
+                            layer: this.layer,
+                            geometry: placeGeom,
+                            hidden: true,
+                            _ignoreClicks: true,
+                            _ignoreHovers: true
+                        };
+                        var placeFeat = new ol.Feature(placeAttrs);
+                        this.layer.getSource().addFeature(placeFeat); 
+                        associates.push(placeFeat);
+                        /* Plot a line feature between centroid and satellite */
+                        var lineAttrs = {
+                            id: fid + "-connector",
+                            geometry: new ol.geom.LineString([feat.getGeometry().getCoordinates(), placeGeom.getCoordinates()]),
+                            layer: this.layer,
+                            hidden: true,
+                            _ignoreClicks: true,
+                            _ignoreHovers: true
+                        };
+                        var lineFeat = new ol.Feature(lineAttrs);
+                        this.layer.getSource().addFeature(lineFeat);
+                        associates.push(lineFeat);
+                    }
+                    feat.set("_associates", associates);
                 }
-                feat.set("_associates", associates);
             }
+            jQuery.each(feat.get("_associates"), function(idx, f) {
+                f.set("hidden", false);        
+            });
+            this.mousedOver = feat;
         }
-        jQuery.each(feat.get("_associates"), function(idx, f) {
-            f.set("hidden", false);        
-        });
-    }
+    }    
 };
 
 /**
  * Mouseout handler for a report feature 
- * @param {ol.Feature} feat
  */
-magic.classes.RotheraReportSearch.prototype.mouseoutHandler = function(feat) {
-    var associates = feat.get("_associates");
-    if (associates && jQuery.isArray(associates)) {
-        jQuery.each(associates, function(idx, f) {
-            f.set("hidden", true);        
-        });
+magic.classes.RotheraReportSearch.prototype.mouseout = function() {    
+    if (this.mousedOver) {        
+        var associates = this.mousedOver.get("_associates");
+        if (associates && jQuery.isArray(associates)) {
+            jQuery.each(associates, function(idx, f) {
+                f.set("hidden", true);        
+            });
+        }
+        this.mousedOver = null;
+    }     
+};
+
+/**
+ * Activate a map pointermove event to do special mouseovers for layer features
+ */
+magic.classes.RotheraReportSearch.prototype.setHoverHandlers = function() {
+    if (this.isActive()) {
+        this.map.on("pointermove", jQuery.proxy(function(evt) {
+            this.mouseout();
+            evt.map.forEachFeatureAtPixel(evt.pixel, jQuery.proxy(function(feat, layer) {
+                if (layer == this.layer) {                
+                   this.mouseover(feat);
+                   return(true);
+                }
+            }, this));     
+        }, this)); 
     }
 };
 
