@@ -46,9 +46,7 @@ magic.classes.FeatureInfoTool.prototype.deactivate = function () {
 magic.classes.FeatureInfoTool.prototype.queryFeatures = function(evt) {
     
     /* Get the vector features first */
-    var px = evt.pixel;
-    var fprops = this.featuresAtPixel(px);
-        
+    var fprops = magic.modules.Common.featuresAtPixel(evt);
     var deferreds = [];
     magic.runtime.map.getLayers().forEach(function(layer) {
         /* Find the WMS interactive layers */
@@ -112,36 +110,3 @@ magic.classes.FeatureInfoTool.prototype.queryFeatures = function(evt) {
         this.featureinfo.show(evt.coordinate, fprops);
     }, this));
 };
-
-/**
- * Get all vector features at the given pixel (e.g. from Geosearch or user GPX/KML layers)
- * @param {ol.coordinate} px pixel coordinate
- */
-magic.classes.FeatureInfoTool.prototype.featuresAtPixel = function(px) {
-    var fprops = [];
-    magic.runtime.map.forEachFeatureAtPixel(px, function(feature, layer) {
-        if (layer != null) {
-            /* This is not a feature overlay i.e. an artefact of presentation not real data */
-            var clusterMembers = feature.get("features");
-            if (clusterMembers && jQuery.isArray(clusterMembers)) {
-                /* Unpack cluster features */
-                jQuery.each(clusterMembers, function(fi, f) {
-                    if (!f.get("ignoreClicks") && f.getGeometry()) {
-                        var exProps = f.getProperties();
-                        fprops.push(jQuery.extend({}, exProps, {"layer": layer}));                           
-                    }                    
-                });
-            } else {
-                if (!feature.get("_ignoreClicks") && feature.getGeometry()) {
-                    var exProps = feature.getProperties();
-                    fprops.push(jQuery.extend({}, exProps, {"layer": layer}));
-                }          
-            }
-        }
-    }, this, function(candidate) {
-        return(candidate.getVisible() && candidate.get("metadata") && candidate.get("metadata")["is_interactive"] === true);
-    }, this);
-    return(fprops);
-};
-
-    

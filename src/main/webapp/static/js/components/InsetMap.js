@@ -12,7 +12,7 @@ magic.classes.InsetMap = function(options) {
     this.featureInfo = null;
         
     /* Internal */
-    this.highlighted = [];
+    this.highlighted = null;
     this.template = 
         '<div class="popover popover-auto-width popover-auto-height inset-map-popover" role="popover">' +
             '<div class="arrow"></div>' +
@@ -126,52 +126,15 @@ magic.classes.InsetMap.prototype.initMap = function() {
     this.map.on("singleclick", this.featureAtPixelHandler, this);
     /* Allow mouseover labels for point vector layers */
     this.map.on("pointermove", jQuery.proxy(function(evt) {
-        jQuery.each(this.highlighted, function(idx, hl) {
-            magic.modules.Common.labelVisibility(hl.feature, hl.layer, false, 1);
-        });        
-        this.highlighted = [];
-        var fcount = 0;
-        evt.map.forEachFeatureAtPixel(evt.pixel, jQuery.proxy(function(feat, layer) {
-            if (layer != null) {
-                if (fcount == 0) {
-                    this.highlighted.push({feature: feat, layer: layer});
-                }
-                fcount++;
-            }
-        }, this), this);
-        if (fcount > 0) {
-            magic.modules.Common.labelVisibility(this.highlighted[0].feature, this.highlighted[0].layer, true, fcount);
-        }
-    }, this));
+        magic.modules.common.defaultMouseout(this.highlighted);
+        this.highlighted = magic.modules.Common.defaultMouseover(evt);        
+    }, this)); 
 };
 
 /**
  * Handler to show popups for clicks on features
  * @param {jQuery.Event} evt
  */
-magic.classes.InsetMap.prototype.featureAtPixelHandler = function(evt) {
-    var fprops = [];
-    this.map.forEachFeatureAtPixel(evt.pixel, function(feature, layer) {
-        if (layer != null) {
-            /* This is not a feature overlay i.e. an artefact of presentation not real data */
-            var clusterMembers = feature.get("features");
-            if (clusterMembers && jQuery.isArray(clusterMembers)) {
-                /* Unpack cluster features */
-                jQuery.each(clusterMembers, function(fi, f) {
-                    if (f.getGeometry()) {
-                        var exProps = f.getProperties();
-                        fprops.push(jQuery.extend({}, exProps, {"layer": layer}));                           
-                    }                    
-                });
-            } else {
-                if (feature.getGeometry()) {
-                    var exProps = feature.getProperties();
-                    fprops.push(jQuery.extend({}, exProps, {"layer": layer}));
-                }          
-            }
-        }
-    }, this, function(candidate) {
-        return(candidate.getVisible() && candidate.get("metadata") && candidate.get("metadata")["is_interactive"] === true);
-    }, this);
-    this.featureinfo.show(evt.coordinate, fprops);         
+magic.classes.InsetMap.prototype.featureAtPixelHandler = function(evt) {    
+    this.featureinfo.show(evt.coordinate, magic.modules.Common.featuresAtPixel(evt));         
 };

@@ -12,8 +12,8 @@ magic.classes.AppContainer = function () {
      * magic.runtime.map_context.preferencedata
      */ 
     
-    /* Mouseover highlights */
-    this.highlighted = [];
+    /* Mouseover highlighted feature/layer object */
+    this.highlighted = null;
     
     /* Set container sizes */
     this.fitMapToViewport(); 
@@ -367,26 +367,12 @@ magic.classes.AppContainer.prototype.enableScalelinePopover = function() {
 };
 
 /**
- * Enable a mouseover label on vector layers
+ * Enable a default mouseover label on vector layers
  */
 magic.classes.AppContainer.prototype.setVectorLayerLabelHandler = function() {
     magic.runtime.map.on("pointermove", jQuery.proxy(function(evt) {
-        jQuery.each(this.highlighted, function(idx, hl) {
-            magic.modules.Common.labelVisibility(hl.feature, hl.layer, false, 1);            
-        });        
-        this.highlighted = [];
-        var fcount = 0;
-        evt.map.forEachFeatureAtPixel(evt.pixel, jQuery.proxy(function(feat, layer) {
-            if (layer != null) {                
-                if (fcount == 0) {
-                    this.highlighted.push({feature: feat, layer: layer});                    
-                }
-                fcount++;                
-            }
-        }, this));
-        if (fcount > 0) {
-            magic.modules.Common.labelVisibility(this.highlighted[0].feature, this.highlighted[0].layer, true, fcount);
-        }
+        magic.modules.common.defaultMouseout(this.highlighted);
+        this.highlighted = magic.modules.Common.defaultMouseover(evt);
     }, this)); 
 };
 

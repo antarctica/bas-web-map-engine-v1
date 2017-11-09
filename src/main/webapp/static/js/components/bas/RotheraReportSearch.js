@@ -109,6 +109,7 @@ magic.classes.RotheraReportSearch = function (options) {
                                     type: "fieldwork-centroid", 
                                     geometry: geom, 
                                     layer: this.layer,
+                                    _customHover: true,
                                     _ignoreClicks: false,
                                     _ignoreHovers: false,
                                     _locations: featureData.strplaces,

@@ -446,6 +446,79 @@ magic.modules.Common = function () {
             }
         },
         /**
+         * Default labelling mouseover for vectors
+         * @param {ol.Event} evt
+         * @return {Object} highlighted feature/layer object
+         */
+        defaultMouseover: function(evt) {
+            var fcount = 0;
+            var customHandled = false;
+            var highlighted = null;        
+            evt.map.forEachFeatureAtPixel(evt.pixel, jQuery.proxy(function(feat, layer) {
+                if (layer != null && feat.get("_ignoreHovers") !== true) {
+                    if (feat.get("_customHover") === true) {
+                        /* Feature has a custom mouseover behaviour */
+                        highlighted = null;
+                        customHandled = true;                   
+                    } else if (fcount == 0) {
+                        /* Record the first feature that should receive a default name label */
+                        highlighted = {
+                            feature: feat, 
+                            layer: layer
+                        };                    
+                    }
+                    fcount++; 
+                    return(customHandled);
+                }
+            }, this));
+            if (!customHandled && fcount > 0) {
+                /* Show default label on the highlighted feature */            
+                this.labelVisibility(highlighted.feature, highlighted.layer, true, fcount);
+            }
+            jQuery("#" + evt.map.getTarget()).css("cursor", highlighted ? "pointer" : "");
+            return(highlighted);
+        },
+        /**
+         * Default labelling mouseout for vectors
+         * @param {Object} highlighted feature/layer object
+         */
+        defaultMouseout: function(highlighted) {
+            if (highlighted.feature.get("_customHover") !== true) { 
+                /* No custom behaviour defined */
+                this.labelVisibility(highlighted.feature, highlighted.layer, false, 1);            
+            }
+        },
+        /**
+         * Get all vector features at the given pixel (e.g. from Geosearch or user GPX/KML layers)
+         * @param {ol.Event} click event
+         */
+        featuresAtPixel: function(evt) {
+            var fprops = [];
+            evt.map.forEachFeatureAtPixel(evt.pixel, function(feature, layer) {
+                if (layer != null) {
+                    /* This is not a feature overlay i.e. an artefact of presentation not real data */
+                    var clusterMembers = feature.get("features");
+                    if (clusterMembers && jQuery.isArray(clusterMembers)) {
+                        /* Unpack cluster features */
+                        jQuery.each(clusterMembers, function(fi, f) {
+                            if (!f.get("ignoreClicks") && f.getGeometry()) {
+                                var exProps = f.getProperties();
+                                fprops.push(jQuery.extend({}, exProps, {"layer": layer}));                           
+                            }                    
+                        });
+                    } else {
+                        if (!feature.get("_ignoreClicks") && feature.getGeometry()) {
+                            var exProps = feature.getProperties();
+                            fprops.push(jQuery.extend({}, exProps, {"layer": layer}));
+                        }          
+                    }
+                }
+            }, this, function(candidate) {
+                return(candidate.getVisible() && candidate.get("metadata") && candidate.get("metadata")["is_interactive"] === true);
+            }, this);
+            return(fprops);
+        },
+        /**
          * Helper method for getCapabilities above - recursive trawler through GetCaps document
          * @param {Object} ftypes
          * @param {Array} layers
