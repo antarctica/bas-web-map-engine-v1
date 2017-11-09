@@ -132,7 +132,7 @@ magic.classes.FeatureInfoTool.prototype.featuresAtPixel = function(px) {
                     }                    
                 });
             } else {
-                if (!feature.get("ignoreClicks") && feature.getGeometry()) {
+                if (!feature.get("_ignoreClicks") && feature.getGeometry()) {
                     var exProps = feature.getProperties();
                     fprops.push(jQuery.extend({}, exProps, {"layer": layer}));
                 }          

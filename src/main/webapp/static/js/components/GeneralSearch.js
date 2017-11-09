@@ -63,8 +63,11 @@ magic.classes.GeneralSearch.prototype.isActive = function () {
 };
 
 magic.classes.GeneralSearch.prototype.assignCloseButtonHandler = function (callback) {
-    jQuery("." + this.popoverClass).find("button.close").click(jQuery.proxy(function () {
+    jQuery("." + this.popoverClass).find("button.dialog-deactivate").click(jQuery.proxy(function () {
         this.deactivate(callback);
+        this.target.popover("hide");
+    }, this));
+    jQuery("." + this.popoverClass).find("button.dialog-minimise").click(jQuery.proxy(function () {
         this.target.popover("hide");
     }, this));
 };    

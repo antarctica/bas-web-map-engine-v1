@@ -35,6 +35,11 @@ import uk.ac.antarctica.mapengine.util.PackagingUtils;
 @RestController
 public class RotheraReportsController {
     
+    /**
+     * NOTE: 2017-11-09 David.  All the functionality in this controller needs to be replaced as far as possible by MODES API calls - the tables below are populated 
+     * from a dump of the data in MODES from Joanna Rae for the purposes of getting a working system for Rothera Field Season 2017-18
+     */
+    
     @Autowired
     Environment env;
         
@@ -47,7 +52,7 @@ public class RotheraReportsController {
     private static final String ROTHERA_REPORTS_TABLE = "opsgis2.rothera_reports";
     private static final String ROTHERA_REPORTS_PLACES_TABLE = "opsgis2.rothera_report_places";
     
-    private static final String REPORTS_DIRECTORY = "/data/magic_external/rothera_fieldwork_reports";
+    private static final String REPORTS_DIRECTORY = "/data/opsgis/rothera_fieldwork_reports";
     
     /**
      * Search for Rothera Fieldwork reports (highly BAS-specific - do not offer this externally)
@@ -237,7 +242,7 @@ public class RotheraReportsController {
             IOUtils.copyLarge(fis, response.getOutputStream());
         } else {
             response.setContentType("text/plain");
-            IOUtils.write("No readable file " + filename, response.getOutputStream());
+            IOUtils.write("No readable file " + reportFileName, response.getOutputStream());
         }
     }
   

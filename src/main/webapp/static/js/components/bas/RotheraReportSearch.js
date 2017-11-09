@@ -34,29 +34,34 @@ magic.classes.RotheraReportSearch = function (options) {
         title: 
             '<span>' + 
                 '<big><strong>' + this.caption + '</strong></big>' +                 
-                '<button type="button" class="close">&times;</button>' + 
+                '<button type="button" class="close dialog-deactivate" style="margin-left:5px">&times;</button>' + 
+                '<button type="button" class="close dialog-minimise" data-toggle="tooltip" data-placement="bottom" ' + 
+                    'title="Minimise pop-up to see the map better - does not reset search"><i class="fa fa-caret-up"></i>' + 
+                '</button>' + 
             '</span>',
         container: "body",
         html: true,
         content: this.markup()
     })
     .on("shown.bs.popover", jQuery.proxy(function() {        
-        this.activate(jQuery.proxy(function() {
-            this.addTagsInput("locations");
-            this.addTagsInput("people");
-            this.addTagsInput("keywords");
-            this.seasonSelect = new magic.classes.SeasonSelect(this.id + "-season-select-div");
-            this.layer.set("fetcher", jQuery.proxy(this.fullFeatureDataFetch, this), true);
-            this.setHoverHandlers();
-            jQuery("#" + this.id + "-locations").closest("div").find(".bootstrap-tagsinput :input").focus();            
-        }, this), jQuery.proxy(this.clearHoverHandlers, this));
+        this.activate(
+            jQuery.proxy(function() {
+                this.addTagsInput("locations");
+                this.addTagsInput("people");
+                this.addTagsInput("keywords");
+                this.seasonSelect = new magic.classes.SeasonSelect(this.id + "-season-select-div");
+                this.layer.set("fetcher", jQuery.proxy(this.fullFeatureDataFetch, this), true);
+                this.setHoverHandlers();
+                jQuery("#" + this.id + "-locations").closest("div").find(".bootstrap-tagsinput :input").focus();            
+            }, this), 
+            jQuery.proxy(function() {
+                this.map.un("pointermove");
+                this.savedSearch = {};
+            }, this)
+        );
         if (this.isActive() && !jQuery.isEmptyObject(this.savedSearch)) {
             this.restoreSearchState();
-        }
-        /* Add 'shade' button clickhandler to temporarily show/hide form to enable a better map view */
-        jQuery("#" + this.id + "-shade").click(jQuery.proxy(function(evt) {
-            this.target.popover("hide");
-        }, this));
+        }       
         /* Add reset button clickhandler */
         jQuery("#" + this.id + "-reset").click(jQuery.proxy(function(evt) {
             this.savedSearch = {};
@@ -114,7 +119,8 @@ magic.classes.RotheraReportSearch = function (options) {
                         }
                         if (response.length > 1) {
                             this.map.getView().fit(this.layer.getSource().getExtent(), {padding: [20, 20, 20, 20]});
-                        }                        
+                        }
+                        this.savedSearch["nresults"] = response.length;
                     }, this))
                 .fail(function (xhr) {
                     bootbox.alert(
@@ -174,7 +180,10 @@ magic.classes.RotheraReportSearch.prototype.restoreSearchState = function () {
     this.populateTagsInput("locations", this.savedSearch['locations']);
     this.populateTagsInput("people", this.savedSearch['people']);
     this.populateTagsInput("keywords", this.savedSearch['keywords']);   
-    this.seasonSelect.restoreState(this.savedSearch['season']);    
+    this.seasonSelect.restoreState(this.savedSearch['season']);
+    var resultsBadge = jQuery("#" + this.id + "-results");
+    resultsBadge.html(this.savedSearch["nresults"]);
+    resultsBadge.removeClass("hidden");
 };
 
 /**
@@ -217,11 +226,7 @@ magic.classes.RotheraReportSearch.prototype.markup = function () {
             '<button id="' + this.id + '-reset" class="btn btn-sm btn-danger" type="button" style="margin-left:5px" ' + 
                 'data-toggle="tooltip" data-placement="bottom" title="Reset the form and clear results">' + 
                 '<span class="fa fa-times-circle"></span>&nbsp;Reset' +
-            '</button>' +             
-            '<button id="' + this.id + '-shade" class="btn btn-sm btn-default" type="button" style="margin-left:5px" ' + 
-                'data-toggle="tooltip" data-placement="bottom" title="Hide the form to see the map better">' + 
-                '<span class="fa fa-caret-up"></span>' + 
-            '</button>' +
+            '</button>' +                         
         '</div>' +           
     '</form>'
     );
