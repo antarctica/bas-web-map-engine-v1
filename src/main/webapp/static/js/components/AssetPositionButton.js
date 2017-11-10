@@ -131,6 +131,9 @@ magic.classes.AssetPositionButton.prototype.deactivate = function () {
         this.insetLayer.setVisible(false);
         this.insetLayer.getSource().clear();
     }
+    if (jQuery.isFunction(magic.runtime.layer_visibility_change_callback)) {
+        magic.runtime.layer_visibility_change_callback();
+    }
     this.btn.toggleClass("active");
     this.btn.attr("data-original-title", this.inactiveTitle).tooltip("fixTitle");    
     magic.runtime.inset.deactivate();

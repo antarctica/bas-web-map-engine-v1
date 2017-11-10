@@ -83,6 +83,9 @@ magic.classes.LayerTree = function (target, container) {
     };
     this.maxAttrs = 10;
     
+    /* Callback to be invoked on layer visibility change (e.g. destroy pop-ups) */
+    this.visibilityChangeCallback = null;
+    
     var targetElement = jQuery("#" + this.target);
     /* Layer search form */
     targetElement.append(
@@ -926,6 +929,9 @@ magic.classes.LayerTree.prototype.setLayerVisibility = function(chk, forceOff) {
             }            
         }
     }    
+    if (jQuery.isFunction(magic.runtime.layer_visibility_change_callback)) {
+        magic.runtime.layer_visibility_change_callback();
+    }
 };
 
 /**

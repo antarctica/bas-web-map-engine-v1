@@ -65,6 +65,7 @@ magic.classes.AppContainer = function () {
     /* Create a popup overlay and add handler to show it on clicking a feature */
     this.featureinfotool = new magic.classes.FeatureInfoTool();
     this.featureinfotool.activate();
+    magic.runtime.layer_visibility_change_callback = jQuery.proxy(this.featureinfotool.layerVisibilityHandler, this.featureinfotool);
     
     /* Create information modal */
     new magic.classes.InfoModal();

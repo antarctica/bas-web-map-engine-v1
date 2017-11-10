@@ -324,58 +324,22 @@ magic.classes.FeaturePopup.prototype.selectFeature = function() {
         if (idx == this.featurePointer) {
             var fdata = this.featureCollection[idx];
             if (jQuery.isFunction(fdata.layer.get("fetcher"))) {
+                /* Data is fetched on the fly for this layer - usually a high payload vector layer which would impact map performance */
                 fdata.layer.get("fetcher")(jQuery.proxy(function(fdata, i) {
                     jQuery(elt).html(this.featureAttributeTableMarkup(fdata, i));
                     this.longFieldPopoverHandler(elt);
                     this.fixPopoverPosition();
+                    this.assignFullSetHandler(elt);
                 }, this), fdata, idx);
-        } 
+            } else {
+                /* Assign extra handlers */
+                this.longFieldPopoverHandler(elt);
+                this.assignFullSetHandler(elt);
+            }
             jQuery(elt).removeClass("hidden").addClass("show");
         } else {
             jQuery(elt).removeClass("show").addClass("hidden");
-        }
-        /* Add extension popover for long fields */
-        this.longFieldPopoverHandler(elt);        
-        /* Add full attribute set modal handler */
-        jQuery(elt).find("button[id^='" + this.popupId + "-full-attr-set-']").off("click").on("click", jQuery.proxy(function(evt) {
-            var btnId = evt.currentTarget.id;
-            var fidx = parseInt(btnId.substring(btnId.lastIndexOf("-")+1));
-            if (!isNaN(fidx) && fidx < this.featureCollection.length) {
-                /* Got an index into the current feature collection */
-                var attrdata = this.featureCollection[fidx];
-                var keys = [];
-                for (var k in attrdata) {
-                    if (k != "layer" && k != "bbox" && k != "geometry" && k.indexOf("_") != 0) {
-                        keys.push(k);
-                    }
-                }
-                var content = '<table class="table table-striped table-condensed feature-popup-table">';
-                jQuery.each(keys.sort(), function(idx, key) {
-                    var value = attrdata[key];
-                    if (jQuery.isNumeric(value)) { 
-                        /* Changed 2016-11-02 David - should show zero values in e.g. speed attributes */
-                        content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td align="right">' + value + '</td></tr>';
-                    } else if (value && key.toLowerCase().indexOf("geom") == -1) {
-                        /* Test for Redmine markup-style link with alias of form "<alias>":<url> which should be translated */
-                        /* NOTE: David 2016-11-02 - suppress null non-numeric values in the pop-up */
-                        var finalValue = "";
-                        if (value) {
-                            var quote1 = value.indexOf("\"");
-                            var quote2 = value.lastIndexOf("\"");
-                            if (quote1 != -1 && quote2 != -1) {
-                                finalValue = magic.modules.Common.linkify(value.substring(quote2+2), value.substring(quote1+1, quote2));
-                            } else {
-                                finalValue = magic.modules.Common.linkify(value);
-                            }     
-                        }
-                        content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td>' + finalValue + '</td></tr>';
-                    }
-                });
-                content += '</table>';
-                jQuery("#" + this.continuation + "-content").html(content);
-                jQuery("#" + this.continuation).modal("show");            
-            }
-        }, this));
+        }                      
     }, this));       
     if (this.featureCollection.length > 1) {
         /* Do we need to add handlers for pager buttons? */
@@ -444,6 +408,52 @@ magic.classes.FeaturePopup.prototype.longFieldPopoverHandler = function(elt) {
 };
 
 /**
+ * Add full attribute set modal handler
+ * @param {Object} elt
+ */
+magic.classes.FeaturePopup.prototype.assignFullSetHandler = function(elt) {    
+    jQuery(elt).find("button[id^='" + this.popupId + "-full-attr-set-']").off("click").on("click", jQuery.proxy(function(evt) {
+        var btnId = evt.currentTarget.id;
+        var fidx = parseInt(btnId.substring(btnId.lastIndexOf("-")+1));
+        if (!isNaN(fidx) && fidx < this.featureCollection.length) {
+            /* Got an index into the current feature collection */
+            var attrdata = this.featureCollection[fidx];
+            var keys = [];
+            for (var k in attrdata) {
+                if (k != "layer" && k != "bbox" && k != "geometry" && k.indexOf("_") != 0) {
+                    keys.push(k);
+                }
+            }
+            var content = '<table class="table table-striped table-condensed feature-popup-table">';
+            jQuery.each(keys.sort(), function(idx, key) {
+                var value = attrdata[key];
+                if (jQuery.isNumeric(value)) { 
+                    /* Changed 2016-11-02 David - should show zero values in e.g. speed attributes */
+                    content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td align="right">' + value + '</td></tr>';
+                } else if (value && key.toLowerCase().indexOf("geom") == -1) {
+                    /* Test for Redmine markup-style link with alias of form "<alias>":<url> which should be translated */
+                    /* NOTE: David 2016-11-02 - suppress null non-numeric values in the pop-up */
+                    var finalValue = "";
+                    if (value) {
+                        var quote1 = value.indexOf("\"");
+                        var quote2 = value.lastIndexOf("\"");
+                        if (quote1 != -1 && quote2 != -1) {
+                            finalValue = magic.modules.Common.linkify(value.substring(quote2+2), value.substring(quote1+1, quote2));
+                        } else {
+                            finalValue = magic.modules.Common.linkify(value);
+                        }     
+                    }
+                    content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td>' + finalValue + '</td></tr>';
+                }
+            });
+            content += '</table>';
+            jQuery("#" + this.continuation + "-content").html(content);
+            jQuery("#" + this.continuation).modal("show");            
+        }
+    }, this));
+};
+
+/**
  * Make sure the popover arrow is anchored to the location of the first feature in the list, and remains so anchored through dynamic content changes
  */
 magic.classes.FeaturePopup.prototype.fixPopoverPosition = function() {
@@ -482,4 +492,16 @@ magic.classes.FeaturePopup.prototype.attributeValue = function(key, value) {
         }
     }
     return(newValue);
+};
+
+/**
+ * Scan the feature collection for layers which have been turned off, and hide the pop-up if so
+ */
+magic.classes.FeaturePopup.prototype.hideInvisibleLayerPopups = function() {
+    jQuery.each(this.featureCollection, jQuery.proxy(function(idx, feat) {
+        if (!feat.layer.getVisible()) {
+            this.hide();
+            return(false);
+        }        
+    }, this));    
 };

@@ -112,3 +112,10 @@ magic.classes.FeatureInfoTool.prototype.queryFeatures = function(evt) {
         this.featureinfo.show(evt.coordinate, fprops);
     }, this));
 };
+
+/**
+ * Callback to destroy all pop-ups which reference a layer that got turned off by the user
+ */
+magic.classes.FeatureInfoTool.prototype.layerVisibilityHandler = function() {
+    this.featureinfo.hideInvisibleLayerPopups();
+};

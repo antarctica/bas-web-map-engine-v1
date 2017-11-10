@@ -106,7 +106,6 @@ magic.classes.RotheraReportSearch = function (options) {
                                 /* Plot a feature at the centroid of the fieldwork activity locations */                                
                                 var feat = new ol.Feature({
                                     id: featureData.id, 
-                                    type: "fieldwork-centroid", 
                                     geometry: geom, 
                                     layer: this.layer,
                                     _customHover: true,
