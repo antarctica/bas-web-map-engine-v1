@@ -536,7 +536,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
             /* WFS */
             url = magic.modules.Endpoints.getOgcEndpoint(url, "wfs") + "?service=wfs&version=2.0.0&request=getfeature&outputFormat=application/json&" + 
                 "typenames=" + nd.source.feature_name + "&" + 
-                "srsname=" + (nd.source.srs || "EPSG:4326");
+                "srsname=" + (nd.source.srs || magic.runtime.map.getView().getprojection().getCode());
             vectorSource = new ol.source.Vector({
                 format: format,
                 loader: function(extent) {

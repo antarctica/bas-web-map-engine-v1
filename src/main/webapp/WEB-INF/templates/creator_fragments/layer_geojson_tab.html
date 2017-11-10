@@ -28,7 +28,7 @@
                         </label>
                         <div class="col-sm-9">
                             <input type="text" class="form-control map-creator-control-sm" id="t2-layer-geojson-feature_name" name="t2-layer-geojson-feature_name"
-                                    data-toggle="tooltip" data-placement="left" title="Feature name (if from WFS feed)" pattern="^[a-zA-Z0-9_:]+$">
+                                    data-toggle="tooltip" data-placement="left" title="Feature name (only relevant if data is a WFS feed)" pattern="^[a-zA-Z0-9_:]+$">
                             </input>
                         </div>
                     </div>       
@@ -38,7 +38,8 @@
                         </label>
                         <div class="col-sm-9">
                             <input type="text" class="form-control map-creator-control-sm" id="t2-layer-geojson-srs" name="t2-layer-geojson-srs"
-                                    data-toggle="tooltip" data-placement="left" title="Projection of GeoJSON feed data (defaults to lat/lon WGS84)" pattern="^EPSG:\d{4,5}$">
+                                    data-toggle="tooltip" data-placement="left" 
+                                    title="Projection of GeoJSON feed data (defaults to lat/lon WGS84). If feed is WFS, set this value to reproject the data to this SRS" pattern="^EPSG:\d{4,5}$">
                             </input>
                         </div>
                     </div>       
