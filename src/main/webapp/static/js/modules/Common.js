@@ -315,7 +315,7 @@ magic.modules.Common = function () {
                 }
             } else if (jQuery.isFunction(layer.getStyle) && layer.getStyle()) {
                 style = layer.getStyle();
-            }
+            }            
             if (style && style.getText()) {            
                 var sclone = style.clone();
                 var label = sclone.getText();

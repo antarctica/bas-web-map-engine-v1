@@ -202,7 +202,7 @@ public class OgcServicesController implements ServletContextAware {
                     if (mimeType == null) {
                         mimeType = "image/png";
                     }
-                    System.out.println("About to get WMS data from " + serviceUrl + "?" + request.getQueryString());
+                    //System.out.println("About to get WMS data from " + serviceUrl + "?" + request.getQueryString());
                     getFromUrl(response, serviceUrl + "?" + request.getQueryString(), mimeType, !operation.toLowerCase().equals("getlegendgraphic"));
                     break;
                 case "getfeatureinfo":
@@ -348,7 +348,7 @@ public class OgcServicesController implements ServletContextAware {
         try {
             IOUtils.copy(new ByteArrayInputStream(jsonOut.getBytes(StandardCharsets.UTF_8)), response.getOutputStream());
         } catch (IOException ioe) {
-            System.out.println("Error writing message to response stream!");
+            //System.out.println("Error writing message to response stream!");
         }
     }
     
@@ -410,7 +410,7 @@ public class OgcServicesController implements ServletContextAware {
                 }
                 int nKept = 0, nRemoved = 0;
                 for (int i = 0; i < layerList.size(); i++) {
-                    System.out.println("Layer " + i);
+                    //System.out.println("Layer " + i);
                     Node layer = layerList.get(i);
                     NodeList layerChildren = layer.getChildNodes();
                     Node layerName = null;
@@ -421,21 +421,21 @@ public class OgcServicesController implements ServletContextAware {
                         }
                     }
                     if (layerName != null) {
-                        System.out.println("Found a name node");
+                        //System.out.println("Found a name node");
                         String nameText = layerName.getTextContent();
-                        System.out.println("Layer name is " + nameText);
+                        //System.out.println("Layer name is " + nameText);
                         nameText = nameText.substring(nameText.indexOf(":")+1);
                         if (!userlayerDict.containsKey(nameText)) {
-                            System.out.println("Not in dictionary => remove");
+                            //System.out.println("Not in dictionary => remove");
                             layer.getParentNode().removeChild(layer);
                             nRemoved++;
                         } else {
-                            System.out.println("In dictionary => keep");
+                            //System.out.println("In dictionary => keep");
                             nKept++;
                         }
                     }
                 }
-                System.out.println("Kept " + nKept + ", removed " + nRemoved);
+                //System.out.println("Kept " + nKept + ", removed " + nRemoved);
                 doc.normalizeDocument();
                 /* https://stackoverflow.com/questions/865039/how-to-create-an-inputstream-from-a-document-or-node */
                 ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -449,13 +449,13 @@ public class OgcServicesController implements ServletContextAware {
                 writeErrorResponse(response, 400, "application/json", "Failed to retrieve GetCapabilities document from " + url);
             }
         } catch (SAXException sax) {
-            System.out.println("Error parsing GetCaps document : " + sax.getMessage());
+            //System.out.println("Error parsing GetCaps document : " + sax.getMessage());
             writeErrorResponse(response, 500, "application/json", "Error parsing GetCapabilities document from " + url + ": " + sax.getMessage());
         } catch (IOException | ParserConfigurationException | TransformerConfigurationException ioe) {
-            System.out.println("Error parsing GetCaps document : " + ioe.getMessage());
+            //System.out.println("Error parsing GetCaps document : " + ioe.getMessage());
             writeErrorResponse(response, 500, "application/json", "Error parsing GetCapabilities document from " + url + ": " + ioe.getMessage());
         } catch (TransformerException tre) {
-            System.out.println("Error parsing GetCaps document : " + tre.getMessage());
+            //System.out.println("Error parsing GetCaps document : " + tre.getMessage());
             writeErrorResponse(response, 500, "application/json", "Error parsing GetCapabilities document from " + url + ": " + tre.getMessage());
         } 
     }
@@ -472,7 +472,7 @@ public class OgcServicesController implements ServletContextAware {
                 
         /* Commented out until needed for debugging purposes - leads to MB of logs in no time... */
         String reqId = UUID.randomUUID().toString();
-        System.out.println(reqId + ": getFromUrl: Retrieving " + url + "...");
+        //System.out.println(reqId + ": getFromUrl: Retrieving " + url + "...");
                 
         int status = 200;     
         InputStream authorisedContent = null;
@@ -510,49 +510,49 @@ public class OgcServicesController implements ServletContextAware {
                 };
                 builder.setSSLSocketFactory(new SSLConnectionSocketFactory(sc, allHostsValid));
             } catch(KeyManagementException | NoSuchAlgorithmException ex) {
-                System.out.println(reqId + ": Exception encountered : " + ex.getMessage());
+                //System.out.println(reqId + ": Exception encountered : " + ex.getMessage());
                 return;
             }
         }
         
         /* Try anonymous access first */
-        System.out.println(reqId + ": Try anonymous access attempt");
+        //System.out.println(reqId + ": Try anonymous access attempt");
         httpclient = builder.build();                            
         httpResponse = httpclient.execute(httpget);
         status = httpResponse.getStatusLine().getStatusCode();    
         if (status < 400) {
-            System.out.println(reqId + ": Anonymous access successful");
+            //System.out.println(reqId + ": Anonymous access successful");
             authorisedContent = httpResponse.getEntity().getContent();
         } else {
-            System.out.println(reqId + ": Anonymous access failed");
+            //System.out.println(reqId + ": Anonymous access failed");
         }
         
         if (authorisedContent == null && secured) {
             /* Obtain credentials for each user role and test whether the requested data is available with each set in turn */
-            System.out.println(reqId + ": Test for secured layer");
+            //System.out.println(reqId + ": Test for secured layer");
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth != null) {
-                System.out.println(reqId + ": Authenticated user found");
-                System.out.println(reqId + ": Authorities collection has " + auth.getAuthorities().size() + " members");
+                //System.out.println(reqId + ": Authenticated user found");
+                //System.out.println(reqId + ": Authorities collection has " + auth.getAuthorities().size() + " members");
                 for (GrantedAuthority ga : auth.getAuthorities()) {
-                    System.out.println(reqId + ": " + ga.getAuthority());
+                    //System.out.println(reqId + ": " + ga.getAuthority());
                     String[] creds = ga.getAuthority().split(":");                                               
                     if (creds[0].equals("geoserver") && creds.length == 4) {
                         CredentialsProvider credsProvider = new BasicCredentialsProvider();
                         credsProvider.setCredentials(
                             new AuthScope(AuthScope.ANY),
                             new UsernamePasswordCredentials(creds[2], creds[3]));
-                        System.out.println(reqId + ": Test data access with credentials: username = " + creds[2] + ", password = " + creds[3]);
+                        //System.out.println(reqId + ": Test data access with credentials: username = " + creds[2] + ", password = " + creds[3]);
                         builder.setDefaultCredentialsProvider(credsProvider);
                         httpclient = builder.build();                            
                         httpResponse = httpclient.execute(httpget);
                         status = httpResponse.getStatusLine().getStatusCode();    
                         if (status < 400) {
-                            System.out.println(reqId + ": Successful access - status = " + status);
+                            //System.out.println(reqId + ": Successful access - status = " + status);
                             authorisedContent = httpResponse.getEntity().getContent();
                             break;
                         } else {
-                            System.out.println(reqId + ": Failed access - status = " + status + ", continue trying other authorities for user");
+                            //System.out.println(reqId + ": Failed access - status = " + status + ", continue trying other authorities for user");
                             httpclient.close();
                             httpclient = null;
                         }                        
@@ -562,15 +562,15 @@ public class OgcServicesController implements ServletContextAware {
         }
                         
         if (authorisedContent != null) {
-            System.out.println(reqId + ": Sending content...");
+            //System.out.println(reqId + ": Sending content...");
             response.setContentType(mimeType);
             IOUtils.copy(authorisedContent, response.getOutputStream()); 
             if (httpclient != null) {
                 httpclient.close();
             }
-            System.out.println(reqId + ": Done");
+            //System.out.println(reqId + ": Done");
         } else {
-            System.out.println(reqId + ": Content unauthorised - raising RestrictedDataException...");
+            //System.out.println(reqId + ": Content unauthorised - raising RestrictedDataException...");
             if (httpclient != null) {
                 httpclient.close();
             }
