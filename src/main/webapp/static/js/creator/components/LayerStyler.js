@@ -57,10 +57,12 @@ magic.classes.creator.LayerStyler.prototype.loadContext = function(style) {
             if (key == "predefined") {
                 if (style[key] == "") {
                     /* Show the custom style panel */
+                    jQuery("#" + this.prefix + "-type-select").val("custom");
                     jQuery("#" + this.prefix + "-predefined-panel").addClass("hidden");
                     jQuery("#" + this.prefix + "-custom-panel").removeClass("hidden");                                        
                 } else {
                     /* Show the predefined style panel */
+                    jQuery("#" + this.prefix + "-type-select").val("predefined");
                     jQuery("#" + this.prefix + "-predefined-panel").removeClass("hidden");
                     jQuery("#" + this.prefix + "-custom-panel").addClass("hidden");                    
                 }

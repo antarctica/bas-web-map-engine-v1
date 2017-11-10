@@ -49,8 +49,8 @@ magic.classes.creator.LayerAttributeMap.prototype.vectorLoadContext = function(c
                      * absolutely nothing about whether we have a point, line or polygon.  This is probably because
                      * of automated import systems using wkb_geometry fields rather than wkt - David */
                     format = new ol.format.GeoJSON();
-                    source = magic.modules.Endpoints.getOgcEndpoint(source, "wfs") + "?service=wfs&request=getfeature&outputFormat=application/json&" + 
-                                "typename=" + feature + "&" + 
+                    source = magic.modules.Endpoints.getOgcEndpoint(source, "wfs") + "?service=wfs&version=2.0.0&request=getfeature&outputFormat=application/json&" + 
+                                "typenames=" + feature + "&" + 
                                 "srsname=" + context.source.srs + "&" + 
                                 "count=1";
                     //this.ogcLoadContext(source, feature, context.attribute_map, context.id);

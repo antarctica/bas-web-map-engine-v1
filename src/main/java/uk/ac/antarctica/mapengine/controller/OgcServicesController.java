@@ -202,7 +202,7 @@ public class OgcServicesController implements ServletContextAware {
                     if (mimeType == null) {
                         mimeType = "image/png";
                     }
-                    //System.out.println("About to get WMS data from " + serviceUrl + "?" + request.getQueryString());
+                    System.out.println("About to get WMS data from " + serviceUrl + "?" + request.getQueryString());
                     getFromUrl(response, serviceUrl + "?" + request.getQueryString(), mimeType, !operation.toLowerCase().equals("getlegendgraphic"));
                     break;
                 case "getfeatureinfo":
@@ -310,6 +310,9 @@ public class OgcServicesController implements ServletContextAware {
      * @return boolean
      */
     private boolean userLayerSecurityCheck(HttpServletRequest request, String layer) {
+        if (layer == null) {
+            return(false);
+        }
         String userName = request.getUserPrincipal() == null ? null : request.getUserPrincipal().getName();
         String userlayerSql;
         Object[] args;
@@ -469,7 +472,7 @@ public class OgcServicesController implements ServletContextAware {
                 
         /* Commented out until needed for debugging purposes - leads to MB of logs in no time... */
         String reqId = UUID.randomUUID().toString();
-        //System.out.println(reqId + ": getFromUrl: Retrieving " + url + "...");
+        System.out.println(reqId + ": getFromUrl: Retrieving " + url + "...");
                 
         int status = 200;     
         InputStream authorisedContent = null;
@@ -513,43 +516,43 @@ public class OgcServicesController implements ServletContextAware {
         }
         
         /* Try anonymous access first */
-        //System.out.println(reqId + ": Try anonymous access attempt");
+        System.out.println(reqId + ": Try anonymous access attempt");
         httpclient = builder.build();                            
         httpResponse = httpclient.execute(httpget);
         status = httpResponse.getStatusLine().getStatusCode();    
         if (status < 400) {
-            //System.out.println(reqId + ": Anonymous access successful");
+            System.out.println(reqId + ": Anonymous access successful");
             authorisedContent = httpResponse.getEntity().getContent();
         } else {
-            //System.out.println(reqId + ": Anonymous access failed");
+            System.out.println(reqId + ": Anonymous access failed");
         }
         
         if (authorisedContent == null && secured) {
             /* Obtain credentials for each user role and test whether the requested data is available with each set in turn */
-            //System.out.println(reqId + ": Test for secured layer");
+            System.out.println(reqId + ": Test for secured layer");
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth != null) {
-                //System.out.println(reqId + ": Authenticated user found");
-                //System.out.println(reqId + ": Authorities collection has " + auth.getAuthorities().size() + " members");
+                System.out.println(reqId + ": Authenticated user found");
+                System.out.println(reqId + ": Authorities collection has " + auth.getAuthorities().size() + " members");
                 for (GrantedAuthority ga : auth.getAuthorities()) {
-                    //System.out.println(reqId + ": " + ga.getAuthority());
+                    System.out.println(reqId + ": " + ga.getAuthority());
                     String[] creds = ga.getAuthority().split(":");                                               
                     if (creds[0].equals("geoserver") && creds.length == 4) {
                         CredentialsProvider credsProvider = new BasicCredentialsProvider();
                         credsProvider.setCredentials(
                             new AuthScope(AuthScope.ANY),
                             new UsernamePasswordCredentials(creds[2], creds[3]));
-                        //System.out.println(reqId + ": Test data access with credentials: username = " + creds[2] + ", password = " + creds[3]);
+                        System.out.println(reqId + ": Test data access with credentials: username = " + creds[2] + ", password = " + creds[3]);
                         builder.setDefaultCredentialsProvider(credsProvider);
                         httpclient = builder.build();                            
                         httpResponse = httpclient.execute(httpget);
                         status = httpResponse.getStatusLine().getStatusCode();    
                         if (status < 400) {
-                            //System.out.println(reqId + ": Successful access - status = " + status);
+                            System.out.println(reqId + ": Successful access - status = " + status);
                             authorisedContent = httpResponse.getEntity().getContent();
                             break;
                         } else {
-                            //System.out.println(reqId + ": Failed access - status = " + status + ", continue trying other authorities for user");
+                            System.out.println(reqId + ": Failed access - status = " + status + ", continue trying other authorities for user");
                             httpclient.close();
                             httpclient = null;
                         }                        
@@ -559,15 +562,15 @@ public class OgcServicesController implements ServletContextAware {
         }
                         
         if (authorisedContent != null) {
-            //System.out.println(reqId + ": Sending content...");
+            System.out.println(reqId + ": Sending content...");
             response.setContentType(mimeType);
             IOUtils.copy(authorisedContent, response.getOutputStream()); 
             if (httpclient != null) {
                 httpclient.close();
             }
-            //System.out.println(reqId + ": Done");
+            System.out.println(reqId + ": Done");
         } else {
-            //System.out.println(reqId + ": Content unauthorised - raising RestrictedDataException...");
+            System.out.println(reqId + ": Content unauthorised - raising RestrictedDataException...");
             if (httpclient != null) {
                 httpclient.close();
             }

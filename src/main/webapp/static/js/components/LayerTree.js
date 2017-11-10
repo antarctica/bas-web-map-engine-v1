@@ -534,8 +534,8 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
         var url = nd.source.geojson_source;
         if (nd.source.feature_name) {                           
             /* WFS */
-            url = magic.modules.Endpoints.getOgcEndpoint(url, "wfs") + "?service=wfs&request=getfeature&outputFormat=application/json&" + 
-                "typename=" + nd.source.feature_name + "&" + 
+            url = magic.modules.Endpoints.getOgcEndpoint(url, "wfs") + "?service=wfs&version=2.0.0&request=getfeature&outputFormat=application/json&" + 
+                "typenames=" + nd.source.feature_name + "&" + 
                 "srsname=" + (nd.source.srs || "EPSG:4326");
             vectorSource = new ol.source.Vector({
                 format: format,
