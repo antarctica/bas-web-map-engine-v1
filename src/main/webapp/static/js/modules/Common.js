@@ -475,7 +475,7 @@ magic.modules.Common = function () {
                 /* Show default label on the highlighted feature */            
                 this.labelVisibility(highlighted.feature, highlighted.layer, true, fcount);
             }
-            jQuery("#" + evt.map.getTarget()).css("cursor", highlighted ? "pointer" : "");
+            jQuery("#" + evt.map.getTarget()).css("cursor", highlighted ? "pointer" : "help");
             return(highlighted);
         },
         /**
@@ -483,7 +483,7 @@ magic.modules.Common = function () {
          * @param {Object} highlighted feature/layer object
          */
         defaultMouseout: function(highlighted) {
-            if (highlighted.feature.get("_customHover") !== true) { 
+            if (highlighted && highlighted.feature && highlighted.feature.get("_customHover") !== true) { 
                 /* No custom behaviour defined */
                 this.labelVisibility(highlighted.feature, highlighted.layer, false, 1);            
             }

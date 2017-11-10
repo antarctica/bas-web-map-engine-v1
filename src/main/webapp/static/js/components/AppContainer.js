@@ -18,17 +18,11 @@ magic.classes.AppContainer = function () {
     /* Set container sizes */
     this.fitMapToViewport(); 
     
-    /* Get issue data if supplied, and create issue information panel */
-    magic.runtime.map_context.search = {};
-    if (!jQuery.isEmptyObject(magic.runtime.map_context.issuedata)) {
-        try {
-            magic.runtime.map_context.search = JSON.parse(magic.runtime.map_context.issuedata.description);
-        } catch(e) {}
-    }    
-    new magic.classes.IssueInformation({target: "issue-info"});
+    /* Redmine issue to replay */
+    magic.runtime.issue = new magic.classes.IssueInformation();
     
     /* User unit preferences */
-    magic.runtime.preferences = new magic.classes.UserPreferences({target: "unit-prefs", preferences: magic.runtime.map_context.preferencedata});
+    magic.runtime.preferences = new magic.classes.UserPreferences();
     
     /* Initialise map view (returns the initialisation values for the view) */
     var view = this.initView();
@@ -66,17 +60,17 @@ magic.classes.AppContainer = function () {
     });
 
     /* Initialise map control button ribbon */    
-    new magic.classes.ControlButtonRibbon(magic.runtime.map_context.data.controls, "map", "map-container");
+    new magic.classes.ControlButtonRibbon();
 
     /* Create a popup overlay and add handler to show it on clicking a feature */
-    this.featureinfotool = new magic.classes.FeatureInfoTool("feature-info-tool", "map-container");
+    this.featureinfotool = new magic.classes.FeatureInfoTool();
     this.featureinfotool.activate();
     
     /* Create information modal */
-    new magic.classes.InfoModal({target: "information-modal", infolink: magic.runtime.map_context.infolink});
+    new magic.classes.InfoModal();
     
     /* Create WGS84 inset map with single OSM layer */
-    magic.runtime.inset = new magic.classes.InsetMap({});
+    magic.runtime.inset = new magic.classes.InsetMap();
 
     /**
      * Allocation and initialise the navigation bar toolset
@@ -196,16 +190,15 @@ magic.classes.AppContainer.prototype.initView = function() {
     var view;
     var viewData = magic.runtime.map_context.data;
     var proj = ol.proj.get(viewData.projection); 
+    var issueLayerData = magic.runtime.issue.getPayload();
     /* Determine centre of map - could come from basic view, a search string or user map data */
-    var mapCenter = magic.runtime.map_context.search.center || viewData.center;
-    if (!jQuery.isEmptyObject(magic.runtime.map_context.userdata)) {
-        mapCenter = magic.runtime.map_context.userdata.center;
-    }
+    var mapCenter = issueLayerData == "None" 
+        ? (!jQuery.isEmptyObject(magic.runtime.map_context.userdata) ? magic.runtime.map_context.userdata.center : viewData.center)
+        : issueLayerData.center;    
     /* Determine zoom of map - could come from basic view, a search string or user map data */
-    var mapZoom = magic.runtime.map_context.search.zoom || viewData.zoom;
-    if (!jQuery.isEmptyObject(magic.runtime.map_context.userdata)) {
-        mapZoom = magic.runtime.map_context.userdata.zoom;
-    }
+    var mapZoom = issueLayerData == "None" 
+        ? (!jQuery.isEmptyObject(magic.runtime.map_context.userdata) ? magic.runtime.map_context.userdata.zoom : viewData.zoom)
+        : issueLayerData.zoom;    
     var mapRotation = viewData.rotation ? magic.modules.Common.toRadians(viewData.rotation) : 0.0;
     if (!jQuery.isEmptyObject(magic.runtime.map_context.userdata)) {
         mapRotation = magic.runtime.map_context.userdata.rotation || 0.0;
@@ -371,7 +364,7 @@ magic.classes.AppContainer.prototype.enableScalelinePopover = function() {
  */
 magic.classes.AppContainer.prototype.setVectorLayerLabelHandler = function() {
     magic.runtime.map.on("pointermove", jQuery.proxy(function(evt) {
-        magic.modules.common.defaultMouseout(this.highlighted);
+        magic.modules.Common.defaultMouseout(this.highlighted);
         this.highlighted = magic.modules.Common.defaultMouseover(evt);
     }, this)); 
 };

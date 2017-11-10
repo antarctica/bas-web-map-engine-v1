@@ -394,9 +394,10 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
         nameSpan = '<span data-toggle="tooltip" data-placement="top" title="' + name + '">' + ellipsisName + '</span>';
     }
     /* Determine visibility */
-    var isVisible = this.userLayerAttribute(nd.id, "visibility", nd.is_visible);   
-    if (magic.runtime.map_context.search && magic.runtime.map_context.search.visible && magic.runtime.map_context.search.visible[name]) {
-        isVisible = magic.runtime.map_context.search.visible[name];
+    var isVisible = this.userLayerAttribute(nd.id, "visibility", nd.is_visible);
+    var issueLayerData = magic.runtime.issue.getPayload();
+    if (issueLayerData != "None" && issueLayerData.visible && issueLayerData.visible[name]) {
+        isVisible = issueLayerData.visible[name];
     }
     /* Determine opacity */
     var layerOpacity = this.userLayerAttribute(nd.id, "opacity", nd.opacity);   

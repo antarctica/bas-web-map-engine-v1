@@ -2,9 +2,9 @@
 
 magic.classes.InsetMap = function(options) {
     
-    this.id = options.id || "inset-map-tool";
+    this.id = options ? options.id : "inset-map-tool";
       
-    this.target = options.target || jQuery("button.inset-map-expand");  
+    this.target = options ? options.target : jQuery("button.inset-map-expand");  
     
     this.active = false;
     
@@ -126,7 +126,7 @@ magic.classes.InsetMap.prototype.initMap = function() {
     this.map.on("singleclick", this.featureAtPixelHandler, this);
     /* Allow mouseover labels for point vector layers */
     this.map.on("pointermove", jQuery.proxy(function(evt) {
-        magic.modules.common.defaultMouseout(this.highlighted);
+        magic.modules.Common.defaultMouseout(this.highlighted);
         this.highlighted = magic.modules.Common.defaultMouseover(evt);        
     }, this)); 
 };

@@ -5,10 +5,10 @@ magic.classes.UserPreferences = function(options) {
     /* API options */
     
     /* id of menu link that activates profile change form */
-    this.target = options.target || "unit-prefs";
+    this.target = options ? options.target : "unit-prefs";
       
     /* Preference set */
-    this.preferences = options.preferences || {
+    this.preferences = magic.runtime.map_context.preferencedata || {
         distance: "km",
         area: "km",
         elevation: "m",

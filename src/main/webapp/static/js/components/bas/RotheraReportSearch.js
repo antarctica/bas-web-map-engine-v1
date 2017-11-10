@@ -18,7 +18,7 @@ magic.classes.RotheraReportSearch = function (options) {
     
     /* Attribute map for pop-ups */
     this.attribute_map = [
-        {name: "id", alias: "MODES id", displayed: true, "type": "xsd:string"},
+        {name: "id", alias: "Archives id", displayed: true, "type": "xsd:string"},
         {name: "title", alias: "Title", displayed: true, "type": "xsd:string"},
         {name: "description", alias: "Description", displayed: true, "type": "xsd:string"},
         {name: "people", alias: "Personnel", displayed: true, "type": "xsd:string"},
@@ -358,9 +358,11 @@ magic.classes.RotheraReportSearch.prototype.setHoverHandlers = function() {
     if (this.isActive()) {
         this.map.on("pointermove", jQuery.proxy(function(evt) {
             this.mouseout();
+            jQuery("#" + evt.map.getTarget()).css("cursor", "help");
             evt.map.forEachFeatureAtPixel(evt.pixel, jQuery.proxy(function(feat, layer) {
                 if (layer == this.layer) {                
                    this.mouseover(feat);
+                   jQuery("#" + evt.map.getTarget()).css("cursor", "pointer");
                    return(true);
                 }
             }, this));     

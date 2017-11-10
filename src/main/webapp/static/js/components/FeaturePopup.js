@@ -63,16 +63,7 @@ magic.classes.FeaturePopup = function(options) {
                 '</div>' + 
             '</div>'
         );
-    }   
-    
-    /* Change mouse cursor when over a vector feature/overlay */
-    jQuery(this.map.getViewport()).on("mousemove", jQuery.proxy(function(e) {
-        var pixel = this.map.getEventPixel(e.originalEvent);
-        var hit = this.map.forEachFeatureAtPixel(pixel, function() {
-            return(true);
-        });
-        jQuery("#" + this.map.getTarget()).css("cursor", hit ? "pointer" : "");        
-    }, this));
+    }       
 };
 
 /**

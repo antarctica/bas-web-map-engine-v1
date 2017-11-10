@@ -1,13 +1,11 @@
 /* Ribbon of map control buttons */
 
-magic.classes.ControlButtonRibbon = function(config, mapDiv, mapContainer) {
+magic.classes.ControlButtonRibbon = function(config, map) {
     
-    this.buttons = config || [];
+    this.buttons = config || magic.runtime.map_context.data.controls;
     
-    this.mapDiv = jQuery("#" + mapDiv);
-    
-    this.mapContainer = jQuery("#" + mapContainer);
-           
+    this.map = map || magic.runtime.map;
+                   
     var id = "control-button-ribbon", ribbonId = id + "-group", maximiseId = "maximise-" + ribbonId;
     
     /* Get position for ribbon */
@@ -19,7 +17,7 @@ magic.classes.ControlButtonRibbon = function(config, mapDiv, mapContainer) {
     }
         
     /* Add the outer markup and the maximise button */
-    var insertAt = this.mapDiv.find("div.ol-overlaycontainer-stopevent");
+    var insertAt = jQuery(this.map.getTargetElement()).find("div.ol-overlaycontainer-stopevent");
     insertAt.prepend(
         '<div id="' + id + '" style="position:absolute; left:  ' + ribbonLeft + '; top: ' + ribbonTop + '" class="btn-toolbar">' + 
             '<div id="' + ribbonId + '" class="btn-group button-ribbon show"></div>' +   
@@ -31,7 +29,7 @@ magic.classes.ControlButtonRibbon = function(config, mapDiv, mapContainer) {
     
     /* Initialise tooltips and popovers */
     jQuery("body").tooltip({selector: "[data-toggle=tooltip]", container: "body"});
-    this.mapContainer.popover({selector: "[data-toggle=popover]", container: "#" + this.mapDiv[0].id});
+    jQuery(this.map.getTargetElement()).parent().popover({selector: "[data-toggle=popover]", container: "#" + this.map.getTargetElement().id});
     
     jQuery.each(this.buttons, jQuery.proxy(function(bidx, bname) {                
         switch(bname) {
@@ -163,14 +161,16 @@ magic.classes.ControlButtonRibbon.prototype.createControlButton = function(name,
  */
 magic.classes.ControlButtonRibbon.prototype.zoomToMaxExtent = function() {
     /* Unclear what the action of this button should be - currently set to restore the initial view, more appropriate for zoomed-in maps 
-     * David 06/01/2016 */
-//    if (magic.runtime.viewdata.resolutions) {
-//        magic.runtime.map.getView().setResolution(magic.runtime.map_context.data.resolutions[0]);
-//    } else {
-//        magic.runtime.map.getView().setZoom(magic.runtime.map_context.data.minZoom);
-//    }
-    magic.runtime.map.getView().setZoom(magic.runtime.map_context.data.zoom);
-    magic.runtime.map.getView().setCenter(magic.runtime.map_context.data.center);
+     * David 06/01/2016
+     * Previous incarnation: 
+     * 
+     * if (magic.runtime.viewdata.resolutions) {
+     *  this.map.getView().setResolution(this.map_context.data.resolutions[0]);
+     * } else {
+     *   this.map.getView().setZoom(this.map_context.data.minZoom);
+     *} */
+    this.map.getView().setZoom(this.map_context.data.zoom);
+    this.map.getView().setCenter(this.map_context.data.center);
 };
 
 /**
@@ -178,7 +178,7 @@ magic.classes.ControlButtonRibbon.prototype.zoomToMaxExtent = function() {
  * @param {jQuery.Event} evt
  */
 magic.classes.ControlButtonRibbon.prototype.zoomByDelta = function(evt) {
-    var view = magic.runtime.map.getView();
+    var view = this.map.getView();
     var currentResolution = view.getResolution();
     var newResolution = view.constrainResolution(currentResolution, evt.data.delta);
     view.setResolution(newResolution);

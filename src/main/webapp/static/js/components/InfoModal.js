@@ -3,9 +3,9 @@
 magic.classes.InfoModal = function(options) { 
     
     /* API */
-    this.target = options.target;
+    this.target = options ? options.target : "information-modal";
     
-    this.infolink = options.infolink || null;
+    this.infolink = options ? options.infolink : null;
     
     /* Internal */
     this.fetched = false;
