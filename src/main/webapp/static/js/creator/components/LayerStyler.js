@@ -29,7 +29,19 @@ magic.classes.creator.LayerStyler = function(prefix) {
     jQuery.each(magic.modules.VectorStyles, function(key, value) {
         predefKeys.push({key: key, value: key});
     });
-    magic.modules.Common.populateSelect(jQuery("#" + this.prefix + "-predefined-key"), predefKeys, "key", "value", "", false);
+    magic.modules.Common.populateSelect(jQuery("#" + this.prefix + "-predefined-key"), predefKeys, "key", "value", "", true);
+    
+    /* Assign handler for choosing between a predefined and a custom style */
+    jQuery("#" + this.prefix + "-type-select").change(jQuery.proxy(function(evt) {
+        var value = jQuery(evt.currentTarget).val();
+        if (value == "custom") {
+            jQuery("#" + this.prefix + "-predefined-panel").addClass("hidden");
+            jQuery("#" + this.prefix + "-custom-panel").removeClass("hidden");
+        } else {
+            jQuery("#" + this.prefix + "-custom-panel").addClass("hidden");
+            jQuery("#" + this.prefix + "-predefined-panel").removeClass("hidden");
+        }
+    }, this));
 };
 
 /**
@@ -42,6 +54,17 @@ magic.classes.creator.LayerStyler.prototype.loadContext = function(style) {
             if (!style[key]) {
                 style[key] = {};
             }
+            if (key == "predefined") {
+                if (style[key] == "") {
+                    /* Show the custom style panel */
+                    jQuery("#" + this.prefix + "-predefined-panel").addClass("hidden");
+                    jQuery("#" + this.prefix + "-custom-panel").removeClass("hidden");                                        
+                } else {
+                    /* Show the predefined style panel */
+                    jQuery("#" + this.prefix + "-predefined-panel").removeClass("hidden");
+                    jQuery("#" + this.prefix + "-custom-panel").addClass("hidden");                    
+                }
+            }
             magic.modules.creator.Common.dictToForm(this.style_form_fields[key], style[key], this.prefix + "-" + key);
         }
     }
@@ -52,8 +75,13 @@ magic.classes.creator.LayerStyler.prototype.loadContext = function(style) {
  * @param {object} style
  */
 magic.classes.creator.LayerStyler.prototype.saveContext = function(style) {
+    var typeVal = jQuery("#" + this.prefix + "-type-select").val();
+    if (typeVal == "custom") {
+        /* Reset the predefined value in the style */
+        jQuery("#" + this.prefix + "-predefined-key").val("");
+    }
     for (var key in this.style_form_fields) {
-        style[key] = {};
+        style[key] = {};        
         magic.modules.creator.Common.formToDict(this.style_form_fields[key], style[key], this.prefix + "-" + key);
     }
 };
