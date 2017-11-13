@@ -239,9 +239,9 @@ magic.classes.RotheraReportSearch.prototype.markup = function () {
                 'data-toggle="tooltip" data-placement="bottom" title="Reset the form and clear results">' + 
                 '<span class="fa fa-times-circle"></span>&nbsp;Reset' +
             '</button>' + 
-            this.infoLinkButtonMarkup("Further information on sources")
+            this.infoLinkButtonMarkup("Further information on sources") + 
         '</div>' + 
-        this.infoAreaMarkup()
+        this.infoAreaMarkup() + 
     '</form>'
     );
 };

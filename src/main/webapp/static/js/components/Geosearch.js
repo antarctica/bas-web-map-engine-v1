@@ -72,11 +72,10 @@ magic.classes.Geosearch = function (options) {
     })
     .on("shown.bs.popover", jQuery.proxy(function() {        
         this.activate(jQuery.proxy(function() {
-            this.searchInput.init();
-            this.infoButtonHandler("gazetteer sources", this.searchInput.getAttributions());
-            jQuery("#" + this.id + "-position-go").click(jQuery.proxy(this.positionSearchHandler, this));
-    }, this));
-        }, this), 
+                this.searchInput.init();
+                this.infoButtonHandler("gazetteer sources", this.searchInput.getAttributions());
+                jQuery("#" + this.id + "-position-go").click(jQuery.proxy(this.positionSearchHandler, this));
+            }, this),
         jQuery.proxy(function() {
             this.placenameSearchCache = [];
             this.suggestionFeatures = {};
@@ -167,7 +166,7 @@ magic.classes.Geosearch.prototype.mouseoverSuggestion = function (evt) {
         if (!feat) {
             /* Create the feature */
             var trCoord = ol.proj.transform(
-                [this.searchSuggestions[name].lon, this.searchSuggestions[name].lat], 
+                [searchSuggestions[name].lon, searchSuggestions[name].lat], 
                 "EPSG:4326", 
                 magic.runtime.map.getView().getProjection().getCode()
             );
@@ -336,8 +335,10 @@ magic.classes.Geosearch.prototype.positionSearchHandler = function (evt) {
  * Initialise a search by clearing suggestions and all their attendant "ghost" features
  */
 magic.classes.Geosearch.prototype.searchInit = function () {
-    jQuery("#popup").popover("destroy");    
-    jQuery.map(this.suggestionFeatures, jQuery.proxy(function (f) {
-        this.layer.getSource().removeFeature(f);
-    }, this));
+    jQuery("#popup").popover("destroy"); 
+    if (this.suggestionFeatures) {
+        jQuery.map(this.suggestionFeatures, jQuery.proxy(function (f) {
+            this.layer.getSource().removeFeature(f);
+        }, this));
+    }
 };

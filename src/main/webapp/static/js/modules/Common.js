@@ -514,9 +514,9 @@ magic.modules.Common = function () {
                         }          
                     }
                 }
-            }, this, function(candidate) {
+            }, {layerFilter: function(candidate) {
                 return(candidate.getVisible() && candidate.get("metadata") && candidate.get("metadata")["is_interactive"] === true);
-            }, this);
+            }}, this);
             return(fprops);
         },
         /**

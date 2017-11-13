@@ -45,11 +45,11 @@ magic.classes.GazetteerSearchInput = function(containerId, baseId, suggestionCal
         /* Set up sources for typeahead input */
         this.sources = jQuery.map(this.gazetteers, jQuery.proxy(function (gaz) {
             return({
-                source: function (query, syncResults, asyncResults) {
+                source: jQuery.proxy(function (query, syncResults, asyncResults) {
                     jQuery.getJSON(this.LOCATIONS_API + "/" + gaz + "/" + query + "/brief", function (json) {
                         asyncResults(json.data);
                     });
-                },
+                }, this),
                 name: gaz,
                 display: jQuery.proxy(function (value) {                    
                     return(value.placename + (this.gazetteerData[gaz].composite ? " (" + value.gazetteer + ")" : ""));
@@ -74,7 +74,7 @@ magic.classes.GazetteerSearchInput = function(containerId, baseId, suggestionCal
  * Set typeahead and search button click handlers 
  */
 magic.classes.GazetteerSearchInput.prototype.init = function() {
-    jQuery("#" + this.baseId + "-ta").typeahead({minLength: 4, highlight: true}, this.getSources())
+    jQuery("#" + this.baseId + "-ta").typeahead({minLength: this.minLength, highlight: true}, this.sources)
     .on("typeahead:autocompleted", jQuery.proxy(this.selectHandler, this))
     .on("typeahead:selected", jQuery.proxy(this.selectHandler, this))
     .on("typeahead:render", jQuery.proxy(function () {
@@ -85,7 +85,8 @@ magic.classes.GazetteerSearchInput.prototype.init = function() {
             jQuery("p.suggestion").off("mouseout").on("mouseout", {suggestions: this.searchSuggestions}, this.suggestionCallbacks.mouseout);
         }            
     }, this));
-    jQuery("#" + this.baseId + "-placename-go").click(this.suggestionCallbacks.search));
+    jQuery("#" + this.baseId + "-placename-go").click(this.suggestionCallbacks.search);
+};
 
 /**
  * Handler for an autocompleted selection of place-name
@@ -137,7 +138,7 @@ magic.classes.GazetteerSearchInput.prototype.getAttributions = function () {
     var attrArr = jQuery.map(this.gazetteers, jQuery.proxy(function (gaz) {
         return(
                 '<strong>' + this.gazetteerData[gaz].title + '</strong>' +
-                '<p style="font-size:smaller">' + magic.modules.Common.linkify(this.gazetteerData[gaz].attribution + ". " + this.gazetteerData[gaz].website) + '</p>'
+                '<p style="font-size:smaller">' + magic.modules.Common.linkify(this.gazetteerData[gaz].attribution + '. ' + this.gazetteerData[gaz].website) + '</p>'
                 );
     }, this));
     return(attrArr.join(""));
