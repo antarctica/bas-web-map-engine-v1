@@ -18,7 +18,7 @@ magic.classes.RotheraReportSearch = function (options) {
     
     /* Attribute map for pop-ups */
     this.attribute_map = [
-        {name: "id", alias: "Archives id", displayed: true, "type": "xsd:string"},
+        {name: "id", alias: "Archives ref", displayed: true, "type": "xsd:string"},
         {name: "title", alias: "Title", displayed: true, "type": "xsd:string"},
         {name: "description", alias: "Description", displayed: true, "type": "xsd:string"},
         {name: "people", alias: "Personnel", displayed: true, "type": "xsd:string"},
@@ -52,6 +52,7 @@ magic.classes.RotheraReportSearch = function (options) {
                 this.seasonSelect = new magic.classes.SeasonSelect(this.id + "-season-select-div");
                 this.layer.set("fetcher", jQuery.proxy(this.fullFeatureDataFetch, this), true);
                 this.setHoverHandlers();
+                this.infoButtonHandler("source information", "Jo Rae to supply");
                 jQuery("#" + this.id + "-locations").closest("div").find(".bootstrap-tagsinput :input").focus();            
             }, this), 
             jQuery.proxy(function() {
@@ -118,7 +119,18 @@ magic.classes.RotheraReportSearch = function (options) {
                             }            
                         }
                         if (response.length > 1) {
-                            this.map.getView().fit(this.layer.getSource().getExtent(), {padding: [20, 20, 20, 20]});
+                            var DEFAULT_BUFFER = 10000;
+                            var dataExtent = this.layer.getSource().getExtent();
+                            var dataCentroid = [0.5*(dataExtent[2] - dataExtent[0]), 0.5*(dataExtent[3] - dataExtent[1])];
+                            if (dataExtent[2] - dataExtent[0] < DEFAULT_BUFFER) {
+                                dataExtent[0] = dataCentroid[0] - 0.5*DEFAULT_BUFFER;
+                                dataExtent[2] = dataCentroid[0] + 0.5*DEFAULT_BUFFER;
+                            }
+                            if (dataExtent[3] - dataExtent[1] < DEFAULT_BUFFER) {
+                                dataExtent[1] = dataCentroid[1] - 0.5*DEFAULT_BUFFER;
+                                dataExtent[3] = dataCentroid[1] + 0.5*DEFAULT_BUFFER;
+                            }
+                            this.map.getView().fit(dataExtent, {padding: [20, 20, 20, 20]});
                         }
                         this.savedSearch["nresults"] = response.length;
                     }, this))
@@ -226,8 +238,10 @@ magic.classes.RotheraReportSearch.prototype.markup = function () {
             '<button id="' + this.id + '-reset" class="btn btn-sm btn-danger" type="button" style="margin-left:5px" ' + 
                 'data-toggle="tooltip" data-placement="bottom" title="Reset the form and clear results">' + 
                 '<span class="fa fa-times-circle"></span>&nbsp;Reset' +
-            '</button>' +                         
-        '</div>' +           
+            '</button>' + 
+            this.infoLinkButtonMarkup("Further information on sources")
+        '</div>' + 
+        this.infoAreaMarkup()
     '</form>'
     );
 };

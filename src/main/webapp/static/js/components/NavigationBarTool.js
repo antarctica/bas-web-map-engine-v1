@@ -1,6 +1,6 @@
-/* Prototype class for a general search resulting in clickable points on the map */
+/* Prototype class for navigation bar tools */
 
-magic.classes.GeneralSearch = function (options) {
+magic.classes.NavigationBarTool = function (options) {
 
     /* === API properties === */
 
@@ -11,17 +11,14 @@ magic.classes.GeneralSearch = function (options) {
     this.target = jQuery("#" + options.target);
     
     /* Caption for the popover */
-    this.caption = options.caption || "Search by";
-    
-    /* Dialog id, for autogeneration of defaults */
-    this.dialogId = "search" + magic.modules.Common.uuid();
+    this.caption = options.caption || "Untitled";
     
     /* Classes to apply to popover and popover-content */
-    this.popoverClass = options.popoverClass || this.dialogId;
+    this.popoverClass = options.popoverClass || "";
     this.popoverContentClass = options.popoverContentClass || "";
     
     /* Name for the results layer */
-    this.layername = options.layername || this.dialogId;
+    this.layername = options.layername;
     
     /* Map to add layer to */
     this.map = options.map || magic.runtime.map;    
@@ -45,24 +42,24 @@ magic.classes.GeneralSearch = function (options) {
     this.template = 
         '<div class="popover popover-auto-width' + (this.popoverClass ? ' ' + this.popoverClass : '') + '" role="popover">' +
             '<div class="arrow"></div>' +
-            '<h3 class="popover-title"></h3>' +
+            '<h3 class="popover-title">' + this.caption + '</h3>' +
             '<div class="popover-content' + (this.popoverContentClass ? ' ' + this.popoverContentClass : '') + '"></div>' +
         '</div>';;       
 };
 
-magic.classes.GeneralSearch.prototype.getTarget = function () {
+magic.classes.NavigationBarTool.prototype.getTarget = function () {
     return(this.target);
 };
 
-magic.classes.GeneralSearch.prototype.getTemplate = function () {
+magic.classes.NavigationBarTool.prototype.getTemplate = function () {
     return(this.template);
 };
 
-magic.classes.GeneralSearch.prototype.isActive = function () {
+magic.classes.NavigationBarTool.prototype.isActive = function () {
     return(this.active);
 };
 
-magic.classes.GeneralSearch.prototype.assignCloseButtonHandler = function (callback) {
+magic.classes.NavigationBarTool.prototype.assignCloseButtonHandler = function (callback) {
     jQuery("." + this.popoverClass).find("button.dialog-deactivate").click(jQuery.proxy(function () {
         this.deactivate(callback);
         this.target.popover("hide");
@@ -70,14 +67,14 @@ magic.classes.GeneralSearch.prototype.assignCloseButtonHandler = function (callb
     jQuery("." + this.popoverClass).find("button.dialog-minimise").click(jQuery.proxy(function () {
         this.target.popover("hide");
     }, this));
-};    
+};  
 
 /**
- * Activate the search control
+ * Activate the control
  * @param {Function} onActivate
  * @param {Function} onDeactivate
  */
-magic.classes.GeneralSearch.prototype.activate = function (onActivate, onDeactivate) {    
+magic.classes.NavigationBarTool.prototype.activate = function (onActivate, onDeactivate) {    
     if (!this.layerAdded) {
         this.map.addLayer(this.layer);
         this.layer.setZIndex(1000);
@@ -96,10 +93,10 @@ magic.classes.GeneralSearch.prototype.activate = function (onActivate, onDeactiv
 };
 
 /**
- * Deactivate the search control
+ * Deactivate the control
  * @param {Function} callback
  */
-magic.classes.GeneralSearch.prototype.deactivate = function (callback) {
+magic.classes.NavigationBarTool.prototype.deactivate = function (callback) {
     this.active = false;
     this.layer.getSource().clear();
     this.layer.setVisible(false);
@@ -112,65 +109,11 @@ magic.classes.GeneralSearch.prototype.deactivate = function (callback) {
     }
 };
 
-magic.classes.GeneralSearch.prototype.interactsMap = function () {
-    return(false);
-};
-
-/**
- * Add a Bootstrap tagsinput plugin widget to the input with given id
- * @param {string} id
- */
-magic.classes.GeneralSearch.prototype.addTagsInput = function (id) {
-    var elt = jQuery("#" + this.id + "-" + id);
-    if (elt.length > 0) {
-        var tooltip = elt.attr("title");
-        elt.tagsinput({
-            trimValue: true,
-            allowDuplicates: false,
-            cancelConfirmKeysOnEmpty: false
-        });
-        if (tooltip) {
-            /* Locate the input added by the tagsInput plugin to attach tooltip */
-            var btInput = elt.closest("div").find(".bootstrap-tagsinput :input");
-            if (btInput) {
-                btInput.attr("data-toggle", "tooltip");
-                btInput.attr("data-placement", "right");
-                btInput.attr("title", tooltip);
-            }
-        }
-    }
-};
-
-/**
- * Populate a Bootstrap tagsinput plugin widget with the give value
- * @param {string} id
- * @param {string} value comma-separated string representing array of values
- */
-magic.classes.GeneralSearch.prototype.populateTagsInput = function (id, value) {
-    var elt = jQuery("#" + this.id + "-" + id);
-    if (elt.length > 0) {
-        jQuery.each(value.split(","), function(idx, v) {
-            elt.tagsinput("add", v);
-        });
-    }
-};
-
-/**
- * Reset a Bootstrap tagsinput plugin widget by removing all entered values
- * @param {string} id
- */
-magic.classes.GeneralSearch.prototype.resetTagsInput = function (id) {
-    var elt = jQuery("#" + this.id + "-" + id);
-    if (elt.length > 0) {
-        elt.tagsinput("removeAll");
-    }
-};
-
 /**
  * Set template for a 'further info' link button
  * @param {string} helpText
  */
-magic.classes.GeneralSearch.prototype.infoLinkButtonMarkup = function (helpText) {
+magic.classes.NavigationBarTool.prototype.infoLinkButtonMarkup = function (helpText) {
     return(
         '<div style="float:right">' +
             '<a class="fa fa-info-circle further-info" data-toggle="tooltip" data-placement="bottom" title="' + helpText + '">&nbsp;' +
@@ -183,7 +126,7 @@ magic.classes.GeneralSearch.prototype.infoLinkButtonMarkup = function (helpText)
 /**
  * Set template for a 'further info' text area
  */
-magic.classes.GeneralSearch.prototype.infoAreaMarkup = function () {
+magic.classes.NavigationBarTool.prototype.infoAreaMarkup = function () {
     return('<div id="' + this.id + '-further-info" class="alert alert-info hidden"></div>');
 };
 
@@ -192,7 +135,7 @@ magic.classes.GeneralSearch.prototype.infoAreaMarkup = function () {
  * @param {string} caption
  * @para, {string} text
  */
-magic.classes.GeneralSearch.prototype.infoButtonHandler = function (caption, text) {
+magic.classes.NavigationBarTool.prototype.infoButtonHandler = function (caption, text) {
     jQuery("a.further-info").click(jQuery.proxy(function (evt) {
         var attribArea = jQuery("#" + this.id + "-further-info");
         attribArea.toggleClass("hidden");
@@ -205,17 +148,4 @@ magic.classes.GeneralSearch.prototype.infoButtonHandler = function (caption, tex
             jQuery(evt.currentTarget).attr("data-original-title", "Show " + caption).tooltip("fixTitle");
         }
     }, this));
-};
-
-/**
- * Format error messages about problem fields from validation
- * @param {Object} errors
- * @return {String}
- */
-magic.classes.GeneralSearch.prototype.formatErrors = function (errors) {
-    var html = "";
-    for (var errkey in errors) {
-        html += '<p>' + errkey + ' - ' + errors[errkey] + '</p>';
-    }
-    return(html);
 };

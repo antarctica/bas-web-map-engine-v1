@@ -169,17 +169,8 @@ magic.classes.creator.LayerAttributeMap.prototype.ogcLoadContext = function(wms,
                     dataType: "xml"
                 })
                 .done(jQuery.proxy(function(response) {
-                    /* Oh hell - thought this kind of stuff was a thing of the past... David 15/04/2016 */
                     /* Update : 13/09/2017 - As of about version 60, Chrome now suddenly works like everything else... */
-                    var elts = [];
-                    //if (navigator.userAgent.match(/chrome/i) != null) {
-                    //    /* Google Chrome */
-                    //    elts = jQuery(response).find("sequence").find("element");
-                    //} else {
-                        /* Mozilla Firefox, MSIE and the rest */
-                        /* The \\ escapes the colon - needed to work in FF - see http://stackoverflow.com/questions/853740/jquery-xml-parsing-with-namespaces */
-                        elts = jQuery(response).find("xsd\\:sequence").find("xsd\\:element");
-                    //}               
+                    var elts = elts = jQuery(response).find("xsd\\:sequence").find("xsd\\:element");
                     var geomType = "unknown";
                     jQuery.each(elts, jQuery.proxy(function(idx, elt) {
                         var attrs = {};
