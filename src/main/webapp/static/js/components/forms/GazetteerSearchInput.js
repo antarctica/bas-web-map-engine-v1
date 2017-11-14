@@ -108,9 +108,16 @@ magic.classes.GazetteerSearchInput.prototype.selectHandler = function (evt, sugg
     }
 };
 
-
 magic.classes.GazetteerSearchInput.prototype.getSelection = function() {
     return(this.currentSearch);
+};
+
+magic.classes.GazetteerSearchInput.prototype.getSearch = function(value) {
+    return(jQuery("#" + this.baseId + "-ta").val());
+};
+
+magic.classes.GazetteerSearchInput.prototype.setSearch = function(value) {
+    jQuery("#" + this.baseId + "-ta").val(value);
 };
 
 magic.classes.GazetteerSearchInput.prototype.markup = function() {

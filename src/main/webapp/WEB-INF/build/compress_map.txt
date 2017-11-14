@@ -24,4 +24,5 @@ js/dropzone.min.js
 js/prettify.js
 js/init.js
 js/modules
+js/abstract
 js/components

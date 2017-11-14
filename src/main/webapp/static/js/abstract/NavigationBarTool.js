@@ -116,7 +116,7 @@ magic.classes.NavigationBarTool.prototype.deactivate = function (callback) {
 magic.classes.NavigationBarTool.prototype.infoLinkButtonMarkup = function (helpText) {
     return(
         '<div style="float:right">' +
-            '<a class="fa fa-info-circle further-info" data-toggle="tooltip" data-placement="bottom" title="' + helpText + '">&nbsp;' +
+            '<a href="JavaScript:void(0)" class="fa fa-info-circle further-info" data-toggle="tooltip" data-placement="bottom" title="' + helpText + '">&nbsp;' +
                 '<span class="fa fa-caret-down"></span>' +
             '</a>' +
         '</div>'

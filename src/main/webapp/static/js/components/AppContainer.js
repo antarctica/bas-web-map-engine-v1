@@ -48,8 +48,8 @@ magic.classes.AppContainer = function () {
                 className: "custom-mouse-position",
                 coordinateFormat: function (xy) {
                     return(
-                        "Lon : " + magic.runtime.preferences.applyPref("coordinates", xy[0].toFixed(2), "lon") + ", " + 
-                        "lat : " + magic.runtime.preferences.applyPref("coordinates", xy[1].toFixed(2), "lat")
+                        "Lat : " + magic.runtime.preferences.applyPref("coordinates", xy[1].toFixed(2), "lat") + ", " + 
+                        "lon : " + magic.runtime.preferences.applyPref("coordinates", xy[0].toFixed(2), "lon")                         
                     );
                 }
             })

@@ -514,6 +514,14 @@ div.geosearch-popover-content {
     width: 280px;
 }
 
+a.further-info {
+    text-decoration: none;
+}
+
+a.further-info:hover {
+    text-decoration: none;
+}
+
 p.suggestion {
     margin: 4px 4px 4px 20px;
 }
