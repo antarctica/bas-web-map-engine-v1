@@ -244,7 +244,7 @@
                 },
                 "zoom": {
                     "description": "Default zoom level of map",
-                    "type": "integer",
+                    "type": "number",
                     "minimum": 0,
                     "maximum": 20
                 },

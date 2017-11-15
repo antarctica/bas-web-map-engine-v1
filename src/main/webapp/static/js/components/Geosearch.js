@@ -82,7 +82,8 @@ magic.classes.Geosearch = function (options) {
         jQuery.proxy(function() {
             this.placenameSearchCache = [];
             this.suggestionFeatures = {};
-        }, this));
+        }, this),
+        jQuery.proxy(this.saveSearchState, this));
         if (this.isActive() && !jQuery.isEmptyObject(this.savedSearch)) {
             this.restoreSearchState();
         }   
@@ -162,10 +163,10 @@ magic.classes.Geosearch.prototype.markup = function() {
 magic.classes.Geosearch.prototype.saveSearchState = function () {
     this.savedSearch = {};
     this.savedSearch["placename"] = this.searchInput.getSearch();
-    this.savedSearch["lon"] = jQuery("#" + this.baseId + "-lon").val();
-    this.savedSearch["lat"] = jQuery("#" + this.baseId + "-lat").val();
-    this.savedSearch["label"] = jQuery("#" + this.baseId + "-label").val();
-    var activeTab = jQuery("#" + this.baseId + "-content").find("div.tab-pane.active");
+    this.savedSearch["lon"] = jQuery("#" + this.id + "-lon").val();
+    this.savedSearch["lat"] = jQuery("#" + this.id + "-lat").val();
+    this.savedSearch["label"] = jQuery("#" + this.id + "-label").val();
+    var activeTab = jQuery("#" + this.id + "-content").find("div.tab-pane.active");
     if (activeTab.length > 0) {
         this.savedSearch["activeTab"] = activeTab[0].id;
     }
@@ -175,10 +176,13 @@ magic.classes.Geosearch.prototype.saveSearchState = function () {
  * Restore saved search on re-show of the form pop-up
  */
 magic.classes.Geosearch.prototype.restoreSearchState = function () {
-    this.searchInput.setSearch(this.savedSearch['placename']);
-    jQuery("#" + this.baseId + "-lon").val(this.savedSearch['lon']);
-    jQuery("#" + this.baseId + "-lat").val(this.savedSearch['lat']);
-    jQuery("#" + this.baseId + "-label").val(this.savedSearch['label']);
+    console.log(this.savedSearch);
+    jQuery("#" + this.savedSearch["activeTab"]).one("shown.bs.tab", jQuery.proxy(function(evt) {
+        this.searchInput.setSearch(this.savedSearch['placename']);
+        jQuery("#" + this.id + "-lon").val(this.savedSearch['lon']);
+        jQuery("#" + this.id + "-lat").val(this.savedSearch['lat']);
+        jQuery("#" + this.id + "-label").val(this.savedSearch['label']);
+    }, this));    
     if (this.savedSearch["activeTab"]) {
         jQuery("#" + this.savedSearch["activeTab"]).tab("show");
     }
@@ -201,7 +205,8 @@ magic.classes.Geosearch.prototype.mouseoverSuggestion = function (evt) {
             );
             feat = new ol.Feature({
                 geometry: new ol.geom.Point(trCoord),
-                suggestion: true
+                layer: this.layer,
+                _suggestion: true
             });
             this.suggestionFeatures[name] = feat;
             this.layer.getSource().addFeature(feat);
@@ -243,11 +248,12 @@ magic.classes.Geosearch.prototype.placenameSearchHandler = function (evt) {
         /* Fetch data */
         jQuery.getJSON("https://api.bas.ac.uk/locations/v1/placename/" + gazName + "/" + currentSearchData["id"], jQuery.proxy(function (json) {
             var jsonData = json.data;
-            delete jsonData["suggestion"];
+            delete jsonData["_suggestion"];
             var geom = this.computeProjectedGeometry(gazName, jsonData);
             var attrs = jQuery.extend({
                 geometry: geom,
                 name: currentSearchData.placename,
+                layer: this.layer,
                 "__gaz_name": gazName
             }, jsonData);
             var feat = new ol.Feature(attrs);
@@ -346,7 +352,8 @@ magic.classes.Geosearch.prototype.positionSearchHandler = function (evt) {
             geometry: position,
             lon: lon.val(),
             lat: lat.val(),
-            name: label.val()
+            name: label.val(),
+            layer: this.layer
         });
         this.layer.getSource().addFeature(feat);
         if (jQuery("#" + this.id + "-tmt").prop("checked")) {
@@ -364,11 +371,5 @@ magic.classes.Geosearch.prototype.positionSearchHandler = function (evt) {
  * Initialise a search by clearing suggestions and all their attendant "ghost" features
  */
 magic.classes.Geosearch.prototype.searchInit = function () {
-    jQuery("#popup").popover("destroy"); 
-    if (this.suggestionFeatures) {
-        jQuery.each(this.suggestionFeatures, jQuery.proxy(function (fname, f) {
-            this.layer.getSource().removeFeature(f);
-        }, this));
-    }
     this.saveSearchState();
 };

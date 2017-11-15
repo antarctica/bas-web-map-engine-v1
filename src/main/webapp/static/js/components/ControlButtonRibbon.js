@@ -36,19 +36,19 @@ magic.classes.ControlButtonRibbon = function(config, map) {
             case "zoom_world":
                 /* Zoom world */
                 this.createControlButton("zoom-world", "glyphicon glyphicon-globe", bidx, "Reset to original map extent")
-                .on("click", this.zoomToMaxExtent);                         
+                .on("click", jQuery.proxy(this.zoomToMaxExtent, this));                         
                 break;
                 
             case "zoom_in":
                 /* Zoom in */
                 this.createControlButton("zoom-in", "fa fa-search-plus", bidx, "Zoom map in")
-                .on("click", {delta: 1}, this.zoomByDelta);                        
+                .on("click", {delta: 1}, jQuery.proxy(this.zoomByDelta, this));                        
                 break;
                 
             case "zoom_out":
                 /* Zoom out */
                 this.createControlButton("zoom-out", "fa fa-search-minus", bidx, "Zoom map out")
-                    .on("click", {delta: -1}, this.zoomByDelta);                        
+                    .on("click", {delta: -1}, jQuery.proxy(this.zoomByDelta, this));                        
                 break;   
             
             case "box_zoom":
@@ -169,8 +169,8 @@ magic.classes.ControlButtonRibbon.prototype.zoomToMaxExtent = function() {
      * } else {
      *   this.map.getView().setZoom(this.map_context.data.minZoom);
      *} */
-    this.map.getView().setZoom(this.map_context.data.zoom);
-    this.map.getView().setCenter(this.map_context.data.center);
+    this.map.getView().setZoom(magic.runtime.map_context.data.zoom);
+    this.map.getView().setCenter(magic.runtime.map_context.data.center);
 };
 
 /**

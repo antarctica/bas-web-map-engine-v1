@@ -222,6 +222,27 @@ magic.modules.GeoUtils = function() {
         },
         
         /**
+         * Create a suitable display extent from the given data extent (basically set a minimum size in case where the latter is very small)
+         * @param {Array} dataExtent
+         * @param {int} buffer size in metres
+         * @returns {Array}
+         */
+        bufferExtent: function(dataExtent, buffer) {
+            var extentOut = dataExtent.slice(0);
+            var DEFAULT_BUFFER = 10000;
+            buffer = buffer || DEFAULT_BUFFER;
+            var dataCentroid = [0.5*(dataExtent[2] - dataExtent[0]), 0.5*(dataExtent[3] - dataExtent[1])];
+            if (dataExtent[2] - dataExtent[0] < buffer) {
+                extentOut[0] = dataCentroid[0] - 0.5*buffer;
+                extentOut[2] = dataCentroid[0] + 0.5*buffer;
+            }
+            if (dataExtent[3] - dataExtent[1] < buffer) {
+                extentOut[1] = dataCentroid[1] - 0.5*buffer;
+                extentOut[3] = dataCentroid[1] + 0.5*buffer;
+            }
+            return(extentOut);
+        },
+        /**
          * Format a projection received as e.g. EPSG:3031
          * @param {string} proj
          * @returns {string}

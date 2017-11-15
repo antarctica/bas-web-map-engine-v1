@@ -7,8 +7,8 @@ magic.classes.DragDropGpxKml = function(options) {
     /* Identifier */
     this.id = options.id || "dd-gpx-kml";
     
-    /* Map */
-    this.map = options.map || magic.runtime.map;
+    /* Map - gets set in the handler if not supplied here */
+    this.map = options.map || null;
     
     /* Internal properties */
     
@@ -20,6 +20,9 @@ magic.classes.DragDropGpxKml = function(options) {
     
     /* Style the user GPX and KML layers */    
     this.dd.on("addfeatures", jQuery.proxy(function(evt) {
+        if (this.map == null) {
+            this.map = magic.runtime.map;
+        }
         var vectorSource = new ol.source.Vector({
             features: evt.features
         });
@@ -35,8 +38,9 @@ magic.classes.DragDropGpxKml = function(options) {
                 is_interactive: true
             }
         });
-        this.map.addLayer(layer);        
-        this.map.getView().fit(vectorSource.getExtent(), {padding: [20, 20, 20, 20]});
+        this.map.addLayer(layer); 
+        var dataExtent = magic.modules.GeoUtils.bufferExtent(vectorSource.getExtent());
+        this.map.getView().fit(dataExtent, {padding: [20, 20, 20, 20]});
         this.userlayers.push(layer);
     }, this));
     

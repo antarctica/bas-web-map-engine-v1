@@ -59,12 +59,15 @@ magic.classes.NavigationBarTool.prototype.isActive = function () {
     return(this.active);
 };
 
-magic.classes.NavigationBarTool.prototype.assignCloseButtonHandler = function (callback) {
+magic.classes.NavigationBarTool.prototype.assignCloseButtonHandler = function (closeCallback, minimiseCallback) {
     jQuery("." + this.popoverClass).find("button.dialog-deactivate").click(jQuery.proxy(function () {
-        this.deactivate(callback);
+        this.deactivate(closeCallback);
         this.target.popover("hide");
     }, this));
     jQuery("." + this.popoverClass).find("button.dialog-minimise").click(jQuery.proxy(function () {
+        if (jQuery.isFunction(minimiseCallback)) {
+            minimiseCallback();
+        }
         this.target.popover("hide");
     }, this));
 };  
@@ -73,8 +76,9 @@ magic.classes.NavigationBarTool.prototype.assignCloseButtonHandler = function (c
  * Activate the control
  * @param {Function} onActivate
  * @param {Function} onDeactivate
+ * @param {Function} onMinimise
  */
-magic.classes.NavigationBarTool.prototype.activate = function (onActivate, onDeactivate) {    
+magic.classes.NavigationBarTool.prototype.activate = function (onActivate, onDeactivate, onMinimise) {    
     if (!this.layerAdded) {
         this.map.addLayer(this.layer);
         this.layer.setZIndex(1000);
@@ -86,7 +90,7 @@ magic.classes.NavigationBarTool.prototype.activate = function (onActivate, onDea
     }
     this.active = true;
     this.layer.setVisible(true);
-    this.assignCloseButtonHandler(onDeactivate);
+    this.assignCloseButtonHandler(onDeactivate, onMinimise);
     if (jQuery.isFunction(onActivate)) {
         onActivate();
     }

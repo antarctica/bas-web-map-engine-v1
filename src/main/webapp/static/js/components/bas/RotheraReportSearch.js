@@ -58,7 +58,8 @@ magic.classes.RotheraReportSearch = function (options) {
             jQuery.proxy(function() {
                 this.map.un("pointermove");
                 this.savedSearch = {};
-            }, this)
+            }, this),
+            jQuery.proxy(this.saveSearchState, this)
         );
         if (this.isActive() && !jQuery.isEmptyObject(this.savedSearch)) {
             this.restoreSearchState();
@@ -119,17 +120,7 @@ magic.classes.RotheraReportSearch = function (options) {
                             }            
                         }
                         if (response.length > 1) {
-                            var DEFAULT_BUFFER = 10000;
-                            var dataExtent = this.layer.getSource().getExtent();
-                            var dataCentroid = [0.5*(dataExtent[2] - dataExtent[0]), 0.5*(dataExtent[3] - dataExtent[1])];
-                            if (dataExtent[2] - dataExtent[0] < DEFAULT_BUFFER) {
-                                dataExtent[0] = dataCentroid[0] - 0.5*DEFAULT_BUFFER;
-                                dataExtent[2] = dataCentroid[0] + 0.5*DEFAULT_BUFFER;
-                            }
-                            if (dataExtent[3] - dataExtent[1] < DEFAULT_BUFFER) {
-                                dataExtent[1] = dataCentroid[1] - 0.5*DEFAULT_BUFFER;
-                                dataExtent[3] = dataCentroid[1] + 0.5*DEFAULT_BUFFER;
-                            }
+                            var dataExtent = magic.modules.GeoUtils.bufferExtent(this.layer.getSource().getExtent());                            
                             this.map.getView().fit(dataExtent, {padding: [20, 20, 20, 20]});
                         }
                         this.savedSearch["nresults"] = response.length;

@@ -47,7 +47,7 @@ magic.classes.GeneralSearch = function (options) {
             '<div class="arrow"></div>' +
             '<h3 class="popover-title"></h3>' +
             '<div class="popover-content' + (this.popoverContentClass ? ' ' + this.popoverContentClass : '') + '"></div>' +
-        '</div>';;       
+        '</div>';     
 };
 
 magic.classes.GeneralSearch.prototype.getTarget = function () {
@@ -62,12 +62,15 @@ magic.classes.GeneralSearch.prototype.isActive = function () {
     return(this.active);
 };
 
-magic.classes.GeneralSearch.prototype.assignCloseButtonHandler = function (callback) {
+magic.classes.GeneralSearch.prototype.assignCloseButtonHandler = function (closeCallback, minimiseCallback) {
     jQuery("." + this.popoverClass).find("button.dialog-deactivate").click(jQuery.proxy(function () {
-        this.deactivate(callback);
+        this.deactivate(closeCallback);
         this.target.popover("hide");
     }, this));
     jQuery("." + this.popoverClass).find("button.dialog-minimise").click(jQuery.proxy(function () {
+        if (jQuery.isFunction(minimiseCallback)) {
+            minimiseCallback();
+        }
         this.target.popover("hide");
     }, this));
 };    
@@ -76,8 +79,9 @@ magic.classes.GeneralSearch.prototype.assignCloseButtonHandler = function (callb
  * Activate the search control
  * @param {Function} onActivate
  * @param {Function} onDeactivate
+ * @param {Function} onMinimise
  */
-magic.classes.GeneralSearch.prototype.activate = function (onActivate, onDeactivate) {    
+magic.classes.GeneralSearch.prototype.activate = function (onActivate, onDeactivate, onMinimise) {    
     if (!this.layerAdded) {
         this.map.addLayer(this.layer);
         this.layer.setZIndex(1000);
@@ -89,7 +93,7 @@ magic.classes.GeneralSearch.prototype.activate = function (onActivate, onDeactiv
     }
     this.active = true;
     this.layer.setVisible(true);
-    this.assignCloseButtonHandler(onDeactivate);
+    this.assignCloseButtonHandler(onDeactivate, onMinimise);
     if (jQuery.isFunction(onActivate)) {
         onActivate();
     }
