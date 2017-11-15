@@ -176,8 +176,7 @@ magic.classes.Geosearch.prototype.saveSearchState = function () {
  * Restore saved search on re-show of the form pop-up
  */
 magic.classes.Geosearch.prototype.restoreSearchState = function () {
-    console.log(this.savedSearch);
-    jQuery("#" + this.savedSearch["activeTab"]).one("shown.bs.tab", jQuery.proxy(function(evt) {
+    jQuery("#" + this.savedSearch["activeTab"]).off("shown.bs.tab").on("shown.bs.tab", jQuery.proxy(function(evt) {
         this.searchInput.setSearch(this.savedSearch['placename']);
         jQuery("#" + this.id + "-lon").val(this.savedSearch['lon']);
         jQuery("#" + this.id + "-lat").val(this.savedSearch['lat']);
@@ -206,7 +205,7 @@ magic.classes.Geosearch.prototype.mouseoverSuggestion = function (evt) {
             feat = new ol.Feature({
                 geometry: new ol.geom.Point(trCoord),
                 layer: this.layer,
-                _suggestion: true
+                __suggestion: true
             });
             this.suggestionFeatures[name] = feat;
             this.layer.getSource().addFeature(feat);
@@ -231,7 +230,7 @@ magic.classes.Geosearch.prototype.mouseoutSuggestion = function (evt) {
  */
 magic.classes.Geosearch.prototype.placenameSearchHandler = function (evt) {
 
-    this.searchInit();
+    this.saveSearchState();
     var currentSearchData = this.searchInput.getSelection();
 
     /* Check if this search has already been done */
@@ -248,7 +247,7 @@ magic.classes.Geosearch.prototype.placenameSearchHandler = function (evt) {
         /* Fetch data */
         jQuery.getJSON("https://api.bas.ac.uk/locations/v1/placename/" + gazName + "/" + currentSearchData["id"], jQuery.proxy(function (json) {
             var jsonData = json.data;
-            delete jsonData["_suggestion"];
+            delete jsonData["__suggestion"];
             var geom = this.computeProjectedGeometry(gazName, jsonData);
             var attrs = jQuery.extend({
                 geometry: geom,
@@ -337,7 +336,7 @@ magic.classes.Geosearch.prototype.flyTo = function (location, done) {
  */
 magic.classes.Geosearch.prototype.positionSearchHandler = function (evt) {
 
-    this.searchInit();
+    this.saveSearchState();
 
     var lon = jQuery("#" + this.id + "-lon"),
             lat = jQuery("#" + this.id + "-lat"),
@@ -365,11 +364,4 @@ magic.classes.Geosearch.prototype.positionSearchHandler = function (evt) {
         lonFg.removeClass("has-success").addClass("has-error");
         latFg.removeClass("has-success").addClass("has-error");
     }
-};
-
-/**
- * Initialise a search by clearing suggestions and all their attendant "ghost" features
- */
-magic.classes.Geosearch.prototype.searchInit = function () {
-    this.saveSearchState();
 };
