@@ -1,17 +1,30 @@
 /* User uploaded layer manager */
 
 magic.classes.UserLayerManager = function(options) {
+    
+    options = jQuery.extend({}, {
+        id: "layermanager-tool",
+        caption: "Manage user layers",
+        layername: null,
+        popoverClass: "layermanager-popover",
+        popoverContentClass: "layermanager-popover-content"
+    }, options);
+    
+    magic.classes.NavigationBarTool.call(this, options);
         
-    /* API options */
+    /* Internal properties */
     
-    /* Identifier */
-    this.id = options.id || "layermanager-tool";
-    
-    /* Button invoking the feedback form */
-    this.target = jQuery("#" + options.target); 
-    
-    /* Map */
-    this.map = options.map || magic.runtime.map;
+    /* Callbacks */
+    this.setCallbacks({
+        onActivate: jQuery.proxy(this.onActivateHandler, this),
+        onDeactivate: jQuery.proxy(function() {                
+            this.savedState = {};
+        }, this), 
+        onMinimise: jQuery.proxy(function() {
+            var editLayerId = this.selectedLayerId() || "__new_layer";
+            this.savedState[this.selectedLayerId()] = this.editFs.hasClass("hidden") ? null : this.formToPayload();
+        }, this)
+    });
     
     /* Styler popup tool */
     this.stylerPopup = null;
@@ -21,25 +34,246 @@ magic.classes.UserLayerManager = function(options) {
     this.userPayloadConfig = magic.runtime.map_context.userdata ? (magic.runtime.map_context.userdata.layers || {}) : {};
     
     this.userLayerData = {}; 
+    
+    /* Saved state for restore after popup minimise */
+    this.savedState = {};
       
     /* Fetch user layer data from server */
-    this.fetchLayers(jQuery.proxy(this.initialise, this));
+    this.fetchLayers(jQuery.proxy(function(uldata) {
+        /* Get top of WMS stack */
+        this.zIndexWmsStack = this.getWmsStackTop(this.map);    
+        /* Record the layer data, and create any visible layers */
+        jQuery.each(uldata, jQuery.proxy(function(iul, ul) {
+            this.prepLayer(ul);        
+        }, this));        
+        this.target.popover({
+            template: this.template,
+            title: this.titleMarkup(),
+            container: "body",
+            html: true,            
+            content: this.markup()
+        }).on("shown.bs.popover", jQuery.proxy(this.activate, this));           
+    }, this));
 };
 
-magic.classes.UserLayerManager.prototype.initialise = function(uldata) {
-    /* Get top of WMS stack */
-    this.zIndexWmsStack = this.getWmsStackTop(this.map);    
-    /* Record the layer data, and create any visible layers */
-    jQuery.each(uldata, jQuery.proxy(function(iul, ul) {
-        this.prepLayer(ul);        
+magic.classes.UserLayerManager.prototype = Object.create(magic.classes.NavigationBarTool.prototype);
+magic.classes.UserLayerManager.prototype.constructor = magic.classes.UserLayerManager;
+
+magic.classes.UserLayerManager.prototype.interactsMap = function () {
+    return(false);
+};
+
+magic.classes.UserLayerManager.prototype.onActivateHandler = function() {
+    /* Get widgets */
+    this.ddLayers  = jQuery("#" + this.id + "-layers");
+    this.divVis    = jQuery("#" + this.id + "-layer-vis-div");
+    this.cbVis     = jQuery("#" + this.id + "-layer-vis");
+    this.ztlLink   = jQuery("#" + this.id + "-layer-ztl");
+    this.wmsLink   = jQuery("#" + this.id + "-layer-wms");
+    this.urlLink   = jQuery("#" + this.id + "-layer-url");
+    this.dldLink   = jQuery("#" + this.id + "-layer-dld");
+    this.addBtn    = jQuery("#" + this.id + "-layer-add");
+    this.editBtn   = jQuery("#" + this.id + "-layer-edit");
+    this.delBtn    = jQuery("#" + this.id + "-layer-delete");
+    this.saveBtn   = jQuery("#" + this.id + "-go");
+    this.cancBtn   = jQuery("#" + this.id + "-cancel");
+    this.mgrForm   = jQuery("#" + this.id + "-form");        
+    this.elTitle   = jQuery("#" + this.id + "-layer-edit-title");
+    this.editFs    = this.elTitle.closest("div.well");
+    this.ddStyle   = jQuery("#" + this.id + "-layer-style-mode");
+    this.styleEdit = jQuery("#" + this.id + "-layer-style-edit");
+    this.hidStyle  = jQuery("#" + this.id + "-layer-styledef");
+    this.lastMod   = jQuery("#" + this.id + "-layer-last-mod");
+    /* Initialise styler popup */
+    this.stylerPopup = new magic.classes.StylerPopup({
+        target: this.id + "-layer-style-edit", 
+        formInput: this.id + "-layer-styledef",
+        styleMode: this.id + "-layer-style-mode"
+    });        
+    /* Fetch layers */
+    this.refreshAfterUpdate(this.userLayerData);
+    /* Set initial button states */
+    this.setButtonStates({
+        addBtn: false, editBtn: true, delBtn: true
+    });
+    /* Assign handlers - changing layer dropdown value*/
+    this.ddLayers.change(jQuery.proxy(function() {
+        this.setButtonStates({
+            addBtn: false, editBtn: !this.userLayerSelected(), delBtn: !this.userLayerSelected()
+        });
+        this.stylerPopup.deactivate();
+        var layerId = this.selectedLayerId();
+        if (layerId == null || layerId == "") {
+            this.divVis.addClass("hidden");
+        } else {
+            this.divVis.removeClass("hidden");
+            /* Set checkbox according to selected layer visibility status */
+            var layer = this.userLayerData[layerId].olLayer;                
+            if (layer != null) {                    
+                this.cbVis.prop("checked", layer.getVisible());
+                if (layer.getVisible()) {
+                    this.ztlLink.closest("li").removeClass("disabled");
+                } else {
+                    this.ztlLink.closest("li").addClass("disabled");
+                }
+            } else {
+                this.cbVis.prop("checked", false);
+                this.ztlLink.closest("li").addClass("disabled");
+            }
+        }
+        if (!jQuery.isEmptyObject(this.savedState)) {
+            var savedId = Object.keys(this.savedState)[0];
+            if (this.savedState[savedId] != null) {
+                this.showEditForm(this.savedState[savedId]);
+            }
+            this.savedState = {};
+        }
     }, this));
-    this.template = 
-        '<div class="popover popover-auto-width layermanager-popover" role="popover">' + 
-            '<div class="arrow"></div>' +
-            '<h3 class="popover-title"></h3>' + 
-            '<div class="popover-content" style="width: 500px"></div>' + 
-        '</div>';
-    this.content = 
+    /* Layer visibility checkbox change handler */
+    this.cbVis.change(jQuery.proxy(function(evt) {
+        var selId = this.selectedLayerId();
+        if (selId != null && selId != "") {
+            this.prepLayer(this.userLayerData[selId], this.cbVis.prop("checked"));               
+        }
+        if (this.cbVis.prop("checked")) {
+            this.ztlLink.closest("li").removeClass("disabled");
+        } else {
+            this.ztlLink.closest("li").addClass("disabled");
+        }
+    }, this));
+    /* Zoom to layer button handler */
+    this.ztlLink.click(jQuery.proxy(function(evt) {
+        if (jQuery(evt.currentTarget).closest("li").hasClass("disabled")) {
+            return(false);
+        }
+        var selId = this.selectedLayerId();
+        if (selId != null && selId != "") {
+            jQuery.ajax({
+                url: magic.config.paths.baseurl + "/userlayers/" + selId + "/extent", 
+                method: "GET",
+                dataType: "json",
+                contentType: "application/json"
+            }).done(jQuery.proxy(function(data) {
+                if (!jQuery.isArray(data)) {
+                    data = JSON.parse(data);
+                }
+                var projExtent = magic.modules.GeoUtils.extentFromWgs84Extent(data);
+                if (projExtent) {
+                    this.map.getView().fit(projExtent, this.map.getSize());
+                }
+            }, this));
+        }
+    }, this));
+    /* Layer style mode change handler */
+    this.ddStyle.change(jQuery.proxy(function() {
+        var selection = this.ddStyle.val();
+        if (selection == "default" || selection == "file") {
+            this.stylerPopup.deactivate();
+            this.styleEdit.addClass("hidden");
+        } else {
+            this.stylerPopup.enableRelevantFields();
+            this.styleEdit.removeClass("hidden");                
+        }
+    }, this));        
+    /* WMS URL link */
+    this.wmsLink.click(jQuery.proxy(function() {             
+        bootbox.prompt({
+            "title": "WMS URL",
+            "value": this.layerWmsUrl(),
+            "callback": function(){}
+        });
+    }, this));
+    /* Direct data URL link */
+    this.urlLink.click(jQuery.proxy(function() {             
+        bootbox.prompt({
+            "title": "Direct data feed URL",
+            "value": this.layerDirectUrl(),
+            "callback": function(){}
+        });
+    }, this));        
+    /* Data download link */
+    this.dldLink.click(jQuery.proxy(function() {
+        var dldUrl = this.layerDirectUrl();
+        if (dldUrl) {
+            window.open(dldUrl);
+        } else {
+            bootbox.alert(
+                '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                    '<p>Please select a layer</p>' + 
+                '</div>'
+            );
+        }
+    }, this));
+    /* New layer button */
+    this.addBtn.click(jQuery.proxy(function() {
+        this.showEditForm(null);
+    }, this));
+    /* Edit layer button */
+    this.editBtn.click(jQuery.proxy(function() {   
+        this.showEditForm(this.userLayerData[this.selectedLayerId()]);
+    }, this));
+     /* Delete layer button */
+    this.delBtn.click(jQuery.proxy(function() {            
+        bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">Are you sure you want to delete this layer?</div>', jQuery.proxy(function(result) {
+            if (result) {
+                /* Do the deletion */
+                var id = this.selectedLayerId();
+                jQuery.ajax({
+                    url: magic.config.paths.baseurl + "/userlayers/delete/" + id,
+                    method: "DELETE",
+                    beforeSend: function (xhr) {
+                        var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content");
+                        var csrfHeader = jQuery("meta[name='_csrf_header']").attr("content");
+                        xhr.setRequestHeader(csrfHeader, csrfHeaderVal);
+                    }
+                })
+                .done(jQuery.proxy(function(uldata) {
+                    /* Now delete the corresponding layer and data */
+                    if (id in this.userLayerData) {
+                        if (this.userLayerData[id].olLayer) {
+                            this.map.removeLayer(this.userLayerData[id].olLayer);
+                        }
+                        delete this.userLayerData[id];
+                    }
+                    this.fetchLayers(jQuery.proxy(this.refreshAfterUpdate, this));                                                
+                }, this))
+                .fail(function (xhr) {
+                    bootbox.alert(
+                        '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                            '<p>Failed to delete user layer - details below:</p>' + 
+                            '<p>' + JSON.parse(xhr.responseText)["detail"] + '</p>' + 
+                        '</div>'
+                    );
+                });                   
+                bootbox.hideAll();
+            } else {
+                bootbox.hideAll();
+            }                            
+        }, this));               
+    }, this));        
+    /* Cancel button */
+    this.cancBtn.off("click").on("click", jQuery.proxy(function() {
+        this.stylerPopup.deactivate();
+        this.mgrForm[0].reset();
+        this.hideEditForm();
+        this.setButtonStates({
+            addBtn: false, editBtn: !this.userLayerSelected(), delBtn: !this.userLayerSelected()
+        });              
+        this.ddLayers.removeClass("disabled");    
+        this.ddLayers.prop("disabled", false);
+        this.divVis.addClass("hidden");
+        this.savedState = {};
+    }, this));
+    /* Investigate restoring a saved state after a minimise/restore */
+    var savedId = Object.keys(this.savedState)[0];
+    if (savedId == "__new_layer") {
+        savedId = "";
+    }
+    this.ddLayers.val(savedId).trigger("change");
+};
+
+magic.classes.UserLayerManager.prototype.markup = function() {
+    return(
         '<div id="' + this.id + '-content">' +                                   
             '<form id="' + this.id + '-form" class="form-horizontal" role="form" enctype="multipart/form-data">' +  
                 '<input type="hidden" id="' + this.id + '-layer-id"></input>' + 
@@ -60,7 +294,7 @@ magic.classes.UserLayerManager.prototype.initialise = function(uldata) {
                             '</label>' + 
                         '</div>' + 
                         '<div class="btn-group" style="margin-left:10px">' + 
-                            '<button type="button" class="btn btn-xs btn-primary dropdown-toggle" data-toggle="dropdown">' + 
+                            '<button type="button" class="btn btn-xs btn-primary dropdown-toggle" style="width:150px" data-toggle="dropdown">' + 
                                 'Actions&nbsp;&nbsp;<span class="caret"></span>' + 
                             '</button>' + 
                             '<ul class="dropdown-menu">' + 
@@ -156,212 +390,8 @@ magic.classes.UserLayerManager.prototype.initialise = function(uldata) {
                     '</div>' +  
                 '</div>' +
             '</form>' +               
-        '</div>';
-    this.target.popover({
-        template: this.template,
-        title: '<span><big><strong>Manage user layers</strong></big><button type="button" class="close">&times;</button></span>',
-        container: "body",
-        html: true,            
-        content: this.content
-    }).on("shown.bs.popover", jQuery.proxy(function() {         
-        /* Get widgets */
-        this.ddLayers  = jQuery("#" + this.id + "-layers");
-        this.divVis    = jQuery("#" + this.id + "-layer-vis-div");
-        this.cbVis     = jQuery("#" + this.id + "-layer-vis");
-        this.ztlLink   = jQuery("#" + this.id + "-layer-ztl");
-        this.wmsLink   = jQuery("#" + this.id + "-layer-wms");
-        this.urlLink   = jQuery("#" + this.id + "-layer-url");
-        this.dldLink   = jQuery("#" + this.id + "-layer-dld");
-        this.addBtn    = jQuery("#" + this.id + "-layer-add");
-        this.editBtn   = jQuery("#" + this.id + "-layer-edit");
-        this.delBtn    = jQuery("#" + this.id + "-layer-delete");
-        this.saveBtn   = jQuery("#" + this.id + "-go");
-        this.cancBtn   = jQuery("#" + this.id + "-cancel");
-        this.mgrForm   = jQuery("#" + this.id + "-form");        
-        this.elTitle   = jQuery("#" + this.id + "-layer-edit-title");
-        this.editFs    = this.elTitle.closest("div.well");
-        this.ddStyle   = jQuery("#" + this.id + "-layer-style-mode");
-        this.styleEdit = jQuery("#" + this.id + "-layer-style-edit");
-        this.hidStyle  = jQuery("#" + this.id + "-layer-styledef");
-        this.lastMod   = jQuery("#" + this.id + "-layer-last-mod");
-        /* Initialise styler popup */
-        this.stylerPopup = new magic.classes.StylerPopup({
-            target: this.id + "-layer-style-edit", 
-            formInput: this.id + "-layer-styledef",
-            styleMode: this.id + "-layer-style-mode"
-        });        
-        /* Fetch layers */
-        this.refreshAfterUpdate(uldata);
-        /* Set initial button states */
-        this.setButtonStates({
-            addBtn: false, editBtn: true, delBtn: true
-        });
-        /* Assign handlers - changing layer dropdown value*/
-        this.ddLayers.change(jQuery.proxy(function() {
-            this.setButtonStates({
-                addBtn: false, editBtn: !this.userLayerSelected(), delBtn: !this.userLayerSelected()
-            });
-            this.stylerPopup.deactivate();
-            var layerId = this.selectedLayerId();
-            if (layerId == null || layerId == "") {
-                this.divVis.addClass("hidden");
-            } else {
-                this.divVis.removeClass("hidden");
-                /* Set checkbox according to selected layer visibility status */
-                var layer = this.userLayerData[layerId].olLayer;                
-                if (layer != null) {                    
-                    this.cbVis.prop("checked", layer.getVisible());
-                    if (layer.getVisible()) {
-                        this.ztlLink.closest("li").removeClass("disabled");
-                    } else {
-                        this.ztlLink.closest("li").addClass("disabled");
-                    }
-                } else {
-                    this.cbVis.prop("checked", false);
-                    this.ztlLink.closest("li").addClass("disabled");
-                }
-            }
-        }, this));
-        /* Layer visibility checkbox change handler */
-        this.cbVis.change(jQuery.proxy(function(evt) {
-            var selId = this.selectedLayerId();
-            if (selId != null && selId != "") {
-                this.prepLayer(this.userLayerData[selId], this.cbVis.prop("checked"));               
-            }
-            if (this.cbVis.prop("checked")) {
-                this.ztlLink.closest("li").removeClass("disabled");
-            } else {
-                this.ztlLink.closest("li").addClass("disabled");
-            }
-        }, this));
-        /* Zoom to layer button handler */
-        this.ztlLink.click(jQuery.proxy(function(evt) {
-            if (jQuery(evt.currentTarget).closest("li").hasClass("disabled")) {
-                return(false);
-            }
-            var selId = this.selectedLayerId();
-            if (selId != null && selId != "") {
-                jQuery.ajax({
-                    url: magic.config.paths.baseurl + "/userlayers/" + selId + "/extent", 
-                    method: "GET",
-                    dataType: "json",
-                    contentType: "application/json"
-                }).done(jQuery.proxy(function(data) {
-                    if (!jQuery.isArray(data)) {
-                        data = JSON.parse(data);
-                    }
-                    var projExtent = magic.modules.GeoUtils.extentFromWgs84Extent(data);
-                    if (projExtent) {
-                        this.map.getView().fit(projExtent, this.map.getSize());
-                    }
-                }, this));
-            }
-        }, this));
-        /* Layer style mode change handler */
-        this.ddStyle.change(jQuery.proxy(function() {
-            var selection = this.ddStyle.val();
-            if (selection == "default" || selection == "file") {
-                this.stylerPopup.deactivate();
-                this.styleEdit.addClass("hidden");
-            } else {
-                this.stylerPopup.enableRelevantFields();
-                this.styleEdit.removeClass("hidden");                
-            }
-        }, this));        
-        /* WMS URL link */
-        this.wmsLink.click(jQuery.proxy(function() {             
-            bootbox.prompt({
-                "title": "WMS URL",
-                "value": this.layerWmsUrl(),
-                "callback": function(){}
-            });
-        }, this));
-        /* Direct data URL link */
-        this.urlLink.click(jQuery.proxy(function() {             
-            bootbox.prompt({
-                "title": "Direct data feed URL",
-                "value": this.layerDirectUrl(),
-                "callback": function(){}
-            });
-        }, this));        
-        /* Data download link */
-        this.dldLink.click(jQuery.proxy(function() {
-            var dldUrl = this.layerDirectUrl();
-            if (dldUrl) {
-                window.open(dldUrl);
-            } else {
-                bootbox.alert(
-                    '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                        '<p>Please select a layer</p>' + 
-                    '</div>'
-                );
-            }
-        }, this));
-        /* New layer button */
-        this.addBtn.click(jQuery.proxy(function() {
-            this.showEditForm(null);
-        }, this));
-        /* Edit layer button */
-        this.editBtn.click(jQuery.proxy(function() {   
-            this.showEditForm(this.userLayerData[this.selectedLayerId()]);
-        }, this));
-         /* Delete layer button */
-        this.delBtn.click(jQuery.proxy(function() {            
-            bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">Are you sure you want to delete this layer?</div>', jQuery.proxy(function(result) {
-                if (result) {
-                    /* Do the deletion */
-                    var id = this.selectedLayerId();
-                    jQuery.ajax({
-                        url: magic.config.paths.baseurl + "/userlayers/delete/" + id,
-                        method: "DELETE",
-                        beforeSend: function (xhr) {
-                            var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content");
-                            var csrfHeader = jQuery("meta[name='_csrf_header']").attr("content");
-                            xhr.setRequestHeader(csrfHeader, csrfHeaderVal);
-                        }
-                    })
-                    .done(jQuery.proxy(function(uldata) {
-                        /* Now delete the corresponding layer and data */
-                        if (id in this.userLayerData) {
-                            if (this.userLayerData[id].olLayer) {
-                                this.map.removeLayer(this.userLayerData[id].olLayer);
-                            }
-                            delete this.userLayerData[id];
-                        }
-                        this.fetchLayers(jQuery.proxy(this.refreshAfterUpdate, this));                                                
-                    }, this))
-                    .fail(function (xhr) {
-                        bootbox.alert(
-                            '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                                '<p>Failed to delete user layer - details below:</p>' + 
-                                '<p>' + JSON.parse(xhr.responseText)["detail"] + '</p>' + 
-                            '</div>'
-                        );
-                    });                   
-                    bootbox.hideAll();
-                } else {
-                    bootbox.hideAll();
-                }                            
-            }, this));               
-        }, this));        
-        /* Cancel button */
-        this.cancBtn.off("click").on("click", jQuery.proxy(function() {
-            this.stylerPopup.deactivate();
-            this.mgrForm[0].reset();
-            this.hideEditForm();
-            this.setButtonStates({
-                addBtn: false, editBtn: !this.userLayerSelected(), delBtn: !this.userLayerSelected()
-            });              
-            this.ddLayers.removeClass("disabled");    
-            this.ddLayers.prop("disabled", false);
-            this.divVis.addClass("hidden");
-        }, this));
-        /* Close button */
-        jQuery(".layermanager-popover").find("button.close").click(jQuery.proxy(function() {
-            this.stylerPopup.deactivate();
-            this.target.popover("hide");
-        }, this));
-    }, this));           
+        '</div>'
+    );
 };
 
 /**
@@ -748,26 +778,16 @@ magic.classes.UserLayerManager.prototype.initDropzone = function() {
                     this.ulm.ddLayers.prop("disabled", false);
                 }
                 this.pfdz.removeAllFiles();
-                //console.log("done complete handler");
             }, {pfdz: this, ulm: ulm})); 
             this.on("maxfilesexceeded", function(file) {
-                //console.log("maxfilesexceeded handler");
                 this.removeAllFiles();
                 this.addFile(file);
-                //console.log("done maxfilesexceeded handler");
             });
             this.on("addedfile", function(file) {
-                //console.log("addedfile handler");
                 jQuery("div#publish-files-dz").find("p.name").html(magic.modules.Common.ellipsis(file.name, 18));
-                //console.log("done addedfile handler");
             });
             this.on("error", jQuery.proxy(function(file, msg, theXhr) {
-                //console.log("error handler");
-                //console.log(file);
-                //console.log(msg);
-                //console.log(theXhr);
                 window.setTimeout(jQuery.proxy(this.removeAllFiles, this), 3000);
-                //console.log("done error handler");
             }, this));
             /* Save button */
             saveBtn.off("click").on("click", jQuery.proxy(function() {            
@@ -801,7 +821,6 @@ magic.classes.UserLayerManager.prototype.initDropzone = function() {
                                 }
                             })
                             .done(jQuery.proxy(function(response) {
-                                //console.log("save click handler");
                                 magic.modules.Common.buttonClickFeedback(this.id, jQuery.isNumeric(response) || response.status < 400, response.detail);
                                 this.setButtonStates({
                                     addBtn: false, editBtn: !this.userLayerSelected(), delBtn: !this.userLayerSelected()
@@ -811,7 +830,6 @@ magic.classes.UserLayerManager.prototype.initDropzone = function() {
                                     this.hideEditForm();
                                 }, this), 2000);    
                                 this.fetchLayers(jQuery.proxy(this.refreshAfterUpdate, this)); 
-                                //console.log("done save click handler");
                             }, this.ulm))
                             .fail(function (xhr) {
                                 bootbox.alert(
@@ -832,15 +850,11 @@ magic.classes.UserLayerManager.prototype.initDropzone = function() {
                         /* Uploaded file present, so process via DropZone */
                         /* Add the other form parameters to the dropzone POST */                    
                         this.pfdz.on("sending", function(file, xhr, data) { 
-                            //console.log("sending handler");
                             jQuery.each(formdata, function(key, val) {
                                 data.append(key, val);
                             });      
-                            //console.log("done sending handler");
                         });
-                        //console.log("About to call processQueue()");
                         this.pfdz.processQueue();
-                        //console.log("processQueue() called");
                     }
                 } else {
                     bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Please correct the marked errors in your input and try again</div>');
@@ -880,8 +894,4 @@ magic.classes.UserLayerManager.prototype.initDropzone = function() {
         dictCancelUpload: "Cancel upload",
         dictCancelUploadConfirmation: "Are you sure?"
     });
-};
-
-magic.classes.UserLayerManager.prototype.interactsMap = function () {
-    return(false);
 };

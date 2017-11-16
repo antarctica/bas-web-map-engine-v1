@@ -93,7 +93,7 @@ magic.classes.AppContainer = function () {
         }),
         "viewmanager": this.allocateNavbarTool("viewmanager", "MapViewManager", {
             target: "viewmanager-tool"
-        }),
+        }, true),
         "layermanager": this.allocateNavbarTool("layermanager", "UserLayerManager", {
             target: "layermanager-tool"
         }, true),

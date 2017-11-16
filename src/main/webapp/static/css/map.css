@@ -798,9 +798,14 @@ div.watermark {
     z-index: 9999 !important;
 }
 
+.modal {
+    z-index: 9000;
+}
+
 /* Allow pretty much arbitrary width popovers - could be dodgy! */
 .popover {
 	max-width: 1000px;
+    z-index: 4000;
 	width: auto;
 }
 
@@ -812,7 +817,12 @@ div.watermark {
     margin-bottom: 15px;    
 }
 
-/* Upload files styler */
+/* Layer manager tool popover style */
+div.layermanager-popover-content {
+    width: 400px;
+}
+
+/* Layer manager tool upload files styler */
 div.styler-popover-content {
     width: 400px;
 }

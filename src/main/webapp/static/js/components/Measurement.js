@@ -117,12 +117,7 @@ magic.classes.Measurement = function(options) {
         jQuery("select[id$='-units']").change(jQuery.proxy(function(evt) {
             this.deactivate();
         }, this));
-
-        /* Close button */
-        jQuery(".measure-tool-popover").find("button.close").click(jQuery.proxy(function() {
-            this.target.popover("hide");
-        }, this));
-
+       
         /* Initial focus */
         jQuery("#" + this.id + "-distance-units").focus();
     }, this));

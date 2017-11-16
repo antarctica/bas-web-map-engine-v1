@@ -27,13 +27,17 @@ magic.classes.NavigationBarTool = function (options) {
     this.active = false;
 
     /* Corresponding layer */
-    this.layer = new ol.layer.Vector({
-        name: this.layername,
-        visible: false,
-        source: new ol.source.Vector({features: []}),
-        style: null,
-        metadata: {}
-    });
+    if (this.layername == null) {
+        this.layer = null;
+    } else {
+        this.layer = new ol.layer.Vector({
+            name: this.layername,
+            visible: false,
+            source: new ol.source.Vector({features: []}),
+            style: null,
+            metadata: {}
+        });
+    }
     
     /* Control callbacks */
     this.controlCallbacks = {};
@@ -102,7 +106,7 @@ magic.classes.NavigationBarTool.prototype.assignCloseButtonHandler = function ()
  * Activate the control 
  */
 magic.classes.NavigationBarTool.prototype.activate = function () {    
-    if (!this.layerAdded) {
+    if (this.layer != null && !this.layerAdded) {
         this.map.addLayer(this.layer);
         this.layer.setZIndex(1000);
         this.layerAdded = true;
@@ -112,7 +116,9 @@ magic.classes.NavigationBarTool.prototype.activate = function () {
         jQuery(document).trigger("mapinteractionactivated", [this]);
     }
     this.active = true;
-    this.layer.setVisible(true);
+    if (this.layer != null) {
+        this.layer.setVisible(true);
+    }
     this.assignCloseButtonHandler();
     if (jQuery.isFunction(this.controlCallbacks["onActivate"])) {
         this.controlCallbacks["onActivate"]();
@@ -124,8 +130,10 @@ magic.classes.NavigationBarTool.prototype.activate = function () {
  */
 magic.classes.NavigationBarTool.prototype.deactivate = function () {
     this.active = false;
-    this.layer.getSource().clear();
-    this.layer.setVisible(false);
+    if (this.layer != null) {
+        this.layer.getSource().clear();
+        this.layer.setVisible(false);
+    }
     if (this.interactsMap()) {
         /* Trigger mapinteractiondeactivated event */
         jQuery(document).trigger("mapinteractiondeactivated", [this]);
