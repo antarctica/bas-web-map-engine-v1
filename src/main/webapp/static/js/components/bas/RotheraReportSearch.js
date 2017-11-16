@@ -1,11 +1,30 @@
 /* Search for Rothera field reports as a Bootstrap popover */
 
-magic.classes.RotheraReportSearch = function (options) { 
+magic.classes.RotheraReportSearch = function (options) {
    
     magic.classes.GeneralSearch.call(this, options);
     
     /* Set style function */
     this.layer.setStyle(this.styleFunction);
+    
+    /* Control callbacks */
+    this.setCallbacks({
+        onActivate: jQuery.proxy(function() {
+                this.addTagsInput("locations");
+                this.addTagsInput("people");
+                this.addTagsInput("keywords");
+                this.seasonSelect = new magic.classes.SeasonSelect(this.id + "-season-select-div");
+                this.layer.set("fetcher", jQuery.proxy(this.fullFeatureDataFetch, this), true);
+                this.setHoverHandlers();
+                this.infoButtonHandler("source information", "Jo Rae to supply");
+                jQuery("#" + this.id + "-locations").closest("div").find(".bootstrap-tagsinput :input").focus();            
+            }, this),
+        onDeactivate: jQuery.proxy(function() {
+                this.map.un("pointermove");
+                this.savedSearch = {};
+            }, this), 
+        onMinimise: jQuery.proxy(this.saveSearchState, this)
+    });
     
     /* Season selector widget */
     this.seasonSelect = null;    
@@ -26,41 +45,19 @@ magic.classes.RotheraReportSearch = function (options) {
         {name: "report", alias: "Report file", displayed: true, "type": "xsd:string"}
     ];
     this.layer.set("metadata", {
-        attribute_map: this.attribute_map
+        attribute_map: this.attribute_map,
+        is_interactive: true
     });
     
     this.target.popover({
         template: this.template,
-        title: 
-            '<span>' + 
-                '<big><strong>' + this.caption + '</strong></big>' +                 
-                '<button type="button" class="close dialog-deactivate" style="margin-left:5px">&times;</button>' + 
-                '<button type="button" class="close dialog-minimise" data-toggle="tooltip" data-placement="bottom" ' + 
-                    'title="Minimise pop-up to see the map better - does not reset search"><i class="fa fa-caret-up"></i>' + 
-                '</button>' + 
-            '</span>',
+        title: this.titleMarkup(),
         container: "body",
         html: true,
         content: this.markup()
     })
     .on("shown.bs.popover", jQuery.proxy(function() {        
-        this.activate(
-            jQuery.proxy(function() {
-                this.addTagsInput("locations");
-                this.addTagsInput("people");
-                this.addTagsInput("keywords");
-                this.seasonSelect = new magic.classes.SeasonSelect(this.id + "-season-select-div");
-                this.layer.set("fetcher", jQuery.proxy(this.fullFeatureDataFetch, this), true);
-                this.setHoverHandlers();
-                this.infoButtonHandler("source information", "Jo Rae to supply");
-                jQuery("#" + this.id + "-locations").closest("div").find(".bootstrap-tagsinput :input").focus();            
-            }, this), 
-            jQuery.proxy(function() {
-                this.map.un("pointermove");
-                this.savedSearch = {};
-            }, this),
-            jQuery.proxy(this.saveSearchState, this)
-        );
+        this.activate();
         if (this.isActive() && !jQuery.isEmptyObject(this.savedSearch)) {
             this.restoreSearchState();
         }       

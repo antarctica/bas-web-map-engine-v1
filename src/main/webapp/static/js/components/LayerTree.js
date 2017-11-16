@@ -1240,15 +1240,16 @@ magic.classes.LayerTree.prototype.userGroupExpanded = function(groupId, defVal) 
  * Chrome-specific hack to avoid random disappearing elements in layer tree - added 2017-10-26 by David
  * The problem is cured by turning off hardware acceleration in Chrome, so is a bug somewhere in that area
  * this hack is left in to work around the worst symptoms of it for those with HA turned on
+ * Commented out 2017-11-16 - not thought to be a common problem
  */
 magic.classes.LayerTree.prototype.chromeRefreshWorkaround = function() {
-    if (navigator.appVersion.toLowerCase().indexOf("chrome") >= 0) {
-        console.log("Chrome refresh workaround - test periodically if this is still needed!");
-        /* Force a refresh via tiny resize and back */
-        var lt = jQuery("#" + this.target);
-        var ltw = parseInt(lt.css("width").replace("px", ""));
-        lt.css("width", (ltw+1) + "px");
-        lt.css("width", ltw + "px");
-    }
+//    if (navigator.appVersion.toLowerCase().indexOf("chrome") >= 0) {
+//        console.log("Chrome refresh workaround - test periodically if this is still needed!");
+//        /* Force a refresh via tiny resize and back */
+//        var lt = jQuery("#" + this.target);
+//        var ltw = parseInt(lt.css("width").replace("px", ""));
+//        lt.css("width", (ltw+1) + "px");
+//        lt.css("width", ltw + "px");
+//    }
 };
  

@@ -35,6 +35,9 @@ magic.classes.NavigationBarTool = function (options) {
         metadata: {}
     });
     
+    /* Control callbacks */
+    this.controlCallbacks = {};
+    
     /* Don't add layer to map at creation time - other map layers may not have finished loading */
     this.layerAdded = false;    
 
@@ -59,26 +62,46 @@ magic.classes.NavigationBarTool.prototype.isActive = function () {
     return(this.active);
 };
 
-magic.classes.NavigationBarTool.prototype.assignCloseButtonHandler = function (closeCallback, minimiseCallback) {
+magic.classes.NavigationBarTool.prototype.titleMarkup = function() {
+    return(
+        '<span><big><strong>' + this.caption + '</strong></big>' + 
+            '<button type="button" class="close dialog-deactivate" style="margin-left:5px">&times;</button>' + 
+            '<button type="button" class="close dialog-minimise" data-toggle="tooltip" data-placement="bottom" ' + 
+                'title="Minimise pop-up to see the map better - does not reset dialog"><i class="fa fa-caret-up"></i>' + 
+            '</button>' + 
+        '</span>'
+    );
+};
+
+/**
+ * Set the callbacks to be invoked on tool activate, deactivate and minimise
+ * keys:
+ *   onActivate
+ *   onDeactivate
+ *   onMinimise
+ * @param {Object} callbacksObj
+ */
+magic.classes.NavigationBarTool.prototype.setCallbacks = function(callbacksObj) {
+    this.controlCallbacks = callbacksObj;
+};
+
+magic.classes.NavigationBarTool.prototype.assignCloseButtonHandler = function () {
     jQuery("." + this.popoverClass).find("button.dialog-deactivate").click(jQuery.proxy(function () {
-        this.deactivate(closeCallback);
+        this.deactivate();
         this.target.popover("hide");
     }, this));
     jQuery("." + this.popoverClass).find("button.dialog-minimise").click(jQuery.proxy(function () {
-        if (jQuery.isFunction(minimiseCallback)) {
-            minimiseCallback();
+        if (jQuery.isFunction(this.controlCallbacks["onMinimise"])) {
+            this.controlCallbacks["onMinimise"]();
         }
         this.target.popover("hide");
     }, this));
 };  
 
 /**
- * Activate the control
- * @param {Function} onActivate
- * @param {Function} onDeactivate
- * @param {Function} onMinimise
+ * Activate the control 
  */
-magic.classes.NavigationBarTool.prototype.activate = function (onActivate, onDeactivate, onMinimise) {    
+magic.classes.NavigationBarTool.prototype.activate = function () {    
     if (!this.layerAdded) {
         this.map.addLayer(this.layer);
         this.layer.setZIndex(1000);
@@ -90,26 +113,25 @@ magic.classes.NavigationBarTool.prototype.activate = function (onActivate, onDea
     }
     this.active = true;
     this.layer.setVisible(true);
-    this.assignCloseButtonHandler(onDeactivate, onMinimise);
-    if (jQuery.isFunction(onActivate)) {
-        onActivate();
+    this.assignCloseButtonHandler();
+    if (jQuery.isFunction(this.controlCallbacks["onActivate"])) {
+        this.controlCallbacks["onActivate"]();
     }
 };
 
 /**
  * Deactivate the control
- * @param {Function} callback
  */
-magic.classes.NavigationBarTool.prototype.deactivate = function (callback) {
+magic.classes.NavigationBarTool.prototype.deactivate = function () {
     this.active = false;
     this.layer.getSource().clear();
     this.layer.setVisible(false);
-    if (this.mapinteraction) {
+    if (this.interactsMap()) {
         /* Trigger mapinteractiondeactivated event */
         jQuery(document).trigger("mapinteractiondeactivated", [this]);
     }
-    if (jQuery.isFunction(callback)) {
-        callback();
+    if (jQuery.isFunction(this.controlCallbacks["onDeactivate"])) {
+        this.controlCallbacks["onDeactivate"]();
     }
 };
 

@@ -60,8 +60,8 @@ magic.classes.UserLayerManager.prototype.initialise = function(uldata) {
                             '</label>' + 
                         '</div>' + 
                         '<div class="btn-group" style="margin-left:10px">' + 
-                            '<button type="button" class="btn btn-xs btn-default dropdown-toggle" data-toggle="dropdown">' + 
-                                'Actions&nbsp;&nbsp;<span class="fa fa-bars"></span>&nbsp;&nbsp;<span class="caret"></span>' + 
+                            '<button type="button" class="btn btn-xs btn-primary dropdown-toggle" data-toggle="dropdown">' + 
+                                'Actions&nbsp;&nbsp;<span class="caret"></span>' + 
                             '</button>' + 
                             '<ul class="dropdown-menu">' + 
                                 '<li><a id="' + this.id + '-layer-ztl" href="Javascript:void(0)">Zoom to layer extent</a></li>' + 

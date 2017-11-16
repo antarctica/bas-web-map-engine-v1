@@ -8,7 +8,7 @@ magic.classes.Geosearch = function (options) {
         layername: "Geosearch location",
         gazetteers: ["cga"],
         popoverClass: "geosearch-popover",
-        popoverContentClass: "geosearch-popover-content",
+        popoverContentClass: "geosearch-popover-content"
     }, options);
     
     magic.classes.NavigationBarTool.call(this, options);
@@ -19,6 +19,21 @@ magic.classes.Geosearch = function (options) {
         mouseout: jQuery.proxy(this.mouseoutSuggestion, this),
         search: jQuery.proxy(this.placenameSearchHandler, this)
     }, this.gazetteers);
+    
+    /* Callbacks */
+    this.setCallbacks({
+        onActivate: jQuery.proxy(function() {
+                this.searchInput.init();
+                this.infoButtonHandler("gazetteer sources", this.searchInput.getAttributions());
+                jQuery("#" + this.id + "-position-go").click(jQuery.proxy(this.positionSearchHandler, this));
+            }, this),
+        onDeactivate: jQuery.proxy(function() {
+                this.placenameSearchCache = [];
+                this.suggestionFeatures = {};
+                this.savedSearch = {};
+            }, this), 
+        onMinimise: jQuery.proxy(this.saveSearchState, this)
+    });
 
     this.suggestionStyle = magic.modules.Common.getIconStyle(0.6, "marker_orange"); /* "Ghost" style for mouseovers of suggestions */
     this.invisibleStyle = magic.modules.Common.getIconStyle(0.0, "marker_orange");  /* Removed style */
@@ -62,29 +77,14 @@ magic.classes.Geosearch = function (options) {
             
     this.target.popover({
         template: this.template,
-        title: 
-            '<span><big><strong>Search by</strong></big>' + 
-                '<button type="button" class="close dialog-deactivate" style="margin-left:5px">&times;</button>' + 
-                '<button type="button" class="close dialog-minimise" data-toggle="tooltip" data-placement="bottom" ' + 
-                    'title="Minimise pop-up to see the map better - does not reset search"><i class="fa fa-caret-up"></i>' + 
-                '</button>' + 
-            '</span>',
+        title: this.titleMarkup(),
         container: "body",
         html: true,
         content: this.markup()
     })
     .on("shown.bs.popover", jQuery.proxy(function() {        
-        this.activate(jQuery.proxy(function() {
-                this.searchInput.init();
-                this.infoButtonHandler("gazetteer sources", this.searchInput.getAttributions());
-                jQuery("#" + this.id + "-position-go").click(jQuery.proxy(this.positionSearchHandler, this));
-            }, this),
-        jQuery.proxy(function() {
-            this.placenameSearchCache = [];
-            this.suggestionFeatures = {};
-        }, this),
-        jQuery.proxy(this.saveSearchState, this));
-        if (this.isActive() && !jQuery.isEmptyObject(this.savedSearch)) {
+        this.activate();
+        if (this.savedSearch && !jQuery.isEmptyObject(this.savedSearch)) {
             this.restoreSearchState();
         }   
     }, this));
@@ -120,17 +120,17 @@ magic.classes.Geosearch.prototype.markup = function() {
                     '<div id="' + this.id + '-position" role="tabpanel" class="tab-pane">' +
                         '<div class="form-group form-group-sm">' +
                             '<input id="' + this.id + '-lon" class="form-control" type="text" placeholder="Longitude" ' +
-                                'data-toggle="tooltip" data-placement="right" title="Examples: -65.5, 65 30 00W (dms), W65 30.00 (ddm)" ' +
+                                'data-toggle="tooltip" data-placement="bottom" title="Examples: -65.5, 65 30 00W (dms), W65 30.00 (ddm)" ' +
                                 'required="required" autofocus="true"></input>' +
                         '</div>' +
                         '<div class="form-group form-group-sm">' +
                             '<input id="' + this.id + '-lat" class="form-control" type="text" placeholder="Latitude" ' +
-                                'data-toggle="tooltip" data-placement="right" title="Examples: -60.25, 60 15 00S (dms), S60 15.00 (ddm)" required="required"></input>' +
+                                'data-toggle="tooltip" data-placement="bottom" title="Examples: -60.25, 60 15 00S (dms), S60 15.00 (ddm)" required="required"></input>' +
                         '</div>' +
                         '<div class="form-group form-group-sm">' +
                             '<div class="input-group">' +
                                 '<input id="' + this.id + '-label" class="form-control" type="text" placeholder="Label" ' +
-                                    'data-toggle="tooltip" data-placement="right" title="Type a label for the point"></input>' +
+                                    'data-toggle="tooltip" data-placement="bottom" title="Type a label for the point"></input>' +
                                 '<span class="input-group-btn">' +
                                     '<button id="' + this.id + '-position-go" class="btn btn-primary btn-sm" type="button" ' +
                                         'data-toggle="tooltip" data-placement="right" title="Show position">' +
@@ -176,15 +176,25 @@ magic.classes.Geosearch.prototype.saveSearchState = function () {
  * Restore saved search on re-show of the form pop-up
  */
 magic.classes.Geosearch.prototype.restoreSearchState = function () {
-    jQuery("#" + this.savedSearch["activeTab"]).off("shown.bs.tab").on("shown.bs.tab", jQuery.proxy(function(evt) {
-        this.searchInput.setSearch(this.savedSearch['placename']);
-        jQuery("#" + this.id + "-lon").val(this.savedSearch['lon']);
-        jQuery("#" + this.id + "-lat").val(this.savedSearch['lat']);
-        jQuery("#" + this.id + "-label").val(this.savedSearch['label']);
-    }, this));    
+    this.searchInput.setSearch(this.savedSearch['placename']);
+    jQuery("#" + this.id + "-lon").val(this.savedSearch['lon']);
+    jQuery("#" + this.id + "-lat").val(this.savedSearch['lat']);
+    jQuery("#" + this.id + "-label").val(this.savedSearch['label']); 
     if (this.savedSearch["activeTab"]) {
-        jQuery("#" + this.savedSearch["activeTab"]).tab("show");
+        jQuery("a[href='#" + this.savedSearch["activeTab"] + "']").tab("show");
     }
+};
+
+/**
+ * Returns the active class name depending on saved search
+ * @param {String} tabBase
+ * @param {boolean} isDefault
+ */
+magic.classes.Geosearch.prototype.addActiveClass = function (tabBase, isDefault) {
+    if (!this.savedSearch || jQuery.isEmptyObject(this.savedSearch) || !this.savedSearch["activeTab"]) {
+        return(isDefault ? " active" : "");
+    }
+    return(this.savedSearch["activeTab"].indexOf("-" + tabBase) > 0 ? " active" : "");
 };
 
 /**
@@ -365,3 +375,5 @@ magic.classes.Geosearch.prototype.positionSearchHandler = function (evt) {
         latFg.removeClass("has-success").addClass("has-error");
     }
 };
+
+

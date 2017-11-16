@@ -105,6 +105,7 @@ magic.classes.AppContainer = function () {
             target: "rothera-reports-tool",
             caption: "Search fieldwork reports",
             layername: "Rothera fieldwork reports",
+            popoverClass: "reports-popover",
             popoverContentClass: "reports-popover-content"
         })
     };  
@@ -302,11 +303,11 @@ magic.classes.AppContainer.prototype.setMapInteractionToolHandlers = function ()
     jQuery(document).on("mapinteractionactivated", jQuery.proxy(function (evt, tool) {
         if (evt) {
             jQuery.each(this.navbarTools, jQuery.proxy(function (toolName, toolObj) {
-                if (toolObj != null && jQuery.isFunction(toolObj.interactsMap) && toolObj.interactsMap() === true && tool != toolObj) {
-                    /* Deactivate tool and remove popover if required */
+                if (toolObj != null && tool != toolObj) {
+                    /* Deactivate all other tools and hide their popovers */
                     if (jQuery.isFunction(toolObj.deactivate)) {
-                        toolObj.deactivate(true);
-                    }
+                        toolObj.deactivate();
+                    }                        
                     if (jQuery.isFunction(toolObj.getTarget)) {
                         toolObj.getTarget().popover("hide");
                     }
