@@ -97,6 +97,9 @@ magic.classes.AppContainer = function () {
         "layermanager": this.allocateNavbarTool("layermanager", "UserLayerManager", {
             target: "layermanager-tool"
         }, true),
+        "personaldata": this.allocateNavbarTool("personaldata", "PersonalData", {
+            target: "personaldata-tool"
+        }, true),
         "download_data": this.allocateNavbarTool("download_data", "DownloadRepo", {
             target: "repo-tool"
         }),
@@ -173,7 +176,7 @@ magic.classes.AppContainer.prototype.initMapMetadata = function() {
 magic.classes.AppContainer.prototype.allocateNavbarTool = function(name, className, opts, loggedIn) {
     var tool = null;
     var rejectUse = loggedIn && magic.runtime.map_context.username == "guest";
-    if (!rejectUse && jQuery.inArray(name, magic.runtime.map_context.data.controls) != -1) {
+    if (name == "personaldata" || (!rejectUse && jQuery.inArray(name, magic.runtime.map_context.data.controls) != -1)) {
         /* Activate tool */
         tool = new magic.classes[className](opts);       
         jQuery("#" + opts.target).closest("li").show();

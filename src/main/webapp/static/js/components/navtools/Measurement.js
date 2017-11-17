@@ -15,8 +15,8 @@ magic.classes.Measurement = function(options) {
     /* Callbacks */
     this.setCallbacks({
         onActivate: jQuery.proxy(this.onActivateHandler, this),
-        onDeactivate: jQuery.proxy(this.onDeactivateHandler, this), 
-        onMinimise: jQuery.proxy(this.onDeactivateHandler, this)
+        onDeactivate: jQuery.proxy(this.stopMeasuring, this), 
+        onMinimise: jQuery.proxy(this.stopMeasuring, this)
     });
     
     /* Set layer styles */
@@ -53,7 +53,7 @@ magic.classes.Measurement = function(options) {
     this.map.addOverlay(this.heightPopup);
     
     /**
-     * End of action tool properties
+     * End of height measuring tool properties
      */
 
     /* Current action (distance/area) */
@@ -70,56 +70,7 @@ magic.classes.Measurement = function(options) {
         content: this.markup()
     })
     .on("shown.bs.popover", jQuery.proxy(function() {
-
-        this.actionType = "distance";
-
-        /* Trigger mapinteractionactivated event to turn off other tools */
-        jQuery(document).trigger("mapinteractionactivated", [this]);
-       
-        /* Add go button handlers */
-        jQuery("button[id$='-go']").click(jQuery.proxy(function(evt) {
-            if (this.measuring) {
-                this.deactivate();
-            } else {
-                this.activate();
-            }
-        }, this));
-
-        /* Set handlers for selecting between area and distance measurement */
-        jQuery("a[href='#" + this.id + "-distance']").on("shown.bs.tab", jQuery.proxy(function() {
-            jQuery("#" + this.id + "-distance-units").focus();
-            this.actionType = "distance";
-            this.deactivate();
-        }, this));
-        jQuery("a[href='#" + this.id + "-area']").on("shown.bs.tab", jQuery.proxy(function() {
-            jQuery("#" + this.id + "-area-units").focus();
-            this.actionType = "area";
-            this.deactivate();
-        }, this));
-        jQuery("a[href='#" + this.id + "-elevation']").on("shown.bs.tab", jQuery.proxy(function() {
-            this.demLayers = this.getDemLayers();
-            if (this.demLayers.length > 0) {
-                /* DEM layer on the map usable for elevation */
-                jQuery("#" + this.id + "-no-dem-info").addClass("hidden");
-                jQuery("#" + this.id + "-dem-info").removeClass("hidden");
-                jQuery("#" + this.id + "-elevation-units").focus();
-                this.actionType = "elevation";
-            } else {
-                /* No suitable DEM => elevation is unavailable */
-                jQuery("#" + this.id + "-no-dem-info").removeClass("hidden");
-                jQuery("#" + this.id + "-dem-info").addClass("hidden");
-                jQuery("a[href='" + this.id + "-elevation']").prop("disabled", "disabled");
-            }
-            this.deactivate();
-        }, this));
-
-        /* Click handler for dropdown action units selection */
-        jQuery("select[id$='-units']").change(jQuery.proxy(function(evt) {
-            this.deactivate();
-        }, this));
-       
-        /* Initial focus */
-        jQuery("#" + this.id + "-distance-units").focus();
+        this.activate();        
     }, this));
 };
 
@@ -130,10 +81,61 @@ magic.classes.Measurement.prototype.interactsMap = function () {
     return(true);
 };
 
-/**
- * Handler for activation of the measure tool
- */
 magic.classes.Measurement.prototype.onActivateHandler = function() {
+    
+    this.actionType = "distance";
+
+    /* Add go button handlers */
+    jQuery("button[id$='-go']").click(jQuery.proxy(function(evt) {
+        if (this.measuring) {
+            this.stopMeasuring();
+        } else {
+            this.startMeasuring();
+        }
+    }, this));
+
+    /* Set handlers for selecting between area and distance measurement */
+    jQuery("a[href='#" + this.id + "-distance']").on("shown.bs.tab", jQuery.proxy(function() {
+        jQuery("#" + this.id + "-distance-units").focus();
+        this.actionType = "distance";
+        this.stopMeasuring();
+    }, this));
+    jQuery("a[href='#" + this.id + "-area']").on("shown.bs.tab", jQuery.proxy(function() {
+        jQuery("#" + this.id + "-area-units").focus();
+        this.actionType = "area";
+        this.stopMeasuring();
+    }, this));
+    jQuery("a[href='#" + this.id + "-elevation']").on("shown.bs.tab", jQuery.proxy(function() {
+        this.demLayers = this.getDemLayers();
+        if (this.demLayers.length > 0) {
+            /* DEM layer on the map usable for elevation */
+            jQuery("#" + this.id + "-no-dem-info").addClass("hidden");
+            jQuery("#" + this.id + "-dem-info").removeClass("hidden");
+            jQuery("#" + this.id + "-elevation-units").focus();
+            this.actionType = "elevation";
+        } else {
+            /* No suitable DEM => elevation is unavailable */
+            jQuery("#" + this.id + "-no-dem-info").removeClass("hidden");
+            jQuery("#" + this.id + "-dem-info").addClass("hidden");
+            jQuery("a[href='" + this.id + "-elevation']").prop("disabled", "disabled");
+        }
+        this.stopMeasuring();
+    }, this));
+
+    /* Click handler for dropdown action units selection */
+    jQuery("select[id$='-units']").change(jQuery.proxy(function(evt) {
+        this.stopMeasuring();
+    }, this));
+
+    /* Initial focus */
+    jQuery("#" + this.id + "-distance-units").focus();
+};
+
+/**
+ * Start the measuring process
+ */
+magic.classes.Measurement.prototype.startMeasuring = function() {
+    
     /* Record measuring operation in progress */
     this.measuring = true;
 
@@ -185,9 +187,9 @@ magic.classes.Measurement.prototype.onActivateHandler = function() {
 };
 
 /**
- * Handler for deactivation of the measure tool
+ * Stop the measuring process
  */
-magic.classes.Measurement.prototype.onDeactivateHandler = function() {
+magic.classes.Measurement.prototype.stopMeasuring = function() {
     
     /* Record no measuring in progress */
     this.measuring = false;
@@ -428,6 +430,7 @@ magic.classes.Measurement.prototype.createMeasurementtip = function() {
 };
 
 magic.classes.Measurement.prototype.queryElevation = function(evt) {
+    var element = this.heightPopup.getElement();
     if (jQuery.isArray(this.demLayers) && this.demLayers.length > 0) {        
         var viewResolution = this.map.getView().getResolution();
         var demFeats = jQuery.map(this.demLayers, function(l, idx) {
@@ -446,8 +449,7 @@ magic.classes.Measurement.prototype.queryElevation = function(evt) {
                     "FEATURE_COUNT": this.demLayers.length
                 });
             if (url) {
-                var ll = ol.proj.transform(evt.coordinate, this.map.getView().getProjection().getCode(), "EPSG:4326");
-                var element = this.heightPopup.getElement();
+                var ll = ol.proj.transform(evt.coordinate, this.map.getView().getProjection().getCode(), "EPSG:4326");                
                 jQuery(element).popover("destroy");
                 this.heightPopup.setPosition(evt.coordinate);
                 jQuery.ajax({
@@ -486,12 +488,21 @@ magic.classes.Measurement.prototype.queryElevation = function(evt) {
         } else {
             /* Inform user that a DEM layer needs to be visible */
             this.heightPopup.setPosition(evt.coordinate);
+            var demLayerNames = jQuery.map(this.demLayers, function(l, idx) {
+                return(l.get("name"));
+            });
             jQuery(element).popover({
                 "container": "body",
                 "placement": "top",
                 "animation": false,
                 "html": true,
-                "content": "No DEM layers are turned on"
+                "content": 
+                    '<p>One of the DEM layers below:</p>' + 
+                    '<p>' + 
+                    demLayerNames.join('<br/>') + 
+                    '</p>' +
+                    '<p>needs to be visible to see elevations</p>'
+                        
             }); 
             jQuery(element).popover("show");
         }

@@ -2,7 +2,7 @@
 
 magic.classes.RotheraReportSearch = function (options) {
    
-    magic.classes.GeneralSearch.call(this, options);
+    magic.classes.NavigationBarTool.call(this, options);
     
     /* Set style function */
     this.layer.setStyle(this.styleFunction);
@@ -146,7 +146,7 @@ magic.classes.RotheraReportSearch = function (options) {
     }, this));    
 };
 
-magic.classes.RotheraReportSearch.prototype = Object.create(magic.classes.GeneralSearch.prototype);
+magic.classes.RotheraReportSearch.prototype = Object.create(magic.classes.NavigationBarTool.prototype);
 magic.classes.RotheraReportSearch.prototype.constructor = magic.classes.RotheraReportSearch;
 
 /**
