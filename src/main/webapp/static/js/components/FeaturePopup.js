@@ -479,14 +479,14 @@ magic.classes.FeaturePopup.prototype.attributeValue = function(key, value) {
             if (!jQuery.isNumeric(value)) {
                 value = value.replace(/&[^;]+;\s?/g, " ");  /* Tracker co-ordinates have HTML escapes in them - sigh */
             }
-            newValue = magic.runtime.preferences.applyPref("coordinates", value, "lon");
+            newValue = magic.modules.GeoUtils.applyPref("coordinates", value, "lon");
         } else if (magic.modules.Common.isLatitudeLike(key)) {
             if (!jQuery.isNumeric(value)) {
                 value = value.replace(/&[^;]+;\s?/g, " ");  /* Tracker co-ordinates have HTML escapes in them - sigh */
             }
-            newValue = magic.runtime.preferences.applyPref("coordinates", value, "lat");
+            newValue = magic.modules.GeoUtils.applyPref("coordinates", value, "lat");
         } else if (magic.modules.Common.isDatetimeLike(key)) {
-            newValue = magic.runtime.preferences.applyPref("dates", value);
+            newValue = magic.modules.GeoUtils.applyPref("dates", value);
         } else {
             newValue = value;
         }

@@ -12,12 +12,22 @@ magic.classes.PersonalData = function(options) {
 
     magic.classes.NavigationBarTool.call(this, options);
     
+    /* Internal properties */
+    
     /* Callbacks */
     this.setCallbacks({
-        onActivate: function(){},
-        onDeactivate: function(){},
-        onMinimise: function(){}
+        onActivate: jQuery.proxy(this.onActivateHandler, this),
+        onDeactivate: jQuery.proxy(this.onDeactivateHandler, this),
+        onMinimise: jQuery.proxy(this.onMinimiseeHandler, this)
     });
+    
+    /* User preferences form */
+    this.userPrefsForm = new magic.classes.UserPreferencesForm({});
+    
+    /* Saved state of all the tabs and forms */
+    this.savedState = {};
+    
+    /* End of internal properties */
         
     this.target.popover({
         template: this.template,
@@ -42,19 +52,30 @@ magic.classes.PersonalData.prototype.interactsMap = function () {
  * Handler for activation of the tool
  */
 magic.classes.PersonalData.prototype.onActivateHandler = function() {
-    
+    this.userPrefsForm.init();
+    //TODO initialise other forms
+    if (!jQuery.isEmptyObject(this.savedState)) {
+        this.restoreState();
+    }
 };
 
 /**
  * Handler for deactivation of the tool
  */
 magic.classes.PersonalData.prototype.onDeactivateHandler = function() {
-    
+    this.savedState = {};
+};
+
+/**
+ * Handler for minimisation of the tool
+ */
+magic.classes.PersonalData.prototype.onMinimiseHandler = function() {
+    this.saveState();
 };
 
 magic.classes.PersonalData.prototype.markup = function() {
-    return('<div id="' + this.id + '-content">' +
-        '<form class="form-horizontal" role="form">' +
+    return(
+        '<div id="' + this.id + '-content">' +
             '<div role="tabpanel">' +
                 '<ul class="nav nav-tabs" role="tablist">' +
                     '<li role="presentation" class="active">' +
@@ -68,18 +89,30 @@ magic.classes.PersonalData.prototype.markup = function() {
                     '</li>' +
                 '</ul>' +
             '</div>' +
-            '<div class="tab-content measure-tabs">' +
+            '<div class="tab-content personal-data-tabs">' +
                 '<div id="' + this.id + '-maps" role="tabpanel" class="tab-pane active">' +
                     //TODO
                 '</div>' +
-                '<div id="' + this.id + '-area" role="tabpanel" class="tab-pane">' +
+                '<div id="' + this.id + '-layers" role="tabpanel" class="tab-pane">' +
                     //TODO
                 '</div>' +
-                '<div id="' + this.id + '-elevation" role="tabpanel" class="tab-pane">' +
-                    //TODO
+                '<div id="' + this.id + '-prefs" role="tabpanel" class="tab-pane">' +
+                    this.userPrefsForm.markup() + 
                 '</div>' +
             '</div>' +                
-        '</form>' +
-    '</div>'
+        '</div>'
     );
+};
+
+magic.classes.PersonalData.prototype.saveState = function() {
+    this.savedState = {
+        maps: {},
+        layers: {},
+        prefs: this.userPrefsForm.formToPayload()
+    };
+};
+
+magic.classes.PersonalData.prototype.restoreState = function() {
+    this.userPrefsForm.payloadToForm(this.savedState["prefs"]);
+    //TODO restore other forms
 };

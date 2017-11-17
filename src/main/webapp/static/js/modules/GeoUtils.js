@@ -13,6 +13,43 @@ magic.modules.GeoUtils = function() {
         /* WGS84 ellipsoid */
         WGS84: new ol.Sphere(6378137),
         
+        /* Range of units for expressing distance */
+        DISTANCE_UNITS: [
+            ["km", "kilometres"],
+            ["m", "metres"],
+            ["mi", "statute miles"],
+            ["nmi", "nautical miles"]
+        ],
+
+        /* Range of units for expressing areas */
+        AREA_UNITS: [
+            ["km", "square kilometres"],
+            ["m", "square metres"],
+            ["mi", "square miles"],
+            ["nmi", "square nautical miles"]
+        ],
+
+        /* Range of units for expressing elevations */
+        ELEVATION_UNITS: [
+            ["m", "metres"],
+            ["ft", "feet"]
+        ],
+
+        /* Supported co-ordinate formats */
+        COORDINATE_FORMATS: [
+            ["dd", "decimal degrees"],
+            ["dms", "degrees, minutes and seconds"],
+            ["ddm", "degrees, decimal minutes"]
+        ],
+        
+        /* Default settings for geographical preferences */
+        DEFAULT_GEO_PREFS: {
+            distance: "km",
+            area: "km",
+            elevation: "m",
+            coordinates: "dd"
+        },
+        
         /**
          * Format a lon/lat coordinate according to global preference
          * @param {float} coordinate
@@ -256,6 +293,45 @@ magic.modules.GeoUtils = function() {
                 formattedValue = proj;
             } 
             return(formattedValue);
+        },
+        
+        /**
+         * Apply unit preferences to a value
+         * @param {string} name coordinates|distance|area|elevation
+         * @param {string|double|int} value
+         * @param {string} coord (lon|lat)
+         * @param {string} setting value of the user's preference for the above                  
+         * @param {string} sourceFormat to help conversion where the source format is unknown
+         * @return {string|number}
+         */
+        applyPref: function(name, value, coord, setting, sourceFormat) {
+            var out = value;
+            if (!coord && name == "coordinates") {
+                coord = "lon";
+            }
+            if (!setting) {
+                setting = magic.runtime.preferences[name];
+            }
+            if (!sourceFormat && (name == "distance" || name == "area" || name == "elevation")) {
+                sourceFormat = "m";
+            }            
+            switch(name) {
+                case "coordinates":
+                    out = this.formatCoordinate(value, setting, coord);
+                    break;                
+                case "distance":
+                    out = this.formatSpatial(value, 1, setting, sourceFormat, 2);
+                    break;
+                case "area":
+                    out = this.formatSpatial(value, 2, setting, sourceFormat, 2);
+                    break;
+                case "elevation":
+                    out = this.formatSpatial(value, 1, setting, sourceFormat, 1);
+                    break;
+                default:
+                    break;
+            }
+            return(out);
         },
         
         /**

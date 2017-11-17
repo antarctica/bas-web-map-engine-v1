@@ -22,7 +22,11 @@ magic.classes.AppContainer = function () {
     magic.runtime.issue = new magic.classes.IssueInformation();
     
     /* User unit preferences */
-    magic.runtime.preferences = new magic.classes.UserPreferences();
+    magic.runtime.preferences = jQuery.extend({},
+        magic.modules.GeoUtils.DEFAULT_GEO_PREFS,
+        {dates: "dmy"},
+        magic.runtime.map_context.preferencedata 
+    );
     
     /* Initialise map view (returns the initialisation values for the view) */
     var view = this.initView();
@@ -48,8 +52,8 @@ magic.classes.AppContainer = function () {
                 className: "custom-mouse-position",
                 coordinateFormat: function (xy) {
                     return(
-                        "Lat : " + magic.runtime.preferences.applyPref("coordinates", xy[1].toFixed(2), "lat") + ", " + 
-                        "lon : " + magic.runtime.preferences.applyPref("coordinates", xy[0].toFixed(2), "lon")                         
+                        "Lat : " + magic.modules.GeoUtils.applyPref("coordinates", xy[1].toFixed(2), "lat") + ", " + 
+                        "lon : " + magic.modules.GeoUtils.applyPref("coordinates", xy[0].toFixed(2), "lon")                         
                     );
                 }
             })

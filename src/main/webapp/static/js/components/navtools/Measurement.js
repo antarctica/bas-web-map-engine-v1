@@ -458,8 +458,8 @@ magic.classes.Measurement.prototype.queryElevation = function(evt) {
                 })
                 .done(jQuery.proxy(function(data) {
                     /* Expect a feature collection with one feature containing a properties object */
-                    var lon = magic.runtime.preferences.applyPref("coordinates", parseFloat(ll[0]).toFixed(2), "lon");
-                    var lat = magic.runtime.preferences.applyPref("coordinates", parseFloat(ll[1]).toFixed(2), "lat");
+                    var lon = magic.modules.GeoUtils.applyPref("coordinates", parseFloat(ll[0]).toFixed(2), "lon");
+                    var lat = magic.modules.GeoUtils.applyPref("coordinates", parseFloat(ll[1]).toFixed(2), "lat");
                     var units = jQuery("#" + this.id + "-elevation-units").val();
                     jQuery(element).popover({
                         "container": "body",

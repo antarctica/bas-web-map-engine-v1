@@ -817,6 +817,11 @@ div.watermark {
     margin-bottom: 15px;    
 }
 
+/* Personal data tool popover style */
+div.personal-data-tool-popover-content {
+    width: 400px;
+}
+
 /* Layer manager tool popover style */
 div.layermanager-popover-content {
     width: 400px;
