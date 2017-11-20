@@ -42,10 +42,7 @@ magic.classes.UserPreferencesForm.prototype.init = function() {
 
 magic.classes.UserPreferencesForm.prototype.markup = function() {
     return(        
-        '<form class="form-horizontal">' +
-            '<div class="alert alert-info">' +
-                'Change your format and unit settings for quantities displayed in the map interface' + 
-            '</div>' +
+        '<form class="form-horizontal" style="margin-top:10px">' +            
             '<div class="form-group form-group-sm col-sm-12">' +
                 '<label class="col-sm-4" for="' + this.id + '-distance">Length</label>' + 
                 '<div class="col-sm-8">' + 

@@ -51,7 +51,7 @@ magic.classes.NavigationBarTool = function (options) {
             '<div class="arrow"></div>' +
             '<h3 class="popover-title">' + this.caption + '</h3>' +
             '<div class="popover-content' + (this.popoverContentClass ? ' ' + this.popoverContentClass : '') + '"></div>' +
-        '</div>';;       
+        '</div>';       
 };
 
 magic.classes.NavigationBarTool.prototype.getTarget = function () {
