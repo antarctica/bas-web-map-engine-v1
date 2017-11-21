@@ -1,22 +1,22 @@
 /* Prototype class for editable table forms */
 
-magic.classes.EditableTable = function (tableContainerId, rowSchema, displayOrder, displayAddBtn) {
+magic.classes.EditableTable = function (options) {
 
     /* === API properties === */
     
-    this.tableContainerId = tableContainerId;
+    this.tableContainerId = options.tableContainerId;
 
     /* Container for table */
-    this.container = jQuery("#" + tableContainerId);
+    this.container = jQuery("#" + this.tableContainerId);
 
     /* Table row schema */
-    this.rowSchema = rowSchema;
+    this.rowSchema = options.rowSchema;
     
     /* Display order for table cells */
-    this.displayOrder = displayOrder;
+    this.displayOrder = options.displayOrder;
     
     /* Whether to display an "add new record" button */
-    this.displayAddBtn = displayAddBtn;
+    this.displayAddBtn = options.displayAddBtn;
     
     /* Initialise the table */
     this.defaultMarkup();
@@ -25,6 +25,8 @@ magic.classes.EditableTable = function (tableContainerId, rowSchema, displayOrde
 
 magic.classes.EditableTable.prototype.appendRow = function(data) {
     var pk = data.id;
+    console.log("Appending row - pk = " + pk);
+    console.log(data);
     var table = this.container.find("table");
     /* Initialise table header */
     var html = "";
@@ -35,6 +37,7 @@ magic.classes.EditableTable.prototype.appendRow = function(data) {
         }, this));
         html += '</tr>';
         table.removeClass("no-records");
+        table.empty();
     }
     /* Display data row */
     html += '<tr>';
@@ -45,15 +48,17 @@ magic.classes.EditableTable.prototype.appendRow = function(data) {
         jQuery("#" + inputId).editable();
     }, this));    
     html += '</tr>';
-    table.append(html);
+    table.html(html);
 };
 
 magic.classes.EditableTable.prototype.defaultMarkup = function() {
     this.container.html(
-        '<table class="table table-striped table-responsive table-condensed no-records"><table>' +             
+        '<table class="table table-striped table-responsive table-condensed no-records">' + 
+            '<tr><td>No entries found</td></tr>' +
+        '<table>' + 
         '<button id="' + this.tableContainerId + '-add-btn" class="btn btn-primary btn-sm" type="button" ' +
-            'data-toggle="tooltip" data-placement="right" title="Save the current map view">' +
-            '<span class="fa fa-floppy-o"></span>' +
+            'data-toggle="tooltip" data-placement="right" title="Add a new record">' +
+            '<span class="fa fa-star"></span>' +
         '</button>'
     );
 };

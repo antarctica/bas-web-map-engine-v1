@@ -13,27 +13,31 @@ magic.classes.MapViewManagerForm = function(options) {
     
     /* Row schema for custom map view tables */
     this.ROW_SCHEMA = {
-        "allowed_edit": {"type": "string", "hidden": true, "values": ["owner", "login"], "default": "owner"},
+        "id": {"type": "integer", "hidden": true},
+        "allowed_edit": {"type": "string", "hidden": true},
         "allowed_usage": {"type": "string", "values": ["owner", "login", "public"], "editable": true, "default": "public", "header": "Sharing"},
         "basemap": {"type": "string", "hidden": true},
         "creation_date": {"type": "string", "hidden": true},
-        "data": {"type": "json", "hidden": true},
-        "description": {"type": "string", "editable": true, "multiline": true},
-        "id": {"type": "integer", "hidden": true},
+        "data": {"type": "json", "hidden": true},              
         "modification_date": {"type": "string", "hidden": true},
-        "name": {"type": "string", "hidden": true},
-        "owner_email": {"type": "string", "hidden": true},
-        "owner_name": {"type": "string", "hidden": true},
-        "title": {"type": "string", "editable": true, "tooltip": "Last modified: {modification_date}"}
+        "name": {"type": "string", "hidden": true},        
+        "title": {"type": "string", "editable": true},
+        "description": {"type": "string", "editable": true, "multiline": true}
     };
     this.ROW_DISPLAY_ORDER = ["title", "description", "allowed_usage"];
 };
 
 magic.classes.MapViewManagerForm.prototype.init = function() {
     
-    var containerDiv = jQuery("#" + this.id + "-content");
-    containerDiv.html('<div class="panel-group" id="' + this.id + '-accordion" role="tablist">');
+    var contentDiv = jQuery("#" + this.id + "-content");
     
+    var panelGroup = jQuery('<div>', {        
+        "id": this.id + "-accordion",
+        "class": "panel-group",  
+        "role": "tablist"
+    });
+    contentDiv.append(panelGroup);
+ 
     /* Load the officially defined maps */
     var baseRequest = jQuery.ajax({
         url: magic.config.paths.baseurl + "/maps/dropdown", 
@@ -47,22 +51,38 @@ magic.classes.MapViewManagerForm.prototype.init = function() {
         jQuery.each(data, jQuery.proxy(function(ibm, bm) {
             /* Strip permission-related data before the ':' */
             var name = bm.name.substring(bm.name.indexOf(":")+1);
-            var isCurrentMap = name == magic.runtime.map_context.name;            
-            panelGroup.append(
-                '<div class="panel panel-default">' + 
-                    '<div class="panel-heading" role="tab">' + 
-                        '<a role="button" data-toggle="collapse" data-parent="#' + this.id + '-accordion" href="#' + this.id + '-' + name + '">' + 
-                            'Views of <strong>' + bm.title + '</strong>' + 
-                        '</a>' + 
-                    '</div>' + 
-                    '<div class="panel-collapse collapse' + (isCurrentMap ? ' in' : '') + '" role="tabpanel">' + 
-                        '<div id="' + this.id + '-' + name + '" class="panel-body">' + 
-                        '</div>' + 
-                    '</div>' + 
-                '</div>'
-            );
-            this.baseMapForms[name] = new magic.classes.EditableTable(this.id + "-" + name, this.ROW_SCHEMA, this.ROW_DISPLAY_ORDER, isCurrentMap);
-        }, this));
+            panelGroup.append(jQuery('<div>')
+                .addClass("panel")
+                .addClass("panel-default")
+                .append(jQuery('<div>')
+                    .addClass("panel-heading")
+                    .attr("role", "tab")
+                    .append(jQuery('<a>')
+                        .attr("role", "button")
+                        .attr("data-toggle", "collapse")
+                        .attr("data-parent", "#" + this.id + "-accordion")
+                        .attr("href", "#" + this.id + "-" + name)
+                        .html('Views of <strong>' + bm.title + '</strong>')                        
+                    )
+                )
+                .append(jQuery('<div>')
+                    .addClass("panel-collapse")
+                    .addClass("collapse")
+                    .addClass(name == magic.runtime.map_context.name ? "in" : "")
+                    .attr("role", "tabpanel")
+                    .append(jQuery('<div>')
+                        .attr("id", this.id + "-" + name)
+                        .addClass("panel-body")
+                    )
+                )
+            );            
+            this.baseMapForms[name] = new magic.classes.EditableTable({
+                tableContainerId: this.id + "-" + name,
+                rowSchema: this.ROW_SCHEMA, 
+                displayOrder: this.ROW_DISPLAY_ORDER, 
+                displayAddBtn: name == magic.runtime.map_context.name
+            });
+        }, this));        
         return(jQuery.ajax({
             url: magic.config.paths.baseurl + "/usermaps/data",
             method: "GET",
@@ -72,7 +92,7 @@ magic.classes.MapViewManagerForm.prototype.init = function() {
     userRequest.done(jQuery.proxy(function(udata) {               
         jQuery.each(udata, jQuery.proxy(function(ium, um) {
             this.baseMapForms[um.basemap].appendRow(um);           
-        }, this));                           
+        }, this));       
     }, this)).fail(function(xhr, status) {
         bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to load available map views</div>');
     });          
@@ -81,7 +101,7 @@ magic.classes.MapViewManagerForm.prototype.init = function() {
 magic.classes.MapViewManagerForm.prototype.markup = function() {
     return(
         '<form class="form-horizontal" style="margin-top:10px">' +           
-            '<div id="' + this.id + '-content">' +
+            '<div id="' + this.id + '-content" style="max-height:400px;overflow:auto">' +                
             '</div>' + 
         '</form>'
     );
