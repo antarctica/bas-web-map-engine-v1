@@ -21,6 +21,9 @@ magic.classes.MapViewManagerForm = function(options) {
     
     this.editFs = null;
     
+    /* Saved state for restore after popup minimise */
+    this.savedState = {};
+    
 };
 
 magic.classes.MapViewManagerForm.prototype.init = function() {
@@ -69,7 +72,7 @@ magic.classes.MapViewManagerForm.prototype.init = function() {
             /* Permission-related data before the ':', base map name after */
             var nameCpts = rec.name.split(":");
             this.baseMapData[nameCpts[1]] = {
-                "sharing": nameCpts[0];
+                "sharing": nameCpts[0],
                 "title": rec.title
             };
             /* Preserve the alphabetical ordering of the data */
@@ -111,10 +114,10 @@ magic.classes.MapViewManagerForm.prototype.init = function() {
         }, this));                   
         /* Disable irrelevant buttons which might otherwise offer confusing options */
         this.setButtonStates({
-            "load": udata.length == 0 && baseMapOrder.length == 0,
-            "edit": udata.length == 0,
-            "del": udata.length == 0,
-            "bmk": udata.length == 0
+            "load": true,
+            "edit": true,
+            "del": true,
+            "bmk": true
         }); 
         /* Assign handlers */
         this.assignHandlers();
@@ -128,7 +131,8 @@ magic.classes.MapViewManagerForm.prototype.markup = function() {
     return(
         '<form id="' + this.id + '-form" class="form-horizontal" role="form" style="margin-top:10px">' +
             '<input type="hidden" id="' + this.id + '-id"></input>' + 
-            '<input type="hidden" id="' + this.id + '-basemap"></input>' +                
+            '<input type="hidden" id="' + this.id + '-basemap"></input>' + 
+            '<input type="hidden" id="' + this.id + '-data"></input>' + 
             '<div class="form-group form-group-sm col-sm-12 edit-view-fs-title"><strong>Select a map view</strong></div>' +
             '<div class="form-group form-group-sm col-sm-12" style="margin-bottom:0px">' +
                 '<div class="input-group">' + 
@@ -294,15 +298,9 @@ magic.classes.MapViewManagerForm.prototype.assignHandlers = function() {
             nameInput.closest("div.form-group").addClass("has-error");
         } else {
             nameInput.closest("div.form-group").removeClass("has-error");
-            var formdata = {
-                id:             jQuery("#" + this.id + "-id").val(),
-                name:           nameInput.val(),
-                allowed_usage:  jQuery("#" + this.id + "-allowed_usage").val(),
-                basemap:        jQuery("#" + this.id + "-basemap").val() || magic.runtime.map_context.mapname,
-                data:           this.mapPayload()
-            };
+            var formdata = this.formToPayload();
             var saveUrl = magic.config.paths.baseurl + "/usermaps/" + (formdata.id ? "update/" + formdata.id : "save");                
-            var jqXhr = jQuery.ajax({
+            jQuery.ajax({
                 url: saveUrl, 
                 data: JSON.stringify(formdata), 
                 method: "POST",
@@ -377,15 +375,19 @@ magic.classes.MapViewManagerForm.prototype.showEditForm = function(populator) {
 magic.classes.MapViewManagerForm.prototype.formToPayload = function() {
     var formdata = {};
     var idBase = "#" + this.id + "-";
-    jQuery.each(["id", "basemap", "name", "allowed_usage"], function(idx, elt) {
+    jQuery.each(["id", "basemap", "name", "allowed_usage", "data"], function(idx, elt) {
         formdata[elt] = jQuery(idBase + elt).val();
     });
+    if (formdata.basemap == magic.runtime.map_context.mapname) {
+        /* This is an update of the currently loaded map, so update map payload */
+        formdata.data = this.mapPayload();
+    }
     return(formdata);
 };
 
 magic.classes.MapViewManagerForm.prototype.payloadToForm = function(formdata) {
     var idBase = "#" + this.id + "-";
-    jQuery.each(["id", "basemap", "name", "allowed_usage"], function(idx, elt) {
+    jQuery.each(["id", "basemap", "name", "allowed_usage", "data"], function(idx, elt) {
         jQuery(idBase + elt).val(formdata[elt]);
     });
 };
@@ -401,20 +403,20 @@ magic.classes.MapViewManagerForm.prototype.populateAllowedUsage = function(selec
             var perms = this.baseMapData[baseMap].sharing;
             var allowedUsage = jQuery("#" + this.id + "-allowed_usage");
             allowedUsage.empty();
-            allowedUsage.append(jQuery('<option>') {
+            allowedUsage.append(jQuery('<option>', {
                 value: "owner",
                 text: "no"                
-            });
+            }));
             if (perms == "public") {
-                allowedUsage.append(jQuery('<option>') {
+                allowedUsage.append(jQuery('<option>', {
                     value: "public",
                     text: "with everyone"                
-                });
+                }));
             } else if (perms != "owner") {
-                allowedUsage.append(jQuery('<option>') {
+                allowedUsage.append(jQuery('<option>', {
                     value: "login",
                     text: "with logged-in users only"                
-                });
+                }));
             }
             allowedUsage.val(this.userMapData[selection].allowed_usage);
         }

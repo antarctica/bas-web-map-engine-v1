@@ -28,7 +28,7 @@ magic.classes.PersonalData = function(options) {
     this.mapViewForm = new magic.classes.MapViewManagerForm({});
     
     /* User layer form */
-    //this.userLayerForm = new magic.classes.UserLayerManagerForm({});
+    this.userLayerForm = new magic.classes.UserLayerManagerForm({});
     
     /* Saved state of all the tabs and forms */
     this.savedState = {};
@@ -60,7 +60,7 @@ magic.classes.PersonalData.prototype.interactsMap = function () {
 magic.classes.PersonalData.prototype.onActivateHandler = function() {
     this.userPrefsForm.init();
     this.mapViewForm.init();
-    //this.userLayerForm.init();
+    this.userLayerForm.init();
     if (!jQuery.isEmptyObject(this.savedState)) {
         this.restoreState();
     }
@@ -85,10 +85,10 @@ magic.classes.PersonalData.prototype.markup = function() {
         '<div id="' + this.id + '-content">' +
             '<div role="tabpanel">' +
                 '<ul class="nav nav-tabs" role="tablist">' +
-                    '<li role="presentation" class="active" data-toggle="tooltip" data-placement="top" title="Manage your own custom views of this map">' +
+                    '<li role="presentation" class="active" data-toggle="tooltip" data-placement="top" title="Manage your own custom views of this and other maps">' +
                         '<a role="tab" data-toggle="tab" href="#' + this.id + '-maps">Map views</a>' +
                     '</li>' +
-                    '<li role="presentation"  data-toggle="tooltip" data-placement="top" title="Upload your own data to this map">' +
+                    '<li role="presentation"  data-toggle="tooltip" data-placement="top" title="Upload and style your own data on this map">' +
                         '<a role="tab" data-toggle="tab" href="#' + this.id + '-layers">Data layers</a>' +
                     '</li>' +
                     '<li role="presentation" data-toggle="tooltip" data-placement="top" title="Change your format and unit settings for quantities displayed in the map interface">' +
@@ -101,7 +101,7 @@ magic.classes.PersonalData.prototype.markup = function() {
                     this.mapViewForm.markup() + 
                 '</div>' +
                 '<div id="' + this.id + '-layers" role="tabpanel" class="tab-pane">' +
-                    //this.userLayerForm.markup() + 
+                    this.userLayerForm.markup() + 
                 '</div>' +
                 '<div id="' + this.id + '-prefs" role="tabpanel" class="tab-pane">' +
                     this.userPrefsForm.markup() + 

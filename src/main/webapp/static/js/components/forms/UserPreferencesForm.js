@@ -7,6 +7,9 @@ magic.classes.UserPreferencesForm = function(options) {
     
     /* Internal properties */
     this.inputBaseNames = ["distance", "area", "elevation", "coordinates", "dates"];
+    
+    /* Saved state for restore after popup minimise */
+    this.savedState = {};
 };
 
 magic.classes.UserPreferencesForm.prototype.init = function() {

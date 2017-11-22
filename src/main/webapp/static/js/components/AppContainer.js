@@ -94,16 +94,10 @@ magic.classes.AppContainer = function () {
         }),
         "feedback": this.allocateNavbarTool("feedback", "Feedback", {
             target: "feedback-tool"
-        }),
-        "viewmanager": this.allocateNavbarTool("viewmanager", "MapViewManager", {
-            target: "viewmanager-tool"
-        }, true),
-        "layermanager": this.allocateNavbarTool("layermanager", "UserLayerManager", {
-            target: "layermanager-tool"
-        }, true),
+        }),               
         "personaldata": this.allocateNavbarTool("personaldata", "PersonalData", {
             target: "personaldata-tool"
-        }, true),
+        }),
         "download_data": this.allocateNavbarTool("download_data", "DownloadRepo", {
             target: "repo-tool"
         }),
@@ -175,12 +169,10 @@ magic.classes.AppContainer.prototype.initMapMetadata = function() {
  * @param {String} name
  * @param {String} className
  * @param {Object} opts
- * @param {boolean} loggedIn defaults false, set true to only show tool for logged in users
  */
-magic.classes.AppContainer.prototype.allocateNavbarTool = function(name, className, opts, loggedIn) {
+magic.classes.AppContainer.prototype.allocateNavbarTool = function(name, className, opts) {
     var tool = null;
-    var rejectUse = loggedIn && magic.runtime.map_context.username == "guest";
-    if (name == "personaldata" || (!rejectUse && jQuery.inArray(name, magic.runtime.map_context.data.controls) != -1)) {
+    if (jQuery.inArray(name, magic.runtime.map_context.data.controls) != -1) {
         /* Activate tool */
         tool = new magic.classes[className](opts);       
         jQuery("#" + opts.target).closest("li").show();

@@ -820,6 +820,8 @@ div.watermark {
 /* Personal data tool popover style */
 div.personal-data-tool-popover-content {
     width: 400px;
+    overflow: auto;
+    max-height: 500px;
 }
 
 /* Layer manager tool popover style */
