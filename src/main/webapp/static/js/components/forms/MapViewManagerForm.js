@@ -222,7 +222,9 @@ magic.classes.MapViewManagerForm.prototype.assignHandlers = function() {
             "load": selection == "", 
             "edit": !this.userMapData[selection], 
             "del": !this.userMapData[selection]
-        });            
+        }); 
+        /* Repopulate the 'allowed_usage' dropdown in the edit form to only give valid options based on the base map sharing policy */
+        this.populateAllowedUsage(selection);
     }, this));
     
     /* Load map button */
@@ -358,22 +360,65 @@ magic.classes.MapViewManagerForm.prototype.showEditForm = function(populator) {
     this.mgrForm[0].reset();
     if (populator != null) {
         jQuery("div.edit-view-fs-title").html('<strong>Edit existing map view</strong>');
-        var inputs = ["id", "basemap", "name", "allowed_usage"];
-        var idBase = "#" + this.id + "-";
-        jQuery.each(inputs, function(idx, inp) {
-            jQuery(idBase + inp).val(populator[inp]);
-        });
-        this.lastMod.closest("div.form-group").show();
+        this.payloadToForm(populator);
+        jQuery("#" + this.id + "-last-mod").closest("div.form-group").show();
         this.lastMod.html(populator.modified_date);
     } else {
         jQuery("div.edit-view-fs-title").html('<strong>Save current map view</strong>');
-        this.lastMod.closest("div.form-group").hide();
+        jQuery("#" + this.id + "-last-mod").closest("div.form-group").hide();
     }
     this.setButtonStates({
         "load": true, "add": true, "edit": true, "del": true, "bmk": true
     });     
     this.mgrForm.find("input").first().focus();
     this.control.dd.maps.prop("disabled", true);
+};
+
+magic.classes.MapViewManagerForm.prototype.formToPayload = function() {
+    var formdata = {};
+    var idBase = "#" + this.id + "-";
+    jQuery.each(["id", "basemap", "name", "allowed_usage"], function(idx, elt) {
+        formdata[elt] = jQuery(idBase + elt).val();
+    });
+    return(formdata);
+};
+
+magic.classes.MapViewManagerForm.prototype.payloadToForm = function(formdata) {
+    var idBase = "#" + this.id + "-";
+    jQuery.each(["id", "basemap", "name", "allowed_usage"], function(idx, elt) {
+        jQuery(idBase + elt).val(formdata[elt]);
+    });
+};
+
+/**
+ * Ensure that any user map only has sharing permissions at least as restricted as its base map
+ * @param {String} selection
+ */
+magic.classes.MapViewManagerForm.prototype.populateAllowedUsage = function(selection) {
+    if (this.userMapData[selection]) {
+        var baseMap = this.userMapData[selection].basemap;
+        if (this.baseMapData[baseMap]) {
+            var perms = this.baseMapData[baseMap].sharing;
+            var allowedUsage = jQuery("#" + this.id + "-allowed_usage");
+            allowedUsage.empty();
+            allowedUsage.append(jQuery('<option>') {
+                value: "owner",
+                text: "no"                
+            });
+            if (perms == "public") {
+                allowedUsage.append(jQuery('<option>') {
+                    value: "public",
+                    text: "with everyone"                
+                });
+            } else if (perms != "owner") {
+                allowedUsage.append(jQuery('<option>') {
+                    value: "login",
+                    text: "with logged-in users only"                
+                });
+            }
+            allowedUsage.val(this.userMapData[selection].allowed_usage);
+        }
+    }
 };
 
 /**
