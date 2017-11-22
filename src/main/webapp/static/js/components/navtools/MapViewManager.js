@@ -66,7 +66,7 @@ magic.classes.MapViewManager = function(options) {
                     '</button>' +
                 '</div>' +  
                 '<div class="col-sm-12 well well-sm edit-view-fs hidden">' +
-                    '<div id="' + this.id + '-eftitle" class="form-group form-group-sm col-sm-12 edit-view-fs-title"><strong>Add new map view</strong></div>' + 
+                    '<div id="' + this.id + '-efTitle" class="form-group form-group-sm col-sm-12 edit-view-fs-title"><strong>Add new map view</strong></div>' + 
                     '<div class="form-group form-group-sm col-sm-12">' +                     
                         '<label class="col-sm-3" for="' + this.id + '-name">Name</label>' + 
                         '<div class="col-sm-9">' + 

@@ -2,7 +2,6 @@ css/ol.css
 css/bootstrap.min.css
 css/bootstrap-slider.min.css
 css/bootstrap-tagsinput.min.css
-css/bootstrap-editable.min.css
 css/dropzone.min.css
 css/prettify.css
 css/nav.css
@@ -20,12 +19,10 @@ js/bootstrap.min.js
 js/typeahead.bundle.min.js
 js/bootstrap-slider.min.js
 js/bootstrap-tagsinput.min.js
-js/bootstrap-editable.min.js
 js/bootbox.min.js
 js/dropzone.min.js
 js/prettify.js
 js/init.js
 js/modules
 js/base
-js/base2
 js/components
