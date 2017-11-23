@@ -9,12 +9,12 @@ magic.classes.UserLayerManagerForm = function(options) {
    
     /* Map */
     this.map = options.map || magic.runtime.map;    
-    
-    /* Form and widgets */    
-    this.mgrForm = null;
-    
+   
     /* Styler popup tool */
     this.stylerPopup = null;
+    
+    /* Layer editor popup tool */
+    this.editorPopup = null;
     
     /* zIndex of the top of the WMS stack in the map, insertion point for new layers */
     this.zIndexWmsStack = -1;    
@@ -31,20 +31,7 @@ magic.classes.UserLayerManagerForm = function(options) {
 };
 
 magic.classes.UserLayerManagerForm.prototype.init = function() {
-    
-    /* Enclosing form */
-    this.mgrForm  = jQuery("#" + this.id + "-form"); 
-    
-    /* Edit form fieldset */
-    this.editFs = jQuery("#" + this.id + "-edit-view-fs");
-    
-    /* Initialise styler popup */
-    this.stylerPopup = new magic.classes.StylerPopup({
-        target: this.id + "-layer-style-edit", 
-        formInput: this.id + "-layer-styledef",
-        styleMode: this.id + "-layer-style-mode"
-    });        
-    
+   
     /* Get top of WMS stack */
     this.zIndexWmsStack = this.getWmsStackTop(this.map);  
     
@@ -63,11 +50,11 @@ magic.classes.UserLayerManagerForm.prototype.init = function() {
 magic.classes.UserLayerManagerForm.prototype.assignHandlers = function() {
     
     /* Layer visibility checkboxes change handler */
-    jQuery("[id$='-vis']".change(jQuery.proxy(function(evt) {  
+    jQuery("[id$='-vis']").change(jQuery.proxy(function(evt) {  
         var isChecked = jQuery(evt.currentTarget).prop("checked");
         var selId = this.pkFromId(evt.currentTarget.id);
         if (selId != null && selId != "") {
-            this.prepLayer(this.userLayerData[selId], isChecked);               
+            this.provisionLayer(this.userLayerData[selId], isChecked);               
         }
         /* Enable/disable the zoom to layer link for this layer according to checkbox state */
         var ztl = jQuery(evt.currentTarget.id.replace(/vis$/, "ztl"));
@@ -79,11 +66,11 @@ magic.classes.UserLayerManagerForm.prototype.assignHandlers = function() {
     }, this));
     
     /* Zoom to layer link handlers */
-    jQuery("[id$='-ztl']".click(jQuery.proxy(function(evt) {
+    jQuery("[id$='-ztl']").click(jQuery.proxy(function(evt) {
         if (jQuery(evt.currentTarget).closest("li").hasClass("disabled")) {
             return(false);
         }
-        var selId = this.pkFromId(evt.currentTarget.id);;
+        var selId = this.pkFromId(evt.currentTarget.id);
         if (selId != null && selId != "") {
             jQuery.ajax({
                 url: magic.config.paths.baseurl + "/userlayers/" + selId + "/extent", 
@@ -103,26 +90,26 @@ magic.classes.UserLayerManagerForm.prototype.assignHandlers = function() {
     }, this));
     
     /* WMS URL links */
-    jQuery("[id$='-wms']".click(jQuery.proxy(function(evt) {             
+    jQuery("[id$='-wms']").click(jQuery.proxy(function(evt) {             
         bootbox.prompt({
             "title": "WMS URL",
-            "value": this.layerWmsUrl(this.pkFromId(evt.currentTarget.id);),
+            "value": this.layerWmsUrl(this.pkFromId(evt.currentTarget.id)),
             "callback": function(){}
         });
     }, this));
     
     /* Direct data URL link */
-    jQuery("[id$='-url']".click(jQuery.proxy(function(evt) {             
+    jQuery("[id$='-url']").click(jQuery.proxy(function(evt) {             
         bootbox.prompt({
             "title": "Direct data feed URL",
-            "value": this.layerDirectUrl(this.pkFromId(evt.currentTarget.id);),
+            "value": this.layerDirectUrl(this.pkFromId(evt.currentTarget.id)),
             "callback": function(){}
         });
     }, this));        
     
     /* Data download link */
-    jQuery("[id$='-dld']".click(jQuery.proxy(function(evt) {
-        var dldUrl = this.layerDirectUrl(this.pkFromId(evt.currentTarget.id););
+    jQuery("[id$='-dld']").click(jQuery.proxy(function(evt) {
+        var dldUrl = this.layerDirectUrl(this.pkFromId(evt.currentTarget.id));
         if (dldUrl) {
             window.open(dldUrl);
         } else {
@@ -133,6 +120,69 @@ magic.classes.UserLayerManagerForm.prototype.assignHandlers = function() {
             );
         }
     }, this));
+    
+    /* New layer button */
+    jQuery("#" + this.id + "-user-layer-add").click(jQuery.proxy(function(evt) {
+        if (!this.editorPopup) {
+            this.editorPopup = new magic.classes.LayerEditorPopup({
+                target: evt.currentTarget.id
+            });
+        }
+        this.editorPopup.activate({});
+    }, this));
+    
+    /* Edit layer button */
+    jQuery("[id$='-edit']").click(jQuery.proxy(function(evt) {   
+        if (!this.editorPopup) {
+            this.editorPopup = new magic.classes.LayerEditorPopup({
+                target: evt.currentTarget.id
+            });
+        } else {
+            this.editorPopup.setTarget(jQuery("#" + evt.currentTarget.id));
+        }
+        this.editorPopup.activate(this.userLayerData[this.pkFromId(evt.currentTarget.id)]);
+    }, this));
+    
+    /* Delete layer button */
+    jQuery("[id$='-del']").click(jQuery.proxy(function(evt) {            
+        evt.preventDefault();
+        bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">Are you sure you want to delete this layer?</div>', jQuery.proxy(function(result) {
+            if (result) {
+                /* Do the deletion */
+                var id = this.pkFromId(evt.currentTarget.id);
+                jQuery.ajax({
+                    url: magic.config.paths.baseurl + "/userlayers/delete/" + id,
+                    method: "DELETE",
+                    beforeSend: function (xhr) {
+                        var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content");
+                        var csrfHeader = jQuery("meta[name='_csrf_header']").attr("content");
+                        xhr.setRequestHeader(csrfHeader, csrfHeaderVal);
+                    }
+                })
+                .done(jQuery.proxy(function(uldata) {
+                    /* Now delete the corresponding layer and data */
+                    if (id in this.userLayerData) {
+                        if (this.userLayerData[id].olLayer) {
+                            this.map.removeLayer(this.userLayerData[id].olLayer);
+                        }
+                        delete this.userLayerData[id];
+                    }
+                }, this))
+                .fail(function (xhr) {
+                    bootbox.alert(
+                        '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                            '<p>Failed to delete user layer - details below:</p>' + 
+                            '<p>' + JSON.parse(xhr.responseText)["detail"] + '</p>' + 
+                        '</div>'
+                    );
+                });                   
+                bootbox.hideAll();
+            } else {
+                bootbox.hideAll();
+            }                            
+        }, this));               
+    }, this));  
+    
 };
 
 /**
@@ -169,7 +219,7 @@ magic.classes.UserLayerManagerForm.prototype.layerMarkup = function() {
         jQuery.each(userLayers, jQuery.proxy(function(idx, ul) {
             var pk = ul.id;
             tableHtml += 
-                '<tr>' + 
+                '<tr data-pk="' + pk + '">' + 
                     '<td width="180px">' + 
                         '<span data-toggle="tooltip" data-placement="bottom" data-html="true" ' + 
                             'title="' + ul.caption + '<br/>' + ul.description + '<br/>Last modified on : ' + ul.modified_date  + '" role="button">' + 
@@ -222,7 +272,7 @@ magic.classes.UserLayerManagerForm.prototype.layerMarkup = function() {
         jQuery.each(communityLayers, function(idx, ul) {
             var pk = ul.id;
             tableHtml += 
-                '<tr>' + 
+                '<tr data-pk="' + pk + '">' + 
                     '<td width="240px">' + 
                         '<span data-toggle="tooltip" data-placement="bottom" data-html="true" ' + 
                             'title="' + ul.description + '<br/>' + ul.modified_date  + '" role="button">' + ul.caption + 
@@ -462,11 +512,10 @@ magic.classes.UserLayerManagerForm.prototype.getWmsStackTop = function(map) {
  * @return {String}
  */
 magic.classes.UserLayerManagerForm.prototype.pkFromId = function(id) {
-    var pk = -1;
-    var idComps = id.split("-");
-    if (idComps.length >= 3) {
-        pk = idComps[idComps.length-2];
-    }
-    return(pk);
+    var elt = jQuery("#" + id);
+    if (elt.length > 0) {
+        return(elt.closest("tr").attr("data-pk"));
+    }    
+    return(null);
 };
 

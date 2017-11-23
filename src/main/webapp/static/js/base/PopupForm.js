@@ -7,7 +7,7 @@ magic.classes.PopupForm = function (options) {
     /* Identifier */
     this.id = options.id;
 
-    /* Popover target */
+    /* Popover selector (can assign to multiple elements) */
     this.target = jQuery("#" + options.target);
     
     /* Caption for the popover */
@@ -17,11 +17,21 @@ magic.classes.PopupForm = function (options) {
     this.popoverClass = options.popoverClass || "";
     this.popoverContentClass = options.popoverContentClass || "";
     
+    /* Pre-populator */
+    this.prePopulator = options.prePopulator || {};
+    
     /* === Internal properties === */
     this.active = false;
 
     /* Control callbacks */
-    this.controlCallbacks = {};    
+    this.controlCallbacks = {
+        onActivate: jQuery.proxy(function() {
+            this.target.popover("show");            
+        }, this),
+        onDeactivate: jQuery.proxy(function() {
+            this.target.popover("destroy");            
+        }, this)
+    };    
     
     /* The state of the form on save */
     this.savedState = {};
@@ -41,6 +51,10 @@ magic.classes.PopupForm.prototype.getFormValue = function () {
 
 magic.classes.PopupForm.prototype.getTarget = function () {
     return(this.target);
+};
+
+magic.classes.PopupForm.prototype.setTarget = function (target) {
+    this.target = target;
 };
 
 magic.classes.PopupForm.prototype.getTemplate = function () {
@@ -82,8 +96,7 @@ magic.classes.PopupForm.prototype.assignCloseButtonHandler = function () {
  * @param {Object} payload
  */
 magic.classes.PopupForm.prototype.activate = function (payload) {
-    this.active = true;   
-    this.payloadToForm(payload);
+    this.active = true;       
     this.assignCloseButtonHandler();
     if (jQuery.isFunction(this.controlCallbacks["onActivate"])) {
         this.controlCallbacks["onActivate"](payload);

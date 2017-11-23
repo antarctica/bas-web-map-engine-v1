@@ -2,9 +2,8 @@
 
 magic.classes.LayerEditorPopup = function(options) {
     
-    options = jQuery.extent({}, {
+    options = jQuery.extend({}, {
         id: "layer-editor-popup-tool",
-        styleMode: "default",
         caption: "Edit layer data",
         popoverClass: "layer-editor-popover",
         popoverContentClass: "layer-editor-popover-content"
@@ -12,21 +11,18 @@ magic.classes.LayerEditorPopup = function(options) {
     
     magic.classes.PopupForm.call(this, options);
     
-    /* Callbacks */
-    this.setCallbacks({
-        onActivate: jQuery.proxy(function(payload) {
-            this.init(payload);            
-        }, this),
-        onDeactivate: null
-    });    
-   
     this.target.popover({
         template: this.template,
         title: this.titleMarkup(),
         container: "body",
         html: true,
+        trigger: "manual",
         content: this.markup()
-    });
+    }).on("shown.bs.popover", jQuery.proxy(function(evt) {
+        this.savedState = {};
+        this.payloadToForm(this.prePopulator);
+        this.assignHandlers();
+    }, this));
        
 };
 
