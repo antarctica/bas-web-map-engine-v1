@@ -154,19 +154,19 @@ magic.classes.MapViewManagerForm.prototype.markup = function() {
                 '</div>' + 
             '</div>' + 
             '<div class="form-group form-group-sm col-sm-12">' +
-                '<button id="' + this.id + '-add" class="btn btn-xs btn-primary" type="button" ' + 
-                    'data-toggle="tooltip" data-placement="top" title="Save current map view">' + 
+                '<button id="' + this.id + '-add" class="btn btn-sm btn-primary" type="button" ' + 
+                    'data-toggle="tooltip" data-placement="top" data-container="#' + this.id + '-form" title="Save current map view">' + 
                     '<span class="fa fa-star"></span> Add' + 
                 '</button>' +          
-                '<button id="' + this.id + '-edit" class="btn btn-xs btn-warning" type="button" style="margin-left:5px" ' + 
+                '<button id="' + this.id + '-edit" class="btn btn-sm btn-warning" type="button" style="margin-left:5px" ' + 
                     'data-toggle="tooltip" data-placement="top" title="Update selected map view title">' + 
                     '<span class="fa fa-pencil"></span> Edit' + 
                 '</button>' + 
-                '<button id="' + this.id + '-delete" class="btn btn-xs btn-danger" type="button" style="margin-left:5px" ' + 
+                '<button id="' + this.id + '-delete" class="btn btn-sm btn-danger" type="button" style="margin-left:5px" ' + 
                     'data-toggle="tooltip" data-placement="top" title="Delete selected map view">' + 
                     '<span class="fa fa-times-circle"></span> Delete' + 
                 '</button>' + 
-                '<button id="' + this.id + '-view-list-bmk" class="btn btn-xs btn-primary" type="button"  style="margin-left:5px" ' + 
+                '<button id="' + this.id + '-view-list-bmk" class="btn btn-sm btn-primary" type="button"  style="margin-left:5px" ' + 
                     'data-toggle="tooltip" data-placement="top" title="Bookmarkable URL for selected map view">' + 
                     '<span class="fa fa-bookmark"></span> Shareable URL' + 
                 '</button>' +
@@ -204,7 +204,7 @@ magic.classes.MapViewManagerForm.prototype.markup = function() {
                 '</div>' + 
                 '<div class="form-group form-group-sm col-sm-12">' +
                     magic.modules.Common.buttonFeedbackSet(this.id, "Save map state", "xs") +                         
-                    '<button id="' + this.id + '-cancel" class="btn btn-xs btn-danger" type="button" ' + 
+                    '<button id="' + this.id + '-cancel" class="btn btn-sm btn-danger" type="button" ' + 
                         'data-toggle="tooltip" data-placement="right" title="Cancel">' + 
                         '<span class="fa fa-times-circle"></span> Cancel' + 
                     '</button>' +                        

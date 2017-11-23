@@ -2,22 +2,28 @@
 
 magic.classes.StylerPopup = function(options) {
     
-    this.id = options.id || "styler-popup-tool";
-      
-    /* Button/link possessing the styling popover */
-    this.target = jQuery("#" + options.target);   
+    options = jQuery.extend({}, {
+        id: "styler-popup-tool",
+        styleMode: "default",
+        caption: "Edit symbology",
+        popoverClass: "styler-popover",
+        popoverContentClass: "styler-popover-content"
+    }, options);
     
-    /* The style mode input (allowed values: default|file|point|line|polygon)*/
-    this.styleMode = jQuery("#" + options.styleMode);
+    magic.classes.PopupForm.call(this, options);
     
-    /* Where to write the JSON value output on close/edit */
-    this.formInput = jQuery("#" + options.formInput);
+    /* Callbacks */
+    this.setCallbacks({
+        onActivate: jQuery.proxy(function(payload) {
+            this.init(payload);            
+        }, this),
+        onDeactivate: null
+    });    
     
-    this.active = false;
-        
-    this.styleInputs = ["marker", "radius", "stroke_width", "stroke_color", "stroke_opacity", "stroke_linestyle", "fill_color", "fill_opacity"];
+    this.styleInputs = ["mode", "marker", "radius", "stroke_width", "stroke_color", "stroke_opacity", "stroke_linestyle", "fill_color", "fill_opacity"];
     
     this.inputDefaults = {
+        "mode": "point",    /* Allowed values: default|file|point|line|polygon */
         "marker": "circle", 
         "radius": 5, 
         "stroke_width": 1, 
@@ -26,17 +32,33 @@ magic.classes.StylerPopup = function(options) {
         "stroke_linestyle": "solid", 
         "fill_color": "#ffffff", 
         "fill_opacity": 1.0
-    };
-        
-    /* Internal */
-    this.template = 
-        '<div class="popover popover-auto-width popover-auto-height styler-popover" role="popover">' +
-            '<div class="arrow"></div>' +
-            '<h3 class="popover-title"></h3>' + 
-            '<div id="styler-popup" class="popover-content styler-popover-content"></div>' +
-        '</div>';
-    this.content = 
+    };    
+    
+    this.target.popover({
+        template: this.template,
+        title: this.titleMarkup(),
+        container: "body",
+        html: true,
+        content: this.markup()
+    });
+};
+
+magic.classes.StylerPopup.prototype = Object.create(magic.classes.PopupForm.prototype);
+magic.classes.StylerPopup.prototype.constructor = magic.classes.StylerPopup;
+
+magic.classes.StylerPopup.prototype.init = function(payload) {
+    this.savedState = {};
+    jQuery("#" + this.id + "-save").click(jQuery.proxy(function() {        
+        this.savedState = this.formToPayload();
+        this.deactivate();
+    }, this));
+    jQuery("#" + this.id + "-cancel").click(jQuery.proxy(this.deactivate, this));        
+};
+
+magic.classes.StylerPopup.prototype.markup = function() {
+    return(
         '<div id="' + this.id + '-fs">' + 
+            '<input type="hidden" id="' + this.id + '-mode"></input>' + 
             '<div id="' + this.id + '-point-fs">' + 
                 '<div class="form-group form-group-sm col-sm-12">' + 
                     '<label class="col-sm-4 control-label" for="' + this.id + '-marker">Marker</label>' + 
@@ -126,46 +148,34 @@ magic.classes.StylerPopup = function(options) {
                 '</div>' +      
             '</div>' + 
             '<div class="form-group form-group-sm col-sm-12">' +
-                '<button id="' + this.id + '-save" class="btn btn-xs btn-primary" style="margin-right:5px" type="button" ' + 
-                    'data-toggle="tooltip" data-placement="left" title="Save style">' + 
-                    '<span class="fa fa-floppy-o"></span> Save' + 
-                '</button>' +    
-                '<button id="' + this.id + '-cancel" class="btn btn-xs btn-danger" type="button" ' + 
+                magic.modules.Common.buttonFeedbackSet(this.id, "Save style", "sm", "Save") +                         
+                '<button id="' + this.id + '-cancel" class="btn btn-sm btn-danger" type="button" ' + 
                     'data-toggle="tooltip" data-placement="right" title="Cancel">' + 
                     '<span class="fa fa-times-circle"></span> Cancel' + 
-                '</button>' +
+                '</button>' +                                        
             '</div>' + 
-        '</div>'; 
-    this.target.popover({
-        template: this.template,
-        title: '<span>Styler<button type="button" class="close">&times;</button></span>',
-        container: "body",
-        html: true,
-        content: this.content
-    })
-    .on("shown.bs.popover", jQuery.proxy(function() {
-        jQuery("#" + this.id + "-save").click(jQuery.proxy(function() {
-            var styleDef = {};
-            jQuery.each(this.styleInputs, jQuery.proxy(function(idx, sip) {
-                styleDef[sip] = jQuery("#" + this.id + "-" + sip).val();
-            }, this));
-            styleDef["mode"] = this.styleMode.val();
-            this.formInput.val(JSON.stringify(styleDef));
-            this.deactivate();
-        }, this));
-        jQuery("#" + this.id + "-cancel").click(jQuery.proxy(this.deactivate, this));
-        /* Close button */
-        jQuery(".styler-popover").find("button.close").click(jQuery.proxy(this.deactivate, this));
-        /* Show only relevant fieldsets */
-        this.enableRelevantFields();        
-    }, this));  
+        '</div>'
+    );
+};
+
+magic.classes.StylerPopup.formToPayload = function() {
+    var styleDef = {};
+    jQuery.each(this.styleInputs, jQuery.proxy(function(idx, sip) {
+        styleDef[sip] = jQuery("#" + this.id + "-" + sip).val();
+    }, this));
+    return(styleDef);
 };
 
 /**
- * Activate the styler popup control
+ * Populate the form with the given payload
+ * @param {Object} payload
  */
-magic.classes.StylerPopup.prototype.enableRelevantFields = function() {      
-    var mode = this.styleMode.val();    
+magic.classes.StylerPopup.prototype.payloadToForm = function(payload) {
+    if (!payload) {
+        payload = {};
+    }
+    payload = jQuery.extend({}, this.inputDefaults, payload);
+    var mode = payload.mode || "point";   
     var fieldsets = {
         "point" : {"point": 1, "line": 1, "polygon": 1}, 
         "line": {"point": 0, "line": 1, "polygon": 0}, 
@@ -173,44 +183,18 @@ magic.classes.StylerPopup.prototype.enableRelevantFields = function() {
     };
     if (fieldsets[mode]) {             
         jQuery.each(fieldsets[mode], jQuery.proxy(function(fsname, fsconf) {
+            var fsid = this.id + "-" + fsname + "-fs";
             if (fsconf === 1) {
-                jQuery("#" + this.id + "-" + fsname + "-fs :input").prop("disabled", false);
+                jQuery("#" + fsid).removeClass("hidden");
+                jQuery("#" + fsid + " :input").prop("disabled", false);
             } else {
-                jQuery("#" + this.id + "-" + fsname + "-fs :input").prop("disabled", true);
+                jQuery("#" + fsid).addClass("hidden");
+                jQuery("#" + fsid + " :input").prop("disabled", true);
             }
         }, this)); 
-        /* Set values of fields from the hidden input */
-        var styledef = JSON.parse(this.formInput.val() || "{}");
+        /* Set values of fields from payload object */
         jQuery.each(this.styleInputs, jQuery.proxy(function(idx, sip) {
-            jQuery("#" + this.id + "-" + sip).val(styledef[sip] || this.inputDefaults[sip]);
+            jQuery("#" + this.id + "-" + sip).val(payload[sip]);
         }, this));   
     }
-};
-
-/**
- * Activate the styler popup control
- */
-magic.classes.StylerPopup.prototype.activate = function() {      
-    this.active = true;
-    this.target.popover("show");
-};
-
-/**
- * Deactivate the styler popup control
- */
-magic.classes.StylerPopup.prototype.deactivate = function() {
-    this.active = false;
-    this.target.popover("hide");
-};
-
-magic.classes.StylerPopup.prototype.isActive = function() {
-    return(this.active);
-};
-
-magic.classes.StylerPopup.prototype.getTarget = function() {
-    return(this.target);
-};
-
-magic.classes.StylerPopup.prototype.getTemplate = function() {
-    return(this.template);
 };
