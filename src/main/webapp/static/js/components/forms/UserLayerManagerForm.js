@@ -125,7 +125,8 @@ magic.classes.UserLayerManagerForm.prototype.assignHandlers = function() {
     jQuery("#" + this.id + "-user-layer-add").click(jQuery.proxy(function(evt) {
         if (!this.editorPopup) {
             this.editorPopup = new magic.classes.LayerEditorPopup({
-                target: evt.currentTarget.id
+                target: evt.currentTarget.id,
+                onSave: jQuery.proxy(this.init, this)
             });
         }
         this.editorPopup.activate({});
@@ -135,7 +136,8 @@ magic.classes.UserLayerManagerForm.prototype.assignHandlers = function() {
     jQuery("[id$='-edit']").click(jQuery.proxy(function(evt) {   
         if (!this.editorPopup) {
             this.editorPopup = new magic.classes.LayerEditorPopup({
-                target: evt.currentTarget.id
+                target: evt.currentTarget.id,
+                onSave: jQuery.proxy(this.init, this)
             });
         } else {
             this.editorPopup.setTarget(jQuery("#" + evt.currentTarget.id));
@@ -220,6 +222,8 @@ magic.classes.UserLayerManagerForm.prototype.layerMarkup = function() {
             var pk = ul.id;
             tableHtml += 
                 '<tr data-pk="' + pk + '">' + 
+                    '<input type="hidden" id="' + this.id + '-' + pk + '-id" value="' + pk + '">' +
+                    '<input type="hidden" id="' + this.id + '-' + pk + '-styledef" value="' + ul.styledef + '">' +
                     '<td width="180px">' + 
                         '<span data-toggle="tooltip" data-placement="bottom" data-html="true" ' + 
                             'title="' + ul.caption + '<br/>' + ul.description + '<br/>Last modified on : ' + ul.modified_date  + '" role="button">' + 
@@ -231,13 +235,13 @@ magic.classes.UserLayerManagerForm.prototype.layerMarkup = function() {
                         '<input id="' + this.id + '-' + pk + '-vis" type="checkbox"' + (ul.olLayer != null && ul.olLayer.getVisible() ? ' checked="checked"' : '') + '></input>' + 
                     '</td>' +
                     '<td width="30px">' + 
-                        '<a id="' + this.id + '-' + pk + '-edit" href="JavaScript:void(0)" data-toggle="tooltip" data-placement="bottom" title="Edit layer data">' + 
-                            '<i style="font-size: 20px; color: #286090" class="fa fa-pencil"></i>' + 
+                        '<a id="' + this.id + '-' + pk + '-edit" href="JavaScript:void(0)" data-toggle="popover" data-trigger="manual" data-placement="right">' + 
+                            '<i data-toggle="tooltip" data-placement="bottom" title="Edit layer data" style="font-size: 20px; color: #286090" class="fa fa-pencil"></i>' + 
                         '</a>' + 
                     '</td>' + 
                     '<td width="30px">' + 
-                        '<a id="' + this.id + '-' + pk + '-del" href="Javascript:void(0)" data-toggle="tooltip" data-placement="bottom" title="Delete this layer">' +
-                            '<i style="font-size: 20px; color: #d9534f" class="fa fa-trash"></i>' + 
+                        '<a id="' + this.id + '-' + pk + '-del" href="Javascript:void(0)" data-toggle="popover" data-trigger="manual" data-placement="right">' +
+                            '<i data-toggle="tooltip" data-placement="bottom" title="Delete this layer" style="font-size: 20px; color: #d9534f" class="fa fa-trash"></i>' + 
                         '</a>' + 
                     '</td>' + 
                     '<td width="40px">' + 
@@ -273,6 +277,8 @@ magic.classes.UserLayerManagerForm.prototype.layerMarkup = function() {
             var pk = ul.id;
             tableHtml += 
                 '<tr data-pk="' + pk + '">' + 
+                    '<input type="hidden" id="' + this.id + '-' + pk + '-id" value="' + pk + '">' +
+                    '<input type="hidden" id="' + this.id + '-' + pk + '-styledef" value="' + ul.styledef + '">' +
                     '<td width="240px">' + 
                         '<span data-toggle="tooltip" data-placement="bottom" data-html="true" ' + 
                             'title="' + ul.description + '<br/>' + ul.modified_date  + '" role="button">' + ul.caption + 
@@ -375,6 +381,15 @@ magic.classes.UserLayerManagerForm.prototype.provisionLayer = function(layerData
     var olLayer = null;    
     var exData = this.userLayerData[layerData.id];
     var exLayer = exData ? exData.olLayer : null;
+    if (exLayer == null) {
+        /* Check layers on map for the id */        
+        this.map.getLayers().forEach(function (layer) {
+            var md = layer.get("metadata");
+            if (md && md.id == layerData.id) {
+                exLayer = layer;
+            }
+        });
+    }
     if (exLayer == null) {
         if (visible) {
             /* We create the layer now */
@@ -517,5 +532,14 @@ magic.classes.UserLayerManagerForm.prototype.pkFromId = function(id) {
         return(elt.closest("tr").attr("data-pk"));
     }    
     return(null);
+};
+
+/**
+ * Zap any open pop-ups (used when changing tab)
+ */
+magic.classes.UserLayerManagerForm.prototype.tidyUp = function() {
+    if (this.editorPopup) {
+        this.editorPopup.deactivate();
+    }
 };
 

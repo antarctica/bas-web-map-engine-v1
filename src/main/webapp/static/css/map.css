@@ -809,7 +809,13 @@ div.watermark {
 	width: auto;
 }
 
-/* Upload files dropzone styling */
+/* Personal data tool styles */
+div.personal-data-tool-popover-content {
+    width: 400px;
+    overflow: auto;
+    max-height: 500px;
+}
+
 #publish-files-dz {
     min-height: 100px; 
     height: auto !important; 
@@ -817,24 +823,19 @@ div.watermark {
     margin-bottom: 15px;    
 }
 
-/* Personal data tool popover style */
-div.personal-data-tool-popover-content {
-    width: 400px;
-    overflow: auto;
-    max-height: 500px;
-}
-
-/* Layer manager tool popover style */
 div.layermanager-popover-content {
     width: 400px;
 }
 
-/* Layer manager tool upload files styler */
 div.styler-popover-content {
     width: 400px;
 }
 
-/* Fieldwork report search popover style */
+div.layer-editor-popover-content {
+    width: 400px;
+}
+
+/* Fieldwork report search styles */
 div.reports-popover-content {
     width: 400px;
 }

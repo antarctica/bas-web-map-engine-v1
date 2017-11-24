@@ -11,18 +11,21 @@ magic.classes.LayerEditorPopup = function(options) {
     
     magic.classes.PopupForm.call(this, options);
     
-    this.target.popover({
-        template: this.template,
-        title: this.titleMarkup(),
-        container: "body",
-        html: true,
-        trigger: "manual",
-        content: this.markup()
-    }).on("shown.bs.popover", jQuery.proxy(function(evt) {
-        this.savedState = {};
-        this.payloadToForm(this.prePopulator);
-        this.assignHandlers();
-    }, this));
+    this.setCallbacks(jQuery.extend(this.controlCallbacks, {
+        onDeactivate: jQuery.proxy(function() {
+            if (this.stylerPopup) {
+                this.stylerPopup.deactivate();
+            }
+            this.target.popover("destroy");
+        }, this), 
+        onSave: options.onSave
+    }));
+    
+    this.inputs = ["id", "caption", "description", "allowed_usage", "styledef"];
+    
+    this.stylerPopup = null;
+    
+    this.setTarget(this.target);
        
 };
 
@@ -31,8 +34,10 @@ magic.classes.LayerEditorPopup.prototype.constructor = magic.classes.LayerEditor
 
 magic.classes.LayerEditorPopup.prototype.markup = function() {
     return(
-        '<div class="col-sm-12 well well-sm edit-view-fs hidden">' +
-            '<div id="' + this.id + '-layer-edit-title" class="form-group form-group-sm col-sm-12"><strong>Upload a new layer</strong></div>' + 
+        '<div class="col-sm-12 well well-sm edit-view-fs">' +
+            '<div id="' + this.id + '-layer-edit-title" class="form-group form-group-sm col-sm-12"><strong>Upload a new layer</strong></div>' +
+            '<input type="hidden" id="' + this.id + '-layer-id"></input>' + 
+            '<input type="hidden" id="' + this.id + '-layer-styledef"></input>' +
             '<div class="form-group form-group-sm col-sm-12">' +                     
                 '<label class="col-sm-4 control-label" for="' + this.id + '-layer-caption">Name</label>' + 
                 '<div class="col-sm-8">' + 
@@ -67,8 +72,8 @@ magic.classes.LayerEditorPopup.prototype.markup = function() {
                         '<option value="line">Line style</option>' +
                         '<option value="polygon">Polygon style</option>' +
                     '</select>' + 
-                    '<button id="' + this.id + '-layer-style-edit" style="width:20%" data-toggle="popover" data-placement="right" ' + 
-                        ' type="button" role="button"class="btn btn-sm btn-primary">Edit</button>' +
+                    '<button id="' + this.id + '-layer-style-edit" style="width:20%" data-trigger="manual" data-container="body" data-toggle="popover" data-placement="left" ' + 
+                        ' type="button" role="button"class="btn btn-sm btn-primary"><span class="fa fa-pencil"></span></button>' +
                 '</div>' + 
             '</div>' +                    
             '<div class="form-group form-group-sm col-sm-12">' +
@@ -92,7 +97,7 @@ magic.classes.LayerEditorPopup.prototype.markup = function() {
                 '</div>' + 
             '</div>' + 
             '<div class="form-group form-group-sm col-sm-12">' +
-                magic.modules.Common.buttonFeedbackSet(this.id, "Publish layer", "xs", "Publish") +                         
+                magic.modules.Common.buttonFeedbackSet(this.id, "Publish layer", "sm", "Publish") +                         
                 '<button id="' + this.id + '-cancel" class="btn btn-sm btn-danger" type="button" ' + 
                     'data-toggle="tooltip" data-placement="right" title="Cancel">' + 
                     '<span class="fa fa-times-circle"></span> Cancel' + 
@@ -102,3 +107,310 @@ magic.classes.LayerEditorPopup.prototype.markup = function() {
     );
 };
 
+/**
+ * Point the popover form at a new target
+ * @param {type} target
+ * @return {undefined}
+ */
+magic.classes.LayerEditorPopup.prototype.setTarget = function (target) {
+    
+    if (this.isActive()) {
+        /* Only allow one pop-up open at once */
+        this.deactivate();
+    }
+    
+    this.target = target;
+    this.target.popover({
+        template: this.template,
+        title: this.titleMarkup(),
+        container: "body",
+        html: true,
+        trigger: "manual",
+        content: this.markup()
+    }).on("shown.bs.popover", jQuery.proxy(function(evt) {
+        
+        this.savedState = {};
+        this.assignCloseButtonHandler();
+        
+        /* Create the styler popup dialog */
+        this.stylerPopup = new magic.classes.StylerPopup({
+            target: this.id + "-layer-style-edit",
+            onSave: jQuery.proxy(this.writeStyle, this)                    
+        });
+        
+        this.payloadToForm(this.prePopulator);
+        this.assignHandlers();
+    }, this));
+};
+
+magic.classes.LayerEditorPopup.prototype.assignHandlers = function() {
+    
+    /* Style edit button */
+    jQuery("#" + this.id + "-layer-style-edit").click(jQuery.proxy(function(evt) {
+        var styledef = jQuery("#" + this.id + "-layer-styledef").val();
+        if (!styledef) {
+            styledef = {"mode": "default"};
+        } else {
+            styledef = JSON.parse(styledef);
+        }
+        this.stylerPopup.activate(styledef);
+    }, this));
+    
+    /* Cancel button */
+    jQuery("#" + this.id + "-cancel").click(jQuery.proxy(this.deactivate, this));
+};
+
+/**
+ * Callback to write a JSON style into the appropriate hidden input
+ * @param {Object} styledef
+ */
+magic.classes.LayerEditorPopup.prototype.writeStyle = function(styledef) {
+    styledef = styledef || {"mode": "default"};
+    jQuery("#" + this.id + "-layer-styledef") = JSON.stringify(styledef);
+};
+
+/**
+ * Create required JSON payload from form fields
+ * @return {Object}
+ */
+magic.classes.LayerEditorPopup.prototype.formToPayload = function() {
+    var payload = {};
+    var mode = jQuery("#" + this.id + "-layer-style-mode").val();
+    jQuery.each(this.inputs, jQuery.proxy(function(idx, ip) {
+        if (ip == "styledef") {
+            if (mode == "point" || mode == "line" || mode =="polygon") {
+                payload[ip] = JSON.stringify(this.stylerPopup.formToPayload());
+            } else {
+                payload[ip] = "{mode: " + mode + "}";
+            }
+        } else {
+            payload[ip] = jQuery("#" + this.id + "-layer-" + ip).val();
+        }
+    }, this));    
+    return(payload);
+};
+
+/**
+ * Populate form from given JSON payload
+ * @param {Object} populator
+ */
+magic.classes.LayerEditorPopup.prototype.payloadToForm = function(populator) {
+    jQuery.each(this.inputs, jQuery.proxy(function(idx, ip) {
+        jQuery("#" + this.id + "-layer-" + ip).val(populator[ip]);
+    }, this));
+    var styledef = populator["styledef"];
+    if (typeof styledef === "string") {
+        styledef = JSON.parse(styledef);
+    }
+    /* Set styling mode, and trigger styler popover if necessary */
+    var mode = styledef["mode"];
+    jQuery("#" + this.id + "-layer-style-mode").val(mode);
+};
+
+/**
+ * Validate the edit form
+ * @return {Boolean}
+ */
+magic.classes.LayerEditorPopup.prototype.validate = function() {
+    var ok = true;
+    var editFs = jQuery("div.edit-view-fs");
+    jQuery.each(editFs.find("input[required='required']"), function(idx, ri) {
+        var riEl = jQuery(ri);
+        var fg = riEl.closest("div.form-group");
+        var vState = riEl.prop("validity");
+        if (vState.valid) {
+            fg.removeClass("has-error");
+        } else {
+            fg.addClass("has-error");
+            ok = false;
+        }
+    });
+    return(ok);
+};                  
+
+/**
+ * Prevent duplication of dropzone allocation
+ */
+magic.classes.LayerEditorPopup.prototype.destroyDropzone = function() {
+    try {
+        Dropzone.forElement("div#publish-files-dz").destroy();
+    } catch(e) {}
+};
+
+/**
+ * Initialise the dropzone for uploading files
+ */
+magic.classes.LayerEditorPopup.prototype.initDropzone = function() {
+    var previewTemplate =             
+        '<div class="row col-sm-12">' + 
+            '<div class="col-sm-4" style="padding-left:0px !important">' +
+                '<p class="name" data-dz-name style="font-weight:bold"></p>' +                
+            '</div>' +
+            '<div class="col-sm-2">' +
+                '<p class="size" data-dz-size=""></p>' +
+            '</div>' +
+            '<div class="col-sm-4 publish-feedback">' +
+                '<div class="progress progress-striped active show" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">' +
+                    '<div class="progress-bar progress-bar-success" style="width:0%;" data-dz-uploadprogress></div>' +
+                '</div>' +
+                '<div class="publish-feedback-msg hidden">' + 
+                '</div>' + 
+            '</div>' +
+            '<div class="col-sm-2">' +
+                '<button data-dz-remove class="btn btn-xs btn-danger publish-delete show">' +
+                    '<i class="glyphicon glyphicon-trash"></i>' +
+                    '<span>&nbsp;Delete</span>' +
+                '</button>' +
+                '<button class="btn btn-xs btn-success publish-success hidden">' +
+                    '<i class="glyphicon glyphicon-ok"></i>' +
+                    '<span>&nbsp;Publish ok</span>' +
+                '</button>' +
+                '<button class="btn btn-xs btn-warning publish-error hidden">' +
+                    '<i class="glyphicon glyphicon-remove"></i>' +
+                    '<span>&nbsp;Publish failed</span>' +
+                '</button>' +
+            '</div>' +   
+            '<div class="row col-sm-12">' + 
+                '<strong class="error text-danger" data-dz-errormessage></strong>' + 
+            '</div>' + 
+        '</div>';
+    var lep = this;
+    var saveBtn = jQuery("#" + this.id + "-go");
+    this.destroyDropzone();    
+    new Dropzone("div#publish-files-dz", {
+        url: magic.config.paths.baseurl + "/userlayers/save",
+        paramName: "file", /* The name that will be used to transfer the file */
+        maxFilesize: 100,  /* Maximum file size, in MB */
+        uploadMultiple: false,        
+        autoProcessQueue: false,
+        maxFiles: 1,
+        parallelUploads: 1,
+        previewTemplate: previewTemplate,
+        headers: {
+            "X-CSRF-TOKEN": jQuery("meta[name='_csrf']").attr("content")
+        },
+        init: function () {
+            this.on("complete", jQuery.proxy(function(file) {
+                var response = JSON.parse(file.xhr.responseText);                
+                if (response.status < 400) {
+                    /* Successful save */
+                    magic.modules.Common.buttonClickFeedback(this.lep.id, true, response.detail);
+                    if (jQuery.isFunction(this.controlCallbacks["onSave"])) {
+                        this.controlCallbacks["onSave"]();  /* NB need payload from somewhere */
+                    }
+                    setTimeout(jQuery.proxy(function() {
+                        this.deactivate();
+                    }, this.lep), 2000);
+                } else {
+                    /* Failed to save */
+                    bootbox.alert(
+                        '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                            '<p>Failed to save user layer data - details below:</p>' + 
+                            '<p>' + response.detail + '</p>' + 
+                        '</div>'
+                    );     
+                }
+                this.pfdz.removeAllFiles();
+            }, {pfdz: this, lep: lep})); 
+            this.on("maxfilesexceeded", function(file) {
+                this.removeAllFiles();
+                this.addFile(file);
+            });
+            this.on("addedfile", function(file) {
+                jQuery("div#publish-files-dz").find("p.name").html(magic.modules.Common.ellipsis(file.name, 18));
+            });
+            this.on("error", jQuery.proxy(function() {
+                window.setTimeout(jQuery.proxy(this.removeAllFiles, this), 3000);
+            }, this));
+            /* Save button */
+            saveBtn.off("click").on("click", jQuery.proxy(function() {            
+                /* Indicate any invalid fields */                
+                if (this.lep.validate()) {
+                    var formdata = this.lep.formToPayload();                    
+                    if (!jQuery.isArray(this.pfdz.files) || this.pfdz.files.length == 0) {
+                        /* No upload file, so assume only the other fields are to change and process form data */
+                        if (formdata["id"]) {
+                            /* Do an update of user layer data */
+                            jQuery.ajax({
+                                url: magic.config.paths.baseurl + "/userlayers/update/" + formdata["id"], 
+                                data: JSON.stringify(formdata), 
+                                method: "POST",
+                                dataType: "json",
+                                contentType: "application/json",
+                                headers: {
+                                    "X-CSRF-TOKEN": jQuery("meta[name='_csrf']").attr("content")
+                                }
+                            })
+                            .done(jQuery.proxy(function(response) {
+                                magic.modules.Common.buttonClickFeedback(this.id, jQuery.isNumeric(response) || response.status < 400, response.detail); 
+                                if (jQuery.isFunction(this.controlCallbacks["onSave"])) {
+                                    this.controlCallbacks["onSave"](formdata);
+                                }
+                                setTimeout(jQuery.proxy(function() {
+                                    this.deactivate();
+                                }, this), 2000);    
+                            }, this.lep))
+                            .fail(function (xhr) {
+                                bootbox.alert(
+                                    '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                                        '<p>Failed to save user layer data - details below:</p>' + 
+                                        '<p>' + JSON.parse(xhr.responseText)["detail"] + '</p>' + 
+                                    '</div>'
+                                );
+                            });    
+                        } else {
+                            bootbox.alert(
+                                '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                                    '<p>No uploaded file found - please specify the data to upload</p>' + 
+                                '</div>'
+                            );
+                        }
+                    } else {
+                        /* Uploaded file present, so process via DropZone */
+                        /* Add the other form parameters to the dropzone POST */                    
+                        this.pfdz.on("sending", function(file, xhr, data) { 
+                            jQuery.each(formdata, function(key, val) {
+                                data.append(key, val);
+                            });      
+                        });
+                        this.pfdz.processQueue();
+                    }
+                } else {
+                    bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Please correct the marked errors in your input and try again</div>');
+                }            
+            }, {pfdz: this, lep: lep}));
+        },
+        accept: function (file, done) {
+            switch (file.type) {
+                case "text/csv":
+                case "application/vnd.ms-excel":
+                case "application/gpx+xml":
+                case "application/vnd.google-earth.kml+xml":
+                case "application/zip":
+                case "application/x-zip-compressed":
+                    break;
+                case "":
+                    /* Do some more work - GPX (and sometimes KML) files routinely get uploaded without a type */
+                    if (file.name.match(/\.gpx$/) != null) {
+                        file.type = "application/gpx+xml";
+                    } else if (file.name.match(/\.kml$/) != null) {
+                        file.type = "application/vnd.google-earth.kml+xml";
+                    } else {
+                        done(this.options.dictInvalidFileType);
+                        return;
+                    }
+                    break;
+                default:
+                    done(this.options.dictInvalidFileType);
+                    return;
+            }
+            done();
+        },
+        dictDefaultMessage: "Upload GPX, KML, CSV or zipped Shapefiles by dragging and dropping them here",
+        dictInvalidFileType: "Not a GPX, KML, CSV or zipped Shapefile",
+        dictFileTooBig: "File is too large ({{filesize}} bytes) - maximum size is {{maxFileSize}}",
+        dictResponseError: "Publication failed - server responded with code {{statusCode}}",
+        dictCancelUpload: "Cancel upload",
+        dictCancelUploadConfirmation: "Are you sure?"
+    });
+};

@@ -12,6 +12,10 @@ magic.classes.StylerPopup = function(options) {
     
     magic.classes.PopupForm.call(this, options);
     
+    this.setCallbacks(jQuery.extend(this.controlCallbacks, {
+        onSave: options.onSave
+    }));
+    
     this.styleInputs = ["mode", "marker", "radius", "stroke_width", "stroke_color", "stroke_opacity", "stroke_linestyle", "fill_color", "fill_opacity"];
     
     this.inputDefaults = {
@@ -34,6 +38,7 @@ magic.classes.StylerPopup = function(options) {
         content: this.markup()
     }).on("shown.bs.popover", jQuery.proxy(function(evt) {
         this.savedState = {};
+        this.assignCloseButtonHandler();
         this.payloadToForm(this.prePopulator);
         this.assignHandlers();
     }, this));   
@@ -44,8 +49,10 @@ magic.classes.StylerPopup.prototype = Object.create(magic.classes.PopupForm.prot
 magic.classes.StylerPopup.prototype.constructor = magic.classes.StylerPopup;
 
 magic.classes.StylerPopup.prototype.assignHandlers = function(payload) {    
-    jQuery("#" + this.id + "-save").click(jQuery.proxy(function() {        
-        this.savedState = this.formToPayload();
+    jQuery("#" + this.id + "-save").click(jQuery.proxy(function() {
+        if (jQuery.isFunction(this.controlCallbacks["onSave"])) {
+            this.controlCallbacks["onSave"](this.formToPayload());
+        }
         this.deactivate();
     }, this));
     jQuery("#" + this.id + "-cancel").click(jQuery.proxy(this.deactivate, this));        

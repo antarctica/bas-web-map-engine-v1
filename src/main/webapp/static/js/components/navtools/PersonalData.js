@@ -21,15 +21,13 @@ magic.classes.PersonalData = function(options) {
         onMinimise: jQuery.proxy(this.onMinimiseHandler, this)
     });
     
-    /* User preferences form */
-    this.userPrefsForm = new magic.classes.UserPreferencesForm({});
-    
-    /* Map view form */
-    this.mapViewForm = new magic.classes.MapViewManagerForm({});
-    
-    /* User layer form */
-    this.userLayerForm = new magic.classes.UserLayerManagerForm({});
-    
+    /* Form widgets occupying tabs */
+    this.tabForms = {
+        "maps": new magic.classes.MapViewManagerForm({}),
+        "layers": new magic.classes.UserLayerManagerForm({}),
+        "prefs": new magic.classes.UserPreferencesForm({})        
+    };
+           
     /* Saved state of all the tabs and forms */
     this.savedState = {};
     
@@ -44,6 +42,23 @@ magic.classes.PersonalData = function(options) {
     })
     .on("shown.bs.popover", jQuery.proxy(function() {
         this.activate();
+        jQuery("#" + this.id + "-content").find("a[data-toggle='tab']").on("shown.bs.tab", jQuery.proxy(function(evt) {
+            /* Close any pop-ups associated with the tab we just closed */
+            var lastHref = jQuery(evt.relatedTarget).attr("href");
+            var lastTab = lastHref.substring(lastHref.lastIndexOf("-")+1);
+            if (jQuery.isFunction(this.tabForms[lastTab].tidyUp)) {
+                this.tabForms[lastTab].tidyUp();
+            }
+            /* If there is a saved state for the tab we just opened, restore it now */
+            var thisHref = jQuery(evt.target).attr("href");
+            var thisTab = thisHref.substring(thisHref.lastIndexOf("-")+1);
+            if (!jQuery.isEmptyObject(this.savedState) && this.savedState.openTab == thisTab) {
+                if (jQuery.isFunction(this.tabForms[thisTab].payloadToForm)) {
+                    this.tabForms[thisTab].payloadToForm(this.savedState.payload || {});
+                }
+                this.savedState = {};
+            }
+        }, this));
     }, this));
 };
 
@@ -58,9 +73,9 @@ magic.classes.PersonalData.prototype.interactsMap = function () {
  * Handler for activation of the tool
  */
 magic.classes.PersonalData.prototype.onActivateHandler = function() {
-    this.userPrefsForm.init();
-    this.mapViewForm.init();
-    this.userLayerForm.init();
+    jQuery.each(this.tabForms, jQuery.proxy(function(key, tab) {
+        tab.init();
+    }, this));    
     if (!jQuery.isEmptyObject(this.savedState)) {
         this.restoreState();
     }
@@ -98,13 +113,13 @@ magic.classes.PersonalData.prototype.markup = function() {
             '</div>' +
             '<div class="tab-content personal-data-tabs">' +
                 '<div id="' + this.id + '-maps" role="tabpanel" class="tab-pane active">' +
-                    this.mapViewForm.markup() + 
+                    this.tabForms["maps"].markup() + 
                 '</div>' +
                 '<div id="' + this.id + '-layers" role="tabpanel" class="tab-pane">' +
-                    this.userLayerForm.markup() + 
+                    this.tabForms["layers"].markup() + 
                 '</div>' +
                 '<div id="' + this.id + '-prefs" role="tabpanel" class="tab-pane">' +
-                    this.userPrefsForm.markup() + 
+                    this.tabForms["prefs"].markup() + 
                 '</div>' +
             '</div>' +                
         '</div>'
@@ -112,14 +127,16 @@ magic.classes.PersonalData.prototype.markup = function() {
 };
 
 magic.classes.PersonalData.prototype.saveState = function() {
+    var activeDiv = jQuery("#" + this.id + "-content").find("div[role='tabpanel'].active");
+    var openTab = activeDiv.length > 0 ? activeDiv.attr("id").replace(this.id + "-", "") : "maps";
     this.savedState = {
-        maps: {},
-        layers: {},
-        prefs: this.userPrefsForm.formToPayload()
+        openTab: openTab,
+        payload: jQuery.isFunction(this.tabForms[openTab].formToPayload) ? this.tabForms[openTab].formToPayload() : {}
     };
 };
 
 magic.classes.PersonalData.prototype.restoreState = function() {
-    this.userPrefsForm.payloadToForm(this.savedState["prefs"]);
-    //TODO restore other forms
+    if (!jQuery.isEmptyObject(this.savedState)) {
+        jQuery("a[href$='-" + this.savedState.openTab + "']").tab("show");
+    }
 };
