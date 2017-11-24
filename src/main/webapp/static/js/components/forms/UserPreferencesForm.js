@@ -96,6 +96,14 @@ magic.classes.UserPreferencesForm.prototype.markup = function() {
     );
 };
 
+magic.classes.UserPreferencesForm.prototype.saveState = function() {
+    return(this.formToPayload());
+};
+
+magic.classes.UserPreferencesForm.prototype.restoreState = function(state) {
+    this.payloadToForm(state);
+};
+
 magic.classes.UserPreferencesForm.prototype.formToPayload = function() {
     var formdata = {};
     jQuery.each(this.inputBaseNames, jQuery.proxy(function(idx, elt) {

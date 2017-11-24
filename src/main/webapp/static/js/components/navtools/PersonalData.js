@@ -39,27 +39,7 @@ magic.classes.PersonalData = function(options) {
         title: this.titleMarkup(),
         html: true,
         content: this.markup()
-    })
-    .on("shown.bs.popover", jQuery.proxy(function() {
-        this.activate();
-        jQuery("#" + this.id + "-content").find("a[data-toggle='tab']").on("shown.bs.tab", jQuery.proxy(function(evt) {
-            /* Close any pop-ups associated with the tab we just closed */
-            var lastHref = jQuery(evt.relatedTarget).attr("href");
-            var lastTab = lastHref.substring(lastHref.lastIndexOf("-")+1);
-            if (jQuery.isFunction(this.tabForms[lastTab].tidyUp)) {
-                this.tabForms[lastTab].tidyUp();
-            }
-            /* If there is a saved state for the tab we just opened, restore it now */
-            var thisHref = jQuery(evt.target).attr("href");
-            var thisTab = thisHref.substring(thisHref.lastIndexOf("-")+1);
-            if (!jQuery.isEmptyObject(this.savedState) && this.savedState.openTab == thisTab) {
-                if (jQuery.isFunction(this.tabForms[thisTab].payloadToForm)) {
-                    this.tabForms[thisTab].payloadToForm(this.savedState.payload || {});
-                }
-                this.savedState = {};
-            }
-        }, this));
-    }, this));
+    }).on("shown.bs.popover", jQuery.proxy(this.activate, this));            
 };
 
 magic.classes.PersonalData.prototype = Object.create(magic.classes.NavigationBarTool.prototype);
@@ -73,9 +53,30 @@ magic.classes.PersonalData.prototype.interactsMap = function () {
  * Handler for activation of the tool
  */
 magic.classes.PersonalData.prototype.onActivateHandler = function() {
+    
+    /* Initialise tabs */
     jQuery.each(this.tabForms, jQuery.proxy(function(key, tab) {
         tab.init();
-    }, this));    
+    }, this));
+    
+    /* Tidy up pop-ups and assign tab change handler */
+    jQuery("#" + this.id + "-content").find("a[data-toggle='tab']").on("shown.bs.tab", jQuery.proxy(function(evt) {
+        /* Close any pop-ups associated with the tab we just closed */
+        var lastHref = jQuery(evt.relatedTarget).attr("href");
+        var lastTab = lastHref.substring(lastHref.lastIndexOf("-")+1);
+        if (jQuery.isFunction(this.tabForms[lastTab].tidyUp)) {
+            this.tabForms[lastTab].tidyUp();
+        }
+        /* If there is a saved state for the tab we just opened, restore it now */
+        var thisHref = jQuery(evt.target).attr("href");
+        var thisTab = thisHref.substring(thisHref.lastIndexOf("-")+1);
+        if (!jQuery.isEmptyObject(this.savedState) && this.savedState.openTab == thisTab) {
+            if (jQuery.isFunction(this.tabForms[thisTab].restoreState)) {
+                this.tabForms[thisTab].restoreState(this.savedState.payload || {});
+            }
+            this.savedState = {};
+        }
+    }, this));
     if (!jQuery.isEmptyObject(this.savedState)) {
         this.restoreState();
     }
@@ -131,12 +132,23 @@ magic.classes.PersonalData.prototype.saveState = function() {
     var openTab = activeDiv.length > 0 ? activeDiv.attr("id").replace(this.id + "-", "") : "maps";
     this.savedState = {
         openTab: openTab,
-        payload: jQuery.isFunction(this.tabForms[openTab].formToPayload) ? this.tabForms[openTab].formToPayload() : {}
+        payload: jQuery.isFunction(this.tabForms[openTab].saveState) ? this.tabForms[openTab].saveState() : {}
     };
 };
 
 magic.classes.PersonalData.prototype.restoreState = function() {
     if (!jQuery.isEmptyObject(this.savedState)) {
-        jQuery("a[href$='-" + this.savedState.openTab + "']").tab("show");
+        var activeDiv = jQuery("#" + this.id + "-content").find("div[role='tabpanel'].active");
+        var openTab = activeDiv.length > 0 ? activeDiv.attr("id").replace(this.id + "-", "") : "maps";
+        if (openTab == this.savedState.openTab) {
+            /* Tab already shown, so won't fire the show event */
+            if (jQuery.isFunction(this.tabForms[openTab].restoreState)) {
+                this.tabForms[openTab].restoreState(this.savedState.payload || {});
+            }
+            this.savedState = {};
+        } else {
+            /* Restores state in show handler */
+            jQuery("a[href$='-" + this.savedState.openTab + "']").tab("show");
+        }
     }
 };

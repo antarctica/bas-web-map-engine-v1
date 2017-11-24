@@ -49,8 +49,10 @@ magic.classes.UserLayerManagerForm.prototype.init = function() {
 
 magic.classes.UserLayerManagerForm.prototype.assignHandlers = function() {
     
+    var form = jQuery("#" + this.id + "-form");
+    
     /* Layer visibility checkboxes change handler */
-    jQuery("[id$='-vis']").change(jQuery.proxy(function(evt) {  
+    form.find("[id$='-vis']").change(jQuery.proxy(function(evt) {  
         var isChecked = jQuery(evt.currentTarget).prop("checked");
         var selId = this.pkFromId(evt.currentTarget.id);
         if (selId != null && selId != "") {
@@ -66,7 +68,7 @@ magic.classes.UserLayerManagerForm.prototype.assignHandlers = function() {
     }, this));
     
     /* Zoom to layer link handlers */
-    jQuery("[id$='-ztl']").click(jQuery.proxy(function(evt) {
+    form.find("[id$='-ztl']").click(jQuery.proxy(function(evt) {
         if (jQuery(evt.currentTarget).closest("li").hasClass("disabled")) {
             return(false);
         }
@@ -90,7 +92,7 @@ magic.classes.UserLayerManagerForm.prototype.assignHandlers = function() {
     }, this));
     
     /* WMS URL links */
-    jQuery("[id$='-wms']").click(jQuery.proxy(function(evt) {             
+    form.find("[id$='-wms']").click(jQuery.proxy(function(evt) {             
         bootbox.prompt({
             "title": "WMS URL",
             "value": this.layerWmsUrl(this.pkFromId(evt.currentTarget.id)),
@@ -99,7 +101,7 @@ magic.classes.UserLayerManagerForm.prototype.assignHandlers = function() {
     }, this));
     
     /* Direct data URL link */
-    jQuery("[id$='-url']").click(jQuery.proxy(function(evt) {             
+    form.find("[id$='-url']").click(jQuery.proxy(function(evt) {             
         bootbox.prompt({
             "title": "Direct data feed URL",
             "value": this.layerDirectUrl(this.pkFromId(evt.currentTarget.id)),
@@ -108,7 +110,7 @@ magic.classes.UserLayerManagerForm.prototype.assignHandlers = function() {
     }, this));        
     
     /* Data download link */
-    jQuery("[id$='-dld']").click(jQuery.proxy(function(evt) {
+    form.find("[id$='-dld']").click(jQuery.proxy(function(evt) {
         var dldUrl = this.layerDirectUrl(this.pkFromId(evt.currentTarget.id));
         if (dldUrl) {
             window.open(dldUrl);
@@ -133,7 +135,7 @@ magic.classes.UserLayerManagerForm.prototype.assignHandlers = function() {
     }, this));
     
     /* Edit layer button */
-    jQuery("[id$='-edit']").click(jQuery.proxy(function(evt) {   
+    form.find("[id$='-edit']").click(jQuery.proxy(function(evt) {   
         if (!this.editorPopup) {
             this.editorPopup = new magic.classes.LayerEditorPopup({
                 target: evt.currentTarget.id,
@@ -146,7 +148,7 @@ magic.classes.UserLayerManagerForm.prototype.assignHandlers = function() {
     }, this));
     
     /* Delete layer button */
-    jQuery("[id$='-del']").click(jQuery.proxy(function(evt) {            
+    form.find("[id$='-del']").click(jQuery.proxy(function(evt) {            
         evt.preventDefault();
         bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">Are you sure you want to delete this layer?</div>', jQuery.proxy(function(result) {
             if (result) {

@@ -203,7 +203,7 @@ magic.classes.MapViewManagerForm.prototype.markup = function() {
                     '</div>' + 
                 '</div>' + 
                 '<div class="form-group form-group-sm col-sm-12">' +
-                    magic.modules.Common.buttonFeedbackSet(this.id, "Save map state", "xs") +                         
+                    magic.modules.Common.buttonFeedbackSet(this.id, "Save map state", "sm") +                         
                     '<button id="' + this.id + '-cancel" class="btn btn-sm btn-danger" type="button" ' + 
                         'data-toggle="tooltip" data-placement="right" title="Cancel">' + 
                         '<span class="fa fa-times-circle"></span> Cancel' + 
@@ -356,20 +356,29 @@ magic.classes.MapViewManagerForm.prototype.assignHandlers = function() {
 magic.classes.MapViewManagerForm.prototype.showEditForm = function(populator) {
     this.editFs.removeClass("hidden");    
     this.mgrForm[0].reset();
+    var lastMod = jQuery("#" + this.id + "-last-mod");
     if (populator != null) {
         jQuery("div.edit-view-fs-title").html('<strong>Edit existing map view</strong>');
-        this.payloadToForm(populator);
-        jQuery("#" + this.id + "-last-mod").closest("div.form-group").show();
-        this.lastMod.html(populator.modified_date);
+        this.payloadToForm(populator);        
+        lastMod.closest("div.form-group").show();
+        lastMod.html(populator.modified_date);
     } else {
         jQuery("div.edit-view-fs-title").html('<strong>Save current map view</strong>');
-        jQuery("#" + this.id + "-last-mod").closest("div.form-group").hide();
+        lastMod.closest("div.form-group").hide();
     }
     this.setButtonStates({
         "load": true, "add": true, "edit": true, "del": true, "bmk": true
     });     
     this.mgrForm.find("input").first().focus();
-    this.control.dd.maps.prop("disabled", true);
+    this.controls.dd.maps.prop("disabled", true);
+};
+
+magic.classes.MapViewManagerForm.prototype.saveState = function() {
+    return(this.formToPayload());
+};
+
+magic.classes.MapViewManagerForm.prototype.restoreState = function(state) {
+    this.showEditForm(state);
 };
 
 magic.classes.MapViewManagerForm.prototype.formToPayload = function() {
