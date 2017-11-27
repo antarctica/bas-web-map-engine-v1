@@ -8,11 +8,24 @@ magic.classes.UserPreferencesForm = function(options) {
     /* Internal properties */
     this.inputBaseNames = ["distance", "area", "elevation", "coordinates", "dates"];
     
+    /* Enclosing form */
+    this.mgrForm  = jQuery("#" + this.id + "-form"); 
+    
+     /* Form changed */
+    this.formChanged = false;           
+    
     /* Saved state for restore after popup minimise */
     this.savedState = {};
 };
 
 magic.classes.UserPreferencesForm.prototype.init = function() {
+    
+    /* Detect changes to the form */
+    this.formChanged = false;
+    jQuery("#" + this.id + "-form :input").change(jQuery.proxy(function() {
+        this.formChanged = true;
+    }, this));
+    
     /* Set save button handler */
     jQuery("#" + this.id + "-go").click(jQuery.proxy(function(evt) {
         var formdata = this.formToPayload();
@@ -29,7 +42,9 @@ magic.classes.UserPreferencesForm.prototype.init = function() {
                 magic.modules.Common.buttonClickFeedback(this.id, data.status < 400, data.detail);
                 if (data.status < 400) {
                     magic.runtime.preferences = jQuery.extend(magic.runtime.preferences, formdata);
-                }
+                    this.formChanged = false;
+                    this.payloadToForm(magic.runtime.preferences);
+                }                
             }, this),
             fail: jQuery.proxy(function(xhr) {
                 bootbox.alert(
@@ -41,11 +56,14 @@ magic.classes.UserPreferencesForm.prototype.init = function() {
             }, this)
         });
     }, this));
+    
+    /* Restore state if present */
+    this.restoreState();
 };
 
 magic.classes.UserPreferencesForm.prototype.markup = function() {
     return(        
-        '<form class="form-horizontal" style="margin-top:10px">' +            
+        '<form id="' + this.id + '-form" class="form-horizontal" style="margin-top:10px">' +            
             '<div class="form-group form-group-sm col-sm-12">' +
                 '<label class="col-sm-4" for="' + this.id + '-distance">Length</label>' + 
                 '<div class="col-sm-8">' + 
@@ -90,18 +108,33 @@ magic.classes.UserPreferencesForm.prototype.markup = function() {
                 '</div>' + 
             '</div>' +
             '<div class="form-group form-group-sm col-sm-12" style="padding-left:30px">' +
-                magic.modules.Common.buttonFeedbackSet(this.id, "Set preferences", "sm") +                                                                    
+                magic.modules.Common.buttonFeedbackSet(this.id, "Set preferences", "sm") +                   
             '</div>' +                     
         '</form>'         
     );
 };
 
-magic.classes.UserPreferencesForm.prototype.saveState = function() {
-    return(this.formToPayload());
+magic.classes.UserPreferencesForm.prototype.saveForm = function() {
+    jQuery("#" + this.id + "-go").trigger("click");
 };
 
-magic.classes.UserPreferencesForm.prototype.restoreState = function(state) {
-    this.payloadToForm(state);
+magic.classes.UserPreferencesForm.prototype.saveState = function() {
+    this.savedState = this.formToPayload();
+};
+
+magic.classes.UserPreferencesForm.prototype.restoreState = function() {
+    if (!jQuery.isEmptyObject(this.savedState)) {
+        this.payloadToForm(this.savedState);
+        this.clearState();
+    }
+};
+
+magic.classes.UserPreferencesForm.prototype.clearState = function() {
+    this.savedState = {};
+};
+
+magic.classes.UserPreferencesForm.prototype.formChanged = function() {
+    return(this.formChanged);
 };
 
 magic.classes.UserPreferencesForm.prototype.formToPayload = function() {

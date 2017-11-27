@@ -392,7 +392,7 @@ public class HomeController {
      * @param HttpServletRequest request
      * @return String
      */
-    private String getUserName(HttpServletRequest request) {      
+    private String getUserName(HttpServletRequest request) {    
         Principal p = request.getUserPrincipal();
         return(p != null ? p.getName() : "guest");
     }        

@@ -130,6 +130,8 @@ magic.classes.UserLayerManagerForm.prototype.assignHandlers = function() {
                 target: evt.currentTarget.id,
                 onSave: jQuery.proxy(this.init, this)
             });
+        } else {
+            this.editorPopup.setTarget(jQuery("#" + evt.currentTarget.id));
         }
         this.editorPopup.activate({});
     }, this));
@@ -328,8 +330,8 @@ magic.classes.UserLayerManagerForm.prototype.markup = function() {
                 '</div>' +
             '</div>' + 
             '<button id="' + this.id + '-user-layer-add" class="btn btn-sm btn-primary" style="margin-bottom:10px" type="button" ' + 
-                'data-toggle="tooltip" data-placement="top" data-container="#' + this.id + '-form" title="Upload a new user layer">' + 
-                '<span class="fa fa-upload"></span> Add' + 
+                'data-toggle="popover" data-trigger="manual" data-placement="right">' + 
+                '<i class="fa fa-upload"></i>&nbsp;Add layer' + 
             '</button>' +  
             '<div class="panel panel-default" style="margin-bottom:5px">' + 
                 '<div class="panel-heading">' +                            
@@ -382,15 +384,18 @@ magic.classes.UserLayerManagerForm.prototype.provisionLayer = function(layerData
     }
     var olLayer = null;    
     var exData = this.userLayerData[layerData.id];
-    var exLayer = exData ? exData.olLayer : null;
+    var exLayer = exData ? exData.olLayer : null;    
     if (exLayer == null) {
         /* Check layers on map for the id */        
         this.map.getLayers().forEach(function (layer) {
-            var md = layer.get("metadata");
+            var md = layer.get("metadata");                        
             if (md && md.id == layerData.id) {
                 exLayer = layer;
+                visible = layer.getVisible();
             }
         });
+    } else {
+        visible = exLayer.getVisible();
     }
     if (exLayer == null) {
         if (visible) {
@@ -461,6 +466,7 @@ magic.classes.UserLayerManagerForm.prototype.provisionLayer = function(layerData
         }
     } else {
         /* Layer already exists, do a refresh in case the layer name has changed */
+        console.log("Existing layer case");
         olLayer = exLayer;
         if (jQuery.isFunction(olLayer.getSource().updateParams)) {
             olLayer.getSource().updateParams(jQuery.extend({}, 

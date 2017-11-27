@@ -27,7 +27,7 @@ magic.classes.PersonalData = function(options) {
         "layers": new magic.classes.UserLayerManagerForm({}),
         "prefs": new magic.classes.UserPreferencesForm({})        
     };
-           
+   
     /* Saved state of all the tabs and forms */
     this.savedState = {};
     
@@ -66,16 +66,7 @@ magic.classes.PersonalData.prototype.onActivateHandler = function() {
         var lastTab = lastHref.substring(lastHref.lastIndexOf("-")+1);
         if (jQuery.isFunction(this.tabForms[lastTab].tidyUp)) {
             this.tabForms[lastTab].tidyUp();
-        }
-        /* If there is a saved state for the tab we just opened, restore it now */
-        var thisHref = jQuery(evt.target).attr("href");
-        var thisTab = thisHref.substring(thisHref.lastIndexOf("-")+1);
-        if (!jQuery.isEmptyObject(this.savedState) && this.savedState.openTab == thisTab) {
-            if (jQuery.isFunction(this.tabForms[thisTab].restoreState)) {
-                this.tabForms[thisTab].restoreState(this.savedState.payload || {});
-            }
-            this.savedState = {};
-        }
+        }        
     }, this));
     if (!jQuery.isEmptyObject(this.savedState)) {
         this.restoreState();
@@ -86,13 +77,45 @@ magic.classes.PersonalData.prototype.onActivateHandler = function() {
  * Handler for deactivation of the tool
  */
 magic.classes.PersonalData.prototype.onDeactivateHandler = function() {
-    this.savedState = {};
+    var openTab = this.activeTab();
+    if (jQuery.isFunction(this.tabForms[openTab].formChanged) && this.tabForms[openTab].formChanged()) { 
+        /* Prompt user about unsaved edits */
+        bootbox.confirm({
+            message: "Unsaved edits - save before closing?",
+            buttons: {
+                confirm: {
+                    label: "Yes",
+                    className: "btn-success"
+                },
+                cancel: {
+                    label: "No",
+                    className: "btn-danger"
+                }
+            },
+            callback: jQuery.proxy(function (result) {
+                if (result) {                
+                    if (jQuery.isFunction(this.tabForms[openTab].saveForm)) {
+                        this.tabForms[openTab].saveForm();
+                    }                
+                } else {
+                    this.tidyUp();
+                    this.savedState = {};
+                }
+                this.target.popover("hide");
+            }, this)
+        });
+    } else {
+        this.tidyUp();
+        this.savedState = {};
+        this.target.popover("hide");
+    }    
 };
 
 /**
  * Handler for minimisation of the tool
  */
 magic.classes.PersonalData.prototype.onMinimiseHandler = function() {
+    this.tidyUp();
     this.saveState();
 };
 
@@ -127,28 +150,46 @@ magic.classes.PersonalData.prototype.markup = function() {
     );
 };
 
-magic.classes.PersonalData.prototype.saveState = function() {
-    var activeDiv = jQuery("#" + this.id + "-content").find("div[role='tabpanel'].active");
-    var openTab = activeDiv.length > 0 ? activeDiv.attr("id").replace(this.id + "-", "") : "maps";
+magic.classes.PersonalData.prototype.saveState = function() {    
+    var openTab = this.activeTab();
     this.savedState = {
-        openTab: openTab,
-        payload: jQuery.isFunction(this.tabForms[openTab].saveState) ? this.tabForms[openTab].saveState() : {}
+        openTab: openTab
     };
+    /* Endure component state for displayed tab is saved and others reset */
+    jQuery.each(this.tabForms, function(key, frm) {
+        if (key == openTab && jQuery.isFunction(frm.saveState)) {
+            frm.saveState();
+        } else if (key != openTab && jQuery.isFunction(frm.clearState)) {
+            frm.clearState();
+        }
+    });
 };
 
 magic.classes.PersonalData.prototype.restoreState = function() {
     if (!jQuery.isEmptyObject(this.savedState)) {
-        var activeDiv = jQuery("#" + this.id + "-content").find("div[role='tabpanel'].active");
-        var openTab = activeDiv.length > 0 ? activeDiv.attr("id").replace(this.id + "-", "") : "maps";
-        if (openTab == this.savedState.openTab) {
-            /* Tab already shown, so won't fire the show event */
-            if (jQuery.isFunction(this.tabForms[openTab].restoreState)) {
-                this.tabForms[openTab].restoreState(this.savedState.payload || {});
-            }
-            this.savedState = {};
-        } else {
-            /* Restores state in show handler */
+        var openTab = this.activeTab();
+        if (openTab != this.savedState.openTab) {                     
+            /* Show previously open tab */
             jQuery("a[href$='-" + this.savedState.openTab + "']").tab("show");
         }
     }
 };
+
+magic.classes.PersonalData.prototype.tidyUp = function() {
+    jQuery.each(this.tabForms, function(key, frm) {
+        if (jQuery.isFunction(frm.tidyUp)) {
+            frm.tidyUp();
+        }
+    });    
+};
+
+/**
+ * Compute the base name key of the currently active tab
+ * @return {String}
+ */
+magic.classes.PersonalData.prototype.activeTab = function() {
+    var activeDiv = jQuery("#" + this.id + "-content").find("div[role='tabpanel'].active");
+    return(activeDiv.length > 0 ? activeDiv.attr("id").replace(this.id + "-", "") : "maps");
+};
+
+

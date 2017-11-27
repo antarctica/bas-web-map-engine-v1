@@ -22,6 +22,7 @@ magic.classes.RotheraReportSearch = function (options) {
         onDeactivate: jQuery.proxy(function() {
                 this.map.un("pointermove");
                 this.savedSearch = {};
+                this.target.popover("hide");
             }, this), 
         onMinimise: jQuery.proxy(this.saveSearchState, this)
     });

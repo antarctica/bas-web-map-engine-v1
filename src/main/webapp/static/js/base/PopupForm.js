@@ -30,7 +30,7 @@ magic.classes.PopupForm = function (options) {
             this.target.popover("show");            
         }, this),
         onDeactivate: jQuery.proxy(function() {
-            this.target.popover("destroy");            
+            this.target.popover("hide");            
         }, this)
     };    
     

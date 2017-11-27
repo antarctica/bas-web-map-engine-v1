@@ -17,6 +17,8 @@ magic.classes.MapViewManagerForm = function(options) {
     /* Form and widgets */    
     this.mgrForm = null;
     
+    this.inputBaseNames = ["id", "basemap", "name", "allowed_usage", "data"];
+    
     this.controls = {};        
     
     this.editFs = null;
@@ -120,7 +122,9 @@ magic.classes.MapViewManagerForm.prototype.init = function() {
             "bmk": true
         }); 
         /* Assign handlers */
-        this.assignHandlers();
+        this.assignHandlers(); 
+        /* Restore state if present */
+        this.restoreState();
     }, this));
     userRequest.fail(function() {
         bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to load available map views</div>');
@@ -217,7 +221,12 @@ magic.classes.MapViewManagerForm.prototype.markup = function() {
 /**
  * Set the various button/widget handlers
  */
-magic.classes.MapViewManagerForm.prototype.assignHandlers = function() {       
+magic.classes.MapViewManagerForm.prototype.assignHandlers = function() {
+    
+    /* Detect changes to the form */
+    jQuery("#" + this.id + "-form :input").change(function() {
+        jQuery("#" + this.id + "-form").data("changed", true);
+    });
     
     /* Changing dropdown value*/
     this.controls.dd.maps.change(jQuery.proxy(function() {
@@ -345,7 +354,8 @@ magic.classes.MapViewManagerForm.prototype.assignHandlers = function() {
             "del": !this.userMapData[selection], 
             "bmk": true
         });              
-        this.controls.dd.maps.prop("disabled", false);                
+        this.controls.dd.maps.prop("disabled", false); 
+        this.clearState();
     }, this));
 };
 
@@ -354,37 +364,62 @@ magic.classes.MapViewManagerForm.prototype.assignHandlers = function() {
  * @param {Object} populator
  */
 magic.classes.MapViewManagerForm.prototype.showEditForm = function(populator) {
-    this.editFs.removeClass("hidden");    
-    this.mgrForm[0].reset();
+    this.editFs.removeClass("hidden"); 
     var lastMod = jQuery("#" + this.id + "-last-mod");
-    if (populator != null) {
-        jQuery("div.edit-view-fs-title").html('<strong>Edit existing map view</strong>');
+    if (populator == null || populator.id == "") {
+        /* Adding a new map */
+        if (populator == null) {
+            this.mgrForm[0].reset(); 
+        } else {
+            this.payloadToForm(populator);
+        }
+        jQuery("div.edit-view-fs-title").html('<strong>Save current map view</strong>');
+        lastMod.closest("div.form-group").hide();
+        this.controls.dd.maps.val("");
+    } else {    
+        /* Editing an existing one */
+        jQuery("div.edit-view-fs-title").html('<strong>Edit existing map view</strong>');        
         this.payloadToForm(populator);        
         lastMod.closest("div.form-group").show();
         lastMod.html(populator.modified_date);
-    } else {
-        jQuery("div.edit-view-fs-title").html('<strong>Save current map view</strong>');
-        lastMod.closest("div.form-group").hide();
-    }
+        this.controls.dd.maps.val(populator.id);
+    } 
     this.setButtonStates({
         "load": true, "add": true, "edit": true, "del": true, "bmk": true
     });     
-    this.mgrForm.find("input").first().focus();
+    this.mgrForm.find("input").first().focus();    
     this.controls.dd.maps.prop("disabled", true);
 };
 
-magic.classes.MapViewManagerForm.prototype.saveState = function() {
-    return(this.formToPayload());
+magic.classes.UserPreferencesForm.prototype.saveForm = function() {
+    jQuery("#" + this.id + "-go").trigger("click");
 };
 
-magic.classes.MapViewManagerForm.prototype.restoreState = function(state) {
-    this.showEditForm(state);
+magic.classes.MapViewManagerForm.prototype.saveState = function() {
+    var selection = this.controls.dd.maps.val();
+    var exData = selection ? this.userMapData[selection] : {};
+    this.savedState = jQuery.extend(exData, this.formToPayload());
+};
+
+magic.classes.MapViewManagerForm.prototype.restoreState = function() {   
+    if (!jQuery.isEmptyObject(this.savedState)) {
+        this.showEditForm(this.savedState);
+        this.clearState();
+    }
+};
+
+magic.classes.MapViewManagerForm.prototype.clearState = function() {    
+    this.savedState = {};
+};
+
+magic.classes.UserPreferencesForm.prototype.formChanged = function() {
+    return(this.mgrForm.data("changed"));
 };
 
 magic.classes.MapViewManagerForm.prototype.formToPayload = function() {
     var formdata = {};
     var idBase = "#" + this.id + "-";
-    jQuery.each(["id", "basemap", "name", "allowed_usage", "data"], function(idx, elt) {
+    jQuery.each(this.inputBaseNames, function(idx, elt) {
         formdata[elt] = jQuery(idBase + elt).val();
     });
     if (formdata.basemap == magic.runtime.map_context.mapname) {
@@ -396,7 +431,7 @@ magic.classes.MapViewManagerForm.prototype.formToPayload = function() {
 
 magic.classes.MapViewManagerForm.prototype.payloadToForm = function(formdata) {
     var idBase = "#" + this.id + "-";
-    jQuery.each(["id", "basemap", "name", "allowed_usage", "data"], function(idx, elt) {
+    jQuery.each(this.inputBaseNames, function(idx, elt) {
         jQuery(idBase + elt).val(formdata[elt]);
     });
 };

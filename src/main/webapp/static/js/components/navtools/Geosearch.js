@@ -31,6 +31,7 @@ magic.classes.Geosearch = function (options) {
                 this.placenameSearchCache = [];
                 this.suggestionFeatures = {};
                 this.savedSearch = {};
+                this.target.popover("hide");
             }, this), 
         onMinimise: jQuery.proxy(this.saveSearchState, this)
     });

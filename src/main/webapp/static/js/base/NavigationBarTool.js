@@ -91,8 +91,7 @@ magic.classes.NavigationBarTool.prototype.setCallbacks = function(callbacksObj) 
 
 magic.classes.NavigationBarTool.prototype.assignCloseButtonHandler = function () {
     jQuery("." + this.popoverClass).find("button.dialog-deactivate").click(jQuery.proxy(function () {
-        this.deactivate();
-        this.target.popover("hide");
+        this.deactivate();        
     }, this));
     jQuery("." + this.popoverClass).find("button.dialog-minimise").click(jQuery.proxy(function () {
         if (jQuery.isFunction(this.controlCallbacks["onMinimise"])) {

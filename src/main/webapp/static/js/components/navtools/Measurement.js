@@ -15,7 +15,10 @@ magic.classes.Measurement = function(options) {
     /* Callbacks */
     this.setCallbacks({
         onActivate: jQuery.proxy(this.onActivateHandler, this),
-        onDeactivate: jQuery.proxy(this.stopMeasuring, this), 
+        onDeactivate: jQuery.proxy(function() {
+            this.stopMeasuring();
+            this.target.popover("hide");
+        }, this), 
         onMinimise: jQuery.proxy(this.stopMeasuring, this)
     });
     

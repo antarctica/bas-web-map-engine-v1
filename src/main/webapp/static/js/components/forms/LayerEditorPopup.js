@@ -16,7 +16,7 @@ magic.classes.LayerEditorPopup = function(options) {
             if (this.stylerPopup) {
                 this.stylerPopup.deactivate();
             }
-            this.target.popover("destroy");
+            this.target.popover("hide");
         }, this), 
         onSave: options.onSave
     }));
@@ -129,6 +129,8 @@ magic.classes.LayerEditorPopup.prototype.setTarget = function (target) {
         content: this.markup()
     }).on("shown.bs.popover", jQuery.proxy(function(evt) {
         
+        jQuery("#" + this.id + "-layer-caption").focus();
+        
         this.savedState = {};
         this.assignCloseButtonHandler();
         
@@ -149,8 +151,8 @@ magic.classes.LayerEditorPopup.prototype.assignHandlers = function() {
     jQuery("#" + this.id + "-layer-style-edit").click(jQuery.proxy(function(evt) {
         var styledef = jQuery("#" + this.id + "-layer-styledef").val();
         if (!styledef) {
-            styledef = {"mode": "default"};
-        } else {
+            styledef = {"mode": (jQuery("#" + this.id + "-layer-style-mode").val() || "default")};
+        } else if (typeof styledef == "string") {
             styledef = JSON.parse(styledef);
         }
         this.stylerPopup.activate(styledef);
@@ -195,10 +197,11 @@ magic.classes.LayerEditorPopup.prototype.formToPayload = function() {
  * @param {Object} populator
  */
 magic.classes.LayerEditorPopup.prototype.payloadToForm = function(populator) {
+    populator = populator || {};
     jQuery.each(this.inputs, jQuery.proxy(function(idx, ip) {
-        jQuery("#" + this.id + "-layer-" + ip).val(populator[ip]);
+        jQuery("#" + this.id + "-layer-" + ip).val(populator[ip] || "");
     }, this));
-    var styledef = populator["styledef"];
+    var styledef = populator["styledef"] || {"mode": "default"};
     if (typeof styledef === "string") {
         styledef = JSON.parse(styledef);
     }
