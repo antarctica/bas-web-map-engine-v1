@@ -14,7 +14,7 @@ buildcss = os.path.abspath("../../static/buildcss")
 print "Write bundled css to " + buildcss
 
 # Files to completely ignore i.e. no minify or concatenate
-ignorejs = ["bootstrap-treeview.js", "ol.debug.js", "jquery-sortable-lists.min.js", "jquery.bootstrap.wizard.min.js", "tv4.min.js"]
+ignorejs = ["ol.debug.js", "jquery-sortable-lists.min.js", "jquery.bootstrap.wizard.min.js", "tv4.min.js"]
 ignorecss = []
 # Files to add to the js bundle but don't do any further minification (anything .min.js will automatically be skipped)
 skipminjs = ["jquery.js", "prettify.js", "proj4.js"]

@@ -12,7 +12,7 @@ magic.classes.StylerPopup = function(options) {
     
     magic.classes.PopupForm.call(this, options);
     
-    this.setCallbacks(jQuery.extend(this.controlCallbacks, {
+    this.setCallbacks(jQuery.extend(this.controlCallbacks, {        
         onSave: options.onSave
     }));
     
@@ -41,6 +41,7 @@ magic.classes.StylerPopup = function(options) {
         this.assignCloseButtonHandler();
         this.payloadToForm(this.prePopulator);
         this.assignHandlers();
+        this.restoreState();
     }, this));   
     
 };
@@ -48,14 +49,30 @@ magic.classes.StylerPopup = function(options) {
 magic.classes.StylerPopup.prototype = Object.create(magic.classes.PopupForm.prototype);
 magic.classes.StylerPopup.prototype.constructor = magic.classes.StylerPopup;
 
-magic.classes.StylerPopup.prototype.assignHandlers = function(payload) {    
+magic.classes.StylerPopup.prototype.assignHandlers = function(payload) {   
+    
+    /* Detect changes to the form */
+    this.formEdited = false;
+    jQuery("div[id='" + this.id + "-fs'] :input").change(jQuery.proxy(function() {
+        this.formEdited = true;
+    }, this));
+    
     jQuery("#" + this.id + "-save").click(jQuery.proxy(function() {
+        this.cleanForm();
         if (jQuery.isFunction(this.controlCallbacks["onSave"])) {
             this.controlCallbacks["onSave"](this.formToPayload());
         }
         this.deactivate();
     }, this));
-    jQuery("#" + this.id + "-cancel").click(jQuery.proxy(this.deactivate, this));        
+    
+    jQuery("#" + this.id + "-cancel").click(jQuery.proxy(function() {
+        this.cleanForm();
+        this.deactivate();
+    }, this));        
+};
+
+magic.classes.StylerPopup.prototype.saveForm = function() {    
+    jQuery("#" + this.id + "-save").trigger("click");   
 };
 
 magic.classes.StylerPopup.prototype.markup = function() {
@@ -159,6 +176,17 @@ magic.classes.StylerPopup.prototype.markup = function() {
             '</div>' + 
         '</div>'
     );
+};
+
+magic.classes.StylerPopup.prototype.saveState = function() {
+    this.savedState = this.formToPayload();
+};
+
+magic.classes.StylerPopup.prototype.restoreState = function() {
+    if (!jQuery.isEmptyObject(this.savedState)) {
+        this.payloadToForm(this.savedState);
+        this.clearState();
+    }
 };
 
 magic.classes.StylerPopup.formToPayload = function() {

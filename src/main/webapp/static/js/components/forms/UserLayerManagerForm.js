@@ -22,11 +22,14 @@ magic.classes.UserLayerManagerForm = function(options) {
     /* Data from a saved map indicating visibility, transparency etc of user layers */
     this.userPayloadConfig = magic.runtime.map_context.userdata ? (magic.runtime.map_context.userdata.layers || {}) : {};
     
-    /* Layer data for c, keyed by id */
+    /* Layer data keyed by id */
     this.userLayerData = {}; 
     
     /* Saved state for restore after popup minimise */
     this.savedState = {};
+    
+    /* Current edit tracker */
+    this.currentEdit = null;
     
 };
 
@@ -44,6 +47,7 @@ magic.classes.UserLayerManagerForm.prototype.init = function() {
         /* Tabulate the layer markup */
         this.layerMarkup();
         this.assignHandlers();
+        this.restoreState();
     }, this));
 };
 
@@ -134,6 +138,7 @@ magic.classes.UserLayerManagerForm.prototype.assignHandlers = function() {
             this.editorPopup.setTarget(jQuery("#" + evt.currentTarget.id));
         }
         this.editorPopup.activate({});
+        this.currentEdit = evt.currentTarget.id;
     }, this));
     
     /* Edit layer button */
@@ -147,6 +152,7 @@ magic.classes.UserLayerManagerForm.prototype.assignHandlers = function() {
             this.editorPopup.setTarget(jQuery("#" + evt.currentTarget.id));
         }
         this.editorPopup.activate(this.userLayerData[this.pkFromId(evt.currentTarget.id)]);
+        this.currentEdit = evt.currentTarget.id;
     }, this));
     
     /* Delete layer button */
@@ -239,12 +245,12 @@ magic.classes.UserLayerManagerForm.prototype.layerMarkup = function() {
                         '<input id="' + this.id + '-' + pk + '-vis" type="checkbox"' + (ul.olLayer != null && ul.olLayer.getVisible() ? ' checked="checked"' : '') + '></input>' + 
                     '</td>' +
                     '<td width="30px">' + 
-                        '<a id="' + this.id + '-' + pk + '-edit" href="JavaScript:void(0)" data-toggle="popover" data-trigger="manual" data-placement="right">' + 
+                        '<a id="' + this.id + '-' + pk + '-edit" href="JavaScript:void(0)" rel="popover" data-toggle="popover" data-trigger="manual" data-placement="left">' + 
                             '<i data-toggle="tooltip" data-placement="bottom" title="Edit layer data" style="font-size: 20px; color: #286090" class="fa fa-pencil"></i>' + 
                         '</a>' + 
                     '</td>' + 
                     '<td width="30px">' + 
-                        '<a id="' + this.id + '-' + pk + '-del" href="Javascript:void(0)" data-toggle="popover" data-trigger="manual" data-placement="right">' +
+                        '<a id="' + this.id + '-' + pk + '-del" href="Javascript:void(0)">' +
                             '<i data-toggle="tooltip" data-placement="bottom" title="Delete this layer" style="font-size: 20px; color: #d9534f" class="fa fa-trash"></i>' + 
                         '</a>' + 
                     '</td>' + 
@@ -316,38 +322,86 @@ magic.classes.UserLayerManagerForm.prototype.layerMarkup = function() {
 magic.classes.UserLayerManagerForm.prototype.markup = function() {
     return(
         '<form id="' + this.id + '-form" class="form-horizontal" role="form" enctype="multipart/form-data" style="margin-top:10px">' + 
-            '<div class="panel panel-default" style="margin-bottom:10px">' + 
-                '<div class="panel-heading">' +                            
-                    '<a class="panel-title" role="button" data-toggle="collapse" href="#' + this.id + '-user-layer-table">' +
-                        '<span style="font-weight:bold" data-toggle="tooltip" data-placement="bottom" title="Click here to toggle expand/collapse of layer group">' + 
-                            'Your uploaded layers' + 
-                        '</span>' +
-                    '</a>' +   
+            '<div class="form-group col-sm-12">' + 
+                '<div class="btn-toolbar">' + 
+                    '<div class="btn-group" role="group">' + 
+                        '<button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown" style="width:180px">' + 
+                            'Your uploaded layers <span class="caret"></span>' + 
+                        '</button>' + 
+                        '<ul id="' + this.id + '-user-layers" class="dropdown-menu">' +                     
+                        '</ul>' + 
+                    '</div>' + 
+                    '<div class="btn-group" role="group">' + 
+                        '<button id="' + this.id + '-user-layer-add" class="btn btn-sm btn-primary" type="button" ' + 
+                            'data-toggle="popover" data-trigger="manual" data-placement="right">' + 
+                            '<i data-toggle="tooltip" data-placement="bottom" title="Add a new layer" class="fa fa-star"></i>' + 
+                        '</button>' +
+                        '<button type="button" class="btn btn-sm btn-warning" id="' + this.id + '-user-layer-edit" ' + 
+                            'data-toggle="popover" data-trigger="manual" data-placement="left">' + 
+                            '<i data-toggle="tooltip" data-placement="bottom" title="Edit layer data" class="fa fa-pencil"></i>' + 
+                        '</button>' +
+                        '<button type="button" class="btn btn-sm btn-danger" id="' + this.id + '-user-layer-del">' +
+                            '<i data-toggle="tooltip" data-placement="bottom" title="Delete this layer" class="fa fa-trash"></i>' + 
+                        '</button>' + 
+                    '</div>' + 
+                    '<div class="btn-group dropdown" role="group">' + 
+                        '<button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown" data-container="body">' + 
+                            '<i data-toggle="tooltip" data-placement="bottom" title="Further actions" class="fa fa-ellipsis-h"></i>&nbsp;&nbsp;<span class="caret"></span>' + 
+                        '</button>' + 
+                        '<ul class="dropdown-menu dropdown-menu-right" style="overflow:auto">' + 
+                            '<li><a id="' + this.id + '-user-layer-ztl" href="Javascript:void(0)">Zoom to layer extent</a></li>' + 
+                            '<li role="separator" class="divider"></li>' + 
+                            '<li><a id="' + this.id + '-user-layer-wms" href="Javascript:void(0)">OGC WMS</a></li>' + 
+                            '<li><a id="' + this.id + '-user-layer-url" href="Javascript:void(0)">Direct data URL</a></li>' + 
+                            '<li><a id="' + this.id + '-user-layer-dld" href="Javascript:void(0)">Download data</a></li>' + 
+                        '</ul>' + 
+                    '</div>' + 
                 '</div>' + 
-                '<div id="' + this.id + '-user-layer-table" class="panel-collapse collapse in">' +
-                    '<div class="panel-body" style="padding:5px">' +
-                    '</div>' +
-                '</div>' +
+            '</div>' +            
+            '<div class="form-group col-sm-12">' + 
+                '<div class="btn-group" role="group">' + 
+                    '<div class="btn-group" role="group">' + 
+                        '<button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown" style="width:180px">' + 
+                            'Community layers <span class="caret"></span>' + 
+                        '</button>' + 
+                        '<ul id="' + this.id + '-community-layers" class="dropdown-menu">' +                     
+                        '</ul>' + 
+                    '</div>' +                     
+                    '<div class="btn-group" role="group">' + 
+                        '<button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown">' + 
+                            '<i data-toggle="tooltip" data-placement="bottom" title="Further actions" class="fa fa-ellipsis-h"></i>&nbsp;&nbsp;<span class="caret"></span>' + 
+                        '</button>' + 
+                        '<ul class="dropdown-menu dropdown-menu-right">' + 
+                            '<li><a id="' + this.id + '-user-layer-ztl" href="Javascript:void(0)">Zoom to layer extent</a></li>' + 
+                            '<li role="separator" class="divider"></li>' + 
+                            '<li><a id="' + this.id + '-user-layer-wms" href="Javascript:void(0)">OGC WMS</a></li>' + 
+                            '<li><a id="' + this.id + '-user-layer-url" href="Javascript:void(0)">Direct data URL</a></li>' + 
+                            '<li><a id="' + this.id + '-user-layer-dld" href="Javascript:void(0)">Download data</a></li>' + 
+                        '</ul>' + 
+                    '</div>' + 
+                '</div>' + 
             '</div>' + 
-            '<button id="' + this.id + '-user-layer-add" class="btn btn-sm btn-primary" style="margin-bottom:10px" type="button" ' + 
-                'data-toggle="popover" data-trigger="manual" data-placement="right">' + 
-                '<i class="fa fa-upload"></i>&nbsp;Add layer' + 
-            '</button>' +  
-            '<div class="panel panel-default" style="margin-bottom:5px">' + 
-                '<div class="panel-heading">' +                            
-                    '<a class="panel-title" role="button" data-toggle="collapse" href="#' + this.id + '-community-layer-table">' +
-                        '<span style="font-weight:bold" data-toggle="tooltip" data-placement="bottom" title="Click here to toggle expand/collapse of layer group">' + 
-                            'Community uploaded layers' + 
-                        '</span>' +
-                    '</a>' +   
-                '</div>' + 
-                '<div id="' + this.id + '-community-layer-table" class="panel-collapse collapse">' +
-                    '<div class="panel-body" style="padding:5px">' +
-                    '</div>' +
-                '</div>' +
-            '</div>' +                                                                
         '</form>'         
     );
+};
+
+magic.classes.UserLayerManagerForm.prototype.saveState = function() {    
+    this.savedState = {
+        editing: this.currentEdit || null
+    };
+    console.log("============ Save state ============");
+    console.log(this.savedState);
+    console.log("============ Done ============");
+};
+
+magic.classes.UserLayerManagerForm.prototype.restoreState = function() {
+    if (!jQuery.isEmptyObject(this.savedState)) {
+        console.log("============ Restore state ============");
+        console.log(this.savedState);
+        console.log("============ Done ============");
+        jQuery("#" + this.savedState.editing).trigger("click");
+        this.savedState = {};
+    }
 };
 
 /**
@@ -466,7 +520,6 @@ magic.classes.UserLayerManagerForm.prototype.provisionLayer = function(layerData
         }
     } else {
         /* Layer already exists, do a refresh in case the layer name has changed */
-        console.log("Existing layer case");
         olLayer = exLayer;
         if (jQuery.isFunction(olLayer.getSource().updateParams)) {
             olLayer.getSource().updateParams(jQuery.extend({}, 
@@ -544,10 +597,11 @@ magic.classes.UserLayerManagerForm.prototype.pkFromId = function(id) {
 
 /**
  * Zap any open pop-ups (used when changing tab)
+ * @param {boolean} quiet suppress warnings about unsaved edits
  */
-magic.classes.UserLayerManagerForm.prototype.tidyUp = function() {
+magic.classes.UserLayerManagerForm.prototype.tidyUp = function(quiet) {
     if (this.editorPopup) {
-        this.editorPopup.deactivate();
+        this.editorPopup.deactivate(quiet);
     }
 };
 

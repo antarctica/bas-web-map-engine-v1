@@ -12,18 +12,12 @@ magic.classes.LayerEditorPopup = function(options) {
     magic.classes.PopupForm.call(this, options);
     
     this.setCallbacks(jQuery.extend(this.controlCallbacks, {
-        onDeactivate: jQuery.proxy(function() {
-            if (this.stylerPopup) {
-                this.stylerPopup.deactivate();
-            }
-            this.target.popover("hide");
-        }, this), 
         onSave: options.onSave
     }));
     
     this.inputs = ["id", "caption", "description", "allowed_usage", "styledef"];
     
-    this.stylerPopup = null;
+    this.subForms.styler = null;
     
     this.setTarget(this.target);
        
@@ -135,17 +129,24 @@ magic.classes.LayerEditorPopup.prototype.setTarget = function (target) {
         this.assignCloseButtonHandler();
         
         /* Create the styler popup dialog */
-        this.stylerPopup = new magic.classes.StylerPopup({
+        this.subForms.styler = new magic.classes.StylerPopup({
             target: this.id + "-layer-style-edit",
             onSave: jQuery.proxy(this.writeStyle, this)                    
         });
         
         this.payloadToForm(this.prePopulator);
         this.assignHandlers();
+        this.restoreState();
     }, this));
 };
 
 magic.classes.LayerEditorPopup.prototype.assignHandlers = function() {
+    
+    /* Detect changes to the form */
+    this.formEdited = false;
+    jQuery("div.edit-view-fs :input").change(jQuery.proxy(function() {
+        this.formEdited = true;
+    }, this));
     
     /* Style edit button */
     jQuery("#" + this.id + "-layer-style-edit").click(jQuery.proxy(function(evt) {
@@ -155,11 +156,14 @@ magic.classes.LayerEditorPopup.prototype.assignHandlers = function() {
         } else if (typeof styledef == "string") {
             styledef = JSON.parse(styledef);
         }
-        this.stylerPopup.activate(styledef);
+        this.subForms.styler.activate(styledef);
     }, this));
     
     /* Cancel button */
-    jQuery("#" + this.id + "-cancel").click(jQuery.proxy(this.deactivate, this));
+    jQuery("#" + this.id + "-cancel").click(jQuery.proxy(function() {
+        this.cleanForm();
+        this.deactivate();
+    }, this));
 };
 
 /**
@@ -169,6 +173,21 @@ magic.classes.LayerEditorPopup.prototype.assignHandlers = function() {
 magic.classes.LayerEditorPopup.prototype.writeStyle = function(styledef) {
     styledef = styledef || {"mode": "default"};
     jQuery("#" + this.id + "-layer-styledef") = JSON.stringify(styledef);
+};
+
+magic.classes.LayerEditorPopup.prototype.saveForm = function() {
+    jQuery("#" + this.id + "-go").trigger("click");
+};
+
+magic.classes.LayerEditorPopup.prototype.saveState = function() {
+    this.savedState = this.formToPayload();
+};
+
+magic.classes.LayerEditorPopup.prototype.restoreState = function() {
+    if (!jQuery.isEmptyObject(this.savedState)) {
+        this.payloadToForm(this.savedState);
+        this.clearState();
+    }
 };
 
 /**
@@ -181,7 +200,7 @@ magic.classes.LayerEditorPopup.prototype.formToPayload = function() {
     jQuery.each(this.inputs, jQuery.proxy(function(idx, ip) {
         if (ip == "styledef") {
             if (mode == "point" || mode == "line" || mode =="polygon") {
-                payload[ip] = JSON.stringify(this.stylerPopup.formToPayload());
+                payload[ip] = JSON.stringify(this.subForms.styler.formToPayload());
             } else {
                 payload[ip] = "{mode: " + mode + "}";
             }
@@ -294,9 +313,11 @@ magic.classes.LayerEditorPopup.prototype.initDropzone = function() {
         },
         init: function () {
             this.on("complete", jQuery.proxy(function(file) {
+                console.log(file);
                 var response = JSON.parse(file.xhr.responseText);                
                 if (response.status < 400) {
                     /* Successful save */
+                    this.cleanForm();
                     magic.modules.Common.buttonClickFeedback(this.lep.id, true, response.detail);
                     if (jQuery.isFunction(this.controlCallbacks["onSave"])) {
                         this.controlCallbacks["onSave"]();  /* NB need payload from somewhere */
@@ -328,7 +349,7 @@ magic.classes.LayerEditorPopup.prototype.initDropzone = function() {
             /* Save button */
             saveBtn.off("click").on("click", jQuery.proxy(function() {            
                 /* Indicate any invalid fields */                
-                if (this.lep.validate()) {
+                if (this.lep.validate()) {                   
                     var formdata = this.lep.formToPayload();                    
                     if (!jQuery.isArray(this.pfdz.files) || this.pfdz.files.length == 0) {
                         /* No upload file, so assume only the other fields are to change and process form data */
@@ -345,6 +366,7 @@ magic.classes.LayerEditorPopup.prototype.initDropzone = function() {
                                 }
                             })
                             .done(jQuery.proxy(function(response) {
+                                this.cleanForm();
                                 magic.modules.Common.buttonClickFeedback(this.id, jQuery.isNumeric(response) || response.status < 400, response.detail); 
                                 if (jQuery.isFunction(this.controlCallbacks["onSave"])) {
                                     this.controlCallbacks["onSave"](formdata);

@@ -20,6 +20,9 @@ magic.classes.PopupForm = function (options) {
     /* Pre-populator */
     this.prePopulator = options.prePopulator || {};
     
+    /* Sub-forms */
+    this.subForms = {};
+    
     /* === Internal properties === */
     this.active = false;
 
@@ -29,10 +32,52 @@ magic.classes.PopupForm = function (options) {
             this.prePopulator = payload;
             this.target.popover("show");            
         }, this),
-        onDeactivate: jQuery.proxy(function() {
-            this.target.popover("hide");            
+        onDeactivate: jQuery.proxy(function(quiet) {            
+            if (!quiet && this.formDirty()) { 
+                /* Prompt user about unsaved edits */
+                bootbox.confirm({
+                    message: "Unsaved edits - save before closing?",
+                    buttons: {
+                        confirm: {
+                            label: "Yes",
+                            className: "btn-success"
+                        },
+                        cancel: {
+                            label: "No",
+                            className: "btn-danger"
+                        }
+                    },
+                    callback: jQuery.proxy(function (result) {
+                        if (result) {                
+                            if (jQuery.isFunction(this.saveForm)) {
+                                if (!jQuery.isEmptyObject(this.subForms)) {
+                                    jQuery.each(this.subForms, function(k, frm) {
+                                        if (jQuery.isFunction(frm.saveForm)) {
+                                            frm.saveForm();
+                                        }                                        
+                                    });
+                                }                               
+                                this.saveForm();
+                            }                
+                        } else {
+                            this.savedState = {};
+                            this.tidyUp();
+                            this.target.popover("hide");
+                        }
+                        this.cleanForm();
+                    }, this)
+                });
+            } else {                
+                this.savedState = {};
+                this.cleanForm();
+                this.tidyUp();
+                this.target.popover("hide");
+            }    
         }, this)
     };    
+    
+    /* Form changed */
+    this.formEdited = false; 
     
     /* The state of the form on save */
     this.savedState = {};
@@ -83,8 +128,7 @@ magic.classes.PopupForm.prototype.setCallbacks = function(callbacksObj) {
 
 magic.classes.PopupForm.prototype.assignCloseButtonHandler = function () {
     jQuery("." + this.popoverClass).find("button.dialog-deactivate").click(jQuery.proxy(function () {
-        this.deactivate();
-        this.target.popover("hide");
+        this.deactivate(false);        
     }, this));    
 };  
 
@@ -101,10 +145,48 @@ magic.classes.PopupForm.prototype.activate = function (payload) {
 
 /**
  * Deactivate the control
+ * @param {boolean} suppress prompt inform about unsaved edits
  */
-magic.classes.PopupForm.prototype.deactivate = function () {
+magic.classes.PopupForm.prototype.deactivate = function (quiet) {    
     this.active = false;
     if (jQuery.isFunction(this.controlCallbacks["onDeactivate"])) {
-        this.controlCallbacks["onDeactivate"]();
+        this.controlCallbacks["onDeactivate"](quiet);
     }
+};
+
+/**
+ * Clear a saved state
+ */
+magic.classes.PopupForm.prototype.clearState = function () {
+    this.savedState = {};
+};
+
+/**
+ * Has the form been edited?
+ * @return {Boolean}
+ */
+magic.classes.PopupForm.prototype.formDirty = function() {
+    return(this.formEdited);
+};
+
+/**
+ * Clean the form i.e. reset the edited flag
+ * @return {Boolean}
+ */
+magic.classes.PopupForm.prototype.cleanForm = function() {
+    this.formEdited = false;
+};
+
+/**
+ * Deactivate all sub-forms
+ * @param {boolean} quiet to suppress warnings about unsaved edits  
+ */
+magic.classes.PopupForm.prototype.tidyUp = function(quiet) {
+    if (!jQuery.isEmptyObject(this.subForms)) {
+        jQuery.each(this.subForms, function(k, frm) {
+            if (jQuery.isFunction(frm.deactivate)) {
+                frm.deactivate(quiet);
+            }                                        
+        });
+    }      
 };

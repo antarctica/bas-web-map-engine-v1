@@ -17,6 +17,9 @@ magic.classes.MapViewManagerForm = function(options) {
     /* Form and widgets */    
     this.mgrForm = null;
     
+    /* Form changed */
+    this.formEdited = false;  
+    
     this.inputBaseNames = ["id", "basemap", "name", "allowed_usage", "data"];
     
     this.controls = {};        
@@ -32,6 +35,12 @@ magic.classes.MapViewManagerForm.prototype.init = function() {
     
     /* Enclosing form */
     this.mgrForm  = jQuery("#" + this.id + "-form"); 
+    
+    /* Detect changes to the form */
+    this.formEdited = false;
+    jQuery("#" + this.id + "-form :input").change(jQuery.proxy(function() {
+        this.formEdited = true;
+    }, this));
     
     /* Edit form fieldset */
     this.editFs = jQuery("#" + this.id + "-edit-view-fs");
@@ -238,6 +247,8 @@ magic.classes.MapViewManagerForm.prototype.assignHandlers = function() {
         }); 
         /* Repopulate the 'allowed_usage' dropdown in the edit form to only give valid options based on the base map sharing policy */
         this.populateAllowedUsage(selection);
+        /* Disable 'load' button if there is no selection */
+        this.controls.btn.load.prop("disabled", !selection);
     }, this));
     
     /* Load map button */
@@ -320,6 +331,7 @@ magic.classes.MapViewManagerForm.prototype.assignHandlers = function() {
                 }
             })
             .done(jQuery.proxy(function(response) {
+                    this.cleanForm();
                     var selection = this.controls.dd.maps.val(); 
                     magic.modules.Common.buttonClickFeedback(this.id, jQuery.isNumeric(response) || response.status < 400, response.detail);
                     this.setButtonStates({
@@ -347,6 +359,7 @@ magic.classes.MapViewManagerForm.prototype.assignHandlers = function() {
      /* Cancel button */
     this.controls.btn.cancel.click(jQuery.proxy(function() {
         var selection = this.controls.dd.maps.val(); 
+        this.cleanForm();
         this.mgrForm[0].reset();
         this.editFs.addClass("hidden");
         this.setButtonStates({
@@ -370,6 +383,7 @@ magic.classes.MapViewManagerForm.prototype.showEditForm = function(populator) {
         /* Adding a new map */
         if (populator == null) {
             this.mgrForm[0].reset(); 
+            this.mgrForm.find("input[type='hidden']").val("");
         } else {
             this.payloadToForm(populator);
         }
@@ -391,7 +405,7 @@ magic.classes.MapViewManagerForm.prototype.showEditForm = function(populator) {
     this.controls.dd.maps.prop("disabled", true);
 };
 
-magic.classes.UserPreferencesForm.prototype.saveForm = function() {
+magic.classes.MapViewManagerForm.prototype.saveForm = function() {
     jQuery("#" + this.id + "-go").trigger("click");
 };
 
@@ -399,10 +413,17 @@ magic.classes.MapViewManagerForm.prototype.saveState = function() {
     var selection = this.controls.dd.maps.val();
     var exData = selection ? this.userMapData[selection] : {};
     this.savedState = jQuery.extend(exData, this.formToPayload());
+    console.log("============ Save state ============");
+    console.log("Selection : " + selection);
+    console.log(this.savedState);
+    console.log("============ Done ============");
 };
 
 magic.classes.MapViewManagerForm.prototype.restoreState = function() {   
     if (!jQuery.isEmptyObject(this.savedState)) {
+        console.log("============ Restore state ============");
+        console.log(this.savedState);
+        console.log("============ Done ============");
         this.showEditForm(this.savedState);
         this.clearState();
     }
@@ -412,8 +433,12 @@ magic.classes.MapViewManagerForm.prototype.clearState = function() {
     this.savedState = {};
 };
 
-magic.classes.UserPreferencesForm.prototype.formChanged = function() {
-    return(this.mgrForm.data("changed"));
+magic.classes.MapViewManagerForm.prototype.formDirty = function() {
+    return(this.formEdited);
+};
+
+magic.classes.MapViewManagerForm.prototype.cleanForm = function() {
+    this.formEdited = false;
 };
 
 magic.classes.MapViewManagerForm.prototype.formToPayload = function() {
@@ -432,7 +457,7 @@ magic.classes.MapViewManagerForm.prototype.formToPayload = function() {
 magic.classes.MapViewManagerForm.prototype.payloadToForm = function(formdata) {
     var idBase = "#" + this.id + "-";
     jQuery.each(this.inputBaseNames, function(idx, elt) {
-        jQuery(idBase + elt).val(formdata[elt]);
+        jQuery(idBase + elt).val(formdata[elt] || "");
     });
 };
 
@@ -514,7 +539,7 @@ magic.classes.MapViewManagerForm.prototype.mapPayload = function() {
             payload.groups[groupId] = jQuery(elt).hasClass("in");
         });
     }
-    return(payload);
+    return(JSON.stringify(payload));
 };
 
 /**

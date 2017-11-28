@@ -66,7 +66,7 @@ magic.classes.PersonalData.prototype.onActivateHandler = function() {
         var lastTab = lastHref.substring(lastHref.lastIndexOf("-")+1);
         if (jQuery.isFunction(this.tabForms[lastTab].tidyUp)) {
             this.tabForms[lastTab].tidyUp();
-        }        
+        }       
     }, this));
     if (!jQuery.isEmptyObject(this.savedState)) {
         this.restoreState();
@@ -78,7 +78,7 @@ magic.classes.PersonalData.prototype.onActivateHandler = function() {
  */
 magic.classes.PersonalData.prototype.onDeactivateHandler = function() {
     var openTab = this.activeTab();
-    if (jQuery.isFunction(this.tabForms[openTab].formChanged) && this.tabForms[openTab].formChanged()) { 
+    if (jQuery.isFunction(this.tabForms[openTab].formDirty) && this.tabForms[openTab].formDirty()) { 
         /* Prompt user about unsaved edits */
         bootbox.confirm({
             message: "Unsaved edits - save before closing?",
@@ -98,14 +98,14 @@ magic.classes.PersonalData.prototype.onDeactivateHandler = function() {
                         this.tabForms[openTab].saveForm();
                     }                
                 } else {
-                    this.tidyUp();
+                    this.tidyUp(false);
                     this.savedState = {};
-                }
-                this.target.popover("hide");
+                    this.target.popover("hide");
+                }                
             }, this)
         });
     } else {
-        this.tidyUp();
+        this.tidyUp(false);
         this.savedState = {};
         this.target.popover("hide");
     }    
@@ -115,7 +115,7 @@ magic.classes.PersonalData.prototype.onDeactivateHandler = function() {
  * Handler for minimisation of the tool
  */
 magic.classes.PersonalData.prototype.onMinimiseHandler = function() {
-    this.tidyUp();
+    this.tidyUp(true);
     this.saveState();
 };
 
@@ -175,10 +175,14 @@ magic.classes.PersonalData.prototype.restoreState = function() {
     }
 };
 
-magic.classes.PersonalData.prototype.tidyUp = function() {
+/**
+ * Remove all pop-ups from sub-forms/tabs
+ * @param {boolean} quiet to suppress all warnings about unsaved edits
+ */
+magic.classes.PersonalData.prototype.tidyUp = function(quiet) {
     jQuery.each(this.tabForms, function(key, frm) {
         if (jQuery.isFunction(frm.tidyUp)) {
-            frm.tidyUp();
+            frm.tidyUp(quiet);
         }
     });    
 };

@@ -92,7 +92,7 @@ public class UserPreferencesController {
             ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Updated successfully");
         } catch(IncorrectResultSizeDataAccessException irsdae) {
             /* Insert new record */
-            magicDataTpl.update("INSERT INTO " + env.getProperty("postgres.local.prefsTable") + " (username, distance, area, elevation, coordinates, dates) VALUES(?,?,?,?,?)",
+            magicDataTpl.update("INSERT INTO " + env.getProperty("postgres.local.prefsTable") + " (username, distance, area, elevation, coordinates, dates) VALUES(?,?,?,?,?,?)",
                 new Object[]{
                     userName,
                     prefs.getDistance(),

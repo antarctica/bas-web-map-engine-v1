@@ -11,8 +11,8 @@ magic.classes.UserPreferencesForm = function(options) {
     /* Enclosing form */
     this.mgrForm  = jQuery("#" + this.id + "-form"); 
     
-     /* Form changed */
-    this.formChanged = false;           
+    /* Form changed */
+    this.formEdited = false;           
     
     /* Saved state for restore after popup minimise */
     this.savedState = {};
@@ -21,9 +21,9 @@ magic.classes.UserPreferencesForm = function(options) {
 magic.classes.UserPreferencesForm.prototype.init = function() {
     
     /* Detect changes to the form */
-    this.formChanged = false;
+    this.formEdited = false;
     jQuery("#" + this.id + "-form :input").change(jQuery.proxy(function() {
-        this.formChanged = true;
+        this.formEdited = true;
     }, this));
     
     /* Set save button handler */
@@ -42,8 +42,7 @@ magic.classes.UserPreferencesForm.prototype.init = function() {
                 magic.modules.Common.buttonClickFeedback(this.id, data.status < 400, data.detail);
                 if (data.status < 400) {
                     magic.runtime.preferences = jQuery.extend(magic.runtime.preferences, formdata);
-                    this.formChanged = false;
-                    this.payloadToForm(magic.runtime.preferences);
+                    this.formEdited = false;                    
                 }                
             }, this),
             fail: jQuery.proxy(function(xhr) {
@@ -56,6 +55,9 @@ magic.classes.UserPreferencesForm.prototype.init = function() {
             }, this)
         });
     }, this));
+    
+    /* Populate form with current preferences */
+    this.payloadToForm(magic.runtime.preferences);
     
     /* Restore state if present */
     this.restoreState();
@@ -133,8 +135,12 @@ magic.classes.UserPreferencesForm.prototype.clearState = function() {
     this.savedState = {};
 };
 
-magic.classes.UserPreferencesForm.prototype.formChanged = function() {
-    return(this.formChanged);
+magic.classes.UserPreferencesForm.prototype.formDirty = function() {
+    return(this.formEdited);
+};
+
+magic.classes.UserPreferencesForm.prototype.cleanForm = function() {
+    this.formEdited = false;
 };
 
 magic.classes.UserPreferencesForm.prototype.formToPayload = function() {
