@@ -42,7 +42,8 @@ magic.classes.UserLayerManagerForm.prototype.init = function() {
     this.fetchLayers(jQuery.proxy(function(uldata) {          
         /* Record the layer data, and create any visible layers */
         jQuery.each(uldata, jQuery.proxy(function(idx, ul) {
-            this.provisionLayer(ul);            
+            var vis = this.userPayloadConfig[ul.id] ? this.userPayloadConfig[ul.id].visibility : false
+            this.provisionLayer(ul, vis);            
         }, this));       
         /* Tabulate the layer markup */
         this.layerMarkup();
@@ -54,16 +55,19 @@ magic.classes.UserLayerManagerForm.prototype.init = function() {
 magic.classes.UserLayerManagerForm.prototype.assignHandlers = function() {
     
     var form = jQuery("#" + this.id + "-form");
-    
+   
     /* Layer visibility checkboxes change handler */
-    form.find("[id$='-vis']").change(jQuery.proxy(function(evt) {  
-        var isChecked = jQuery(evt.currentTarget).prop("checked");
+    form.find("[id$='-vis']").change(jQuery.proxy(function(evt) {
+        evt.stopPropagation();
+        var cb = jQuery(evt.currentTarget);
+        var isChecked = cb.prop("checked");
         var selId = this.pkFromId(evt.currentTarget.id);
         if (selId != null && selId != "") {
             this.provisionLayer(this.userLayerData[selId], isChecked);               
         }
         /* Enable/disable the zoom to layer link for this layer according to checkbox state */
-        var ztl = jQuery(evt.currentTarget.id.replace(/vis$/, "ztl"));
+        var ulid = cb.closest("ul").attr("id");
+        var ztl = jQuery("#" + this.id + "-" + (ulid.indexOf("community") >= 0 ? "community": "user") + "-layer-ztl");
         if (isChecked) {
             ztl.closest("li").removeClass("disabled");
         } else {
@@ -218,104 +222,78 @@ magic.classes.UserLayerManagerForm.prototype.layerMarkup = function() {
     communityLayers.sort(function(a, b) {
         return(a.caption.localeCompare(b.caption));
     });
-    var userLayerInsertAt = jQuery("#" + this.id + "-user-layer-table").find(".panel-body");
+    
+    var userLayerInsertAt = jQuery("#" + this.id + "-user-layers");
     userLayerInsertAt.empty();
     if (userLayers.length == 0) {
         /* No records */
-        userLayerInsertAt.append('<div class="info">There are currently no user uploaded layers</div>');
+        userLayerInsertAt.append('<li class="dropdown-header">There are currently no user uploaded layers</li>');
     } else {
-        /* Tabular markup */
-        var tableHtml = 
-            '<table class="table table-striped table-condensed" style="margin-bottom:5px">' + 
-                '<tr><th>Layer</th><th>Owner</th><th colspan="4"></th></tr>';
-        jQuery.each(userLayers, jQuery.proxy(function(idx, ul) {
-            var pk = ul.id;
-            tableHtml += 
-                '<tr data-pk="' + pk + '">' + 
-                    '<input type="hidden" id="' + this.id + '-' + pk + '-id" value="' + pk + '">' +
-                    '<input type="hidden" id="' + this.id + '-' + pk + '-styledef" value="' + ul.styledef + '">' +
-                    '<td width="180px">' + 
-                        '<span data-toggle="tooltip" data-placement="bottom" data-html="true" ' + 
-                            'title="' + ul.caption + '<br/>' + ul.description + '<br/>Last modified on : ' + ul.modified_date  + '" role="button">' + 
-                            magic.modules.Common.ellipsis(ul.caption, 30) + 
-                        '</span>' + 
-                    '</td>' + 
-                    '<td width="50px">' + ul.owner + '</td>' + 
-                    '<td width="30px">' + 
-                        '<input id="' + this.id + '-' + pk + '-vis" type="checkbox"' + (ul.olLayer != null && ul.olLayer.getVisible() ? ' checked="checked"' : '') + '></input>' + 
-                    '</td>' +
-                    '<td width="30px">' + 
-                        '<a id="' + this.id + '-' + pk + '-edit" href="JavaScript:void(0)" rel="popover" data-toggle="popover" data-trigger="manual" data-placement="left">' + 
-                            '<i data-toggle="tooltip" data-placement="bottom" title="Edit layer data" style="font-size: 20px; color: #286090" class="fa fa-pencil"></i>' + 
-                        '</a>' + 
-                    '</td>' + 
-                    '<td width="30px">' + 
-                        '<a id="' + this.id + '-' + pk + '-del" href="Javascript:void(0)">' +
-                            '<i data-toggle="tooltip" data-placement="bottom" title="Delete this layer" style="font-size: 20px; color: #d9534f" class="fa fa-trash"></i>' + 
-                        '</a>' + 
-                    '</td>' + 
-                    '<td width="40px">' + 
-                        '<div class="dropdown">' + 
-                            '<button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown">' + 
-                                '<i class="fa fa-ellipsis-h"></i>&nbsp;&nbsp;<span class="caret"></span>' + 
-                            '</button>' + 
-                            '<ul class="dropdown-menu dropdown-menu-right">' + 
-                                '<li><a id="' + this.id + '-' + pk + '-ztl" href="Javascript:void(0)">Zoom to layer extent</a></li>' + 
-                                '<li role="separator" class="divider"></li>' + 
-                                '<li><a id="' + this.id + '-' + pk + '-wms" href="Javascript:void(0)">OGC WMS</a></li>' + 
-                                '<li><a id="' + this.id + '-' + pk + '-url" href="Javascript:void(0)">Direct data URL</a></li>' + 
-                                '<li><a id="' + this.id + '-' + pk + '-dld" href="Javascript:void(0)">Download data</a></li>' + 
-                            '</ul>' + 
+        /* Dropdown markup */
+        var idBase = this.id;
+        userLayerInsertAt.append(
+            '<li class="dropdown-header">' + 
+                '<div style="display:inline-block;width:20px">Vis</div>' + 
+                '<div style="display:inline-block;width:50px">Owner</div>' + 
+                '<div style="display:inline-block;width:200px">Name</div>' + 
+            '</li>'
+        );
+        jQuery.each(userLayers, function(idx, ul) {
+            userLayerInsertAt.append(
+                '<li data-pk="' + ul.id + '">' + 
+                    '<a id="' + idBase + '-' + ul.id + '-select" href="JavaScript:void(0)">' + 
+                        '<div style="display:inline-block;width:20px">' + 
+                            '<input id="' + idBase + '-' + ul.id + '-vis" type="checkbox"' + 
+                                (ul.olLayer != null && ul.olLayer.getVisible() ? ' checked="checked"' : '') + '>' + 
+                            '</input>' +
                         '</div>' + 
-                   '</td>' + 
-                '</tr>';
-        }, this));
-        tableHtml += '</table>';
-        userLayerInsertAt.append(tableHtml);
+                        '<div style="display:inline-block;width:50px">' + 
+                            ul.owner + 
+                        '</div>' + 
+                        '<div style="display:inline-block;width:200px" data-toggle="tooltip" data-html="true" data-placement="bottom" ' + 
+                            'title="' + ul.description + '<br/>Modified on : ' + magic.modules.Common.dateFormat(ul.modified_date, "dmy") + '">' + 
+                            magic.modules.Common.ellipsis(ul.caption, 30) + 
+                        '</div>' + 
+                    '</a>' + 
+                '</li>'
+            );
+        });
     }
-    var communityLayerInsertAt = jQuery("#" + this.id + "-community-layer-table").find(".panel-body");
+    var communityLayerInsertAt = jQuery("#" + this.id + "-community-layers");
     communityLayerInsertAt.empty();
     if (communityLayers.length == 0) {
         /* No records */
-        communityLayerInsertAt.append('<div class="info">There are currently no community uploaded layers</div>');
+        communityLayerInsertAt.append('<li class="dropdown-header">There are currently no community uploaded layers</li>');
     } else {
-        /* Tabular markup */
-        var tableHtml = 
-            '<table class="table table-striped table-condensed">' + 
-                '<tr><th>Layer</th><th>Owner</th><th>Vis</th><th>Actions</th></tr>';
-        jQuery.each(communityLayers, function(idx, ul) {
-            var pk = ul.id;
-            tableHtml += 
-                '<tr data-pk="' + pk + '">' + 
-                    '<input type="hidden" id="' + this.id + '-' + pk + '-id" value="' + pk + '">' +
-                    '<input type="hidden" id="' + this.id + '-' + pk + '-styledef" value="' + ul.styledef + '">' +
-                    '<td width="240px">' + 
-                        '<span data-toggle="tooltip" data-placement="bottom" data-html="true" ' + 
-                            'title="' + ul.description + '<br/>' + ul.modified_date  + '" role="button">' + ul.caption + 
-                        '</span>' + 
-                    '</td>' + 
-                    '<td width="50px">' + ul.owner + '</td>' + 
-                    '<td width="30px">' + 
-                        '<input id="' + this.id + '-' + pk + '-vis" type="checkbox"' + (ul.olLayer != null && ul.olLayer.getVisible() ? ' checked="checked"' : '') + '></input>' + 
-                    '</td>' +                    
-                    '<td width="40px">' + 
-                        '<div class="dropdown">' + 
-                            '<button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown">' + 
-                                '<i class="fa fa-ellipsis-h"></i>&nbsp;&nbsp;<span class="caret"></span>' + 
-                            '</button>' + 
-                            '<ul class="dropdown-menu dropdown-menu-right">' + 
-                                '<li><a id="' + this.id + '-' + pk + '-ztl" href="Javascript:void(0)">Zoom to layer extent</a></li>' + 
-                                '<li role="separator" class="divider"></li>' + 
-                                '<li><a id="' + this.id + '-' + pk + '-wms" href="Javascript:void(0)">OGC WMS</a></li>' + 
-                                '<li><a id="' + this.id + '-' + pk + '-url" href="Javascript:void(0)">Direct data URL</a></li>' + 
-                                '<li><a id="' + this.id + '-' + pk + '-dld" href="Javascript:void(0)">Download data</a></li>' + 
-                            '</ul>' + 
+        /* Dropdown markup */
+        var idBase = this.id;
+        communityLayerInsertAt.append(
+            '<li class="dropdown-header">' + 
+                '<div style="display:inline-block;width:20px">Vis</div>' + 
+                '<div style="display:inline-block;width:50px">Owner</div>' + 
+                '<div style="display:inline-block;width:200px">Name</div>' + 
+            '</li>'
+        );
+        jQuery.each(communityLayers, function(idx, cl) {
+            communityLayerInsertAt.append(
+                '<li data-pk="' + cl.id + '">' + 
+                    '<a id="' + idBase + '-' + cl.id + '-select" href="JavaScript:void(0)">' + 
+                        '<div style="display:inline-block;width:20px">' + 
+                            '<a><input id="' + idBase + '-' + cl.id + '-vis" type="checkbox"' + 
+                                (cl.olLayer != null && cl.olLayer.getVisible() ? ' checked="checked"' : '') + '>' + 
+                            '</input></a>' +
                         '</div>' + 
-                   '</td>' + 
-                '</tr>';
+                        '<div style="display:inline-block;width:50px">' + 
+                            cl.owner + 
+                        '</div>' + 
+                        '<div style="display:inline-block;width:200px" data-toggle="tooltip" data-html="true" data-placement="bottom" ' + 
+                            'title="' + cl.description + '<br/>Modified on : ' + magic.modules.Common.dateFormat(ul.modified_date, "dmy") + '">' + 
+                            magic.modules.Common.ellipsis(cl.caption, 30) + 
+                        '</div>' +  
+                    '<div>' + 
+                '</li>'
+            );
         });
-        tableHtml += '</table>';
-        communityLayerInsertAt.append(tableHtml);
     }
 };
 
@@ -325,7 +303,8 @@ magic.classes.UserLayerManagerForm.prototype.markup = function() {
             '<div class="form-group col-sm-12">' + 
                 '<div class="btn-toolbar">' + 
                     '<div class="btn-group" role="group">' + 
-                        '<button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown" style="width:180px">' + 
+                        '<button id="' + this.id + '-user-layer-select" type="button" class="btn btn-sm btn-default dropdown-toggle" ' + 
+                            'data-toggle="dropdown" style="width:180px">' + 
                             'Your uploaded layers <span class="caret"></span>' + 
                         '</button>' + 
                         '<ul id="' + this.id + '-user-layers" class="dropdown-menu">' +                     
@@ -345,7 +324,8 @@ magic.classes.UserLayerManagerForm.prototype.markup = function() {
                         '</button>' + 
                     '</div>' + 
                     '<div class="btn-group dropdown" role="group">' + 
-                        '<button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown" data-container="body">' + 
+                        '<button id="' + this.id + '-user-layer-actions" type="button" class="btn btn-sm btn-default dropdown-toggle" ' + 
+                            'data-toggle="dropdown" data-container="body">' + 
                             '<i data-toggle="tooltip" data-placement="bottom" title="Further actions" class="fa fa-ellipsis-h"></i>&nbsp;&nbsp;<span class="caret"></span>' + 
                         '</button>' + 
                         '<ul class="dropdown-menu dropdown-menu-right" style="overflow:auto">' + 
@@ -361,22 +341,24 @@ magic.classes.UserLayerManagerForm.prototype.markup = function() {
             '<div class="form-group col-sm-12">' + 
                 '<div class="btn-group" role="group">' + 
                     '<div class="btn-group" role="group">' + 
-                        '<button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown" style="width:180px">' + 
+                        '<button id="' + this.id + '-community-layer-select" type="button" class="btn btn-sm btn-default dropdown-toggle" ' + 
+                            'data-toggle="dropdown" style="width:180px">' + 
                             'Community layers <span class="caret"></span>' + 
                         '</button>' + 
                         '<ul id="' + this.id + '-community-layers" class="dropdown-menu">' +                     
                         '</ul>' + 
                     '</div>' +                     
                     '<div class="btn-group" role="group">' + 
-                        '<button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown">' + 
+                        '<button id="' + this.id + '-community-layer-actions" type="button" class="btn btn-sm btn-default dropdown-toggle" ' + 
+                            'data-toggle="dropdown" data-container="body">' + 
                             '<i data-toggle="tooltip" data-placement="bottom" title="Further actions" class="fa fa-ellipsis-h"></i>&nbsp;&nbsp;<span class="caret"></span>' + 
                         '</button>' + 
                         '<ul class="dropdown-menu dropdown-menu-right">' + 
-                            '<li><a id="' + this.id + '-user-layer-ztl" href="Javascript:void(0)">Zoom to layer extent</a></li>' + 
+                            '<li><a id="' + this.id + '-community-layer-ztl" href="Javascript:void(0)">Zoom to layer extent</a></li>' + 
                             '<li role="separator" class="divider"></li>' + 
-                            '<li><a id="' + this.id + '-user-layer-wms" href="Javascript:void(0)">OGC WMS</a></li>' + 
-                            '<li><a id="' + this.id + '-user-layer-url" href="Javascript:void(0)">Direct data URL</a></li>' + 
-                            '<li><a id="' + this.id + '-user-layer-dld" href="Javascript:void(0)">Download data</a></li>' + 
+                            '<li><a id="' + this.id + '-community-layer-wms" href="Javascript:void(0)">OGC WMS</a></li>' + 
+                            '<li><a id="' + this.id + '-community-layer-url" href="Javascript:void(0)">Direct data URL</a></li>' + 
+                            '<li><a id="' + this.id + '-community-layer-dld" href="Javascript:void(0)">Download data</a></li>' + 
                         '</ul>' + 
                     '</div>' + 
                 '</div>' + 
@@ -432,10 +414,7 @@ magic.classes.UserLayerManagerForm.prototype.fetchLayers = function(cb) {
  * @param {boolean} visible
  * @return {ol.Layer}
  */
-magic.classes.UserLayerManagerForm.prototype.provisionLayer = function(layerData, visible) { 
-    if (typeof visible !== "boolean") {
-        visible = this.userPayloadConfig[layerData.id] ? this.userPayloadConfig[layerData.id].visibility : false;
-    }
+magic.classes.UserLayerManagerForm.prototype.provisionLayer = function(layerData, visible) {     
     var olLayer = null;    
     var exData = this.userLayerData[layerData.id];
     var exLayer = exData ? exData.olLayer : null;    
@@ -445,11 +424,8 @@ magic.classes.UserLayerManagerForm.prototype.provisionLayer = function(layerData
             var md = layer.get("metadata");                        
             if (md && md.id == layerData.id) {
                 exLayer = layer;
-                visible = layer.getVisible();
             }
         });
-    } else {
-        visible = exLayer.getVisible();
     }
     if (exLayer == null) {
         if (visible) {
@@ -590,7 +566,7 @@ magic.classes.UserLayerManagerForm.prototype.getWmsStackTop = function(map) {
 magic.classes.UserLayerManagerForm.prototype.pkFromId = function(id) {
     var elt = jQuery("#" + id);
     if (elt.length > 0) {
-        return(elt.closest("tr").attr("data-pk"));
+        return(elt.closest("li").attr("data-pk"));
     }    
     return(null);
 };

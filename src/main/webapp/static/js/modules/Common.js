@@ -634,26 +634,22 @@ magic.modules.Common = function () {
            return(false);
         },
         /**
-         * Convert date value to format
+         * Convert date value to format, discarding times
          * @param {string} value
-         * @param {string} format (dmy|ymd)
+         * @param {string} format (dmy|ymd) which give dd-mm-YYYY and YYYY-mm-dd respectively
          * @returns {string} the date formatted accordingly
          */
         dateFormat: function (value, format) {
-            value = value + "";     /* Cope with integer dates like 1977 passed in which aren't strings... - David 07/04/2016 */
             var formattedValue = value;
-            var dateParts = value.substring(0, 10).split(/[^\d]/);
-            var dateRest = value.substring(10);
-            if (dateParts.length == 3) {
-                /* Determine current format */
-                if ((dateParts[0].length == 4 && format == "dmy") || (dateParts[0].length == 2 && format == "ymd")) {
-                    /* Currently ymd => dmy, or currently dmy => ymd */
-                    formattedValue = dateParts[2] + "-" + dateParts[1] + "-" + dateParts[0];
-                    if (dateRest != "") {
-                        formattedValue += dateRest;
-                    }
-                }
-            }
+            var d = new Date(value);
+            if (value.toLowerCase().indexOf("invalid") == -1) {
+                var dd = d.getDate();
+                dd = (dd < 10 ? "0" : "") + dd;
+                var mm = d.getMonth();
+                mm = (mm < 10 ? "0" : "") + mm;
+                var yyyy = d.getFullYear();
+                formattedValue = (format == "dmy" ? dd + "-" + mm + "-" + yyyy : yyyy + "-" + mm + "-" + dd);
+            }            
             return(formattedValue);
         },
         /**
