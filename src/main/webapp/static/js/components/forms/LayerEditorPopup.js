@@ -19,7 +19,30 @@ magic.classes.LayerEditorPopup = function(options) {
     
     this.subForms.styler = null;
     
-    this.setTarget(this.target);
+    this.target.popover({
+        template: this.template,
+        title: this.titleMarkup(),
+        container: "body",
+        html: true,
+        trigger: "manual",
+        content: this.markup()
+    }).on("shown.bs.popover", jQuery.proxy(function(evt) {
+        
+        jQuery("#" + this.id + "-layer-caption").focus();
+        
+        this.savedState = {};
+        this.assignCloseButtonHandler();
+        
+        /* Create the styler popup dialog */
+        this.subForms.styler = new magic.classes.StylerPopup({
+            target: this.id + "-layer-style-edit",
+            onSave: jQuery.proxy(this.writeStyle, this)                    
+        });
+        
+        this.payloadToForm(this.prePopulator);
+        this.assignHandlers();
+        this.restoreState();
+    }, this));
        
 };
 
@@ -99,45 +122,6 @@ magic.classes.LayerEditorPopup.prototype.markup = function() {
             '</div>' +  
         '</div>'
     );
-};
-
-/**
- * Point the popover form at a new target
- * @param {type} target
- * @return {undefined}
- */
-magic.classes.LayerEditorPopup.prototype.setTarget = function (target) {
-    
-    if (this.isActive()) {
-        /* Only allow one pop-up open at once */
-        this.deactivate();
-    }
-    
-    this.target = target;
-    this.target.popover({
-        template: this.template,
-        title: this.titleMarkup(),
-        container: "body",
-        html: true,
-        trigger: "manual",
-        content: this.markup()
-    }).on("shown.bs.popover", jQuery.proxy(function(evt) {
-        
-        jQuery("#" + this.id + "-layer-caption").focus();
-        
-        this.savedState = {};
-        this.assignCloseButtonHandler();
-        
-        /* Create the styler popup dialog */
-        this.subForms.styler = new magic.classes.StylerPopup({
-            target: this.id + "-layer-style-edit",
-            onSave: jQuery.proxy(this.writeStyle, this)                    
-        });
-        
-        this.payloadToForm(this.prePopulator);
-        this.assignHandlers();
-        this.restoreState();
-    }, this));
 };
 
 magic.classes.LayerEditorPopup.prototype.assignHandlers = function() {

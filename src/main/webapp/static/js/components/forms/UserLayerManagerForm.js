@@ -28,8 +28,8 @@ magic.classes.UserLayerManagerForm = function(options) {
     /* Saved state for restore after popup minimise */
     this.savedState = {};
     
-    /* Current edit tracker */
-    this.currentEdit = null;
+    /* Current selection tracker */
+    this.currentSelection = null;
     
 };
 
@@ -55,35 +55,18 @@ magic.classes.UserLayerManagerForm.prototype.init = function() {
 magic.classes.UserLayerManagerForm.prototype.assignHandlers = function() {
     
     var form = jQuery("#" + this.id + "-form");
+    
+    /* Dropdown layer selection handler */
+    form.find("a[id$='-layer-select']").click(jQuery.proxy(this.selectLayer, this));
    
     /* Layer visibility checkboxes change handler */
-    form.find("[id$='-vis']").change(jQuery.proxy(function(evt) {
-        evt.stopPropagation();
-        var cb = jQuery(evt.currentTarget);
-        var isChecked = cb.prop("checked");
-        var selId = this.pkFromId(evt.currentTarget.id);
-        if (selId != null && selId != "") {
-            this.provisionLayer(this.userLayerData[selId], isChecked);               
-        }
-        /* Enable/disable the zoom to layer link for this layer according to checkbox state */
-        var ulid = cb.closest("ul").attr("id");
-        var ztl = jQuery("#" + this.id + "-" + (ulid.indexOf("community") >= 0 ? "community": "user") + "-layer-ztl");
-        if (isChecked) {
-            ztl.closest("li").removeClass("disabled");
-        } else {
-            ztl.closest("li").addClass("disabled");
-        }
-    }, this));
+    form.find("[id$='-layer-vis']").change(jQuery.proxy(this.selectLayer, this));
     
     /* Zoom to layer link handlers */
-    form.find("[id$='-ztl']").click(jQuery.proxy(function(evt) {
-        if (jQuery(evt.currentTarget).closest("li").hasClass("disabled")) {
-            return(false);
-        }
-        var selId = this.pkFromId(evt.currentTarget.id);
-        if (selId != null && selId != "") {
+    form.find("[id$='-layer-ztl']").click(jQuery.proxy(function(evt) {        
+        if (this.currentSelection) {
             jQuery.ajax({
-                url: magic.config.paths.baseurl + "/userlayers/" + selId + "/extent", 
+                url: magic.config.paths.baseurl + "/userlayers/" + this.currentSelection + "/extent", 
                 method: "GET",
                 dataType: "json",
                 contentType: "application/json"
@@ -100,72 +83,57 @@ magic.classes.UserLayerManagerForm.prototype.assignHandlers = function() {
     }, this));
     
     /* WMS URL links */
-    form.find("[id$='-wms']").click(jQuery.proxy(function(evt) {             
+    form.find("[id$='-layer-wms']").click(jQuery.proxy(function(evt) {             
         bootbox.prompt({
             "title": "WMS URL",
-            "value": this.layerWmsUrl(this.pkFromId(evt.currentTarget.id)),
+            "value": this.layerWmsUrl(),
             "callback": function(){}
         });
     }, this));
     
     /* Direct data URL link */
-    form.find("[id$='-url']").click(jQuery.proxy(function(evt) {             
+    form.find("[id$='-layer-url']").click(jQuery.proxy(function(evt) {             
         bootbox.prompt({
             "title": "Direct data feed URL",
-            "value": this.layerDirectUrl(this.pkFromId(evt.currentTarget.id)),
+            "value": this.layerDirectUrl(),
             "callback": function(){}
         });
     }, this));        
     
     /* Data download link */
-    form.find("[id$='-dld']").click(jQuery.proxy(function(evt) {
-        var dldUrl = this.layerDirectUrl(this.pkFromId(evt.currentTarget.id));
-        if (dldUrl) {
-            window.open(dldUrl);
-        } else {
-            bootbox.alert(
-                '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                    '<p>Please select a layer</p>' + 
-                '</div>'
-            );
-        }
+    form.find("[id$='-layer-dld']").click(jQuery.proxy(function(evt) {
+        window.open(this.layerDirectUrl());       
     }, this));
     
-    /* New layer button */
+    /* New user layer button */
     jQuery("#" + this.id + "-user-layer-add").click(jQuery.proxy(function(evt) {
         if (!this.editorPopup) {
             this.editorPopup = new magic.classes.LayerEditorPopup({
                 target: evt.currentTarget.id,
                 onSave: jQuery.proxy(this.init, this)
             });
-        } else {
-            this.editorPopup.setTarget(jQuery("#" + evt.currentTarget.id));
         }
         this.editorPopup.activate({});
-        this.currentEdit = evt.currentTarget.id;
     }, this));
     
-    /* Edit layer button */
-    form.find("[id$='-edit']").click(jQuery.proxy(function(evt) {   
+    /* Edit user layer button */
+    jQuery("#" + this.id + "-user-layer-edit").click(jQuery.proxy(function(evt) {   
         if (!this.editorPopup) {
             this.editorPopup = new magic.classes.LayerEditorPopup({
                 target: evt.currentTarget.id,
                 onSave: jQuery.proxy(this.init, this)
             });
-        } else {
-            this.editorPopup.setTarget(jQuery("#" + evt.currentTarget.id));
         }
-        this.editorPopup.activate(this.userLayerData[this.pkFromId(evt.currentTarget.id)]);
-        this.currentEdit = evt.currentTarget.id;
+        this.editorPopup.activate(this.userLayerData[this.currentSelection]);
     }, this));
     
-    /* Delete layer button */
-    form.find("[id$='-del']").click(jQuery.proxy(function(evt) {            
+    /* Delete user layer button */
+    jQuery("#" + this.id + "-user-layer-del").click(jQuery.proxy(function(evt) {            
         evt.preventDefault();
         bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">Are you sure you want to delete this layer?</div>', jQuery.proxy(function(result) {
             if (result) {
                 /* Do the deletion */
-                var id = this.pkFromId(evt.currentTarget.id);
+                var id = this.currentSelection;
                 jQuery.ajax({
                     url: magic.config.paths.baseurl + "/userlayers/delete/" + id,
                     method: "DELETE",
@@ -177,12 +145,10 @@ magic.classes.UserLayerManagerForm.prototype.assignHandlers = function() {
                 })
                 .done(jQuery.proxy(function(uldata) {
                     /* Now delete the corresponding layer and data */
-                    if (id in this.userLayerData) {
-                        if (this.userLayerData[id].olLayer) {
-                            this.map.removeLayer(this.userLayerData[id].olLayer);
-                        }
+                    if (this.userLayerData[id] && this.userLayerData[id].olLayer) {
+                        this.map.removeLayer(this.userLayerData[id].olLayer);
                         delete this.userLayerData[id];
-                    }
+                    }                        
                 }, this))
                 .fail(function (xhr) {
                     bootbox.alert(
@@ -241,9 +207,9 @@ magic.classes.UserLayerManagerForm.prototype.layerMarkup = function() {
         jQuery.each(userLayers, function(idx, ul) {
             userLayerInsertAt.append(
                 '<li data-pk="' + ul.id + '">' + 
-                    '<a id="' + idBase + '-' + ul.id + '-select" href="JavaScript:void(0)">' + 
+                    '<a id="' + idBase + '-' + ul.id + '-user-layer-select" href="JavaScript:void(0)">' + 
                         '<div style="display:inline-block;width:20px">' + 
-                            '<input id="' + idBase + '-' + ul.id + '-vis" type="checkbox"' + 
+                            '<input id="' + idBase + '-' + ul.id + '-user-layer-vis" type="checkbox"' + 
                                 (ul.olLayer != null && ul.olLayer.getVisible() ? ' checked="checked"' : '') + '>' + 
                             '</input>' +
                         '</div>' + 
@@ -277,11 +243,11 @@ magic.classes.UserLayerManagerForm.prototype.layerMarkup = function() {
         jQuery.each(communityLayers, function(idx, cl) {
             communityLayerInsertAt.append(
                 '<li data-pk="' + cl.id + '">' + 
-                    '<a id="' + idBase + '-' + cl.id + '-select" href="JavaScript:void(0)">' + 
+                    '<a id="' + idBase + '-' + cl.id + '-community-layer-select" href="JavaScript:void(0)">' + 
                         '<div style="display:inline-block;width:20px">' + 
-                            '<a><input id="' + idBase + '-' + cl.id + '-vis" type="checkbox"' + 
+                            '<input id="' + idBase + '-' + cl.id + '-community-layer-vis" type="checkbox"' + 
                                 (cl.olLayer != null && cl.olLayer.getVisible() ? ' checked="checked"' : '') + '>' + 
-                            '</input></a>' +
+                            '</input>' +
                         '</div>' + 
                         '<div style="display:inline-block;width:50px">' + 
                             cl.owner + 
@@ -305,14 +271,14 @@ magic.classes.UserLayerManagerForm.prototype.markup = function() {
                     '<div class="btn-group" role="group">' + 
                         '<button id="' + this.id + '-user-layer-select" type="button" class="btn btn-sm btn-default dropdown-toggle" ' + 
                             'data-toggle="dropdown" style="width:180px">' + 
-                            'Your uploaded layers <span class="caret"></span>' + 
+                            'Your uploaded layers&nbsp;&nbsp;<span class="caret"></span>' + 
                         '</button>' + 
                         '<ul id="' + this.id + '-user-layers" class="dropdown-menu">' +                     
                         '</ul>' + 
                     '</div>' + 
                     '<div class="btn-group" role="group">' + 
                         '<button id="' + this.id + '-user-layer-add" class="btn btn-sm btn-primary" type="button" ' + 
-                            'data-toggle="popover" data-trigger="manual" data-placement="right">' + 
+                            'data-toggle="popover" data-trigger="manual" data-placement="left">' + 
                             '<i data-toggle="tooltip" data-placement="bottom" title="Add a new layer" class="fa fa-star"></i>' + 
                         '</button>' +
                         '<button type="button" class="btn btn-sm btn-warning" id="' + this.id + '-user-layer-edit" ' + 
@@ -343,7 +309,7 @@ magic.classes.UserLayerManagerForm.prototype.markup = function() {
                     '<div class="btn-group" role="group">' + 
                         '<button id="' + this.id + '-community-layer-select" type="button" class="btn btn-sm btn-default dropdown-toggle" ' + 
                             'data-toggle="dropdown" style="width:180px">' + 
-                            'Community layers <span class="caret"></span>' + 
+                            'Community layers&nbsp;&nbsp;<span class="caret"></span>' + 
                         '</button>' + 
                         '<ul id="' + this.id + '-community-layers" class="dropdown-menu">' +                     
                         '</ul>' + 
@@ -367,9 +333,48 @@ magic.classes.UserLayerManagerForm.prototype.markup = function() {
     );
 };
 
+/**
+ * Set the selection button caption to the name of the currently focussed layer, and indicate visibility on the map
+ * @param {jQuery.Event} selection event
+ */
+magic.classes.UserLayerManagerForm.prototype.selectLayer = function(evt) {
+    var selId = null;
+    var targetId = evt.currentTarget.id;
+    var elt = jQuery("#" + targetId);
+    if (elt.length > 0) {
+        selId = elt.closest("li").attr("data-pk");
+    }        
+    if (selId != null && selId != "") {
+        var ztlId = null;
+        var isChecked = false;        
+        if (elt.attr("type") == "checkbox") {
+            isChecked = elt.prop("checked");
+            this.provisionLayer(this.userLayerData[selId], isChecked);
+            ztlId = targetId.replace(/-vis$/, "-ztl").replace(selId + "-", "");
+        } else {
+            ztlId = targetId.replace(/-select$/, "-ztl").replace(selId + "-", "");
+        }
+        /* Enable/disable the zoom to layer link for this layer according to checkbox state */
+        var ztl = jQuery("#" + ztlId);
+        if (isChecked) {
+            ztl.closest("li").removeClass("disabled");
+        } else {
+            ztl.closest("li").addClass("disabled");
+        }
+        /* Set the dropdown button caption and visibility indicator */
+        elt.closest(".dropdown-menu").prev().html(
+            '<i class="fa fa-eye' + (isChecked ? "" : "-slash") + '" style="font-size:16px"></i>&nbsp;&nbsp;' + 
+            magic.modules.Common.ellipsis(this.userLayerData[selId].caption, 25) + "&nbsp;&nbsp;" + 
+            '<span class="caret"></span>'
+        );
+        /* Finally record the current selection */
+        this.currentSelection = selId;
+    }
+};
+
 magic.classes.UserLayerManagerForm.prototype.saveState = function() {    
     this.savedState = {
-        editing: this.currentEdit || null
+        editing: this.currentSelection || null
     };
     console.log("============ Save state ============");
     console.log(this.savedState);
@@ -512,11 +517,10 @@ magic.classes.UserLayerManagerForm.prototype.provisionLayer = function(layerData
 
 /**
  * Return the WMS URL for the selected layer
- * @param {String} selId 
  */
-magic.classes.UserLayerManagerForm.prototype.layerWmsUrl = function(selId) {
-    if (selId && this.userLayerData[selId]) {
-        var ld = this.userLayerData[selId];
+magic.classes.UserLayerManagerForm.prototype.layerWmsUrl = function() {
+    if (this.currentSelection && this.userLayerData[this.currentSelection]) {
+        var ld = this.userLayerData[this.currentSelection];
         return(magic.config.paths.baseurl + "/ogc/user/wms?SERVICE=WMS&" + 
             "VERSION=1.3.0&" + 
             "REQUEST=GetMap&" + 
@@ -537,10 +541,9 @@ magic.classes.UserLayerManagerForm.prototype.layerWmsUrl = function(selId) {
 
 /**
  * Return the direct data URL for the selected layer
- * @param {String} selId 
  */
-magic.classes.UserLayerManagerForm.prototype.layerDirectUrl = function(selId) {
-    return(selId ? magic.config.paths.baseurl + "/userlayers/" + selId + "/data" : "");
+magic.classes.UserLayerManagerForm.prototype.layerDirectUrl = function() {
+    return(this.currentSelection ? magic.config.paths.baseurl + "/userlayers/" + this.currentSelection + "/data" : "");
 };
 
 /**
@@ -559,19 +562,6 @@ magic.classes.UserLayerManagerForm.prototype.getWmsStackTop = function(map) {
 };
 
 /**
- * Get layer primary key id from input id of form <stuff>-<pk>-<inputname>
- * @param {String} id
- * @return {String}
- */
-magic.classes.UserLayerManagerForm.prototype.pkFromId = function(id) {
-    var elt = jQuery("#" + id);
-    if (elt.length > 0) {
-        return(elt.closest("li").attr("data-pk"));
-    }    
-    return(null);
-};
-
-/**
  * Zap any open pop-ups (used when changing tab)
  * @param {boolean} quiet suppress warnings about unsaved edits
  */
@@ -580,4 +570,3 @@ magic.classes.UserLayerManagerForm.prototype.tidyUp = function(quiet) {
         this.editorPopup.deactivate(quiet);
     }
 };
-
