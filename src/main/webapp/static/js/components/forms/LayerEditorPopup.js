@@ -42,6 +42,7 @@ magic.classes.LayerEditorPopup = function(options) {
         this.payloadToForm(this.prePopulator);
         this.assignHandlers();
         this.restoreState();
+        this.initDropzone();
     }, this));
        
 };
@@ -51,8 +52,7 @@ magic.classes.LayerEditorPopup.prototype.constructor = magic.classes.LayerEditor
 
 magic.classes.LayerEditorPopup.prototype.markup = function() {
     return(
-        '<div class="col-sm-12 well well-sm edit-view-fs">' +
-            '<div id="' + this.id + '-layer-edit-title" class="form-group form-group-sm col-sm-12"><strong>Upload a new layer</strong></div>' +
+        '<div id="' + this.id + '-edit-view-fs" class="col-sm-12 well well-sm">' +
             '<input type="hidden" id="' + this.id + '-layer-id"></input>' + 
             '<input type="hidden" id="' + this.id + '-layer-styledef"></input>' +
             '<div class="form-group form-group-sm col-sm-12">' +                     
@@ -208,6 +208,14 @@ magic.classes.LayerEditorPopup.prototype.payloadToForm = function(populator) {
     if (typeof styledef === "string") {
         styledef = JSON.parse(styledef);
     }
+    /* Last modified */
+    var lastMod = jQuery("#" + this.id + "-layer-last-mod");
+    if (populator.modified_date) {
+        lastMod.closest("div.form-group").removeClass("hidden");
+        lastMod.text(magic.modules.Common.dateFormat(populator.modified_date, "dmy"));
+    } else {
+        lastMod.closest("div.form-group").addClass("hidden");
+    }
     /* Set styling mode, and trigger styler popover if necessary */
     var mode = styledef["mode"];
     jQuery("#" + this.id + "-layer-style-mode").val(mode);
@@ -219,7 +227,7 @@ magic.classes.LayerEditorPopup.prototype.payloadToForm = function(populator) {
  */
 magic.classes.LayerEditorPopup.prototype.validate = function() {
     var ok = true;
-    var editFs = jQuery("div.edit-view-fs");
+    var editFs = jQuery("#" + this.id + "-edit-view-fs");
     jQuery.each(editFs.find("input[required='required']"), function(idx, ri) {
         var riEl = jQuery(ri);
         var fg = riEl.closest("div.form-group");

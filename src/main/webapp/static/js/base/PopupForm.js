@@ -103,6 +103,14 @@ magic.classes.PopupForm.prototype.getTemplate = function () {
     return(this.template);
 };
 
+magic.classes.PopupForm.prototype.getCaption = function () {
+    return(this.caption);
+};
+
+magic.classes.PopupForm.prototype.setCaption = function (newCaption) {
+    this.caption = newCaption;
+};
+
 magic.classes.PopupForm.prototype.isActive = function () {
     return(this.active);
 };

@@ -111,7 +111,7 @@ magic.classes.AttributionModal.prototype.legendMarkup = function() {
                     /* User may have changed the style of the layer, so important that we don't retrieve from browser cache - David 17/02/2017 */
                     var cacheBuster = "&buster=" + new Date().getTime();
                     legendUrl = magic.modules.Endpoints.getOgcEndpoint(wmsUrl, "wms") + 
-                         "?service=WMS&request=GetLegendGraphic&format=image/png&width=20&height=20&styles=" + styles + "&layer=" + md.source.feature_name + 
+                        "?service=WMS&request=GetLegendGraphic&format=image/png&width=20&height=20&styles=" + styles + "&layer=" + md.source.feature_name + 
                         "&legend_options=fontName:Bitstream Vera Sans Mono;fontAntiAliasing:true;fontColor:0xffffff;fontSize:6;bgColor:0x272b30;dpi:180" + cacheBuster;
                 }
             }
