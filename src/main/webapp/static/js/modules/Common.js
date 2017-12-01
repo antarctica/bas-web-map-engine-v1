@@ -645,7 +645,7 @@ magic.modules.Common = function () {
             if (value.toLowerCase().indexOf("invalid") == -1) {
                 var dd = d.getDate();
                 dd = (dd < 10 ? "0" : "") + dd;
-                var mm = d.getMonth();
+                var mm = d.getMonth()+1;
                 mm = (mm < 10 ? "0" : "") + mm;
                 var yyyy = d.getFullYear();
                 formattedValue = (format == "dmy" ? dd + "-" + mm + "-" + yyyy : yyyy + "-" + mm + "-" + dd);

@@ -72,7 +72,7 @@ magic.classes.StylerPopup.prototype.assignHandlers = function(payload) {
 };
 
 magic.classes.StylerPopup.prototype.saveForm = function() {    
-    jQuery("#" + this.id + "-save").trigger("click");   
+    jQuery("#" + this.id + "-go").trigger("click");   
 };
 
 magic.classes.StylerPopup.prototype.markup = function() {
@@ -189,7 +189,7 @@ magic.classes.StylerPopup.prototype.restoreState = function() {
     }
 };
 
-magic.classes.StylerPopup.formToPayload = function() {
+magic.classes.StylerPopup.prototype.formToPayload = function() {
     var styleDef = {};
     jQuery.each(this.styleInputs, jQuery.proxy(function(idx, sip) {
         styleDef[sip] = jQuery("#" + this.id + "-" + sip).val();

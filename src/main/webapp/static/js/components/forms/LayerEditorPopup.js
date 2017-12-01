@@ -132,6 +132,11 @@ magic.classes.LayerEditorPopup.prototype.assignHandlers = function() {
         this.formEdited = true;
     }, this));
     
+    /* Change handler for style mode */
+    jQuery("#" + this.id + "-layer-style-mode").change(jQuery.proxy(function(evt) {
+        jQuery("#" + this.id + "-layer-styledef").val("{\"mode\":\"" + jQuery(evt.currentTarget).val() + "\"}");
+    }, this));
+    
     /* Style edit button */
     jQuery("#" + this.id + "-layer-style-edit").click(jQuery.proxy(function(evt) {
         var styledef = jQuery("#" + this.id + "-layer-styledef").val();
@@ -156,7 +161,7 @@ magic.classes.LayerEditorPopup.prototype.assignHandlers = function() {
  */
 magic.classes.LayerEditorPopup.prototype.writeStyle = function(styledef) {
     styledef = styledef || {"mode": "default"};
-    jQuery("#" + this.id + "-layer-styledef") = JSON.stringify(styledef);
+    jQuery("#" + this.id + "-layer-styledef").val(JSON.stringify(styledef));
 };
 
 magic.classes.LayerEditorPopup.prototype.saveForm = function() {
@@ -182,12 +187,8 @@ magic.classes.LayerEditorPopup.prototype.formToPayload = function() {
     var payload = {};
     var mode = jQuery("#" + this.id + "-layer-style-mode").val();
     jQuery.each(this.inputs, jQuery.proxy(function(idx, ip) {
-        if (ip == "styledef") {
-            if (mode == "point" || mode == "line" || mode =="polygon") {
-                payload[ip] = JSON.stringify(this.subForms.styler.formToPayload());
-            } else {
-                payload[ip] = "{\"mode\": \"" + mode + "\"}";
-            }
+        if (ip == "styledef" && (mode == "default" || mode == "file")) {            
+            payload[ip] = "{\"mode\": \"" + mode + "\"}";
         } else {
             payload[ip] = jQuery("#" + this.id + "-layer-" + ip).val();
         }
@@ -216,9 +217,8 @@ magic.classes.LayerEditorPopup.prototype.payloadToForm = function(populator) {
     } else {
         lastMod.closest("div.form-group").addClass("hidden");
     }
-    /* Set styling mode, and trigger styler popover if necessary */
-    var mode = styledef["mode"];
-    jQuery("#" + this.id + "-layer-style-mode").val(mode);
+    /* Set styling mode */
+    jQuery("#" + this.id + "-layer-style-mode").val(styledef["mode"]);
 };
 
 /**
