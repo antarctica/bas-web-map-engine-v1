@@ -57,7 +57,7 @@ magic.classes.StylerPopup.prototype.assignHandlers = function(payload) {
         this.formEdited = true;
     }, this));
     
-    jQuery("#" + this.id + "-save").click(jQuery.proxy(function() {
+    jQuery("#" + this.id + "-go").click(jQuery.proxy(function() {
         this.cleanForm();
         if (jQuery.isFunction(this.controlCallbacks["onSave"])) {
             this.controlCallbacks["onSave"](this.formToPayload());

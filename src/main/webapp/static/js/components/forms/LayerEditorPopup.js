@@ -186,7 +186,7 @@ magic.classes.LayerEditorPopup.prototype.formToPayload = function() {
             if (mode == "point" || mode == "line" || mode =="polygon") {
                 payload[ip] = JSON.stringify(this.subForms.styler.formToPayload());
             } else {
-                payload[ip] = "{mode: " + mode + "}";
+                payload[ip] = "{\"mode\": \"" + mode + "\"}";
             }
         } else {
             payload[ip] = jQuery("#" + this.id + "-layer-" + ip).val();
@@ -309,10 +309,10 @@ magic.classes.LayerEditorPopup.prototype.initDropzone = function() {
                 var response = JSON.parse(file.xhr.responseText);                
                 if (response.status < 400) {
                     /* Successful save */
-                    this.cleanForm();
+                    this.lep.cleanForm();
                     magic.modules.Common.buttonClickFeedback(this.lep.id, true, response.detail);
-                    if (jQuery.isFunction(this.controlCallbacks["onSave"])) {
-                        this.controlCallbacks["onSave"]();  /* NB need payload from somewhere */
+                    if (jQuery.isFunction(this.lep.controlCallbacks["onSave"])) {
+                        this.lep.controlCallbacks["onSave"]();  /* NB need payload from somewhere */
                     }
                     setTimeout(jQuery.proxy(function() {
                         this.deactivate();
