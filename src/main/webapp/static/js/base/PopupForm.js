@@ -80,7 +80,7 @@ magic.classes.PopupForm = function (options) {
     this.formEdited = false; 
     
     /* The state of the form on save */
-    this.savedState = {};
+    this.clearState();
     
     /* Popover template */    
     this.template = 
@@ -160,6 +160,16 @@ magic.classes.PopupForm.prototype.deactivate = function (quiet) {
     if (jQuery.isFunction(this.controlCallbacks["onDeactivate"])) {
         this.controlCallbacks["onDeactivate"](quiet);
     }
+};
+
+/**
+ * Deactivate the control after n milliseconds
+ * @param {int} wait time
+ */
+magic.classes.PopupForm.prototype.delayedDeactivate = function (millis) {    
+    setTimeout(jQuery.proxy(function() {
+        this.deactivate(true);
+    }, this), millis);
 };
 
 /**

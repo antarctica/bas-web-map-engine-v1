@@ -313,9 +313,7 @@ magic.classes.LayerEditorPopup.prototype.initDropzone = function() {
                     if (jQuery.isFunction(this.lep.controlCallbacks["onSave"])) {
                         this.lep.controlCallbacks["onSave"]();
                     }
-                    setTimeout(jQuery.proxy(function() {
-                        this.deactivate(true);
-                    }, this.lep), 2000);
+                    this.lep.delayedDeactivate(2000);
                 } else {
                     /* Failed to save */
                     bootbox.alert(
@@ -362,9 +360,7 @@ magic.classes.LayerEditorPopup.prototype.initDropzone = function() {
                                 if (jQuery.isFunction(this.controlCallbacks["onSave"])) {
                                     this.controlCallbacks["onSave"]();
                                 }
-                                setTimeout(jQuery.proxy(function() {
-                                    this.deactivate(true);
-                                }, this), 2000);    
+                                this.delayedDeactivate(2000);                                  
                             }, this.lep))
                             .fail(function (xhr) {
                                 bootbox.alert(

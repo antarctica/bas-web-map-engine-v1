@@ -209,7 +209,7 @@ magic.classes.UserLayerManagerForm.prototype.assignHandlers = function() {
     this.addLegendHoverHandler("community");    
     
     /* New user layer button */
-    jQuery("#" + this.id + "-user-layer-add").off("click").on("click", jQuery.proxy(function(evt) {        
+    this.controls.user.btn.add.off("click").on("click", jQuery.proxy(function(evt) {        
         this.editorPopups.add = new magic.classes.LayerEditorPopup({
             id: "layer-add-popup-tool",
             caption: "Add new layer",
@@ -223,7 +223,7 @@ magic.classes.UserLayerManagerForm.prototype.assignHandlers = function() {
     }, this));
     
     /* Edit user layer button */
-    jQuery("#" + this.id + "-user-layer-edit").off("click").on("click", jQuery.proxy(function(evt) {        
+    this.controls.user.btn.edit.off("click").on("click", jQuery.proxy(function(evt) {        
         this.editorPopups.edit = new magic.classes.LayerEditorPopup({
             id: "layer-edit-popup-tool",
             caption: "Edit existing layer data",
@@ -237,7 +237,7 @@ magic.classes.UserLayerManagerForm.prototype.assignHandlers = function() {
     }, this));
     
     /* Delete user layer button */
-    jQuery("#" + this.id + "-user-layer-del").off("click").on("click", jQuery.proxy(function(evt) {            
+    this.controls.user.btn.del.off("click").on("click", jQuery.proxy(function(evt) {            
         evt.preventDefault();
         bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">Are you sure you want to delete this layer?</div>', jQuery.proxy(function(result) {
             if (result) {
