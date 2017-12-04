@@ -62,7 +62,7 @@ magic.classes.StylerPopup.prototype.assignHandlers = function(payload) {
         if (jQuery.isFunction(this.controlCallbacks["onSave"])) {
             this.controlCallbacks["onSave"](this.formToPayload());
         }
-        this.deactivate();
+        this.deactivate(true);
     }, this));
     
     jQuery("#" + this.id + "-cancel").click(jQuery.proxy(function() {

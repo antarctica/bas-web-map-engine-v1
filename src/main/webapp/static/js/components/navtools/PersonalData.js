@@ -98,14 +98,14 @@ magic.classes.PersonalData.prototype.onDeactivateHandler = function() {
                         this.tabForms[openTab].saveForm();
                     }                
                 } else {
-                    this.tidyUp(false);
+                    this.tidyUp(true);
                     this.savedState = {};
                     this.target.popover("hide");
                 }                
             }, this)
         });
     } else {
-        this.tidyUp(false);
+        this.tidyUp(true);
         this.savedState = {};
         this.target.popover("hide");
     }    

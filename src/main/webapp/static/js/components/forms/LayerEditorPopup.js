@@ -128,7 +128,7 @@ magic.classes.LayerEditorPopup.prototype.assignHandlers = function() {
     
     /* Detect changes to the form */
     this.formEdited = false;
-    jQuery("div.edit-view-fs :input").change(jQuery.proxy(function() {
+    jQuery("#" + this.id + "-edit-view-fs :input").change(jQuery.proxy(function() {
         this.formEdited = true;
     }, this));
     
@@ -305,17 +305,16 @@ magic.classes.LayerEditorPopup.prototype.initDropzone = function() {
         },
         init: function () {
             this.on("complete", jQuery.proxy(function(file) {
-                console.log(file);
                 var response = JSON.parse(file.xhr.responseText);                
                 if (response.status < 400) {
                     /* Successful save */
                     this.lep.cleanForm();
                     magic.modules.Common.buttonClickFeedback(this.lep.id, true, response.detail);
                     if (jQuery.isFunction(this.lep.controlCallbacks["onSave"])) {
-                        this.lep.controlCallbacks["onSave"]();  /* NB need payload from somewhere */
+                        this.lep.controlCallbacks["onSave"]();
                     }
                     setTimeout(jQuery.proxy(function() {
-                        this.deactivate();
+                        this.deactivate(true);
                     }, this.lep), 2000);
                 } else {
                     /* Failed to save */
@@ -361,10 +360,10 @@ magic.classes.LayerEditorPopup.prototype.initDropzone = function() {
                                 this.cleanForm();
                                 magic.modules.Common.buttonClickFeedback(this.id, jQuery.isNumeric(response) || response.status < 400, response.detail); 
                                 if (jQuery.isFunction(this.controlCallbacks["onSave"])) {
-                                    this.controlCallbacks["onSave"](formdata);
+                                    this.controlCallbacks["onSave"]();
                                 }
                                 setTimeout(jQuery.proxy(function() {
-                                    this.deactivate();
+                                    this.deactivate(true);
                                 }, this), 2000);    
                             }, this.lep))
                             .fail(function (xhr) {

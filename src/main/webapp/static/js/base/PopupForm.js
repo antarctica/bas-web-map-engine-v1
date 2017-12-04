@@ -29,8 +29,8 @@ magic.classes.PopupForm = function (options) {
     /* Control callbacks */
     this.controlCallbacks = {
         onActivate: jQuery.proxy(function(payload) {
-            this.prePopulator = payload;
-            this.target.popover("show");            
+            this.prePopulator = payload;            
+            this.target.popover("toggle");    
         }, this),
         onDeactivate: jQuery.proxy(function(quiet) {            
             if (!quiet && this.formDirty()) { 
@@ -145,7 +145,7 @@ magic.classes.PopupForm.prototype.assignCloseButtonHandler = function () {
  * @param {Object} payload
  */
 magic.classes.PopupForm.prototype.activate = function (payload) {
-    this.active = true;           
+    this.active = true; 
     if (jQuery.isFunction(this.controlCallbacks["onActivate"])) {
         this.controlCallbacks["onActivate"](payload);
     }

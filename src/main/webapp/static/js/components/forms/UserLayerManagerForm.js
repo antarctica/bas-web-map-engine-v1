@@ -47,6 +47,11 @@ magic.classes.UserLayerManagerForm = function(options) {
 };
 
 magic.classes.UserLayerManagerForm.prototype.init = function() {
+    
+    this.editorPopups = {
+        "add": null,
+        "edit": null
+    };
    
     /* Get top of WMS stack */
     this.zIndexWmsStack = this.getWmsStackTop(this.map);  
@@ -149,13 +154,13 @@ magic.classes.UserLayerManagerForm.prototype.assignHandlers = function() {
     for (var lt in this.controls) {
                 
         /* Dropdown layer selection handler */
-        form.find("a[id$='-" + lt + "-layer-select']").click({type: lt}, jQuery.proxy(this.selectLayer, this));
+        form.find("a[id$='-" + lt + "-layer-select']").off("click").on("click", {type: lt}, jQuery.proxy(this.selectLayer, this));
         
         /* Layer visibility checkboxes change handler */
-        form.find("[id$='-" + lt + "-layer-vis']").change({type: lt}, jQuery.proxy(this.selectLayer, this));               
+        form.find("[id$='-" + lt + "-layer-vis']").off("change").on("change", {type: lt}, jQuery.proxy(this.selectLayer, this));               
         
         /* Zoom to layer link handlers */
-        this.controls[lt].dd.ztl.click({type: lt}, jQuery.proxy(function(evt) {  
+        this.controls[lt].dd.ztl.off("click").on("click", {type: lt}, jQuery.proxy(function(evt) {  
             var selection = this.getSelection(evt.data.type);
             if (selection) {
                 jQuery.ajax({
@@ -176,7 +181,7 @@ magic.classes.UserLayerManagerForm.prototype.assignHandlers = function() {
         }, this));
         
         /* WMS URL links */
-        this.controls[lt].dd.wms.click({type: lt}, jQuery.proxy(function(evt) {             
+        this.controls[lt].dd.wms.off("click").on("click", {type: lt}, jQuery.proxy(function(evt) {             
             bootbox.prompt({
                 "title": "WMS URL",
                 "value": this.layerWmsUrl(evt.data.type),
@@ -185,7 +190,7 @@ magic.classes.UserLayerManagerForm.prototype.assignHandlers = function() {
         }, this));
 
         /* Direct data URL link */
-        this.controls[lt].dd.url.click({type: lt}, jQuery.proxy(function(evt) {             
+        this.controls[lt].dd.url.off("click").on("click", {type: lt}, jQuery.proxy(function(evt) {             
             bootbox.prompt({
                 "title": "Direct data feed URL",
                 "value": this.layerDirectUrl(evt.data.type),
@@ -194,7 +199,7 @@ magic.classes.UserLayerManagerForm.prototype.assignHandlers = function() {
         }, this));        
 
         /* Data download link */
-        this.controls[lt].dd.dld.click({type: lt}, jQuery.proxy(function(evt) {
+        this.controls[lt].dd.dld.off("click").on("click", {type: lt}, jQuery.proxy(function(evt) {
             window.open(this.layerDirectUrl(evt.data.type));       
         }, this));
     }
@@ -204,39 +209,35 @@ magic.classes.UserLayerManagerForm.prototype.assignHandlers = function() {
     this.addLegendHoverHandler("community");    
     
     /* New user layer button */
-    jQuery("#" + this.id + "-user-layer-add").click(jQuery.proxy(function(evt) {
-        if (!this.editorPopups.add) {
-            this.editorPopups.add = new magic.classes.LayerEditorPopup({
-                id: "layer-add-popup-tool",
-                caption: "Add new layer",
-                target: evt.currentTarget.id,
-                onSave: jQuery.proxy(this.init, this)
-            });
-        } 
+    jQuery("#" + this.id + "-user-layer-add").off("click").on("click", jQuery.proxy(function(evt) {        
+        this.editorPopups.add = new magic.classes.LayerEditorPopup({
+            id: "layer-add-popup-tool",
+            caption: "Add new layer",
+            target: evt.currentTarget.id,
+            onSave: jQuery.proxy(this.init, this)
+        });
         if (this.editorPopups.edit) {
             this.editorPopups.edit.deactivate();
-        }
+        }        
         this.editorPopups.add.activate({});
     }, this));
     
     /* Edit user layer button */
-    jQuery("#" + this.id + "-user-layer-edit").click(jQuery.proxy(function(evt) {   
-        if (!this.editorPopups.edit) {
-            this.editorPopups.edit = new magic.classes.LayerEditorPopup({
-                id: "layer-edit-popup-tool",
-                caption: "Edit existing layer data",
-                target: evt.currentTarget.id,
-                onSave: jQuery.proxy(this.init, this)
-            });
-        } 
+    jQuery("#" + this.id + "-user-layer-edit").off("click").on("click", jQuery.proxy(function(evt) {        
+        this.editorPopups.edit = new magic.classes.LayerEditorPopup({
+            id: "layer-edit-popup-tool",
+            caption: "Edit existing layer data",
+            target: evt.currentTarget.id,
+            onSave: jQuery.proxy(this.init, this)
+        });
         if (this.editorPopups.add) {
             this.editorPopups.add.deactivate();
-        }
+        }        
         this.editorPopups.edit.activate(this.userLayerData[this.currentSelection.user]);
     }, this));
     
     /* Delete user layer button */
-    jQuery("#" + this.id + "-user-layer-del").click(jQuery.proxy(function(evt) {            
+    jQuery("#" + this.id + "-user-layer-del").off("click").on("click", jQuery.proxy(function(evt) {            
         evt.preventDefault();
         bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">Are you sure you want to delete this layer?</div>', jQuery.proxy(function(result) {
             if (result) {
@@ -278,6 +279,7 @@ magic.classes.UserLayerManagerForm.prototype.assignHandlers = function() {
 };
 
 magic.classes.UserLayerManagerForm.prototype.addLegendHoverHandler = function(lt) {
+    this.controls[lt].btn.legend.popover("destroy");
     this.controls[lt].btn.legend.popover({
         container: "body",
         html: true,
@@ -354,7 +356,7 @@ magic.classes.UserLayerManagerForm.prototype.layerMarkup = function() {
                                 ul.owner + 
                             '</div>' + 
                             '<div style="display:inline-block;width:200px" data-toggle="tooltip" data-html="true" data-placement="bottom" ' + 
-                                'title="' + ul.description + '<br/>Modified on : ' + magic.modules.Common.dateFormat(ul.modified_date, "dmy") + '">' + 
+                                'title="' + ul.caption + '<br/>' + ul.description + '<br/>Modified on : ' + magic.modules.Common.dateFormat(ul.modified_date, "dmy") + '">' + 
                                 magic.modules.Common.ellipsis(ul.caption, 30) + 
                             '</div>' + 
                         '</a>' + 
@@ -384,7 +386,7 @@ magic.classes.UserLayerManagerForm.prototype.markup = function() {
                 '<div class="btn-group" role="group">' + 
                     '<button id="' + this.id + '-' + lt + '-layer-legend" class="btn btn-sm btn-info" type="button" ' + 
                         'data-toggle="popover" data-trigger="manual" data-placement="bottom" >' + 
-                        '<i style="pointer-events:none" title="Layer legend" class="fa fa-list"></i>' + 
+                        '<i style="pointer-events:none" title="Legend for selected layer" class="fa fa-list"></i>' + 
                     '</button>' +
                     (lt == "user" ? 
                     '<button id="' + this.id + '-' + lt + '-layer-add" class="btn btn-sm btn-primary" type="button" ' + 
@@ -393,10 +395,10 @@ magic.classes.UserLayerManagerForm.prototype.markup = function() {
                     '</button>' +
                     '<button type="button" class="btn btn-sm btn-warning" id="' + this.id + '-' + lt + '-layer-edit" ' + 
                         'data-toggle="popover" data-trigger="manual" data-placement="bottom">' + 
-                        '<i style="font-size:14px" data-toggle="tooltip" data-placement="top" title="Edit layer data" class="fa fa-pencil"></i>' + 
+                        '<i style="font-size:14px" data-toggle="tooltip" data-placement="top" title="Edit selected layer data" class="fa fa-pencil"></i>' + 
                     '</button>' +
                     '<button type="button" class="btn btn-sm btn-danger" id="' + this.id + '-' + lt + '-layer-del">' +
-                        '<i data-toggle="tooltip" data-placement="top" title="Delete this layer" class="fa fa-trash"></i>' + 
+                        '<i data-toggle="tooltip" data-placement="top" title="Delete selected layer" class="fa fa-trash"></i>' + 
                     '</button>' : '') + 
                 '</div>' + 
                 '<div class="btn-group dropdown" role="group">' + 
@@ -450,7 +452,6 @@ magic.classes.UserLayerManagerForm.prototype.getSelection = function(type) {
 magic.classes.UserLayerManagerForm.prototype.selectLayer = function(evt) {
     var selId = null;
     var lt = evt.data.type;
-    console.log(lt);
     var targetId = evt.currentTarget.id;
     var elt = jQuery("#" + targetId);
     if (elt.length > 0) {
@@ -494,24 +495,20 @@ magic.classes.UserLayerManagerForm.prototype.saveState = function() {
         "community": {
             "selection": this.currentSelection.community || null
         }        
-    };
-    console.log("============ Save state ============");
-    console.log(this.savedState);
-    console.log("============ Done ============");
+    };   
 };
 
 magic.classes.UserLayerManagerForm.prototype.restoreState = function() {
-    if (!jQuery.isEmptyObject(this.savedState)) {
-        console.log("============ Restore state ============");
-        console.log(this.savedState);
-        console.log("============ Done ============");
-        if (this.savedState.user.selection != null) {
-            jQuery("#" + this.id + "-" + this.savedState.user.selection + "-user-layer-select").trigger("click");
-        }
-        if (this.savedState.community.selection != null) {
-            jQuery("#" + this.id + "-" + this.savedState.community.selection + "-community-layer-select").trigger("click");
-        }
+    if (!jQuery.isEmptyObject(this.savedState)) {        
+        var userSel = this.savedState.user.selection;
+        var commSel = this.savedState.community.selection;
         this.clearSavedState();
+        if (userSel != null) {
+            jQuery("#" + this.id + "-" + userSel + "-user-layer-select").trigger("click");
+        }
+        if (commSel != null) {
+            jQuery("#" + this.id + "-" + commSel + "-community-layer-select").trigger("click");
+        }        
     }
 };
 
@@ -711,7 +708,12 @@ magic.classes.UserLayerManagerForm.prototype.getWmsStackTop = function(map) {
  * @param {boolean} quiet suppress warnings about unsaved edits
  */
 magic.classes.UserLayerManagerForm.prototype.tidyUp = function(quiet) {
-    if (this.editorPopup) {
-        this.editorPopup.deactivate(quiet);
+    if (this.editorPopups.edit && this.editorPopups.edit.isActive()) {
+        this.editorPopups.edit.deactivate(quiet);
+        this.editorPopups.edit = null;
+    }
+    if (this.editorPopups.add && this.editorPopups.add.isActive()) {
+        this.editorPopups.add.deactivate(quiet);
+        this.editorPopups.add = null;
     }
 };

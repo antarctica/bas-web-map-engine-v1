@@ -10,22 +10,64 @@ magic.classes.MapViewManagerForm = function(options) {
     /* Map */
     this.map = options.map || magic.runtime.map;
     
-    /* Map data */
-    this.mapData = null;  
+    /* Base and user map data */
+    this.baseMapData = null;    
+    this.userMapData = null;
     
-    this.baseMapOrder = [];
+    /* Form and widgets */    
+    this.mgrForm = null;
+    
+    /* Form changed */
+    this.formEdited = false;  
     
     this.inputBaseNames = ["id", "basemap", "name", "allowed_usage", "data"];
     
     this.controls = {};        
-        
+    
+    this.editFs = null;
+    
     /* Saved state for restore after popup minimise */
     this.savedState = {};
     
 };
 
-magic.classes.MapViewManagerForm.prototype.init = function() {    
+magic.classes.MapViewManagerForm.prototype.init = function() {
+    
+    /* Enclosing form */
+    this.mgrForm  = jQuery("#" + this.id + "-form"); 
+    
+    /* Detect changes to the form */
+    this.formEdited = false;
+    jQuery("#" + this.id + "-form :input").change(jQuery.proxy(function() {
+        this.formEdited = true;
+    }, this));
+    
+    /* Edit form fieldset */
+    this.editFs = jQuery("#" + this.id + "-edit-view-fs");
+    
+    /* Control widgets */
+    this.controls = {
+        "btn": {
+            "load":   jQuery("#" + this.id + "-view-list-go"),
+            "bmk":    jQuery("#" + this.id + "-view-list-bmk"),
+            "add":    jQuery("#" + this.id + "-add"),
+            "edit":   jQuery("#" + this.id + "-edit"),
+            "del":    jQuery("#" + this.id + "-delete"),
+            "save":   jQuery("#" + this.id + "-go"),
+            "cancel": jQuery("#" + this.id + "-cancel")
+        },
+        "dd": {
+            "maps":   jQuery("#" + this.id + "-view-list")
+        },
+        "chk": {
+            "newtab": jQuery("#" + this.id + "-view-new-tab")
+        }
+    };
    
+    /* Clear dropdown map list and prepend the invite to select */
+    this.controls.dd.maps.empty();    
+    this.controls.dd.maps.append(jQuery("<option>", {value: "", text: "Please select"}));
+    
     /* Load the officially defined maps */
     var baseRequest = jQuery.ajax({
         url: magic.config.paths.baseurl + "/maps/dropdown", 
@@ -34,18 +76,18 @@ magic.classes.MapViewManagerForm.prototype.init = function() {
         contentType: "application/json"
     });
     /* Process base maps and load user-defined map views */
-    this.mapData = {};
+    var baseMapOrder = [];
+    this.baseMapData = {};
     var userRequest = baseRequest.then(jQuery.proxy(function(data) {
         jQuery.each(data, jQuery.proxy(function(idx, rec) {            
             /* Permission-related data before the ':', base map name after */
             var nameCpts = rec.name.split(":");
-            this.mapData[nameCpts[1]] = {
+            this.baseMapData[nameCpts[1]] = {
                 "sharing": nameCpts[0],
-                "title": rec.title,
-                "views": []
+                "title": rec.title
             };
             /* Preserve the alphabetical ordering of the data */
-            this.baseMapOrder.push(nameCpts[1]);
+            baseMapOrder.push(nameCpts[1]);
         }, this));
         return(jQuery.ajax({
             url: magic.config.paths.baseurl + "/usermaps/data",
@@ -54,17 +96,44 @@ magic.classes.MapViewManagerForm.prototype.init = function() {
         }));
     }, this));
     userRequest.done(jQuery.proxy(function(udata) {        
-        jQuery.each(udata, jQuery.proxy(function(ium, um) {
-            this.mapData[um.basemap].views.push(um);            
-        }, this)); 
+        /* List the official base maps */
+        var bmGroup = jQuery("<optgroup>", {label: "Publically available maps"});
+        jQuery.each(baseMapOrder, jQuery.proxy(function(idx, name) {            
+            bmGroup.append(jQuery("<option>", {
+                value: name, 
+                text: this.baseMapData[name].title
+            }));            
+        }, this));
+        this.controls.dd.maps.append(bmGroup);
         
-        /* Tabulate the layer markup */
-        this.mapMarkup();
-        //this.assignHandlers();        
-        /* Restore any saved state */
-        //this.restoreState();   
-        /* Set the button states */
-        //this.setButtonStates(null);         
+        /* Now read the user map views defined for each base map */
+        this.userMapData = {};
+        var currentBm = null, umGroup = null;
+        jQuery.each(udata, jQuery.proxy(function(ium, um) {
+            if (currentBm == null || um.basemap != currentBm) {
+                currentBm = um.basemap;
+                umGroup = jQuery("<optgroup>", {label: "Your views of " + this.baseMapData[um.basemap].title});
+                this.controls.dd.maps.append(umGroup);
+            }
+            if (umGroup) {
+                umGroup.append(jQuery("<option>", {
+                    value: um.id,
+                    text: um.name
+                }));
+                this.userMapData[um.id] = um;
+            }
+        }, this));                   
+        /* Disable irrelevant buttons which might otherwise offer confusing options */
+        this.setButtonStates({
+            "load": true,
+            "edit": true,
+            "del": true,
+            "bmk": true
+        }); 
+        /* Assign handlers */
+        this.assignHandlers(); 
+        /* Restore state if present */
+        this.restoreState();
     }, this));
     userRequest.fail(function() {
         bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to load available map views</div>');
@@ -77,77 +146,85 @@ magic.classes.MapViewManagerForm.prototype.markup = function() {
             '<input type="hidden" id="' + this.id + '-id"></input>' + 
             '<input type="hidden" id="' + this.id + '-basemap"></input>' + 
             '<input type="hidden" id="' + this.id + '-data"></input>' + 
-            '<div class="form-group form-group-sm col-sm-12"><strong>Available base maps and user views</strong></div>' +
-            '<div class="btn-toolbar" style="margin-bottom:10px">' + 
-                '<div class="btn-group" role="group">' + 
-                    '<button id="' + this.id + '-map-select" type="button" class="btn btn-sm btn-default dropdown-toggle" ' + 
-                        'data-toggle="dropdown" style="width:180px">' + 
-                        'Select a map view&nbsp;&nbsp;<span class="caret"></span>' + 
-                    '</button>' + 
-                    '<ul id="' + this.id + '-maps" class="dropdown-menu">' +                     
-                    '</ul>' + 
+            '<div class="form-group form-group-sm col-sm-12 edit-view-fs-title"><strong>Select a map view</strong></div>' +
+            '<div class="form-group form-group-sm col-sm-12" style="margin-bottom:0px">' +
+                '<div class="input-group">' + 
+                    '<select id="' + this.id + '-view-list" class="form-control">' +                               
+                    '</select>' + 
+                    '<span class="input-group-btn">' +
+                        '<button id="' + this.id + '-view-list-go" class="btn btn-primary btn-sm" type="button" title="Load map view">' + 
+                            '<span class="fa fa-arrow-circle-right"></span>' + 
+                        '</button>' +
+                    '</span>' +                       
                 '</div>' + 
-                '<div class="btn-group" role="group">' +                      
-                    '<button id="' + this.id + '-map-add" class="btn btn-sm btn-primary" type="button" ' + 
-                        'data-toggle="popover" data-trigger="manual" data-placement="bottom">' + 
-                        '<i data-toggle="tooltip" data-placement="top" title="Save current map view" class="fa fa-star"></i>' + 
-                    '</button>' +
-                    '<button type="button" class="btn btn-sm btn-warning" id="' + this.id + '-map-edit" ' + 
-                        'data-toggle="popover" data-trigger="manual" data-placement="bottom">' + 
-                        '<i style="font-size:14px" data-toggle="tooltip" data-placement="top" title="Edit selected map view data" class="fa fa-pencil"></i>' + 
-                    '</button>' +
-                    '<button type="button" class="btn btn-sm btn-danger" id="' + this.id + '-map-del">' +
-                        '<i data-toggle="tooltip" data-placement="top" title="Delete selected map view" class="fa fa-trash"></i>' + 
-                    '</button>' + 
-                    '<button id="' + this.id + '-map-load" class="btn  btn-sm btn-primary" type="button">' + 
-                        '<i data-toggle="tooltip" data-placement="top" title="Load selected map view" class="fa fa-arrow-circle-right"></i>' + 
-                    '</button>' +
-                '</div>' +                   
             '</div>' + 
-            '<div class="checkbox" style="padding-top:0px">' + 
-                '<label>' + 
-                    '<input id="' + this.id + '-map-load-new-tab" type="checkbox" checked ' + 
-                        'data-toggle="tooltip" data-placement="left" title="Load map in a new browser tab"></input> maps load in new browser tab' + 
-                '</label>' + 
+            '<div class="form-group form-group-sm col-sm-12">' + 
+                '<div class="checkbox">' + 
+                    '<label>' + 
+                        '<input id="' + this.id + '-view-new-tab" type="checkbox" checked ' + 
+                            'data-toggle="tooltip" data-placement="left" title="Open view in a new browser tab"></input> in a new browser tab' + 
+                    '</label>' + 
+                '</div>' + 
             '</div>' + 
+            '<div class="form-group form-group-sm col-sm-12">' +
+                '<button id="' + this.id + '-add" class="btn btn-sm btn-primary" type="button" ' + 
+                    'data-toggle="tooltip" data-placement="top" data-container="#' + this.id + '-form" title="Save current map view">' + 
+                    '<span class="fa fa-star"></span> Add' + 
+                '</button>' +          
+                '<button id="' + this.id + '-edit" class="btn btn-sm btn-warning" type="button" style="margin-left:5px" ' + 
+                    'data-toggle="tooltip" data-placement="top" title="Update selected map view title">' + 
+                    '<span class="fa fa-pencil"></span> Edit' + 
+                '</button>' + 
+                '<button id="' + this.id + '-delete" class="btn btn-sm btn-danger" type="button" style="margin-left:5px" ' + 
+                    'data-toggle="tooltip" data-placement="top" title="Delete selected map view">' + 
+                    '<span class="fa fa-times-circle"></span> Delete' + 
+                '</button>' + 
+                '<button id="' + this.id + '-view-list-bmk" class="btn btn-sm btn-primary" type="button"  style="margin-left:5px" ' + 
+                    'data-toggle="tooltip" data-placement="top" title="Bookmarkable URL for selected map view">' + 
+                    '<span class="fa fa-bookmark"></span> Shareable URL' + 
+                '</button>' +
+            '</div>' +  
+            '<div id="' + this.id + '-edit-view-fs" class="col-sm-12 well well-sm edit-view-fs hidden">' +
+                '<div class="form-group form-group-sm col-sm-12 edit-view-fs-title"><strong>Add new map view</strong></div>' + 
+                '<div class="form-group form-group-sm col-sm-12">' +                     
+                    '<label class="col-sm-3" for="' + this.id + '-name">Name</label>' + 
+                    '<div class="col-sm-9">' + 
+                        '<input type="text" name="' + this.id + '-name" id="' + this.id + '-name" class="form-control" ' + 
+                            'placeholder="Map name" maxlength="100" ' + 
+                            'data-toggle="tooltip" data-placement="right" ' + 
+                            'title="Map name (required)" ' + 
+                            'required="required">' +
+                        '</input>' + 
+                    '</div>' + 
+                '</div>' +
+                '<div class="form-group form-group-sm col-sm-12">' +
+                    '<label class="col-sm-3" for="' + this.id + '-allowed_usage">Share</label>' + 
+                    '<div class="col-sm-9">' + 
+                        '<select name="' + this.id + '-allowed_usage" id="' + this.id + '-allowed_usage" class="form-control" ' + 
+                            'data-toggle="tooltip" data-placement="right" ' + 
+                            'title="Sharing permissions">' +
+                            '<option value="owner" default>no</option>' + 
+                            '<option value="public">with everyone</option>' +
+                            '<option value="login">with logged-in users only</option>' +
+                        '</select>' + 
+                    '</div>' + 
+                '</div>' +
+                '<div class="form-group form-group-sm col-sm-12">' + 
+                    '<label class="col-sm-3 control-label">Modified</label>' + 
+                    '<div class="col-sm-9">' + 
+                        '<p id="' + this.id + '-last-mod" class="form-control-static"></p>' + 
+                    '</div>' + 
+                '</div>' + 
+                '<div class="form-group form-group-sm col-sm-12">' +
+                    magic.modules.Common.buttonFeedbackSet(this.id, "Save map state", "sm") +                         
+                    '<button id="' + this.id + '-cancel" class="btn btn-sm btn-danger" type="button" ' + 
+                        'data-toggle="tooltip" data-placement="right" title="Cancel">' + 
+                        '<span class="fa fa-times-circle"></span> Cancel' + 
+                    '</button>' +                        
+                '</div>' +  
+            '</div>' +
         '</form>'
     );
-};
-
-magic.classes.MapViewManagerForm.prototype.mapMarkup = function() {
-    var mapInsertAt = jQuery("#" + this.id + "-maps");
-    mapInsertAt.empty();
-    if (this.baseMapOrder.length == 0) {
-        /* No records */
-        mapInsertAt.append('<li class="dropdown-header">No base maps or user views available</li>');
-    } else {
-        /* Dropdown markup */
-        var idBase = this.id;
-        
-        jQuery.each(this.baseMapOrder, jQuery.proxy(function(idx, baseKey) {
-            var baseData = this.mapData[baseKey];
-            mapInsertAt.append(
-                '<li data-pk="' + baseKey + '">' + 
-                    '<a id="' + idBase + '-' + baseKey + '-map-select" href="JavaScript:void(0)"><strong>' + baseData.title + '</strong></a>' + 
-                '</li>'
-            );
-            if (baseData.views.length > 0) {
-                /* List out current user's views of this map */
-                mapInsertAt.append(
-                    '<li class="dropdown-header">' + 
-                        '<div style="margin-left:20px">Your views of ' + baseData.title + '</div>' + 
-                    '</li>'
-                );                
-                jQuery.each(baseData.views, jQuery.proxy(function(vidx, view) {
-                    mapInsertAt.append(
-                        '<li data-pk="' + view.id + '">' + 
-                            '<a style="margin-left:20px" id="' + idBase + '-' + view.id + '-map-select" href="JavaScript:void(0)">' + view.name + '</a>' + 
-                        '</li>'
-                    );                    
-                }, this));
-            }
-        }, this));
-    }
 };
 
 /**
