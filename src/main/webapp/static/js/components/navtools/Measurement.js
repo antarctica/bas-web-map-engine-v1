@@ -117,7 +117,8 @@ magic.classes.Measurement.prototype.onActivateHandler = function() {
             jQuery("#" + this.id + "-no-dem-info").removeClass("hidden");
             jQuery("#" + this.id + "-dem-info").addClass("hidden");
             jQuery("a[href='" + this.id + "-elevation']").prop("disabled", "disabled");
-        }        
+        }
+        this.stopMeasuring();
     }, this));
     jQuery("a[href='#" + this.id + "-heightgraph']").on("shown.bs.tab", jQuery.proxy(function() {
         this.demLayers = this.getDemLayers();
@@ -128,7 +129,7 @@ magic.classes.Measurement.prototype.onActivateHandler = function() {
             jQuery("#" + this.id + "-heightgraph-units").focus();
             this.actionType = "heightgraph";
         } else {
-            /* No suitable DEM => elevation is unavailable */
+            /* No suitable DEM => heightgraph is unavailable */
             jQuery("#" + this.id + "-no-dem-info-hg").removeClass("hidden");
             jQuery("#" + this.id + "-dem-info-hg").addClass("hidden");
             jQuery("a[href='" + this.id + "-heightgraph']").prop("disabled", "disabled");
@@ -167,7 +168,7 @@ magic.classes.Measurement.prototype.startMeasuring = function() {
         });
         this.map.addInteraction(this.drawInt);
 
-        this.createMeasurementtip();
+        this.createMeasurementTip();
         this.createHelpTooltip();
         
         /* Add start and end handlers for the sketch */
@@ -180,13 +181,15 @@ magic.classes.Measurement.prototype.startMeasuring = function() {
             function(evt) {
                 if (this.actionType == "heightgraph") {
                     /* Height graph => want the sketch for further analysis */
+                    console.log("Double clicked");                                        
+                    console.log(this.sketch);                    
                 } else {
                     /* Distance or area measure requires tooltip addition */
                     this.measureTooltipElt.className = "measure-tool-tooltip measure-tool-tooltip-static";
                     this.measureTooltip.setOffset([0, -7]);
                     this.sketch = null;
                     this.measureTooltipElt = null;
-                    this.createMeasurementtip();
+                    this.createMeasurementTip();
                 }
             }, this);
 
@@ -214,7 +217,8 @@ magic.classes.Measurement.prototype.stopMeasuring = function() {
     /* Change the button icon from stop to play */
     jQuery("#" + this.id + "-" + this.actionType + "-go span").removeClass("fa-stop").addClass("fa-play");    
     
-    if (this.actionType == "distance" || this.actionType == "area" || this.actionType == "heightgraph") {        
+    if (this.actionType == "distance" || this.actionType == "area" || this.actionType == "heightgraph") {  
+        
         /* Clear all the measurement indicator overlays */
         jQuery.each(this.measureOverlays, jQuery.proxy(function(mi, mo) {
             this.map.removeOverlay(mo);
@@ -355,12 +359,13 @@ magic.classes.Measurement.prototype.markup = function() {
                             '</select>' +                                   
                         '</div>' +                   
                         '<div class="form-group form-group-sm">' +
-                            '<p>Number of sample points</p>' + 
+                            '<p>Number of sample points for each segment</p>' + 
                             '<div class="input-group">' +
                                 '<select id="' + this.id + '-heightgraph-sampling" class="form-control">' +  
-                                    '<option value="5" selected>5</option>' +
-                                    '<option value="10">10</option>' + 
-                                    '<option value="20">20</option>' +
+                                    '<option value="10" selected>10</option>' +
+                                    '<option value="20">20</option>' + 
+                                    '<option value="50">50</option>' +
+                                    '<option value="100">100</option>' +
                                 '</select>' +
                                 '<span class="input-group-btn">' +
                                     '<button id="' + this.id + '-heightgraph-go" class="btn btn-primary btn-sm" type="button" ' +
@@ -383,29 +388,26 @@ magic.classes.Measurement.prototype.markup = function() {
  * @param {Object} evt
  */
 magic.classes.Measurement.prototype.sketchChangeHandler = function(evt) {
-    var value, fromUnits, toUnits, tooltipCoord;
-    var isGeodesic = jQuery("#" + this.id + "-true").prop("checked");
-    var geom = this.sketch.getGeometry();
-    if (this.actionType == "area") {
-        /* Area measure */
-        value = isGeodesic ? this.geodesicArea() : geom.getArea();
-        fromUnits = "m2";
-        toUnits = jQuery("#" + this.id + "-area-units").val();
-        tooltipCoord = geom.getInteriorPoint().getCoordinates();
-    } else if (this.actionType == "distance") {
-        /* Distance measure */
-        value = isGeodesic ? this.geodesicLength() : geom.getLength();
-        fromUnits = "m";
-        toUnits = jQuery("#" + this.id + "-distance-units").val();
-        tooltipCoord = geom.getLastCoordinate();
-    } else if (this.heightGraph) {
-        /* Height graph => just draw the line without any measurement feedback */
-        tooltipCoord = null;
-    }
-    if (tooltipCoord != null) {
-        jQuery(this.measureTooltipElt).html(magic.modules.Common.unitConverter(value, fromUnits, toUnits));
+    if (this.actionType != "heightgraph") {
+        /* Tooltip accompaniment while drawing */
+        var value, toUnits, tooltipCoord, dims = 1;
+        var isGeodesic = jQuery("#" + this.id + "-true").prop("checked");
+        var geom = this.sketch.getGeometry();
+        if (this.actionType == "area") {
+            /* Area measure */
+            value = isGeodesic ? this.geodesicArea() : geom.getArea();
+            dims = 2;
+            toUnits = jQuery("#" + this.id + "-area-units").val();
+            tooltipCoord = geom.getInteriorPoint().getCoordinates();
+        } else if (this.actionType == "distance") {
+            /* Distance measure */
+            value = isGeodesic ? this.geodesicLength() : geom.getLength();
+            toUnits = jQuery("#" + this.id + "-distance-units").val();
+            tooltipCoord = geom.getLastCoordinate();
+        } 
+        jQuery(this.measureTooltipElt).html(magic.modules.Common.unitConverter(value, "m", toUnits, dims));
         this.measureTooltip.setPosition(tooltipCoord);   
-    }
+    }    
 };
 
 /**
@@ -415,18 +417,18 @@ magic.classes.Measurement.prototype.sketchChangeHandler = function(evt) {
 magic.classes.Measurement.prototype.pointerMoveHandler = function(evt) {
     if (evt.dragging) {
         return;
+    }        
+    if (this.sketch) { 
+        var helpMsg; 
+        switch(this.actionType) {
+            case "distance":    helpMsg = "Click to continue sketching line"; break;
+            case "area":        helpMsg = "Click to continue sketching polygon"; break;
+            case "heightgraph": helpMsg = "Click to continue adding to line, and double click to see the height profile"; break;
+            default:            helpMsg = "Click to start sketching"; break;
+        } 
+        jQuery(this.helpTooltipElt).removeClass("hidden").html(helpMsg);
+        this.helpTooltip.setPosition(evt.coordinate);
     }    
-    var helpMsg = "Click to start sketching";
-    if (this.sketch) {       
-        if (this.actionType == "area") {           
-            helpMsg = "Click to continue sketching polygon";
-        } else {           
-            helpMsg = "Click to continue sketching line";
-        }             
-    }
-    jQuery(this.helpTooltipElt).html(helpMsg);
-    this.helpTooltip.setPosition(evt.coordinate);
-    jQuery(this.helpTooltipElt).removeClass("hidden");
 };
 
 /**
@@ -474,7 +476,7 @@ magic.classes.Measurement.prototype.createHelpTooltip = function() {
 /**
  * Creates a new measure tooltip
  */
-magic.classes.Measurement.prototype.createMeasurementtip = function() {
+magic.classes.Measurement.prototype.createMeasurementTip = function() {
     if (this.measureTooltipElt) {
         this.measureTooltipElt.parentNode.removeChild(this.measureTooltipElt);
     }
@@ -490,78 +492,78 @@ magic.classes.Measurement.prototype.createMeasurementtip = function() {
     this.map.addOverlay(this.measureTooltip);
 };
 
-magic.classes.Measurement.prototype.getElevationMode = function() {
-    return(jQuery("#" + this.id + "-elevation-mode").val());
-};
-
-magic.classes.Measurement.prototype.updateElevationSampler = function() {
-    var sampler = jQuery("#" + this.id + "-elevation-sampling");
-    var mapExtent = this.map.getView().calculateExtent();
-    var sizeX = magic.modules.Common.applyPref("distance", mapExtent[2] - mapExtent[0]);
-    var sizeY = magic.modules.Common.applyPref("distance", mapExtent[3] - mapExtent[1]);
-    
-    this.stopMeasuring();
-};
-
-magic.classes.Measurement.prototype.queryElevation = function(evt) {
-    var element = this.heightPopup.getElement();
-    if (jQuery.isArray(this.demLayers) && this.demLayers.length > 0) {        
+/**
+ * Process a map click asking for an elevation at a point
+ * @param {jQuery.Event} evt
+ */
+magic.classes.Measurement.prototype.queryElevation = function(evt) {    
+    var demFeats = this.currentlyVisibleDems();    
+    if (demFeats.length > 0) {
+        /* TODO - may need a proxy in some cases */
+        var element = this.heightPopup.getElement();
         var viewResolution = this.map.getView().getResolution();
-        var demFeats = jQuery.map(this.demLayers, function(l, idx) {
+        var url = this.demLayers[0].getSource().getGetFeatureInfoUrl(
+            evt.coordinate, viewResolution, this.map.getView().getProjection().getCode(),
+            {
+                "LAYERS": demFeats.join(","),
+                "QUERY_LAYERS": demFeats.join(","),
+                "INFO_FORMAT": "application/json",
+                "FEATURE_COUNT": this.demLayers.length
+            });
+        if (url) {
+            var ll = ol.proj.transform(evt.coordinate, this.map.getView().getProjection().getCode(), "EPSG:4326");                
+            jQuery(element).popover("destroy");
+            this.heightPopup.setPosition(evt.coordinate);
+            jQuery.ajax({
+                url: magic.modules.Common.proxyUrl(url),
+                method: "GET"
+            })
+            .done(jQuery.proxy(function(data) {
+                /* Expect a feature collection with one feature containing a properties object */
+                var lon = magic.modules.GeoUtils.applyPref("coordinates", parseFloat(ll[0]).toFixed(2), "lon");
+                var lat = magic.modules.GeoUtils.applyPref("coordinates", parseFloat(ll[1]).toFixed(2), "lat");
+                var units = jQuery("#" + this.id + "-elevation-units").val();
+                jQuery(element).popover({
+                    "container": "body",
+                    "placement": "top",
+                    "animation": false,
+                    "html": true,
+                    "content": this.getDemValue(data, units) + " at (" + lon + ", " + lat + ")"
+                }); 
+                jQuery(element).popover("show");
+            }, this))
+            .fail(jQuery.proxy(function(xhr) {
+                var msg = "Failed to get height";
+                if (xhr.status == 401) {
+                    msg = "Not authorised to query DEM";
+                }
+                jQuery(element).popover({
+                    "container": "body",
+                    "placement": "top",
+                    "animation": false,
+                    "html": true,
+                    "content": msg
+                }); 
+                jQuery(element).popover("show");
+            }, this));
+        }
+    }
+};
+
+/**
+ * Get visible DEM layers
+ * @return {Array} feature types
+ */
+magic.classes.Measurement.prototype.currentlyVisibleDems = function() {
+    var visibleDems = [];
+    if (jQuery.isArray(this.demLayers) && this.demLayers.length > 0) {                
+        visibleDems = jQuery.map(this.demLayers, function(l, idx) {
             if (l.getVisible()) {
                 return(l.get("metadata").source.feature_name);
             }
         });
-        if (demFeats.length > 0) {
-            /* TODO - may need a proxy in some cases */
-            var url = this.demLayers[0].getSource().getGetFeatureInfoUrl(
-                evt.coordinate, viewResolution, this.map.getView().getProjection().getCode(),
-                {
-                    "LAYERS": demFeats.join(","),
-                    "QUERY_LAYERS": demFeats.join(","),
-                    "INFO_FORMAT": "application/json",
-                    "FEATURE_COUNT": this.demLayers.length
-                });
-            if (url) {
-                var ll = ol.proj.transform(evt.coordinate, this.map.getView().getProjection().getCode(), "EPSG:4326");                
-                jQuery(element).popover("destroy");
-                this.heightPopup.setPosition(evt.coordinate);
-                jQuery.ajax({
-                    url: magic.modules.Common.proxyUrl(url),
-                    method: "GET"
-                })
-                .done(jQuery.proxy(function(data) {
-                    /* Expect a feature collection with one feature containing a properties object */
-                    var lon = magic.modules.GeoUtils.applyPref("coordinates", parseFloat(ll[0]).toFixed(2), "lon");
-                    var lat = magic.modules.GeoUtils.applyPref("coordinates", parseFloat(ll[1]).toFixed(2), "lat");
-                    var units = jQuery("#" + this.id + "-elevation-units").val();
-                    jQuery(element).popover({
-                        "container": "body",
-                        "placement": "top",
-                        "animation": false,
-                        "html": true,
-                        "content": this.getDemValue(data, units) + " at (" + lon + ", " + lat + ")"
-                    }); 
-                    jQuery(element).popover("show");
-                }, this))
-                .fail(jQuery.proxy(function(xhr) {
-                    var msg = "Failed to get height";
-                    if (xhr.status == 401) {
-                        msg = "Not authorised to query DEM";
-                    }
-                    jQuery(element).popover({
-                        "container": "body",
-                        "placement": "top",
-                        "animation": false,
-                        "html": true,
-                        "content": msg
-                    }); 
-                    jQuery(element).popover("show");
-                }, this));
-            }
-        } else {
+        if (visibleDems.length == 0) {
             /* Inform user that a DEM layer needs to be visible */
-            this.heightPopup.setPosition(evt.coordinate);
             var demLayerNames = jQuery.map(this.demLayers, function(l, idx) {
                 return(l.get("name"));
             });
@@ -572,9 +574,11 @@ magic.classes.Measurement.prototype.queryElevation = function(evt) {
                     demLayerNames.join('<br/>') + 
                     '</strong></p>' +
                     '<p>needs to be visible to see elevations</p>' +
-                '</div>');            
+                '</div>'
+            );      
         }
     }
+    return(visibleDems);
 };
 
 /**
