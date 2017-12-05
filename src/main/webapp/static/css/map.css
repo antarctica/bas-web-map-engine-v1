@@ -810,9 +810,7 @@ div.watermark {
 }
 
 /* Personal data tool styles */
-div.personal-data-tool-popover-content {
-    width: 400px;
-    /*overflow: auto;*/
+div.personal-data-tool-popover-content {   
     max-height: 500px;
 }
 
@@ -825,6 +823,10 @@ div.personal-data-tool-popover-content {
 
 div[class$="-popover-content"] {
     width: 400px;
+}
+
+div.geosearch-popover-content {
+    width: 300px;
 }
 
 div.reports-popover-content .bootstrap-tagsinput {

@@ -5,14 +5,14 @@ magic.modules.Common = function () {
     return({       
         /* Taken from OL2 Util.js */
         inches_per_unit: {
-            "inches": 1.0,
+            "ins": 1.0,
             "ft": 12.0,
-            "miles": 63360.0,
+            "mi": 63360.0,
             "m": 39.37,
             "km": 39370,
             "dd": 4374754,
             "yd": 36,
-            "nm": 1852 * 39.37
+            "nmi": 1852 * 39.37
         },
         /* Default styles, as plain objects to avoid problems with cloning OL objects */
         default_styles: {
@@ -812,22 +812,17 @@ magic.modules.Common = function () {
         /**
          * Do unit conversion for length and area units
          * @param {float} value
-         * @param {string} from units e.g. km for lengths, km2 for areas etc
-         * @param {string} to units e.g. miles for lengths, miles2 for areas etc
+         * @param {string} from units - any key from 'inches_per_unit' for lengths/areas
+         * @param {string} to units - any key from 'inches_per_unit' for lengths/areas
+         * @param {int} dims 1|2 (length or area)
          * @returns {String}
          */
-        unitConverter: function (value, from, to) {
-            var converted = 0.0, fromUnits = from, toUnits = to, order = 1;
-            if (from.indexOf("2") == from.length - 1) {
-                fromUnits = from.substring(0, from.length - 1);
-                order = 2;
-            }
-            if (to.indexOf("2") == to.length - 1) {
-                toUnits = to.substring(0, to.length - 1);
-            }
-            if (fromUnits in this.inches_per_unit && toUnits in this.inches_per_unit && (order == 1 || order == 2)) {
-                converted = value * Math.pow(this.inches_per_unit[fromUnits] / this.inches_per_unit[toUnits], order);
-                converted = converted.toFixed(3) + " " + toUnits + (order == 2 ? "<sup>2</sup>" : "");
+        unitConverter: function (value, from, to, dims) {
+            dims = dims || 1;
+            var converted = 0.0, fromUnits = from, toUnits = to;            
+            if (fromUnits in this.inches_per_unit && toUnits in this.inches_per_unit && (dims == 1 || dims == 2)) {
+                converted = value * Math.pow(this.inches_per_unit[fromUnits] / this.inches_per_unit[toUnits], dims);
+                converted = converted.toFixed(3) + " " + toUnits + (dims == 2 ? "<sup>2</sup>" : "");
             }
             return(converted);
         },

@@ -35,7 +35,7 @@ magic.classes.UserLayerManagerForm = function(options) {
     
     /* Saved state for restore after popup minimise */
     this.savedState = {};
-    this.clearSavedState();
+    this.clearState();
     
     /* Current selection tracker */
     this.currentSelection = null;
@@ -70,10 +70,13 @@ magic.classes.UserLayerManagerForm.prototype.init = function() {
         /* Tabulate the layer markup */
         this.layerMarkup();
         this.assignHandlers();        
-        /* Restore any saved state */
-        this.restoreState();   
-        /* Set the button states */
-        this.setButtonStates(null);
+        if (this.hasSavedState()) {
+            /* Restore saved state */
+            this.restoreState();   
+        } else {
+            /* Set the default button states */
+            this.setButtonStates(null);      
+        }
     }, this));
     
     /* Flag we have applied the user map payload data */
@@ -502,7 +505,7 @@ magic.classes.UserLayerManagerForm.prototype.restoreState = function() {
     if (!jQuery.isEmptyObject(this.savedState)) {        
         var userSel = this.savedState.user.selection;
         var commSel = this.savedState.community.selection;
-        this.clearSavedState();
+        this.clearState();
         if (userSel != null) {
             jQuery("#" + this.id + "-" + userSel + "-user-layer-select").trigger("click");
         }
@@ -512,7 +515,7 @@ magic.classes.UserLayerManagerForm.prototype.restoreState = function() {
     }
 };
 
-magic.classes.UserLayerManagerForm.prototype.clearSavedState = function() {    
+magic.classes.UserLayerManagerForm.prototype.clearState = function() {    
     this.savedState = {
         "user": {
             "selection": null
@@ -523,6 +526,15 @@ magic.classes.UserLayerManagerForm.prototype.clearSavedState = function() {
     };    
 };
 
+magic.classes.UserLayerManagerForm.prototype.hasSavedState = function() { 
+    if (!jQuery.isEmptyObject(this.savedState)) {
+        return(
+            (this.savedState.user && this.savedState.user.selection) ||
+            (this.savedState.community && this.savedState.community.selection)
+        );
+    }
+    return(false);
+};
 
 /**
  * Fetch data on all uploaded layers user has access to

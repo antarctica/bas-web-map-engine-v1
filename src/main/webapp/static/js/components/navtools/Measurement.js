@@ -4,7 +4,7 @@ magic.classes.Measurement = function(options) {
     
     options = jQuery.extend({}, {
         id: "measure-tool",
-        caption: "Measure",
+        caption: "Measure on the map",
         layername: "_measurement",
         popoverClass: "measure-tool-popover",
         popoverContentClass: "measure-tool-popover-content"
@@ -31,7 +31,7 @@ magic.classes.Measurement = function(options) {
 
     /* Current sketch */
     this.sketch = null;
-
+    
     /* Help tooltip */
     this.helpTooltipElt = null;
     this.helpTooltip = null;
@@ -41,9 +41,7 @@ magic.classes.Measurement = function(options) {
     this.measureTooltip = null;
     this.measureOverlays = [];
     
-    /**
-     * Properties for the height measuring tools 
-     */    
+    /* Properties for the height measuring tools */    
     this.demLayers = [];
     
     /* The pop-up which appears on the map to indicate height at a point */
@@ -55,9 +53,7 @@ magic.classes.Measurement = function(options) {
     this.heightPopup = new ol.Overlay({element: hPopDiv[0]});
     this.map.addOverlay(this.heightPopup);
     
-    /**
-     * End of height measuring tool properties
-     */
+    /* End of height measuring tool properties */
 
     /* Current action (distance/area) */
     this.actionType = "distance";
@@ -121,14 +117,27 @@ magic.classes.Measurement.prototype.onActivateHandler = function() {
             jQuery("#" + this.id + "-no-dem-info").removeClass("hidden");
             jQuery("#" + this.id + "-dem-info").addClass("hidden");
             jQuery("a[href='" + this.id + "-elevation']").prop("disabled", "disabled");
-        }
+        }        
+    }, this));
+    jQuery("a[href='#" + this.id + "-heightgraph']").on("shown.bs.tab", jQuery.proxy(function() {
+        this.demLayers = this.getDemLayers();
+        if (this.demLayers.length > 0) {
+            /* DEM layer on the map usable for elevation */
+            jQuery("#" + this.id + "-no-dem-info-hg").addClass("hidden");
+            jQuery("#" + this.id + "-dem-info-hg").removeClass("hidden");
+            jQuery("#" + this.id + "-heightgraph-units").focus();
+            this.actionType = "heightgraph";
+        } else {
+            /* No suitable DEM => elevation is unavailable */
+            jQuery("#" + this.id + "-no-dem-info-hg").removeClass("hidden");
+            jQuery("#" + this.id + "-dem-info-hg").addClass("hidden");
+            jQuery("a[href='" + this.id + "-heightgraph']").prop("disabled", "disabled");
+        }    
         this.stopMeasuring();
     }, this));
 
-    /* Click handler for dropdown action units selection */
-    jQuery("select[id$='-units']").change(jQuery.proxy(function(evt) {
-        this.stopMeasuring();
-    }, this));
+    /* Click handler to stop measuring whenever dropdown units selection changes */
+    jQuery("select[id$='-units']").change(jQuery.proxy(this.stopMeasuring, this));
 
     /* Initial focus */
     jQuery("#" + this.id + "-distance-units").focus();
@@ -145,7 +154,7 @@ magic.classes.Measurement.prototype.startMeasuring = function() {
     /* Change the button icon from play to stop */
     jQuery("#" + this.id + "-" + this.actionType + "-go span").removeClass("fa-play").addClass("fa-stop");
 
-    if (this.actionType == "distance" || this.actionType == "area") {        
+    if (this.actionType == "distance" || this.actionType == "area" || this.actionType == "heightgraph") {        
         /* Add the layer and draw interaction to the map */
         this.layer.setVisible(true);
         this.layer.getSource().clear();
@@ -163,29 +172,34 @@ magic.classes.Measurement.prototype.startMeasuring = function() {
         
         /* Add start and end handlers for the sketch */
         this.drawInt.on("drawstart",
-                function(evt) {                
-                    this.sketch = evt.feature;
-                    this.sketch.getGeometry().on("change", this.sketchChangeHandler, this);
-                }, this);
+            function(evt) {                
+                this.sketch = evt.feature;
+                this.sketch.getGeometry().on("change", this.sketchChangeHandler, this);
+            }, this);
         this.drawInt.on("drawend",
-                function(evt) {
+            function(evt) {
+                if (this.actionType == "heightgraph") {
+                    /* Height graph => want the sketch for further analysis */
+                } else {
+                    /* Distance or area measure requires tooltip addition */
                     this.measureTooltipElt.className = "measure-tool-tooltip measure-tool-tooltip-static";
                     this.measureTooltip.setOffset([0, -7]);
                     this.sketch = null;
                     this.measureTooltipElt = null;
                     this.createMeasurementtip();
-                }, this);
+                }
+            }, this);
 
         /* Add mouse move handler to give a running total in the output */
         this.map.un("pointermove", this.pointerMoveHandler, this);
         this.map.on("pointermove", this.pointerMoveHandler, this);
         jQuery(this.map.getViewport()).on("mouseout", jQuery.proxy(function() {
             jQuery(this.helpTooltipElt).addClass("hidden");
-        }, this));
+        }, this));        
     } else {
         /* Height measure set-up */
         this.map.on("singleclick", this.queryElevation, this);
-        this.map.on("moveend", jQuery.proxy(this.destroyPopup, this));
+        this.map.on("moveend", this.destroyPopup, this);
     }
 };
 
@@ -198,9 +212,9 @@ magic.classes.Measurement.prototype.stopMeasuring = function() {
     this.measuring = false;
     
     /* Change the button icon from stop to play */
-    jQuery("#" + this.id + "-" + this.actionType + "-go span").removeClass("fa-stop").addClass("fa-play");
+    jQuery("#" + this.id + "-" + this.actionType + "-go span").removeClass("fa-stop").addClass("fa-play");    
     
-    if (this.actionType == "distance" || this.actionType == "area") {        
+    if (this.actionType == "distance" || this.actionType == "area" || this.actionType == "heightgraph") {        
         /* Clear all the measurement indicator overlays */
         jQuery.each(this.measureOverlays, jQuery.proxy(function(mi, mo) {
             this.map.removeOverlay(mo);
@@ -218,7 +232,7 @@ magic.classes.Measurement.prototype.stopMeasuring = function() {
         this.sketch = null;
 
         /* Remove mouse move handler */
-        this.map.un("pointermove", this.pointerMoveHandler, this);
+        this.map.un("pointermove", this.pointerMoveHandler, this);       
     } else {
         /* Clear height measure */
         var element = this.heightPopup.getElement();
@@ -234,13 +248,16 @@ magic.classes.Measurement.prototype.markup = function() {
             '<div role="tabpanel">' +
                 '<ul class="nav nav-tabs" role="tablist">' +
                     '<li role="presentation" class="active">' +
-                        '<a role="tab" data-toggle="tab" href="#' + this.id + '-distance" aria-controls="' + this.id + '-distance">Distance</a>' +
+                        '<a role="tab" data-toggle="tab" href="#' + this.id + '-distance">Distance</a>' +
                     '</li>' +
                     '<li role="presentation">' +
-                        '<a role="tab" data-toggle="tab" href="#' + this.id + '-area" aria-controls="' + this.id + '-area">Area</a>' +
+                        '<a role="tab" data-toggle="tab" href="#' + this.id + '-area">Area</a>' +
                     '</li>' +
                     '<li role="presentation">' +
-                        '<a role="tab" data-toggle="tab" href="#' + this.id + '-elevation" aria-controls="' + this.id + '-elevation">Elevation</a>' +
+                        '<a role="tab" data-toggle="tab" href="#' + this.id + '-elevation">Elevation</a>' +
+                    '</li>' +
+                    '<li role="presentation">' +
+                        '<a role="tab" data-toggle="tab" href="#' + this.id + '-heightgraph">Height graph</a>' +
                     '</li>' +
                 '</ul>' +
             '</div>' +
@@ -250,10 +267,10 @@ magic.classes.Measurement.prototype.markup = function() {
                         '<p>Choose distance units</p>' + 
                         '<div class="input-group">' +
                             '<select id="' + this.id + '-distance-units" class="form-control">' +
-                                '<option value="km" selected>kilometres</option>' +
-                                '<option value="m">metres</option>' +
-                                '<option value="miles">miles</option>' +
-                                '<option value="nm">nautical miles</option>' +
+                                '<option value="km"' + (magic.runtime.preferences.distance == "km" ? ' selected' : '') + '>kilometres</option>' +
+                                '<option value="m"' + (magic.runtime.preferences.distance == "m" ? ' selected' : '') + '>metres</option>' +
+                                '<option value="mi"' + (magic.runtime.preferences.distance == "mi" ? ' selected' : '') + '>miles</option>' +
+                                '<option value="nmi"' + (magic.runtime.preferences.distance == "nmi" ? ' selected' : '') + '>nautical miles</option>' +
                             '</select>' +
                             '<span class="input-group-btn">' +
                                 '<button id="' + this.id + '-distance-go" class="btn btn-primary btn-sm" type="button" ' +
@@ -277,10 +294,10 @@ magic.classes.Measurement.prototype.markup = function() {
                         '<p>Choose area units</p>' + 
                         '<div class="input-group">' +
                             '<select id="' + this.id + '-area-units" class="form-control">' +
-                                '<option value="km2" selected>square kilometres</option>' +
-                                '<option value="m2">square metres</option>' +
-                                '<option value="miles2">square miles</option>' +
-                                '<option value="nm2">square nautical miles</option>' +
+                                '<option value="km"' + (magic.runtime.preferences.area == "km" ? ' selected' : '') + '>square kilometres</option>' +
+                                '<option value="m"' + (magic.runtime.preferences.area == "m" ? ' selected' : '') + '>square metres</option>' +
+                                '<option value="mi"' + (magic.runtime.preferences.area == "mi" ? ' selected' : '') + '>square miles</option>' +
+                                '<option value="nmi"' + (magic.runtime.preferences.area == "nmi" ? ' selected' : '') + '>square nautical miles</option>' +
                             '</select>' +
                             '<span class="input-group-btn">' +
                                 '<button id="' + this.id + '-area-go" class="btn btn-primary btn-sm" type="button" ' +
@@ -302,25 +319,59 @@ magic.classes.Measurement.prototype.markup = function() {
                 '<div id="' + this.id + '-elevation" role="tabpanel" class="tab-pane">' +
                     '<div id="' + this.id + '-no-dem-info" class="alert alert-info hidden">' +
                         '<p>' +
-                            'There are no layers on this map which are declared as having elevation data, so elevation measurement is not currently available' + 
+                            'There are no layers on this map which are declared as having elevation data, so elevation measurement is not available' + 
                         '</p>' + 
                     '</div>' +
-                    '<div id="' + this.id + '-dem-info" class="form-group form-group-sm">' +
-                        '<p>Choose elevation units</p>' + 
-                        '<div class="input-group">' +
-                            '<select id="' + this.id + '-elevation-units" class="form-control">' +
-                                '<option value="m" selected>metres</option>' +
-                                '<option value="ft">feet</option>' +                                   
-                            '</select>' +
-                            '<span class="input-group-btn">' +
-                                '<button id="' + this.id + '-elevation-go" class="btn btn-primary btn-sm" type="button" ' +
-                                    'data-toggle="tooltip" data-placement="right" title="Click map to measure elevation at a point">' +
-                                    '<span class="fa fa-play"></span>' +
-                                '</button>' +
-                            '</span>' +
+                    '<div id="' + this.id + '-dem-info">' + 
+                        '<div class="form-group form-group-sm">' +
+                            '<p>Choose elevation units</p>' + 
+                            '<div class="input-group">' +
+                                '<select id="' + this.id + '-elevation-units" class="form-control">' +
+                                    '<option value="m"' + (magic.runtime.preferences.elevation == "m" ? ' selected' : '') + '>metres</option>' +
+                                    '<option value="ft"' + (magic.runtime.preferences.elevation == "ft" ? ' selected' : '') + '>feet</option>' +                                   
+                                '</select>' +   
+                                '<span class="input-group-btn">' +
+                                    '<button id="' + this.id + '-elevation-go" class="btn btn-primary btn-sm" type="button" ' +
+                                        'data-toggle="tooltip" data-placement="right" title="Click map to measure elevation at a point">' +
+                                        '<span class="fa fa-play"></span>' +
+                                    '</button>' +
+                                '</span>' +
+                            '</div>' + 
+                        '</div>' +
+                    '</div>' + 
+                '</div>' + 
+                '<div id="' + this.id + '-heightgraph" role="tabpanel" class="tab-pane">' +
+                    '<div id="' + this.id + '-no-dem-info-hg" class="alert alert-info hidden">' +
+                        '<p>' +
+                            'There are no DEM layers on this map which are declared so height graph output is not available' + 
+                        '</p>' + 
+                    '</div>' +
+                    '<div id="' + this.id + '-dem-info-hg">' +
+                        '<div class="form-group form-group-sm">' +
+                            '<p>Choose graph height units</p>' + 
+                            '<select id="' + this.id + '-heightgraph-units" class="form-control">' +
+                                '<option value="m"' + (magic.runtime.preferences.elevation == "m" ? ' selected' : '') + '>metres</option>' +
+                                '<option value="ft"' + (magic.runtime.preferences.elevation == "ft" ? ' selected' : '') + '>feet</option>' +                                   
+                            '</select>' +                                   
+                        '</div>' +                   
+                        '<div class="form-group form-group-sm">' +
+                            '<p>Number of sample points</p>' + 
+                            '<div class="input-group">' +
+                                '<select id="' + this.id + '-heightgraph-sampling" class="form-control">' +  
+                                    '<option value="5" selected>5</option>' +
+                                    '<option value="10">10</option>' + 
+                                    '<option value="20">20</option>' +
+                                '</select>' +
+                                '<span class="input-group-btn">' +
+                                    '<button id="' + this.id + '-heightgraph-go" class="btn btn-primary btn-sm" type="button" ' +
+                                        'data-toggle="tooltip" data-placement="right" title="Draw line on the map along which to view elevation graph">' +
+                                        '<span class="fa fa-play"></span>' +
+                                    '</button>' +
+                                '</span>' +
+                            '</div>' +
                         '</div>' +
                     '</div>' +
-                '</div>' +
+                '</div>' +                
             '</div>' +                
         '</form>' +
     '</div>'
@@ -336,18 +387,25 @@ magic.classes.Measurement.prototype.sketchChangeHandler = function(evt) {
     var isGeodesic = jQuery("#" + this.id + "-true").prop("checked");
     var geom = this.sketch.getGeometry();
     if (this.actionType == "area") {
+        /* Area measure */
         value = isGeodesic ? this.geodesicArea() : geom.getArea();
         fromUnits = "m2";
         toUnits = jQuery("#" + this.id + "-area-units").val();
         tooltipCoord = geom.getInteriorPoint().getCoordinates();
-    } else {
+    } else if (this.actionType == "distance") {
+        /* Distance measure */
         value = isGeodesic ? this.geodesicLength() : geom.getLength();
         fromUnits = "m";
         toUnits = jQuery("#" + this.id + "-distance-units").val();
         tooltipCoord = geom.getLastCoordinate();
+    } else if (this.heightGraph) {
+        /* Height graph => just draw the line without any measurement feedback */
+        tooltipCoord = null;
     }
-    jQuery(this.measureTooltipElt).html(magic.modules.Common.unitConverter(value, fromUnits, toUnits));
-    this.measureTooltip.setPosition(tooltipCoord);   
+    if (tooltipCoord != null) {
+        jQuery(this.measureTooltipElt).html(magic.modules.Common.unitConverter(value, fromUnits, toUnits));
+        this.measureTooltip.setPosition(tooltipCoord);   
+    }
 };
 
 /**
@@ -379,8 +437,8 @@ magic.classes.Measurement.prototype.geodesicLength = function() {
     var geodesicLength = 0.0;
     var coords = this.sketch.getGeometry().getCoordinates();
     for (var i = 0, ii = coords.length - 1; i < ii; ++i) {
-        var c1 = ol.proj.transform(coords[i], this.map.getView().getProjection().getCode(), 'EPSG:4326');
-        var c2 = ol.proj.transform(coords[i + 1], this.map.getView().getProjection().getCode(), 'EPSG:4326');
+        var c1 = ol.proj.transform(coords[i], this.map.getView().getProjection().getCode(), "EPSG:4326");
+        var c2 = ol.proj.transform(coords[i + 1], this.map.getView().getProjection().getCode(), "EPSG:4326");
         geodesicLength += magic.modules.GeoUtils.WGS84.haversineDistance(c1, c2);
     }    
     return(geodesicLength);
@@ -430,6 +488,19 @@ magic.classes.Measurement.prototype.createMeasurementtip = function() {
     this.measureOverlays.push(mtto);
     this.measureTooltip = mtto;
     this.map.addOverlay(this.measureTooltip);
+};
+
+magic.classes.Measurement.prototype.getElevationMode = function() {
+    return(jQuery("#" + this.id + "-elevation-mode").val());
+};
+
+magic.classes.Measurement.prototype.updateElevationSampler = function() {
+    var sampler = jQuery("#" + this.id + "-elevation-sampling");
+    var mapExtent = this.map.getView().calculateExtent();
+    var sizeX = magic.modules.Common.applyPref("distance", mapExtent[2] - mapExtent[0]);
+    var sizeY = magic.modules.Common.applyPref("distance", mapExtent[3] - mapExtent[1]);
+    
+    this.stopMeasuring();
 };
 
 magic.classes.Measurement.prototype.queryElevation = function(evt) {
@@ -494,20 +565,14 @@ magic.classes.Measurement.prototype.queryElevation = function(evt) {
             var demLayerNames = jQuery.map(this.demLayers, function(l, idx) {
                 return(l.get("name"));
             });
-            jQuery(element).popover({
-                "container": "body",
-                "placement": "top",
-                "animation": false,
-                "html": true,
-                "content": 
+            bootbox.alert(
+                '<div class="alert alert-danger" style="margin-top:10px">' + 
                     '<p>One of the DEM layers below:</p>' + 
-                    '<p>' + 
+                    '<p><strong>' + 
                     demLayerNames.join('<br/>') + 
-                    '</p>' +
-                    '<p>needs to be visible to see elevations</p>'
-                        
-            }); 
-            jQuery(element).popover("show");
+                    '</strong></p>' +
+                    '<p>needs to be visible to see elevations</p>' +
+                '</div>');            
         }
     }
 };
