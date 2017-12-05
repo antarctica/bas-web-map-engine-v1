@@ -823,20 +823,7 @@ div.personal-data-tool-popover-content {
     margin-bottom: 15px;    
 }
 
-div.layermanager-popover-content {
-    width: 400px;
-}
-
-div.styler-popover-content {
-    width: 400px;
-}
-
-div.layer-editor-popover-content {
-    width: 400px;
-}
-
-/* Fieldwork report search styles */
-div.reports-popover-content {
+div[class$="-popover-content"] {
     width: 400px;
 }
 

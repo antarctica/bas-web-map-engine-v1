@@ -150,7 +150,7 @@ magic.classes.MapViewManagerForm.prototype.mapMarkup = function() {
                 );                
                 jQuery.each(baseData.views, jQuery.proxy(function(vidx, viewId) {
                     mapInsertAt.append(
-                        '<li data-pk="' + baseKey + '/' + viewId + '">' + 
+                        '<li data-pk="' + viewId + '">' + 
                             '<a style="margin-left:20px" id="' + idBase + '-' + viewId + '-map-select" href="JavaScript:void(0)">' + this.mapData[viewId].name + '</a>' + 
                         '</li>'
                     );                    
@@ -204,12 +204,12 @@ magic.classes.MapViewManagerForm.prototype.assignHandlers = function() {
     form.find("a[id$='-map-select']").off("click").on("click", jQuery.proxy(this.selectMap, this));
     
     /* Load map button */
-    this.controls.btn.load.click(jQuery.proxy(function() {                
+    this.controls.btn.load.off("click").on("click", jQuery.proxy(function() {                
         window.open(this.selectedMapLoadUrl(), this.controls.cb.newtab.prop("checked") ? "_blank" : "_self"); 
     }, this));
     
     /* Bookmarkable URL button */
-    this.controls.btn.bmk.click(jQuery.proxy(function() {             
+    this.controls.btn.bmk.off("click").on("click", jQuery.proxy(function() {             
         bootbox.prompt({
             "size": "small",
             "title": "Bookmarkable URL",
@@ -219,7 +219,7 @@ magic.classes.MapViewManagerForm.prototype.assignHandlers = function() {
     }, this));
     
     /* New map button */
-    this.controls.btn.add.click(jQuery.proxy(function(evt) {
+    this.controls.btn.add.off("click").on("click", jQuery.proxy(function(evt) {
         this.editorPopups.add = new magic.classes.MapEditorPopup({
             id: "map-add-popup-tool",
             caption: "Save current map view",
@@ -233,7 +233,7 @@ magic.classes.MapViewManagerForm.prototype.assignHandlers = function() {
     }, this));
     
     /* Edit map button */
-    this.controls.btn.edit.click(jQuery.proxy(function(evt) { 
+    this.controls.btn.edit.off("click").on("click", jQuery.proxy(function(evt) { 
         this.editorPopups.edit = new magic.classes.MapEditorPopup({
             id: "map-edit-popup-tool",
             caption: "Edit selected map view",
@@ -243,11 +243,11 @@ magic.classes.MapViewManagerForm.prototype.assignHandlers = function() {
         if (this.editorPopups.add) {
             this.editorPopups.add.deactivate();
         }        
-        this.editorPopups.edit.activate({this.mapData(this.getSelection())});    
+        this.editorPopups.edit.activate(this.mapData[this.getSelection()]);    
     }, this));
     
     /* Delete map button */
-    this.controls.btn.del.click(jQuery.proxy(function() {            
+    this.controls.btn.del.off("click").on("click", jQuery.proxy(function() {            
         bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">Are you sure you want to delete this view?</div>', jQuery.proxy(function(result) {
             if (result) {
                 /* Do the deletion */
@@ -277,6 +277,39 @@ magic.classes.MapViewManagerForm.prototype.assignHandlers = function() {
             }                            
         }, this));               
     }, this));
+};
+
+/**
+ * Set the selection button caption to the name of the current map
+ * @param {jQuery.Event} selection event
+ */
+magic.classes.MapViewManagerForm.prototype.selectMap = function(evt) {
+    var selId = null;
+    var targetId = evt.currentTarget.id;
+    var elt = jQuery("#" + targetId);
+    if (elt.length > 0) {
+        selId = elt.closest("li").attr("data-pk");
+    }        
+    if (selId != null && selId != "") {        
+        /* Set the dropdown button caption and visibility indicator */
+        var name = this.mapData[selId].basemap ? this.mapData[selId].name : this.mapData[selId].title;
+        elt.closest(".dropdown-menu").prev().html(           
+            magic.modules.Common.ellipsis(name, 20) + "&nbsp;&nbsp;" + 
+            '<span class="caret"></span>'
+        );
+        /* Record the current selection */
+        this.setSelection(selId);
+        /* Finally reflect selection in button statuses */ 
+        if (!this.mapData[selId].basemap) {
+            /* Base maps should not offer exit/delete! */
+            this.setButtonStates({
+                "load": false, "bmk": false, "add": false, "edit": true, "del": true
+            });
+        } else {
+            /* Allow all actions on this user's own maps */
+            this.setButtonStates(null);
+        }        
+    }
 };
 
 /**
@@ -390,5 +423,9 @@ magic.classes.MapViewManagerForm.prototype.mapPayload = function() {
  * Return the load URL for the selected map option
  */
 magic.classes.MapViewManagerForm.prototype.selectedMapLoadUrl = function() {
-    return(magic.config.paths.baseurl + "/home/" + this.getSelection());   
+    var selId = this.getSelection();
+    if (this.mapData[selId].basemap) {
+        selId = this.mapData[selId].basemap + "/" + selId;
+    }
+    return(magic.config.paths.baseurl + "/home/" + selId);   
 };

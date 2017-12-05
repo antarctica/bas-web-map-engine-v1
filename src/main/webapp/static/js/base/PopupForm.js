@@ -30,7 +30,7 @@ magic.classes.PopupForm = function (options) {
     this.controlCallbacks = {
         onActivate: jQuery.proxy(function(payload) {
             this.prePopulator = payload;            
-            this.target.popover("toggle");    
+            this.target.popover("show");    
         }, this),
         onDeactivate: jQuery.proxy(function(quiet) {            
             if (!quiet && this.formDirty()) { 
@@ -61,10 +61,10 @@ magic.classes.PopupForm = function (options) {
                             }                
                         } else {
                             this.savedState = {};
+                            this.cleanForm();
                             this.tidyUp();
                             this.target.popover("hide");
-                        }
-                        this.cleanForm();
+                        }                        
                     }, this)
                 });
             } else {                
@@ -135,7 +135,7 @@ magic.classes.PopupForm.prototype.setCallbacks = function(callbacksObj) {
 };
 
 magic.classes.PopupForm.prototype.assignCloseButtonHandler = function () {
-    jQuery("." + this.popoverClass).find("button.dialog-deactivate").click(jQuery.proxy(function () {
+    jQuery("." + this.popoverClass).find("button.dialog-deactivate").off("click").on("click", jQuery.proxy(function () {
         this.deactivate(false);        
     }, this));    
 };  

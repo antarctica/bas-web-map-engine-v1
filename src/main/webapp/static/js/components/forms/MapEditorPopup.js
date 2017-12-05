@@ -45,11 +45,12 @@ magic.classes.MapEditorPopup.prototype.markup = function() {
     return(
         '<div id="' + this.id + '-edit-view-fs" class="col-sm-12 well well-sm">' +
             '<input type="hidden" id="' + this.id + '-map-id"></input>' + 
+            '<input type="hidden" id="' + this.id + '-map-basemap"></input>' +
             '<input type="hidden" id="' + this.id + '-map-data"></input>' +
             '<div class="form-group form-group-sm col-sm-12">' +                     
-                '<label class="col-sm-3" for="' + this.id + '-name">Name</label>' + 
+                '<label class="col-sm-3" for="' + this.id + '-map-name">Name</label>' + 
                 '<div class="col-sm-9">' + 
-                    '<input type="text" name="' + this.id + '-map-name" id="' + this.id + '-name" class="form-control" ' + 
+                    '<input type="text" id="' + this.id + '-map-name" class="form-control" ' + 
                         'placeholder="Map name" maxlength="100" ' + 
                         'data-toggle="tooltip" data-placement="right" ' + 
                         'title="Map name (required)" ' + 
@@ -58,9 +59,9 @@ magic.classes.MapEditorPopup.prototype.markup = function() {
                 '</div>' + 
             '</div>' +
             '<div class="form-group form-group-sm col-sm-12">' +
-                '<label class="col-sm-3" for="' + this.id + '-allowed_usage">Share</label>' + 
+                '<label class="col-sm-3" for="' + this.id + '-map-allowed_usage">Share</label>' + 
                 '<div class="col-sm-9">' + 
-                    '<select name="' + this.id + '-map-allowed_usage" id="' + this.id + '-allowed_usage" class="form-control" ' + 
+                    '<select id="' + this.id + '-map-allowed_usage" class="form-control" ' + 
                         'data-toggle="tooltip" data-placement="right" ' + 
                         'title="Sharing permissions">' +
                         '<option value="owner" default>no</option>' + 
@@ -95,7 +96,7 @@ magic.classes.MapEditorPopup.prototype.assignHandlers = function() {
     }, this));
    
     /* Save button */
-    jQuery("#" + this.id + "go").click(jQuery.proxy(function() { 
+    jQuery("#" + this.id + "-go").click(jQuery.proxy(function() { 
         if (this.validate()) {
             var formdata = this.formToPayload();
             jQuery.ajax({
@@ -145,6 +146,10 @@ magic.classes.MapEditorPopup.prototype.restoreState = function() {
     }
 };
 
+magic.classes.LayerEditorPopup.prototype.saveForm = function() {
+    jQuery("#" + this.id + "-go").trigger("click");
+};
+
 /**
  * Create required JSON payload from form fields
  * @return {Object}
@@ -164,7 +169,7 @@ magic.classes.MapEditorPopup.prototype.formToPayload = function() {
 magic.classes.MapEditorPopup.prototype.payloadToForm = function(populator) {
     populator = populator || {};
     jQuery.each(this.inputs, jQuery.proxy(function(idx, ip) {
-        jQuery("#" + this.id + "-map-" + ip).val(populator[ip] || "");
+        jQuery("#" + this.id + "-map-" + ip).val(populator[ip]);
     }, this));    
     /* Last modified */
     var lastMod = jQuery("#" + this.id + "-map-last-mod");
