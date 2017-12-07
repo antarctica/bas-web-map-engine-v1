@@ -70,36 +70,48 @@ magic.classes.DemAwareTool.prototype.currentlyVisibleDems = function() {
  * @param {Function} failCb
  */
 magic.classes.DemAwareTool.prototype.queryElevation = function(evt, successCb, failCb) {    
+    var clickPoint = evt.coordinate;
+    var gfiUrl = this.getGfiUrl(clickPoint);
+    if (gfiUrl) {            
+        jQuery.ajax({
+            url: magic.modules.Common.proxyUrl(gfiUrl),
+            method: "GET"
+        })
+        .done(jQuery.proxy(function(data) {
+            /* Expect a feature collection with one feature containing a properties object */
+            var clickPointWgs84 = ol.proj.transform(clickPoint, this.map.getView().getProjection().getCode(), "EPSG:4326");
+            var lon = magic.modules.GeoUtils.applyPref("coordinates", parseFloat(clickPointWgs84[0]).toFixed(2), "lon");
+            var lat = magic.modules.GeoUtils.applyPref("coordinates", parseFloat(clickPointWgs84[1]).toFixed(2), "lat");
+            var elevation = this.getDemValue(data);
+            successCb(clickPoint, lon, lat, elevation);                
+        }, this))
+        .fail(jQuery.proxy(function(xhr) {
+            failCb(clickPoint, xhr);                
+        }, this));
+    }
+};
+
+/**
+ * Construct a WMS GetFeatureInfo URL
+ * @param {ol.coordinate} clickPoint
+ * @return {String}
+ */
+magic.classes.DemAwareTool.prototype.getGfiUrl = function(clickPoint) {
+    var url = null;
     var demFeats = this.currentlyVisibleDems();    
     if (demFeats.length > 0) {
         /* May need a proxy in some cases */
-        var clickPoint = evt.coordinate;
-        var url = this.demLayers[0].getSource().getGetFeatureInfoUrl(
+        url = this.demLayers[0].getSource().getGetFeatureInfoUrl(
             clickPoint, this.map.getView().getResolution(), this.map.getView().getProjection().getCode(),
             {
                 "LAYERS": demFeats.join(","),
                 "QUERY_LAYERS": demFeats.join(","),
                 "INFO_FORMAT": "application/json",
                 "FEATURE_COUNT": this.demLayers.length
-            });
-        if (url) {            
-            jQuery.ajax({
-                url: magic.modules.Common.proxyUrl(url),
-                method: "GET"
-            })
-            .done(jQuery.proxy(function(data) {
-                /* Expect a feature collection with one feature containing a properties object */
-                var clickPointWgs84 = ol.proj.transform(clickPoint, this.map.getView().getProjection().getCode(), "EPSG:4326");
-                var lon = magic.modules.GeoUtils.applyPref("coordinates", parseFloat(clickPointWgs84[0]).toFixed(2), "lon");
-                var lat = magic.modules.GeoUtils.applyPref("coordinates", parseFloat(clickPointWgs84[1]).toFixed(2), "lat");
-                var elevation = this.getDemValue(data);
-                successCb(clickPoint, lon, lat, elevation);                
-            }, this))
-            .fail(jQuery.proxy(function(xhr) {
-                failCb(clickPoint, xhr);                
-            }, this));
-        }
+            }
+        );
     }
+    return(url);
 };
 
 /**
@@ -115,7 +127,7 @@ magic.classes.DemAwareTool.prototype.getDemValue = function(json) {
             if (f.properties) {
                 jQuery.each(f.properties, function(key, value) {
                     var fval = parseFloat(value);
-                    if (!isNaN(fval) && Math.abs(fval) < 9000 && fval > fdem) {
+                    if (!isNaN(fval) && Math.abs(fval) < 9000 && (isNaN(demValue) || fval > demValue)) {
                         demValue = Math.ceil(fval);
                     }
                 });

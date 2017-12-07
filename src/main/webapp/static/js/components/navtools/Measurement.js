@@ -53,8 +53,7 @@ magic.classes.Measurement = function(options) {
     
     /* Height graph popup tool */
     this.heightgraphTool = new magic.classes.HeightGraphPopup({
-        id: this.id + "-heightgraph-tool",
-        target: this.id + "-heightgraph-go"
+        id: this.id + "-heightgraph-tool"
     });
 
     /* Current action (distance/area) */
@@ -107,7 +106,7 @@ magic.classes.Measurement.prototype.onActivateHandler = function() {
         this.stopMeasuring();
     }, this));
     jQuery("a[href='#" + this.id + "-elevation']").on("shown.bs.tab", jQuery.proxy(function() {
-        var visDems = this.currentlyVisibleDems();
+        var visDems = this.elevationTool.currentlyVisibleDems();
         if (visDems.length > 0) {
             /* Good to go - we have DEM layers defined and turned on */
             jQuery("#" + this.id + "-no-dem-info").addClass("hidden");
@@ -116,10 +115,10 @@ magic.classes.Measurement.prototype.onActivateHandler = function() {
             this.actionType = "elevation";
         } else {
             var noDemHtml = '';
-            this.demLayers = this.getDemLayers();            
-            if (this.demLayers.length > 0) {
+            var demLayers = this.elevationTool.getDemLayers();            
+            if (demLayers.length > 0) {
                 /* There are DEMs but they need to be turned on */
-                var demLayerNames = jQuery.map(this.demLayers, function(l, idx) {
+                var demLayerNames = jQuery.map(demLayers, function(l, idx) {
                     return(l.get("name"));
                 });
                 noDemHtml = 
@@ -139,7 +138,7 @@ magic.classes.Measurement.prototype.onActivateHandler = function() {
         this.stopMeasuring();
     }, this));
     jQuery("a[href='#" + this.id + "-heightgraph']").on("shown.bs.tab", jQuery.proxy(function() {
-        var visDems = this.currentlyVisibleDems();
+        var visDems = this.heightgraphTool.currentlyVisibleDems();
         if (visDems.length > 0) {
             /* Good to go - we have DEM layers defined and turned on */
             jQuery("#" + this.id + "-no-dem-info-hg").addClass("hidden");
@@ -148,10 +147,10 @@ magic.classes.Measurement.prototype.onActivateHandler = function() {
             this.actionType = "heightgraph";            
         } else {
             var noDemHtml = '';
-            this.demLayers = this.getDemLayers();            
-            if (this.demLayers.length > 0) {
+            var demLayers = this.heightgraphTool.getDemLayers();            
+            if (demLayers.length > 0) {
                 /* There are DEMs but they need to be turned on */
-                var demLayerNames = jQuery.map(this.demLayers, function(l, idx) {
+                var demLayerNames = jQuery.map(demLayers, function(l, idx) {
                     return(l.get("name"));
                 });
                 noDemHtml = 
@@ -171,7 +170,7 @@ magic.classes.Measurement.prototype.onActivateHandler = function() {
         this.stopMeasuring();        
     }, this));
 
-    /* Click handler to stop measuring whenever dropdown units selection changes */
+    /* Change handler to stop measuring whenever dropdown units selection changes */
     jQuery("select[id$='-units']").change(jQuery.proxy(function(evt) {
         if (this.actionType == "elevation") {
             this.elevationTool.setUnits(jQuery(evt.currentTarget).val());
@@ -179,6 +178,14 @@ magic.classes.Measurement.prototype.onActivateHandler = function() {
             this.heightgraphTool.setUnits(jQuery(evt.currentTarget).val());
         }
         this.stopMeasuring();
+    }, this));
+    
+    /* Change handler to stop measuring whenever height graph sampling selection changes */
+    jQuery("#" + this.id + "-heightgraph-sampling").change(jQuery.proxy(function(evt) {
+        if (this.actionType == "heightgraph") {
+            this.heightgraphTool.setInterpolation(jQuery(evt.currentTarget).val());
+            this.stopMeasuring();
+        }        
     }, this));
 
     /* Initial focus */
@@ -234,7 +241,7 @@ magic.classes.Measurement.prototype.startMeasuring = function() {
                     /* Remove mouse move handler */
                     this.map.un("pointermove", this.pointerMoveHandler, this);
                     /* Create and display height graph using visjs */
-                    this.heightgraphTool.activate();                    
+                    this.heightgraphTool.activate(this.sketch.getGeometry());                    
                 } else {
                     /* Distance or area measure requires tooltip addition */
                     this.measureTooltipJq.attr("className", "measure-tool-tooltip measure-tool-tooltip-static");
@@ -250,9 +257,16 @@ magic.classes.Measurement.prototype.startMeasuring = function() {
         this.map.on("pointermove", this.pointerMoveHandler, this);
         jQuery(this.map.getViewport()).on("mouseout", jQuery.proxy(function() {
             this.helpTooltipJq.addClass("hidden");
-        }, this));        
+        }, this));  
+        
+        /* Set units for height graph */
+        if (this.actionType == "heightgraph") {
+            this.heightgraphTool.setTarget(this.id + "-heightgraph-go");
+            this.heightgraphTool.setUnits(jQuery("#" + this.id + "-heightgraph-units").val());
+        }
     } else {
         /* Height measure set-up */
+        this.elevationTool.setUnits(jQuery("#" + this.id + "-elevation-units").val());
         this.elevationTool.activate();
     }
 };
@@ -287,7 +301,11 @@ magic.classes.Measurement.prototype.stopMeasuring = function() {
         this.sketch = null;
 
         /* Remove mouse move handler */
-        this.map.un("pointermove", this.pointerMoveHandler, this);       
+        this.map.un("pointermove", this.pointerMoveHandler, this); 
+        
+        if (this.actionType == "heightgraph") {
+            this.heightgraphTool.deactivate();
+        }
     } else {
         /* Clear height measure */
         this.elevationTool.deactivate();
@@ -407,6 +425,8 @@ magic.classes.Measurement.prototype.markup = function() {
                                     '<option value="5" selected>5</option>' +
                                     '<option value="10">10</option>' +
                                     '<option value="20">20</option>' + 
+                                    '<option value="50">50</option>' + 
+                                    '<option value="100">100</option>' + 
                                 '</select>' +
                                 '<span class="input-group-btn">' +
                                     '<button id="' + this.id + '-heightgraph-go" class="btn btn-primary btn-sm" type="button" ' +
@@ -512,93 +532,4 @@ magic.classes.Measurement.prototype.createMeasurementTip = function() {
     this.measureOverlays.push(mtto);
     this.measureTooltip = mtto;
     this.map.addOverlay(this.measureTooltip);
-};
-
-magic.classes.Measurement.prototype.createHeightGraph = function() {
-    var demFeats = this.currentlyVisibleDems();
-    if (demFeats.length > 0) {
-        var gfiRequests = [], outputCoords = [];
-        for (var i = 0; i < this.sketch.getGeometry().getCoordinates().length; i++) {
-            var ci = this.sketch.getGeometry().getCoordinates()[i];
-            var gfiXhr = jQuery.get(this.demLayers[0].getSource().getGetFeatureInfoUrl(
-                ci, this.map.getView().getResolution(), this.map.getView().getProjection().getCode(),
-                {
-                    "LAYERS": demFeats.join(","),
-                    "QUERY_LAYERS": demFeats.join(","),
-                    "INFO_FORMAT": "application/json",
-                    "FEATURE_COUNT": this.demLayers.length
-                }), {"offset": i}, jQuery.proxy(function(data, status, xhr) {
-                    var units = jQuery("#" + this.id + "-heightgraph-units").val();
-                    /* Strip units at the end */
-                    var elevation = parseFloat(this.getDemValue(data, units).replace(/[^\d]+$/, ""));
-                    outputCoords[xhr.offset][2] = isNaN(elevation) ? 0.0 : elevation;
-                }, this));
-            gfiXhr.offset = i;
-            gfiRequests.push(gfiXhr);
-            var llCoord = ol.proj.transform(ci, this.map.getView().getProjection(), "EPSG:4326");
-            llCoord.push(0.0);  /* Add the z dimension */
-            outputCoords.push(llCoord);
-        }
-        jQuery.when.apply(jQuery, gfiRequests)
-        .done(jQuery.proxy(function(data, status, xhr) {
-            console.log(outputCoords);
-            var hgBtn = jQuery("#" + this.id + "-heightgraph-go");
-            var origTitle = hgBtn.attr("title");
-            hgBtn.attr("title", "Height graph").popover({
-                template: 
-                    '<div class="popover popover-auto-width" role="popover">' +
-                        '<div class="arrow"></div>' +
-                        '<h3 class="popover-title"></h3>' +
-                        '<div id="' + this.id + '-height-graph-vis" class="popover-content"></div>' +
-                    '</div>',
-                title: "Height graph",
-                container: "body",
-                html: true,
-                trigger: "manual",
-                content: "Loading height graph..."
-            })
-            .on("shown.bs.popover", null, {"coords": outputCoords}, jQuery.proxy(function(evt) {            
-                var xyzData = evt.data.coords;
-                var vds = new vis.DataSet();
-                for (var i = 0; i < xyzData.length; i++) {
-                    vds.add({
-                        id: i,
-                        x: xyzData[i][0],   /* Lon */
-                        y: xyzData[i][1],   /* Lat */
-                        z: xyzData[i][2],   /* Altitude */
-                        style: 50
-                    });
-                }
-                var options = {
-                    width: "100%",
-                    height: "400px",
-                    style: "bar-size",
-                    showPerspective: true,
-                    showGrid: true,
-                    showShadow: false,
-                    keepAspectRatio: true,
-                    verticalRatio: 0.2,
-                    xBarWidth: 0.004,
-                    yBarWidth: 0.004,
-                    xLabel: "Lon",
-                    yLabel: "Lat",
-                    zLabel: "Altitude"
-                };
-                var container = jQuery("#" + this.id + "-height-graph-vis");
-                var graph3d = new vis.Graph3d(container[0], vds, options);
-            }, this))
-            .on("hidden.bs.popover", jQuery.proxy(function(evt) {            
-                hgBtn.attr("title", origTitle);
-            }, this));
-            hgBtn.popover("show");
-        }, this))
-        .fail(jQuery.proxy(function(xhr) {
-            bootbox.alert(
-                '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                    '<p>Failed to generate data for height graph - details below:</p>' + 
-                    '<p>' + JSON.parse(xhr.responseText)["detail"] + '</p>' + 
-                '</div>'
-            );
-        }, this));        
-    }
 };

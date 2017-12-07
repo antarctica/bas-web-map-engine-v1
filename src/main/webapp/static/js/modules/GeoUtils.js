@@ -206,11 +206,14 @@ magic.modules.GeoUtils = function() {
          * @returns {String}
          */
         formatSpatial: function(value, dims, destFormat, sourceFormat, dp) {
-            var formattedValue = "";
+            if (!jQuery.isNumeric) {
+                return("");
+            }
             if (!dp && dp != 0) {
                 dp = 1;
             }
-            if (jQuery.isNumeric(value) && sourceFormat != destFormat) {
+            var formattedValue = value;
+            if (sourceFormat != destFormat) {
                 var multipliers = {
                     "m": 1.0,
                     "ft": 3.2808399,
@@ -232,6 +235,8 @@ magic.modules.GeoUtils = function() {
                     }
                 }                
                 formattedValue = value.toFixed(dp) + destFormat;           
+            } else {
+                formattedValue += destFormat;
             }
             return(formattedValue);
         },

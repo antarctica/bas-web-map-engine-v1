@@ -44,7 +44,7 @@ magic.classes.ElevationPopup.prototype.showHeightPopover = function(evt) {
             "placement": "top",
             "animation": false,
             "html": true,
-            "content": magic.modules.GeoUtils.formatSpatial(z, 1, this.units, "m", 2) + " at (" + x + ", " + y + ")"
+            "content": magic.modules.GeoUtils.formatSpatial(z, 1, this.units, "m", 0) + " at (" + x + ", " + y + ")"
         }); 
         jqElt.popover("show");
     }, this),
