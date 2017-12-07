@@ -447,6 +447,35 @@ magic.modules.GeoUtils = function() {
         },
         
         /**
+         * Compute geodesic length of linestring
+         * @param {ol.geom.linestring} geom
+         * @param {ol.Map} map
+         * @returns {float}
+         */
+        geodesicLength: function(geom, map) {
+            map = map || magic.runtime.map;
+            var geodesicLength = 0.0;
+            var coords = geom.getCoordinates();
+            for (var i = 0, ii = coords.length - 1; i < ii; ++i) {
+                var c1 = ol.proj.transform(coords[i], map.getView().getProjection().getCode(), "EPSG:4326");
+                var c2 = ol.proj.transform(coords[i + 1], map.getView().getProjection().getCode(), "EPSG:4326");
+                geodesicLength += magic.modules.GeoUtils.WGS84.haversineDistance(c1, c2);
+            }    
+            return(geodesicLength);
+        },
+
+        /**
+         * Compute geodesic area of polygon
+         * @param {ol.geom.polygon} geom
+         * @param {ol.Map} map
+         * @returns {float}
+         */
+        geodesicArea: function(geom, map) {    
+            var polyClone = geom.clone().transform(map.getView().getProjection().getCode(), "EPSG:4326");    
+            return(Math.abs(magic.modules.GeoUtils.WGS84.geodesicArea(polyClone.getLinearRing[0].getCoordinates())));
+        },
+        
+        /**
          * Compute the minimum enclosing extent in projected co-ordinates of the given EPSG:4326 extent
          * Done by breaking the extent at the dateline if necessary, then densifying and reprojecting
          * @param {ol.extent} extent        

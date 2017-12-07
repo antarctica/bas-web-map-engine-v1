@@ -44,21 +44,18 @@ magic.classes.Measurement = function(options) {
     /* Measure tooltip */
     this.measureTooltipJq = null;
     this.measureTooltip = null;
-    this.measureOverlays = [];
+    this.measureOverlays = [];    
     
-    /* Properties for the height measuring tools */    
-    this.demLayers = [];
+    /* Elevation popup tool */
+    this.elevationTool = new magic.classes.ElevationPopup({
+        id: this.id + "-elevation-tool"
+    });
     
-    /* The pop-up which appears on the map to indicate height at a point */
-    var hPopDiv = jQuery("#height-popup");
-    if (hPopDiv.length == 0) {
-        jQuery("body").append('<div id="height-popup" title="Elevation"></div>');
-        hPopDiv = jQuery("#height-popup");
-    }
-    this.heightPopup = new ol.Overlay({element: hPopDiv[0]});
-    this.map.addOverlay(this.heightPopup);
-    
-    /* End of height measuring tool properties */
+    /* Height graph popup tool */
+    this.heightgraphTool = new magic.classes.HeightGraphPopup({
+        id: this.id + "-heightgraph-tool",
+        target: this.id + "-heightgraph-go"
+    });
 
     /* Current action (distance/area) */
     this.actionType = "distance";
@@ -148,7 +145,7 @@ magic.classes.Measurement.prototype.onActivateHandler = function() {
             jQuery("#" + this.id + "-no-dem-info-hg").addClass("hidden");
             jQuery("#" + this.id + "-dem-info-hg").removeClass("hidden");
             jQuery("#" + this.id + "-heightgraph-units").focus();
-            this.actionType = "heightgraph";
+            this.actionType = "heightgraph";            
         } else {
             var noDemHtml = '';
             this.demLayers = this.getDemLayers();            
@@ -175,7 +172,14 @@ magic.classes.Measurement.prototype.onActivateHandler = function() {
     }, this));
 
     /* Click handler to stop measuring whenever dropdown units selection changes */
-    jQuery("select[id$='-units']").change(jQuery.proxy(this.stopMeasuring, this));
+    jQuery("select[id$='-units']").change(jQuery.proxy(function(evt) {
+        if (this.actionType == "elevation") {
+            this.elevationTool.setUnits(jQuery(evt.currentTarget).val());
+        } else if (this.actionType == "heightgraph") {
+            this.heightgraphTool.setUnits(jQuery(evt.currentTarget).val());
+        }
+        this.stopMeasuring();
+    }, this));
 
     /* Initial focus */
     jQuery("#" + this.id + "-distance-units").focus();
@@ -230,7 +234,7 @@ magic.classes.Measurement.prototype.startMeasuring = function() {
                     /* Remove mouse move handler */
                     this.map.un("pointermove", this.pointerMoveHandler, this);
                     /* Create and display height graph using visjs */
-                    this.createHeightGraph();                    
+                    this.heightgraphTool.activate();                    
                 } else {
                     /* Distance or area measure requires tooltip addition */
                     this.measureTooltipJq.attr("className", "measure-tool-tooltip measure-tool-tooltip-static");
@@ -249,8 +253,7 @@ magic.classes.Measurement.prototype.startMeasuring = function() {
         }, this));        
     } else {
         /* Height measure set-up */
-        this.map.on("singleclick", this.queryElevation, this);
-        this.map.on("moveend", this.destroyPopup, this);
+        this.elevationTool.activate();
     }
 };
 
@@ -287,10 +290,7 @@ magic.classes.Measurement.prototype.stopMeasuring = function() {
         this.map.un("pointermove", this.pointerMoveHandler, this);       
     } else {
         /* Clear height measure */
-        var element = this.heightPopup.getElement();
-        jQuery(element).popover("destroy");
-        this.map.un("singleclick", this.queryElevation, this);
-        this.map.un("moveend", jQuery.proxy(this.destroyPopup, this));
+        this.elevationTool.deactivate();
     }    
 };
 
@@ -439,14 +439,14 @@ magic.classes.Measurement.prototype.sketchChangeHandler = function(evt) {
         
         if (this.actionType == "area") {
             /* Area measure */
-            value = isGeodesic ? this.geodesicArea() : geom.getArea();
+            value = isGeodesic ? magic.modules.GeoUtils.geodesicArea(geom, this.map) : geom.getArea();
             dims = 2;
             toUnits = jQuery("#" + this.id + "-area-units").val();
             tooltipCoord = geom.getInteriorPoint().getCoordinates();
             
         } else if (this.actionType == "distance") {
             /* Distance measure */
-            value = isGeodesic ? this.geodesicLength() : geom.getLength();
+            value = isGeodesic ? magic.modules.GeoUtils.geodesicLength(geom, this.map) : geom.getLength();
             toUnits = jQuery("#" + this.id + "-distance-units").val();
             tooltipCoord = geom.getLastCoordinate();
         } 
@@ -474,30 +474,6 @@ magic.classes.Measurement.prototype.pointerMoveHandler = function(evt) {
         this.helpTooltipJq.removeClass("hidden").html(helpMsg);
         this.helpTooltip.setPosition(evt.coordinate);
     }    
-};
-
-/**
- * Compute geodesic length of linestring
- * @returns {float}
- */
-magic.classes.Measurement.prototype.geodesicLength = function() {
-    var geodesicLength = 0.0;
-    var coords = this.sketch.getGeometry().getCoordinates();
-    for (var i = 0, ii = coords.length - 1; i < ii; ++i) {
-        var c1 = ol.proj.transform(coords[i], this.map.getView().getProjection().getCode(), "EPSG:4326");
-        var c2 = ol.proj.transform(coords[i + 1], this.map.getView().getProjection().getCode(), "EPSG:4326");
-        geodesicLength += magic.modules.GeoUtils.WGS84.haversineDistance(c1, c2);
-    }    
-    return(geodesicLength);
-};
-
-/**
- * Compute geodesic area of polygon
- * @returns {float}
- */
-magic.classes.Measurement.prototype.geodesicArea = function() {    
-    var polyClone = this.sketch.getGeometry().clone().transform(this.map.getView().getProjection().getCode(), "EPSG:4326");    
-    return(Math.abs(magic.modules.GeoUtils.WGS84.geodesicArea(polyClone.getLinearRing[0].getCoordinates())));
 };
 
 /**
@@ -544,160 +520,85 @@ magic.classes.Measurement.prototype.createHeightGraph = function() {
         var gfiRequests = [], outputCoords = [];
         for (var i = 0; i < this.sketch.getGeometry().getCoordinates().length; i++) {
             var ci = this.sketch.getGeometry().getCoordinates()[i];
-            gfiRequests.push(jQuery.get(this.demLayers[0].getSource().getGetFeatureInfoUrl(
+            var gfiXhr = jQuery.get(this.demLayers[0].getSource().getGetFeatureInfoUrl(
                 ci, this.map.getView().getResolution(), this.map.getView().getProjection().getCode(),
                 {
                     "LAYERS": demFeats.join(","),
                     "QUERY_LAYERS": demFeats.join(","),
                     "INFO_FORMAT": "application/json",
                     "FEATURE_COUNT": this.demLayers.length
-                })).success(jQuery.proxy(function(data) {
-                    console.log(data);
-                    console.log(i);
-                }, this))
-            );
+                }), {"offset": i}, jQuery.proxy(function(data, status, xhr) {
+                    var units = jQuery("#" + this.id + "-heightgraph-units").val();
+                    /* Strip units at the end */
+                    var elevation = parseFloat(this.getDemValue(data, units).replace(/[^\d]+$/, ""));
+                    outputCoords[xhr.offset][2] = isNaN(elevation) ? 0.0 : elevation;
+                }, this));
+            gfiXhr.offset = i;
+            gfiRequests.push(gfiXhr);
             var llCoord = ol.proj.transform(ci, this.map.getView().getProjection(), "EPSG:4326");
             llCoord.push(0.0);  /* Add the z dimension */
             outputCoords.push(llCoord);
         }
-        var defer = jQuery.when.apply(jQuery, gfiRequests)
+        jQuery.when.apply(jQuery, gfiRequests)
         .done(jQuery.proxy(function(data, status, xhr) {
-            
+            console.log(outputCoords);
+            var hgBtn = jQuery("#" + this.id + "-heightgraph-go");
+            var origTitle = hgBtn.attr("title");
+            hgBtn.attr("title", "Height graph").popover({
+                template: 
+                    '<div class="popover popover-auto-width" role="popover">' +
+                        '<div class="arrow"></div>' +
+                        '<h3 class="popover-title"></h3>' +
+                        '<div id="' + this.id + '-height-graph-vis" class="popover-content"></div>' +
+                    '</div>',
+                title: "Height graph",
+                container: "body",
+                html: true,
+                trigger: "manual",
+                content: "Loading height graph..."
+            })
+            .on("shown.bs.popover", null, {"coords": outputCoords}, jQuery.proxy(function(evt) {            
+                var xyzData = evt.data.coords;
+                var vds = new vis.DataSet();
+                for (var i = 0; i < xyzData.length; i++) {
+                    vds.add({
+                        id: i,
+                        x: xyzData[i][0],   /* Lon */
+                        y: xyzData[i][1],   /* Lat */
+                        z: xyzData[i][2],   /* Altitude */
+                        style: 50
+                    });
+                }
+                var options = {
+                    width: "100%",
+                    height: "400px",
+                    style: "bar-size",
+                    showPerspective: true,
+                    showGrid: true,
+                    showShadow: false,
+                    keepAspectRatio: true,
+                    verticalRatio: 0.2,
+                    xBarWidth: 0.004,
+                    yBarWidth: 0.004,
+                    xLabel: "Lon",
+                    yLabel: "Lat",
+                    zLabel: "Altitude"
+                };
+                var container = jQuery("#" + this.id + "-height-graph-vis");
+                var graph3d = new vis.Graph3d(container[0], vds, options);
+            }, this))
+            .on("hidden.bs.popover", jQuery.proxy(function(evt) {            
+                hgBtn.attr("title", origTitle);
+            }, this));
+            hgBtn.popover("show");
         }, this))
         .fail(jQuery.proxy(function(xhr) {
-            console.log("Request failed");
+            bootbox.alert(
+                '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                    '<p>Failed to generate data for height graph - details below:</p>' + 
+                    '<p>' + JSON.parse(xhr.responseText)["detail"] + '</p>' + 
+                '</div>'
+            );
         }, this));        
     }
-};
-
-/**
- * Process a map click asking for an elevation at a point
- * @param {jQuery.Event} evt
- */
-magic.classes.Measurement.prototype.queryElevation = function(evt) {    
-    var demFeats = this.currentlyVisibleDems();    
-    if (demFeats.length > 0) {
-        /* TODO - may need a proxy in some cases */
-        var element = this.heightPopup.getElement();
-        var url = this.demLayers[0].getSource().getGetFeatureInfoUrl(
-            evt.coordinate, this.map.getView().getResolution(), this.map.getView().getProjection().getCode(),
-            {
-                "LAYERS": demFeats.join(","),
-                "QUERY_LAYERS": demFeats.join(","),
-                "INFO_FORMAT": "application/json",
-                "FEATURE_COUNT": this.demLayers.length
-            });
-        if (url) {
-            var ll = ol.proj.transform(evt.coordinate, this.map.getView().getProjection().getCode(), "EPSG:4326");                
-            jQuery(element).popover("destroy");
-            this.heightPopup.setPosition(evt.coordinate);
-            jQuery.ajax({
-                url: magic.modules.Common.proxyUrl(url),
-                method: "GET"
-            })
-            .done(jQuery.proxy(function(data) {
-                /* Expect a feature collection with one feature containing a properties object */
-                var lon = magic.modules.GeoUtils.applyPref("coordinates", parseFloat(ll[0]).toFixed(2), "lon");
-                var lat = magic.modules.GeoUtils.applyPref("coordinates", parseFloat(ll[1]).toFixed(2), "lat");
-                var units = jQuery("#" + this.id + "-elevation-units").val();
-                jQuery(element).popover({
-                    "container": "body",
-                    "placement": "top",
-                    "animation": false,
-                    "html": true,
-                    "content": this.getDemValue(data, units) + " at (" + lon + ", " + lat + ")"
-                }); 
-                jQuery(element).popover("show");
-            }, this))
-            .fail(jQuery.proxy(function(xhr) {
-                var msg = "Failed to get height";
-                if (xhr.status == 401) {
-                    msg = "Not authorised to query DEM";
-                }
-                jQuery(element).popover({
-                    "container": "body",
-                    "placement": "top",
-                    "animation": false,
-                    "html": true,
-                    "content": msg
-                }); 
-                jQuery(element).popover("show");
-            }, this));
-        }
-    }
-};
-
-/**
- * Get visible DEM layers
- * @return {Array} feature types
- */
-magic.classes.Measurement.prototype.currentlyVisibleDems = function() {
-    var visibleDems = [];
-    if (jQuery.isArray(this.demLayers) && this.demLayers.length > 0) {                
-        visibleDems = jQuery.map(this.demLayers, function(l, idx) {
-            if (l.getVisible()) {
-                return(l.get("metadata").source.feature_name);
-            }
-        });       
-    }
-    return(visibleDems);
-};
-
-/**
- * Destroy the height popup
- */
-magic.classes.Measurement.prototype.destroyPopup = function() {
-    var element = this.heightPopup.getElement();
-    jQuery(element).popover("destroy");
-};
-
-/**
- * Get DEM layers
- * @returns {Array<ol.Layer>}
- */
-magic.classes.Measurement.prototype.getDemLayers = function() {
-    var dems = [];
-    if (this.map) {
-        this.map.getLayers().forEach(function (layer) {
-            var md = layer.get("metadata");
-            if (md && md.source) {
-                if (md.source.is_dem === true) {
-                    dems.push(layer);
-                }
-            }
-        });
-    }
-    return(dems);
-};
-
-/**
- * Extract the DEM value from the GFI feature collection
- * @param {Object} json FeatureCollection
- * @param {string} units
- * @returns {number|unknown}
- */
-magic.classes.Measurement.prototype.getDemValue = function(json, units) {
-    var dem = "unknown";
-    if (jQuery.isArray(json.features) && json.features.length > 0) {
-        /* Look for a sensible number */    
-        var fdem = -99999;
-        jQuery.each(json.features, function(idx, f) {
-            if (f.properties) {
-                jQuery.each(f.properties, function(key, value) {
-                    var fval = parseFloat(value);
-                    if (!isNaN(fval) && Math.abs(fval) < 9000 && fval > fdem) {
-                        fdem = Math.ceil(fval);
-                    }
-                });
-            }
-        });
-        if (fdem != -99999) {
-            if (units == "ft") {
-                dem = magic.modules.GeoUtils.formatSpatial(fdem, 1, "ft", "m", 0);
-            } else {
-                dem = fdem + "m";
-            }
-        }
-    }
-    return(dem);
 };
