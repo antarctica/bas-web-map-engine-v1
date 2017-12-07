@@ -45,7 +45,6 @@ magic.classes.HeightGraphPopup.prototype.activate = function(route) {
                     "FEATURE_COUNT": this.demLayers.length
                 }, jQuery.proxy(function(data, status, xhr) {                   
                     var elevation = parseFloat(this.getDemValue(data));
-                    console.log(elevation);
                     outputCoords[xhr.offset][2] = isNaN(elevation) ? 0.0 : elevation;
                 }, this));
                 gfiXhr.offset = outputCoords.length - 1;
@@ -55,16 +54,16 @@ magic.classes.HeightGraphPopup.prototype.activate = function(route) {
         /* Start the elevation request chain */
         var defer = jQuery.when.apply(jQuery, gfiRequests);
         defer.always(jQuery.proxy(function() {
-            console.log(outputCoords);
             var origTitle = this.target.attr("title");
             this.target.attr("title", "Height graph").popover({
                 template: 
-                    '<div class="popover popover-auto-width" role="popover">' +
+                    '<div class="popover" role="popover">' +
                         '<div class="arrow"></div>' +
                         '<h3 class="popover-title"></h3>' +
-                        '<div id="' + this.id + '-height-graph-vis" class="popover-content"></div>' +
+                        '<div id="' + this.id + '-height-graph-vis" style="width:550px;height:350px" class="popover-content"></div>' +
                     '</div>',
                 title: "Height graph",
+                placement: "bottom",
                 container: "body",
                 html: true,
                 trigger: "manual",
@@ -83,16 +82,22 @@ magic.classes.HeightGraphPopup.prototype.activate = function(route) {
                     });
                 }
                 var options = {
-                    width: "100%",
-                    height: "400px",
-                    style: "bar-size",
+                    width: "500px",
+                    height: "300px",
+                    style: "bar",
                     showPerspective: true,
                     showGrid: true,
                     showShadow: false,
-                    keepAspectRatio: true,
-                    verticalRatio: 0.2,
-                    xBarWidth: 0.004,
-                    yBarWidth: 0.004,
+                    keepAspectRatio: false,
+                    tooltip: function(o) {
+                        var x = magic.modules.GeoUtils.applyPref("coordinates", o.x, "lon");
+                        var y = magic.modules.GeoUtils.applyPref("coordinates", o.y, "lat");
+                        var z = magic.modules.GeoUtils.applyPref("elevation", o.z, this.units);
+                        return(z + " at (" + x + "," + y + ")");
+                    },
+                    verticalRatio: 0.4,   
+                    xBarWidth: 0.001,
+                    yBarWidth: 0.001,
                     xLabel: "Lon",
                     yLabel: "Lat",
                     zLabel: "Altitude"
@@ -106,7 +111,6 @@ magic.classes.HeightGraphPopup.prototype.activate = function(route) {
             this.target.popover("show");
         }, this))
         .fail(jQuery.proxy(function(xhr) {
-            console.log(xhr);
             bootbox.alert(
                 '<div class="alert alert-warning" style="margin-bottom:0">' + 
                     '<p>Failed to generate data for height graph - details below:</p>' + 
