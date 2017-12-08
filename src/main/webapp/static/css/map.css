@@ -592,13 +592,6 @@ a.gaz-attribution:hover {
     cursor: pointer;
 }
 
-/* Feedback tool styles */
-div.feedback-info-text {
-    text-align: justify;
-    font-weight: bold;
-    font-size: 13px;
-}
-
 /* Measure tool styles */
 div.measure-tool-popover-content {
     width: 280px;
@@ -831,4 +824,18 @@ div.geosearch-popover-content {
 
 div.reports-popover-content .bootstrap-tagsinput {
     width: 100% !important;
+}
+
+/* Issue information div */
+div.issue-info {
+    position: absolute;
+    top: 80px;
+    right: 20px;
+    width: auto;
+    height: auto;
+    opacity: 0.6;
+    background-color: #ffffff;
+    padding: 5px;
+    filter: alpha(opacity=60); /* For IE8 and earlier */
+    pointer-events: none;
 }

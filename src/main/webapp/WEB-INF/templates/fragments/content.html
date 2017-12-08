@@ -83,17 +83,7 @@
                         <a href="Javascript:void(0)" class="dropdown-toggle" data-toggle="dropdown">
                             <i class="fa fa-user"></i><span th:inline="text"> Logged in as [[${#httpServletRequest.remoteUser}]]</span><b class="caret"></b>
                         </a>
-                        <ul class="dropdown-menu" style="width: auto; min-width:140px">                                                                                      
-                            <li th:switch="${profile}">
-                                <a class="hidden" id="issue-info" href="Javascript:void(0)" th:case="ccamlrgis"><i class="fa fa-bug"></i> Issue information</a>
-                                <a id="issue-info" href="Javascript:void(0)" th:case="*"><i class="fa fa-bug"></i> Issue information</a>
-                                <div class="hidden"></div>
-                            </li>       
-                            <li th:switch="${profile}">
-                                <a class="hidden" id="unit-prefs" href="Javascript:void(0)" th:case="ccamlrgis"><i class="fa fa-wrench"></i> Unit preferences</a>
-                                <a id="unit-prefs" href="Javascript:void(0)" th:case="*"><i class="fa fa-wrench"></i> Unit preferences</a>
-                                <div class="hidden"></div>
-                            </li>                            
+                        <ul class="dropdown-menu" style="width: auto; min-width:140px">                                                                                                                  
                             <li>
                                 <a id="log-out-user" href="Javascript:void(0)"><i class="fa fa-power-off"></i> Log Out</a>
                             </li>                            
@@ -208,6 +198,10 @@
         <!-- Watermark -->
         <div class="watermark"></div>
         <!-- End of watermark -->
+        
+        <!-- Issue information -->
+        <div class="issue-info"></div>
+        <!-- End of issue information -->
         
     </body>
 </html>
