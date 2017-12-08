@@ -26,9 +26,10 @@ magic.classes.Geosearch = function (options) {
                 this.searchInput.init();
                 this.infoButtonHandler("gazetteer sources", this.searchInput.getAttributions());
                 jQuery("#" + this.id + "-position-go").click(jQuery.proxy(this.positionSearchHandler, this));
+                this.populateSearchedFeaturesDropdown();                
             }, this),
         onDeactivate: jQuery.proxy(function() {
-                this.placenameSearchCache = [];
+                this.searchedFeatureCache = [];
                 this.suggestionFeatures = {};
                 this.savedState = {};
                 this.target.popover("hide");
@@ -68,7 +69,7 @@ magic.classes.Geosearch = function (options) {
     });
     
     /* List of already performed place-name searches */
-    this.placenameSearchCache = [];
+    this.searchedFeatureCache = [];
 
     /* Temporary list of "ghost" suggestion features for working the mouseover overlays */
     this.suggestionFeatures = {};
@@ -148,14 +149,78 @@ magic.classes.Geosearch.prototype.markup = function() {
                                 '<input id="' + this.id + '-tmt" type="checkbox" checked ' +
                                     'data-toggle="tooltip" data-placement="bottom" title="Zoom the map to this location"></input> Take me there' +
                             '</label>' +
-                        '</div>' +
-                        this.infoLinkButtonMarkup("Show gazetteer sources") +                         
-                    '</div>' +
+                        '</div>' +                        
+                        this.infoLinkButtonMarkup("Show gazetteer sources") +
+                        this.historyMarkup() +
+                    '</div>' +                     
                     this.infoAreaMarkup() + 
                 '</div>' +
             '</form>' +
         '</div>'
     );
+};
+
+magic.classes.Geosearch.prototype.historyMarkup = function() {
+    return( 
+        '<div style="inline-block;float:right;margin-right:10px">' + 
+            '<div class="btn-group dropdown" role="group">' + 
+                '<button id="' + this.id + '-history" type="button" class="btn btn-sm btn-default dropdown-toggle" ' + 
+                    'data-toggle="dropdown" data-container="body">' + 
+                    '<i data-toggle="tooltip" data-placement="top" title="Searched location history" class="fa fa-history"></i>&nbsp;&nbsp;<span class="caret"></span>' + 
+                '</button>' + 
+                '<ul class="dropdown-menu dropdown-menu-right" style="overflow:auto">' + 
+                '</ul>' + 
+            '</div>' + 
+        '</div>'
+    );
+};
+
+/**
+ * Dropdown markup for the previous search history
+ */
+magic.classes.Geosearch.prototype.populateSearchedFeaturesDropdown = function() {
+    var insertAt = jQuery("#" + this.id + "-history").next("ul");
+    console.log(insertAt);
+    /* Go through searched feature cache in reverse order */
+    if (this.searchedFeatureCache.length == 0) {
+        insertAt.append('<li class="dropdown-header">No search history</li>');
+    } else {
+        insertAt.append(
+            '<li class="dropdown-header">' + 
+                '<div style="display:inline-block;width:20px">&nbsp;</div>' + 
+                '<div style="display:inline-block;width:100px">Name</div>' +
+                '<div style="display:inline-block;width:50px">Gaz</div>' +
+                '<div style="display:inline-block;width:50px">Lon</div>' +
+                '<div style="display:inline-block;width:50px">Lat</div>' +
+            '</li>'
+        );
+        for (var i = this.searchedFeatureCache.length - 1; i >= 0; i--) {
+            var attrs = this.searchedFeatureCache[i].getProperties();
+            insertAt.append(
+                '<li>' + 
+                    '<a id="' + this.id + '-' + i + '-history-entry-select" href="JavaScript:void(0)">' + 
+                        '<div style="display:inline-block;width:20px">' + 
+                            '<input id="' + this.id + '-' + i + '-history-entry-vis" type="checkbox"' + 
+                                (this.searchedFeatureCache[i].getStyle() == this.resultStyle ? ' checked="checked"' : '') + '>' + 
+                            '</input>' +
+                        '</div>' + 
+                        '<div style="display:inline-block;width:100px">' + 
+                            attrs.name + 
+                        '</div>' +
+                        '<div style="display:inline-block;width:50px">' + 
+                            (attrs["__gaz_name"] || "") + 
+                        '</div>' +
+                        '<div style="display:inline-block;width:50px">' + 
+                            attrs.lon + 
+                        '</div>' +
+                        '<div style="display:inline-block;width:50px">' + 
+                            attrs.lat + 
+                        '</div>' +                        
+                    '</a>' + 
+                '</li>'
+            );
+        }
+    }
 };
 
 /**
@@ -247,8 +312,9 @@ magic.classes.Geosearch.prototype.placenameSearchHandler = function (evt) {
 
     /* Check if this search has already been done */
     var exIdx = -1;
-    jQuery.each(this.placenameSearchCache, jQuery.proxy(function (idx, ps) {
-        if (ps.id == currentSearchData.id && ps["__gaz_name"] == currentSearchData["__gaz_name"]) {
+    jQuery.each(this.searchedFeatureCache, jQuery.proxy(function (idx, psFeat) {
+        var attrs = psFeat.getProperties();
+        if (attrs.id == currentSearchData.id && attrs["__gaz_name"] == currentSearchData["__gaz_name"]) {
             exIdx = idx;
             return(false);
         }
@@ -261,9 +327,9 @@ magic.classes.Geosearch.prototype.placenameSearchHandler = function (evt) {
             var jsonData = json.data;
             delete jsonData["__suggestion"];
             var geom = this.computeProjectedGeometry(gazName, jsonData);
-            var attrs = jQuery.extend({
-                geometry: geom,
+            var attrs = jQuery.extend({                
                 name: currentSearchData.placename,
+                geometry: geom,                
                 layer: this.layer,
                 "__gaz_name": gazName
             }, jsonData);
@@ -273,16 +339,14 @@ magic.classes.Geosearch.prototype.placenameSearchHandler = function (evt) {
             if (jQuery("#" + this.id + "-tmt").prop("checked")) {
                 this.flyTo(feat.getGeometry().getCoordinates(), function() {});
             }
-            this.placenameSearchCache.push(currentSearchData);
+            this.searchedFeatureCache.push(feat);
         }, this));
     } else {
-        /* Done this one before so simply fly to the location */
-        var feat = this.placenameSearchCache[exIdx].feature;
-        if (feat) {
-            feat.setStyle(this.resultStyle);
-            if (jQuery("#" + this.id + "-tmt").prop("checked")) {
-                this.flyTo(feat.getGeometry().getCoordinates(), function() {});
-            }
+        /* Done this one before so simply fly to the location */        
+        var feat = this.searchedFeatureCache[exIdx];
+        feat.setStyle(this.resultStyle);
+        if (jQuery("#" + this.id + "-tmt").prop("checked")) {
+            this.flyTo(feat.getGeometry().getCoordinates(), function() {});
         }
     }
 };
@@ -367,6 +431,7 @@ magic.classes.Geosearch.prototype.positionSearchHandler = function (evt) {
             layer: this.layer
         });
         this.layer.getSource().addFeature(feat);
+        this.searchedFeatureCache.push(feat);
         if (jQuery("#" + this.id + "-tmt").prop("checked")) {
             this.flyTo(feat.getGeometry().getCoordinates(), function() {});
         }
