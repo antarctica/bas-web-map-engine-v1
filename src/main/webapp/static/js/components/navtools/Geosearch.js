@@ -30,10 +30,10 @@ magic.classes.Geosearch = function (options) {
         onDeactivate: jQuery.proxy(function() {
                 this.placenameSearchCache = [];
                 this.suggestionFeatures = {};
-                this.savedSearch = {};
+                this.savedState = {};
                 this.target.popover("hide");
             }, this), 
-        onMinimise: jQuery.proxy(this.saveSearchState, this)
+        onMinimise: jQuery.proxy(this.saveState, this)
     });
 
     this.suggestionStyle = magic.modules.Common.getIconStyle(0.6, "marker_orange"); /* "Ghost" style for mouseovers of suggestions */
@@ -74,7 +74,7 @@ magic.classes.Geosearch = function (options) {
     this.suggestionFeatures = {};
     
     /* Saved state for implementation of minimise button */
-    this.savedSearch = {};
+    this.savedState = {};
             
     this.target.popover({
         template: this.template,
@@ -85,8 +85,8 @@ magic.classes.Geosearch = function (options) {
     })
     .on("shown.bs.popover", jQuery.proxy(function() {        
         this.activate();
-        if (this.savedSearch && !jQuery.isEmptyObject(this.savedSearch)) {
-            this.restoreSearchState();
+        if (this.savedState && !jQuery.isEmptyObject(this.savedState)) {
+            this.restoreState();
         }   
     }, this));
 };
@@ -161,30 +161,30 @@ magic.classes.Geosearch.prototype.markup = function() {
 /**
  * Save the search values for pre-populating the form on re-show
  */
-magic.classes.Geosearch.prototype.saveSearchState = function () {
-    this.savedSearch = {};
-    this.savedSearch["placename"] = this.searchInput.getSearch();
-    this.savedSearch["lon"] = jQuery("#" + this.id + "-lon").val();
-    this.savedSearch["lat"] = jQuery("#" + this.id + "-lat").val();
-    this.savedSearch["label"] = jQuery("#" + this.id + "-label").val();
+magic.classes.Geosearch.prototype.saveState = function () {
+    this.savedState = {};
+    this.savedState["placename"] = this.searchInput.getSearch();
+    this.savedState["lon"] = jQuery("#" + this.id + "-lon").val();
+    this.savedState["lat"] = jQuery("#" + this.id + "-lat").val();
+    this.savedState["label"] = jQuery("#" + this.id + "-label").val();
     var activeTab = jQuery("#" + this.id + "-content").find("div.tab-pane.active");
     if (activeTab.length > 0) {
-        this.savedSearch["activeTab"] = activeTab[0].id;
+        this.savedState["activeTab"] = activeTab[0].id;
     }
 };
 
 /**
  * Restore saved search on re-show of the form pop-up
  */
-magic.classes.Geosearch.prototype.restoreSearchState = function () {
-    this.searchInput.setSearch(this.savedSearch['placename']);
-    jQuery("#" + this.id + "-lon").val(this.savedSearch['lon']);
-    jQuery("#" + this.id + "-lat").val(this.savedSearch['lat']);
-    jQuery("#" + this.id + "-label").val(this.savedSearch['label']); 
-    if (this.savedSearch["activeTab"]) {
-        jQuery("a[href='#" + this.savedSearch["activeTab"] + "']").tab("show");
+magic.classes.Geosearch.prototype.restoreState = function () {
+    this.searchInput.setSearch(this.savedState['placename']);
+    jQuery("#" + this.id + "-lon").val(this.savedState['lon']);
+    jQuery("#" + this.id + "-lat").val(this.savedState['lat']);
+    jQuery("#" + this.id + "-label").val(this.savedState['label']); 
+    if (this.savedState["activeTab"]) {
+        jQuery("a[href='#" + this.savedState["activeTab"] + "']").tab("show");
     }
-    this.savedSearch = {};
+    this.savedState = {};
 };
 
 /**
@@ -193,10 +193,10 @@ magic.classes.Geosearch.prototype.restoreSearchState = function () {
  * @param {boolean} isDefault
  */
 magic.classes.Geosearch.prototype.addActiveClass = function (tabBase, isDefault) {
-    if (!this.savedSearch || jQuery.isEmptyObject(this.savedSearch) || !this.savedSearch["activeTab"]) {
+    if (!this.savedState || jQuery.isEmptyObject(this.savedState) || !this.savedState["activeTab"]) {
         return(isDefault ? " active" : "");
     }
-    return(this.savedSearch["activeTab"].indexOf("-" + tabBase) > 0 ? " active" : "");
+    return(this.savedState["activeTab"].indexOf("-" + tabBase) > 0 ? " active" : "");
 };
 
 /**
@@ -242,7 +242,7 @@ magic.classes.Geosearch.prototype.mouseoutSuggestion = function (evt) {
  */
 magic.classes.Geosearch.prototype.placenameSearchHandler = function (evt) {
 
-    this.saveSearchState();
+    this.saveState();
     var currentSearchData = this.searchInput.getSelection();
 
     /* Check if this search has already been done */
@@ -348,7 +348,7 @@ magic.classes.Geosearch.prototype.flyTo = function (location, done) {
  */
 magic.classes.Geosearch.prototype.positionSearchHandler = function (evt) {
 
-    this.saveSearchState();
+    this.saveState();
 
     var lon = jQuery("#" + this.id + "-lon"),
             lat = jQuery("#" + this.id + "-lat"),
