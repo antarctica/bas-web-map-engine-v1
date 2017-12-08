@@ -46,7 +46,7 @@ magic.classes.PersonalData.prototype = Object.create(magic.classes.NavigationBar
 magic.classes.PersonalData.prototype.constructor = magic.classes.PersonalData;
 
 magic.classes.PersonalData.prototype.interactsMap = function () {
-    return(false);
+    return(true);
 };
 
 /**

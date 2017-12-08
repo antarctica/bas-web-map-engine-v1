@@ -19,7 +19,10 @@ magic.classes.Measurement = function(options) {
             this.stopMeasuring();
             this.target.popover("hide");
         }, this), 
-        onMinimise: jQuery.proxy(this.stopMeasuring, this)
+        onMinimise: jQuery.proxy(function() {
+            this.stopMeasuring();
+            this.saveState();
+        }, this)
     });
     
     /* Set layer styles */
@@ -61,6 +64,9 @@ magic.classes.Measurement = function(options) {
 
     /* Status of measure operation */
     this.measuring = false;
+    
+    /* Saved state for implementation of minimise button */
+    this.savedState = {};
         
     this.target.popover({
         template: this.template,
@@ -70,7 +76,10 @@ magic.classes.Measurement = function(options) {
         content: this.markup()
     })
     .on("shown.bs.popover", jQuery.proxy(function() {
-        this.activate();        
+        this.activate(); 
+        if (this.savedState && !jQuery.isEmptyObject(this.savedState)) {
+            this.restoreState();
+        }   
     }, this));
 };
 
@@ -106,6 +115,11 @@ magic.classes.Measurement.prototype.onActivateHandler = function() {
         this.stopMeasuring();
     }, this));
     jQuery("a[href='#" + this.id + "-elevation']").on("shown.bs.tab", jQuery.proxy(function() {
+        this.elevationTool.setTarget(
+            this.id + "-elevation-go", 
+            "Click to stop measuring elevations", 
+            "Click map to measure elevation at a point"
+        );
         var visDems = this.elevationTool.currentlyVisibleDems();
         if (visDems.length > 0) {
             /* Good to go - we have DEM layers defined and turned on */
@@ -138,6 +152,11 @@ magic.classes.Measurement.prototype.onActivateHandler = function() {
         this.stopMeasuring();
     }, this));
     jQuery("a[href='#" + this.id + "-heightgraph']").on("shown.bs.tab", jQuery.proxy(function() {
+        this.heightgraphTool.setTarget(
+            this.id + "-heightgraph-go", 
+            "Click to close height graph", 
+            "Draw line on the map along which to view elevation graph"
+        );
         var visDems = this.heightgraphTool.currentlyVisibleDems();
         if (visDems.length > 0) {
             /* Good to go - we have DEM layers defined and turned on */
@@ -260,8 +279,7 @@ magic.classes.Measurement.prototype.startMeasuring = function() {
         }, this));  
         
         /* Set units for height graph */
-        if (this.actionType == "heightgraph") {
-            this.heightgraphTool.setTarget(this.id + "-heightgraph-go");
+        if (this.actionType == "heightgraph") {            
             this.heightgraphTool.setUnits(jQuery("#" + this.id + "-heightgraph-units").val());
         }
     } else {
@@ -334,7 +352,7 @@ magic.classes.Measurement.prototype.markup = function() {
             '<div class="tab-content measure-tabs">' +
                 '<div id="' + this.id + '-distance" role="tabpanel" class="tab-pane active">' +
                     '<div class="form-group form-group-sm">' +
-                        '<p>Choose distance units</p>' + 
+                        '<label for="' + this.id + '-distance-units">Distance units</label>' +
                         '<div class="input-group">' +
                             '<select id="' + this.id + '-distance-units" class="form-control">' +
                                 '<option value="km"' + (magic.runtime.preferences.distance == "km" ? ' selected' : '') + '>kilometres</option>' +
@@ -361,7 +379,7 @@ magic.classes.Measurement.prototype.markup = function() {
                 '</div>' +
                 '<div id="' + this.id + '-area" role="tabpanel" class="tab-pane">' +
                     '<div class="form-group form-group-sm">' +
-                        '<p>Choose area units</p>' + 
+                        '<label for="' + this.id + '-area-units">Area units</label>' +
                         '<div class="input-group">' +
                             '<select id="' + this.id + '-area-units" class="form-control">' +
                                 '<option value="km"' + (magic.runtime.preferences.area == "km" ? ' selected' : '') + '>square kilometres</option>' +
@@ -391,7 +409,7 @@ magic.classes.Measurement.prototype.markup = function() {
                     '</div>' +
                     '<div id="' + this.id + '-dem-info">' + 
                         '<div class="form-group form-group-sm">' +
-                            '<p>Choose elevation units</p>' + 
+                            '<label for="' + this.id + '-elevation-units">Elevation units</label>' + 
                             '<div class="input-group">' +
                                 '<select id="' + this.id + '-elevation-units" class="form-control">' +
                                     '<option value="m"' + (magic.runtime.preferences.elevation == "m" ? ' selected' : '') + '>metres</option>' +
@@ -412,14 +430,14 @@ magic.classes.Measurement.prototype.markup = function() {
                     '</div>' +
                     '<div id="' + this.id + '-dem-info-hg">' +
                         '<div class="form-group form-group-sm">' +
-                            '<p>Choose graph height units</p>' + 
+                            '<label for="' + this.id + '-heightgraph-units">Height graph altitude units</label>' +
                             '<select id="' + this.id + '-heightgraph-units" class="form-control">' +
                                 '<option value="m"' + (magic.runtime.preferences.elevation == "m" ? ' selected' : '') + '>metres</option>' +
                                 '<option value="ft"' + (magic.runtime.preferences.elevation == "ft" ? ' selected' : '') + '>feet</option>' +                                   
                             '</select>' +                                   
                         '</div>' +                   
                         '<div class="form-group form-group-sm">' +
-                            '<p>Number of sample points for each segment</p>' + 
+                            '<label for="' + this.id + '-heightgraph-sampling">Sample points for each segment</label>' +
                             '<div class="input-group">' +
                                 '<select id="' + this.id + '-heightgraph-sampling" class="form-control">' + 
                                     '<option value="5" selected>5</option>' +
@@ -442,6 +460,33 @@ magic.classes.Measurement.prototype.markup = function() {
         '</form>' +
     '</div>'
     );
+};
+
+/**
+ * Save the state for pre-populating tabs on re-show
+ */
+magic.classes.Measurement.prototype.saveState = function () {
+    this.savedState = {};
+    jQuery.each(["heightgraph-units", "heightgraph-sampling", "elevation-units", "area-units", "distance-units"], jQuery.proxy(function(idx, ip) {
+        this.savedState[ip] = jQuery("#" + this.id + "-" + ip).val();
+    }, this));    
+    var activeTab = jQuery("#" + this.id + "-content").find("div.tab-pane.active");
+    if (activeTab.length > 0) {
+        this.savedState["activeTab"] = activeTab[0].id;
+    }
+};
+
+/**
+ * Restore saved tab form values on re-show of the form pop-up
+ */
+magic.classes.Measurement.prototype.restoreState = function () {
+    jQuery.each(["heightgraph-units", "heightgraph-sampling", "elevation-units", "area-units", "distance-units"], jQuery.proxy(function(idx, ip) {
+        jQuery("#" + this.id + "-" + ip).val(this.savedState[ip]);
+    }, this));  
+    if (this.savedState["activeTab"]) {
+        jQuery("a[href='#" + this.savedState["activeTab"] + "']").tab("show");
+    }
+    this.savedState = {};
 };
 
 /**

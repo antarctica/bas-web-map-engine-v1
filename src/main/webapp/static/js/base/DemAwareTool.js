@@ -18,6 +18,13 @@ magic.classes.DemAwareTool = function (options) {
     /* Units in which to express elevations */
     this.units = "m";
     
+    /* Target (invocation button) */
+    this.target = options.target || null;
+    
+    /* Target activate/deactivate tooltips */
+    this.activeTooltip = "Deactivate tool";
+    this.inactiveTooltip = "Activate tool";
+    
 };
 
 magic.classes.DemAwareTool.prototype.getUnits = function() {
@@ -26,6 +33,16 @@ magic.classes.DemAwareTool.prototype.getUnits = function() {
 
 magic.classes.DemAwareTool.prototype.setUnits = function(units) {
     this.units = units;
+};
+
+magic.classes.DemAwareTool.prototype.getTarget = function() {
+    return(this.target);
+};
+
+magic.classes.DemAwareTool.prototype.setTarget = function(targetId, activeTooltip, inactiveTooltip) {
+    this.target = jQuery("#" + targetId);
+    this.activeTooltip = activeTooltip || "Deactivate tool";
+    this.inactiveTooltip = inactiveTooltip || "Activate tool";
 };
 
 /**

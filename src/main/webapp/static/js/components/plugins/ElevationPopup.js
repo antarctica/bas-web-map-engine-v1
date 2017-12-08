@@ -19,12 +19,14 @@ magic.classes.ElevationPopup.prototype = Object.create(magic.classes.DemAwareToo
 magic.classes.ElevationPopup.prototype.constructor = magic.classes.ElevationPopup;
 
 magic.classes.ElevationPopup.prototype.activate = function() {
+    this.target.attr("data-original-title", this.activeTooltip).tooltip("fixTitle");
     this.map.on("singleclick", this.showHeightPopover, this);
     this.map.on("moveend", this.destroyPopup, this);
 };
 
 magic.classes.ElevationPopup.prototype.deactivate = function() {
     this.destroyPopup();
+    this.target.attr("data-original-title", this.inactiveTooltip).tooltip("fixTitle");
     this.map.un("singleclick", this.showHeightPopover, this);
     this.map.un("moveend", this.destroyPopup, this);
 };

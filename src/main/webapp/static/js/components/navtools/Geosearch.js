@@ -184,6 +184,7 @@ magic.classes.Geosearch.prototype.restoreSearchState = function () {
     if (this.savedSearch["activeTab"]) {
         jQuery("a[href='#" + this.savedSearch["activeTab"] + "']").tab("show");
     }
+    this.savedSearch = {};
 };
 
 /**

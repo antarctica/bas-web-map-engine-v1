@@ -54,15 +54,13 @@ magic.classes.HeightGraphPopup.prototype.activate = function(route) {
         /* Start the elevation request chain */
         var defer = jQuery.when.apply(jQuery, gfiRequests);
         defer.always(jQuery.proxy(function() {
-            var origTitle = this.target.attr("title");
-            this.target.attr("title", "Height graph").popover({
+            this.target.attr("data-original-title", this.activeTooltip).tooltip("fixTitle");
+            this.target.popover({
                 template: 
                     '<div class="popover" role="popover">' +
-                        '<div class="arrow"></div>' +
-                        '<h3 class="popover-title"></h3>' +
+                        '<div class="arrow"></div>' +                        
                         '<div id="' + this.id + '-height-graph-vis" style="width:550px;height:350px" class="popover-content"></div>' +
                     '</div>',
-                title: "Height graph",
                 placement: "bottom",
                 container: "body",
                 html: true,
@@ -72,19 +70,36 @@ magic.classes.HeightGraphPopup.prototype.activate = function(route) {
             .on("shown.bs.popover", null, {"coords": outputCoords}, jQuery.proxy(function(evt) {            
                 var xyzData = evt.data.coords;
                 var vds = new vis.DataSet();
+                var xmin = Number.NaN, xmax = Number.NaN, ymin = Number.NaN, ymax = Number.NaN;
                 for (var i = 0; i < xyzData.length; i++) {
+                    var x = xyzData[i][0];
+                    var y = xyzData[i][1];
+                    var z = xyzData[i][2];
+                    if (isNaN(xmin) || x < xmin) {
+                        xmin = x;
+                    }
+                    if (isNaN(xmax) || x > xmax) {
+                        xmax = x;
+                    }
+                    if (isNaN(ymin) || y < ymin) {
+                        ymin = y;
+                    }
+                    if (isNaN(ymax) || y > ymax) {
+                        ymax = y;
+                    }
                     vds.add({
-                        id: i,
-                        x: xyzData[i][0],   /* Lon */
-                        y: xyzData[i][1],   /* Lat */
-                        z: xyzData[i][2],   /* Altitude */
-                        style: 50
+                        x: x,   /* Lon */
+                        y: y,   /* Lat */
+                        z: z    /* Altitude */
                     });
                 }
+                var wXbar = Math.max((xmax - xmin)/xyzData.length, 0.005);
+                var wYbar = Math.max((ymax - ymin)/xyzData.length, 0.005);
                 var options = {
                     width: "500px",
                     height: "300px",
                     style: "bar",
+                    showLegend: true,
                     showPerspective: true,
                     showGrid: true,
                     showShadow: false,
@@ -95,9 +110,22 @@ magic.classes.HeightGraphPopup.prototype.activate = function(route) {
                         var z = magic.modules.GeoUtils.applyPref("elevation", o.z, this.units);
                         return(z + " at (" + x + "," + y + ")");
                     },
+                    tooltipStyle: {
+                        content: {
+                            background: "rgba(255, 255, 255, 0.7)",
+                            padding: "10px",
+                            borderRadius: "10px"
+                        },
+                        line: {
+                            borderLeft: "1px dotted rgba(0, 0, 0, 0.5)"
+                        },
+                        dot: {
+                            border: "5px solid rgba(0, 0, 0, 0.5)"
+                        }
+                    },
                     verticalRatio: 0.4,   
-                    xBarWidth: 0.001,
-                    yBarWidth: 0.001,
+                    xBarWidth: wXbar,
+                    yBarWidth: wYbar,
                     xLabel: "Lon",
                     yLabel: "Lat",
                     zLabel: "Altitude"
@@ -105,8 +133,8 @@ magic.classes.HeightGraphPopup.prototype.activate = function(route) {
                 var container = jQuery("#" + this.id + "-height-graph-vis");
                 var graph3d = new vis.Graph3d(container[0], vds, options);
             }, this))
-            .on("hidden.bs.popover", jQuery.proxy(function(evt) {            
-                this.target.attr("title", origTitle);
+            .on("hidden.bs.popover", jQuery.proxy(function() {            
+                this.target.attr("data-original-title", this.inactiveTooltip).tooltip("fixTitle");
             }, this));
             this.target.popover("show");
         }, this))
@@ -126,15 +154,6 @@ magic.classes.HeightGraphPopup.prototype.deactivate = function() {
         this.target.popover("hide");
     }
 };
-
-magic.classes.HeightGraphPopup.prototype.getTarget = function() {
-    return(this.target);
-};
-
-magic.classes.HeightGraphPopup.prototype.setTarget = function(targetId) {
-    this.target = jQuery("#" + targetId);
-};
-
 
 magic.classes.HeightGraphPopup.prototype.getInterpolation = function() {
     return(this.interpolation);
