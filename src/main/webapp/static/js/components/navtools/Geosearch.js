@@ -26,7 +26,7 @@ magic.classes.Geosearch = function (options) {
                 this.searchInput.init();
                 this.infoButtonHandler("gazetteer sources", this.searchInput.getAttributions());
                 jQuery("#" + this.id + "-position-go").click(jQuery.proxy(this.positionSearchHandler, this));
-                this.populateSearchedFeaturesDropdown();                
+                this.populateSearchHistoryDropdown();                
             }, this),
         onDeactivate: jQuery.proxy(function() {
                 this.searchedFeatureCache = [];
@@ -178,48 +178,18 @@ magic.classes.Geosearch.prototype.historyMarkup = function() {
 /**
  * Dropdown markup for the previous search history
  */
-magic.classes.Geosearch.prototype.populateSearchedFeaturesDropdown = function() {
+magic.classes.Geosearch.prototype.populateSearchHistoryDropdown = function() {
     var insertAt = jQuery("#" + this.id + "-history").next("ul");
+    insertAt.empty();
     console.log(insertAt);
     /* Go through searched feature cache in reverse order */
     if (this.searchedFeatureCache.length == 0) {
         insertAt.append('<li class="dropdown-header">No search history</li>');
-    } else {
-        insertAt.append(
-            '<li class="dropdown-header">' + 
-                '<div style="display:inline-block;width:20px">&nbsp;</div>' + 
-                '<div style="display:inline-block;width:100px">Name</div>' +
-                '<div style="display:inline-block;width:50px">Gaz</div>' +
-                '<div style="display:inline-block;width:50px">Lon</div>' +
-                '<div style="display:inline-block;width:50px">Lat</div>' +
-            '</li>'
-        );
-        for (var i = this.searchedFeatureCache.length - 1; i >= 0; i--) {
-            var attrs = this.searchedFeatureCache[i].getProperties();
-            insertAt.append(
-                '<li>' + 
-                    '<a id="' + this.id + '-' + i + '-history-entry-select" href="JavaScript:void(0)">' + 
-                        '<div style="display:inline-block;width:20px">' + 
-                            '<input id="' + this.id + '-' + i + '-history-entry-vis" type="checkbox"' + 
-                                (this.searchedFeatureCache[i].getStyle() == this.resultStyle ? ' checked="checked"' : '') + '>' + 
-                            '</input>' +
-                        '</div>' + 
-                        '<div style="display:inline-block;width:100px">' + 
-                            attrs.name + 
-                        '</div>' +
-                        '<div style="display:inline-block;width:50px">' + 
-                            (attrs["__gaz_name"] || "") + 
-                        '</div>' +
-                        '<div style="display:inline-block;width:50px">' + 
-                            attrs.lon + 
-                        '</div>' +
-                        '<div style="display:inline-block;width:50px">' + 
-                            attrs.lat + 
-                        '</div>' +                        
-                    '</a>' + 
-                '</li>'
-            );
-        }
+    } else {        
+        for (var i = 0; i < this.searchedFeatureCache.length; i++) {
+            insertAt.append(this.markupHistoryEntry(i));
+            jQuery("#" + this.id + "-" + i + "-history-entry-vis").change(jQuery.proxy(this.historyEntryVisHandler, this));
+        }        
     }
 };
 
@@ -311,39 +281,30 @@ magic.classes.Geosearch.prototype.placenameSearchHandler = function (evt) {
     var currentSearchData = this.searchInput.getSelection();
 
     /* Check if this search has already been done */
-    var exIdx = -1;
-    jQuery.each(this.searchedFeatureCache, jQuery.proxy(function (idx, psFeat) {
-        var attrs = psFeat.getProperties();
-        if (attrs.id == currentSearchData.id && attrs["__gaz_name"] == currentSearchData["__gaz_name"]) {
-            exIdx = idx;
-            return(false);
-        }
-    }, this));
-
     var gazName = currentSearchData["__gaz_name"];
+    var exIdx = this.featurePositionInHistory(currentSearchData.id, gazName);    
     if (exIdx < 0) {
         /* Fetch data */
         jQuery.getJSON("https://api.bas.ac.uk/locations/v1/placename/" + gazName + "/" + currentSearchData["id"], jQuery.proxy(function (json) {
             var jsonData = json.data;
-            delete jsonData["__suggestion"];
-            var geom = this.computeProjectedGeometry(gazName, jsonData);
-            var attrs = jQuery.extend({                
+            delete jsonData["__suggestion"];           
+            var feat = new ol.Feature(jQuery.extend({
+                "__id": magic.modules.Common.uuid(),
                 name: currentSearchData.placename,
-                geometry: geom,                
+                geometry: this.computeProjectedGeometry(gazName, jsonData),                
                 layer: this.layer,
                 "__gaz_name": gazName
-            }, jsonData);
-            var feat = new ol.Feature(attrs);
+            }, jsonData));
             feat.setStyle(this.resultStyle);
             this.layer.getSource().addFeature(feat);
             if (jQuery("#" + this.id + "-tmt").prop("checked")) {
                 this.flyTo(feat.getGeometry().getCoordinates(), function() {});
             }
-            this.searchedFeatureCache.push(feat);
+            this.addHistoryEntry(feat);
         }, this));
     } else {
         /* Done this one before so simply fly to the location */        
-        var feat = this.searchedFeatureCache[exIdx];
+        var feat = this.getHistoryEntry(exIdx);
         feat.setStyle(this.resultStyle);
         if (jQuery("#" + this.id + "-tmt").prop("checked")) {
             this.flyTo(feat.getGeometry().getCoordinates(), function() {});
@@ -424,6 +385,8 @@ magic.classes.Geosearch.prototype.positionSearchHandler = function (evt) {
         var position = new ol.geom.Point([lon.val(), lat.val()]);
         position.transform("EPSG:4326", magic.runtime.map.getView().getProjection().getCode());
         var feat = new ol.Feature({
+            "__id": magic.modules.Common.uuid(),
+            "__gaz_name": null,
             geometry: position,
             lon: lon.val(),
             lat: lat.val(),
@@ -431,7 +394,8 @@ magic.classes.Geosearch.prototype.positionSearchHandler = function (evt) {
             layer: this.layer
         });
         this.layer.getSource().addFeature(feat);
-        this.searchedFeatureCache.push(feat);
+        feat.setStyle(this.resultStyle);
+        this.addHistoryEntry(feat);
         if (jQuery("#" + this.id + "-tmt").prop("checked")) {
             this.flyTo(feat.getGeometry().getCoordinates(), function() {});
         }
@@ -441,6 +405,84 @@ magic.classes.Geosearch.prototype.positionSearchHandler = function (evt) {
         lonFg.removeClass("has-success").addClass("has-error");
         latFg.removeClass("has-success").addClass("has-error");
     }
+};
+
+magic.classes.Geosearch.prototype.addHistoryEntry = function(feat, insertElt) {
+    insertElt = insertElt || jQuery("#" + this.id + "-history").next("ul");
+    var cacheEmpty = this.searchedFeatureCache.length == 0;    
+    this.searchedFeatureCache.unshift(feat);    
+    if (cacheEmpty) {
+        insertElt.html(
+            '<li class="dropdown-header">' + 
+                '<div style="display:inline-block;width:20px">&nbsp;</div>' + 
+                '<div style="display:inline-block;width:150px">Name</div>' +
+                '<div style="display:inline-block;width:40px">Gaz</div>' +
+                '<div style="display:inline-block;width:80px">Lon</div>' +
+                '<div style="display:inline-block;width:80px">Lat</div>' +
+            '</li>'
+        );
+    }
+    insertElt.append(this.markupHistoryEntry(0));
+    /* Add visibility handler */
+    jQuery("#" + this.id + "-" + feat.getProperties()["__id"] + "-history-entry-vis").change(jQuery.proxy(this.historyEntryVisHandler, this));
+};
+
+magic.classes.Geosearch.prototype.markupHistoryEntry = function(idx) {
+    var feat = this.searchedFeatureCache[idx];
+    var attrs = feat.getProperties();
+    var nameTt = "";
+    if (attrs.name && attrs.name.length > 20) {
+        nameTt = ' data-toggle="tooltip" data-placement="right" title="' + attrs.name + '"';
+    }
+    return(
+        '<li>' + 
+            '<a id="' + this.id + '-' + attrs["__id"] + '-history-entry-select" href="JavaScript:void(0)">' + 
+                '<div style="display:inline-block;width:20px">' + 
+                    '<input id="' + this.id + '-' + attrs["__id"] + '-history-entry-vis" type="checkbox"' + 
+                        (feat.getStyle() == this.resultStyle ? ' checked="checked"' : '') + '>' + 
+                    '</input>' +
+                '</div>' + 
+                '<div style="display:inline-block;width:150px"' + nameTt + '>' + 
+                    magic.modules.Common.ellipsis(attrs.name, 20) + 
+                '</div>' +
+                '<div style="display:inline-block;width:40px">' + 
+                    (attrs["__gaz_name"] || "") + 
+                '</div>' +
+                '<div style="display:inline-block;width:80px">' + 
+                    magic.modules.GeoUtils.applyPref("coordinates", attrs.lon, "lon") + 
+                '</div>' +
+                '<div style="display:inline-block;width:80px">' + 
+                    magic.modules.GeoUtils.applyPref("coordinates", attrs.lat, "lon") + 
+                '</div>' +                        
+            '</a>' + 
+        '</li>'
+    );
+};
+
+magic.classes.Geosearch.prototype.historyEntryVisHandler = function(evt) {
+    var fid = evt.currentTarget.id.replace(this.id + "-", "").replace("-history-entry-vis", "");
+    if (fid) {
+        var historyIdx = this.featurePositionInHistory(fid);
+        if (historyIdx != -1) {
+            var f = this.searchedFeatureCache[historyIdx].setStyle(jQuery(evt.currentTarget).prop("checked") ? this.resultStyle : this.invisibleStyle);                 
+        }
+    }
+};
+
+magic.classes.Geosearch.prototype.getHistoryEntry = function(idx) {
+    return(this.searchedFeatureCache[idx]);
+};
+
+magic.classes.Geosearch.prototype.featurePositionInHistory = function(fid) {
+    var exIdx = -1;
+    jQuery.each(this.searchedFeatureCache, jQuery.proxy(function (idx, psFeat) {
+        var attrs = psFeat.getProperties();
+        if (attrs.id == fid) {
+            exIdx = idx;
+            return(false);
+        }
+    }, this));
+    return(exIdx);
 };
 
 
