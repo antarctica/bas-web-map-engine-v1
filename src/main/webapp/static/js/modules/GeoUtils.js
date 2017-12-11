@@ -260,7 +260,7 @@ magic.modules.GeoUtils = function() {
             jQuery.each(flattened, function(idx, item) {
                 values.push(captions[idx] + " : " + parseFloat(item).toFixed(dp));
             });
-            return(values.join("<br />"));
+            return(values.join("<br>"));
         },
         
         /**

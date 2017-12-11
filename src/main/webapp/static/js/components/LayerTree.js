@@ -340,7 +340,7 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
                              nd.one_only ? '<a id="group-rb-off-' + nd.id + '" href="Javascript:void(0)" role="button" ' + 
                              'data-toggle="tooltip" data-placement="right" title="Turn all radio button controlled layers off">' + 
                              '<span style="margin:5px; color:' + (depth == 0 ? 'white' : '#202020') + '" class="fa fa-eye-slash">&nbsp;</span></a>' :
-                             '<input class="layer-vis-group-selector" id="group-cb-' + nd.id + '" type="checkbox" />') +
+                             '<input class="layer-vis-group-selector" id="group-cb-' + nd.id + '" type="checkbox"></input>') +
                             (oneOnly ? '' : '<span class="badge checked-indicator-badge hidden"><span class="fa fa-eye">&nbsp;</span>0</span>') + 
                             '<span class="panel-title layer-group-panel-title" data-toggle="tooltip" data-placement="right" title="' + title + '">' +
                                 '<a class="layer-group-tool" role="button" data-toggle="collapse" href="#layer-group-panel-' + nd.id + '">' +
@@ -405,12 +405,12 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
     /* Determine opacity */
     var layerOpacity = this.userLayerAttribute(nd.id, "opacity", nd.opacity);   
     if (isBase) {
-        cb = '<input class="layer-vis-selector" name="base-layers-rb" id="base-layer-rb-' + nd.id + '" type="radio" ' + (isVisible ? "checked" : "") + '/>';
+        cb = '<input class="layer-vis-selector" name="base-layers-rb" id="base-layer-rb-' + nd.id + '" type="radio" ' + (isVisible ? "checked" : "") + '></input>';
     } else if (element.hasClass("one-only")) {
         var eltId = element.attr("id");
-        cb = '<input class="layer-vis-selector" name="layer-rb-' + eltId + '" id="layer-rb-' + nd.id + '" type="radio" ' + (isVisible ? "checked" : "") + '/>';
+        cb = '<input class="layer-vis-selector" name="layer-rb-' + eltId + '" id="layer-rb-' + nd.id + '" type="radio" ' + (isVisible ? "checked" : "") + '></input>';
     } else {
-        cb = '<input class="layer-vis-selector" id="layer-cb-' + nd.id + '" type="checkbox" ' + (isVisible ? "checked" : "") + '/>';
+        cb = '<input class="layer-vis-selector" id="layer-cb-' + nd.id + '" type="checkbox" ' + (isVisible ? "checked" : "") + '></input>';
     }           
     element.append(
             '<li class="list-group-item layer-list-group-item" id="layer-item-' + nd.id + '">' +
@@ -418,7 +418,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                     '<tr>' + 
                         '<td style="width:5%">' + 
                             '<a id="layer-info-' + nd.id + '" style="cursor:pointer" data-toggle="tooltip" data-placement="right" data-html="true" ' +
-                                'title="' + (isInteractive ? infoTitle + "<br />Click on map features for info" : infoTitle) + '">' +
+                                'title="' + (isInteractive ? infoTitle + "<br>Click on map features for info" : infoTitle) + '">' +
                                 '<span class="fa fa-info-circle' + (isInteractive ? ' clickable' : ' non-clickable') + '"></span>' +                                
                             '</a>' +
                         '</td>' +

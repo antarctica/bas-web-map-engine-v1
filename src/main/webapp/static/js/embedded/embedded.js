@@ -305,7 +305,7 @@ function init() {
                                                         /* Display a chooser */                                                        
                                                         chooser.empty();                                                        
                                                         for (var i = 0; i < data.features.length; i++) {
-                                                            var anch = jQuery('<a/>', {
+                                                            var anch = jQuery('<a>', {
                                                                 href: "Javascript:void(0)",
                                                                 text: (i+1) + ""
                                                             });

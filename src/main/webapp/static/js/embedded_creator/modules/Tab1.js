@@ -459,8 +459,8 @@ magic.modules.embedded_creator.Tab1 = function () {
             var tbody = table.find("tbody");
             var trReplace = tbody.find("#" + this.prefix + "-row-" + layerId);
             var layerInfo = 
-                'Opacity: ' + (data.opacity || 1.0) + '<br/>' + 
-                'One tile: ' + (data.is_singletile === true ? "Y" : "N") + '<br/>' + 
+                'Opacity: ' + (data.opacity || 1.0) + '<br>' + 
+                'One tile: ' + (data.is_singletile === true ? "Y" : "N") + '<br>' + 
                 'Interactive: ' + (data.is_interactive === true ? "Y" : "N");
             var rowContent = 
                 '<tr id="' + this.prefix + '-row-' + layerId + '">' + 

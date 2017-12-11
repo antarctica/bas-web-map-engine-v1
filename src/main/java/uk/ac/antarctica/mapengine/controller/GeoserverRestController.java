@@ -149,7 +149,7 @@ public class GeoserverRestController {
     }
     
     /**
-     * Proxy Geoserver REST API call to get all defined styles for a layer
+     * Proxy Geoserver REST API call to get all attributes for a layer
      * @param HttpServletRequest request,
      * @param String layer
      * @return

@@ -683,7 +683,7 @@ magic.modules.Common = function () {
                     return(value);
                 } else if (value.match(/^https?:\/\/.+\.(jpg|jpeg|png|gif)$/)) {
                     /* Image URL */
-                    return('<img src="' + value + '"/>');
+                    return('<img src="' + value + '">');
                 }
                 /* Check for brain-dead Ramadda URLs with ?entryid=<stuff> at the end, disguising the mime type! */
                 if (value.match(/^https?:\/\//) && value.indexOf("?") > 0) {
@@ -691,7 +691,7 @@ magic.modules.Common = function () {
                     var valueMinusQuery = value.substring(0, value.indexOf("?"));
                     if (valueMinusQuery.match(/\.(jpg|jpeg|png|gif)$/)) {
                         /* Image URL displayed as inline image */
-                        return('<img src="' + value + '"/>');
+                        return('<img src="' + value + '">');
                     }
                 }
 
@@ -722,7 +722,7 @@ magic.modules.Common = function () {
             }
         },
         /**
-         * Break long string every 'size' characters with a <br />
+         * Break long string every 'size' characters with a <br>
          * @param {string} str
          * @param {int} size
          * @returns {string}
@@ -731,7 +731,7 @@ magic.modules.Common = function () {
             if (typeof size == "undefined") {
                 size = 2;
             }
-            return(str.match(RegExp('.{1,' + size + '}', 'g')).join("<br />"));
+            return(str.match(RegExp('.{1,' + size + '}', 'g')).join("<br>"));
         },
         /**
          * Break a string longer than size characters at the final space before the size limit (if possible)

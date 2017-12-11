@@ -17,7 +17,8 @@ magic.classes.AttributionModal = function(options) {
         {name: "bboxsrs", caption: "Bounds (SRS)", type: "text"},
         {name: "bboxwgs84", caption: "Bounds (WGS84)", type: "text"},
         {name: "attribution", caption: "Attribution", type: "text"},
-        {name: "metadataurl", caption: "Metadata URL", type: "text"}
+        {name: "metadataurl", caption: "Metadata URL", type: "text"},
+        {name: "dataurl", caption: "Get data URL", type: "text"}
     ];
     var attributionMarkup = jQuery("#attribution-modal");
     if (attributionMarkup.length == 0) {
@@ -86,48 +87,39 @@ magic.classes.AttributionModal.prototype.show = function(layer) {
  * Create the legend markup
  */
 magic.classes.AttributionModal.prototype.legendMarkup = function() {
+    var legendUrl = null; 
     var content = '<div class="attribution-legend-content">';
-    if (this.layer) {
-        var md = this.layer.get("metadata");
-        if (md) {
-            var legendUrl = null; 
-            if (md.legend_graphic) {
-                /* Non-WMS derived legend graphic e.g. a canned image */
-                legendUrl = md.legend_graphic;
-            } else if (md.source.wms_source || (md.source.geojson_source && md.source.feature_name)) {
-                /* Derive from same WMS as layer */
-                var wmsUrl;
-                var isWms = true;
-                if (md.source.geojson_source) {
-                    wmsUrl = md.source.geojson_source.replace("wfs", "wms");
-                } else {
-                    wmsUrl = md.source.wms_source;
-                } 
-                if (isWms) {
-                    var styles = "";
-                    if (jQuery.isFunction(this.layer.getSource().getParams)) {
-                        styles = this.layer.getSource().getParams()["STYLES"];
-                    }
-                    /* User may have changed the style of the layer, so important that we don't retrieve from browser cache - David 17/02/2017 */
-                    var cacheBuster = "&buster=" + new Date().getTime();
-                    legendUrl = magic.modules.Endpoints.getOgcEndpoint(wmsUrl, "wms") + 
-                        "?service=WMS&request=GetLegendGraphic&format=image/png&width=20&height=20&styles=" + styles + "&layer=" + md.source.feature_name + 
-                        "&legend_options=fontName:Bitstream Vera Sans Mono;fontAntiAliasing:true;fontColor:0xffffff;fontSize:6;bgColor:0x272b30;dpi:180" + cacheBuster;
-                }
+    if (this.layer && this.layer.get("metadata")) {
+        var md = this.layer.get("metadata");        
+        if (md.legend_graphic) {
+            /* Non-WMS derived legend graphic e.g. a canned image */
+            legendUrl = md.legend_graphic;
+        } else if (md.source.wms_source) {
+            /* Derive from same WMS as layer */
+            var wmsUrl = md.source.wms_source;
+            var styles = "";
+            if (jQuery.isFunction(this.layer.getSource().getParams)) {
+                styles = this.layer.getSource().getParams()["STYLES"];
             }
-            if (legendUrl != null) {
-                 content += 
-                    '<div style="width:100%;background-color:#272b30">' + 
-                        '<img style="padding:10px;background-color:#272b30" src="' + legendUrl + '" alt="legend" />' + 
-                    '</div>';  
-            } else {
-                content += '<div class="attribution-title">Vector legends not implemented!</div>';
-            }
-        } else {
-            content += '<div class="attribution-title">No legend available</div>';
-        }        
+            /* User may have changed the style of the layer, so important that we don't retrieve from browser cache - David 17/02/2017 */
+            var cacheBuster = "&buster=" + new Date().getTime();
+            /* Geoserver vendor options, should have no effect for other WMS services like MapServer */
+            var geoserverOpts = "&legend_options=fontName:Bitstream Vera Sans Mono;fontAntiAliasing:true;fontColor:0xffffff;fontSize:6;bgColor:0x272b30;dpi:180";
+            legendUrl = magic.modules.Endpoints.getOgcEndpoint(wmsUrl, "wms") + 
+                "?service=WMS&request=GetLegendGraphic&format=image/png&width=20&height=20" + 
+                "&styles=" + styles + 
+                "&layer=" + md.source.feature_name + 
+                + geoserverOpts + 
+                + cacheBuster;            
+        }
+    }
+    if (legendUrl != null) {
+        content += 
+            '<div style="width:100%;background-color:#272b30">' + 
+                '<img style="padding:10px;background-color:#272b30" src="' + legendUrl + '" alt="legend" />' + 
+            '</div>';  
     } else {
-        content += '<div class="attribution-title">No layer specified</div>';
+        content += '<div class="attribution-title">No legend available</div>';
     }
     content += '</div>';
     jQuery("#attribution-legend").html(content);
@@ -172,7 +164,7 @@ magic.classes.AttributionModal.prototype.metadataMarkup = function() {
 };
 
 /**
- * Populate a metadata record using Ramadda
+ * Populate a metadata record using Ramadda metadata
  * @param {Object} data
  */
 magic.classes.AttributionModal.prototype.populateRecordRamadda = function(data) {
@@ -186,7 +178,7 @@ magic.classes.AttributionModal.prototype.populateRecordRamadda = function(data) 
                 abstractBits.push(fld + " : " + json[fld]);
             }
         });
-        rec["abstract"] = abstractBits.join("<br />");
+        rec["abstract"] = abstractBits.join("<br>");
         /* Read SRS */
         rec["srs"] = magic.modules.GeoUtils.formatProjection("EPSG:4326");                
         /* Read keywords */
@@ -199,7 +191,7 @@ magic.classes.AttributionModal.prototype.populateRecordRamadda = function(data) 
             jQuery.each(json["services"], function(mui, murl) {
                 links.push('<a href="' + murl["url"] + '" target="_blank">[external resource]</a>');
             });
-            rec["metadataurl"] = links.join("<br />");
+            rec["metadataurl"] = links.join("<br>");
         }
     } else {
         rec = null;
@@ -208,7 +200,7 @@ magic.classes.AttributionModal.prototype.populateRecordRamadda = function(data) 
 };
 
 /**
- * Populate a WMS metadata record from the capabilities
+ * Populate a WMS metadata record from WMS GetCapabilities
  * @param {Object} getCaps GetCapabilities document
  * @param {string} featureName
  */
@@ -217,6 +209,7 @@ magic.classes.AttributionModal.prototype.populateRecordWms = function(getCaps, f
     if (getCaps && getCaps[featureName]) {
         var proj = magic.runtime.map.getView().getProjection().getCode();
         var caps = getCaps[featureName];
+        var serveResourceUrl = magic.config.paths.baseurl + "/proxy";
         /* Read abstract */
         rec["abstract"] = caps["Abstract"] || "";
         /* Read SRS */
@@ -246,7 +239,7 @@ magic.classes.AttributionModal.prototype.populateRecordWms = function(getCaps, f
             "STYLES=&" + 
             "BBOX=" + magic.runtime.map.getView().getProjection().getExtent().join(",");
         /* Read keywords */
-        rec["keywords"] = caps["KeywordList"] ? caps["KeywordList"].join("<br />") : "";
+        rec["keywords"] = caps["KeywordList"] ? caps["KeywordList"].join("<br>") : "";
         /* Read SRS bounding box */
         if (jQuery.isArray(caps["BoundingBox"])) {
             jQuery.each(caps["BoundingBox"], function(idx, bb) {
@@ -267,7 +260,7 @@ magic.classes.AttributionModal.prototype.populateRecordWms = function(getCaps, f
                 rec["attribution"] = '<a href="' + value.url + '">' + value.source + '</a>';
             }
         }
-        /* Read metadata URLs */
+        /* Read metadata URL(s) */
         if (caps["MetadataURL"]) {
             var value = caps["MetadataURL"];    
             if (!jQuery.isArray(value)) {    
@@ -275,9 +268,27 @@ magic.classes.AttributionModal.prototype.populateRecordWms = function(getCaps, f
             }
             var links = [];
             jQuery.each(value, function(mui, murl) {
-                links.push('<a href="' + murl["OnlineResource"] + '" target="_blank">[external resource]</a>');
+                links.push('<a href="' + serveResourceUrl + "?" + encodeURIComponent(
+                    "url=" + murl["OnlineResource"] + "&" + 
+                    "format=" + murl["Format"]
+                ) + '" target="_blank">[external resource]</a>');
             });
-            rec["metadataurl"] = links.join("<br />");
+            rec["metadataurl"] = links.join("<br>");
+        }
+        /* Read data URL(s) */
+        if (caps["DataURL"]) {
+            var value = caps["DataURL"];    
+            if (!jQuery.isArray(value)) {    
+                value = [value];
+            }
+            var links = [];
+            jQuery.each(value, function(dui, durl) {
+                links.push('<a href="' + serveResourceUrl + "?" + encodeURIComponent(
+                    "url=" + durl["OnlineResource"] + "&" + 
+                    "format=" + durl["Format"]
+                ) + '" target="_blank">[get data]</a>');
+            });
+            rec["dataurl"] = links.join("<br>");
         }
     } else {
         rec = null;
@@ -295,7 +306,7 @@ magic.classes.AttributionModal.prototype.tabulate = function(rec) {
     if (rec != null) {
         jQuery.each(this.metadataRecord, jQuery.proxy(function(mi, mf) {
             var value = rec[mf.name];
-            if (value != null && value != undefined && value != "") {
+            if (value) {
                 /* Format table row */
                 var heading = '<strong>' + mf.caption + '</strong>';
                 var linkVal = magic.modules.Common.linkify(value);

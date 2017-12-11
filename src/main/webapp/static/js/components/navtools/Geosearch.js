@@ -164,7 +164,7 @@ magic.classes.Geosearch.prototype.historyMarkup = function() {
     return( 
         '<div style="inline-block;float:right;margin-right:10px">' + 
             '<div class="btn-group dropdown" role="group">' + 
-                '<button id="' + this.id + '-history" type="button" class="btn btn-sm btn-default dropdown-toggle" ' + 
+                '<button id="' + this.id + '-history" type="button" style="width:100px" class="btn btn-sm btn-default dropdown-toggle" ' + 
                     'data-toggle="dropdown" data-container="body">' + 
                     '<i data-toggle="tooltip" data-placement="top" title="Searched location history" class="fa fa-history"></i>&nbsp;&nbsp;<span class="caret"></span>' + 
                 '</button>' + 
@@ -185,10 +185,12 @@ magic.classes.Geosearch.prototype.populateSearchHistoryDropdown = function() {
     /* Go through searched feature cache in reverse order */
     if (this.searchedFeatureCache.length == 0) {
         insertAt.append('<li class="dropdown-header">No search history</li>');
-    } else {        
+    } else { 
+        insertAt.html(this.markupHistoryHeader());
         for (var i = 0; i < this.searchedFeatureCache.length; i++) {
-            insertAt.append(this.markupHistoryEntry(i));
-            jQuery("#" + this.id + "-" + i + "-history-entry-vis").change(jQuery.proxy(this.historyEntryVisHandler, this));
+            insertAt.children().first().after(this.markupHistoryEntry(i));
+            /* Add visibility handler */
+            jQuery("#" + this.id + "-" + this.searchedFeatureCache[i].getProperties()["__id"] + "-history-entry-vis").change(jQuery.proxy(this.historyEntryVisHandler, this));
         }        
     }
 };
@@ -412,19 +414,23 @@ magic.classes.Geosearch.prototype.addHistoryEntry = function(feat, insertElt) {
     var cacheEmpty = this.searchedFeatureCache.length == 0;    
     this.searchedFeatureCache.unshift(feat);    
     if (cacheEmpty) {
-        insertElt.html(
-            '<li class="dropdown-header">' + 
-                '<div style="display:inline-block;width:20px">&nbsp;</div>' + 
-                '<div style="display:inline-block;width:150px">Name</div>' +
-                '<div style="display:inline-block;width:40px">Gaz</div>' +
-                '<div style="display:inline-block;width:80px">Lon</div>' +
-                '<div style="display:inline-block;width:80px">Lat</div>' +
-            '</li>'
-        );
+        insertElt.html(this.markupHistoryHeader());
     }
-    insertElt.append(this.markupHistoryEntry(0));
+    insertElt.children().first().after(this.markupHistoryEntry(0));
     /* Add visibility handler */
     jQuery("#" + this.id + "-" + feat.getProperties()["__id"] + "-history-entry-vis").change(jQuery.proxy(this.historyEntryVisHandler, this));
+};
+
+magic.classes.Geosearch.prototype.markupHistoryHeader = function() {
+    return(
+        '<li class="dropdown-header">' + 
+            '<div style="display:inline-block;width:20px">&nbsp;</div>' + 
+            '<div style="display:inline-block;width:150px">Name</div>' +
+            '<div style="display:inline-block;width:40px">Gaz</div>' +
+            '<div style="display:inline-block;width:80px">Lon</div>' +
+            '<div style="display:inline-block;width:80px">Lat</div>' +
+        '</li>'
+    );
 };
 
 magic.classes.Geosearch.prototype.markupHistoryEntry = function(idx) {
@@ -477,7 +483,7 @@ magic.classes.Geosearch.prototype.featurePositionInHistory = function(fid) {
     var exIdx = -1;
     jQuery.each(this.searchedFeatureCache, jQuery.proxy(function (idx, psFeat) {
         var attrs = psFeat.getProperties();
-        if (attrs.id == fid) {
+        if (attrs["__id"] == fid) {
             exIdx = idx;
             return(false);
         }

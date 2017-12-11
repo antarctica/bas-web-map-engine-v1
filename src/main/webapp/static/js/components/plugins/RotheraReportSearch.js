@@ -390,7 +390,7 @@ magic.classes.RotheraReportSearch.prototype.fullFeatureDataFetch = function(call
             id: response.id,
             title: response.title,
             description: response.description.replace("~", "'"),
-            people: response.people ? (response.people.split("~").join("<br/>")) : "",
+            people: response.people ? (response.people.split("~").join("<br>")) : "",
             season: response.startdate && response.enddate 
                 ? response.startdate.substr(response.startdate.length-4) + " - " + (parseInt(response.startdate.substr(response.startdate.length-4))+1)
                 :  + "Unspecified",

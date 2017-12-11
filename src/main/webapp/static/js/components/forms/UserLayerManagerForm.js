@@ -296,7 +296,7 @@ magic.classes.UserLayerManagerForm.prototype.addLegendHoverHandler = function(lt
                 var legendUrl = md.service + 
                     "?service=WMS&request=GetLegendGraphic&format=image/png&width=20&height=20&styles=&layer=" + md.layer + 
                     "&legend_options=fontName:Bitstream Vera Sans Mono;fontAntiAliasing:true;fontColor:0xffffff;fontSize:6;bgColor:0x272b30;dpi:180" + cacheBuster;
-                cont = '<img src="' + legendUrl + '" alt="Legend"/>';
+                cont = '<img src="' + legendUrl + '" alt="Legend">';
             }        
             return('<div style="width:120px">' + cont + '</div>');
         }, this)
@@ -359,7 +359,7 @@ magic.classes.UserLayerManagerForm.prototype.layerMarkup = function() {
                                 ul.owner + 
                             '</div>' + 
                             '<div style="display:inline-block;width:200px" data-toggle="tooltip" data-html="true" data-placement="bottom" ' + 
-                                'title="' + ul.caption + '<br/>' + ul.description + '<br/>Modified on : ' + magic.modules.Common.dateFormat(ul.modified_date, "dmy") + '">' + 
+                                'title="' + ul.caption + '<br>' + ul.description + '<br>Modified on : ' + magic.modules.Common.dateFormat(ul.modified_date, "dmy") + '">' + 
                                 magic.modules.Common.ellipsis(ul.caption, 30) + 
                             '</div>' + 
                         '</a>' + 
