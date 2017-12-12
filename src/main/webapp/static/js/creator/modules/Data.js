@@ -17,7 +17,7 @@ magic.modules.creator.Data = function () {
             "creation_date": null,
             "modified_date": null,
             "owner_name": "",
-            "owner_email": "owner@example.com",
+            "owner_email": "basmagic@bas.ac.uk",
             "metadata_url": "",
             "allowed_usage": "public",
             "allowed_edit": "owner",
@@ -80,23 +80,6 @@ magic.modules.creator.Data = function () {
                                     "is_visible": true
                                 }
                             ]
-                        },
-                        {
-                            "id": null,
-                            "name": "Grids",
-                            "expanded": true,
-                            "layers": [
-                                {
-                                    "id": null,
-                                    "name": "Graticule",
-                                    "source": {
-                                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database"),
-                                        "feature_name": "add:antarctic_graticule",
-                                        "is_singletile": true
-                                    },   
-                                    "is_visible": true                                
-                                }
-                            ]
                         }
                     ]
                 },
@@ -146,23 +129,6 @@ magic.modules.creator.Data = function () {
                                 }
                             ]
                         }
-//                        {
-//                            "id": null,
-//                            "name": "Grids",
-//                            "expanded": true,
-//                            "layers": [
-//                                {
-//                                    "id": null,
-//                                    "name": "Graticule",
-//                                    "source": {
-//                                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("CCAMLR GIS"),
-//                                        "feature_name": "gis:graticule",
-//                                        "is_singletile": true
-//                                    },   
-//                                    "is_visible": true                                
-//                                }
-//                            ]
-//                        }
                     ]
                 },
                 "arctic": {
@@ -210,23 +176,6 @@ magic.modules.creator.Data = function () {
                                         "feature_name": "arctic:arctic_coastline"
                                     },   
                                     "is_visible": true
-                                }
-                            ]
-                        },
-                        {
-                            "id": null,
-                            "name": "Grids",
-                            "expanded": true,
-                            "layers": [
-                                {
-                                    "id": null,
-                                    "name": "Graticule",
-                                    "source": {
-                                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Arctic Open Data"),
-                                        "feature_name": "arctic:arctic_graticule",
-                                        "is_singletile": true
-                                    },   
-                                    "is_visible": true                                
                                 }
                             ]
                         }

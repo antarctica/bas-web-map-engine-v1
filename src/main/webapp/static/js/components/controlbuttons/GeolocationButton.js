@@ -122,7 +122,7 @@ magic.classes.GeolocationButton.prototype.showLocation = function () {
  * Show current heading
  */
 magic.classes.GeolocationButton.prototype.showHeading = function () {
-    var heading = this.deviceOrientation.getHeading()
+    var heading = this.deviceOrientation.getHeading();
     //this.map.getView().setRotation(-rotation);
     var mElt = jQuery("#geolocation")[0];
     mElt.style["-webkit-transform"] = "rotate(" + heading + "rad)";

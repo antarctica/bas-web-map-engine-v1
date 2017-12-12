@@ -98,17 +98,15 @@ magic.classes.ControlButtonRibbon = function(config, map) {
     }, this));
     /* Add a minimise ribbon button */
     this.createControlButton("minimise-control-ribbon", "fa fa-caret-left", this.buttons.length, "Minimise control toolbar")
-    .on("click", jQuery.proxy(function(evt) {
-        var shown = this.ribbonDiv, hidden = this.maximiseDiv;
-        hidden.toggleClass("hidden");
-        shown.toggleClass("hidden");
+    .on("click", jQuery.proxy(function() {
+        this.maximiseDiv.toggleClass("hidden");
+        this.ribbonDiv.toggleClass("hidden");
     }, this));
     /* Add a maximise ribbon button */    
     this.createControlButton("maximise-control-ribbon", "fa fa-caret-right", -1, "Maximise control toolbar", this.maximiseDiv)
-    .on("click", jQuery.proxy(function(evt) {
-        var hidden = this.ribbonDiv, shown = this.maximiseDiv;
-        hidden.toggleClass("hidden");
-        shown.toggleClass("hidden");
+    .on("click", jQuery.proxy(function() {
+        this.ribbonDiv.toggleClass("hidden");
+        this.maximiseDiv.toggleClass("hidden");
     }, this));
 };
 
