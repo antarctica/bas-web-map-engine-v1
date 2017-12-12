@@ -433,16 +433,20 @@ magic.modules.Common = function () {
                                 magic.runtime.map_context.capabilities[url] = ftypes;
                                 callback(magic.runtime.map_context.capabilities[url], typename);
                             } else {
-                                callback(null, typename);
+                                callback(null, typename, "No feature types found in GetCapabilities response from " + url);
                             }                            
                         } else {
-                            callback(null, typename);
+                            callback(null, typename, "Malformed GetCapabilities response from " + url);
                         }
                     } catch(e) {
-                        alert(e);
+                        callback(null, typename, "Parsing GetCapabilities response from " + url + " failed with error " + e.message);
                     }
-                }, this)).fail(function() {
-                    callback(null, typename);
+                }, this)).fail(function(xhr, status, errMsg) {
+                    var message = "Failed to WMS GetCapabilities document from " + url + ", error was : " + errMsg;
+                    if (status == 401) {
+                        message = "Not authorised to retrieve WMS GetCapabilities document from " + url;
+                    }
+                    callback(null, typename, message);
                 });
             }
         },
@@ -683,7 +687,7 @@ magic.modules.Common = function () {
                     return(value);
                 } else if (value.match(/^https?:\/\/.+\.(jpg|jpeg|png|gif)$/)) {
                     /* Image URL */
-                    return('<img src="' + value + '">');
+                    return('<img src="' + value + '"></img>');
                 }
                 /* Check for brain-dead Ramadda URLs with ?entryid=<stuff> at the end, disguising the mime type! */
                 if (value.match(/^https?:\/\//) && value.indexOf("?") > 0) {
@@ -691,7 +695,7 @@ magic.modules.Common = function () {
                     var valueMinusQuery = value.substring(0, value.indexOf("?"));
                     if (valueMinusQuery.match(/\.(jpg|jpeg|png|gif)$/)) {
                         /* Image URL displayed as inline image */
-                        return('<img src="' + value + '">');
+                        return('<img src="' + value + '"></img>');
                     }
                 }
 

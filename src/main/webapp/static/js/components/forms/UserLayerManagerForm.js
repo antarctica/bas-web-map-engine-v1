@@ -296,7 +296,7 @@ magic.classes.UserLayerManagerForm.prototype.addLegendHoverHandler = function(lt
                 var legendUrl = md.service + 
                     "?service=WMS&request=GetLegendGraphic&format=image/png&width=20&height=20&styles=&layer=" + md.layer + 
                     "&legend_options=fontName:Bitstream Vera Sans Mono;fontAntiAliasing:true;fontColor:0xffffff;fontSize:6;bgColor:0x272b30;dpi:180" + cacheBuster;
-                cont = '<img src="' + legendUrl + '" alt="Legend">';
+                cont = '<img src="' + legendUrl + '" alt="Legend"></img>';
             }        
             return('<div style="width:120px">' + cont + '</div>');
         }, this)

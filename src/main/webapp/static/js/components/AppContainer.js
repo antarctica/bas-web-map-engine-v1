@@ -378,7 +378,7 @@ magic.classes.AppContainer.prototype.displayWatermark = function() {
     if (wmkUrl) {
         var wmkDiv = jQuery("div.watermark"); 
         if (wmkDiv.length > 0) {
-            wmkDiv.append('<img src="' + wmkUrl + '" alt="watermark">');
+            wmkDiv.append('<img src="' + wmkUrl + '" alt="watermark"></img>');
         }
     }
 };  

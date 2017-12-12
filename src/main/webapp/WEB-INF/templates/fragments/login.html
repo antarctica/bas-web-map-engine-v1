@@ -23,11 +23,11 @@
             
             jQuery(function() {
                 if (jQuery.isArray(error)) {                    
-                    jQuery("#creator-username").parent().addClass("has-error").addClass("has-feedback");
-                    jQuery("#creator-password").parent().addClass("has-error").addClass("has-feedback");
+                    jQuery("#login-username").parent().addClass("has-error").addClass("has-feedback");
+                    jQuery("#login-password").parent().addClass("has-error").addClass("has-feedback");
                 } else {
-                    jQuery("#creator-username").parent().removeClass("has-error").removeClass("has-feedback");
-                    jQuery("#creator-password").parent().removeClass("has-error").removeClass("has-feedback");
+                    jQuery("#login-username").parent().removeClass("has-error").removeClass("has-feedback");
+                    jQuery("#login-password").parent().removeClass("has-error").removeClass("has-feedback");
                 }
             });
             
@@ -36,35 +36,44 @@
     </head>
     <body>
         <div class="container login-form-container">
-            <div class="well well-lg">
-                <h3>Welcome to Web Mapping Services</h3>
-                Please log in using your BAS username and LDAP (SOUTH) password to begin.
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 style="margin-top:10px;text-align:center">Welcome to MAGIC Web Services</h3>
+                </div>                
+                <div class="panel-body">
+                    <div class="alert alert-info">Please log in using your BAS username and LDAP (SOUTH) password to begin</div>
+                    <form th:action="@{/login}" method="post" class="form-horizontal" style="width:50%">               
+                        <div th:if="${param.logout}" class="post-ok" style="margin-bottom:10px"> 
+                            You have been logged out
+                        </div>
+                        <div th:if="${param.error} == 'forbidden'" class="post-error" style="margin-bottom:10px"> 
+                            You tried to access a restricted resource - please log in
+                        </div>
+                        <div th:if="${param.error} == ''" class="post-error" style="margin-bottom:10px"> 
+                            Unable to log you in - please try again
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2" for="login-username">Username</label>
+                            <div class="col-sm-10">
+                                <input type="text" class="form-control" name="username" id="login-username" placeholder="Your BAS username" 
+                                required="required" autofocus="autofocus"></input>
+                                <span class="glyphicon glyphicon-remove form-control-feedback hidden" style="margin-right:15px"></span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2" for="login-password">Password</label>
+                            <div class="col-sm-10">
+                                <input type="password" class="form-control" name="password" id="login-password" placeholder="Your BAS LDAP (SOUTH) password" 
+                                required="required"></input>
+                                <span class="glyphicon glyphicon-remove form-control-feedback hidden" style="margin-right:15px"></span>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-12">
+                            <input type="submit" value="Log in" class="btn btn-primary"></input>
+                        </div>   			
+                    </form>
+                </div>
             </div>
-            <form th:action="@{/login}" method="post" style="width:300px">               
-                <div th:if="${param.logout}" class="post-ok" style="margin-bottom:10px"> 
-                    You have been logged out
-                </div>
-                <div th:if="${param.error} == 'forbidden'" class="post-error" style="margin-bottom:10px"> 
-                    You tried to access a restricted resource - please log in
-                </div>
-                <div th:if="${param.error} == ''" class="post-error" style="margin-bottom:10px"> 
-                    Unable to log you in - please try again
-                </div>
-                <div class="form-group">
-                    <label for="creator-username">Username</label>
-                    <input type="text" class="form-control login-form-control" name="username" id="creator-username" placeholder="Your BAS username" 
-                           required="required" autofocus="autofocus"></input>
-                    <span class="glyphicon glyphicon-remove form-control-feedback" aria-hidden="true"></span>
-                </div>
-                <div class="form-group">
-                    <label for="creator-password">Password</label>
-                    <input type="password" class="form-control login-form-control" name="password" id="creator-password" placeholder="Your BAS LDAP (SOUTH) password" required="required"></input>
-                    <span class="glyphicon glyphicon-remove form-control-feedback" aria-hidden="true"></span>
-                </div>
-                <div class="form-group">
-                    <input type="submit" value="Log in" class="btn btn-default"></input>
-                </div>   
-            </form>
         </div>
     </body>    
 </html>

@@ -109,14 +109,14 @@ magic.classes.AttributionModal.prototype.legendMarkup = function() {
                 "?service=WMS&request=GetLegendGraphic&format=image/png&width=20&height=20" + 
                 "&styles=" + styles + 
                 "&layer=" + md.source.feature_name + 
-                + geoserverOpts + 
-                + cacheBuster;            
+                geoserverOpts + 
+                cacheBuster;            
         }
     }
     if (legendUrl != null) {
         content += 
             '<div style="width:100%;background-color:#272b30">' + 
-                '<img style="padding:10px;background-color:#272b30" src="' + legendUrl + '" alt="legend" />' + 
+                '<img style="padding:10px;background-color:#272b30" src="' + legendUrl + '" alt="legend"></img>' + 
             '</div>';  
     } else {
         content += '<div class="attribution-title">No legend available</div>';
@@ -135,6 +135,7 @@ magic.classes.AttributionModal.prototype.metadataMarkup = function() {
             /* WMS source, or GeoJSON WFS */
             var wmsUrl;
             if (md.source.geojson_source) {
+                /* This is probably only going to work as an approach with Geoserver */
                 wmsUrl = md.source.geojson_source.replace("wfs", "wms");
             } else {
                 wmsUrl = md.source.wms_source;
@@ -153,7 +154,14 @@ magic.classes.AttributionModal.prototype.metadataMarkup = function() {
             if (sourceUrl != null && sourceUrl.match("/entry/get") != null && sourceUrl.match(/[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}/) != null) {
                 /* Ramadda repository URL */
                 var mdUrl = sourceUrl.replace("/get", "/show") + "&output=json";
-                jQuery.getJSON(mdUrl, jQuery.proxy(this.populateRecordRamadda, this));
+                jQuery.getJSON(mdUrl, jQuery.proxy(this.populateRecordRamadda, this))
+                .fail(function(xhr, status, errmsg) {
+                    var message = "Failed to get metadata from Ramadda, error was : " + errmsg;
+                    if (status == 401) {
+                        "Not authorised to get metadata from Ramadda";
+                    }
+                    jQuery("#attribution-metadata").html(message);
+                });
             } else {
                 jQuery("#attribution-metadata").html("No metadata available");
             }
@@ -194,7 +202,7 @@ magic.classes.AttributionModal.prototype.populateRecordRamadda = function(data) 
             rec["metadataurl"] = links.join("<br>");
         }
     } else {
-        rec = null;
+        rec = {"error": "Malformed metadata from Ramadda"};
     }
     this.tabulate(rec);
 };
@@ -203,8 +211,9 @@ magic.classes.AttributionModal.prototype.populateRecordRamadda = function(data) 
  * Populate a WMS metadata record from WMS GetCapabilities
  * @param {Object} getCaps GetCapabilities document
  * @param {string} featureName
+ * @param {string} errMsg
  */
-magic.classes.AttributionModal.prototype.populateRecordWms = function(getCaps, featureName) {
+magic.classes.AttributionModal.prototype.populateRecordWms = function(getCaps, featureName, errMsg) {
     var rec = {};
     if (getCaps && getCaps[featureName]) {
         var proj = magic.runtime.map.getView().getProjection().getCode();
@@ -268,10 +277,7 @@ magic.classes.AttributionModal.prototype.populateRecordWms = function(getCaps, f
             }
             var links = [];
             jQuery.each(value, function(mui, murl) {
-                links.push('<a href="' + serveResourceUrl + "?" + encodeURIComponent(
-                    "url=" + murl["OnlineResource"] + "&" + 
-                    "format=" + murl["Format"]
-                ) + '" target="_blank">[external resource]</a>');
+                links.push('<a href="' + murl["OnlineResource"] + '" target="_blank">[external resource]</a>');
             });
             rec["metadataurl"] = links.join("<br>");
         }
@@ -283,15 +289,12 @@ magic.classes.AttributionModal.prototype.populateRecordWms = function(getCaps, f
             }
             var links = [];
             jQuery.each(value, function(dui, durl) {
-                links.push('<a href="' + serveResourceUrl + "?" + encodeURIComponent(
-                    "url=" + durl["OnlineResource"] + "&" + 
-                    "format=" + durl["Format"]
-                ) + '" target="_blank">[get data]</a>');
+                links.push('<a href="' + durl["OnlineResource"] + '" target="_blank">[get data]</a>');
             });
             rec["dataurl"] = links.join("<br>");
         }
     } else {
-        rec = null;
+        rec = {"error": errMsg};
     }
     this.tabulate(rec);
 };
@@ -304,23 +307,29 @@ magic.classes.AttributionModal.prototype.populateRecordWms = function(getCaps, f
 magic.classes.AttributionModal.prototype.tabulate = function(rec) {    
     var content = '<table id="attribution-metadata-content" class="table table-striped table-condensed metadata-table show">';
     if (rec != null) {
-        jQuery.each(this.metadataRecord, jQuery.proxy(function(mi, mf) {
-            var value = rec[mf.name];
-            if (value) {
-                /* Format table row */
-                var heading = '<strong>' + mf.caption + '</strong>';
-                var linkVal = magic.modules.Common.linkify(value);
-                content += '<tr>';
-                if (mf.type == "long_text") {                    
-                    content += '<td colspan="2" class="metadata" style="background-color: inherit">' + heading + '<div>' + linkVal + '</div></td>';
-                } else {
-                    content += '<td valign="top" style="width:120px">' + heading + '</td><td class="metadata" style="width:270px">' + linkVal + '</td>';
+        if (rec.error) {
+            /* Something went wrong fetching the data, report in rec.error */
+            content += '<tr><td colspan="2">' + rec.error + '</td></tr>';
+        } else {
+            /* Render metadata record */
+            jQuery.each(this.metadataRecord, function(mi, mf) {
+                var value = rec[mf.name];
+                if (value) {
+                    /* Format table row */
+                    var heading = '<strong>' + mf.caption + '</strong>';
+                    var linkVal = magic.modules.Common.linkify(value);
+                    content += '<tr>';
+                    if (mf.type == "long_text") {                    
+                        content += '<td colspan="2" class="metadata" style="background-color: inherit">' + heading + '<div>' + linkVal + '</div></td>';
+                    } else {
+                        content += '<td valign="top" style="width:120px">' + heading + '</td><td class="metadata" style="width:270px">' + linkVal + '</td>';
+                    }
+                    content += '</tr>';
                 }
-                content += '</tr>';
-            }
-        }, this));
-    } else {
-        content = '<tr><td colspan="2">No metadata available</td></tr>';
+            });
+        }
+    } else {        
+        content += '<tr><td colspan="2">No metadata available</td></tr>';
     }
     content += '</table>';
     jQuery("#attribution-metadata").html(content);
