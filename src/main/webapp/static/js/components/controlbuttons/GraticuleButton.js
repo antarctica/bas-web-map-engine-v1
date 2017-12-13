@@ -2,35 +2,22 @@
 
 magic.classes.GraticuleButton = function (name, ribbon) {
 
-    /* API properties */
-    this.name = name;
-    this.ribbon = ribbon;
+    var options = {
+        name: name, 
+        ribbon: ribbon,
+        inactiveTitle: "Show graticule",
+        activeTitle: "Hide graticule",
+        onActivate: jQuery.proxy(this.onActivate, this),
+        onDeactivate: jQuery.proxy(this.onDeactivate, this)
+    };    
+    
+    magic.classes.MapControlButton.call(this, options);  
 
     /* Internal properties */
-    this.active = true;
     this.graticule = null;      /* OL control for non-polar projections */
-    this.graticuleLayer = null; /* Data layer for polar projections */    
-
-    this.inactiveTitle = "Show graticule";
-    this.activeTitle = "Hide graticule";
-
-    this.btn = jQuery('<button>', {
-        "id": "btn-" + this.name,
-        "class": "btn btn-default ribbon-middle-tool active",
-        "data-toggle": "tooltip",
-        "data-placement": "bottom",
-        "title": this.activeTitle,
-        "html": '<span class="fa fa-table"></span>'
-    });
-    this.btn.on("click", jQuery.proxy(function () {
-        if (this.isActive()) {
-            this.deactivate();
-        } else {
-            this.activate();
-        }
-    }, this));
+    this.graticuleLayer = null; /* Data layer for polar projections */
     
-    var projection = magic.runtime.map.getView().getProjection();
+    var projection = this.map.getView().getProjection();
     var projCode = projection.getCode();
     var projExtent = magic.modules.GeoUtils.projectionLatLonExtent(projCode);
     var isPolar = magic.modules.GeoUtils.isPolarProjection(projCode);
@@ -41,7 +28,7 @@ magic.classes.GraticuleButton = function (name, ribbon) {
             projection.setExtent(projExtent);
             this.graticule = new ol.Graticule({showLabels: true});
         }
-        this.graticule.setMap(magic.runtime.map);
+        this.graticule.setMap(this.map);
     } else {
         /* Use a data layer */
         if (!this.graticuleLayer) {
@@ -60,7 +47,7 @@ magic.classes.GraticuleButton = function (name, ribbon) {
                     params: {"LAYERS": gratEp.graticule_layer},
                     projection: projection
                 }));
-                var resolutions = magic.runtime.map.getView().getResolutions();
+                var resolutions = this.map.getView().getResolutions();
                 this.graticuleLayer = new ol.layer.Image({
                     name: "automated_graticule_layer",
                     visible: true,
@@ -68,7 +55,7 @@ magic.classes.GraticuleButton = function (name, ribbon) {
                     minResolution: resolutions[resolutions.length-1],
                     maxResolution: resolutions[0]+1
                 });                
-                magic.runtime.map.addLayer(this.graticuleLayer);
+                this.map.addLayer(this.graticuleLayer);
                 /* Send to top of WMS layer stack (vectors will be on top of it) */
                 this.graticuleLayer.setZIndex(199);
             } else {
@@ -79,39 +66,28 @@ magic.classes.GraticuleButton = function (name, ribbon) {
     }     
 };
 
-magic.classes.GraticuleButton.prototype.getButton = function () {
-    return(this.btn);
-};
-
-magic.classes.GraticuleButton.prototype.isActive = function () {
-    return(this.active);
-};
+magic.classes.GraticuleButton.prototype = Object.create(magic.classes.MapControlButton.prototype);
+magic.classes.GraticuleButton.prototype.constructor = magic.classes.GraticuleButton;
 
 /**
- * Activate the control
+ * Activate control callback
  */
-magic.classes.GraticuleButton.prototype.activate = function () {
-    this.active = true;
+magic.classes.GraticuleButton.prototype.onActivate = function () {
     if (this.graticule) {
-        this.graticule.setMap(magic.runtime.map);
+        this.graticule.setMap(this.map);
     } else if (this.graticuleLayer) {
         this.graticuleLayer.setVisible(true);
     }
-    this.btn.addClass("active");
-    this.btn.attr("data-original-title", this.activeTitle).tooltip("fixTitle");
 };
 
 /**
- * Deactivate the control
+ * Deactivate control callback
  */
-magic.classes.GraticuleButton.prototype.deactivate = function () {
-    this.active = false;
+magic.classes.GraticuleButton.prototype.onDeactivate = function () {
     if (this.graticule) {
         this.graticule.setMap(null);
     } else if (this.graticuleLayer) {
         this.graticuleLayer.setVisible(false);
     }
-    this.btn.removeClass("active");
-    this.btn.attr("data-original-title", this.inactiveTitle).tooltip("fixTitle");
 };
     

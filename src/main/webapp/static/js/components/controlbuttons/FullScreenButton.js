@@ -2,23 +2,19 @@
 
 magic.classes.FullScreenButton = function(name, ribbon) {
     
-    this.name = name;    
-    this.ribbon = ribbon;
+    var options = {
+        name: name, 
+        ribbon: ribbon,
+        inactiveTitle: "Full screen map",
+        activeTitle: ""    /* Tool is invisible in full screen mode */        
+    };    
     
-    this.title = "Full screen map";
-    
+    magic.classes.MapControlButton.call(this, options);
+        
     magic.runtime.map.addControl(new ol.control.FullScreen());
     /* Get rid of the OL standard full-screen control buttons which are ugly and off-theme */
     jQuery("div.ol-full-screen.ol-unselectable.ol-control").css("display", "none");                
     
-    this.btn = jQuery('<button>', {
-        "id": "btn-" + this.name,
-        "class": "btn btn-default ribbon-middle-tool",
-        "data-toggle": "tooltip",
-        "data-placement": "bottom",
-        "title": this.title,
-        "html": '<span class="glyphicon glyphicon-fullscreen"></span>'
-    });
     this.btn.on("click", jQuery.proxy(function() {
         /* Redirect the full-screen button click to click the invisible ol button */
         jQuery("div.ol-full-screen.ol-unselectable.ol-control").children("button").click();
@@ -26,8 +22,5 @@ magic.classes.FullScreenButton = function(name, ribbon) {
     
 };
 
-magic.classes.FullScreenButton.prototype.getButton = function() {
-    return(this.btn);
-};
-
-    
+magic.classes.FullScreenButton.prototype = Object.create(magic.classes.MapControlButton.prototype);
+magic.classes.FullScreenButton.prototype.constructor = magic.classes.FullScreenButton;

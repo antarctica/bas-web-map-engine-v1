@@ -2,11 +2,16 @@
 
 magic.classes.DragZoomButton = function(name, ribbon) {
     
-    this.name = name;    
-    this.ribbon = ribbon;
+    var options = {
+        name: name, 
+        ribbon: ribbon,
+        inactiveTitle: "Zoom in by dragging a box on map",
+        activeTitle: "Click to stop box drag mode",
+        onActivate: jQuery.proxy(this.onActivate, this),
+        onDeactivate: jQuery.proxy(this.onDeactivate, this)
+    };    
     
-    this.inactiveTitle = "Zoom in by dragging a box on map";
-    this.activeTitle = "Click to stop box drag mode";
+    magic.classes.MapControlButton.call(this, options);        
         
     this.dragZoomInteraction = new ol.interaction.DragZoom({
         /* Note: style is done by ol-dragzoom - see https://github.com/openlayers/ol3/releases/ v3.11.0 */
@@ -15,49 +20,26 @@ magic.classes.DragZoomButton = function(name, ribbon) {
     this.dragZoomInteraction.setActive(false);
     magic.runtime.map.addInteraction(this.dragZoomInteraction);
     
-    this.btn = jQuery('<button>', {
-        "id": "btn-" + this.name,
-        "class": "btn btn-default ribbon-middle-tool",
-        "data-toggle": "tooltip",
-        "data-placement": "bottom",
-        "title": this.inactiveTitle,
-        "html": '<span class="fa fa-plus-square-o"></span>'
-    });
-    this.btn.on("click", jQuery.proxy(function() {
-        if (this.isActive()) {
-            this.deactivate();
-        } else {
-            this.activate();
-        }
-    }, this));
-    
 };
 
-magic.classes.DragZoomButton.prototype.getButton = function() {
-    return(this.btn);
-};
-
-magic.classes.DragZoomButton.prototype.isActive = function() {
-    return(this.dragZoomInteraction.getActive());
-};
+magic.classes.DragZoomButton.prototype = Object.create(magic.classes.MapControlButton.prototype);
+magic.classes.DragZoomButton.prototype.constructor = magic.classes.DragZoomButton;
 
 /**
- * Activate the control
+ * Activate control callback
  */
-magic.classes.DragZoomButton.prototype.activate = function() {
+magic.classes.DragZoomButton.prototype.onActivate = function() {
     this.dragZoomInteraction.setActive(true);
     var spn = this.btn.children("span");
     spn.removeClass("fa-plus-square-o").addClass("fa-arrows");
-    this.btn.attr("data-original-title", this.activeTitle).tooltip("fixTitle");
 };
 
 /**
- * Deactivate the control
+ * Deactivate control callback
  */
-magic.classes.DragZoomButton.prototype.deactivate = function() {
+magic.classes.DragZoomButton.prototype.onDeactivate = function() {
     this.dragZoomInteraction.setActive(false);
     var spn = this.btn.children("span");
     spn.removeClass("fa-arrows").addClass("fa-plus-square-o");
-    this.btn.attr("data-original-title", "Zoom in by dragging a box on map").tooltip("fixTitle");
 };
     

@@ -1,54 +1,32 @@
 /* Show geolocation button */
 
 magic.classes.GeolocationButton = function (name, ribbon, map) {
-
-    /* API properties */
-    this.name = name;
-    this.ribbon = ribbon;
-    this.map = map || magic.runtime.map;
-
-    /* Internal properties */
-    this.active = false;
-
-    this.inactiveTitle = "Show my location";
-    this.activeTitle = "Hide my location";
-     
+    
+    var options = {
+        name: name, 
+        ribbon: ribbon,
+        map: map,
+        inactiveTitle: "Show my location",
+        activeTitle: "Hide my location",
+        onActivate: jQuery.proxy(this.onActivate, this),
+        onDeactivate: jQuery.proxy(this.onDeactivate, this)
+    };    
+    
+    magic.classes.MapControlButton.call(this, options);        
+   
     this.marker = null;
     this.geolocation = null;
     this.deviceOrientation = null;
 
-    this.btn = jQuery('<button>', {
-        "id": "btn-" + this.name,
-        "class": "btn btn-default",
-        "data-toggle": "tooltip",
-        "data-placement": "bottom",
-        "title": this.inactiveTitle,
-        "html": '<span class="fa fa-location-arrow"></span>'
-    });
-    this.btn.on("click", jQuery.proxy(function () {
-        if (this.isActive()) {
-            this.deactivate();
-        } else {
-            this.activate();
-        }
-    }, this));
 };
 
-magic.classes.GeolocationButton.prototype.getButton = function () {
-    return(this.btn);
-};
-
-magic.classes.GeolocationButton.prototype.isActive = function () {
-    return(this.active);
-};
+magic.classes.GeolocationButton.prototype = Object.create(magic.classes.MapControlButton.prototype);
+magic.classes.GeolocationButton.prototype.constructor = magic.classes.GeolocationButton;
 
 /**
- * Activate the control
+ * Activate control callback
  */
-magic.classes.GeolocationButton.prototype.activate = function () {
-    
-    this.active = true;
-        
+magic.classes.GeolocationButton.prototype.onActivate = function () {            
     if (this.marker == null) {
         this.marker = new ol.Overlay({
             element: jQuery("#geolocation")[0],
@@ -77,23 +55,18 @@ magic.classes.GeolocationButton.prototype.activate = function () {
     } else {
         this.deviceOrientation.setTracking(true);
         this.showHeading();
-    }
-    this.btn.addClass("active");
-    this.btn.attr("data-original-title", this.activeTitle).tooltip("fixTitle");    
+    }    
 };
 
 /**
- * Deactivate the control
+ * Deactivate control callback
  */
-magic.classes.GeolocationButton.prototype.deactivate = function () {
-    this.active = false;   
+magic.classes.GeolocationButton.prototype.onDeactivate = function () {
     if (this.marker) {
         jQuery("#geolocation").addClass("hidden");
     }
     this.geolocation.setTracking(false);
-    this.deviceOrientation.setTracking(false);
-    this.btn.removeClass("active");
-    this.btn.attr("data-original-title", this.inactiveTitle).tooltip("fixTitle");
+    this.deviceOrientation.setTracking(false);    
 };
 
 /**
@@ -123,7 +96,6 @@ magic.classes.GeolocationButton.prototype.showLocation = function () {
  */
 magic.classes.GeolocationButton.prototype.showHeading = function () {
     var heading = this.deviceOrientation.getHeading();
-    //this.map.getView().setRotation(-rotation);
     var mElt = jQuery("#geolocation")[0];
     mElt.style["-webkit-transform"] = "rotate(" + heading + "rad)";
     mElt.style["transform"] = "rotate(" + heading + "rad)";

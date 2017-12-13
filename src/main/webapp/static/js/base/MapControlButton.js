@@ -1,12 +1,18 @@
-/* Base class for a control ribbon button */
+/* Base class for a map control ribbon button */
 
-magic.classes.RibbonButton = function (options) {
+magic.classes.MapControlButton = function (options) {
 
     /* API properties */
     this.name = options.name;
     this.ribbon = options.ribbon;
     this.inactiveTitle = options.inactiveTitle;
     this.activeTitle = options.activeTitle;
+    
+    this.map = options.map || magic.runtime.map;
+    
+    /* Callbacks */
+    this.onActivate = options.onActivate;
+    this.onDeactivate = options.onDeactivate;
 
     /* Internal properties */
     this.active = false;
@@ -29,31 +35,35 @@ magic.classes.RibbonButton = function (options) {
     
 };
 
-magic.classes.RibbonButton.prototype.getButton = function () {
+magic.classes.MapControlButton.prototype.getButton = function () {
     return(this.btn);
 };
 
-magic.classes.RibbonButton.prototype.isActive = function () {
+magic.classes.MapControlButton.prototype.isActive = function () {
     return(this.active);
 };
 
 /**
  * Activate the control
- * @param {Function} onActivate callback
  */
-magic.classes.RibbonButton.prototype.activate = function (onActivate) {
+magic.classes.MapControlButton.prototype.activate = function () {
     this.active = true;
     this.btn.addClass("active");
     this.btn.attr("data-original-title", this.activeTitle).tooltip("fixTitle");
+    if (jQuery.isFunction(this.onActivate)) {
+        this.onActivate();
+    }
 };
 
 /**
  * Deactivate the control
- * @param {Function} onDeactivate callback
  */
-magic.classes.RibbonButton.prototype.deactivate = function (onDeactivate) {
+magic.classes.MapControlButton.prototype.deactivate = function () {
     this.active = false;    
     this.btn.removeClass("active");
     this.btn.attr("data-original-title", this.inactiveTitle).tooltip("fixTitle");
+    if (jQuery.isFunction(this.onDeactivate)) {
+        this.onDeactivate();
+    }
 };
     

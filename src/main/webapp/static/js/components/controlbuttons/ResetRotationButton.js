@@ -2,38 +2,38 @@
 
 magic.classes.ResetRotationButton = function(name, ribbon) {
     
-    this.name = name;    
-    this.ribbon = ribbon;
+    var options = {
+        name: name, 
+        ribbon: ribbon,
+        disabled: true,
+        inactiveTitle: "Reset map rotation (shift-drag on map to start rotation)",
+        activeTitle: "Reset map rotation (shift-drag on map to start rotation)",
+        onDeactivate: jQuery.proxy(this.onDeactivate, this)
+    };    
     
-    this.title = "Reset map rotation (shift-drag on map to start rotation)";
+    magic.classes.MapControlButton.call(this, options);        
     
     this.dragRotateZoomInteraction = new ol.interaction.DragRotateAndZoom();
     this.dragRotateZoomInteraction.setActive(true);
-    magic.runtime.map.addInteraction(this.dragRotateZoomInteraction);
+    this.map.addInteraction(this.dragRotateZoomInteraction);
     
-    this.originalRotation = magic.runtime.map.getView().getRotation();
+    /* Save the initial rotation of the map */
+    this.originalRotation = this.map.getView().getRotation();
    
-    this.btn = jQuery('<button>', {
-        "id": "btn-" + this.name,
-        "class": "btn btn-default ribbon-middle-tool disabled",
-        "data-toggle": "tooltip",
-        "data-placement": "bottom",
-        "title": this.title,
-        "html": '<span class="glyphicon glyphicon-repeat"></span>'
-    });
-    this.btn.on("click", jQuery.proxy(function() {
-        magic.runtime.map.getView().setRotation(this.originalRotation);
-        this.btn.addClass("disabled");
-    }, this));
-    
-    magic.runtime.map.getView().on("change:rotation", jQuery.proxy(function() {
+    this.map.getView().on("change:rotation", jQuery.proxy(function() {
         this.btn.removeClass("disabled");
+        this.activate();
     }, this));    
     
 };
 
-magic.classes.ResetRotationButton.prototype.getButton = function() {
-    return(this.btn);
-};
+magic.classes.ResetRotationButton.prototype = Object.create(magic.classes.MapControlButton.prototype);
+magic.classes.ResetRotationButton.prototype.constructor = magic.classes.ResetRotationButton;
 
-    
+/**
+ * Deactivate control callback
+ */
+magic.classes.DragZoomButton.prototype.onDeactivate = function() {
+    this.map.getView().setRotation(this.originalRotation);
+    this.btn.addClass("disabled");
+};
