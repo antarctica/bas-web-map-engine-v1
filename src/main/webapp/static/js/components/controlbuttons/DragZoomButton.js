@@ -5,6 +5,8 @@ magic.classes.DragZoomButton = function(name, ribbon) {
     var options = {
         name: name, 
         ribbon: ribbon,
+        inactiveBtnClass: "fa fa-plus-square-o",
+        activeBtnClass: "fa fa-arrows",
         inactiveTitle: "Zoom in by dragging a box on map",
         activeTitle: "Click to stop box drag mode",
         onActivate: jQuery.proxy(this.onActivate, this),
@@ -29,17 +31,13 @@ magic.classes.DragZoomButton.prototype.constructor = magic.classes.DragZoomButto
  * Activate control callback
  */
 magic.classes.DragZoomButton.prototype.onActivate = function() {
-    this.dragZoomInteraction.setActive(true);
-    var spn = this.btn.children("span");
-    spn.removeClass("fa-plus-square-o").addClass("fa-arrows");
+    this.dragZoomInteraction.setActive(true);    
 };
 
 /**
  * Deactivate control callback
  */
 magic.classes.DragZoomButton.prototype.onDeactivate = function() {
-    this.dragZoomInteraction.setActive(false);
-    var spn = this.btn.children("span");
-    spn.removeClass("fa-arrows").addClass("fa-plus-square-o");
+    this.dragZoomInteraction.setActive(false);    
 };
     

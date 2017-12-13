@@ -6,6 +6,8 @@ magic.classes.GeolocationButton = function (name, ribbon, map) {
         name: name, 
         ribbon: ribbon,
         map: map,
+        inactiveBtnClass: "fa fa-location-arrow",
+        activeBtnClass: "fa fa-location-arrow",
         inactiveTitle: "Show my location",
         activeTitle: "Hide my location",
         onActivate: jQuery.proxy(this.onActivate, this),

@@ -423,7 +423,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                             '</a>' +
                         '</td>' +
                         '<td style="width:5%">' +
-                            '<div id="vis-wrapper-' + nd.id + '" style="cursor:pointer" tabindex="0" class="layer-vis-wrapper"' + 
+                            '<div id="vis-wrapper-' + nd.id + '" style="cursor:pointer" tabindex="0"' + 
                             (isTimeDependent ? ' data-trigger="manual" data-toggle="popover" data-placement="bottom"' : '') + '>' + 
                             cb + 
                             '</div>' + 

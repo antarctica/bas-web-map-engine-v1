@@ -293,12 +293,6 @@ span.checked-indicator-badge {
     margin-right: 5px;
 }
 
-.layer-vis-wrapper {
-    /*width: auto;
-    height: auto;
-    float: left !important; */   
-}
-
 /* Button ribbon styles */
 div.button-ribbon {    
     margin-left: 5px !important;
@@ -312,29 +306,11 @@ div.button-ribbon button {
     height: 43px !important;
 }
 
-div.button-ribbon button.minimise-button  {
+div.button-ribbon button.maxmin-button  {
     width: 34px !important;
 }
 
-div.button-ribbon button.maximise-button  {
-    width: 34px !important;   
-}
-
-div.ribbon-button-wrapper {
-    float: left;
-}
-
-/* Stop buttons in the ribbon look ugly as the font size of the icon is too big */
-span.glyphicon-stop {
-    font-size: 14px !important;
-}
-
 /* Simulate the btn-group style for buttons enclosed by a wrapper (which won't inherit the btn-group styles) */
-button.ribbon-first-tool {
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-}
-
 button.ribbon-middle-tool {
     border-radius: 0;
     margin-left: -1px;

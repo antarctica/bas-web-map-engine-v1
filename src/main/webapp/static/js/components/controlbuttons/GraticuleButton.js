@@ -5,6 +5,9 @@ magic.classes.GraticuleButton = function (name, ribbon) {
     var options = {
         name: name, 
         ribbon: ribbon,
+        startActive: true,
+        inactiveBtnClass: "fa fa-table",
+        activeBtnClass: "fa fa-table",
         inactiveTitle: "Show graticule",
         activeTitle: "Hide graticule",
         onActivate: jQuery.proxy(this.onActivate, this),

@@ -132,21 +132,18 @@ magic.classes.ControlButtonRibbon.prototype.createControlButton = function(name,
         div = this.ribbonDiv;
     }
     var modifierClass = "ribbon-middle-tool";
-    if (ribbonPos == 0) {
-        /* The rounded corner classes would be fine if some of the tools did not have wrappers round the buttons to enable tooltips */
-        modifierClass = "ribbon-first-tool";        
-    } else if (ribbonPos == this.buttons.length) {
+    if (ribbonPos == this.buttons.length) {
         /* Last button in toolbar does minimise */
-        modifierClass = "ribbon-last-tool minimise-button";
+        modifierClass = "ribbon-last-tool maxmin-button";
     } else if (ribbonPos < 0) {
         /* Convention for a maximise button */
-        modifierClass = "ribbon-last-tool maximise-button";
+        modifierClass = "ribbon-last-tool maxmin-button";
     }
     var btn = jQuery('<button>', {
         "id": "btn-" + name,
         "class": "btn btn-default " + modifierClass,
         "data-toggle": "tooltip",
-        "data-placement": "bottom",
+        "data-placement": ribbonPos <= 0 ? "right" : "bottom",
         "title": title,
         "html": '<span class="' + glyph + '"></span>'
     });

@@ -12,13 +12,15 @@ magic.classes.IssueInformation = function(options) {
   
     /* Display issue information (if any) in top right corner of map */  
     if (this.issueData && !jQuery.isEmptyObject(this.issueData)) {
-        this.target.html(
+        this.target.removeClass("hidden").html(
             '<table class="table table-condensed" style="margin-bottom:0px">' + 
                 '<tr><th>Issue ID</th><td>' + this.issueData.id + '</td></tr>' + 
                 '<tr><th>Subject</th><td>' + this.issueData.subject + '</td></tr>' + 
                 '<tr><th>Last updated</th><td>' + this.issueData.updated_on + '</td></tr>' +                             
             '</table>' 
         );
+    } else {
+        this.target.addClass("hidden");
     }
     
 };
