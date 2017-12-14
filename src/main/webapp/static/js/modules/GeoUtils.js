@@ -50,6 +50,51 @@ magic.modules.GeoUtils = function() {
             coordinates: "dd"
         },
         
+        /* Default map parameters for different regions */
+        DEFAULT_MAP_PARAMS: {
+            "antarctic": {
+                "projection": "EPSG:3031",
+                "proj_extent": [-5000000,-5000000,5000000,5000000],
+                "center": [0, 0],
+                "zoom": 0,
+                "rotation": 0,                
+                "resolutions": [11200, 5600, 2800, 1400, 560, 280, 140, 56, 28, 14, 5.6, 2.8, 1.4, 0.56]
+            },
+            /* For CCAMLR */
+            "antarctic_laea": {
+                "projection": "EPSG:102020",
+                "proj_extent": [-5500000,-5500000,5500000,5500000],
+                "center": [0, 0],
+                "zoom": 0,
+                "rotation": 0,               
+                "resolutions": [14000, 7000, 2800, 1400, 560, 280, 140]                
+            },
+            "arctic": {
+                "projection": "EPSG:3995",
+                "proj_extent": [-4000000,-4000000,4000000,4000000],
+                "center": [0, 0],
+                "zoom": 0,
+                "rotation": 0,               
+                "resolutions": [11200, 5600, 2800, 1400, 560, 280, 140]
+            }, 
+            "southgeorgia":{
+                "projection": "EPSG:3762",
+                "proj_extent": [-929362.849,-1243855.108,1349814.294,556833.528],
+                "center": [-1000.0, 61900.0],
+                "zoom": 4,
+                "rotation": 0,                
+                "resolutions": [3360, 1680, 840, 420, 210, 105, 42, 21, 10.5, 4.2, 2.1, 1.12, 0.56, 0.28, 0.14]
+            },
+            "midlatitudes": {
+                "projection": "EPSG:3857",  /* Spherical Mercator as per OSM/Google */
+                "proj_extent": [-20026376.39, -20048966.10, 20026376.39, 20048966.10],
+                "center": [0, 0],
+                "zoom": 0,
+                "rotation": 0,                
+                "resolutions": []
+            }
+        },
+        
         /**
          * Format a lon/lat coordinate according to global preference
          * @param {float} coordinate

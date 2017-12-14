@@ -8,24 +8,24 @@
         <div class="col-md-12">
             <div class="alert alert-info">
                 <p>Use the map to pan/zoom to the closest possible view extent to that desired for the final map.  Click and drag will pan the map, shift-click and drag will 
-                    zoom to the dragged box, silder or mousewheel zooms in and out.  If you require a rotated view, enter the desired rotation below.</p>
-                <p>Click &quot;Finish&quot; to save the map data and show the necessary embedding code.</p>
+                    zoom to the dragged box, slider/mousewheel/pinch zooms in and out.  If you require a rotated view, enter the desired rotation (in degrees) below.
+                </p>
             </div>
         </div>   
         <div class="col-md-8">
-            <div id="em-map-selector-map" style="width:100%;height:400px">                            
+            <div id="map-parameters-selector-map" style="width:100%;height:400px">                            
             </div>
         </div>
         <div class="col-md-4">
             <div class="form-group form-inline">               
-                <label for="em-map-rotation" class="col-sm-5 control-label">Map rotation</label>
+                <label for="map-parameters-rotation" class="col-sm-5 control-label">Map rotation</label>
                 <div class="col-sm-7">
-                    <input type="number" class="form-control" id="em-map-rotation" name="em-map-rotation" 
+                    <input type="number" class="form-control" id="map-parameters-rotation" name="map-parameters-rotation" 
                            placeholder="Map rotation" 
                            min="-180" max="180" step="1"
                            data-toggle="tooltip" data-placement="left" title="Clockwise rotation of map in degrees, -180 &lt;= rotation &lt;= 180">                                   
                     </input>
-                    <button id="em-map-rotation-set" type="button" class="btn btn-primary">Set</button>
+                    <button id="map-parameters-rotation-set" type="button" class="btn btn-primary">Set</button>
                 </div>                
             </div>
         </div>           

@@ -574,6 +574,12 @@ magic.modules.Common = function () {
             }
         },
         /**
+         * Remove all success/error indications on all form inputs on a page
+         */
+        resetFormIndicators: function() {
+            jQuery("div.form-group").removeClass("has-error").removeClass("has-success");
+        },        
+        /**
          * Does the given key name look name-like?
          * @param {String} key
          * @returns {boolean}

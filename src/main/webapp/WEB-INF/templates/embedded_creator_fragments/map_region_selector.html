@@ -6,12 +6,12 @@
     </head>    
     <body th:fragment="layout">                                    
         <div class="form-group">
-            <label class="col-md-3" for="em-map-new-rb">
-                <input type="radio" name="_em-map-action-rb" id="em-map-new-rb" value="new" checked="checked"></input>
+            <label class="col-md-3" for="region-select-new-rb">
+                <input type="radio" name="_region-select-action-rb" id="region-select-new-rb" value="new" checked="checked"></input>
                 Create a new map of
             </label>
             <div class="col-md-9">
-                <select class="form-control map-select" id="em-map-new">
+                <select class="form-control map-select" id="region-select-new">
                     <option value="">Select region</option>
                     <option value="antarctic">Antarctica</option> 
                     <option value="arctic">Arctic</option> 
@@ -21,23 +21,23 @@
             </div>
         </div>
         <div class="form-group">
-            <label class="col-md-3" for="em-map-clone-rb">
-                <input type="radio" name="_em-map-action-rb" id="em-map-clone-rb" value="clone"></input>
+            <label class="col-md-3" for="region-select-clone-rb">
+                <input type="radio" name="_region-select-action-rb" id="region-select-clone-rb" value="clone"></input>
                 Clone existing map
             </label>
             <div class="col-md-9">
-                <select class="form-control map-select" id="em-map-clone" disabled="disabled">
+                <select class="form-control map-select" id="region-select-clone" disabled="disabled">
                     <option value="">Select a map</option>                       
                 </select>
             </div>
         </div>
         <div class="form-group">
-            <label class="col-md-3" for="em-map-edit-rb">
-                <input type="radio" name="_em-map-action-rb" id="em-map-edit-rb" value="edit"></input>
+            <label class="col-md-3" for="region-select-edit-rb">
+                <input type="radio" name="_region-select-action-rb" id="region-select-edit-rb" value="edit"></input>
                 Edit existing map
             </label>
             <div class="col-md-9">
-                <select class="form-control map-select" id="em-map-edit" disabled="disabled">
+                <select class="form-control map-select" id="region-select-edit" disabled="disabled">
                     <option value="">Select a map</option>                        
                 </select>
             </div>
