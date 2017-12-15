@@ -3,10 +3,10 @@
 magic.classes.creator.EmbeddedAttributeEditorPopup = function(options) {
     
     options = jQuery.extend({}, {
-        id: "em-layer-editor",
-        caption: "Edit layer data",
-        popoverClass: "em-layer-editor-popover",
-        popoverContentClass: "em-layer-editor-popover-content"
+        id: "em-attr-editor",
+        caption: "Edit attribute data",
+        popoverClass: "em-attr-editor-popover",
+        popoverContentClass: "em-attr-editor-popover-content"
     }, options);
     
     magic.classes.PopupForm.call(this, options);
@@ -14,6 +14,12 @@ magic.classes.creator.EmbeddedAttributeEditorPopup = function(options) {
     this.setCallbacks(jQuery.extend(this.controlCallbacks, {
         onSave: options.onSave
     }));
+    
+    /* WMS service for the current feature */
+    this.wmsService = options.wms_source;
+    
+    /* Feature name from above */
+    this.featureName = options.feature_name;
     
     this.inputs = ["name", "type", "nillable", "alias", "ordinal", "displayed"];
        
@@ -23,14 +29,13 @@ magic.classes.creator.EmbeddedAttributeEditorPopup = function(options) {
         container: "body",
         html: true,
         trigger: "manual",
-        content: this.markup()
+        content: '<p><i class="fa fa-spin fa-spinner"></i> Loading attributes...</p>'
     }).on("shown.bs.popover", jQuery.proxy(function(evt) {
         
         jQuery("#" + this.id + "-layer-caption").focus();
         
-        this.assignCloseButtonHandler();        
-        this.payloadToForm(this.prePopulator);
-        this.assignHandlers();
+        this.assignCloseButtonHandler();
+        this.getFeatureAttributes();
     }, this));
             
 };
@@ -39,65 +44,98 @@ magic.classes.creator.EmbeddedAttributeEditorPopup.prototype = Object.create(mag
 magic.classes.creator.EmbeddedAttributeEditorPopup.prototype.constructor = magic.classes.creator.EmbeddedAttributeEditorPopup;
 
 /**
- * Update attribute map for WMS source and feature type
- * @param {String} wms url
- * @param {String} feature
- * @param {Object} attrMap
- * @param {String} id
+ * Retrieve attribute map for WMS source and feature type (not cached as may change)
  */
-magic.classes.creator.EmbeddedAttributeEditorPopup.prototype.ogcLoadContext = function(wms, feature, attrMap, id) {    
-    if (wms && feature && id) {    
-        if (wms == "osm") {
-            /* OpenStreetMap */
-            this.displayInteractivityDiv("no", "");
-        } else {
-            /* Get the feature type attributes from DescribeFeatureType */
-            this.attribute_dictionary[id] = [];
-            this.type_dictionary[id] = null;
-            var dftUrl = magic.modules.Common.getWxsRequestUrl(wms, "DescribeFeatureType", feature);
-            if (dftUrl == "") {
-                /* No way of determining the attributes, so bomb now */
-                this.displayInteractivityDiv("unknown", "");
-            } else {
-                /* Issue DescribeFeatureType request via WFS */
-                jQuery.ajax({
-                    url: dftUrl,
-                    method: "GET",
-                    dataType: "xml"
-                })
-                .done(jQuery.proxy(function(response) {
-                    /* Update : 13/09/2017 - As of about version 60, Chrome now suddenly works like everything else... */
-                    var elts = elts = jQuery(response).find("xsd\\:sequence").find("xsd\\:element");
-                    var geomType = "unknown";
-                    jQuery.each(elts, jQuery.proxy(function(idx, elt) {
-                        var attrs = {};
-                        jQuery.each(elt.attributes, jQuery.proxy(function(i, a) {                        
-                            if (a.value.indexOf("gml:") == 0) {                           
-                                geomType = this.computeOgcGeomType(a.value);
-                                this.type_dictionary[id] = geomType;
-                            }
-                            attrs[a.name] = a.value;
-                        }, this));
-                        this.attribute_dictionary[id].push(attrs);                    
-                    }, this));
-                    this.type_dictionary[id] = geomType;
-                    /* See if lack of a geometry type matters - David 2017-06-09 */
-                    //if (geomType == "unknown") {
-                    //    this.displayInteractivityDiv("no", "");
-                    //} else {
-                        this.displayInteractivityDiv("yes", this.toForm(id, attrMap, this.attribute_dictionary[id]));
-                    //}
-                }, this))
-                .fail(jQuery.proxy(function(xhr) {
-                    if (xhr.status == 401) {
-                        this.displayInteractivityDiv("yes", '<div class="alert alert-warning" style="margin-bottom:0">Not authorised to read data</div>');
-                    }
-                }, this));
-            }            
-        }
+magic.classes.creator.EmbeddedAttributeEditorPopup.prototype.getFeatureAttributes = function() {
+    
+    var dftUrl = magic.modules.Common.getWxsRequestUrl(this.wmsService, "DescribeFeatureType", this.featureName);
+    if (!dftUrl) {
+        
     } else {
-        this.displayInteractivityDiv("unknown", "");
-    }
+        /* Issue DescribeFeatureType request via WFS */
+        jQuery.ajax({
+            url: dftUrl,
+            method: "GET",
+            dataType: "xml"
+        })
+        .done(jQuery.proxy(function(response) {
+            /* Update : 13/09/2017 - As of about version 60, Chrome now suddenly works like everything else... */
+            var elts = elts = jQuery(response).find("xsd\\:sequence").find("xsd\\:element");
+            var geomType = "unknown";
+            var attrList = [];
+            jQuery.each(elts, jQuery.proxy(function(idx, elt) {
+                var attrs = {};
+                jQuery.each(elt.attributes, jQuery.proxy(function(i, a) {                        
+                    if (a.value.indexOf("gml:") == 0) {                           
+                        geomType = this.computeOgcGeomType(a.value);
+                    }
+                    attrs[a.name] = a.value;
+                }, this));
+                attrList.push(attrs);
+            }, this));
+            jQuery(".em-attr-editor-popover-content").html(this.markup(attrList, geomType));
+        }, this))
+        .fail(jQuery.proxy(function(xhr, status, message) {
+            if (status == 401) {
+                bootbox.alert(
+                    '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                        'Not authorised to read data' + 
+                    '</div>'
+                );
+            } else {
+                bootbox.alert(
+                    '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                        'Error : ' + message + " from server while reading attributes" + 
+                    '</div>'
+                );
+            }
+        }, this));
+    }    
+};
+
+/**
+ * Create form HTML for the attribute map
+ * @param {Array} attrList
+ * @param {String} geomType
+ * @returns {String}
+ */
+magic.classes.creator.EmbeddedAttributeEditorPopup.prototype.markup = function(attrList, geomType) {
+    var html = "";
+    if (attrList.length == 0) {
+        /* No attributes found */
+        html = '<div class="alert alert-info">No attributes found</div>';
+    } else {
+        /* Show attribute table */
+        html += 
+            '<table class="table table-condensed table-striped table-hover table-responsive">' + 
+                '<tr>' + 
+                    '<th>Name</th>' + 
+                    '<th>Type</th>' + 
+                    '<th>Alias</th>' + 
+                    '<th style="width:40px"><span data-toggle="tooltip" data-placement="top" title="Ordering of attribute in pop-up">O<span></th>' + 
+                    '<th style="width:40px"><span class="fa fa-eye" data-toggle="tooltip" data-placement="top" title="Attribute is visible in pop-ups"><span></th>' + 
+                '</tr>';
+        jQuery.each(attrList, jQuery.proxy(function(idx, entry) {
+            html += '<input type="hidden" id="_amap_name_' + idx + '" value="' + entry.name + '"></input>';
+            html += '<input type="hidden" id="_amap_type_' + idx + '" value="' + entry.type + '"></input>';
+            html += '<input type="hidden" id="_amap_nillable_' + idx + '" value="' + entry.nillable + '"></input>';
+            if (entry.type.indexOf("gml:") != 0) {
+                /* This is not the geometry field */                
+                html += 
+                '<tr>' + 
+                    '<td>' + entry.name + '</td>' +
+                    '<td>' + entry.type.replace("xsd:", "") + '</td>' + 
+                    '<td><input type="text" id="_amap_alias_' + idx + '" value="' + entry.alias + '" style="width:90px !important" ' + 
+                        'data-toggle="tooltip" data-placement="top" title="Human-friendly name to display in pop-ups"></input></td>' + 
+                    '<td><input type="number" size="2" style="width: 37px" min="1" max="99" id="_amap_ordinal_' + idx + '" value="' + entry.ordinal + '"></input></td>' +                              
+                    '<td><input type="checkbox" id="_amap_displayed_' + idx + '" value="display"' + (entry.display === true ? ' checked' : '') + ' ' +
+                        'data-toggle="tooltip" data-placement="top" title="Display attribute value in pop-ups"></input></td>' +                
+                '</tr>';
+            }
+        }, this));
+        html += '</table>';           
+    }    
+    return(html);
 };
 
 /**
@@ -130,76 +168,6 @@ magic.classes.creator.EmbeddedAttributeEditorPopup.prototype.saveContext = funct
         context.attribute_map = newMap;
         context.geom_type = this.type_dictionary[context.id];
     }        
-};
-
-/**
- * Create form HTML for the attribute map
- * @param {string} id
- * @param {object} attrMap
- * @param {Array} attrDict
- * @returns {String}
- */
-magic.classes.creator.EmbeddedAttributeEditorPopup.prototype.toForm = function(id, attrMap, attrDict) {
-    var html = '';
-    jQuery(".geometry-type-indicator").html(this.type_dictionary[id]);
-    if (jQuery.isArray(attrDict) && attrDict.length > 0) {
-        /* Some attributes - first compile a dictionary of what we already have */
-        if (!attrMap) {
-            attrMap = [];
-        }
-        var existingMap = {};
-        jQuery.each(attrMap, function(mi, me) {
-            existingMap[me.name] = me;
-        });
-        html += '<table class="table table-condensed table-striped table-hover table-responsive">';
-        html += '<tr>';
-        html += '<th>Name</th>';
-        html += '<th>Type</th>';
-        html += '<th>Alias</th>';
-        html += '<th width="37"><span data-toggle="tooltip" data-placement="top" title="Ordering of attribute in pop-up">O<span></th>';
-        html += '<th width="37"><span class="fa fa-tag" data-toggle="tooltip" data-placement="top" title="Use attribute a feature label (not for WMS layers)"><span></th>';        
-        html += '<th width="37"><span class="fa fa-eye" data-toggle="tooltip" data-placement="top" title="Attribute is visible in pop-ups"><span></th>';
-        html += '<th width="37"><span class="fa fa-filter" data-toggle="tooltip" data-placement="top" title="Can filter layer on this attribute"><span></th>';
-        html += '<th width="37"><span data-toggle="tooltip" data-placement="top" title="Display unique attribute values when filtering">U</span></th>';
-        html += '</tr>';
-        jQuery.each(attrDict, jQuery.proxy(function(idx, entry) {
-            html += '<input type="hidden" id="_amap_name_' + idx + '" value="' + entry.name + '"></input>';
-            html += '<input type="hidden" id="_amap_type_' + idx + '" value="' + entry.type + '"></input>';
-            html += '<input type="hidden" id="_amap_nillable_' + idx + '" value="' + entry.nillable + '"></input>';
-            if (entry.type.indexOf("gml:") != 0) {
-                /* This is not the geometry field */
-                var exo = existingMap[entry.name];
-                var alias = "", label = false, display = false, filter = false, unique = false, ordinal = "";
-                if (exo) {
-                    alias = exo.alias;
-                    label = exo.label;
-                    ordinal = exo.ordinal || "";
-                    display = exo.displayed === true ? true : false;
-                    filter = exo.filterable === true ? true : false;
-                    unique = exo.unique_values === true ? true : false;
-                }
-                html += '<tr>';
-                html += '<td>' + entry.name + '</td>';
-                html += '<td>' + entry.type.replace("xsd:", "") + '</td>';
-                html += '<td><input type="text" id="_amap_alias_' + idx + '" value="' + alias + '" style="width:90px !important" ' + 
-                        'data-toggle="tooltip" data-placement="top" title="Human-friendly name to display in pop-ups"></input></td>';
-                html += '<td><input type="number" size="2" style="width: 37px" min="1" max="99" id="_amap_ordinal_' + idx + '" value="' + ordinal + '"></input></td>';
-                html += '<td><input type="checkbox" id="_amap_label_' + idx + '" value="label"' + (label ? ' checked' : '') + ' ' +
-                        'data-toggle="tooltip" data-placement="top" title="Display attribute value as a feature label on map"></input></td>';                
-                html += '<td><input type="checkbox" id="_amap_displayed_' + idx + '" value="display"' + (display ? ' checked' : '') + ' ' +
-                        'data-toggle="tooltip" data-placement="top" title="Display attribute value in pop-ups"></input></td>';
-                html += '<td><input type="checkbox" id="_amap_filterable_' + idx + '" value="filter"' + (filter ? ' checked' : '') + ' ' +
-                        'data-toggle="tooltip" data-placement="top" title="Allow filtering data on this attribute"></input></td>';
-                html += '<td><input type="checkbox" id="_amap_unique_values_' + idx + '" value="unique"' + (unique ? ' checked' : '') + ' ' + 
-                        'data-toggle="tooltip" data-placement="top" title="Display unique values of attribute when filtering (WMS/WFS only)"></input></td>';
-                html += '</tr>';
-            }
-        }, this));
-        html += '</table>';        
-    } else {
-        html = '<div class="alert alert-danger" style="margin-bottom:0">No suitable attributes found</div>';
-    }
-    return(html);
 };
 
 /**

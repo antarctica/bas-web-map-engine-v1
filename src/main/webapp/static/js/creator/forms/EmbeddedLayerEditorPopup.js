@@ -131,8 +131,8 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.assignHandlers = functi
         if (checked) {            
             this.subForms.attributes = new magic.classes.creator.EmbeddedAttributeEditorPopup({
                 target: evt.currentTarget.id,
-                wms_source: 
-                feature_name: 
+                wms_source: this.wmsSelectors.getValue("wms_source"),
+                feature_name: this.wmsSelectors.getValue("feature_name"),
                 onSave: jQuery.proxy(this.saveAttributes, this)
             });
             var am = jQuery("#" + this.id + "-attribute-map").val() || {};            

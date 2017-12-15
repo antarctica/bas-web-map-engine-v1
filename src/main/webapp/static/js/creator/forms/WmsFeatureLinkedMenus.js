@@ -15,6 +15,10 @@ magic.classes.creator.WmsFeatureLinkedMenus = function(options) {
     
 };
 
+magic.classes.creator.WmsFeatureLinkedMenus.prototype.getValue = function(key) {
+    return(this.dropdowns[key].val());
+};
+
 magic.classes.creator.WmsFeatureLinkedMenus.prototype.markup = function() {
     return(
         '<div class="form-group">' +
