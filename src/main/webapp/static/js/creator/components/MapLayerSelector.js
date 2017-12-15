@@ -11,9 +11,7 @@ magic.classes.creator.MapLayerSelector = function(endpoints) {
     this.prefix = options.prefix || "layer-selector";
    
     /* Internal properties */
-    this.layerDataEditor = new magic.classes.creator.EmbeddedLayerEditorPopup({
-        onSave: jQuery.proxy(this.updateLayerData, this)
-    });
+    this.layerDataEditor = null;
 };
 
 /**
@@ -22,6 +20,7 @@ magic.classes.creator.MapLayerSelector = function(endpoints) {
  * @param {String} region
  */
 magic.classes.creator.MapLayerSelector.prototype.loadContext = function(data, region) {
+    this.mapRegion = region;
     if (jQuery.isArray(data.layers)) {
         var layers = data.layers;
         var table = jQuery("#" + this.prefix + "-list");
@@ -77,20 +76,32 @@ magic.classes.creator.MapLayerSelector.prototype.layerMarkup = function(table, d
     
     /* Assign add layer button handler */
     jQuery("#" + this.prefix + "-layer-add").click(jQuery.proxy(function(evt) {     
-        if (this.layerDataEditor.isActive()) {
+        if (this.layerDataEditor && this.layerDataEditor.isActive()) {
             /* If the edit dialog is already open somewhere else, close it */
             this.layerDataEditor.deactivate();
         }
+        this.layerDataEditor = new magic.classes.creator.EmbeddedLayerEditorPopup({
+            target: evt.currentTarget.id,
+            mapRegion: this.region,
+            endpoints: this.endpoints,
+            onSave: jQuery.proxy(this.updateLayerData, this)
+        });
         this.layerDataEditor.activate({});
     }, this));
     
     /* Assign edit layer button handler */
     jQuery("#" + this.prefix + "-" + data.id + "-layer-edit").click(jQuery.proxy(function(evt) {
         var storedData = jQuery("#" + evt.currentTarget.id.replace(/-edit$/, "-data"));
-        if (this.layerDataEditor.isActive()) {
+        if (this.layerDataEditor && this.layerDataEditor.isActive()) {
             /* If the edit dialog is already open somewhere else, close it */
             this.layerDataEditor.deactivate();
         }
+        this.layerDataEditor = new magic.classes.creator.EmbeddedLayerEditorPopup({
+            target: evt.currentTarget.id,
+            mapRegion: this.region,
+            endpoints: this.endpoints,
+            onSave: jQuery.proxy(this.updateLayerData, this)
+        });
         this.layerDataEditor.activate(JSON.parse(storedData));
     }, this));
     

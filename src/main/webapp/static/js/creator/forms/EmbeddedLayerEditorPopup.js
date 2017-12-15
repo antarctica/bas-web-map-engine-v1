@@ -9,14 +9,28 @@ magic.classes.creator.EmbeddedLayerEditorPopup = function(options) {
         popoverContentClass: "em-layer-editor-popover-content"
     }, options);
     
-    magic.classes.creator.PopupForm.call(this, options);
+    magic.classes.PopupForm.call(this, options);
+    
+    /* Service endpoints */
+    this.endpoints = options.endpoints;
+    
+    /* Map region => projection */
+    this.mapRegion = options.mapRegion;
     
     this.setCallbacks(jQuery.extend(this.controlCallbacks, {
         onSave: options.onSave
     }));
     
-    this.inputs = ["id", "name", "wms_source", "feature_name", "opacity", "is_base", "is_singletile", "is_interactive"];
+    this.inputs = ["id", "name", "wms_source", "feature_name", "style_name", "opacity", "is_base", "is_singletile", "is_interactive", "attribute_map"];
     
+    /* Linked WMS feature select menus */
+    this.wmsSelectors = new magic.classes.creator.WmsFeatureLinkedMenus({
+        id: this.id,
+        endpoints: this.endpoints,
+        mapRegion: this.mapRegion
+    });
+    
+    /* Attribute map editor */
     this.subForms.attributes = null;
     
     this.target.popover({
@@ -28,16 +42,21 @@ magic.classes.creator.EmbeddedLayerEditorPopup = function(options) {
         content: this.markup()
     }).on("shown.bs.popover", jQuery.proxy(function(evt) {
         
-        jQuery("#" + this.id + "-layer-caption").focus();
+        jQuery("#" + this.id + "-name").focus();
         
         this.assignCloseButtonHandler();        
         this.payloadToForm(this.prePopulator);
         this.assignHandlers();
+        this.wmsSelectors.init({
+            wms_source: this.prePopulator.wms_source || "",
+            feature_name: this.prePopulator.feature_name || "",
+            style_name: this.prePopulator.style_name || ""
+        });
     }, this));
        
 };
 
-magic.classes.creator.EmbeddedLayerEditorPopup.prototype = Object.create(magic.classes.creator.PopupForm.prototype);
+magic.classes.creator.EmbeddedLayerEditorPopup.prototype = Object.create(magic.classes.PopupForm.prototype);
 magic.classes.creator.EmbeddedLayerEditorPopup.prototype.constructor = magic.classes.creator.EmbeddedLayerEditorPopup;
 
 magic.classes.creator.EmbeddedLayerEditorPopup.prototype.markup = function() {
@@ -50,48 +69,40 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.markup = function() {
                 '<div class="col-sm-8">' + 
                     '<input type="text" id="' + this.id + '-name" class="form-control" ' + 
                         'placeholder="Layer caption" maxlength="100" ' + 
-                        'data-toggle="tooltip" data-placement="right" ' + 
+                        'data-toggle="tooltip" data-placement="left" ' + 
                         'title="Layer name (required)" ' + 
                         'required="required">' +
                     '</input>' + 
                 '</div>' + 
             '</div>' +
+            this.wmsSelectors.markup() + 
             '<div class="form-group form-group-sm col-sm-12">' +
-                '<div class="checkbox" style="float:left">' +
+                '<div class="checkbox" style="float:left" data-toggle="tooltip" data-placement="left" ' +
+                    'title="Layer is a base (backdrop) layer">' + 
                     '<label>' +
-                        '<input id="' + this.id + '-is_base" type="checkbox" checked ' +
-                            'data-toggle="tooltip" data-placement="bottom" ' + 
-                            'title="Layer is a base (backdrop) layer">' + 
+                        '<input id="' + this.id + '-is_base" type="checkbox">' +                                                        
                          '</input> This is a base (backdrop) layer' +
                     '</label>' +
                 '</div>' +                                            
             '</div>' +    
             '<div class="form-group form-group-sm col-sm-12">' +
-                '<div class="checkbox" style="float:left">' +
+                '<div class="checkbox" style="float:left" data-toggle="tooltip" data-placement="left" ' + 
+                    'title="Layer renders as a single large tile, useful for place-names or rasters where tile edge effects are noticeable">'
                     '<label>' +
-                        '<input id="' + this.id + '-is_singletile" type="checkbox" checked ' +
-                            'data-toggle="tooltip" data-placement="bottom" ' + 
-                            'title="Layer should be rendered as a single tile (useful for place-names/rasters where tile edge effects would be noticeable">' + 
+                        '<input id="' + this.id + '-is_singletile" type="checkbox">' + 
                          '</input> Render a single large tile' +
                     '</label>' +
                 '</div>' +                                            
             '</div>' +   
             '<div class="form-group form-group-sm col-sm-12">' +
-                '<div class="checkbox" style="float:left">' +
+                '<div class="checkbox" style="float:left" data-toggle="tooltip" data-placement="left" ' + 
+                    'title="This layer should display interactive pop-ups on the map">' +
                     '<label>' +
-                        '<input id="' + this.id + '-is_interactive" type="checkbox" checked ' +
-                            'data-toggle="tooltip" data-placement="bottom" ' + 
-                            'title="This layer should display interactive pop-ups on the map">' + 
+                        '<input id="' + this.id + '-is_interactive" type="checkbox" data-toggle="popover" data-placement="top" data-trigger="manual">' +
                          '</input> Layer displays interactive map pop-ups' +
                     '</label>' +
                 '</div>' +                                            
-            '</div>' +   
-            '<div class="form-group form-group-sm col-sm-12">' + 
-                '<label class="col-sm-4 control-label">Modified</label>' + 
-                '<div class="col-sm-8">' + 
-                    '<p id="' + this.id + '-last-mod" class="form-control-static"></p>' + 
-                '</div>' + 
-            '</div>' + 
+            '</div>' +               
             '<div class="form-group form-group-sm col-sm-12">' +
                 magic.modules.Common.buttonFeedbackSet(this.id, "Publish layer", "sm", "Publish") +                         
                 '<button id="' + this.id + '-cancel" class="btn btn-sm btn-danger" type="button" ' + 
@@ -114,39 +125,29 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.assignHandlers = functi
     /* Attributes checkbox */
     jQuery("#" + this.id + "-is_interactive").change(jQuery.proxy(function(evt) {
         var checked = jQuery(evt.currentTarget).prop("checked");
-        
+        if (this.subForms.attributes && this.subForms.attributes.isActive()) {
+            this.subForms.attributes.deactivate();
+        }
+        if (checked) {            
+            this.subForms.attributes = new magic.classes.creator.EmbeddedAttributeEditorPopup({
+                target: evt.currentTarget.id,
+                wms_source: 
+                feature_name: 
+                onSave: jQuery.proxy(this.saveAttributes, this)
+            });
+            var am = jQuery("#" + this.id + "-attribute-map").val() || {};            
+            this.subForms.attributes.activate(JSON.parse(am));
+        }
     }, this));
     
     /* Save button */
     jQuery("#" + this.id + "-go").click(jQuery.proxy(function() {
-        var formdata = this.formToPayload();
-        /* Do an update of user layer data */
-        jQuery.ajax({
-            url: magic.config.paths.baseurl + "/userlayers/update/" + formdata["id"], 
-            data: JSON.stringify(formdata), 
-            method: "POST",
-            dataType: "json",
-            contentType: "application/json",
-            headers: {
-                "X-CSRF-TOKEN": jQuery("meta[name='_csrf']").attr("content")
-            }
-        })
-        .done(jQuery.proxy(function(response) {
-            this.cleanForm();
-            magic.modules.Common.buttonClickFeedback(this.id, jQuery.isNumeric(response) || response.status < 400, response.detail); 
+        if (this.validate()) {
             if (jQuery.isFunction(this.controlCallbacks["onSave"])) {
-                this.controlCallbacks["onSave"]();
+                this.controlCallbacks["onSave"](this.formToPayload());
+                this.delayedDeactivate(2000); 
             }
-            this.delayedDeactivate(2000);                                  
-        }, this.lep))
-        .fail(function (xhr) {
-            bootbox.alert(
-                '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                    '<p>Failed to save layer data - details below:</p>' + 
-                    '<p>' + JSON.parse(xhr.responseText)["detail"] + '</p>' + 
-                '</div>'
-            );
-        });    
+        }        
     }, this));
     
     /* Cancel button */
@@ -163,7 +164,7 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.assignHandlers = functi
 magic.classes.creator.EmbeddedLayerEditorPopup.prototype.formToPayload = function() {
     var payload = {};
     jQuery.each(this.inputs, jQuery.proxy(function(idx, ip) {
-        payload[ip] = jQuery("#" + this.id + "-layer-" + ip).val();
+        payload[ip] = jQuery("#" + this.id + "-" + ip).val();
     }, this));    
     return(payload);
 };
@@ -175,22 +176,8 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.formToPayload = functio
 magic.classes.creator.EmbeddedLayerEditorPopup.prototype.payloadToForm = function(populator) {
     populator = populator || {};
     jQuery.each(this.inputs, jQuery.proxy(function(idx, ip) {
-        jQuery("#" + this.id + "-layer-" + ip).val(populator[ip] || "");
-    }, this));
-    var styledef = populator["styledef"] || {"mode": "default"};
-    if (typeof styledef === "string") {
-        styledef = JSON.parse(styledef);
-    }
-    /* Last modified */
-    var lastMod = jQuery("#" + this.id + "-layer-last-mod");
-    if (populator.modified_date) {
-        lastMod.closest("div.form-group").removeClass("hidden");
-        lastMod.text(magic.modules.Common.dateFormat(populator.modified_date, "dmy"));
-    } else {
-        lastMod.closest("div.form-group").addClass("hidden");
-    }
-    /* Set styling mode */
-    jQuery("#" + this.id + "-layer-style-mode").val(styledef["mode"]);
+        jQuery("#" + this.id + "-" + ip).val(populator[ip] || "");
+    }, this));    
 };
 
 /**
