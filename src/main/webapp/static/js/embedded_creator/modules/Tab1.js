@@ -29,7 +29,6 @@ magic.modules.embedded_creator.Tab1 = function () {
         
         layer_fields: [
             {"field": "id", "default": ""},
-            {"field": "wms_source", "default": ""},
             {"field": "feature_name", "default": ""},
             {"field": "opacity", "default": 1.0},
             {"field": "wms_source", "default": ""},

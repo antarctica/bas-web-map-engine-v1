@@ -59,24 +59,7 @@
             "description": "Contact email address of the map owner",
             "type": "string",
             "format": "email"
-        },
-        "width": {
-            "description": "Width of map in pixels",
-            "type": "integer",
-            "minimum": 100,
-            "maximum": 1200
-        },
-        "height": {
-            "description": "Height of map in pixels",
-            "type": "integer",
-            "minimum": 100,
-            "maximum": 1200
-        },
-        "embed": {
-            "description": "Id of div map should be embedded in",
-            "type": "string",
-            "pattern": "^[a-z0-9_-]+$"
-        },
+        },        
         "center": {
             "description": "Centre of map in projected coordinates",
             "type": "array",
@@ -175,6 +158,50 @@
                     "is_interactive": {
                         "description": "Is this an interactive layer that can be filtered?",
                         "type": "boolean"
+                    },
+                    "attribute_map": {
+                        "description": "Array of the layer attributes",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "description": "Attribute name",
+                                    "type": "string"
+                                },
+                                "type": {
+                                    "description": "Type of attribute",
+                                    "type": "string",
+                                    "enum": [
+                                        "string", "double", "int", "boolean", "date", "time"
+                                    ]
+                                },                               
+                                "displayed": {
+                                    "description": "Whether attribute is displayed in a pop-up",
+                                    "type": "boolean"
+                                },                                
+                                "alias": {
+                                    "description": "Human-friendly alias for this attribute name",
+                                    "type": "string"
+                                },
+                                "ordinal": {
+                                    "description": "Attribute appears at this ordering position in a pop-up",
+                                    "anyOf": [
+                                        {
+                                            "type": "number",
+                                            "minimum": 1,
+                                            "maximum": 99
+                                        },
+                                        {
+                                            "type": "null"
+                                        }
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "name", "type"
+                            ]
+                        }
                     },
                     "required": [
                         "wms_source", "feature_name"

@@ -10,6 +10,10 @@ magic.classes.creator.MapLayerSelector = function(endpoints) {
     /* ID prefix */
     this.prefix = options.prefix || "layer-selector";
    
+    /* Internal properties */
+    this.layerDataEditor = new magic.classes.creator.EmbeddedLayerEditorPopup({
+        onSave: jQuery.proxy(this.updateLayerData, this)
+    });
 };
 
 /**
@@ -28,7 +32,7 @@ magic.classes.creator.MapLayerSelector.prototype.loadContext = function(data, re
         if (layers.length > 0) {                    
             table.removeClass("hidden");                    
             for (var i = 0; i < layers.length; i++) {
-                this.appendLayer(table, layers[i]);
+                this.layerMarkup(table, layers[i]);
             }
             /* Enable sortable layers table */
             jQuery(".table-sortable tbody").sortable();
@@ -43,13 +47,13 @@ magic.classes.creator.MapLayerSelector.prototype.loadContext = function(data, re
  * @param {jQuery.object} table
  * @param {object} data
  */
-magic.classes.creator.MapLayerSelector.prototype.appendLayer = function(table, data) {
+magic.classes.creator.MapLayerSelector.prototype.layerMarkup = function(table, data) {
     var service = this.endpoints.getEndpointBy("url", data.wms_source);
     var serviceName = service ? service.name : data.wms_source;    
     data.id = data.id || magic.modules.Common.uuid(); 
-    var tbody = table.find("tbody");
-    tbody.append( 
-        '<tr id="' + this.prefix + '-row-' + data.id + '">' + 
+    table.find("tbody").append( 
+        '<tr>' + 
+            '<input type="hidden" id="'+ this.prefix + '-' + data.id + '-layer-data" value="' + JSON.stringify(data) + '"></input>' + 
             '<td>' + 
                 '<a href="Javascript:void(0)" data-toggle="tooltip" data-placement="top" title="Click and drag to re-order layer stack">' + 
                     '<span class="glyphicon glyphicon-move"></span>' + 
@@ -59,35 +63,59 @@ magic.classes.creator.MapLayerSelector.prototype.appendLayer = function(table, d
             '<td>' + data.name + '</td>' +                     
             '<td>' + 
                 '<div class="btn-group" role="group">' +
-                    '<button type="button" class="btn btn-sm btn-warning" id="' + this.prefix + '-' + layerId + '-layer-edit" ' + 
+                    '<button type="button" class="btn btn-sm btn-warning" id="' + this.prefix + '-' + data.id + '-layer-edit" ' + 
                         'data-toggle="popover" data-trigger="manual" data-placement="bottom">' + 
                         '<i style="font-size:14px" data-toggle="tooltip" data-placement="top" title="Edit/view selected layer data" class="fa fa-pencil"></i>' + 
                     '</button>' +
-                    '<button type="button" class="btn btn-sm btn-danger" id="' + this.id + '-' + layerId + '-layer-del">' +
+                    '<button type="button" class="btn btn-sm btn-danger" id="' + this.prefix + '-' + data.id + '-layer-del">' +
                         '<i data-toggle="tooltip" data-placement="top" title="Delete selected layer" class="fa fa-trash"></i>' + 
                     '</button>' + 
                 '</div>' + 
             '</td>' + 
         '</tr>';
     );
-    var buttons = jQuery("#" + this.prefix + "-row-" + data.id).find("button");
-    if (buttons.length == 3) {
-        //TODO
-        /* Assign edit layer button handler */
-        jQuery(buttons[1]).click(jQuery.proxy(function(evt) {     
-            //TODO - need popup form for editing
-        }, this));
-        /* Assign delete layer button handler */
-        jQuery(buttons[2]).click(function(evt) {
-            bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">Ok to remove this layer?</div>', function(result) {
-                if (result) {
-                    /* Do the deletion */
-                    jQuery(evt.currentTarget).closest("tr").remove();
-                    bootbox.hideAll();
-                } else {
-                    bootbox.hideAll();
-                }                            
-            });                       
-        });
+    
+    /* Assign add layer button handler */
+    jQuery("#" + this.prefix + "-layer-add").click(jQuery.proxy(function(evt) {     
+        if (this.layerDataEditor.isActive()) {
+            /* If the edit dialog is already open somewhere else, close it */
+            this.layerDataEditor.deactivate();
+        }
+        this.layerDataEditor.activate({});
+    }, this));
+    
+    /* Assign edit layer button handler */
+    jQuery("#" + this.prefix + "-" + data.id + "-layer-edit").click(jQuery.proxy(function(evt) {
+        var storedData = jQuery("#" + evt.currentTarget.id.replace(/-edit$/, "-data"));
+        if (this.layerDataEditor.isActive()) {
+            /* If the edit dialog is already open somewhere else, close it */
+            this.layerDataEditor.deactivate();
+        }
+        this.layerDataEditor.activate(JSON.parse(storedData));
+    }, this));
+    
+    /* Assign delete layer button handler */
+    jQuery("#" + this.prefix + "-" + data.id + "-layer-del").click(function(evt) {
+        bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">Ok to remove this layer?</div>', function(result) {
+            if (result) {
+                /* Do the deletion */
+                jQuery(evt.currentTarget).closest("tr").remove();
+            }
+            bootbox.hideAll();
+        });                       
+    });
+};
+
+/**
+ * Update the stored and displayed layer data after an edit
+ * @param {Object} data
+ */
+magic.classes.creator.MapLayerSelector.prototype.updateLayerData = function(data) {
+    if (!data.id) {
+        /* New data added */
+        data.id = magic.modules.Common.uuid();
+        var table = jQuery("#" + this.prefix + "-list");
+        this.layerMarkup(table, data);
     }
+    jQuery("#" + this.prefix + "-" + data.id + "-layer-data").val(JSON.stringify(data));
 };
