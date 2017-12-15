@@ -139,35 +139,25 @@ magic.classes.creator.EmbeddedAttributeEditorPopup.prototype.markup = function(a
 };
 
 /**
- * Save attribute map
- * @param {object} context
+ * Convert form to attribute object array
+ * @return {Array} payload
  */
-magic.classes.creator.EmbeddedAttributeEditorPopup.prototype.saveContext = function(context) {
-    if (jQuery.isArray(this.attribute_dictionary[context.id])) {
-        var newMap = [];
-        var nAttrs = this.attribute_dictionary[context.id].length;
-        var fields = ["name", "type", "nillable", "alias", "ordinal", "label", "displayed", "filterable", "unique_values"];
-        for (var i = 0; i < nAttrs; i++) {
-            var attrData = this.attribute_dictionary[context.id][i];
-            if (attrData.type.indexOf("gml:") != 0) {
-                /* Exclude the geometry attribute */
-                var o = {};
-                for (var j = 0; j < fields.length; j++) {
-                    var fEl = jQuery("#_amap_" + fields[j] + "_" + i);
-                    if (fEl.length > 0) {
-                        if (fEl.attr("type") == "checkbox") {
-                            o[fields[j]] = fEl.prop("checked") === true ? true : false;
-                        } else {
-                            o[fields[j]] = fEl.val();
-                        }
-                    }
-                }
-                newMap.push(o);
+magic.classes.creator.EmbeddedAttributeEditorPopup.prototype.formToPayload = function() {
+    var payload = [];
+    var nAttrs = jQuery("input[id^='_amap_name']").length;
+    for (var i = 0; i < nAttrs; i++) {
+        var attrData = {};
+        jQuery.each(this.inputs, jQuery.proxy(function(idx, ip) {
+            var fEl = jQuery("#_amap_" + ip + "_" + i);
+            if (fEl.attr("type") == "checkbox") {
+                attrData[ip] = fEl.prop("checked") === true ? true : false;
+            } else {
+                attrData[ip] = fEl.val();
             }
-        }
-        context.attribute_map = newMap;
-        context.geom_type = this.type_dictionary[context.id];
-    }        
+        }, this));
+        payload.push(attrData);
+    }
+    return(payload);    
 };
 
 /**
@@ -206,21 +196,4 @@ magic.classes.creator.EmbeddedAttributeEditorPopup.prototype.featureGeomType = f
         }
     }
     return(type);
-};
-
-/**
- * Display attribute information
- * @param {String} status yes|no|unknown
- * @param {String} html 
- */
-magic.classes.creator.EmbeddedAttributeEditorPopup.prototype.displayInteractivityDiv = function(status, html) {
-    var divIds = ["yes", "no", "unknown"];
-    for (var i = 0; i < divIds.length; i++) {
-        if (divIds[i] == status) {
-            jQuery("#t2-layer-int-" + divIds[i]).removeClass("hidden").addClass("show");
-        } else {
-            jQuery("#t2-layer-int-" + divIds[i]).removeClass("show").addClass("hidden");
-        }
-    }
-    this.div.html(html);
 };
