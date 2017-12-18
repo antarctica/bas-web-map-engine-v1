@@ -10,10 +10,7 @@ magic.classes.creator.EmbeddedLayerEditorPopup = function(options) {
     }, options);
     
     magic.classes.PopupForm.call(this, options);
-    
-    /* Service endpoints */
-    this.endpoints = options.endpoints;
-    
+   
     /* Map region => projection */
     this.mapRegion = options.mapRegion;
     
@@ -26,7 +23,6 @@ magic.classes.creator.EmbeddedLayerEditorPopup = function(options) {
     /* Linked WMS feature select menus */
     this.wmsSelectors = new magic.classes.creator.WmsFeatureLinkedMenus({
         id: this.id,
-        endpoints: this.endpoints,
         mapRegion: this.mapRegion
     });
     
@@ -61,14 +57,14 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.constructor = magic.cla
 
 magic.classes.creator.EmbeddedLayerEditorPopup.prototype.markup = function() {
     return(
-        '<div id="' + this.id + '-edit-view-fs" class="col-sm-12 well well-sm">' +
+        '<div id="' + this.id + '-edit-view-fs" class="col-sm-12">' +
             '<input type="hidden" id="' + this.id + '-id"></input>' + 
             '<input type="hidden" id="' + this.id + '-attribute_map"></input>' + 
             '<div class="form-group form-group-sm col-sm-12">' +                     
-                '<label class="col-sm-4 control-label" for="' + this.id + '-name">Name</label>' + 
-                '<div class="col-sm-8">' + 
+                '<label class="col-sm-3 control-label" for="' + this.id + '-name">Name</label>' + 
+                '<div class="col-sm-9">' + 
                     '<input type="text" id="' + this.id + '-name" class="form-control" ' + 
-                        'placeholder="Layer caption" maxlength="100" ' + 
+                        'placeholder="Layer name" maxlength="100" ' + 
                         'data-toggle="tooltip" data-placement="left" ' + 
                         'title="Layer name (required)" ' + 
                         'required="required">' +
@@ -87,7 +83,7 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.markup = function() {
             '</div>' +    
             '<div class="form-group form-group-sm col-sm-12">' +
                 '<div class="checkbox" style="float:left" data-toggle="tooltip" data-placement="left" ' + 
-                    'title="Layer renders as a single large tile, useful for place-names or rasters where tile edge effects are noticeable">'
+                    'title="Layer renders as a single large tile, useful for place-names or rasters where tile edge effects are noticeable">' +
                     '<label>' +
                         '<input id="' + this.id + '-is_singletile" type="checkbox">' + 
                          '</input> Render a single large tile' +
@@ -98,13 +94,13 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.markup = function() {
                 '<div class="checkbox" style="float:left" data-toggle="tooltip" data-placement="left" ' + 
                     'title="This layer should display interactive pop-ups on the map">' +
                     '<label>' +
-                        '<input id="' + this.id + '-is_interactive" type="checkbox" data-toggle="popover" data-placement="top" data-trigger="manual">' +
+                        '<input id="' + this.id + '-is_interactive" type="checkbox" data-toggle="popover" data-placement="bottom" data-trigger="manual">' +
                          '</input> Layer displays interactive map pop-ups' +
                     '</label>' +
                 '</div>' +                                            
             '</div>' +               
             '<div class="form-group form-group-sm col-sm-12">' +
-                magic.modules.Common.buttonFeedbackSet(this.id, "Publish layer", "sm", "Publish") +                         
+                magic.modules.Common.buttonFeedbackSet(this.id, "Save data", "sm", "Save") +                         
                 '<button id="' + this.id + '-cancel" class="btn btn-sm btn-danger" type="button" ' + 
                     'data-toggle="tooltip" data-placement="right" title="Cancel">' + 
                     '<span class="fa fa-times-circle"></span> Cancel' + 
@@ -118,12 +114,12 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.assignHandlers = functi
     
     /* Detect changes to the form */
     this.formEdited = false;
-    jQuery("#" + this.id + "-edit-view-fs :input").change(jQuery.proxy(function() {
+    jQuery("#" + this.id + "-edit-view-fs :input").off("change").on("change", jQuery.proxy(function() {
         this.formEdited = true;
     }, this));
     
     /* Attributes checkbox */
-    jQuery("#" + this.id + "-is_interactive").change(jQuery.proxy(function(evt) {
+    jQuery("#" + this.id + "-is_interactive").off("change").on("change", jQuery.proxy(function(evt) {
         var checked = jQuery(evt.currentTarget).prop("checked");
         if (this.subForms.attributes && this.subForms.attributes.isActive()) {
             this.subForms.attributes.deactivate();
@@ -135,13 +131,13 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.assignHandlers = functi
                 feature_name: this.wmsSelectors.getValue("feature_name"),
                 onSave: jQuery.proxy(this.saveAttributes, this)
             });
-            var am = jQuery("#" + this.id + "-attribute-map").val() || {};            
+            var am = jQuery("#" + this.id + "-attribute-map").val() || "{}";            
             this.subForms.attributes.activate(JSON.parse(am));
         }
     }, this));
     
     /* Save button */
-    jQuery("#" + this.id + "-go").click(jQuery.proxy(function() {
+    jQuery("#" + this.id + "-go").off("click").on("click", jQuery.proxy(function() {
         if (this.validate()) {
             if (jQuery.isFunction(this.controlCallbacks["onSave"])) {
                 this.controlCallbacks["onSave"](this.formToPayload());
@@ -151,7 +147,7 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.assignHandlers = functi
     }, this));
     
     /* Cancel button */
-    jQuery("#" + this.id + "-cancel").click(jQuery.proxy(function() {
+    jQuery("#" + this.id + "-cancel").off("click").on("click", jQuery.proxy(function() {
         this.cleanForm();
         this.deactivate();
     }, this));

@@ -5,6 +5,7 @@ magic.modules.Endpoints = function () {
     return({
         /**
          * Get the virtual endpoint (workspace) for the given WMS
+         * NOTE: Geoserver-specific
          * @param {string} url
          * @return {string}
          */
@@ -42,13 +43,8 @@ magic.modules.Endpoints = function () {
          * @returns {int}
          */
         getOgcEndpoint: function(url, service) {
-            var proxEp = url;
-            //console.log("-------------Starting--------------------");
-            //console.log("Matching " + url);
-            var matches = this.getEndpointsBy("url", url);
-            //console.log("------------------------------------------");
-            //console.log(matches);
-            //console.log("------------------------------------------");
+            var proxEp = url;           
+            var matches = this.getEndpointsBy("url", url);            
             if (matches.length > 0) {
                 if (matches[0]["is_user_service"] === true) {
                     proxEp = magic.config.paths.baseurl + "/ogc/user/" + service;
@@ -57,9 +53,7 @@ magic.modules.Endpoints = function () {
                 }
             } else {
                 proxEp = magic.modules.Common.proxyUrl(url);
-            }
-            //console.log("Endpoint is " + proxEp);
-            //console.log("------------Finished--------------------");
+            }            
             return(proxEp);
         },       
         /**
@@ -73,10 +67,13 @@ magic.modules.Endpoints = function () {
             return(matches.length > 0 ? matches[0] : null);
         },  
         /**
-         * Get the endpoint corresponding to the user data service (should only be one or none)         
+         * Get the endpoint corresponding to the user data service (should only be one or none)  
          * @return {Object}
          */
         getUserDataEndpoint: function() {
+            if (!magic.runtime.endpoints) {
+                return(null);
+            }
             var udes = jQuery.grep(magic.runtime.endpoints, function(ep) {
                 return(ep.is_user_service === true);
             });
@@ -88,7 +85,10 @@ magic.modules.Endpoints = function () {
          * @param {string} filterValue
          * @returns {Array}
          */
-        getEndpointsBy: function(filterName, filterValue) {            
+        getEndpointsBy: function(filterName, filterValue) {
+            if (!magic.runtime.endpoints) {
+                return(null);
+            }
             return(jQuery.grep(magic.runtime.endpoints, function(ep) {
                 if (filterName == "id") {
                     return(ep[filterName] == filterValue);

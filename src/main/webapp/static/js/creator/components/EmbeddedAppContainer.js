@@ -1,14 +1,10 @@
 /* Embedded Map Creator main class */
 
-magic.classes.creator.EmbeddedAppContainer = function(endpoints) {
-    
-    /* Data endpoints for this application */
-    this.endpoints = endpoints;            
+magic.classes.creator.EmbeddedAppContainer = function() {
     
     /* Initialise the various form dialogs */
     this.dialogs = {        
         "metadataForm": new magic.classes.creator.MapMetadataForm({
-            "endpoints": this.endpoints,
             "formSchema": [
                 {"field": "id", "default": ""},
                 {"field": "name","default": "new_map"},
@@ -19,17 +15,12 @@ magic.classes.creator.EmbeddedAppContainer = function(endpoints) {
                 {"field": "allowed_edit", "default": "login"}
             ]
         }),
-        "mapLayerSelector": new magic.classes.creator.MapLayerSelector({
-            "endpoints": this.endpoints
-        }),
-        "mapParameterSelector": new magic.classes.creator.MapParameterSelector({
-            "endpoints": this.endpoints
-        })
+        "mapLayerSelector": new magic.classes.creator.MapLayerSelector({}),
+        "mapParameterSelector": new magic.classes.creator.MapParameterSelector({})
     };
     
     /* Master region selector (may load a map context here if a search string exists) */
     this.regionSelector = new magic.classes.creator.MapRegionSelector({
-        "endpoints": this.endpoints,
         "contextLoader": jQuery.proxy(this.loadContext, this),
         "mapTitleService": magic.config.paths.baseurl + "/embedded_maps/dropdown",
         "mapDataService": magic.config.paths.baseurl + "/maps/name"

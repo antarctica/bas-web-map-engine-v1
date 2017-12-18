@@ -78,3 +78,14 @@ img.applogo {
     float: left; 
     margin-left: 5px
 }
+
+/* Allow pretty much arbitrary width popovers - could be dodgy! */
+.popover {
+	max-width: 1000px;
+    z-index: 4000;
+	width: auto;
+}
+
+div[class$="-popover-content"] {
+    width: 400px;
+}

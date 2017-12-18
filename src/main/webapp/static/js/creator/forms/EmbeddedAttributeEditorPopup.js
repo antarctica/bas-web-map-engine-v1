@@ -31,8 +31,12 @@ magic.classes.creator.EmbeddedAttributeEditorPopup = function(options) {
         trigger: "manual",
         content: '<p><i class="fa fa-spin fa-spinner"></i> Loading attributes...</p>'
     }).on("shown.bs.popover", jQuery.proxy(function(evt) {
-        
-        jQuery("#" + this.id + "-layer-caption").focus();
+               
+        /* Detect changes to the form */
+        this.formEdited = false;
+        jQuery("div.em-attr-editor-popover-content :input").change(jQuery.proxy(function() {
+            this.formEdited = true;
+        }, this));
         
         this.assignCloseButtonHandler();
         this.getFeatureAttributes();
@@ -111,25 +115,29 @@ magic.classes.creator.EmbeddedAttributeEditorPopup.prototype.markup = function(a
                 '<tr>' + 
                     '<th>Name</th>' + 
                     '<th>Type</th>' + 
-                    '<th>Alias</th>' + 
-                    '<th style="width:40px"><span data-toggle="tooltip" data-placement="top" title="Ordering of attribute in pop-up">O<span></th>' + 
-                    '<th style="width:40px"><span class="fa fa-eye" data-toggle="tooltip" data-placement="top" title="Attribute is visible in pop-ups"><span></th>' + 
+                    '<th>' + 
+                        '<span data-toggle="tooltip" data-placement="top" title="Human-friendly name for the attribute in pop-up">Alias<span>' + 
+                    '</th>' + 
+                    '<th style="width:40px">' + 
+                        '<span data-toggle="tooltip" data-placement="top" title="Ordering of attribute in pop-up">O<span>' + 
+                    '</th>' + 
+                    '<th style="width:40px">' + 
+                        '<span class="fa fa-eye" data-toggle="tooltip" data-placement="top" title="Attribute is visible in pop-ups"><span>' + 
+                    '</th>' + 
                 '</tr>';
         jQuery.each(attrList, jQuery.proxy(function(idx, entry) {
-            html += '<input type="hidden" id="_amap_name_' + idx + '" value="' + entry.name + '"></input>';
-            html += '<input type="hidden" id="_amap_type_' + idx + '" value="' + entry.type + '"></input>';
-            html += '<input type="hidden" id="_amap_nillable_' + idx + '" value="' + entry.nillable + '"></input>';
-            if (entry.type.indexOf("gml:") != 0) {
+            html += '<input type="hidden" id="_amap_name_' + idx + '" value="' + (entry.name || "") + '"></input>';
+            html += '<input type="hidden" id="_amap_type_' + idx + '" value="' + (entry.type || "") + '"></input>';
+            html += '<input type="hidden" id="_amap_nillable_' + idx + '" value="' + (entry.nillable || "") + '"></input>';
+            if (entry.type && entry.type.indexOf("gml:") != 0) {
                 /* This is not the geometry field */                
                 html += 
                 '<tr>' + 
-                    '<td>' + entry.name + '</td>' +
+                    '<td>' + (entry.name || "") + '</td>' +
                     '<td>' + entry.type.replace("xsd:", "") + '</td>' + 
-                    '<td><input type="text" id="_amap_alias_' + idx + '" value="' + entry.alias + '" style="width:90px !important" ' + 
-                        'data-toggle="tooltip" data-placement="top" title="Human-friendly name to display in pop-ups"></input></td>' + 
-                    '<td><input type="number" size="2" style="width: 37px" min="1" max="99" id="_amap_ordinal_' + idx + '" value="' + entry.ordinal + '"></input></td>' +                              
-                    '<td><input type="checkbox" id="_amap_displayed_' + idx + '" value="display"' + (entry.display === true ? ' checked' : '') + ' ' +
-                        'data-toggle="tooltip" data-placement="top" title="Display attribute value in pop-ups"></input></td>' +                
+                    '<td><input type="text" id="_amap_alias_' + idx + '" value="' + (entry.alias || "") + '"></input></td>' + 
+                    '<td><input type="number" size="2" style="width: 37px" min="1" max="99" id="_amap_ordinal_' + idx + '" value="' + (entry.ordinal || "") + '"></input></td>' +                              
+                    '<td><input type="checkbox" id="_amap_displayed_' + idx + '" value="display"' + (entry.display === true ? ' checked' : '') + '></input></td>' +                
                 '</tr>';
             }
         }, this));

@@ -53,9 +53,12 @@
                     /* Tooltips */
                     jQuery('[data-toggle="tooltip"]').tooltip();
                     /* For dynamic tooltips - http://stackoverflow.com/questions/9958825/how-do-i-bind-twitter-bootstrap-tooltips-to-dynamically-created-elements */
-                    jQuery("body").tooltip({ selector: '[data-toggle="tooltip"]'});                                                         
+                    jQuery("body").tooltip({ selector: '[data-toggle="tooltip"]'}); 
                     
-                    new magic.classes.embedded_creator.AppContainer(epdata);
+                    /* Endpoints */
+                    magic.runtime.endpoints = epdata;
+                    
+                    new magic.classes.creator.EmbeddedAppContainer();
                 })
                 .fail(function () {
                     bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to get WMS endpoints for this mapping profile</div>');

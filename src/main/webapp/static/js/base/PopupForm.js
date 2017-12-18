@@ -202,7 +202,7 @@ magic.classes.PopupForm.prototype.cleanForm = function() {
 magic.classes.PopupForm.prototype.tidyUp = function(quiet) {
     if (!jQuery.isEmptyObject(this.subForms)) {
         jQuery.each(this.subForms, function(k, frm) {
-            if (jQuery.isFunction(frm.deactivate)) {
+            if (frm != null && jQuery.isFunction(frm.deactivate)) {
                 frm.deactivate(quiet);
             }                                        
         });

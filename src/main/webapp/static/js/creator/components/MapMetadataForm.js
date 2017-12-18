@@ -3,10 +3,7 @@
 magic.classes.creator.MapMetadataForm = function(options) {
     
     /* Unpack API properties from options */
-    
-    /* Data service endpoints */
-    this.endpoints = options.endpoints;
-    
+ 
     /* Form schema */
     this.formSchema = options.formSchema;
     
@@ -20,6 +17,7 @@ magic.classes.creator.MapMetadataForm = function(options) {
  * @param {Object} data
  */
 magic.classes.creator.MapMetadataForm.prototype.loadContext = function(data) {
+    jQuery("#map-metadata-form").closest("div.row").removeClass("hidden");
     jQuery.each(this.formSchema, function(idx, elementDef) {
         var elt = jQuery("#" + this.prefix + "-" + elementDef.field);
         if (!data) {

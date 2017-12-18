@@ -3,10 +3,7 @@
 magic.classes.creator.MapParameterSelector = function(options) {
     
     /* Unpack API properties from options */
-    
-    /* Data service endpoints */
-    this.endpoints = options.endpoints;
-    
+  
     /* ID prefix */
     this.prefix = options.prefix || "map-parameters";
     
@@ -21,6 +18,7 @@ magic.classes.creator.MapParameterSelector = function(options) {
  * @param (String} region
  */
 magic.classes.creator.MapParameterSelector.prototype.loadContext = function(data, region) {
+    jQuery("#map-parameter-selector").closest("div.row").removeClass("hidden");
     var resetMap = false;
     data = data || magic.modules.GeoUtils.DEFAULT_MAP_PARAMS[region];
     if (!data) {
@@ -62,7 +60,7 @@ magic.classes.creator.MapParameterSelector.prototype.loadContext = function(data
         jQuery("#" + this.prefix + "-rotation").val(data.rotation);
         var layers = [];
         var projEp;
-        var projEps = this.endpoints.getEndpointsBy("srs", data.projection);
+        var projEps = magic.modules.Endpoints.getEndpointsBy("srs", data.projection);
         for (var i = 0; i < projEps.length; i++) {
             if (projEps[i].coast_layers) {
                 projEp = projEps[i];
@@ -79,7 +77,7 @@ magic.classes.creator.MapParameterSelector.prototype.loadContext = function(data
         }
         if (projEp.url == "osm") {
             /* OpenStreetMap is used for mid-latitude maps */
-            layers.push(this.endpoints.getMidLatitudeCoastLayer());
+            layers.push(magic.modules.Endpoints.getMidLatitudeCoastLayer());
             view = new ol.View({                        
                 center: data.center,
                 minZoom: 1,

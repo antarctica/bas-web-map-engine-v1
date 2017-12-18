@@ -552,7 +552,11 @@ magic.modules.Common = function () {
             var selOpt = null;
             select.find("option").remove();
             if (prependInvite === true) {
-                select.append(jQuery("<option>", {value: "", text: "Please select"}));
+                select.append(jQuery("<option>", {
+                    value: "", 
+                    selected: (defval == "" ? " selected" : ""),
+                    text: "Please select"
+                }));
             }
             /* Sort by txtAttr */
             optArr.sort(function(a, b) {
@@ -672,6 +676,16 @@ magic.modules.Common = function () {
             var exp = Math.log(bytes) / Math.log(1024) | 0;
             var result = (bytes / Math.pow(1024, exp)).toFixed(2);
             return result + ' ' + (exp == 0 ? "bytes" : "kMGTPEZY"[exp - 1] + "B");
+        },
+        /**
+         * JSON escape for '&' and '"'
+         * @param {String} str
+         * @return {String}
+         */
+        JsonEscape: function(str) {
+            var strOut = str.replace(/\&/g, "&amp;");
+            strOut = strOut.replace(/\"/g, "&quot;");
+            return(strOut);
         },
         /**
          * Replace urls in given value by links

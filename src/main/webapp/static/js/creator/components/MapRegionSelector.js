@@ -10,9 +10,6 @@ magic.classes.creator.MapRegionSelector = function(options) {
     /* ID prefix */
     this.prefix = options.prefix || "region-select";
     
-    /* Service endpoints */
-    this.endpoints = options.endpoints || [];
-    
     /* Population service for map selector (takes an action REST arg - new|clone|edit */
     this.mapTitleService = options.mapTitleService || magic.config.paths.baseurl + "/maps/dropdown";
     
