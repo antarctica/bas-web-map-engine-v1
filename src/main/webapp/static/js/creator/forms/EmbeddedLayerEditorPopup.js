@@ -72,6 +72,16 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.markup = function() {
                 '</div>' + 
             '</div>' +
             this.wmsSelectors.markup() + 
+            '<div class="form-group form-group-sm col-sm-12">' + 
+                '<label for="' + this.id + '-opacity" class="col-sm-3 control-label">Opacity</label>' + 
+                '<div class="col-sm-9">' + 
+                    '<input type="number" class="form-control" id="' + this.id + '-opacity" ' + 
+                       'placeholder="Layer opacity (0->1)" ' + 
+                       'min="0" max="1" step="0.1" ' + 
+                       'data-toggle="tooltip" data-placement="left" title="Layer opacity (0.0 = transparent, 1.0 = opaque)">' + 
+                    '</input>' + 
+                '</div>' + 
+            '</div>' + 
             '<div class="form-group form-group-sm col-sm-12">' +
                 '<div class="checkbox" style="float:left" data-toggle="tooltip" data-placement="left" ' +
                     'title="Layer is a base (backdrop) layer">' + 
@@ -132,18 +142,22 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.assignHandlers = functi
                 onSave: jQuery.proxy(this.saveAttributes, this)
             });
             var am = jQuery("#" + this.id + "-attribute-map").val() || "{}";            
-            this.subForms.attributes.activate(JSON.parse(am));
+            this.subForms.attributes.activate(JSON.parse(magic.modules.Common.JsonUnescape(am)));
         }
     }, this));
     
     /* Save button */
     jQuery("#" + this.id + "-go").off("click").on("click", jQuery.proxy(function() {
-        if (this.validate()) {
+        var valid = this.validate();
+        if (valid) {
+            magic.modules.Common.buttonClickFeedback(this.id, true, "Saved ok");
             if (jQuery.isFunction(this.controlCallbacks["onSave"])) {
                 this.controlCallbacks["onSave"](this.formToPayload());
                 this.delayedDeactivate(2000); 
             }
-        }        
+        } else {
+            magic.modules.Common.buttonClickFeedback(this.id, false, "Failed to save - please correct marked errors");
+        }     
     }, this));
     
     /* Cancel button */
@@ -160,7 +174,14 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.assignHandlers = functi
 magic.classes.creator.EmbeddedLayerEditorPopup.prototype.formToPayload = function() {
     var payload = {};
     jQuery.each(this.inputs, jQuery.proxy(function(idx, ip) {
-        payload[ip] = jQuery("#" + this.id + "-" + ip).val();
+        var fEl = jQuery("#" + this.id + "-" + ip);
+        if (fEl.attr("type") == "checkbox") {
+            payload[ip] = fEl.prop("checked") === true ? true : false;
+        } else if (ip != "attribute_map") {
+            payload[ip] = fEl.val();
+        } else {
+            payload[ip] = JSON.parse(magic.modules.Common.JsonUnescape(fEl.val()));
+        }
     }, this));    
     return(payload);
 };
@@ -172,7 +193,12 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.formToPayload = functio
 magic.classes.creator.EmbeddedLayerEditorPopup.prototype.payloadToForm = function(populator) {
     populator = populator || {};
     jQuery.each(this.inputs, jQuery.proxy(function(idx, ip) {
-        jQuery("#" + this.id + "-" + ip).val(populator[ip] || "");
+        var fEl = jQuery("#" + this.id + "-" + ip);
+        if (fEl.attr("type") == "checkbox") {
+            fEl.prop("checked", populator[ip] === true);
+        } else {
+            fEl.val(populator[ip] || "");
+        }
     }, this));    
 };
 
@@ -195,4 +221,12 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.validate = function() {
         }
     });
     return(ok);
-};                  
+};    
+
+/**
+ * onSave callback for the attribute editor sub-form
+ * @param {Object} attrMap
+ */
+magic.classes.creator.EmbeddedLayerEditorPopup.prototype.saveAttributes = function(attrMap) {
+    jQuery("#" + this.id + "-attribute_map").val(magic.modules.Common.JsonEscape(JSON.stringify(attrMap)));
+};

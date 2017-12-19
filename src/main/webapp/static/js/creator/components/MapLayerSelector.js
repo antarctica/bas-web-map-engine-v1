@@ -188,7 +188,7 @@ magic.classes.creator.MapLayerSelector.prototype.layerMarkup = function(table, l
             mapRegion: this.mapRegion,
             onSave: jQuery.proxy(this.updateLayerData, this)
         });
-        this.layerDataEditor.activate(JSON.parse(storedData));
+        this.layerDataEditor.activate(JSON.parse(magic.modules.Common.JsonUnescape(storedData)));
     }, this));
     
     /* Assign delete layer button handler */
@@ -212,6 +212,7 @@ magic.classes.creator.MapLayerSelector.prototype.layerMarkup = function(table, l
  * @param {Object} layerData
  */
 magic.classes.creator.MapLayerSelector.prototype.updateLayerData = function(layerData) {
+    console.log(layerData);
     if (!layerData.id) {
         /* New data added */
         layerData.id = magic.modules.Common.uuid();

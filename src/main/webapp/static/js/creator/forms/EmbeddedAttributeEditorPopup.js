@@ -30,14 +30,7 @@ magic.classes.creator.EmbeddedAttributeEditorPopup = function(options) {
         html: true,
         trigger: "manual",
         content: '<p><i class="fa fa-spin fa-spinner"></i> Loading attributes...</p>'
-    }).on("shown.bs.popover", jQuery.proxy(function(evt) {
-               
-        /* Detect changes to the form */
-        this.formEdited = false;
-        jQuery("div.em-attr-editor-popover-content :input").change(jQuery.proxy(function() {
-            this.formEdited = true;
-        }, this));
-        
+    }).on("shown.bs.popover", jQuery.proxy(function(evt) {                                 
         this.assignCloseButtonHandler();
         this.getFeatureAttributes();
     }, this));
@@ -78,6 +71,27 @@ magic.classes.creator.EmbeddedAttributeEditorPopup.prototype.getFeatureAttribute
                 attrList.push(attrs);
             }, this));
             jQuery(".em-attr-editor-popover-content").html(this.markup(attrList, geomType));
+            
+            /* Detect changes to the form */
+            this.formEdited = false;
+            jQuery("#" + this.id + "-attr-table :input").change(jQuery.proxy(function() {
+                this.formEdited = true;
+            }, this));      
+            
+            /* Save button handler */
+            jQuery("#" + this.id + "-go").off("click").on("click", jQuery.proxy(function() {           
+                magic.modules.Common.buttonClickFeedback(this.id, true, "Saved ok");
+                if (jQuery.isFunction(this.controlCallbacks["onSave"])) {
+                    this.controlCallbacks["onSave"](this.formToPayload());
+                    this.delayedDeactivate(2000); 
+                }            
+            }, this));
+            
+            /* Cancel button */
+            jQuery("#" + this.id + "-cancel").off("click").on("click", jQuery.proxy(function() {
+                this.cleanForm();
+                this.deactivate();
+            }, this));
         }, this))
         .fail(jQuery.proxy(function(xhr, status, message) {
             if (status == 401) {
@@ -111,7 +125,7 @@ magic.classes.creator.EmbeddedAttributeEditorPopup.prototype.markup = function(a
     } else {
         /* Show attribute table */
         html += 
-            '<table class="table table-condensed table-striped table-hover table-responsive">' + 
+            '<table id="' + this.id + '-attr-table" class="table table-condensed table-striped table-hover table-responsive">' + 
                 '<tr>' + 
                     '<th>Name</th>' + 
                     '<th>Type</th>' + 
@@ -141,7 +155,15 @@ magic.classes.creator.EmbeddedAttributeEditorPopup.prototype.markup = function(a
                 '</tr>';
             }
         }, this));
-        html += '</table>';           
+        html += 
+            '</table>' + 
+            '<div class="form-group form-group-sm col-sm-12">' +
+                magic.modules.Common.buttonFeedbackSet(this.id, "Save attributes", "sm", "Save") +                         
+                '<button id="' + this.id + '-cancel" class="btn btn-sm btn-danger" type="button" ' + 
+                    'data-toggle="tooltip" data-placement="right" title="Cancel">' + 
+                    '<span class="fa fa-times-circle"></span> Cancel' + 
+                '</button>' +                        
+            '</div>';
     }    
     return(html);
 };

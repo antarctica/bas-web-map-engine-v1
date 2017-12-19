@@ -688,6 +688,16 @@ magic.modules.Common = function () {
             return(strOut);
         },
         /**
+         * JSON unescape for '&' and '"'
+         * @param {String} str
+         * @return {String}
+         */
+        JsonUnescape: function(str) {
+            var strOut = str.replace(/\&quot;/g, '"');
+            strOut = strOut.replace(/\&amp;/g, "&");
+            return(strOut);
+        },        
+        /**
          * Replace urls in given value by links
          * Courtesy of http://stackoverflow.com/questions/37684/how-to-replace-plain-urls-with-links
          * @param {String} value
