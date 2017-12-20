@@ -8,8 +8,8 @@ magic.classes.creator.MapMetadataForm = function(options) {
     this.formSchema = [
         {"field": "id", "default": ""},
         {"field": "name","default": "new_map"},
-        {"field": "title", "default": "New blank map"},
-        {"field": "description", "default": "Longer description of the purpose of the map goes here"},            
+        {"field": "title", "default": ""},
+        {"field": "description", "default": ""},            
         {"field": "owner_email", "default": "basmagic@bas.ac.uk"},                
         {"field": "allowed_usage", "default": "public"},
         {"field": "allowed_edit", "default": "login"}
@@ -29,7 +29,30 @@ magic.classes.creator.MapMetadataForm.prototype.loadContext = function(data) {
     magic.modules.Common.jsonToForm(this.formSchema, data, this.prefix);    
 };
 
-magic.classes.creator.MapMetadataForm.prototype.getContext = function(data) {
+/**
+ * Retrieve the current context
+ * @return {Object}
+ */
+magic.classes.creator.MapMetadataForm.prototype.getContext = function() {
     jQuery("#map-metadata-form").closest("div.row").removeClass("hidden");
-    magic.modules.Common.formToJson(this.formSchema, this.prefix);    
+    return(magic.modules.Common.formToJson(this.formSchema, this.prefix));    
+};
+
+/**
+ * Validate the form
+ * @return {boolean}
+ */
+magic.classes.creator.MapMetadataForm.prototype.validate = function() {               
+    var ok = true;
+    jQuery.each(this.formSchema, jQuery.proxy(function(idx, attr) {
+        var jqFld = jQuery("#" + this.prefix + "-" + attr.field);
+        var fg = jqFld.closest("div.form-group");
+        if (jqFld[0].checkValidity() === false) {                    
+            fg.addClass("has-error");
+            ok = false;
+        } else {
+            fg.removeClass("has-error");
+        }
+    }, this));            
+    return(ok);
 };

@@ -65,8 +65,12 @@ magic.classes.creator.EmbeddedAttributeEditorPopup.prototype.getFeatureAttribute
             var attrList = [];
             jQuery.each(elts, function(idx, elt) {
                 var attrs = {};
-                jQuery.each(elt.attributes, function(i, a) {                                            
-                    attrs[a.name] = a.value;
+                jQuery.each(elt.attributes, function(i, a) {
+                    if (a.name == "type") {
+                        attrs[a.name] = a.value.replace("xsd:", "");
+                    } else {
+                        attrs[a.name] = a.value;
+                    }                 
                 });
                 attrList.push(attrs);
             });
@@ -174,19 +178,24 @@ magic.classes.creator.EmbeddedAttributeEditorPopup.prototype.markup = function(a
  */
 magic.classes.creator.EmbeddedAttributeEditorPopup.prototype.formToPayload = function() {
     var payload = [];
-    var nAttrs = jQuery("input[id^='_amap_name']").length;
-    for (var i = 0; i < nAttrs; i++) {
-        var attrData = {};
-        jQuery.each(this.inputs, jQuery.proxy(function(idx, ip) {
-            var fEl = jQuery("#_amap_" + ip + "_" + i);
-            if (fEl.attr("type") == "checkbox") {
-                attrData[ip] = fEl.prop("checked") === true ? true : false;
-            } else {
-                attrData[ip] = fEl.val();
-            }
-        }, this));
-        payload.push(attrData);
-    }
+    jQuery("input[id^='_amap_type']").each(jQuery.proxy(function(ti, tval) {
+        var type = jQuery(tval).val();
+        if (type.indexOf("gml:") != 0) {
+            var attrData = {};
+            jQuery.each(this.inputs, jQuery.proxy(function(idx, ip) {
+                var fEl = jQuery("#_amap_" + ip + "_" + ti);
+                if (fEl.attr("type") == "checkbox") {
+                    attrData[ip] = fEl.prop("checked") === true ? true : false;
+                } else if (ip == "ordinal") {
+                    var ordVal = parseInt(fEl.val());
+                    attrData[ip] = isNaN(ordVal) ? null : ordVal;
+                } else {
+                    attrData[ip] = fEl.val();
+                }
+            }, this));
+            payload.push(attrData);
+        }
+    }, this));
     return(payload);    
 };
 

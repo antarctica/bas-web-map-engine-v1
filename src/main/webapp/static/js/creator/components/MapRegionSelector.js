@@ -104,3 +104,15 @@ magic.classes.creator.MapRegionSelector.prototype.loadContext = function(action,
         });
     }    
 };
+
+magic.classes.creator.MapRegionSelector.prototype.validate = function(action, name) {
+    /* Make sure a map source selection has been made */
+    var checkRb = jQuery("input[type='radio'][name='_" + this.prefix + "-action-rb']:checked");
+    if (!checkRb) {
+        return(false);
+    }
+    if (jQuery("#" + this.prefix + "-" + checkRb.val()) == "") {
+        return(false);
+    }
+    return(true);
+};

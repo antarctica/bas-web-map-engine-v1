@@ -185,7 +185,7 @@
                                     "description": "Type of attribute",
                                     "type": "string",
                                     "enum": [
-                                        "string", "double", "int", "boolean", "date", "time"
+                                        "string", "decimal", "double", "int", "boolean", "date", "time"
                                     ]
                                 },                               
                                 "displayed": {

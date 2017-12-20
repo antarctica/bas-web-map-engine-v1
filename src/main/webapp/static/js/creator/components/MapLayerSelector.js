@@ -147,9 +147,16 @@ magic.classes.creator.MapLayerSelector.prototype.loadContext = function(data, re
 };
 
 magic.classes.creator.MapLayerSelector.prototype.getContext = function() {
+    var layers = jQuery("#" + this.prefix + "-list").find("tr").map(jQuery.proxy(function(idx, tr) {
+        return(this.layerEdits[jQuery(tr).data("id")]);
+    }, this));
     return({
-       layers: this.layerEdits 
+       layers: layers.get() 
     });
+};
+
+magic.classes.creator.MapLayerSelector.prototype.validate = function() {
+    return(true);
 };
 
 /**
@@ -163,8 +170,7 @@ magic.classes.creator.MapLayerSelector.prototype.layerMarkup = function(table, l
     layerData.id = layerData.id || magic.modules.Common.uuid(); 
     this.layerEdits[layerData.id] = layerData;
     table.find("tbody").append( 
-        '<tr>' + 
-            '<input type="hidden" id="'+ this.prefix + '-' + layerData.id + '-layer-data" value="' + magic.modules.Common.JsonEscape(JSON.stringify(layerData)) + '"></input>' + 
+        '<tr data-id="' + layerData.id + '">' + 
             '<td>' + 
                 '<a href="Javascript:void(0)" data-toggle="tooltip" data-placement="top" title="Click and drag to re-order layer stack">' + 
                     '<span class="glyphicon glyphicon-move"></span>' + 

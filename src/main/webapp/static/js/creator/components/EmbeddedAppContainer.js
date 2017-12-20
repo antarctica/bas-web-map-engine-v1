@@ -27,28 +27,59 @@ magic.classes.creator.EmbeddedAppContainer.prototype.loadContext = function(mapC
     jQuery.each(this.dialogs, jQuery.proxy(function(dn, dialog) {
         dialog.loadContext(mapContext, region);
     }, this));
+    
+    /* Save map handler */
+    var saveBtn = jQuery("#map-save-context");
+    saveBtn.closest("div.row").removeClass("hidden");
+    saveBtn.off("click").on("click", jQuery.proxy(this.saveContext, this));
 };
 
 /**
  * Assemble a final map context for saving to database
  */
 magic.classes.creator.EmbeddedAppContainer.prototype.saveContext = function() {
-    var context = {};
+    var valid = true;
     jQuery.each(this.dialogs, jQuery.proxy(function(dn, dialog) {
-        jQuery.extend(context, dialog.getContext());
+        valid = valid && dialog.validate();
     }, this));
-    /* Now validate the assembled map context against the JSON schema in /static/js/json/embedded_web_map_schema.json
-     * https://github.com/geraintluff/tv4 is the validator used */            
-    jQuery.getJSON(magic.config.paths.baseurl + "/static/js/json/embedded_web_map_schema.json", jQuery.proxy(function(schema) {
-        console.log(context);
-        console.log("Validated : " + v4.validate(context, schema));            
-    }, this))
-    .fail(function(xhr, status, err) {
+    if (valid) {
+        /* Forms were valid */
+        var context = {};
+        jQuery.each(this.dialogs, jQuery.proxy(function(dn, dialog) {
+            jQuery.extend(context, dialog.getContext());
+        }, this));
+        /* Now validate the assembled map context against the JSON schema in /static/js/json/embedded_web_map_schema.json
+         * https://github.com/geraintluff/tv4 is the validator used */            
+        jQuery.getJSON(magic.config.paths.baseurl + "/static/js/json/embedded_web_map_schema.json", jQuery.proxy(function(schema) {        
+            console.log(context);
+            var validated = tv4.validate(context, schema);               
+            console.log("Validated : " + validated);       
+            if (!validated) {
+                 /* Failed to validate the data against the schema - complain */
+                var validationErrors = JSON.stringify(tv4.error, null, 4);
+                bootbox.alert(
+                    '<div class="alert alert-danger" style="margin-top:10px">' + 
+                        '<p>Failed to validate your map data against the web map schema</p>' + 
+                        '<p>Detailed explanation of the failure below:</p>' + 
+                        '<p>' + validationErrors + '</p>' + 
+                    '</div>'
+                );
+            }
+        }, this))
+        .fail(function(xhr, status, err) {
+            bootbox.alert(
+                '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                    '<p>Failed to retrieve JSON schema for embedded map - details below:</p>' + 
+                    '<p>' + JSON.parse(xhr.responseText)["detail"] + '</p>' + 
+                '</div>'
+            );
+        });  
+    } else {
+        /* Validation errors */
         bootbox.alert(
             '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                '<p>Failed to retrieve JSON schema for embedded map - details below:</p>' + 
-                '<p>' + JSON.parse(xhr.responseText)["detail"] + '</p>' + 
+                '<p>Please correct the marked fields before resubmitting</p>' + 
             '</div>'
         );
-    });            
+    }
 };

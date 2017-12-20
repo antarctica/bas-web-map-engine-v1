@@ -22,7 +22,7 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.formToPayload = function()
     return({
         "wms_source": this.dropdowns.wms_source.val(),
         "feature_name": this.dropdowns.feature_name.val(),
-        "style_name": this.dropdowns.style_name.val()
+        "style_name": this.dropdowns.style_name.val() || null
     });
 };
 

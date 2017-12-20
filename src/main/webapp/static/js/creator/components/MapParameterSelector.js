@@ -164,16 +164,30 @@ magic.classes.creator.MapParameterSelector.prototype.loadContext = function(data
             olGrat.setMap(this.map);
         }
     }
+    
+    /* Set rotation button handler */
+    jQuery("#" + this.prefix + "-rotation-set").off("click").on("click", jQuery.proxy(function(evt) {
+        var rotationDeg = jQuery("#" + this.prefix + "-rotation").val();
+        if (!isNaN(rotationDeg) && this.map) {
+            var rotationRad = Math.PI*rotationDeg/180.0;
+            this.map.getView().setRotation(rotationRad);
+        }
+    }, this));
 };
 
 magic.classes.creator.MapParameterSelector.prototype.getContext = function() {    
     var mapView = this.map.getView();
+    var rotation = parseFloat(jQuery("#" + this.prefix + "-rotation").val());
     return({
         center: mapView.getCenter(),
         zoom: mapView.getZoom(),
         projection: mapView.getProjection().getCode(),
         proj_extent: mapView.getProjection().getExtent(),
         resolutions: mapView.getResolutions(),
-        rotation: jQuery("#" + this.prefix + "-rotation").val()
+        rotation: isNaN(rotation) ? 0.0 : rotation
     });
+};
+
+magic.classes.creator.MapParameterSelector.prototype.validate = function() {    
+    return(true);
 };
