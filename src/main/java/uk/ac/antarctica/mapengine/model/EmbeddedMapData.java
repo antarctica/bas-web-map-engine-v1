@@ -10,10 +10,7 @@ import java.util.UUID;
 
 public class EmbeddedMapData extends AbstractMapData {
     
-    /* Specific fields */
-    private int width = 0;
-    private int height = 0;
-    private String embed = "";
+    /* Specific fields */   
     private String center = "";
     private int zoom = 0;
     private double rotation = 0.0;
@@ -35,10 +32,7 @@ public class EmbeddedMapData extends AbstractMapData {
         setTitle((String)getJsonElement(jo, "title", false, "Map title"));        
         setDescription((String)getJsonElement(jo, "description", true, null));                
         setOwner_name(username);           
-        setOwner_email((String)getJsonElement(jo, "owner_email", false, "basmagic@bas.ac.uk"));
-        setWidth((int)getJsonElement(jo, "width", false, 400, Integer.class));
-        setHeight((int)getJsonElement(jo, "height", false, 300, Integer.class));        
-        setEmbed((String)getJsonElement(jo, "embed", false, "map"));
+        setOwner_email((String)getJsonElement(jo, "owner_email", false, "basmagic@bas.ac.uk"));        
         setCenter((String)getJsonElement(jo, "center", false, "0,0"));
         setZoom((int)getJsonElement(jo, "zoom", false, 0, Integer.class));
         setRotation((double)getJsonElement(jo, "rotation", false, 0.0, Double.class));
@@ -52,7 +46,7 @@ public class EmbeddedMapData extends AbstractMapData {
 
     @Override
     public String insertSql() {
-        return("INSERT INTO " + getTableName() + " VALUES(?,?,?,?,current_timestamp,current_timestamp,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+        return("INSERT INTO " + getTableName() + " VALUES(?,?,?,?,current_timestamp,current_timestamp,?,?,?,?,?,?,?,?,?,?,?)");
     }
 
     @Override
@@ -63,10 +57,7 @@ public class EmbeddedMapData extends AbstractMapData {
             getTitle(),
             getDescription(),                       
             getOwner_name(),
-            getOwner_email(),
-            getWidth(),
-            getHeight(),
-            getEmbed(),
+            getOwner_email(),            
             getCenter(),
             getZoom(),
             getRotation(),
@@ -86,10 +77,7 @@ public class EmbeddedMapData extends AbstractMapData {
             "title=?, " +
             "description=?, " +             
             "modified_date=current_timestamp, " + 
-            "owner_email=?, " + 
-            "width=?, " + 
-            "height=?, " + 
-            "embed=?, " + 
+            "owner_email=?, " +             
             "center=?, " + 
             "zoom=?, " + 
             "rotation=?, " + 
@@ -109,10 +97,7 @@ public class EmbeddedMapData extends AbstractMapData {
             getName(),
             getTitle(),
             getDescription(),            
-            getOwner_email(),
-            getWidth(),
-            getHeight(),
-            getEmbed(),
+            getOwner_email(),            
             getCenter(),
             getZoom(),
             getRotation(),
@@ -134,30 +119,6 @@ public class EmbeddedMapData extends AbstractMapData {
     @Override
     public Object[] deleteArgs(String id) {
         return(new Object[] {id});
-    }
-
-    public int getWidth() {
-        return width;
-    }
-
-    public void setWidth(int width) {
-        this.width = width;
-    }
-
-    public int getHeight() {
-        return height;
-    }
-
-    public void setHeight(int height) {
-        this.height = height;
-    }
-
-    public String getEmbed() {
-        return embed;
-    }
-
-    public void setEmbed(String embed) {
-        this.embed = embed;
     }
 
     public String getCenter() {

@@ -125,10 +125,7 @@ CREATE TABLE webmap.embedded_maps
   creation_date timestamp without time zone, -- When map was created
   modified_date timestamp without time zone, -- When map was last modified
   owner_name character varying(150), -- Name of the map owner
-  owner_email character varying(150), -- Their email address
-  width integer, -- Intended width of map when embedded
-  height integer, -- Intended height of map when embedded
-  embed character varying(100), -- Name of div to embed the map inside
+  owner_email character varying(150), -- Their email address  
   center character varying(100), -- Initial centre co-ordinates of the map
   zoom integer, -- Initial zoom level of the map
   rotation decimal, -- Initial rotation of the map in degrees
@@ -156,9 +153,6 @@ COMMENT ON COLUMN webmap.embedded_maps.creation_date IS 'When map was created';
 COMMENT ON COLUMN webmap.embedded_maps.modified_date IS 'When map was last modified';
 COMMENT ON COLUMN webmap.embedded_maps.owner_name IS 'Name of the map owner';
 COMMENT ON COLUMN webmap.embedded_maps.owner_email IS 'Their email address';
-COMMENT ON COLUMN webmap.embedded_maps.width IS 'Intended width of map when embedded';
-COMMENT ON COLUMN webmap.embedded_maps.height IS 'Intended height of map when embedded';
-COMMENT ON COLUMN webmap.embedded_maps.embed IS 'Name of div to embed the map inside';
 COMMENT ON COLUMN webmap.embedded_maps.center IS 'Initial centre co-ordinates of the map';
 COMMENT ON COLUMN webmap.embedded_maps.zoom IS 'Initial zoom level of the map';
 COMMENT ON COLUMN webmap.embedded_maps.rotation IS 'Initial rotation of the map in degrees';

@@ -13,7 +13,7 @@ magic.classes.creator.EmbeddedAppContainer = function() {
     this.regionSelector = new magic.classes.creator.MapRegionSelector({
         "contextLoader": jQuery.proxy(this.loadContext, this),
         "mapTitleService": magic.config.paths.baseurl + "/embedded_maps/dropdown",
-        "mapDataService": magic.config.paths.baseurl + "/maps/name"
+        "mapDataService": magic.config.paths.baseurl + "/embedded_maps/name"
     });
         
 };
@@ -64,9 +64,43 @@ magic.classes.creator.EmbeddedAppContainer.prototype.saveContext = function() {
                         '<p>' + validationErrors + '</p>' + 
                     '</div>'
                 );
+            } else {
+                /* Schema validation was ok */
+                var existingId = context.id;
+                var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content");
+                var csrfHeader = jQuery("meta[name='_csrf_header']").attr("content");
+                jQuery.ajax({
+                    url: magic.config.paths.baseurl + "/embedded_maps/" + (existingId != "" ? "update/" + existingId : "save"),                        
+                    method: "POST",
+                    processData: false,
+                    data: JSON.stringify(context),
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    beforeSend: function(xhr) {
+                        xhr.setRequestHeader(csrfHeader, csrfHeaderVal);
+                    }
+                })
+                .done(function(response) {
+                    /* Load up example finished map into a new tab */
+                    var exWin = window.open(magic.config.paths.baseurl + "/static/html/test_embed.html");
+                    var exDoc = exWin.document;
+                    var serviceUrl = magic.config.paths.baseurl + "/embedded_maps/name/" + context.name;
+                    jQuery(exDoc).find("#data-service-url").html('<pre>' + serviceUrl + '</pre>');
+                    jQuery(exDoc).find("#map").data("service", serviceUrl);
+                })
+                .fail(function(xhr) {
+                    var detail = JSON.parse(xhr.responseText)["detail"];
+                    bootbox.alert(
+                        '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                            '<p>Failed to save your map - details below:</p>' + 
+                            '<p>' + detail + '</p>' + 
+                        '</div>'
+                    );
+                });
             }
         }, this))
-        .fail(function(xhr, status, err) {
+        .fail(function(xhr) {
             bootbox.alert(
                 '<div class="alert alert-warning" style="margin-bottom:0">' + 
                     '<p>Failed to retrieve JSON schema for embedded map - details below:</p>' + 
