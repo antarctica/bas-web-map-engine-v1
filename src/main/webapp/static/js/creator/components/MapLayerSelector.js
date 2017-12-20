@@ -146,6 +146,12 @@ magic.classes.creator.MapLayerSelector.prototype.loadContext = function(data, re
     }, this));
 };
 
+magic.classes.creator.MapLayerSelector.prototype.getContext = function() {
+    return({
+       layers: this.layerEdits 
+    });
+};
+
 /**
  * Append data for a map layer to the given table
  * @param {jQuery.object} table
@@ -170,7 +176,7 @@ magic.classes.creator.MapLayerSelector.prototype.layerMarkup = function(table, l
                 '<div class="btn-toolbar" role="toolbar">' + 
                     '<div class="btn-group" role="group">' + 
                         '<button type="button" class="btn btn-sm btn-warning" id="' + this.prefix + '-' + layerData.id + '-layer-edit" ' + 
-                            'data-toggle="popover" data-trigger="manual" data-placement="bottom">' + 
+                            'data-toggle="popover" data-trigger="manual" data-placement="left">' + 
                             '<i style="font-size:14px" data-toggle="tooltip" data-placement="top" title="Edit/view selected layer data" class="fa fa-pencil"></i>' + 
                         '</button>' +
                         '<button type="button" class="btn btn-sm btn-danger" id="' + this.prefix + '-' + layerData.id + '-layer-del">' +
@@ -184,9 +190,7 @@ magic.classes.creator.MapLayerSelector.prototype.layerMarkup = function(table, l
     
     /* Assign edit layer button handler */
     jQuery("#" + this.prefix + "-" + layerData.id + "-layer-edit").off("click").on("click", jQuery.proxy(function(evt) {
-        console.log("Edit handler for " + evt.currentTarget.id);
         var layerId = evt.currentTarget.id.replace(this.prefix + "-", "").replace("-layer-edit", "");
-        console.log(layerId);
         if (this.layerDataEditor && this.layerDataEditor.isActive()) {
             /* If the edit dialog is already open somewhere else, close it */
             this.layerDataEditor.deactivate();

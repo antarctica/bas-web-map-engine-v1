@@ -594,6 +594,63 @@ magic.modules.Common = function () {
             }
         },
         /**
+         * Populate a form with the specified fields from the data object
+         * Form input names/ids should be derivable from <prefix>-<field>
+         * @param {Array} fields array of objects of form {"field": <name>, "default": <defaultvalue>}
+         * @param {object} data
+         * @param {string} prefix
+         */
+        jsonToForm: function(fields, data, prefix) { 
+            jQuery.each(fields, function(idx, fo) {
+                var name = fo["field"];
+                var defval = fo["default"];
+                var input = jQuery("#" + prefix + "-" + name);                
+                if (input.attr("type") == "checkbox" || input.attr("type") == "radio") {
+                    /* Set the "checked" property */
+                    input.prop("checked", !data ? defval : (name in data ? (data[name] === true ? true : false) : defval));
+                } else if (input.attr("type") == "url") {
+                    /* Fiddly case of URLs - use an empty default */
+                    input.val(!data ? defval : (name in data ? data[name] : ""));
+                } else {
+                    /* Simple case */
+                    input.val(!data ? defval : (name in data ? data[name] : defval));
+                }
+            });            
+        },
+        /**
+         * Populate the data object with values from the given form
+         * Form input names/ids should be derivable from <prefix>-<field>
+         * @param {Array} fields
+         * @param {string} prefix
+         */
+        formToJson: function(fields, prefix) {
+            var json = {};
+            jQuery.each(fields, function(idx, fo) {
+                var name = fo["field"];
+                var input = jQuery("#" + prefix + "-" + name);                    
+                switch(input.attr("type")) {
+                    case "checkbox":
+                    case "radio":
+                        /* Set the "checked" property */
+                        json[name] = input.prop("checked") ? true : false;
+                        break;                       
+                    default:
+                        var value = input.val();
+                        if (input.attr("type") == "number" && jQuery.isNumeric(value)) {
+                            /* Make sure numeric values are numbers not strings or will fail schema validation */
+                            value = Math.floor(value) == value ? parseInt(value) : parseFloat(value);
+                        }
+                        if (input.attr("required") && value == "") {
+                            json[name] = fo["default"];
+                        } else {
+                            json[name] = value;
+                        }
+                        break;                       
+                }                    
+            });
+            return(json);
+        },
+        /**
          * Remove all success/error indications on all form inputs on a page
          */
         resetFormIndicators: function() {

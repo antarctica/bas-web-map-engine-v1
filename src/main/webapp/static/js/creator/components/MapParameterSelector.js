@@ -165,3 +165,15 @@ magic.classes.creator.MapParameterSelector.prototype.loadContext = function(data
         }
     }
 };
+
+magic.classes.creator.MapParameterSelector.prototype.getContext = function() {    
+    var mapView = this.map.getView();
+    return({
+        center: mapView.getCenter(),
+        zoom: mapView.getZoom(),
+        projection: mapView.getProjection().getCode(),
+        proj_extent: mapView.getProjection().getExtent(),
+        resolutions: mapView.getResolutions(),
+        rotation: jQuery("#" + this.prefix + "-rotation").val()
+    });
+};

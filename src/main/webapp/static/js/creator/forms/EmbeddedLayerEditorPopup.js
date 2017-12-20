@@ -18,7 +18,14 @@ magic.classes.creator.EmbeddedLayerEditorPopup = function(options) {
         onSave: options.onSave
     }));
     
-    this.inputs = ["id", "name", "opacity", "is_base", "is_singletile", "is_interactive", "attribute_map"];
+    this.formSchema = [
+        {"field": "id", "default": ""},
+        {"field": "name","default": ""},
+        {"field": "opacity", "default": 1.0},
+        {"field": "is_base", "default": false},            
+        {"field": "is_singletile", "default": false},                
+        {"field": "is_interactive", "default": false}
+    ];
     
     /* Linked WMS feature select menus */
     this.wmsSelectors = new magic.classes.creator.WmsFeatureLinkedMenus({
@@ -59,7 +66,6 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.markup = function() {
     return(
         '<div id="' + this.id + '-edit-view-fs" class="col-sm-12">' +
             '<input type="hidden" id="' + this.id + '-id"></input>' + 
-            '<input type="hidden" id="' + this.id + '-attribute_map"></input>' + 
             '<div class="form-group form-group-sm col-sm-12">' +                     
                 '<label class="col-sm-3 control-label" for="' + this.id + '-name">Name</label>' + 
                 '<div class="col-sm-9">' + 
@@ -78,7 +84,7 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.markup = function() {
                     '<input type="number" class="form-control" id="' + this.id + '-opacity" ' + 
                        'placeholder="Layer opacity (0->1)" ' + 
                        'min="0" max="1" step="0.1" ' + 
-                       'data-toggle="tooltip" data-placement="left" title="Layer opacity (0.0 = transparent, 1.0 = opaque)">' + 
+                       'data-toggle="tooltip" data-placement="left" title="Layer opacity (0.0 = transparent, 1.0 = opaque)" value="1.0">' + 
                     '</input>' + 
                 '</div>' + 
             '</div>' + 
@@ -165,19 +171,11 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.assignHandlers = functi
  * @return {Object}
  */
 magic.classes.creator.EmbeddedLayerEditorPopup.prototype.formToPayload = function() {
-    var payload = {};
-    jQuery.each(this.inputs, jQuery.proxy(function(idx, ip) {
-        var fEl = jQuery("#" + this.id + "-" + ip);
-        if (fEl.attr("type") == "checkbox") {
-            payload[ip] = fEl.prop("checked") === true ? true : false;
-        } else if (ip != "attribute_map") {
-            payload[ip] = fEl.val();
-        } else {
-            payload[ip] = this.editedAttributes;
-        }
-    }, this));
-    payload = jQuery.extend(payload, this.wmsSelectors.formToPayload());
-    return(payload);
+    return(jQuery.extend(
+        magic.modules.Common.formToJson(this.formSchema, this.id), 
+        {attribute_map: this.editedAttributes}, 
+        this.wmsSelectors.formToPayload()
+    ));
 };
 
 /**
@@ -192,18 +190,12 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.payloadToForm = functio
         feature_name: populator.feature_name || "",
         style_name: populator.style_name || ""
     });
-    jQuery.each(this.inputs, jQuery.proxy(function(idx, ip) {
-        var fEl = jQuery("#" + this.id + "-" + ip);
-        if (fEl.attr("type") == "checkbox") {            
-            fEl.prop("checked", populator[ip] === true);
-            if (ip == "is_interactive") {
-                this.editedAttributes = populator["attribute_map"];
-                fEl.trigger("change");
-            }
-        } else {
-            fEl.val(populator[ip] || "");
-        }        
-    }, this));  
+    magic.modules.Common.jsonToForm(this.formSchema, populator, this.id);
+    if (populator.is_interactive === true) {
+        /* Show attribute editor form */
+        this.editedAttributes = populator["attribute_map"];
+        jQuery("#" + this.id + "-is_interactive").trigger("change");
+    }    
 };
 
 /**

@@ -32,7 +32,7 @@ magic.classes.creator.EmbeddedAttributeEditorPopup = function(options) {
         content: '<p><i class="fa fa-spin fa-spinner"></i> Loading attributes...</p>'
     }).on("shown.bs.popover", jQuery.proxy(function(evt) {                                 
         this.assignCloseButtonHandler();
-        this.getFeatureAttributes();
+        this.getFeatureAttributes(this.prePopulator);
     }, this));
             
 };
@@ -47,7 +47,11 @@ magic.classes.creator.EmbeddedAttributeEditorPopup.prototype.getFeatureAttribute
     
     var dftUrl = magic.modules.Common.getWxsRequestUrl(this.wmsService, "DescribeFeatureType", this.featureName);
     if (!dftUrl) {
-        
+        jQuery(".em-attr-editor-popover-content").html('<div class="alert alert-info">No attributes found</div>');
+    } else if (this.prePopulator && !jQuery.isEmptyObject(this.prePopulator)) {
+        /* Restore form and contents from stored attributes */
+        jQuery(".em-attr-editor-popover-content").html(this.markup(this.prePopulator, this.computeOgcGeomType(this.prePopulator)));
+        this.assignHandlers();        
     } else {
         /* Issue DescribeFeatureType request via WFS */
         jQuery.ajax({
@@ -58,40 +62,16 @@ magic.classes.creator.EmbeddedAttributeEditorPopup.prototype.getFeatureAttribute
         .done(jQuery.proxy(function(response) {
             /* Update : 13/09/2017 - As of about version 60, Chrome now suddenly works like everything else... */
             var elts = elts = jQuery(response).find("xsd\\:sequence").find("xsd\\:element");
-            var geomType = "unknown";
             var attrList = [];
-            jQuery.each(elts, jQuery.proxy(function(idx, elt) {
+            jQuery.each(elts, function(idx, elt) {
                 var attrs = {};
-                jQuery.each(elt.attributes, jQuery.proxy(function(i, a) {                        
-                    if (a.value.indexOf("gml:") == 0) {                           
-                        geomType = this.computeOgcGeomType(a.value);
-                    }
+                jQuery.each(elt.attributes, function(i, a) {                                            
                     attrs[a.name] = a.value;
-                }, this));
+                });
                 attrList.push(attrs);
-            }, this));
-            jQuery(".em-attr-editor-popover-content").html(this.markup(attrList, geomType));
-            
-            /* Detect changes to the form */
-            this.formEdited = false;
-            jQuery("#" + this.id + "-attr-table :input").off("change").on("change", jQuery.proxy(function() {
-                this.formEdited = true;
-            }, this));      
-            
-            /* Save button handler */
-            jQuery("#" + this.id + "-go").off("click").on("click", jQuery.proxy(function() {           
-                magic.modules.Common.buttonClickFeedback(this.id, true, "Saved ok");
-                if (jQuery.isFunction(this.controlCallbacks["onSave"])) {
-                    this.controlCallbacks["onSave"](this.formToPayload());
-                    this.delayedDeactivate(2000); 
-                }            
-            }, this));
-            
-            /* Cancel button */
-            jQuery("#" + this.id + "-cancel").off("click").on("click", jQuery.proxy(function() {
-                this.cleanForm();
-                this.deactivate();
-            }, this));
+            });
+            jQuery(".em-attr-editor-popover-content").html(this.markup(attrList, this.computeOgcGeomType(attrList)));
+            this.assignHandlers();            
         }, this))
         .fail(jQuery.proxy(function(xhr, status, message) {
             if (status == 401) {
@@ -111,13 +91,37 @@ magic.classes.creator.EmbeddedAttributeEditorPopup.prototype.getFeatureAttribute
     }    
 };
 
+magic.classes.creator.EmbeddedAttributeEditorPopup.prototype.assignHandlers = function() {
+    
+    /* Detect changes to the form */
+    this.formEdited = false;
+    jQuery("#" + this.id + "-attr-table :input").off("change").on("change", jQuery.proxy(function() {
+        this.formEdited = true;
+    }, this));      
+
+    /* Save button handler */
+    jQuery("#" + this.id + "-go").off("click").on("click", jQuery.proxy(function() {           
+        magic.modules.Common.buttonClickFeedback(this.id, true, "Saved ok");
+        if (jQuery.isFunction(this.controlCallbacks["onSave"])) {
+            this.controlCallbacks["onSave"](this.formToPayload());
+            this.delayedDeactivate(2000); 
+        }            
+    }, this));
+
+    /* Cancel button */
+    jQuery("#" + this.id + "-cancel").off("click").on("click", jQuery.proxy(function() {
+        this.cleanForm();
+        this.deactivate();
+    }, this));
+};
+
 /**
  * Create form HTML for the attribute map
  * @param {Array} attrList
  * @param {String} geomType
  * @returns {String}
  */
-magic.classes.creator.EmbeddedAttributeEditorPopup.prototype.markup = function(attrList, geomType) {
+magic.classes.creator.EmbeddedAttributeEditorPopup.prototype.markup = function(attrList, geomType) {    
     var html = "";
     if (attrList.length == 0) {
         /* No attributes found */
@@ -125,6 +129,7 @@ magic.classes.creator.EmbeddedAttributeEditorPopup.prototype.markup = function(a
     } else {
         /* Show attribute table */
         html += 
+            '<div class="alert alert-info">Geometry type is <strong>' + geomType + '</strong></div>' + 
             '<table id="' + this.id + '-attr-table" class="table table-condensed table-striped table-hover table-responsive">' + 
                 '<tr>' + 
                     '<th>Name</th>' + 
@@ -133,10 +138,11 @@ magic.classes.creator.EmbeddedAttributeEditorPopup.prototype.markup = function(a
                         '<span data-toggle="tooltip" data-placement="top" title="Human-friendly name for the attribute in pop-up">Alias<span>' + 
                     '</th>' + 
                     '<th style="width:40px">' + 
-                        '<span data-toggle="tooltip" data-placement="top" title="Ordering of attribute in pop-up">O<span>' + 
+                        '<i class="fa fa-list-ol" data-toggle="tooltip" data-placement="top" title="Ordering of attribute in pop-up">' + 
+                        '<i>' + 
                     '</th>' + 
                     '<th style="width:40px">' + 
-                        '<span class="fa fa-eye" data-toggle="tooltip" data-placement="top" title="Attribute is visible in pop-ups"><span>' + 
+                        '<i class="fa fa-eye" data-toggle="tooltip" data-placement="top" title="Attribute is visible in pop-ups"><i>' + 
                     '</th>' + 
                 '</tr>';
         jQuery.each(attrList, jQuery.proxy(function(idx, entry) {
@@ -151,7 +157,7 @@ magic.classes.creator.EmbeddedAttributeEditorPopup.prototype.markup = function(a
                     '<td>' + entry.type.replace("xsd:", "") + '</td>' + 
                     '<td><input type="text" id="_amap_alias_' + idx + '" value="' + (entry.alias || "") + '"></input></td>' + 
                     '<td><input type="number" size="2" style="width: 37px" min="1" max="99" id="_amap_ordinal_' + idx + '" value="' + (entry.ordinal || "") + '"></input></td>' +                              
-                    '<td><input type="checkbox" id="_amap_displayed_' + idx + '" value="display"' + (entry.display === true ? ' checked' : '') + '></input></td>' +                
+                    '<td><input type="checkbox" id="_amap_displayed_' + idx + '" value="display"' + (entry.displayed === true ? ' checked="checked"' : '') + '></input></td>' +                
                 '</tr>';
             }
         }, this));
@@ -189,35 +195,21 @@ magic.classes.creator.EmbeddedAttributeEditorPopup.prototype.formToPayload = fun
  * @param {String} gmlType
  * @returns {String}
  */
-magic.classes.creator.EmbeddedAttributeEditorPopup.prototype.computeOgcGeomType = function(gmlType) {
-    gmlType = gmlType.toLowerCase();
-    if (gmlType.indexOf("point") >= 0) {
-        return("point");
-    } else if (gmlType.indexOf("line") >= 0 || gmlType.indexOf("curve") >= 0) {
-        return("line");
-    } else if (gmlType.indexOf("polygon") >= 0) {
-        return("polygon");
-    } else {
-        return("unknown");
-    }
-};
-
-/**
- * Feature geometry type to simple type (point|line|polygon)
- * @param {object} feat
- * @returns {String}
- */
-magic.classes.creator.EmbeddedAttributeEditorPopup.prototype.featureGeomType = function(feat) {
-    var type = "unknown";
-    var g = feat.getGeometry();
-    if (g) {
-        if (g instanceof ol.geom.Point || g instanceof ol.geom.MultiPoint) {
-            type = "point";
-        } else if (g instanceof ol.geom.LineString || g instanceof ol.geom.MultiLineString) {
-            type = "line";
-        } else if (g instanceof ol.geom.Polygon || g instanceof ol.geom.MultiPolygon) {
-            type = "polygon";
+magic.classes.creator.EmbeddedAttributeEditorPopup.prototype.computeOgcGeomType = function(attrList) {
+    var geomType = "unknown";
+    jQuery.each(attrList, function(idx, data){
+        if (data.type && data.type.indexOf("gml:") == 0) {
+            /* This is the geometry attribute */
+            var gmlType = data.type.toLowerCase();
+            if (gmlType.indexOf("point") >= 0) {
+                geomType = "point";
+            } else if (gmlType.indexOf("line") >= 0 || gmlType.indexOf("curve") >= 0) {
+                geomType = "line";
+            } else if (gmlType.indexOf("polygon") >= 0) {
+                geomType = "polygon";
+            }
         }
-    }
-    return(type);
+        return(geomType == "unknown");
+    });
+    return(geomType);
 };

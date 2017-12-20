@@ -4,17 +4,7 @@ magic.classes.creator.EmbeddedAppContainer = function() {
     
     /* Initialise the various form dialogs */
     this.dialogs = {        
-        "metadataForm": new magic.classes.creator.MapMetadataForm({
-            "formSchema": [
-                {"field": "id", "default": ""},
-                {"field": "name","default": "new_map"},
-                {"field": "title", "default": "New blank map"},
-                {"field": "description", "default": "Longer description of the purpose of the map goes here"},            
-                {"field": "owner_email", "default": "basmagic@bas.ac.uk"},                
-                {"field": "allowed_usage", "default": "public"},
-                {"field": "allowed_edit", "default": "login"}
-            ]
-        }),
+        "metadataForm": new magic.classes.creator.MapMetadataForm({}),
         "mapLayerSelector": new magic.classes.creator.MapLayerSelector({}),
         "mapParameterSelector": new magic.classes.creator.MapParameterSelector({})
     };
@@ -37,4 +27,28 @@ magic.classes.creator.EmbeddedAppContainer.prototype.loadContext = function(mapC
     jQuery.each(this.dialogs, jQuery.proxy(function(dn, dialog) {
         dialog.loadContext(mapContext, region);
     }, this));
+};
+
+/**
+ * Assemble a final map context for saving to database
+ */
+magic.classes.creator.EmbeddedAppContainer.prototype.saveContext = function() {
+    var context = {};
+    jQuery.each(this.dialogs, jQuery.proxy(function(dn, dialog) {
+        jQuery.extend(context, dialog.getContext());
+    }, this));
+    /* Now validate the assembled map context against the JSON schema in /static/js/json/embedded_web_map_schema.json
+     * https://github.com/geraintluff/tv4 is the validator used */            
+    jQuery.getJSON(magic.config.paths.baseurl + "/static/js/json/embedded_web_map_schema.json", jQuery.proxy(function(schema) {
+        console.log(context);
+        console.log("Validated : " + v4.validate(context, schema));            
+    }, this))
+    .fail(function(xhr, status, err) {
+        bootbox.alert(
+            '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                '<p>Failed to retrieve JSON schema for embedded map - details below:</p>' + 
+                '<p>' + JSON.parse(xhr.responseText)["detail"] + '</p>' + 
+            '</div>'
+        );
+    });            
 };
