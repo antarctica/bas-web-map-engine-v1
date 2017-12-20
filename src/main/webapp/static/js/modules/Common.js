@@ -104,10 +104,11 @@ magic.modules.Common = function () {
          * @param {string} btnBaseId
          * @param {string} msg
          * @param {string} size lg|sm|xs
-         * @paran {string} btnCaption
+         * @param {string} btnCaption
+         * @param {boolean} cancel 
          * @returns {String}
          */
-        buttonFeedbackSet: function(btnBaseId, msg, size, btnCaption) {
+        buttonFeedbackSet: function(btnBaseId, msg, size, btnCaption, cancel) {
             if (!size) {
                 size = "sm";
             }
@@ -115,18 +116,33 @@ magic.modules.Common = function () {
                 btnCaption = "Save";
             }
             return(
-                '<button id="' + btnBaseId + '-go" class="btn btn-' + size + ' btn-primary" type="button" ' + 
-                    'data-toggle="tooltip" data-placement="top" title="' + msg + '" style="margin-right:5px">' + 
-                    '<span class="fa fa-floppy-o"></span> ' + btnCaption + 
-                '</button>' +
-                '<button id="' + btnBaseId + '-fb-ok" class="btn btn-' + size + ' btn-success" style="display:none; margin-right:5px" type="button" ' + 
-                    'data-toggle="tooltip" data-placement="top" title="Ok">' + 
-                    '<span class="glyphicon glyphicon-ok post-ok"></span> Ok' + 
-                '</button>' +
-                '<button id="' + btnBaseId + '-fb-error" class="btn btn-' + size + ' btn-danger" style="display:none" type="button" ' + 
-                    'data-toggle="tooltip" data-placement="top" title="Error">' + 
-                    '<span class="glyphicon glyphicon-remove post-error"> Error</span>' + 
-                '</button>'
+                '<div class="btn-toolbar col-' + size + '-12" role="toolbar" style="margin-bottom:10px">' +
+                    '<div class="btn-group btn-group-' + size + '">' + 
+                        '<button id="' + btnBaseId + '-go" class="btn btn-' + size + ' btn-primary" type="button" ' + 
+                            'data-toggle="tooltip" data-container="body" data-placement="top" title="' + msg + '" >' + 
+                            '<span class="fa fa-floppy-o"></span> ' + btnCaption + 
+                        '</button>' +
+                    '</div>' + 
+                    '<div class="btn-group btn-group-' + size + '">' +
+                        '<button id="' + btnBaseId + '-fb-ok" class="btn btn-' + size + ' btn-success" style="display:none" type="button" ' + 
+                            'data-toggle="tooltip" data-container="body" data-placement="top" title="Ok">' + 
+                            '<span class="glyphicon glyphicon-ok post-ok"></span> Ok' + 
+                        '</button>' +
+                    '</div>' + 
+                    '<div class="btn-group btn-group-' + size + '">' +
+                        '<button id="' + btnBaseId + '-fb-error" class="btn btn-' + size + ' btn-danger" style="display:none" type="button" ' + 
+                            'data-toggle="tooltip" data-container="body" data-placement="top" title="Error">' + 
+                            '<span class="glyphicon glyphicon-remove post-error"> Error</span>' + 
+                        '</button>' + 
+                    '</div>' + 
+                    (cancel === true ?
+                    '<div class="btn-group btn-group-' + size + '">' + 
+                        '<button id="' + btnBaseId + '-cancel" class="btn btn-' + size + ' btn-danger" type="button" ' + 
+                            'data-toggle="tooltip" data-container="body" data-placement="right" title="Cancel">' + 
+                            '<span class="fa fa-times-circle"></span> Cancel' + 
+                        '</button>' +      
+                    '</div>' : '') + 
+                '</div>'
             );
         },
         /**

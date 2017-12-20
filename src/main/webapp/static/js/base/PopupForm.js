@@ -29,7 +29,7 @@ magic.classes.PopupForm = function (options) {
     /* Control callbacks */
     this.controlCallbacks = {
         onActivate: jQuery.proxy(function(payload) {
-            this.prePopulator = payload;            
+            this.prePopulator = payload;             
             this.target.popover("show");    
         }, this),
         onDeactivate: jQuery.proxy(function(quiet) {            

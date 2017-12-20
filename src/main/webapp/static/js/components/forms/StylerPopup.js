@@ -167,13 +167,7 @@ magic.classes.StylerPopup.prototype.markup = function() {
                     '</div>' + 
                 '</div>' +      
             '</div>' + 
-            '<div class="form-group form-group-sm col-sm-12">' +
-                magic.modules.Common.buttonFeedbackSet(this.id, "Save style", "sm", "Save") +                         
-                '<button id="' + this.id + '-cancel" class="btn btn-sm btn-danger" type="button" ' + 
-                    'data-toggle="tooltip" data-placement="right" title="Cancel">' + 
-                    '<span class="fa fa-times-circle"></span> Cancel' + 
-                '</button>' +                                        
-            '</div>' + 
+            magic.modules.Common.buttonFeedbackSet(this.id, "Save style", "sm", "Save", true) +                                                                              
         '</div>'
     );
 };

@@ -18,7 +18,7 @@ magic.classes.creator.EmbeddedLayerEditorPopup = function(options) {
         onSave: options.onSave
     }));
     
-    this.inputs = ["id", "name", "wms_source", "feature_name", "style_name", "opacity", "is_base", "is_singletile", "is_interactive", "attribute_map"];
+    this.inputs = ["id", "name", "opacity", "is_base", "is_singletile", "is_interactive", "attribute_map"];
     
     /* Linked WMS feature select menus */
     this.wmsSelectors = new magic.classes.creator.WmsFeatureLinkedMenus({
@@ -28,6 +28,9 @@ magic.classes.creator.EmbeddedLayerEditorPopup = function(options) {
     
     /* Attribute map editor */
     this.subForms.attributes = null;
+    
+    /* Repository for layer attributes edited via the above sub-form */
+    this.editedAttributes = {};
     
     this.target.popover({
         template: this.template,
@@ -40,14 +43,11 @@ magic.classes.creator.EmbeddedLayerEditorPopup = function(options) {
         
         jQuery("#" + this.id + "-name").focus();
         
-        this.assignCloseButtonHandler();        
+        this.editedAttributes = {};
+        
+        this.assignCloseButtonHandler();                
+        this.assignHandlers();                
         this.payloadToForm(this.prePopulator);
-        this.assignHandlers();
-        this.wmsSelectors.init({
-            wms_source: this.prePopulator.wms_source || "",
-            feature_name: this.prePopulator.feature_name || "",
-            style_name: this.prePopulator.style_name || ""
-        });
     }, this));
        
 };
@@ -108,14 +108,8 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.markup = function() {
                          '</input> Layer displays interactive map pop-ups' +
                     '</label>' +
                 '</div>' +                                            
-            '</div>' +               
-            '<div class="form-group form-group-sm col-sm-12">' +
-                magic.modules.Common.buttonFeedbackSet(this.id, "Save data", "sm", "Save") +                         
-                '<button id="' + this.id + '-cancel" class="btn btn-sm btn-danger" type="button" ' + 
-                    'data-toggle="tooltip" data-placement="right" title="Cancel">' + 
-                    '<span class="fa fa-times-circle"></span> Cancel' + 
-                '</button>' +                        
-            '</div>' +  
+            '</div>' +            
+            magic.modules.Common.buttonFeedbackSet(this.id, "Save data", "sm", "Save", true) +                 
         '</div>'
     );
 };
@@ -129,7 +123,7 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.assignHandlers = functi
     }, this));
     
     /* Attributes checkbox */
-    jQuery("#" + this.id + "-is_interactive").off("change").on("change", jQuery.proxy(function(evt) {
+    jQuery("#" + this.id + "-is_interactive").off("change").on("change", jQuery.proxy(function(evt, populator) {
         var checked = jQuery(evt.currentTarget).prop("checked");
         if (this.subForms.attributes && this.subForms.attributes.isActive()) {
             this.subForms.attributes.deactivate();
@@ -141,8 +135,7 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.assignHandlers = functi
                 feature_name: this.wmsSelectors.getValue("feature_name"),
                 onSave: jQuery.proxy(this.saveAttributes, this)
             });
-            var am = jQuery("#" + this.id + "-attribute-map").val() || "{}";            
-            this.subForms.attributes.activate(JSON.parse(magic.modules.Common.JsonUnescape(am)));
+            this.subForms.attributes.activate(this.editedAttributes);
         }
     }, this));
     
@@ -180,9 +173,10 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.formToPayload = functio
         } else if (ip != "attribute_map") {
             payload[ip] = fEl.val();
         } else {
-            payload[ip] = JSON.parse(magic.modules.Common.JsonUnescape(fEl.val()));
+            payload[ip] = this.editedAttributes;
         }
-    }, this));    
+    }, this));
+    payload = jQuery.extend(payload, this.wmsSelectors.formToPayload());
     return(payload);
 };
 
@@ -192,14 +186,24 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.formToPayload = functio
  */
 magic.classes.creator.EmbeddedLayerEditorPopup.prototype.payloadToForm = function(populator) {
     populator = populator || {};
+    /* Initialise the linked WMS menus */
+    this.wmsSelectors.init({
+        wms_source: populator.wms_source || "",
+        feature_name: populator.feature_name || "",
+        style_name: populator.style_name || ""
+    });
     jQuery.each(this.inputs, jQuery.proxy(function(idx, ip) {
         var fEl = jQuery("#" + this.id + "-" + ip);
-        if (fEl.attr("type") == "checkbox") {
+        if (fEl.attr("type") == "checkbox") {            
             fEl.prop("checked", populator[ip] === true);
+            if (ip == "is_interactive") {
+                this.editedAttributes = populator["attribute_map"];
+                fEl.trigger("change");
+            }
         } else {
             fEl.val(populator[ip] || "");
-        }
-    }, this));    
+        }        
+    }, this));  
 };
 
 /**
@@ -228,5 +232,5 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.validate = function() {
  * @param {Object} attrMap
  */
 magic.classes.creator.EmbeddedLayerEditorPopup.prototype.saveAttributes = function(attrMap) {
-    jQuery("#" + this.id + "-attribute_map").val(magic.modules.Common.JsonEscape(JSON.stringify(attrMap)));
+    this.editedAttributes = attrMap;
 };

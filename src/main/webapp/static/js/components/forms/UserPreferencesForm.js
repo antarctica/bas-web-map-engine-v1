@@ -109,9 +109,7 @@ magic.classes.UserPreferencesForm.prototype.markup = function() {
                     '</select>' +
                 '</div>' + 
             '</div>' +
-            '<div class="form-group form-group-sm col-sm-12" style="padding-left:30px">' +
-                magic.modules.Common.buttonFeedbackSet(this.id, "Set preferences", "sm") +                   
-            '</div>' +                     
+            magic.modules.Common.buttonFeedbackSet(this.id, "Set preferences", "sm", "Save", false) +                   
         '</form>'         
     );
 };

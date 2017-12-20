@@ -96,6 +96,9 @@ magic.classes.creator.MapLayerSelector = function(options) {
         ],
         "midlatitudes": magic.modules.Endpoints.getMidLatitudeCoastSource()
     };
+    
+    /* Repository (keyed by layer id) of saved edits to data layers */
+    this.layerEdits = {};
 };
 
 /**
@@ -119,7 +122,7 @@ magic.classes.creator.MapLayerSelector.prototype.loadContext = function(data, re
     }
     if (layers.length > 0) {                    
         table.removeClass("hidden");                    
-        for (var i = 0; i < layers.length; i++) {
+        for (var i = 0; i < layers.length; i++) {            
             this.layerMarkup(table, layers[i]);
         }
         /* Enable sortable layers table */
@@ -129,7 +132,7 @@ magic.classes.creator.MapLayerSelector.prototype.loadContext = function(data, re
     }
     
     /* Assign add layer button handler */
-    jQuery("#" + this.prefix + "-layer-add").click(jQuery.proxy(function(evt) {     
+    jQuery("#" + this.prefix + "-layer-add").off("click").on("click", jQuery.proxy(function(evt) {     
         if (this.layerDataEditor && this.layerDataEditor.isActive()) {
             /* If the edit dialog is already open somewhere else, close it */
             this.layerDataEditor.deactivate();
@@ -152,6 +155,7 @@ magic.classes.creator.MapLayerSelector.prototype.layerMarkup = function(table, l
     var service = magic.modules.Endpoints.getEndpointBy("url", layerData.wms_source);
     var serviceName = service ? service.name : layerData.wms_source;    
     layerData.id = layerData.id || magic.modules.Common.uuid(); 
+    this.layerEdits[layerData.id] = layerData;
     table.find("tbody").append( 
         '<tr>' + 
             '<input type="hidden" id="'+ this.prefix + '-' + layerData.id + '-layer-data" value="' + magic.modules.Common.JsonEscape(JSON.stringify(layerData)) + '"></input>' + 
@@ -163,22 +167,26 @@ magic.classes.creator.MapLayerSelector.prototype.layerMarkup = function(table, l
             '<td>' + serviceName + '</td>' + 
             '<td>' + layerData.name + '</td>' +                     
             '<td>' + 
-                '<div class="btn-group" role="group">' + 
-                    '<button type="button" class="btn btn-sm btn-warning" id="' + this.prefix + '-' + layerData.id + '-layer-edit" ' + 
-                        'data-toggle="popover" data-trigger="manual" data-placement="bottom">' + 
-                        '<i style="font-size:14px" data-toggle="tooltip" data-placement="top" title="Edit/view selected layer data" class="fa fa-pencil"></i>' + 
-                    '</button>' +
-                    '<button type="button" class="btn btn-sm btn-danger" id="' + this.prefix + '-' + layerData.id + '-layer-del">' +
-                        '<i data-toggle="tooltip" data-placement="top" title="Delete selected layer" class="fa fa-trash"></i>' + 
-                    '</button>' + 
+                '<div class="btn-toolbar" role="toolbar">' + 
+                    '<div class="btn-group" role="group">' + 
+                        '<button type="button" class="btn btn-sm btn-warning" id="' + this.prefix + '-' + layerData.id + '-layer-edit" ' + 
+                            'data-toggle="popover" data-trigger="manual" data-placement="bottom">' + 
+                            '<i style="font-size:14px" data-toggle="tooltip" data-placement="top" title="Edit/view selected layer data" class="fa fa-pencil"></i>' + 
+                        '</button>' +
+                        '<button type="button" class="btn btn-sm btn-danger" id="' + this.prefix + '-' + layerData.id + '-layer-del">' +
+                            '<i data-toggle="tooltip" data-placement="top" title="Delete selected layer" class="fa fa-trash"></i>' + 
+                        '</button>' + 
+                    '</div>' + 
                 '</div>' + 
             '</td>' + 
         '</tr>'
     );
     
     /* Assign edit layer button handler */
-    jQuery("#" + this.prefix + "-" + layerData.id + "-layer-edit").click(jQuery.proxy(function(evt) {
-        var storedData = jQuery("#" + evt.currentTarget.id.replace(/-edit$/, "-data")).val();
+    jQuery("#" + this.prefix + "-" + layerData.id + "-layer-edit").off("click").on("click", jQuery.proxy(function(evt) {
+        console.log("Edit handler for " + evt.currentTarget.id);
+        var layerId = evt.currentTarget.id.replace(this.prefix + "-", "").replace("-layer-edit", "");
+        console.log(layerId);
         if (this.layerDataEditor && this.layerDataEditor.isActive()) {
             /* If the edit dialog is already open somewhere else, close it */
             this.layerDataEditor.deactivate();
@@ -188,22 +196,23 @@ magic.classes.creator.MapLayerSelector.prototype.layerMarkup = function(table, l
             mapRegion: this.mapRegion,
             onSave: jQuery.proxy(this.updateLayerData, this)
         });
-        this.layerDataEditor.activate(JSON.parse(magic.modules.Common.JsonUnescape(storedData)));
+        this.layerDataEditor.activate(this.layerEdits[layerId]);
     }, this));
     
     /* Assign delete layer button handler */
-    jQuery("#" + this.prefix + "-" + layerData.id + "-layer-del").click(function(evt) {
+    jQuery("#" + this.prefix + "-" + layerData.id + "-layer-del").off("click").on("click", function(evt) {
         if (this.layerDataEditor && this.layerDataEditor.isActive()) {
             /* If the edit dialog is already open somewhere else, close it */
             this.layerDataEditor.deactivate();
         }
-        bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">Ok to remove this layer?</div>', function(result) {
+        bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">Ok to remove this layer?</div>', jQuery.proxy(function(result) {
             if (result) {
                 /* Do the deletion */
+                delete this.layerEdits[layerData.id];
                 jQuery(evt.currentTarget).closest("tr").remove();
             }
             bootbox.hideAll();
-        });                       
+        }, this));                       
     });
 };
 
@@ -212,12 +221,13 @@ magic.classes.creator.MapLayerSelector.prototype.layerMarkup = function(table, l
  * @param {Object} layerData
  */
 magic.classes.creator.MapLayerSelector.prototype.updateLayerData = function(layerData) {
-    console.log(layerData);
     if (!layerData.id) {
         /* New data added */
         layerData.id = magic.modules.Common.uuid();
         var table = jQuery("#" + this.prefix + "-list");
         this.layerMarkup(table, layerData);
     }
-    jQuery("#" + this.prefix + "-" + layerData.id + "-layer-data").val(magic.modules.Common.JsonEscape(JSON.stringify(layerData)));
+    this.layerEdits[layerData.id] = layerData;
+    /* Enable sortable layers table - now includes the new layer */
+    jQuery(".table-sortable tbody").sortable();
 };

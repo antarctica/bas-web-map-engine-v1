@@ -74,7 +74,7 @@ magic.classes.creator.EmbeddedAttributeEditorPopup.prototype.getFeatureAttribute
             
             /* Detect changes to the form */
             this.formEdited = false;
-            jQuery("#" + this.id + "-attr-table :input").change(jQuery.proxy(function() {
+            jQuery("#" + this.id + "-attr-table :input").off("change").on("change", jQuery.proxy(function() {
                 this.formEdited = true;
             }, this));      
             
@@ -157,13 +157,7 @@ magic.classes.creator.EmbeddedAttributeEditorPopup.prototype.markup = function(a
         }, this));
         html += 
             '</table>' + 
-            '<div class="form-group form-group-sm col-sm-12">' +
-                magic.modules.Common.buttonFeedbackSet(this.id, "Save attributes", "sm", "Save") +                         
-                '<button id="' + this.id + '-cancel" class="btn btn-sm btn-danger" type="button" ' + 
-                    'data-toggle="tooltip" data-placement="right" title="Cancel">' + 
-                    '<span class="fa fa-times-circle"></span> Cancel' + 
-                '</button>' +                        
-            '</div>';
+            magic.modules.Common.buttonFeedbackSet(this.id, "Save attributes", "sm", "Save", true)                                                       
     }    
     return(html);
 };

@@ -18,9 +18,17 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.getValue = function(key) {
     return(this.dropdowns[key].val());
 };
 
+magic.classes.creator.WmsFeatureLinkedMenus.prototype.formToPayload = function() {
+    return({
+        "wms_source": this.dropdowns.wms_source.val(),
+        "feature_name": this.dropdowns.feature_name.val(),
+        "style_name": this.dropdowns.style_name.val()
+    });
+};
+
 magic.classes.creator.WmsFeatureLinkedMenus.prototype.markup = function() {
     return(
-        '<div class="form-group col-sm-12">' +
+        '<div class="form-group form-group-sm col-sm-12">' +
             '<label class="col-sm-3 control-label" for="' + this.id + '-wms_source">WMS source</label>' +
             '<div class="col-sm-9">' +
                 '<select class="form-control" id="' + this.id + '-wms_source" ' + 
@@ -28,7 +36,7 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.markup = function() {
                 '</select>' +
             '</div>' +
         '</div>' +
-        '<div class="form-group col-sm-12">' +
+        '<div class="form-group form-group-sm col-sm-12">' +
             '<label class="col-sm-3 control-label" for="' + this.id + '-feature_name">Feature</label>' +
             '<div class="col-sm-9">' +
                 '<select class="form-control" id="' + this.id + '-feature_name" ' + 
@@ -36,7 +44,7 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.markup = function() {
                 '</select>' +
             '</div>' +
         '</div>' +  
-        '<div class="form-group col-sm-12">' +
+        '<div class="form-group form-group-sm col-sm-12">' +
             '<label class="col-sm-3 control-label" for="' + this.id + '-style_name">Style</label>' +
             '<div class="col-sm-9">' +
                 '<select class="form-control" id="' + this.id + '-style_name" ' +

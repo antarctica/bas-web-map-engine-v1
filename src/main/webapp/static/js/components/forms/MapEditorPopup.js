@@ -76,13 +76,7 @@ magic.classes.MapEditorPopup.prototype.markup = function() {
                     '<p id="' + this.id + '-map-last-mod" class="form-control-static"></p>' + 
                 '</div>' + 
             '</div>' + 
-            '<div class="form-group form-group-sm col-sm-12">' +
-                magic.modules.Common.buttonFeedbackSet(this.id, "Save map state", "sm") +                         
-                '<button id="' + this.id + '-cancel" class="btn btn-sm btn-danger" type="button" ' + 
-                    'data-toggle="tooltip" data-placement="right" title="Cancel">' + 
-                    '<span class="fa fa-times-circle"></span> Cancel' + 
-                '</button>' +                        
-            '</div>' +  
+            magic.modules.Common.buttonFeedbackSet(this.id, "Save map state", "sm", "Save", true) +                                                                
         '</div>'
     );
 };
