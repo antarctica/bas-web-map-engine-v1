@@ -1,11 +1,8 @@
 /*
  * Implements embedded OpenLayers maps
- * Version 1.0
- * David Herbert, BAS April 2017
+ * Version 2.0
+ * David Herbert, BAS December 2017
  */
-
-var embedded_map;
-var embedded_overlay;
 
 function showAlert(msg) {
     /* May eventually use bootbox or some other library to provide more seamless looking alerts in keeping with the rest of the page */
@@ -34,11 +31,12 @@ function proxyUrl(url) {
 /**
  * Get scale of map
  * https://groups.google.com/forum/#!searchin/ol3-dev/dpi/ol3-dev/RAJa4locqaM/4AzBrkndL9AJ
+ * @param {ol.Map} map
  * @returns {float}
  */
-function getCurrentMapScale() {                
-    var resolution = embedded_map.getView().getResolution();
-    var units = embedded_map.getView().getProjection().getUnits();
+function getCurrentMapScale(map) {                
+    var resolution = map.getView().getResolution();
+    var units = map.getView().getProjection().getUnits();
     var dpi = 25.4 / 0.28;
     var mpu = ol.proj.METERS_PER_UNIT[units];
     var scale = "" + (resolution * mpu * 39.37 * dpi); /* NB magic numbers */
@@ -159,41 +157,112 @@ function createLayers(data, view) {
     return(layers);
 }
 
+function addGetFeatureInfoHandlers(map) {
+    /* Add GetFeatureInfo handlers */
+    map.on("singleclick", function(evt) {
+        var fprops = [];
+        var deferreds = [];
+        this.forEachLayerAtPixel(evt.pixel, function(layer) {
+            var md = layer.get("metadata");
+            var url = layer.getSource().getGetFeatureInfoUrl(
+                evt.coordinate, 
+                this.getView().getResolution(), 
+                this.getView().getProjection(),
+                {
+                    "LAYERS": md.feature_name,
+                    "QUERY_LAYERS": md.feature_name,
+                    "INFO_FORMAT": "application/json", 
+                    "FEATURE_COUNT": 10,
+                    "buffer": 20
+                }
+            );  
+            if (url) {
+                deferreds.push(jQuery.get(proxyUrl(url), function(data) {
+                    if (typeof data == "string") {
+                        data = JSON.parse(data);
+                    }
+                    if (jQuery.isArray(data.features) && data.features.length > 0) {
+                        jQuery.each(data.features, function(idx, f) {
+                            if (f.geometry) {                                                                                            
+                                fprops.push(jQuery.extend({}, f.properties, {"layer": layer}));                                       
+                            }
+                        });
+                    }
+                }));
+            }
+        }, this, function(layer) {
+            var md = layer.get("metadata");
+            return(layer.getVisible() === true && md && md.wms_source && md.is_interactive === true);
+        }, this);
+
+        /* Now apply all the feature queries and assemble a pop-up */
+        jQuery.when.apply(jQuery, deferreds).done(jQuery.proxy(function() {
+            displayFeatureData(evt.coordinate, fprops, this);
+        }, this));        
+    }, map);
+}
+
 /**
  * Write suitable attributes to the supplied div
- * @param {jQuery.object} container
- * @param {Object} attrs
- * @param {Object} geom
+ * @param {ol.coordinate} coord
+ * @param {Object} data
+ * @param {ol.Map} map
  */
-function displayFeatureData(container, attrs, geom) {
-    var html = "";
-    if (geom.type && geom.type.toLowerCase().indexOf("point") >= 0) {
-        /* Point geometry => display lat/lon */
-        var lonLat = ol.proj.toLonLat(geom.coordinates, embedded_map.getView().getProjection());
-        html += '<div style="margin-bottom:5px">Lat: <b>' + (lonLat[1].toFixed(2)) + "</b>, Long: <b>" + (lonLat[0].toFixed(2)) + '</b></div>';
+function displayFeatureData(coord, data, map) {
+    /* Add overlay if necessary */
+    var mapName = map.get("name");
+    var mapTarget = jQuery(map.getTarget());
+    var overlay = map.getOverlayById(mapName + "-popup-overlay");
+    if (!overlay) {
+        /* Need to add the overlay first */
+        mapTarget.after(
+            '<div id="' + mapName + '-popup-overlay-container" class="ol-popup">' + 
+                '<a href="#" class="ol-popup-closer"></a>' + 
+                '<div class="ol-popup-feature-chooser"></div>' + 
+                '<div class="ol-popup-feature-data"></div>'+ 
+            '</div>'
+        );
+        overlay = new ol.Overlay({
+            id: mapName + "-popup-overlay",
+            element: jQuery("#" + mapName + "-popup-overlay-container")[0],
+            autoPan: true,
+            autoPanAnimation: {
+                duration: 250
+            }
+        });
+        map.addOverlay(overlay);
+        var closer = jQuery("#" + mapName + "-popup-overlay-container").find("a.ol-popup-closer");
+        closer.click(function() {
+            overlay.setPosition(undefined);
+            closer.blur();
+            return(false);
+        });
     }
-    if (!jQuery.isEmptyObject(attrs)) {
-        var keys = [];
-        for (var key in attrs) {
-            if (!key.match(/id$/) && key != "bbox") {
-                keys.push(key);
-            }
-        }
-        if (keys.length > 0) {
-            keys.sort();
-            var maxAttrs = Math.min(keys.length, 6);
-            html += '<table cellspacing="5" style="table-layout:fixed; width: 200px">';
-            for (var i = 0; i < maxAttrs; i++) {
-                html += '<tr><td width="60" style="overflow:hidden">' + keys[i] + '</td><td width="140" style="overflow:hidden">' + attrs[keys[i]] + '</td></tr>';
-            }
-            html += '</table>';
-        } else {
-            html += '<div>No attributes found</div>';
-        }        
+    /* We have the overlay now */
+    var popupDiv = jQuery(overlay.getElement());
+    var contentDivs = popupDiv.children("div");
+    var chooser = jQuery(contentDivs[0]);
+    var content = jQuery(contentDivs[1]);
+    if (data.length == 1) {
+        /* Hide the chooser */
+        chooser.css("display", "none");                                                        
     } else {
-        html += '<div>No attributes found</div>';
-    }
-    container.html(html);
+        /* Display a chooser */                                                        
+        chooser.empty();                                                        
+        for (var i = 0; i < data.length; i++) {
+            var anch = jQuery('<a>', {
+                href: "Javascript:void(0)",
+                text: (i+1) + ""
+            });
+            chooser.append([anch, '<span>&nbsp;&nbsp;</span>']); 
+            anch.off("click").on("click", function() {
+                writePopupContent(content, data[i]);
+            });
+        }
+        chooser.css("display", "block");
+    } 
+    writePopupContent(content, data[0]);
+    overlay.setPosition(map.getPixelFromCoordinate(coord));
 }
 
 /* Load jQuery if not already present */
@@ -213,161 +282,85 @@ function ensureJQueryLoaded() {
 }
 ensureJQueryLoaded();
 
+/* Base URL */
+var baseUrl = (window.location.origin || (window.location.protocol + "//" + window.location.hostname + (window.location.port ? ":" + window.location.port: "")));
+
+/**
+ * Stores the embedded map references keyed by map name i.e:
+ * {
+ *     "<name1>": <ol.Map1>,
+ *     "<name2>": <ol.Map2>,
+ *    ...
+ * } 
+ */
+var embeddedMaps = {};
+
 function init() {
     jQuery(document).ready(function() {
-        if (!embedded_map_name) {
-            /* The global 'embedded_map_name' wasn't set earlier by map-specific code */
-            showAlert("No map name specified - please set variable >embedded_map_name< to the name of the map you wish to embed in the page");
-        } else {            
-            /* Go ahead and create the map */
-            var baseUrl = (window.location.origin || (window.location.protocol + "//" + window.location.hostname + (window.location.port ? ":" + window.location.port: "")));
+        var embeds = jQuery("div[data-service]");
+        if (embeds.length == 0) {
+            showAlert("No suitable map containers found");
+            return;
+        }
+        embeds.each(function(idx, serviceDiv) {
+            var serviceUrl = jQuery(serviceDiv).data("service");
             jQuery.ajax({
-                url: baseUrl + "/embedded_maps/name/" + embedded_map_name,
+                url: proxyUrl(serviceUrl),
                 method: "GET",
                 dataType: "json"
-            }).done(function(data) {
-                /* Prepare map div for embedding */
-                var embedDivId = data.embed || "map";
-                var embedDiv = jQuery("#" + embedDivId);
-                if (embedDiv.length > 0) {
-                    /* Somewhere to put the map - size appropriately */
-                    var embedWidth = data.width || 400;
-                    var embedHeight = data.height || 300;
-                    embedDiv.width(embedWidth + "px");
-                    embedDiv.height(embedHeight + "px");
-                    var embedView = new ol.View(getViewData(data));
-                    var embedLayers = createLayers(data, embedView);
-                    if (embedLayers.length > 0) {
-                        /* Some data to display */
-                        embedded_map = new ol.Map({
-                            renderer: "canvas",
-                            loadTilesWhileAnimating: true,
-                            loadTilesWhileInteracting: true,
-                            layers: embedLayers,
-                            controls: [
-                                new ol.control.Zoom(),
-                                new ol.control.ScaleLine({minWidth: 100, className: "custom-scale-line-top", units: "metric"}),
-                                new ol.control.ScaleLine({minWidth: 100, className: "custom-scale-line-bottom", units: "imperial"}),
-                                new ol.control.MousePosition({
-                                    projection: "EPSG:4326",
-                                    className: "custom-mouse-position",
-                                    coordinateFormat: function (xy) {
-                                        return("Lon : " + xy[0].toFixed(2) + ", lat : " + xy[1].toFixed(2));
-                                    }
-                                })
-                            ],
-                            interactions: ol.interaction.defaults(),
-                            target: embedDivId,
-                            view: embedView
-                        });
+            }).done(function(data) {                
+                if (embeddedMaps[data.name]) {
+                    /* Attempting multiple instances of single map */
+                    showAlert("Attempting to have the same map multiple times on one page");
+                    return;
+                }
+                var embedView = new ol.View(getViewData(data));
+                var embedLayers = createLayers(data, embedView);
+                if (embedLayers.length > 0) {
+                    /* Some data to display */
+                    embeddedMaps[data.name] = new ol.Map({
+                        renderer: "canvas",
+                        loadTilesWhileAnimating: true,
+                        loadTilesWhileInteracting: true,
+                        layers: embedLayers,
+                        controls: [
+                            new ol.control.Zoom(),
+                            new ol.control.ScaleLine({minWidth: 100, className: "custom-scale-line-top", units: "metric"}),
+                            new ol.control.ScaleLine({minWidth: 100, className: "custom-scale-line-bottom", units: "imperial"}),
+                            new ol.control.MousePosition({
+                                projection: "EPSG:4326",
+                                className: "custom-mouse-position",
+                                coordinateFormat: function (xy) {
+                                    return("Lat : " + xy[1].toFixed(2) + ", lon : " + xy[0].toFixed(2));
+                                }
+                            })
+                        ],
+                        interactions: ol.interaction.defaults(),
+                        target: serviceDiv,
+                        view: embedView
+                    });
+                    /* Set the name of the map */
+                    embeddedMaps[data.name].set("name", data.name, true);
+                    /* Show scale and enable mouseover of scale bar to show scale as map zooms */
+                    var scale = getCurrentMapScale();
+                    jQuery("div.custom-scale-line-top").attr("title", scale);
+                    jQuery("div.custom-scale-line-bottom").attr("title", scale);
+                    embedView.on("change:resolution", function() {
+                        /* Mouseover of the map scale bar to provide tooltip of the current map scale */
                         var scale = getCurrentMapScale();
                         jQuery("div.custom-scale-line-top").attr("title", scale);
                         jQuery("div.custom-scale-line-bottom").attr("title", scale);
-                        embedView.on("change:resolution", function() {
-                            /* Mouseover of the map scale bar to provide tooltip of the current map scale */
-                            var scale = getCurrentMapScale();
-                            jQuery("div.custom-scale-line-top").attr("title", scale);
-                            jQuery("div.custom-scale-line-bottom").attr("title", scale);
-                        });
-                        /* Add GetFeatureInfo handlers */
-                        embedded_map.on("singleclick", function(evt) {                            
-                            embedded_map.getLayers().forEach(function(layer) {
-                                if (layer.getVisible() === true) {
-                                    var md = layer.get("metadata");
-                                    if (md && md.is_interactive) {
-                                        var gfiUrl = layer.getSource().getGetFeatureInfoUrl(
-                                            evt.coordinate, 
-                                            embedded_map.getView().getResolution(), 
-                                            embedded_map.getView().getProjection(),
-                                            {
-                                                "LAYERS": md.feature_name,
-                                                "QUERY_LAYERS": md.feature_name,
-                                                "INFO_FORMAT": "application/json", 
-                                                "FEATURE_COUNT": 10,
-                                                "buffer": 20
-                                            }
-                                        );
-                                        jQuery.ajax({
-                                            url: gfiUrl,
-                                            method: "GET"
-                                        }).done(function(data) {
-                                            //console.log(data);
-                                            if (data.type == "FeatureCollection" && jQuery.isArray(data.features) && data.features.length > 0) {
-                                                if (!isApexContext()) {
-                                                    var popupDiv = jQuery(embedded_overlay.getElement());
-                                                    var contentDivs = popupDiv.children("div");
-                                                    var chooser = jQuery(contentDivs[0]);
-                                                    var content = jQuery(contentDivs[1]);
-                                                    if (data.features.length == 1) {
-                                                        /* Hide the chooser */
-                                                        chooser.css("display", "none");                                                        
-                                                    } else {
-                                                        /* Display a chooser */                                                        
-                                                        chooser.empty();                                                        
-                                                        for (var i = 0; i < data.features.length; i++) {
-                                                            var anch = jQuery('<a>', {
-                                                                href: "Javascript:void(0)",
-                                                                text: (i+1) + ""
-                                                            });
-                                                            chooser.append([anch, '<span>&nbsp;&nbsp;</span>']); 
-                                                            var fpayload = data.features[i];
-                                                            anch.click(jQuery.proxy(function() {
-                                                                displayFeatureData(content, this.properties, this.geometry);
-                                                            }, fpayload));
-                                                        }
-                                                        chooser.css("display", "block");
-                                                    } 
-                                                    displayFeatureData(content, data.features[0].properties, data.features[0].geometry);
-                                                    embedded_overlay.setPosition(evt.coordinate);
-                                                } else {
-                                                    //TODO package data and fire event for Apex case
-                                                }                                                
-                                            }                                            
-                                        }).fail(function(xhr) {
-                                            var msg = "Failed to get info for clicked map feature";
-                                            if (xhr.status == 401) {
-                                                msg = "Not authorised to query underlying data";
-                                            }
-                                            showAlert(msg);
-                                        });
-                                    }
-                                }
-                            });
-                        });
-                    } else {
-                        showAlert("No data found to display on map");
-                    }
-                    /* Add pop-up div to map if required */
-                    if (!isApexContext()) {
-                        embedDiv.after(
-                            '<div class="ol-popup">' + 
-                                '<a href="#" class="ol-popup-closer"></a>' + 
-                                '<div class="ol-popup-feature-chooser"></div>' + 
-                                '<div class="ol-popup-feature-data"></div>'+ 
-                            '</div>'
-                        );
-                        embedded_overlay = new ol.Overlay({
-                            element: jQuery("div.ol-popup")[0],
-                            autoPan: true,
-                            autoPanAnimation: {
-                                duration: 250
-                            }
-                        });
-                        embedded_map.addOverlay(embedded_overlay);
-                        var closer = jQuery("a.ol-popup-closer");
-                        closer.click(function() {
-                            embedded_overlay.setPosition(undefined);
-                            closer.blur();
-                            return(false);
-                        });
-                    }
+                    });
+                    /* Add click handlers to display pop-ups */
+                    addGetFeatureInfoHandlers(embeddedMaps[data.name]);
                 } else {
-                    showAlert("Cannot find HTML element with id >" + embedDivId + "< to insert map into");
+                    showAlert("Map contains no data layers");
                 }
-            }).fail(function(xhr, status, error){
-                showAlert("Request for embedded map data failed - status was " + status + ", error was " + error);
-            });
-        }
+            })
+            .fail(function(xhr) {
+                showAlert("Failed to get map definition from " + serviceUrl);       
+            });                    
+        });       
     });
 }
 
