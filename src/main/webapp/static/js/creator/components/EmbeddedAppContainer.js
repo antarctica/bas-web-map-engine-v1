@@ -51,9 +51,7 @@ magic.classes.creator.EmbeddedAppContainer.prototype.saveContext = function() {
         /* Now validate the assembled map context against the JSON schema in /static/js/json/embedded_web_map_schema.json
          * https://github.com/geraintluff/tv4 is the validator used */            
         jQuery.getJSON(magic.config.paths.baseurl + "/static/js/json/embedded_web_map_schema.json", jQuery.proxy(function(schema) {        
-            console.log(context);
             var validated = tv4.validate(context, schema);               
-            console.log("Validated : " + validated);       
             if (!validated) {
                  /* Failed to validate the data against the schema - complain */
                 var validationErrors = JSON.stringify(tv4.error, null, 4);

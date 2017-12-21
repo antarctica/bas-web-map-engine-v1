@@ -63,11 +63,13 @@ function getViewData(data) {
     if (typeof data.resolutions === "string") {
         data.resolutions = JSON.parse(data.resolutions);
     }
+    var rotation = parseFloat(data.rotation);
+    rotation = isNaN(rotation) ? 0.0 : rotation*Math.PI/180.0;
     if (data.projection == "EPSG:3857") {
         /* OSM */
         return({
             center: data.center,        
-            rotation: 0.0,
+            rotation: rotation,
             zoom: data.zoom,
             projection: ol.proj.get(data.projection),
             minZoom: 1, 
@@ -80,7 +82,7 @@ function getViewData(data) {
         proj.setWorldExtent(data.proj_extent);
         return({
             center: data.center,        
-            rotation: 0.0,
+            rotation: rotation,
             zoom: data.zoom,
             projection: proj,           
             maxResolution: data.resolutions[0], 

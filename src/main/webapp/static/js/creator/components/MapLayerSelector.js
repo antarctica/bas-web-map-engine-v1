@@ -16,6 +16,7 @@ magic.classes.creator.MapLayerSelector = function(options) {
                 "id": null,
                 "name": "Hillshade and bathymetry",
                 "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database"),
+                "is_base": true,
                 "feature_name": "add:antarctic_hillshade_and_bathymetry"
             },
             {
@@ -43,7 +44,8 @@ magic.classes.creator.MapLayerSelector = function(options) {
                 "id": null,
                 "name": "Hillshade and bathymetry",
                 "wms_source": magic.modules.Endpoints.getWmsServiceUrl("CCAMLR GIS"),
-                "feature_name": "gis:hillshade_and_bathymetry"
+                "feature_name": "gis:hillshade_and_bathymetry",
+                "is_base": true
             },
             {
                 "id": null,
@@ -64,7 +66,8 @@ magic.classes.creator.MapLayerSelector = function(options) {
                 "id": null,
                 "name": "Hillshade and bathymetry",
                 "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Arctic Open Data"),
-                "feature_name": "arctic:arctic_hillshade_and_bathymetry"
+                "feature_name": "arctic:arctic_hillshade_and_bathymetry",
+                "is_base": true
             },
             {
                 "id": null,
@@ -85,7 +88,8 @@ magic.classes.creator.MapLayerSelector = function(options) {
                 "id": null,
                 "name": "Hillshade and bathymetry",
                 "wms_source": magic.modules.Endpoints.getWmsServiceUrl("South Georgia GIS"),
-                "feature_name": "sggis:sg_hillshade_and_bathymetry"
+                "feature_name": "sggis:sg_hillshade_and_bathymetry",
+                "is_base": true
             },
             {
                 "id": null,
@@ -94,7 +98,15 @@ magic.classes.creator.MapLayerSelector = function(options) {
                 "feature_name": "sggis:sg_coastline"
             }
         ],
-        "midlatitudes": magic.modules.Endpoints.getMidLatitudeCoastSource()
+        "midlatitudes": [
+            {
+               "id": null,
+               "name": "Mid-latitude data",
+               "wms_source": "osm", 
+               "feature_name": "osm", 
+               "is_base": true
+           }
+        ]
     };
     
     /* Repository (keyed by layer id) of saved edits to data layers */
