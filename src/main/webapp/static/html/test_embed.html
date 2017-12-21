@@ -12,16 +12,17 @@
         <script src="/static/js/embedded/proj4defs/3995.js"></script>
         <script src="/static/js/embedded/proj4defs/102020.js"></script>
         <script src="/static/js/embedded/ol_embedded.min.js"></script>        
-        <script src="/static/js/embedded/embedded.js"></script>        
+        <script src="/static/js/embedded/embedded.js"></script> 
     </head>
     <body style="font-family:arial">
-        <div id="map" style="width:500px;height=400px" data-service=""></div>
+        <div id="map" style="width:500px;height=400px" data-service="http://localhost:8084/embedded_maps/name/facilities"></div>
         <div>
             <h3>Example map</h3>
             <p>
                 The map will be displayed in an ordinary &lt;div&gt;, styled with the desired width and height using CSS.<br>
                 The div attribute <strong>data-service</strong> needs to be set the URL for this map:
                 <div id="data-service-url">
+                    <pre>http://localhost:8084/embedded_maps/name/facilities</pre>
                 </div>                
             </p>    
         </div>

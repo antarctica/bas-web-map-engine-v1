@@ -23,7 +23,7 @@ function isApexContext() {
 function proxyUrl(url) {
     var proxyUrl = url;
     if (url.indexOf(window.location.protocol + "//" + window.location.hostname) != 0) {
-        proxyUrl = magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(url);
+        proxyUrl = baseUrl + "/proxy?url=" + encodeURIComponent(url);
     }
     return(proxyUrl);
 }
@@ -110,6 +110,7 @@ function createLayers(data, view) {
                 /* Render point layers with a single tile for labelling free of tile boundary effects */
                 var wmsSource = new ol.source.ImageWMS(({
                     url: nd.wms_source,
+                    crossOrigin: "anonymous",
                     params: {
                         "LAYERS": nd.feature_name,
                         "STYLES": ""
@@ -128,6 +129,7 @@ function createLayers(data, view) {
                 var wmsVersion = "1.3.0";
                 var wmsSource = new ol.source.TileWMS({
                     url: nd.wms_source,
+                    crossOrigin: "anonymous",
                     params: {
                         "LAYERS": nd.feature_name,
                         "STYLES": "",
@@ -243,26 +245,63 @@ function displayFeatureData(coord, data, map) {
     var contentDivs = popupDiv.children("div");
     var chooser = jQuery(contentDivs[0]);
     var content = jQuery(contentDivs[1]);
-    if (data.length == 1) {
-        /* Hide the chooser */
+    if (!data || data.length == 0) {
+        /* No displayable features */
+        return;
+    } else if (data.length == 1) {
+        /* Hide the chooser */        
+        map.set("clickdata", []);
         chooser.css("display", "none");                                                        
     } else {
         /* Display a chooser */                                                        
-        chooser.empty();                                                        
+        chooser.empty();        
+        map.set("clickdata", data);
         for (var i = 0; i < data.length; i++) {
             var anch = jQuery('<a>', {
+                id: "chooser-anch-" + i,
                 href: "Javascript:void(0)",
                 text: (i+1) + ""
             });
             chooser.append([anch, '<span>&nbsp;&nbsp;</span>']); 
-            anch.off("click").on("click", function() {
-                writePopupContent(content, data[i]);
+            anch.off("click").on("click", function(evt) {
+                evt.preventDefault();
+                var anchIdx = evt.currentTarget.id.replace("chooser-anch-", "");
+                writePopupContent(content, map.get("clickdata")[parseInt(anchIdx)]);
             });
         }
         chooser.css("display", "block");
     } 
     writePopupContent(content, data[0]);
-    overlay.setPosition(map.getPixelFromCoordinate(coord));
+    overlay.setPosition(coord);
+}
+
+function writePopupContent(div, data) {     
+    if (data.layer && data.layer.get("metadata")) {
+        var md = data.layer.get("metadata");
+        if (jQuery.isArray(md.attribute_map)) {
+            /* Get all the attributes with a "displayed" property true */
+            var displays = jQuery.map(md.attribute_map, function(elt) {
+                return(elt.displayed === true ? elt : null);
+            });              
+            /* Now sort the above array by the ordinal */
+            displays.sort(function(a, b) {
+                var orda = a["ordinal"] || 999;
+                var ordb = b["ordinal"] || 999;
+                return((orda < ordb) ? -1 : (orda > ordb) ? 1 : 0);
+            });            
+            /* Create the markup */
+            var markup = '<table cellspacing="5" style="table-layout:fixed; width: 200px">';
+            jQuery.each(displays, function(idx, elt) {
+                markup += '<tr><td width="60" style="overflow:hidden">' + elt.alias + '</td><td width="140" style="overflow:hidden">' + data[elt.name] + '</td></tr>';
+            });
+            markup += '</table>';
+            div.html(markup);
+        } else {
+            div.html("No attribute information found");
+        }
+    } else {
+        div.html("No attribute information found");
+    }
 }
 
 /* Load jQuery if not already present */
@@ -342,12 +381,12 @@ function init() {
                     /* Set the name of the map */
                     embeddedMaps[data.name].set("name", data.name, true);
                     /* Show scale and enable mouseover of scale bar to show scale as map zooms */
-                    var scale = getCurrentMapScale();
+                    var scale = getCurrentMapScale(embeddedMaps[data.name]);
                     jQuery("div.custom-scale-line-top").attr("title", scale);
                     jQuery("div.custom-scale-line-bottom").attr("title", scale);
                     embedView.on("change:resolution", function() {
                         /* Mouseover of the map scale bar to provide tooltip of the current map scale */
-                        var scale = getCurrentMapScale();
+                        var scale = getCurrentMapScale(embeddedMaps[data.name]);
                         jQuery("div.custom-scale-line-top").attr("title", scale);
                         jQuery("div.custom-scale-line-bottom").attr("title", scale);
                     });

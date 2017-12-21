@@ -88,6 +88,9 @@ magic.classes.creator.EmbeddedAppContainer.prototype.saveContext = function() {
                     var serviceUrl = magic.config.paths.baseurl + "/embedded_maps/name/" + context.name;
                     jQuery(exDoc).find("#data-service-url").html('<pre>' + serviceUrl + '</pre>');
                     jQuery(exDoc).find("#map").data("service", serviceUrl);
+                    jQuery(exDoc).find("head").append("<script>", {
+                        src: magic.config.paths.baseurl + "/static/js/embedded/embedded.js"
+                    });
                 })
                 .fail(function(xhr) {
                     var detail = JSON.parse(xhr.responseText)["detail"];
