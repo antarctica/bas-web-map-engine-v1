@@ -138,7 +138,10 @@ magic.classes.creator.MapLayerSelector.prototype.loadContext = function(data, re
             this.layerMarkup(table, layers[i]);
         }
         /* Enable sortable layers table */
-        jQuery(".table-sortable tbody").sortable();
+        jQuery(".table-sortable tbody").sortable({
+            handle: "td.service-name",
+            placeholderClass: "fa fa-caret-right"
+        });
     } else {
         table.addClass("hidden");
     }
@@ -182,13 +185,13 @@ magic.classes.creator.MapLayerSelector.prototype.layerMarkup = function(table, l
     layerData.id = layerData.id || magic.modules.Common.uuid(); 
     this.layerEdits[layerData.id] = layerData;
     table.find("tbody").append( 
-        '<tr data-id="' + layerData.id + '">' + 
-            '<td>' + 
-                '<a href="Javascript:void(0)" data-toggle="tooltip" data-placement="top" title="Click and drag to re-order layer stack">' + 
+        '<tr data-id="' + layerData.id + '">' +             
+            '<td class="service-name">' + 
+                '<a style="margin-right:5px" href="Javascript:void(0)" data-toggle="tooltip" data-placement="top" title="Click and drag to re-order layer stack">' + 
                     '<span class="glyphicon glyphicon-move"></span>' + 
                 '</a>' + 
+                serviceName + 
             '</td>' + 
-            '<td>' + serviceName + '</td>' + 
             '<td>' + layerData.name + '</td>' +                     
             '<td>' + 
                 '<div class="btn-toolbar" role="toolbar">' + 
@@ -251,5 +254,8 @@ magic.classes.creator.MapLayerSelector.prototype.updateLayerData = function(laye
     }
     this.layerEdits[layerData.id] = layerData;
     /* Enable sortable layers table - now includes the new layer */
-    jQuery(".table-sortable tbody").sortable();
+    jQuery(".table-sortable tbody").sortable({
+        handle: "td.service-name",
+        placeholderClass: "fa fa-caret-right"
+    });
 };

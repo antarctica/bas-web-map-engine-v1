@@ -2,12 +2,6 @@
 
 var magic = {
     
-    /* Common quantities */
-    common: {
-        creator: {},
-        embedded_creator: {}
-    },
-    
     /* Layer and view configuration */
     config: {
         paths: {
@@ -17,15 +11,12 @@ var magic = {
     
     /* Static modules */
     modules: {
-        creator: {},
-        embedded_creator: {}
+        creator: {}
     },
     
     /* Instantiable classes */
     classes: {
-        creator: {},
-        embedded: {},
-        embedded_creator: {}
+        creator: {}
     },
     
     /* Runtime objects */
@@ -33,9 +24,6 @@ var magic = {
         creator: {
             catalogues: {}
         },
-        embedded_creator: {
-            catalogues: {}
-        }, 
         capabilities: {            
         },
         filters: {            

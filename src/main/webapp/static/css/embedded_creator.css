@@ -99,10 +99,3 @@ div[class$="-popover-content"] {
 .modal {
     z-index: 9000;
 }
-
-/* Allow pretty much arbitrary width popovers - could be dodgy! */
-.popover {
-	max-width: 1000px;
-    z-index: 4000;
-	width: auto;
-}

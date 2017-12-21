@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title></title>
+    </head>    
+    <body th:fragment="layout">               
+        <form id="map-controls-form" class="form-horizontal">
+            <input type="hidden" name="map-controls-controls" value="zoom_world"></input>
+            <input type="hidden" name="map-controls-controls" value="zoom_in"></input>
+            <input type="hidden" name="map-controls-controls" value="zoom_out"></input>
+            <input type="hidden" name="map-controls-controls" value="box_zoom"></input>						
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Select which map controls should be added to the map area</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="alert alert-info">
+                        Note that controls for zoom in/out, to maximum extent and by dragging a box appear by default
+                    </div>
+                    <div class="col-sm-12 form-inline">
+                        <label class="checkbox-inline">
+                            <input type="checkbox" name="map-controls-controls" value="full_screen"
+                                   data-toggle="tooltip" data-placement="top" title="Enable map viewing in browser full-screen mode"></input>
+                            Full-screen viewer
+                        </label>                       
+                        <label class="checkbox-inline">
+                            <input type="checkbox" name="map-controls-controls" value="rotation"
+                                   data-toggle="tooltip" data-placement="top" title="Enable map rotation by shift and drag"></input>
+                            Interactive map rotation
+                        </label>
+                        <label class="checkbox-inline">
+                            <input type="checkbox" name="map-controls-controls" value="feature_info"
+                                   data-toggle="tooltip" data-placement="top" title="Enable pop-ups of attributes on clicked features"></input>
+                            Enable map feature pop-ups
+                        </label>                            
+                    </div>
+                    <div class="col-sm-12 form-inline" th:switch="${profile}">                        
+                        <div th:case="ccamlrgis">
+                            <label class="checkbox-inline">
+                                <input type="checkbox" name="map-controls-controls" value="graticule"
+                                       data-toggle="tooltip" data-placement="top" title="Enable a labelled graticule"></input>
+                                Enable graticule
+                            </label>  
+                            <label class="checkbox-inline">
+                                <input type="checkbox" name="map-controls-controls" value="geolocation"
+                                       data-toggle="tooltip" data-placement="top" title="Show my position according to device GPS"></input>
+                                Current device position
+                            </label>                            
+                        </div>
+                        <div th:case="*">
+                            <label class="checkbox-inline">
+                                <input type="checkbox" name="map-controls-controls" value="graticule"
+                                       data-toggle="tooltip" data-placement="top" title="Enable a labelled graticule"></input>
+                                Enable graticule
+                            </label>  
+                            <label class="checkbox-inline">
+                                <input type="checkbox" name="map-controls-controls" value="geolocation"
+                                       data-toggle="tooltip" data-placement="top" title="Show my position according to device GPS"></input>
+                                Current device position
+                            </label>
+                            <label class="checkbox-inline">
+                                <input type="checkbox" name="map-controls-controls" value="aircraft"
+                                       data-toggle="tooltip" data-placement="top" title="Show positions of BAS aircraft"></input>
+                                BAS aircraft positions
+                            </label>
+                            <label class="checkbox-inline">
+                                <input type="checkbox" name="map-controls-controls" value="ships"
+                                       data-toggle="tooltip" data-placement="top" title="Show positions of BAS ships"></input>
+                                BAS ship positions
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Select which tools should be added the top menu-bar</h3>
+                </div>
+                <div class="panel-body">                    
+                    <div class="col-sm-12 form-inline">
+                        <label class="checkbox-inline">
+                            <input type="checkbox" name="map-controls-controls" value="geosearch"
+                                   data-toggle="tooltip" data-placement="top" title="Add the ability to search gazetteer(s) of place-names for this area"></input>
+                            Geosearch tool
+                        </label>                            
+                        <label class="checkbox-inline">
+                            <input type="checkbox" name="map-controls-controls" value="measurement"
+                                   data-toggle="tooltip" data-placement="top" title="Enable measurement of distances, areas and elevations (if a DEM layer is included)"></input>
+                            Measurement tool
+                        </label> 
+                        <label class="checkbox-inline">
+                            <input type="checkbox" name="map-controls-controls" value="overview_map"
+                                   data-toggle="tooltip" data-placement="top" title="Enable an inset overview map"></input>
+                            Overview map
+                        </label>                         
+                    </div>
+                    <div class="col-sm-12 form-inline" th:switch="${profile}">
+                        <label class="checkbox-inline">
+                            <input type="checkbox" name="map-controls-controls" value="download_data"
+                                   data-toggle="tooltip" data-placement="top" title="Enable download of underlying data"></input>
+                            Data download tool
+                        </label>                        
+                        <label class="checkbox-inline">
+                            <input type="checkbox" name="map-controls-controls" value="personaldata"
+                                   data-toggle="tooltip" data-placement="top" title="Enable logged-in users to manage custom map views, data layers and unit preferences"></input>
+                            Personal data management
+                        </label>                         
+                        <div th:case="ccamlrgis">
+                            <label class="checkbox-inline hidden">
+                                <input type="checkbox" name="map-controls-controls" value="feedback"
+                                       data-toggle="tooltip" data-placement="top" title="Enable user feedback for data and interface problems"></input>
+                                User feedback tool
+                            </label>
+                        </div>
+                        <div th:case="*">
+                            <label class="checkbox-inline">
+                                <input type="checkbox" name="map-controls-controls" value="rothera_reports"
+                                       data-toggle="tooltip" data-placement="top" title="Enable search of past Rothera fieldwork reports"></input>
+                                Searchable fieldwork reports
+                            </label>
+                            <label class="checkbox-inline">
+                                <input type="checkbox" name="map-controls-controls" value="feedback"
+                                       data-toggle="tooltip" data-placement="top" title="Enable user feedback for data and interface problems"></input>
+                                User feedback tool
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Security features</h3>
+                </div>
+                <div class="panel-body">                    
+                    <div class="form-group">
+                        <label for="map-controls-allowed_usage" class="col-sm-2 control-label">Map use</label>
+                        <div class="col-sm-10">
+                            <select class="form-control map-creator-control-lg" id="map-controls-allowed_usage" name="map-controls-allowed_usage">
+                                <option value="public">is public</option>
+                                <option value="login">requires login</option>
+                                <option value="owner">is restricted to me only</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="map-controls-allowed_edit" class="col-sm-2 control-label">Map editing</label>
+                        <div class="col-sm-10">
+                            <select class="form-control map-creator-control-lg" id="map-controls-allowed_edit" name="map-controls-allowed_edit">
+                                <option value="login">requires login</option>
+                                <option value="owner">is restricted to me only</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="map-controls-allowed_download" class="col-sm-2 control-label">Downloads</label>
+                        <div class="col-sm-10">
+                            <select class="form-control map-creator-control-lg" id="map-controls-allowed_download" name="map-controls-allowed_download">
+                                <option value="public">are public</option>
+                                <option value="login">require login</option>
+                                <option value="nobody">are not required</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="map-controls-repository" class="col-sm-2 control-label">Download repo</label>
+                        <div class="col-sm-10">
+                            <input type="url" class="form-control map-creator-control-xl" id="map-controls-repository" name="map-controls-repository" placeholder="http://" 
+                                   maxlength="254" data-toggle="tooltip" data-placement="right" title="Full URL of download repository (e.g. Ramadda)">                                   
+                            </input>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </body>
+</html>

@@ -5,15 +5,7 @@ magic.classes.creator.MapMetadataForm = function(options) {
     /* Unpack API properties from options */
  
     /* Form schema */
-    this.formSchema = [
-        {"field": "id", "default": ""},
-        {"field": "name","default": "new_map"},
-        {"field": "title", "default": ""},
-        {"field": "description", "default": ""},            
-        {"field": "owner_email", "default": "basmagic@bas.ac.uk"},                
-        {"field": "allowed_usage", "default": "public"},
-        {"field": "allowed_edit", "default": "login"}
-    ];
+    this.formSchema = options.formSchema;
     
     /* ID prefix */
     this.prefix = options.prefix || "map-metadata";

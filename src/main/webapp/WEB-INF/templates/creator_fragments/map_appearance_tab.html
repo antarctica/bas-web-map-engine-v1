@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title></title>
+    </head>    
+    <body th:fragment="layout">         
+        <form id="map-appearance-form" class="form-horizontal">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Select desired map centre and default zoom level</h3>
+                </div>
+                <div class="panel-body">
+                    <div th:include="map_parameter_selector :: layout"></div>
+                </div>
+            </div>
+        </form>
+    </body>
+</html>

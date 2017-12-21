@@ -4,7 +4,17 @@ magic.classes.creator.EmbeddedAppContainer = function() {
     
     /* Initialise the various form dialogs */
     this.dialogs = {        
-        "metadataForm": new magic.classes.creator.MapMetadataForm({}),
+        "metadataForm": new magic.classes.creator.MapMetadataForm({
+            formSchema: [
+                {"field": "id", "default": ""},
+                {"field": "name","default": "new_map"},
+                {"field": "title", "default": ""},
+                {"field": "description", "default": ""},            
+                {"field": "owner_email", "default": ""},                
+                {"field": "allowed_usage", "default": "public"},
+                {"field": "allowed_edit", "default": "login"}
+            ]
+        }),
         "mapLayerSelector": new magic.classes.creator.MapLayerSelector({}),
         "mapParameterSelector": new magic.classes.creator.MapParameterSelector({})
     };
@@ -80,7 +90,7 @@ magic.classes.creator.EmbeddedAppContainer.prototype.saveContext = function() {
                     }
                 })
                 .done(function(response) {
-                    /* Load up example finished map into a new tab */
+                    /* Load up example finished map into test bed in a new tab */
                     magic.runtime.serviceUrl = magic.config.paths.baseurl + "/embedded_maps/name/" + context.name;
                     window.open(magic.config.paths.baseurl + "/static/html/test_embed.html");                    
                 })

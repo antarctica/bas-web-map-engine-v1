@@ -25,16 +25,16 @@
                         </div>                                                
                         <div class="tab-content">
                             <div class="tab-pane" id="tab1">
-                                <div th:include="creator_fragments/map_information_tab :: layout"></div>
+                                <div th:include="creator_fragments/tab1 :: layout"></div>
                             </div>
                             <div class="tab-pane" id="tab2">
-                                <div th:include="creator_fragments/map_layers_tab :: layout"></div>
+                                <div th:include="creator_fragments/tab2 :: layout"></div>
                             </div>
                             <div class="tab-pane" id="tab3">
-                                <div th:include="creator_fragments/map_controls_tab :: layout"></div>
+                                <div th:include="creator_fragments/tab3 :: layout"></div>
                             </div>
                             <div class="tab-pane" id="tab4">
-                                <div th:include="creator_fragments/map_appearance_tab :: layout"></div>
+                                <div th:include="creator_fragments/tab4 :: layout"></div>
                             </div>
                             <div id="bar" class="progress progress-striped active">
                                 <div class="progress-bar" role="progressbar"></div>
@@ -111,7 +111,7 @@
                         });
                     }
                     magic.runtime.endpoints = epdata;
-                    magic.classes.creator.AppContainer();
+                    magic.modules.creator.Common.init();
                 })
                 .fail(function () {
                     bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to get WMS endpoints for this mapping profile</div>');

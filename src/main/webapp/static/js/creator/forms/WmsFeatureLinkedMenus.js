@@ -215,7 +215,7 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.getFeatures = function(fty
             /* Leaf node - a named layer */
             ftypes.push({
                 name: layer.Title,
-                value: layer.Name,
+                value: layer.Name.split(":").pop(),
                 styles: layer.Style
             });
         } else if ("Layer" in layer && jQuery.isArray(layer["Layer"])) {

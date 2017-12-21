@@ -2,11 +2,6 @@
 
 var magic = {
     
-    /* Common quantities */
-    common: {
-        creator: {}
-    },
-    
     /* Layer and view configuration */
     config: {
         paths: {
@@ -22,8 +17,7 @@ var magic = {
     /* Instantiable classes */
     classes: {
         creator: {},
-        console: {},
-        publisher: {}
+        console: {}
     },
     
     /* Runtime objects */
@@ -35,9 +29,6 @@ var magic = {
         },
         filters: {            
         },
-        highlighted: [],
-        highlighted_inset: [],
-        timeSeriesCache: {},
         pingSession: function() {
             jQuery.get(magic.config.paths.baseurl + "/ping");
         },

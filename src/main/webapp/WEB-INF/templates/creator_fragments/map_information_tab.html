@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title></title>
+    </head>    
+    <body th:fragment="layout">               
+        <form id="map-metadata-form" class="form-horizontal">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Create a map of</h3>
+                </div>
+                <div class="panel-body">                
+                    <div th:include="map_region_selector :: layout"></div>
+                </div>
+            </div>
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Basic map information</h3>
+                </div>
+                <div class="panel-body">
+                    <input type="hidden" name="map-metadata-id" id="map-metadata-id"></input>
+                    <div class="form-group">
+                        <label for="map-metadata-name" class="col-md-3 control-label">Name of map</label>
+                        <div class="col-md-9">
+                            <input type="text" class="form-control map-creator-control-xl" id="map-metadata-name" name="map-metadata-name" placeholder="Name for map" 
+                                   maxlength="50" data-toggle="tooltip" data-placement="right" title="Name to be used in the URL: only lowercase letters, numbers and _ allowed" 
+                                   pattern="^[a-z0-9_]+$" required="required">                                   
+                            </input>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="map-metadata-title" class="col-md-3 control-label">Title of map</label>
+                        <div class="col-md-9">
+                            <input type="text" class="form-control map-creator-control-xl" id="map-metadata-title" name="map-metadata-title" placeholder="Title for map" 
+                                   maxlength="100" data-toggle="tooltip" data-placement="right" title="Informative title for the map" required="required">                                   
+                            </input>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="map-metadata-description" class="col-md-3 control-label">Description</label>
+                        <div class="col-md-9">
+                            <textarea class="form-control map-creator-control-xl" id="map-metadata-description" name="map-metadata-description" placeholder="Longer map description"
+                                      data-toggle="tooltip" data-placement="right" title="Useful info like map purpose, intended audience etc" required="required">                            
+                            </textarea>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="map-metadata-infolink" class="col-md-3 control-label">Information link</label>
+                        <div class="col-md-9">
+                            <input type="url" class="form-control map-creator-control-xl" id="map-metadata-infolink" name="map-metadata-infolink" placeholder="http://" 
+                                   maxlength="254" data-toggle="tooltip" data-placement="right" title="Web page to display via the map information tool">                                   
+                            </input>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="map-metadata-logo" class="col-md-3 control-label">Logo image</label>
+                        <div class="col-md-9">
+                            <input type="url" class="form-control map-creator-control-xl" id="map-metadata-logo" name="map-metadata-logo" placeholder="http://" 
+                                   maxlength="254" data-toggle="tooltip" data-placement="right" title="Full URL of 50-pixel high logo graphic (png or jpeg) - defaults to BAS logo if blank">                                   
+                            </input>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="map-metadata-metadata_url" class="col-md-3 control-label">Logo link</label>
+                        <div class="col-md-9">
+                            <input type="url" class="form-control map-creator-control-xl" id="map-metadata-metadata_url" name="map-metadata-metadata_url" placeholder="http://" 
+                                   maxlength="254" data-toggle="tooltip" data-placement="right" title="URL to direct to when the logo is clicked e.g. project home page, metadata feed">                                   
+                            </input>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="map-metadata-watermark" class="col-md-3 control-label">Watermark image</label>
+                        <div class="col-md-9">
+                            <input type="url" class="form-control map-creator-control-xl" id="map-metadata-watermark" name="map-metadata-watermark" placeholder="http://" 
+                                   maxlength="254" data-toggle="tooltip" data-placement="right" title="Full URL of image to be used as a watermark bottom right of map">                                   
+                            </input>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="map-metadata-newslink" class="col-md-3 control-label">Announcement link</label>
+                        <div class="col-md-9">
+                            <input type="url" class="form-control map-creator-control-xl" id="map-metadata-newslink" name="map-metadata-newslink" placeholder="http://" 
+                                   maxlength="254" data-toggle="tooltip" data-placement="right" title="Web page to display in user announcement on map access">                                   
+                            </input>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="map-metadata-version" class="col-md-3 control-label">Version</label>
+                        <div class="col-md-9">
+                            <input type="text" class="form-control map-creator-control-xl" id="map-metadata-version" name="map-metadata-version" value="1.0" maxlength="20"
+                                   data-toggle="tooltip" data-placement="right" title="Map version">                            
+                            </input>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="map-metadata-owner_email" class="col-md-3 control-label">Contact email</label>
+                        <div class="col-md-9">
+                            <input type="email" class="form-control map-creator-control-xl" id="map-metadata-owner_email" name="map-metadata-owner_email" placeholder="Valid email address" maxlength="150"
+                                   data-toggle="tooltip" data-placement="right" title="Contact email for map owner" required="required">                            
+                            </input>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </body>
+</html>
