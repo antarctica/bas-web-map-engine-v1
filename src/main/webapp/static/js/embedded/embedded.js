@@ -338,6 +338,14 @@ var embeddedMaps = {};
 
 function init() {
     jQuery(document).ready(function() {
+        /* Populate URLs in test bed HTML */
+        if (window.opener) {
+            try {
+                var serviceUrl = window.opener.magic.runtime.serviceUrl;
+                jQuery("#map").attr("data-service", serviceUrl);
+                jQuery("#data-service-url").html('<pre>' + serviceUrl + '</pre>');
+            } catch(e) {}
+        }
         var embeds = jQuery("div[data-service]");
         if (embeds.length == 0) {
             showAlert("No suitable map containers found");

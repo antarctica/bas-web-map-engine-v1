@@ -81,14 +81,8 @@ magic.classes.creator.EmbeddedAppContainer.prototype.saveContext = function() {
                 })
                 .done(function(response) {
                     /* Load up example finished map into a new tab */
-                    var exWin = window.open(magic.config.paths.baseurl + "/static/html/test_embed.html");
-                    var exDoc = exWin.document;
-                    var serviceUrl = magic.config.paths.baseurl + "/embedded_maps/name/" + context.name;
-                    jQuery(exDoc).find("#data-service-url").html('<pre>' + serviceUrl + '</pre>');
-                    jQuery(exDoc).find("#map").data("service", serviceUrl);
-                    jQuery(exDoc).find("head").append("<script>", {
-                        src: magic.config.paths.baseurl + "/static/js/embedded/embedded.js"
-                    });
+                    magic.runtime.serviceUrl = magic.config.paths.baseurl + "/embedded_maps/name/" + context.name;
+                    window.open(magic.config.paths.baseurl + "/static/html/test_embed.html");                    
                 })
                 .fail(function(xhr) {
                     var detail = JSON.parse(xhr.responseText)["detail"];

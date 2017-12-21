@@ -121,18 +121,18 @@ magic.classes.creator.MapLayerSelector = function(options) {
 magic.classes.creator.MapLayerSelector.prototype.loadContext = function(data, region) {
     jQuery("#map-layer-selector").closest("div.row").removeClass("hidden");
     this.mapRegion = region;
+    var layers = null;
     var table = jQuery("#" + this.prefix + "-list");
-    if (!data || !jQuery.isArray(data.layers) || data.layers.length == 0) {
-        data = {
-            layers: this.DEFAULT_LAYERS[region]
-        };
+    if (!data || (jQuery.isArray(data.layers) && data.layers.length == 0)) {
+        layers = this.DEFAULT_LAYERS[region];
+    } else if (data.layers && data.layers.type == "json" && data.layers.value) {
+        layers = JSON.parse(data.layers.value);
     }
-    var layers = data.layers;        
     var rows = table.find("tbody tr");
     if (rows.length > 0) {
         rows.remove();
     }
-    if (layers.length > 0) {                    
+    if (layers && layers.length > 0) {                    
         table.removeClass("hidden");                    
         for (var i = 0; i < layers.length; i++) {            
             this.layerMarkup(table, layers[i]);
