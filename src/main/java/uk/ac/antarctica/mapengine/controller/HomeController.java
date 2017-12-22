@@ -7,6 +7,9 @@ import com.google.gson.Gson;
 import it.geosolutions.geoserver.rest.HTTPUtils;
 import java.io.IOException;
 import java.security.Principal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -322,12 +325,15 @@ public class HomeController {
      * @return 
      */
     private String renderPage(HttpServletRequest request, ModelMap model, String tplName, String mapName, Integer issueNumber, Integer userMapId, boolean debug) {
+        
         /* Set username */
         String message = "";
         String activeProfile = getActiveProfile();
         String username = getUserName(request);        
         model.addAttribute("username", username);
-        model.addAttribute("profile", activeProfile);        
+        model.addAttribute("profile", activeProfile);
+
+        /* Page parameters */
         String pageTitle = env.getProperty("default.title") != null ? env.getProperty("default.title") : "";
         String logo = env.getProperty("default.logo") != null ? env.getProperty("default.logo") : "/static/images/1x1.png";
         String favicon = env.getProperty("default.favicon") != null ? env.getProperty("default.favicon") : "bas.ico";
@@ -335,6 +341,7 @@ public class HomeController {
         String backgroundColor = env.getProperty("default.backgroundColor") != null ? env.getProperty("default.backgroundColor") : "#ffffff";
         String theme = env.getProperty("default.theme") != null ? env.getProperty("default.theme") : "";
         String navbarClass = env.getProperty("default.navbarclass") != null ? env.getProperty("default.navbarclass") : "navbar-inverse";
+        
         /* Home, services and contact URLs */
         model.addAttribute("homeurl", env.getProperty("default.homeUrl"));
         model.addAttribute("hometext", env.getProperty("default.homeText"));
@@ -342,6 +349,47 @@ public class HomeController {
         model.addAttribute("servicestext", env.getProperty("default.servicesText"));
         model.addAttribute("contacturl", env.getProperty("default.contactUrl"));                
         model.addAttribute("contacttext", env.getProperty("default.contactText"));
+        
+        /* Assemble plugin information for the map control button ribbon */
+        String mapPlugins = env.getProperty("plugins.map");
+        if (mapPlugins != null) {
+            /* Unpick the value: <name>,<caption>,<tooltip> */
+            String[] pluginArr = mapPlugins.split(",");
+            if (pluginArr.length % 3 == 0) {
+                /* Plausible */
+                List<Map<String,String>> pluginList = new ArrayList();
+                for (int i = 0; i < pluginArr.length; i += 3) {
+                    HashMap<String, String> plh = new HashMap();
+                    plh.put("name", pluginArr[i]);
+                    plh.put("caption", pluginArr[i+1]);
+                    plh.put("tooltip", pluginArr[i+2]);
+                }
+                if (!pluginList.isEmpty()) {
+                    model.addAttribute("mapplugins", pluginList);
+                }
+            }
+        }
+        
+        /* Assemble plugin information for the navbar */
+        String navPlugins = env.getProperty("plugins.nav");
+        if (navPlugins != null) {
+            /* Unpick the value: <name>,<login|public>,<caption>,<tooltip> */
+            String[] pluginArr = navPlugins.split(",");
+            if (pluginArr.length % 4 == 0) {
+                /* Plausible */
+                List<Map<String,String>> pluginList = new ArrayList();
+                for (int i = 0; i < pluginArr.length; i += 3) {
+                    HashMap<String, String> plh = new HashMap();
+                    plh.put("name", pluginArr[i]);
+                    plh.put("permission", pluginArr[i+1]);
+                    plh.put("caption", pluginArr[i+2]);
+                    plh.put("tooltip", pluginArr[i+3]);
+                }
+                if (!pluginList.isEmpty()) {
+                    model.addAttribute("navplugins", pluginList);
+                }
+            }
+        }
         switch (tplName) {
             case "home":                
                 message = "Public home page";
