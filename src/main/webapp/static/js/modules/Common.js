@@ -126,13 +126,13 @@ magic.modules.Common = function () {
                     '<div class="btn-group btn-group-' + size + '">' +
                         '<button id="' + btnBaseId + '-fb-ok" class="btn btn-' + size + ' btn-success" style="display:none" type="button" ' + 
                             'data-toggle="tooltip" data-container="body" data-placement="top" title="Ok">' + 
-                            '<span class="glyphicon glyphicon-ok post-ok"></span> Ok' + 
+                            '<span class="fa fa-check post-ok"></span> Ok' + 
                         '</button>' +
                     '</div>' + 
                     '<div class="btn-group btn-group-' + size + '">' +
                         '<button id="' + btnBaseId + '-fb-error" class="btn btn-' + size + ' btn-danger" style="display:none" type="button" ' + 
                             'data-toggle="tooltip" data-container="body" data-placement="top" title="Error">' + 
-                            '<span class="glyphicon glyphicon-remove post-error"> Error</span>' + 
+                            '<span class="fa fa-times post-error"> Error</span>' + 
                         '</button>' + 
                     '</div>' + 
                     (cancel === true ?

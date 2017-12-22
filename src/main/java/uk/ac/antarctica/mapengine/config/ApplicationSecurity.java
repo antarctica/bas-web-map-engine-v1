@@ -62,11 +62,6 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
         handler.setUseReferer(true);
         return (handler);
     }
-    
-    /* Added for CCAMLR pre-authentication via Drupal cookie */
-   
-    
-    /* End of CCAMLR additions */
 
     /* See http://thinkinginsoftware.blogspot.co.uk/2011/07/redirect-after-login-to-requested-page.html */
     public class CustomLoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
@@ -80,27 +75,9 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
             HttpSession session = request.getSession();
             if (session != null) {
                 SavedRequest savedRequest = new HttpSessionRequestCache().getRequest(request, response);
-                if (savedRequest != null) {
-                    String redirectTo = savedRequest.getRedirectUrl();                    
-                    /* Hack 2017-10-18 for Polar Code - translate any bslmagl style addresses to their load-balanced equivalents */
-                    //String aliases = env.getProperty("aliases.url");
-                    //if (aliases != null) {
-                    //    String[] fromTo = aliases.split(",");
-                    //    redirectTo = redirectTo.replace(fromTo[0], fromTo[1]);
-                    //}
-                    System.out.println("savedRequest will redirect to " + redirectTo);
-                    getRedirectStrategy().sendRedirect(request, response, redirectTo);
-                } else {
-                    System.out.println("No savedRequest present");
-                    super.onAuthenticationSuccess(request, response, authentication);
-                }
-// Spring Security < 3.0 - no longer works             
-//                DefaultSavedRequest dsr = (DefaultSavedRequest) session.getAttribute("SPRING_SECURITY_SAVED_REQUEST");
-//                if (dsr != null) {
-//                    getRedirectStrategy().sendRedirect(request, response, dsr.getRedirectUrl());
-//                } else {
-//                    super.onAuthenticationSuccess(request, response, authentication);
-//                }
+                String redirectTo = savedRequest != null ? savedRequest.getRedirectUrl() : "/home";                                        
+                System.out.println("savedRequest will redirect to " + redirectTo);
+                getRedirectStrategy().sendRedirect(request, response, redirectTo);                
             } else {
                 super.onAuthenticationSuccess(request, response, authentication);
             }

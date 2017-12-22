@@ -21,26 +21,21 @@
                 <a class="navbar-brand" href="javascript:void(0)" th:text="${pagetitle}"></a>
             </div>
             <!-- Collect the nav links, forms, and other content for toggling -->
-            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1" th:switch="${profile}">
-                <ul class="nav navbar-left top-nav" th:case="ccamlrgis">
-                    <li>
-                        <a href="https://www.ccamlr.org" target="_blank">CCAMLR Home</a>
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-left top-nav">
+                    <li th:switch="${homeurl}">
+                        <a th:href="@{/home}" th:case="null">Home</a>
+                        <a th:href="${homeurl}" target="_blank" th:text="${hometext != null} ? ${hometext} : 'Home'" th:case="*"></a>                        
                     </li>
-                    <li>
-                        <a href="https://gis.ccamlr.org" target="_blank">CCAMLR GIS</a>
-                    </li>                    
-                </ul>
-                <ul class="nav navbar-left top-nav" th:case="*">
-                    <li>
-                        <a href="/home">Home</a>
-                    </li>
-                    <li>
-                        <a href="https://www.bas.ac.uk/team/operational-teams/operational-support/mapping-and-geographic-information/" target="_blank">Services</a>
-                    </li>
-                    <li>
-                        <a href="https://www.bas.ac.uk/profile/darb1/" target="_blank">Contact</a>
-                    </li>
-                </ul>
+                    <li th:switch="${servicesurl}">
+                        <a href="https://www.bas.ac.uk/team/operational-teams/operational-support/mapping-and-geographic-information/" target="_blank" th:case="null">Services</a>
+                        <a th:href="${servicesurl}" target="_blank" th:text="${servicestext != null} ? ${servicestext} : 'Services'" th:case='*'></a>                        
+                    </li>     
+                    <li th:switch="${contacturl}">
+                        <a href="https://www.bas.ac.uk/profile/darb1/" target="_blank" th:case="null">Contact</a>
+                        <a th:href="${contacturl}" target="_blank" th:text="${contacttext != null} ? ${contacturl} : 'Contact'" th:case="*"></a>                        
+                    </li>     
+                </ul>                
                 <ul class="nav navbar-right top-nav" th:switch="${#httpServletRequest.remoteUser}">
                     <li id="user-menu" class="dropdown" th:case="null">
                         <!-- Guest menu -->
@@ -49,7 +44,7 @@
                         </a>
                         <ul class="dropdown-menu" style="width: auto; min-width:140px">                                                    
                             <li>
-                                <a id="log-in-user" href="Javascript:void(0)"><i class="fa fa-sign-in"></i> Log In</a>
+                                <a id="log-in-user" href="/login"><i class="fa fa-sign-in"></i> Log In</a>
                             </li>                            
                         </ul>
                     </li>
@@ -60,7 +55,7 @@
                         </a>
                         <ul class="dropdown-menu">                                
                             <li>
-                                <a id="log-out-user" href="Javascript:void(0)"><i class="fa fa-sign-out"></i> Log Out</a>                                
+                                <a id="log-out-user" href="JavaScript:void(0)"><i class="fa fa-sign-out"></i> Log Out</a>                                
                             </li>
                         </ul>
                     </li>

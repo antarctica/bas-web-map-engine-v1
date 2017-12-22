@@ -129,7 +129,7 @@ magic.classes.AppContainer = function () {
     this.initMapMetadata();
     
     /* Display login menu */
-    this.displayLoginMenu();
+    this.activateLogoutMenu();
     
     /* Set up map interaction activate/deactivate handlers to avoid map tool conflicts */
     this.setMapInteractionToolHandlers();
@@ -255,11 +255,9 @@ magic.classes.AppContainer.prototype.fitMapToViewport = function () {
 };
 
 /**
- * Security considerations (display the login/preferences menu, or not)
- * NOTE: even if anyone should manage to display the login menu they won't be able to do anything as all actions are barred server side, 
- * and the login database is LDAP or Ramadda     
+ * Enable logout menu     
  */
-magic.classes.AppContainer.prototype.displayLoginMenu = function () {
+magic.classes.AppContainer.prototype.activateLogoutMenu = function () {
     jQuery("ul.navbar-right").removeClass("hidden").show();
     /* Activate logout menu */
     var lo = jQuery("#log-out-user");
@@ -267,30 +265,6 @@ magic.classes.AppContainer.prototype.displayLoginMenu = function () {
         lo.click(function (evt) {
             evt.preventDefault();
             jQuery("#logout-form").submit();
-        });
-    }
-    /* Activate login */
-    var loginAnch = jQuery("#log-in-user");
-    if (loginAnch.length > 0) {
-        loginAnch.click(function (evt) {
-            evt.preventDefault();
-            if (magic.runtime.map_context.extlogin == "yes") {
-                window.location.assign(magic.config.paths.baseurl + "/login");
-            } else {
-                var pn = window.location.pathname.substring(1);     /* Strip leading '/' */
-                if (pn == "") {
-                    pn = "/restricted" + (magic.runtime.map_context.debug ? "d" : "");
-                    window.location.assign(pn);
-                } else {
-                    var fp = pn.substring(0, pn.indexOf("/"));
-                    if (fp.indexOf("home") >= 0) {
-                        window.location.assign(window.location.href.replace("/home", "/restricted"));
-                    } else {
-                        /* Legacy URL like /opsgis, retained to make old bookmarks go somewhere */
-                        window.location.assign(window.location.href.replace("/" + fp, "/restricted" + (magic.runtime.map_context.debug ? "d" : "") + "/" + fp));
-                    }
-                }
-            }
         });
     }
 };

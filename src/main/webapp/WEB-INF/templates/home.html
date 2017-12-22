@@ -20,7 +20,6 @@
             /*<![CDATA[*/
             var bg = [[${background}]];
             var debug = [[${debug}]];
-            var extlogin = [[${extlogin}]];
             /*]]>*/
         </script>
         <script type="text/javascript">
@@ -34,22 +33,11 @@
                 /* Login behaviour */
                 jQuery("#log-in-user").click(function (evt) {
                     evt.preventDefault();
-                    if (extlogin == "yes") {
-                        window.location = magic.config.paths.baseurl + "/login";
-                    } else {
-                        window.location = magic.config.paths.baseurl + "/restricted" + (debug ? "d" : "");
-                    }
+                    window.location = magic.config.paths.baseurl + "/login";                   
                 });
-                var btnLoginCreate = jQuery("#console-log-in-create");
-                if (btnLoginCreate.length > 0) {
-                    btnLoginCreate.click(function(evt) {
-                        if (extlogin == "yes") {
-                            window.location = magic.config.paths.baseurl + "/login";
-                        } else {
-                            window.location = magic.config.paths.baseurl + "/restricted" + (debug ? "d" : "");
-                        }
-                    });
-                }
+                jQuery("#console-log-in-create").click(function(evt) {
+                    window.location = magic.config.paths.baseurl + "/login";
+                });
 
                 /* Logout behaviour */
                 jQuery("#log-out-user").click(function (evt) {
@@ -58,12 +46,9 @@
                 });
                 
                 /* Create a new map */
-                var btnCreateNew = jQuery("#console-create-new-map");
-                if (btnCreateNew.length > 0) {
-                    btnCreateNew.click(function(evt) {
-                        window.open(magic.config.paths.baseurl + "/creator" + (debug ? "d" : ""), "_blank");
-                    });
-                }
+                jQuery("#console-create-new-map").click(function(evt) {
+                    window.open(magic.config.paths.baseurl + "/creator" + (debug ? "d" : ""), "_blank");
+                });
                 
                 /* Background colour */
                 jQuery("body").css("background-color", bg);

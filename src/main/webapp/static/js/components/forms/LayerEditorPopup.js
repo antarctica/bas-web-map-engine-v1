@@ -266,15 +266,15 @@ magic.classes.LayerEditorPopup.prototype.initDropzone = function() {
             '</div>' +
             '<div class="col-sm-2">' +
                 '<button data-dz-remove class="btn btn-xs btn-danger publish-delete show">' +
-                    '<i class="glyphicon glyphicon-trash"></i>' +
+                    '<i class="fa fa-trash-o"></i>' +
                     '<span>&nbsp;Delete</span>' +
                 '</button>' +
                 '<button class="btn btn-xs btn-success publish-success hidden">' +
-                    '<i class="glyphicon glyphicon-ok"></i>' +
+                    '<i class="fa fa-check"></i>' +
                     '<span>&nbsp;Publish ok</span>' +
                 '</button>' +
                 '<button class="btn btn-xs btn-warning publish-error hidden">' +
-                    '<i class="glyphicon glyphicon-remove"></i>' +
+                    '<i class="fa fa-times"></i>' +
                     '<span>&nbsp;Publish failed</span>' +
                 '</button>' +
             '</div>' +   

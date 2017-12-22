@@ -327,8 +327,7 @@ public class HomeController {
         String activeProfile = getActiveProfile();
         String username = getUserName(request);        
         model.addAttribute("username", username);
-        model.addAttribute("profile", activeProfile);
-        model.addAttribute("extlogin", env.getProperty("authentication.loginurl") != null ? "yes" : "no");
+        model.addAttribute("profile", activeProfile);        
         String pageTitle = env.getProperty("default.title") != null ? env.getProperty("default.title") : "";
         String logo = env.getProperty("default.logo") != null ? env.getProperty("default.logo") : "/static/images/1x1.png";
         String favicon = env.getProperty("default.favicon") != null ? env.getProperty("default.favicon") : "bas.ico";
@@ -336,6 +335,13 @@ public class HomeController {
         String backgroundColor = env.getProperty("default.backgroundColor") != null ? env.getProperty("default.backgroundColor") : "#ffffff";
         String theme = env.getProperty("default.theme") != null ? env.getProperty("default.theme") : "";
         String navbarClass = env.getProperty("default.navbarclass") != null ? env.getProperty("default.navbarclass") : "navbar-inverse";
+        /* Home, services and contact URLs */
+        model.addAttribute("homeurl", env.getProperty("default.homeUrl"));
+        model.addAttribute("hometext", env.getProperty("default.homeText"));
+        model.addAttribute("servicesurl", env.getProperty("default.servicesUrl"));
+        model.addAttribute("servicestext", env.getProperty("default.servicesText"));
+        model.addAttribute("contacturl", env.getProperty("default.contactUrl"));                
+        model.addAttribute("contacttext", env.getProperty("default.contactText"));
         switch (tplName) {
             case "home":                
                 message = "Public home page";
@@ -363,11 +369,7 @@ public class HomeController {
             case "creator":
                 message = "Map creator";
                 pageTitle += " - Map Creation Wizard";
-                break;
-            case "publisher":
-                message = "Data publisher";
-                pageTitle += " - Easy Data Publisher";
-                break;
+                break;            
             default:
                 message = "Unknown page " + tplName;
                 break;

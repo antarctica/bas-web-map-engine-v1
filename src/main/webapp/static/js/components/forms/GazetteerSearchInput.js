@@ -129,7 +129,7 @@ magic.classes.GazetteerSearchInput.prototype.markup = function() {
                 '<span class="input-group-btn">' +
                     '<button id="' + this.baseId + '-placename-go" class="btn btn-primary btn-sm" type="button" ' +
                         'data-toggle="tooltip" data-placement="right" title="Search gazetteer">' +
-                        '<span class="glyphicon glyphicon-search"></span>' +
+                        '<span class="fa fa-search"></span>' +
                     '</button>' +
                 '</span>' +
             '</div>' +

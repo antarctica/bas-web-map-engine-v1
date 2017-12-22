@@ -41,7 +41,7 @@
                     </li>
                     <li data-toggle="tooltip" data-placement="bottom" title="Show an inset overview map">
                         <a id="overview-map-tool" href="JavaScript:void(0)" role="button" data-toggle="popover" data-placement="bottom">
-                            <span class="navbar-tool-btn glyphicon glyphicon-picture"></span><span class="hidden-sm"></span>
+                            <span class="navbar-tool-btn fa fa-picture-o"></span><span class="hidden-sm"></span>
                         </a>       
                     </li>
                     <li data-toggle="tooltip" data-placement="bottom" title="Go to data download repository">
@@ -167,10 +167,7 @@
         
         <div id="height-popup" title="Elevation"></div>
 
-        <div th:switch="${profile}">
-            <form id="logout-form" method="POST" th:case="ccamlrgis" th:action="@{https://www.ccamlr.org/en/user/logout}"></form>
-            <form id="logout-form" method="POST" th:case="*" th:action="@{/logout}"></form>
-        </div>
+        <form id="logout-form" method="POST" th:action="@{/logout}"></form>
 
         <div id="announcement-modal" class="modal fade">
             <div class="modal-dialog">

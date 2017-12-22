@@ -188,7 +188,7 @@ magic.classes.creator.MapLayerSelector.prototype.layerMarkup = function(table, l
         '<tr data-id="' + layerData.id + '">' +             
             '<td class="service-name">' + 
                 '<a style="margin-right:5px" href="Javascript:void(0)" data-toggle="tooltip" data-placement="top" title="Click and drag to re-order layer stack">' + 
-                    '<span class="glyphicon glyphicon-move"></span>' + 
+                    '<span class="fa fa-arrows"></span>' + 
                 '</a>' + 
                 serviceName + 
             '</td>' + 
