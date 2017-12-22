@@ -97,7 +97,7 @@ magic.classes.LayerTree = function (target, container) {
                         'required="required" autofocus="true"></input>' + 
                         '<span class="input-group-btn">' +
                             '<button id="' + this.id + '-layersearch-go" class="btn btn-default btn-sm" type="button" ' + 
-                                'data-toggle="tooltip" data-placement="right" title="Locate data layer in tree">' + 
+                                'data-toggle="tooltip" data-container="body" data-placement="bottom" title="Locate data layer in tree">' + 
                                 '<span class="fa fa-search"></span>' + 
                             '</button>' +
                         '</span>' +

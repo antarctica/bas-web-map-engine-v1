@@ -6,7 +6,7 @@ css/creator.css
 css/font-awesome.min.css
 js/xmlToJSON.min.js
 js/ol.min.js
-js/jquery.js
+js/jquery.min.js
 js/tv4.min.js
 js/vector.js
 js/proj4.js

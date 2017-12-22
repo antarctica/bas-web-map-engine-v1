@@ -5,8 +5,8 @@ magic.classes.FullScreenButton = function(name, ribbon) {
     var options = {
         name: name, 
         ribbon: ribbon,
-        inactiveBtnClass: "glyphicon glyphicon-fullscreen",
-        activeBtnClass: "glyphicon glyphicon-fullscreen",
+        inactiveBtnClass: "fa fa-arrows-alt",
+        activeBtnClass: "fa fa-arrows-alt",
         inactiveTitle: "Full screen map",
         activeTitle: "Click or press ESC to exit full screen map",
         onActivate: jQuery.proxy(this.onActivate, this),

@@ -4,7 +4,7 @@ css/dropzone.min.css
 css/nav.css
 css/font-awesome.min.css
 css/console.css
-js/jquery.js
+js/jquery.min.js
 js/bootstrap.min.js
 js/dropzone.min.js
 js/bootbox.min.js

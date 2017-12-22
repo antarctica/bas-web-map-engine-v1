@@ -5,8 +5,8 @@ magic.classes.ResetRotationButton = function(name, ribbon) {
     var options = {
         name: name, 
         ribbon: ribbon,
-        inactiveBtnClass: "glyphicon glyphicon-repeat",
-        activeBtnClass: "glyphicon glyphicon-repeat",
+        inactiveBtnClass: "fa fa-repeat",
+        activeBtnClass: "fa fa-repeat",
         inactiveTitle: "Reset map rotation (shift-drag on map to start rotation)",
         activeTitle: "Reset map rotation (shift-drag on map to start rotation)"
     };    

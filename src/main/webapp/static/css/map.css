@@ -798,6 +798,10 @@ div.geosearch-popover-content {
     width: 300px;
 }
 
+div.overview-map-popover-content {
+    width: auto !important;
+}
+
 div.reports-popover-content .bootstrap-tagsinput {
     width: 100% !important;
 }

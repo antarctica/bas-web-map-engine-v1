@@ -35,7 +35,7 @@ magic.classes.ControlButtonRibbon = function(config, map) {
         switch(bname) {
             case "zoom_world":
                 /* Zoom world */
-                this.createControlButton("zoom-world", "glyphicon glyphicon-globe", bidx, "Reset to original map extent")
+                this.createControlButton("zoom-world", "fa fa-globe", bidx, "Reset to original map extent")
                 .on("click", jQuery.proxy(this.zoomToMaxExtent, this));                         
                 break;
                 

@@ -11,7 +11,7 @@ css/whhg-reduced.min.css
 js/xmlToJSON.min.js
 js/cookie.min.js
 js/ol.min.js
-js/jquery.js
+js/jquery.min.js
 js/vector.js
 js/proj4.js
 js/proj4defs
