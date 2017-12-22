@@ -22,6 +22,7 @@ import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import uk.ac.antarctica.mapengine.model.MapPlugin;
 import uk.ac.antarctica.mapengine.util.ActivityLogger;
 
 @Controller
@@ -351,45 +352,11 @@ public class HomeController {
         model.addAttribute("contacttext", env.getProperty("default.contactText"));
         
         /* Assemble plugin information for the map control button ribbon */
-        String mapPlugins = env.getProperty("plugins.map");
-        if (mapPlugins != null) {
-            /* Unpick the value: <name>,<caption>,<tooltip> */
-            String[] pluginArr = mapPlugins.split(",");
-            if (pluginArr.length % 3 == 0) {
-                /* Plausible */
-                List<Map<String,String>> pluginList = new ArrayList();
-                for (int i = 0; i < pluginArr.length; i += 3) {
-                    HashMap<String, String> plh = new HashMap();
-                    plh.put("name", pluginArr[i]);
-                    plh.put("caption", pluginArr[i+1]);
-                    plh.put("tooltip", pluginArr[i+2]);
-                }
-                if (!pluginList.isEmpty()) {
-                    model.addAttribute("mapplugins", pluginList);
-                }
-            }
-        }
+        model.addAttribute("mapplugins", listPlugins("map"));        
         
         /* Assemble plugin information for the navbar */
-        String navPlugins = env.getProperty("plugins.nav");
-        if (navPlugins != null) {
-            /* Unpick the value: <name>,<login|public>,<caption>,<tooltip> */
-            String[] pluginArr = navPlugins.split(",");
-            if (pluginArr.length % 4 == 0) {
-                /* Plausible */
-                List<Map<String,String>> pluginList = new ArrayList();
-                for (int i = 0; i < pluginArr.length; i += 3) {
-                    HashMap<String, String> plh = new HashMap();
-                    plh.put("name", pluginArr[i]);
-                    plh.put("permission", pluginArr[i+1]);
-                    plh.put("caption", pluginArr[i+2]);
-                    plh.put("tooltip", pluginArr[i+3]);
-                }
-                if (!pluginList.isEmpty()) {
-                    model.addAttribute("navplugins", pluginList);
-                }
-            }
-        }
+        model.addAttribute("navplugins", listPlugins("nav"));
+        
         switch (tplName) {
             case "home":                
                 message = "Public home page";
@@ -487,6 +454,33 @@ public class HomeController {
             activeProfile = profiles[0];
         }
         return(activeProfile);
+    }
+
+    /**
+     * Get plugin data from the properties file
+     * @param String type
+     * @return ArrayList
+     */
+    private ArrayList<MapPlugin> listPlugins(String type) {
+        ArrayList<MapPlugin> pluginList = new ArrayList();
+        String plugins = env.getProperty("plugins." + type);
+        if (plugins != null) {
+            /* Unpick the value: <name>,<caption>,<tooltip> */
+            String[] pluginArr = plugins.split(",");
+            if (pluginArr.length % 5 == 0) {
+                /* Plausible */                
+                for (int i = 0; i < pluginArr.length; i += 5) {
+                    MapPlugin mp = new MapPlugin();
+                    mp.setName(pluginArr[i]);
+                    mp.setAllowed_usage(pluginArr[i+1]);
+                    mp.setCaption(pluginArr[i+2]);
+                    mp.setTooltip(pluginArr[i+3]);
+                    mp.setIconclass(pluginArr[i+4]);
+                    pluginList.add(mp);
+                }                
+            }
+        }
+        return(pluginList.isEmpty() ? null : pluginList);
     }
 
 }

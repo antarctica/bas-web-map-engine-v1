@@ -49,13 +49,10 @@
                             <span class="navbar-tool-btn fa fa-download"></span><span class="hidden-sm"></span> 
                         </a>       
                     </li>                        
-                    <li data-toggle="tooltip" data-placement="bottom" title="Manage your maps, data and preferences" th:switch="${#httpServletRequest.remoteUser}">
-                        <a class="hidden" id="personaldata-tool" href="JavaScript:void(0)" role="button" data-toggle="popover" data-placement="bottom" th:case="null">
+                    <li data-toggle="tooltip" data-placement="bottom" title="Manage your maps, data and preferences" th:unless="${#httpServletRequest.remoteUser} == null">
+                        <a id="personaldata-tool" href="JavaScript:void(0)" role="button" data-toggle="popover" data-placement="bottom">
                             <span class="navbar-tool-btn fa fa-user"></span><span class="hidden-sm"></span> 
-                        </a>
-                        <a id="personaldata-tool" href="JavaScript:void(0)" role="button" data-toggle="popover" data-placement="bottom" th:case="*">
-                            <span class="navbar-tool-btn fa fa-user"></span><span class="hidden-sm"></span> 
-                        </a>   
+                        </a>                        
                     </li>
                     <li data-toggle="tooltip" data-placement="bottom" title="User feedback">
                         <a id="feedback-tool" href="JavaScript:void(0)" role="button" data-toggle="popover" data-placement="bottom">
@@ -66,6 +63,13 @@
                         <a id="info-tool" role="button" data-toggle="modal" data-target="#information-modal">
                             <span class="navbar-tool-btn fa fa-info-circle"></span><span class="hidden-sm"></span> 
                         </a>       
+                    </li>
+                    <li data-toggle="tooltip" data-placement="bottom" title="${plugin.tooltip}" 
+                        th:each="plugin : ${navplugins}" class="checkbox-inline" th:text="${plugin.caption}" 
+                        th:unless="${#httpServletRequest.remoteUser} == null and ${plugin.allowed_usage} == 'login'">
+                        <a id="${plugin.name}" href="JavaScript:void(0)" role="button" data-toggle="popover" data-placement="bottom">
+                            <span class="'navbar-tool-btn ' + ${plugin.iconclass}"></span><span class="hidden-sm"></span>
+                        </a>
                     </li>
                 </ul>                                
                 <ul class="nav navbar-right top-nav hidden" th:switch="${#httpServletRequest.remoteUser}">

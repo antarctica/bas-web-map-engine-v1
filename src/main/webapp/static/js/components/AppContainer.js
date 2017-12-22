@@ -172,13 +172,16 @@ magic.classes.AppContainer.prototype.initMapMetadata = function() {
  */
 magic.classes.AppContainer.prototype.allocateNavbarTool = function(name, className, opts) {
     var tool = null;
-    if (jQuery.inArray(name, magic.runtime.map_context.data.controls) != -1) {
-        /* Activate tool */
-        tool = new magic.classes[className](opts);       
-        jQuery("#" + opts.target).closest("li").show();
-    } else {
-        /* Hide the tool button if it was not asked for */
-        jQuery("#" + opts.target).closest("li").hide();
+    var target = jQuery("#" + opts.target);
+    if (target.length > 0) {
+        if (jQuery.inArray(name, magic.runtime.map_context.data.controls) != -1) {
+            /* Activate tool */
+            tool = new magic.classes[className](opts);       
+            target.closest("li").show();
+        } else {
+            /* Hide the tool button if it was not asked for */
+            target.closest("li").hide();
+        }
     }
     return(tool);
 };
