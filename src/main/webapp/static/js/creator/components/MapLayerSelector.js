@@ -225,7 +225,7 @@ magic.classes.creator.MapLayerSelector.prototype.layerMarkup = function(table, l
     }, this));
     
     /* Assign delete layer button handler */
-    jQuery("#" + this.prefix + "-" + layerData.id + "-layer-del").off("click").on("click", function(evt) {
+    jQuery("#" + this.prefix + "-" + layerData.id + "-layer-del").off("click").on("click", jQuery.proxy(function(evt) {
         if (this.layerDataEditor && this.layerDataEditor.isActive()) {
             /* If the edit dialog is already open somewhere else, close it */
             this.layerDataEditor.deactivate();
@@ -238,7 +238,7 @@ magic.classes.creator.MapLayerSelector.prototype.layerMarkup = function(table, l
             }
             bootbox.hideAll();
         }, this));                       
-    });
+    }, this));
 };
 
 /**

@@ -92,7 +92,7 @@ magic.classes.creator.AppContainer = function() {
         }
     });
     /* For some reason the onFinish event published doesn't work... David 02/12/2015 */
-    jQuery("#rootwizard .finish").click(jQuery.proxy(this.saveContext(), this));
+    jQuery("#rootwizard .finish").click(jQuery.proxy(this.saveContext, this));
     /* Tooltips */
     jQuery('[data-toggle="tooltip"]').tooltip({trigger: "hover"});
     /* For dynamic tooltips - http://stackoverflow.com/questions/9958825/how-do-i-bind-twitter-bootstrap-tooltips-to-dynamically-created-elements */
@@ -112,8 +112,10 @@ magic.classes.creator.AppContainer = function() {
  * @param {String} region antarctic|arctic|southgeorgia|midlatitudes
  */
 magic.classes.creator.AppContainer.prototype.loadContext = function(mapContext, region) {
-    jQuery.each(this.dialogs, jQuery.proxy(function(dn, dialog) {
-        dialog.loadContext(mapContext, region);
+    jQuery.each(this.tabDialogs, jQuery.proxy(function(dn, dialog) {
+        if (jQuery.isFunction(dialog.loadContext)) {
+            dialog.loadContext(mapContext, region);
+        }
     }, this));    
 };
 

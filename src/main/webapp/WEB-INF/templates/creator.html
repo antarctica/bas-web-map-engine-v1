@@ -111,7 +111,7 @@
                         });
                     }
                     magic.runtime.endpoints = epdata;
-                    magic.classes.creator.AppContainer();
+                    new magic.classes.creator.AppContainer();
                 })
                 .fail(function () {
                     bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to get WMS endpoints for this mapping profile</div>');

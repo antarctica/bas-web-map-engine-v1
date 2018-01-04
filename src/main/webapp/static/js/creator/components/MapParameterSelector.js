@@ -14,14 +14,14 @@ magic.classes.creator.MapParameterSelector = function(options) {
 
 /**
  * Populate the map-based parameter select according the given data/region
- * @param {Object} data
+ * @param {Object} context
  * @param (String} region
  */
-magic.classes.creator.MapParameterSelector.prototype.loadContext = function(data, region) {
+magic.classes.creator.MapParameterSelector.prototype.loadContext = function(context, region) {    
     jQuery("#map-parameter-selector").closest("div.row").removeClass("hidden");
     var resetMap = false;
-    data = data || magic.modules.GeoUtils.DEFAULT_MAP_PARAMS[region];
-    if (!data) {
+    context = context || magic.modules.GeoUtils.DEFAULT_MAP_PARAMS[region];
+    if (!context) {
         bootbox.alert(
             '<div class="alert alert-danger" style="margin-top:10px">' + 
                 'No default map parameters for region ' + region + 
@@ -29,6 +29,8 @@ magic.classes.creator.MapParameterSelector.prototype.loadContext = function(data
         );
         return;
     }
+    /* More complex non-embedded map schema uses 'data' field for layer/map information */
+    var data = context.data ? context.data : context;
     if (this.map) {
         /* See if projection has changed => must recreate map */
         var newProj = data.projection;
