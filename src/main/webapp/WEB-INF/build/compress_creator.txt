@@ -2,6 +2,7 @@ css/ol.css
 css/bootstrap.min.css
 css/prettify.css
 css/nav.css
+css/creator_common.css
 css/creator.css
 css/font-awesome.min.css
 js/xmlToJSON.min.js

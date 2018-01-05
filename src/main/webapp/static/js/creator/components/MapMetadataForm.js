@@ -17,7 +17,7 @@ magic.classes.creator.MapMetadataForm = function(options) {
  * @param {Object} data
  */
 magic.classes.creator.MapMetadataForm.prototype.loadContext = function(data) {
-    jQuery("#map-metadata-form").closest("div.row").removeClass("hidden");
+    jQuery("#" + this.prefix + "-form").closest("div.row").removeClass("hidden");
     magic.modules.Common.jsonToForm(this.formSchema, data, this.prefix);    
 };
 
@@ -26,7 +26,7 @@ magic.classes.creator.MapMetadataForm.prototype.loadContext = function(data) {
  * @return {Object}
  */
 magic.classes.creator.MapMetadataForm.prototype.getContext = function() {
-    jQuery("#map-metadata-form").closest("div.row").removeClass("hidden");
+    jQuery("#" + this.prefix + "-form").closest("div.row").removeClass("hidden");
     return(magic.modules.Common.formToJson(this.formSchema, this.prefix));    
 };
 

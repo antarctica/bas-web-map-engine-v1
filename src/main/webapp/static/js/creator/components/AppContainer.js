@@ -44,8 +44,16 @@ magic.classes.creator.AppContainer = function() {
                 var current = index + 1;
                 var percent = (current / total) * 100;
                 jQuery("#rootwizard").find(".progress-bar").css({width: percent + "%"});
+                /* Deferred rendering e.g. for map parameter selector 
+                 * Note: 2018-01-05 David - Bootstrap Wizard 1.4.2 (latest) is buggy and fires the onTabShow event
+                 * before the tab content actually shows - this makes rendering the map in a hidden tab impossible
+                 * Therefore have reverted to BW 1.0.0 until a better replacement can be found - future reliance on
+                 * this particular library looks to be unwise
+                 */
+                if (jQuery.isFunction(this.tabDialogs[index].showContext)) {
+                    this.tabDialogs[index].showContext();
+                }
                 if (index == total-1) {
-                    //TODO
                     jQuery("ul.pager li.finish").removeClass("hidden");
                     jQuery("ul.pager li.previous").removeClass("hidden");
                     jQuery("ul.pager li.next").addClass("hidden");
@@ -62,10 +70,7 @@ magic.classes.creator.AppContainer = function() {
         }, this),
         onNext: jQuery.proxy(function (tab, navigation, index) {
             var total = navigation.find("li").length;
-            if (this.tabDialogs[index-1].validate()) {
-                if (jQuery.isFunction(this.tabDialogs[index-1].saveContext)) {
-                    this.tabDialogs[index-1].saveContext();
-                }
+            if (this.tabDialogs[index-1].validate()) {                 
                 if (index >= total-1) {                        
                     jQuery("ul.pager li.finish").removeClass("hidden");
                 } else {
@@ -77,14 +82,7 @@ magic.classes.creator.AppContainer = function() {
             }
         }, this),
         onBack: jQuery.proxy(function (tab, navigation, index) {
-            if (this.tabDialogs[index-1].validate()) {
-                if (jQuery.isFunction(this.tabDialogs[index+1].saveContext)) {
-                    this.tabDialogs[index+1].saveContext();
-                }  
-                return(true);
-            } else {
-                return(false);
-            }
+            return(this.tabDialogs[index-1].validate());
         }, this),
         onTabClick: function() {
             /* Clicking on a random tab is not allowed */

@@ -8,7 +8,7 @@ magic.classes.creator.MapParameterSelector = function(options) {
     this.prefix = options.prefix || "map-parameters";
     
     /* Internal properties */
-    this.map = null;
+    this.map = null;   
         
 };
 
@@ -18,8 +18,7 @@ magic.classes.creator.MapParameterSelector = function(options) {
  * @param (String} region
  */
 magic.classes.creator.MapParameterSelector.prototype.loadContext = function(context, region) {    
-    jQuery("#map-parameter-selector").closest("div.row").removeClass("hidden");
-    var resetMap = false;
+    jQuery("#" + this.prefix + "-selector").closest("div.row").removeClass("hidden");    
     context = context || magic.modules.GeoUtils.DEFAULT_MAP_PARAMS[region];
     if (!context) {
         bootbox.alert(
@@ -29,11 +28,24 @@ magic.classes.creator.MapParameterSelector.prototype.loadContext = function(cont
         );
         return;
     }
-    /* More complex non-embedded map schema uses 'data' field in the supplied context for layer/map information */
-    var data = context.data ? context.data.value : context;
-    if (typeof data === "string") {
-        data = JSON.parse(data);
+    var data = context;
+    if (context.data) {
+        /* More complex non-embedded map schema uses 'data' field in the supplied context for layer/map information, and should only be rendered when tab shown */
+       data = (typeof context.data.value === "string") ? JSON.parse(context.data.value) : context.data.value;
     }
+    this.renderMap(data);
+};
+
+magic.classes.creator.MapParameterSelector.prototype.showContext = function() {
+    this.map && this.map.updateSize();
+};
+
+/**
+ * Actually render the map
+ * @param {Object} data
+ */
+magic.classes.creator.MapParameterSelector.prototype.renderMap = function(data) {
+    var resetMap = false;
     if (this.map) {
         /* See if projection has changed => must recreate map */
         var newProj = data.projection;
@@ -162,12 +174,12 @@ magic.classes.creator.MapParameterSelector.prototype.loadContext = function(cont
             layers: layers,
             controls: controls,
             interactions: ol.interaction.defaults(),
-            target: this.prefix + "-selector-map",
-            view: view
+            view: view,
+            target: this.prefix + "-selector-map"
         });
         if (olGrat != null) {
             olGrat.setMap(this.map);
-        }
+        }        
     }
     
     /* Set rotation button handler */
