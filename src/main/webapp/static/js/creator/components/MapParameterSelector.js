@@ -29,8 +29,11 @@ magic.classes.creator.MapParameterSelector.prototype.loadContext = function(cont
         );
         return;
     }
-    /* More complex non-embedded map schema uses 'data' field for layer/map information */
-    var data = context.data ? context.data : context;
+    /* More complex non-embedded map schema uses 'data' field in the supplied context for layer/map information */
+    var data = context.data ? context.data.value : context;
+    if (typeof data === "string") {
+        data = JSON.parse(data);
+    }
     if (this.map) {
         /* See if projection has changed => must recreate map */
         var newProj = data.projection;

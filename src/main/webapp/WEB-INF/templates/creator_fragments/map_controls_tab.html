@@ -14,12 +14,12 @@
             <input type="hidden" name="map-controls" value="graticule"></input>
             <div class="panel panel-primary">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Select which map controls should be added to the map area</h3>
+                    <h3 class="panel-title">Select which controls should be added to the map area</h3>
                 </div>
                 <div class="panel-body">
                     <div class="alert alert-info">
-                        Note that controls for zoom in/out, to maximum extent and by dragging a box appear by default. Pop-ups automatically appear 
-                        on map features where 
+                        Note that controls for zoom in/out, to maximum extent and by dragging a box appear by default. Information pop-ups will automatically appear 
+                        on map features where a layer has interactivity enabled
                     </div>
                     <div class="col-md-12 form-inline">
                         <label class="checkbox-inline">
@@ -42,11 +42,12 @@
                         <div class="form-group" th:case="null">                            
                             <p class="form-control-static">There are no extra plugins available</p>
                         </div>
-                        <div th:case="*">                                                        
-                            <label th:each="plugin : ${mapplugins}" class="checkbox-inline" th:text="${plugin.caption}">
-                                <input type="checkbox" name="map-controls" value="${plugin.name}"
-                                       data-toggle="tooltip" data-placement="top" title="${plugin.tooltip}"></input>
-                            </label>                            
+                        <div th:case="*">
+                            <label th:each="plugin : ${mapplugins}" class="checkbox-inline" th:inline="text">
+                                <input type="checkbox" name="map-controls" th:value="${plugin.name}"
+                                       data-toggle="tooltip" data-placement="top" th:title="${plugin.tooltip}"></input>
+                                [[${plugin.caption}]]
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -94,11 +95,12 @@
                         <div class="form-group" th:case="null">                            
                             <p class="form-control-static">There are no extra plugins available</p>
                         </div>
-                        <div th:case="*">                                                        
-                            <label th:each="plugin : ${navplugins}" class="checkbox-inline" th:text="${plugin.caption}">
-                                <input type="checkbox" name="map-controls" value="${plugin.name}"
-                                       data-toggle="tooltip" data-placement="top" title="${plugin.tooltip}"></input>
-                            </label>                            
+                        <div th:case="*">
+                            <label th:each="plugin : ${navplugins}" class="checkbox-inline" th:inline="text">
+                                <input type="checkbox" name="map-controls" th:value="${plugin.name}"
+                                       data-toggle="tooltip" data-placement="top" th:title="${plugin.tooltip}"></input>
+                                [[${plugin.caption}]]
+                            </label>
                         </div>
                     </div>
                 </div>
