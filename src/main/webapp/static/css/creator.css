@@ -12,34 +12,3 @@
 .map-creator-control-sm {
     width: 300px !important;
 }
-
-/* Sortable list layertree */
-ul.layertree {
-    width: 90%;
-}
-
-ul.layertree li {
-    padding-left: 50px !important;
-    padding-bottom: 5px !important;
-}
-
-li.layertree-node {
-    list-style-type: none;
-    background-color: #e0e0e0;
-    padding: 10px;
-    margin: 3px;
-    border: 2px solid #a0a0a0;
-    border-radius: 3px;
-}
-
-ul.layertree-group {
-    list-style-type: none;
-    background-color: #f0f0f0;
-    padding: 3px;
-    border-radius: 3px;
-}
-
-button.layer-name-button {
-    width: 90%;
-    margin-bottom: 6px;
-}

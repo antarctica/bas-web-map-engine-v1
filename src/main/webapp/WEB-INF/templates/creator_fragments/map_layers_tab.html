@@ -4,18 +4,28 @@
     <head>
         <title></title>
     </head>    
-    <body th:fragment="layout">               
-        <form id="map-layers-form" class="form-horizontal">            
-            <div class="panel panel-primary">
-                <div class="panel-heading">
-                    <h3 class="panel-title">Select which data layers should be added to the map</h3>
+    <body th:fragment="layout">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="alert alert-info">
+                    <p>Choose your data layers for the map, and their order
+                    </p>
                 </div>
-                <div class="panel-body">
-                    <div class="alert alert-info">
-                        TO DO
-                    </div>                    
-                </div>
-            </div>            
-        </form>
+            </div> 
+            <div class="col-md-6">
+                <form id="map-layers-form" class="form-horizontal">                            
+                    <div id="map-layers-layertree-panel" class="panel panel-primary">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Choose data layers for the map, and their order</h3>
+                        </div>
+                        <div class="panel-body">                            
+                            <ul id="map-layers-layertree" class="list-group"></ul>
+                            <button id="map-layers-new-layer" type="button" class="btn btn-primary" disabled="disabled">New layer</button>
+                            <button id="map-layers-new-group" type="button" class="btn btn-primary" disabled="disabled">New group</button>                
+                        </div>
+                    </div>                
+                </form>
+            </div>
+        </div>
     </body>
 </html>
