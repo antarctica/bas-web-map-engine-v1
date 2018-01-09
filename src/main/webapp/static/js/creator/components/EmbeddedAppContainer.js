@@ -25,7 +25,12 @@ magic.classes.creator.EmbeddedAppContainer = function() {
         "mapTitleService": magic.config.paths.baseurl + "/embedded_maps/dropdown",
         "mapDataService": magic.config.paths.baseurl + "/embedded_maps/name"
     });
-        
+    
+    /* Tooltips */                    
+    jQuery('[data-toggle="tooltip"]').tooltip({trigger: "hover"});
+    /* For dynamic tooltips - http://stackoverflow.com/questions/9958825/how-do-i-bind-twitter-bootstrap-tooltips-to-dynamically-created-elements */
+    jQuery("body").tooltip({selector: '[data-toggle="tooltip"]', trigger: "hover"});
+                      
 };
 
 /**
