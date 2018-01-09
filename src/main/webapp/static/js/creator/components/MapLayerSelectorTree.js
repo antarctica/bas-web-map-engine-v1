@@ -22,6 +22,9 @@ magic.classes.creator.MapLayerSelectorTree = function(options) {
     /* ID prefix */
     this.prefix = options.prefix || "map-layers";
     
+    /* Layer tree container */
+    this.layerTreeUl = jQuery("#" + this.prefix + "-layertree");
+    
     /* Dictionary of layer data, indexed by layer id */
     this.layerDictionary = new magic.classes.creator.LayerDictionary();
    
@@ -38,12 +41,17 @@ magic.classes.creator.MapLayerSelectorTree.prototype.loadContext = function(cont
         layers = JSON.parse(context.data.value).layers;
     } catch(e) {}
     if (layers.length > 0) {
-        /* Load the layer data */
-        var layerTreeUl = jQuery("#" + this.prefix + "-layertree");
-        layerTreeUl.empty();
-        this.processLayers(layers, layerTreeUl, 0);
-        this.initSortableList(layerTreeUl);
+        /* Load the layer data */        
+        this.layerTreeUl.empty();
+        this.processLayers(layers, this.layerTreeUl, 0);        
     }
+};
+
+/**
+ * Guaranteed to be called when the markup is complete and has been shown
+ */
+magic.classes.creator.MapLayerSelectorTree.prototype.showContext = function() {
+    this.initSortableList(this.layerTreeUl);
 };
 
 /**
@@ -118,17 +126,21 @@ magic.classes.creator.MapLayerSelectorTree.prototype.processLayers = function(la
  * @returns {Boolean}
  */
 magic.classes.creator.MapLayerSelectorTree.prototype.allowedDragHandler = function (elt, hint, target) {
-    /* Allowed drag iff target is a group or the top level */
+    /* Allowed drag iff target is a group or the top level */    
     var allowed = false;
+    this.setHintStyle(hint, true);
     var dropZone = hint.parents("li").first();
     if (dropZone) {                            
         if (dropZone.length > 0 && dropZone[0].id) {
             /* Only allowed to be dropped within a group */
             allowed = this.layerDictionary.get(dropZone[0].id).layers;
-        } else if (dropZone.length == 0) {
+        } else if (dropZone.length == 0 && !elt.hasClass("list-group-item-info")) {
             /* Dropped at the top level */
             allowed = true;
         }
+    }
+    if (!allowed) {
+        this.setHintStyle(hint, false);        
     }
     return(allowed);
 };
@@ -144,7 +156,7 @@ magic.classes.creator.MapLayerSelectorTree.prototype.groupMarkup = function(id, 
         '<li class="list-group-item list-group-item-heading sortableListsClosed" id="' + id + '">' + 
             '<span class="sortableListsOpener"></span>' +
             '<div>' +                       
-                '<button type="button" class="btn btn-info btn-sm layer-name-button" data-toggle="tooltip" data-placement="top" title="Click to update layer group data">' + 
+                '<button type="button" class="btn btn-info layer-name-button" data-toggle="tooltip" data-placement="top" title="Click to update layer group data">' + 
                     name + 
                 '</button>' + 
             '</div>' + 
@@ -183,11 +195,24 @@ magic.classes.creator.MapLayerSelectorTree.prototype.layerMarkup = function(id, 
     var li = jQuery(
         '<li class="list-group-item list-group-item-info" id="' + id + '">' + 
             '<div>' + 
-                '<button type="button" class="btn btn-info btn-sm layer-name-button" data-toggle="tooltip" data-placement="top" title="Click to update layer data">' + 
+                '<button type="button" class="btn btn-info layer-name-button" data-toggle="tooltip" data-placement="top" title="Click to update layer data">' + 
                     name + 
                 '</button>' + 
             '</div>' +     
         '</li>'
     );
     return(li);
+};
+
+/**
+ * Set hint style according to allowed nature of drop
+ * @param {Object} hint
+ * @param {boolean} allowed
+ */
+magic.classes.creator.MapLayerSelectorTree.prototype.setHintStyle = function(hint, allowed) {
+    if (allowed) {
+        hint.css("background-color", "#dff0d8").css("border", "2px dashed #5cb85c");
+    } else {
+        hint.css("background-color", "#f2dede").css("border", "2px dashed #d9534f");
+    }
 };
