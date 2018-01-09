@@ -12,3 +12,17 @@
 .map-creator-control-sm {
     width: 300px !important;
 }
+
+/* Sortable list layertree */
+#map-layers-layertree {
+    width: 90%;
+}
+
+#map-layers-layertree li {
+    padding-left: 50px !important;
+    padding-bottom: 5px !important;
+}
+
+button.layer-name-button {
+    width: 100%;
+}

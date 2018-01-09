@@ -2,6 +2,21 @@
 
 magic.classes.creator.MapLayerSelectorTree = function(options) {
     
+    /* Group opener configuration, to allow dynamic insertion of elements without re-init of the tree */
+    this.OPENER_CSS = {
+        "display": "inline-block",
+        "width": "18px",
+        "height": "18px",
+        "float": "left",
+        "margin-left": "-35px",
+        "margin-right": "5px",
+        "background-position": "center center",
+        "background-repeat": "no-repeat"
+    };
+
+    this.OPEN_MARKUP = '<i class="fa fa-plus" style="font-size:20px"></i>';
+    this.CLOSE_MARKUP = '<i class="fa fa-minus" style="font-size:20px"></i>';
+    
     /* Unpack API properties from options */
     
     /* ID prefix */
@@ -24,8 +39,10 @@ magic.classes.creator.MapLayerSelectorTree.prototype.loadContext = function(cont
     } catch(e) {}
     if (layers.length > 0) {
         /* Load the layer data */
-        this.processLayers(layers, jQuery("#" + this.prefix + "-layertree"), 0);
-        /* Assign handlers for expand/collapse layer groups */
+        var layerTreeUl = jQuery("#" + this.prefix + "-layertree");
+        layerTreeUl.empty();
+        this.processLayers(layers, layerTreeUl, 0);
+        this.initSortableList(layerTreeUl);
     }
 };
 
@@ -49,6 +66,30 @@ magic.classes.creator.MapLayerSelectorTree.prototype.validate = function() {
 };
 
 /**
+ * Initialise the sortable lists plugin for the layer tree
+ * @param {element} layerTree
+ */
+magic.classes.creator.MapLayerSelectorTree.prototype.initSortableList = function(layerTree) {
+    /* http://camohub.github.io/jquery-sortable-lists/ */
+    layerTree.sortableLists({
+        placeholderCss: {"background-color": "#fcf8e3", "border": "2px dashed #fce04e"},
+        hintCss: {"background-color": "#dff0d8", "border": "2px dashed #5cb85c"},
+        isAllowed: jQuery.proxy(this.allowedDragHandler, this),
+        listSelector: "ul",
+        listsClass: "list-group",                    
+        insertZone: 50,
+        opener: {
+            active: true,
+            as: "html",  
+            close: this.CLOSE_MARKUP,
+            open: this.OPEN_MARKUP,
+            openerCss: this.OPENER_CSS
+        },
+        ignoreClass: "layer-name-button"
+    });
+};
+
+/**
  * Recursive routine to create list infrastructure for layer tree and to assign random ids
  * @param {Array} layers
  * @param {Element} parent
@@ -59,50 +100,94 @@ magic.classes.creator.MapLayerSelectorTree.prototype.processLayers = function(la
         var id = this.layerDictionary.put(layers[i]);                
         if (jQuery.isArray(layers[i].layers) && layers[i].layers.length > 0) {
             /* A layer group */
-            var groupEl = this.groupElement(id, layers[i].name);
+            var groupEl = this.groupMarkup(id, layers[i].name);
             parent.append(groupEl);
             this.processLayers(layers[i].layers, groupEl.children("ul"), level+1);
         } else {
             /* A leaf node */   
-            parent.append(this.layerElement(id, layers[i].name));                    
+            parent.append(this.layerMarkup(id, layers[i].name));                    
         }
     }
+};
+
+/**
+ * Drag sortable element handler - implements logic to decide whether a given drag is allowed
+ * @param {Element} elt
+ * @param {Object} hint
+ * @param {Element} target
+ * @returns {Boolean}
+ */
+magic.classes.creator.MapLayerSelectorTree.prototype.allowedDragHandler = function (elt, hint, target) {
+    /* Allowed drag iff target is a group or the top level */
+    var allowed = false;
+    var dropZone = hint.parents("li").first();
+    if (dropZone) {                            
+        if (dropZone.length > 0 && dropZone[0].id) {
+            /* Only allowed to be dropped within a group */
+            allowed = this.layerDictionary.get(dropZone[0].id).layers;
+        } else if (dropZone.length == 0) {
+            /* Dropped at the top level */
+            allowed = true;
+        }
+    }
+    return(allowed);
 };
 
 /**
  * Element from markup for a new layer group
  * @param {String} id
  * @param {String} name
- * @return {element}
+ * @return {Element}
  */
-magic.classes.creator.MapLayerSelectorTree.prototype.groupElement = function(id, name) {
-    return(jQuery(
-        '<li class="list-group-item list-group-item-heading" id="' + id + '">' + 
-            '<div class="btn-group btn-group-justified" role="group">' + 
-                '<div class="btn-group layer-group-collapser" style="width:7%">' + 
-                    '<button type="button" class="btn btn-info"><i class="fa fa-minus"></i></button>' + 
-                '</div>' + 
-                '<div class="btn-group" style="width:93%">' + 
-                    '<button type="button" class="btn btn-info layer-name-button" ' + 
-                        'data-toggle="tooltip" data-placement="top" title="Click to update layer group data">' + 
-                        name + 
-                    '</button>' +
-                '</div>' + 
+magic.classes.creator.MapLayerSelectorTree.prototype.groupMarkup = function(id, name) {   
+    var li = jQuery(
+        '<li class="list-group-item list-group-item-heading sortableListsClosed" id="' + id + '">' + 
+            '<span class="sortableListsOpener"></span>' +
+            '<div>' +                       
+                '<button type="button" class="btn btn-info btn-sm layer-name-button" data-toggle="tooltip" data-placement="top" title="Click to update layer group data">' + 
+                    name + 
+                '</button>' + 
             '</div>' + 
-            '<ul class="list-group"></ul>' + 
-        '</li>')
+            '<ul class="list-group" style="display:none"></ul>' + 
+        '</li>'
     );
+    /* Unfortunately the sortable lists plugin doesn't allow dynamic addition of items to the tree, just d-n-d re-ordering of existing ones
+     * Hence we have copied some of the event handlers here to allow open/close of dynamically added layer groups */
+    li.children("span")
+        .css(this.OPENER_CSS)
+        .off("mousedown").on("mousedown", jQuery.proxy(function(evt) {                    
+            if (li.hasClass("sortableListsClosed")) {
+                jQuery(evt.currentTarget).html(this.CLOSE_MARKUP);
+                li.removeClass("sortableListsClosed").addClass("sortableListsOpen");
+                li.children("ul, ol").css("display", "block");
+                li.children("div").children(".sortableListsOpener").first().html(this.CLOSE_MARKUP);
+            }
+            else { 
+                jQuery(evt.currentTarget).html(this.OPEN_MARKUP);
+                li.removeClass("sortableListsOpen").addClass("sortableListsClosed");
+                li.children("ul, ol").css("display", "none");
+                li.children("div").children(".sortableListsOpener").first().html(this.OPEN_MARKUP);
+            }
+            return(false);
+    }, this));
+    return(li);
 };
 
-magic.classes.creator.MapLayerSelectorTree.prototype.layerElement = function(id, name) {
-    return(jQuery(
+/**
+ * HTML fragment for layer list item
+ * @param {String} id
+ * @param {String} name
+ * @returns {Element}
+ */
+magic.classes.creator.MapLayerSelectorTree.prototype.layerMarkup = function(id, name) {
+    var li = jQuery(
         '<li class="list-group-item list-group-item-info" id="' + id + '">' + 
             '<div>' + 
-                '<button type="button" class="btn btn-info layer-name-button" style="width:100%" ' + 
-                    'data-toggle="tooltip" data-placement="top" title="Click to update layer data">' + 
+                '<button type="button" class="btn btn-info btn-sm layer-name-button" data-toggle="tooltip" data-placement="top" title="Click to update layer data">' + 
                     name + 
                 '</button>' + 
             '</div>' +     
-        '</li>')
+        '</li>'
     );
+    return(li);
 };
