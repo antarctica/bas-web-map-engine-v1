@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title></title>
+    </head>    
+    <body th:fragment="layout">
+        <form id="map-layers-group-form" class="form-horizontal">
+            <input type="hidden" id="map-layers-group-id" name="map-layers-group-id" value=""></input>
+            <div class="form-group">
+                <label for="map-layers-group-name" class="col-md-4 control-label">Layer group name</label>
+                <div class="col-md-8">                                    
+                    <input type="text" class="form-control" id="map-layers-group-name" name="map-layers-group-name" placeholder="Displayed name for group" 
+                           data-toggle="tooltip" data-placement="right" title="Letters, numbers, spaces and _ allowed" pattern="^[A-Za-z0-9_ ]+$" required="required">                                   
+                    </input>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-offset-4 col-md-8">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="map-layers-group-expanded" name="map-layers-group-expanded" value="expanded"
+                                   data-toggle="tooltip" data-placement="right" title="Tick if you want group expanded (open) in initial map view">                                
+                            </input> Group starts expanded
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-offset-4 col-md-8">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="map-layers-group-base" name="map-layers-group-base" value="base"
+                                   data-toggle="tooltip" data-placement="right" title="Tick if this is a base (backdrop) group of layers">                                
+                            </input> Group contains base (backdrop) layers
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-offset-4 col-md-8">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="map-layers-group-one_only" name="map-layers-group-one_only" value="one_only"
+                                   data-toggle="tooltip" data-placement="right" title="Tick to allow only one layer in group displayed at a time">                                
+                            </input> Only 1 group layer displayed at a time
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-offset-4 col-md-8">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="map-layers-group-autoload" name="map-layers-group-autoload" value="autoload"
+                                   data-toggle="tooltip" data-placement="right" title="Tick to automatically populate with layers from local server with names matching a filter string">                                
+                            </input> Autoload layers from local server
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group hidden">
+                <label for="map-layers-group-autoload_filter" class="col-md-4 control-label">Name filter</label>
+                <div class="col-md-8">                                    
+                    <input type="text" class="form-control" id="map-layers-group-autoload_filter" name="map-layers-group-autoload_filter" placeholder="Part feature name to match" 
+                           data-toggle="tooltip" data-placement="right" title="Only load layers whose Geoserver feature names match this value (required if above box ticked)">                                   
+                    </input>
+                </div>
+            </div>
+            <div class="form-group hidden">
+                <div class="col-md-offset-4 col-md-8">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="map-layers-group-autoload_popups" name="map-layers-group-autoload_popups" value="autoload_popups"
+                                   data-toggle="tooltip" data-placement="right" title="Tick to enable pop-ups on autoloaded layers">                                
+                            </input> Enable pop-ups on autoloaded layers
+                        </label>
+                    </div>
+                </div>
+            </div>            
+            <button id="map-layers-group-save" type="button" class="btn btn-primary">Update</button>
+            <button id="map-layers-group-delete" type="button" class="btn btn-danger btn-primary" disabled="disabled">Delete</button>
+        </form>
+    </body>
+</html>

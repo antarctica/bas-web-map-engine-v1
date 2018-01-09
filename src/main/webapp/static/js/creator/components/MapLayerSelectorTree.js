@@ -135,7 +135,7 @@ magic.classes.creator.MapLayerSelectorTree.prototype.allowedDragHandler = functi
             /* Only allowed to be dropped within a group */
             allowed = this.layerDictionary.get(dropZone[0].id).layers;
         } else if (dropZone.length == 0 && !elt.hasClass("list-group-item-info")) {
-            /* Dropped at the top level */
+            /* Dropped at the top level, and not a leaf */
             allowed = true;
         }
     }
@@ -155,10 +155,21 @@ magic.classes.creator.MapLayerSelectorTree.prototype.groupMarkup = function(id, 
     var li = jQuery(
         '<li class="list-group-item list-group-item-heading sortableListsClosed" id="' + id + '">' + 
             '<span class="sortableListsOpener"></span>' +
-            '<div>' +                       
-                '<button type="button" class="btn btn-info layer-name-button" data-toggle="tooltip" data-placement="top" title="Click to update layer group data">' + 
-                    name + 
-                '</button>' + 
+            '<div class="class="btn-toolbar" role="toolbar">' +  
+                '<div class="btn-group" role="group" style="display:flex">' + 
+                    '<button style="flex:1" type="button" class="btn btn-info layer-name-button" ' + 
+                        'data-container="body" data-toggle="tooltip" data-placement="top" title="Edit layer group data">' + 
+                        name + 
+                    '</button>' + 
+                    '<button style="width:40px" type="button" class="btn btn-warning" ' + 
+                        'data-container="body" data-toggle="tooltip" data-placement="top" title="Edit layer group data">' + 
+                        '<i class="fa fa-pencil"></i>' + 
+                    '</button>' + 
+                    '<button style="width:40px" type="button" class="btn btn-danger" ' + 
+                        'data-container="body" data-toggle="tooltip" data-placement="top" title="Delete layer group">' + 
+                        '<i class="fa fa-times"></i>' + 
+                    '</button>' + 
+                '</div>' + 
             '</div>' + 
             '<ul class="list-group" style="display:none"></ul>' + 
         '</li>'
@@ -194,10 +205,22 @@ magic.classes.creator.MapLayerSelectorTree.prototype.groupMarkup = function(id, 
 magic.classes.creator.MapLayerSelectorTree.prototype.layerMarkup = function(id, name) {
     var li = jQuery(
         '<li class="list-group-item list-group-item-info" id="' + id + '">' + 
-            '<div>' + 
-                '<button type="button" class="btn btn-info layer-name-button" data-toggle="tooltip" data-placement="top" title="Click to update layer data">' + 
-                    name + 
-                '</button>' + 
+            '<div class="class="btn-toolbar" role="toolbar">' + 
+                '<div class="btn-group" role="group" style="display:flex">' + 
+                    '<button style="flex:1" type="button" class="btn btn-info layer-name-button" ' + 
+                        'data-container="body" data-toggle="tooltip" data-placement="top" title="Edit layer data">' + 
+                        name + 
+                    '</button>' + 
+                    '<button style="width:40px" type="button" class="btn btn-warning" ' + 
+                        'data-container="body" data-toggle="tooltip" data-placement="top" title="Edit layer data">' + 
+                        '<i class="fa fa-pencil"></i>' + 
+                    '</button>' + 
+                    '<button style="width:40px" type="button" class="btn btn-danger" ' + 
+                        'data-container="body" data-toggle="tooltip" data-placement="top" title="Delete layer">' + 
+                        '<i class="fa fa-times"></i>' + 
+                    '</button>' + 
+                '</div>' + 
+                
             '</div>' +     
         '</li>'
     );

@@ -622,6 +622,7 @@ magic.modules.Common = function () {
          * Form input names/ids should be derivable from <prefix>-<field>
          * @param {Array} fields
          * @param {string} prefix
+         * @return {Object} json
          */
         formToJson: function(fields, prefix) {
             var json = {};

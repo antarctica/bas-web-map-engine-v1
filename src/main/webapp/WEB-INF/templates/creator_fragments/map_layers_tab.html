@@ -6,19 +6,28 @@
     </head>    
     <body th:fragment="layout">
         <div class="row">            
-            <div class="col-md-6">
-                <form id="map-layers-form" class="form-horizontal">                            
-                    <div id="map-layers-layertree-panel" class="panel panel-primary">
-                        <div class="panel-heading">
-                            <h3 class="panel-title">Choose data layers for the map, and their order</h3>
-                        </div>
-                        <div class="panel-body">                            
-                            <ul id="map-layers-layertree" class="list-group"></ul>
-                            <button id="map-layers-new-layer" type="button" class="btn btn-primary" disabled="disabled">New layer</button>
-                            <button id="map-layers-new-group" type="button" class="btn btn-primary" disabled="disabled">New group</button>                
-                        </div>
-                    </div>                
-                </form>
+            <div class="col-md-6">                                            
+                <div id="map-layers-layertree-panel" class="panel panel-primary">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Choose data layers for the map, and their order</h3>
+                    </div>
+                    <div class="panel-body">                            
+                        <ul id="map-layers-layertree" class="list-group"></ul>
+                        <button id="map-layers-new-layer" type="button" class="btn btn-primary" disabled="disabled">New layer</button>
+                        <button id="map-layers-new-group" type="button" class="btn btn-primary" disabled="disabled">New group</button>                
+                    </div>
+                </div>                
+            </div>
+            <div class="col-md-6 hidden">
+                <div id="map-layers-update-panel" class="panel panel-primary">
+                    <div class="panel-heading">
+                        <h3 id="map-layers-update-panel-title" class="panel-title"></h3>
+                    </div>
+                    <div class="panel-body">
+                        <div id="map-layers-group-div" th:include="creator_fragments/edit_layer_group :: layout"></div>                        
+                        <div id="map-layers-layer-div" th:include="creator_fragments/edit_layer :: layout"></div>                        
+                    </div>
+                </div>
             </div>
         </div>
     </body>
