@@ -157,10 +157,7 @@ magic.classes.creator.MapLayerSelectorTree.prototype.groupMarkup = function(id, 
             '<span class="sortableListsOpener"></span>' +
             '<div class="class="btn-toolbar" role="toolbar">' +  
                 '<div class="btn-group" role="group" style="display:flex">' + 
-                    '<button style="flex:1" type="button" class="btn btn-info layer-name-button" ' + 
-                        'data-container="body" data-toggle="tooltip" data-placement="top" title="Edit layer group data">' + 
-                        name + 
-                    '</button>' + 
+                    '<button style="flex:1" type="button" class="btn btn-info">' + name + '</button>' + 
                     '<button style="width:40px" type="button" class="btn btn-warning" ' + 
                         'data-container="body" data-toggle="tooltip" data-placement="top" title="Edit layer group data">' + 
                         '<i class="fa fa-pencil"></i>' + 
@@ -207,10 +204,7 @@ magic.classes.creator.MapLayerSelectorTree.prototype.layerMarkup = function(id, 
         '<li class="list-group-item list-group-item-info" id="' + id + '">' + 
             '<div class="class="btn-toolbar" role="toolbar">' + 
                 '<div class="btn-group" role="group" style="display:flex">' + 
-                    '<button style="flex:1" type="button" class="btn btn-info layer-name-button" ' + 
-                        'data-container="body" data-toggle="tooltip" data-placement="top" title="Edit layer data">' + 
-                        name + 
-                    '</button>' + 
+                    '<button style="flex:1" type="button" class="btn btn-info">' + name + '</button>' + 
                     '<button style="width:40px" type="button" class="btn btn-warning" ' + 
                         'data-container="body" data-toggle="tooltip" data-placement="top" title="Edit layer data">' + 
                         '<i class="fa fa-pencil"></i>' + 
