@@ -59,6 +59,10 @@ magic.classes.creator.LayerGroupEditor.prototype.isActive = function() {
     return(this.active);
 };
 
+magic.classes.creator.LayerGroupEditor.prototype.isDirty = function() {
+    return(this.formDirty);
+};
+
 magic.classes.creator.LayerGroupEditor.prototype.loadContext = function(context) {
     
     context = context || this.BLANK_MAP_NEW_GROUP;

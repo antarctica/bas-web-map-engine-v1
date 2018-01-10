@@ -384,14 +384,16 @@ magic.classes.Geosearch.prototype.positionSearchHandler = function (evt) {
             latFg = lat.closest("div.form-group");
     if (magic.modules.GeoUtils.validCoordinate(lon.val(), false, false) && magic.modules.GeoUtils.validCoordinate(lat.val(), true, false)) {
         /* Co-ordinates check out */
-        var position = new ol.geom.Point([lon.val(), lat.val()]);
+        var ddLon = magic.modules.GeoUtils.toDecDegrees(lon.val());
+        var ddLat = magic.modules.GeoUtils.toDecDegrees(lat.val());
+        var position = new ol.geom.Point([ddLon, ddLat]);
         position.transform("EPSG:4326", magic.runtime.map.getView().getProjection().getCode());
         var feat = new ol.Feature({
             "__id": magic.modules.Common.uuid(),
             "__gaz_name": null,
             geometry: position,
-            lon: lon.val(),
-            lat: lat.val(),
+            lon: ddLon,
+            lat: ddLat,
             name: label.val(),
             layer: this.layer
         });

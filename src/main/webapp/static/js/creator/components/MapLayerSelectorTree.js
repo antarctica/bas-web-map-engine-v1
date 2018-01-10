@@ -88,8 +88,28 @@ magic.classes.creator.MapLayerSelectorTree.prototype.showContext = function() {
             }); 
     }, this));
     
-    /* Edit layer group buttons */
-    jQuery(".layer-group-edit").off("click").on("click", jQuery.proxy(function(evt) {        
+    /* Edit layer/group buttons */
+    jQuery("button[class$='-edit']").off("click").on("click", jQuery.proxy(function(evt) {
+        jQuery("#" + this.prefix + "-update-panel").closest(".hidden").removeClass("hidden");
+        var promptChanged = this.layerGroupEditor.isActive() && this.layerGroupEditor.isDirty();
+        if (promptChanged) {
+            bootbox.confirm(
+                    //TODO
+                '<div class="alert alert-danger" style="margin-top:10px">Are you sure you want to delete ' + itemName + '</div>', 
+                function(result) {
+                    if (result) {
+                        /* Do the deletion (assuming any group is empty) */
+                        jQuery("#" + itemId).remove();
+                        this.layerDictionary.del(itemId);
+                        jQuery("[id$='-update-panel']").fadeOut("slow");
+                        bootbox.hideAll();
+                    } else {
+                        bootbox.hideAll();
+                    }                            
+                }); 
+        }
+        jQuery("#" + this.prefix + "-group-div").removeClass("hidden");
+        jQuery("#" + this.prefix + "-layer-div").addClass("hidden");
         this.layerGroupEditor.loadContext(this.layerDictionary.get(jQuery(evt.currentTarget).closest("li").attr("id")));
     }, this));
     
