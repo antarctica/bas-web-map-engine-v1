@@ -27,6 +27,13 @@ magic.classes.creator.MapLayerSelectorTree = function(options) {
     
     /* Dictionary of layer data, indexed by layer id */
     this.layerDictionary = new magic.classes.creator.LayerDictionary();
+    
+    /* Layer group editor */
+    this.layerGroupEditor = new magic.classes.creator.LayerGroupEditor({
+        prefix: "map-layers-group",
+        onSave: jQuery.proxy(this.writeGroupData, this),
+        onCancel: jQuery.proxy(this.cancelEdit, this)
+    });
    
 };
 
@@ -51,7 +58,46 @@ magic.classes.creator.MapLayerSelectorTree.prototype.loadContext = function(cont
  * Guaranteed to be called when the markup is complete and has been shown
  */
 magic.classes.creator.MapLayerSelectorTree.prototype.showContext = function() {
+    
+    /* Enable drag-n-drop reordering of the layer list */
     this.initSortableList(this.layerTreeUl);
+    
+    /* Disable delete buttons for all layer groups which have children (only deletable when empty) */
+    jQuery("btn.layer-group-delete").each(function(idx, elt) {
+        var hasSubLayers = jQuery(elt).closest("li").children("ul").find("li").length > 0;
+        jQuery(elt).prop("disabled", hasSubLayers);
+    });
+    
+    /* Delete layer/group buttons */
+    jQuery("btn[class$='-delete']").off("click").on("click", jQuery.proxy(function(evt) {
+        var delBtn = jQuery(evt.currentTarget);
+        var itemId = delBtn.closest("li").attr("id");
+        var itemName = delBtn.parent().children("button").first().text();
+        bootbox.confirm(
+            '<div class="alert alert-danger" style="margin-top:10px">Are you sure you want to delete ' + itemName + '</div>', 
+            function(result) {
+                if (result) {
+                    /* Do the deletion (assuming any group is empty) */
+                    jQuery("#" + itemId).remove();
+                    this.layerDictionary.del(itemId);
+                    jQuery("[id$='-update-panel']").fadeOut("slow");
+                    bootbox.hideAll();
+                } else {
+                    bootbox.hideAll();
+                }                            
+            }); 
+    }, this));
+    
+    /* Edit layer group buttons */
+    jQuery("btn.layer-group-edit']").off("click").on("click", jQuery.proxy(function(evt) {        
+        this.layerGroupEditor.loadContext(this.layerDictionary.get(jQuery(evt.currentTarget).closest("li").attr("id")));
+    }, this));
+    
+    /* Edit layer buttons */
+    //jQuery("btn.layer-edit']").off("click").on("click", jQuery.proxy(function(evt) {        
+    //    this.layerEditor.loadContext(this.layerDictionary.get(jQuery(evt.currentTarget).closest("li").attr("id")));
+    //}, this));
+    
 };
 
 /**
@@ -158,11 +204,11 @@ magic.classes.creator.MapLayerSelectorTree.prototype.groupMarkup = function(id, 
             '<div class="class="btn-toolbar" role="toolbar">' +  
                 '<div class="btn-group" role="group" style="display:flex">' + 
                     '<button style="flex:1" type="button" class="btn btn-info">' + name + '</button>' + 
-                    '<button style="width:40px" type="button" class="btn btn-warning" ' + 
+                    '<button style="width:40px" type="button" class="btn btn-warning layer-group-edit" ' + 
                         'data-container="body" data-toggle="tooltip" data-placement="top" title="Edit layer group data">' + 
                         '<i class="fa fa-pencil"></i>' + 
                     '</button>' + 
-                    '<button style="width:40px" type="button" class="btn btn-danger" ' + 
+                    '<button style="width:40px" type="button" class="btn btn-danger layer-group-delete" ' + 
                         'data-container="body" data-toggle="tooltip" data-placement="top" title="Delete layer group">' + 
                         '<i class="fa fa-times"></i>' + 
                     '</button>' + 
@@ -205,11 +251,11 @@ magic.classes.creator.MapLayerSelectorTree.prototype.layerMarkup = function(id, 
             '<div class="class="btn-toolbar" role="toolbar">' + 
                 '<div class="btn-group" role="group" style="display:flex">' + 
                     '<button style="flex:1" type="button" class="btn btn-info">' + name + '</button>' + 
-                    '<button style="width:40px" type="button" class="btn btn-warning" ' + 
+                    '<button style="width:40px" type="button" class="btn btn-warning layer-edit" ' + 
                         'data-container="body" data-toggle="tooltip" data-placement="top" title="Edit layer data">' + 
                         '<i class="fa fa-pencil"></i>' + 
                     '</button>' + 
-                    '<button style="width:40px" type="button" class="btn btn-danger" ' + 
+                    '<button style="width:40px" type="button" class="btn btn-danger layer-delete" ' + 
                         'data-container="body" data-toggle="tooltip" data-placement="top" title="Delete layer">' + 
                         '<i class="fa fa-times"></i>' + 
                     '</button>' + 
@@ -219,6 +265,22 @@ magic.classes.creator.MapLayerSelectorTree.prototype.layerMarkup = function(id, 
         '</li>'
     );
     return(li);
+};
+
+/**
+ * Callback for save action on a layer group
+ * @param {Object} data
+ */
+magic.classes.creator.MapLayerSelectorTree.prototype.writeGroupData = function(data) {
+    //TODO
+};
+
+/**
+ * Callback for cancel action on a layer or layer group
+ */
+magic.classes.creator.MapLayerSelectorTree.prototype.cancelEdit = function() {
+    magic.modules.Common.resetFormIndicators();
+    jQuery("[id$='-update-panel']").fadeOut("slow");
 };
 
 /**
