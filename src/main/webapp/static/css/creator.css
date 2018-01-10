@@ -22,3 +22,7 @@
     padding-left: 50px !important;
     padding-bottom: 5px !important;
 }
+
+button.layer-name-button {
+    width: 100%;
+}

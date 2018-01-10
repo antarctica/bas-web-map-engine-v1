@@ -102,7 +102,7 @@ magic.classes.creator.LayerGroupEditor.prototype.cancelEdit = function() {
     
     if (jQuery.isFunction(this.onCancel)) {
         /* Callback invocation */
-        this.onCancel());
+        this.onCancel();
     }
     
     /* Clean the form */

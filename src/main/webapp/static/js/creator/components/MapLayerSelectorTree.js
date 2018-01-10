@@ -63,13 +63,13 @@ magic.classes.creator.MapLayerSelectorTree.prototype.showContext = function() {
     this.initSortableList(this.layerTreeUl);
     
     /* Disable delete buttons for all layer groups which have children (only deletable when empty) */
-    jQuery("btn.layer-group-delete").each(function(idx, elt) {
+    jQuery("button.layer-group-delete").each(function(idx, elt) {
         var hasSubLayers = jQuery(elt).closest("li").children("ul").find("li").length > 0;
         jQuery(elt).prop("disabled", hasSubLayers);
     });
     
     /* Delete layer/group buttons */
-    jQuery("btn[class$='-delete']").off("click").on("click", jQuery.proxy(function(evt) {
+    jQuery("button[class$='-delete']").off("click").on("click", jQuery.proxy(function(evt) {
         var delBtn = jQuery(evt.currentTarget);
         var itemId = delBtn.closest("li").attr("id");
         var itemName = delBtn.parent().children("button").first().text();
@@ -89,7 +89,7 @@ magic.classes.creator.MapLayerSelectorTree.prototype.showContext = function() {
     }, this));
     
     /* Edit layer group buttons */
-    jQuery("btn.layer-group-edit']").off("click").on("click", jQuery.proxy(function(evt) {        
+    jQuery(".layer-group-edit").off("click").on("click", jQuery.proxy(function(evt) {        
         this.layerGroupEditor.loadContext(this.layerDictionary.get(jQuery(evt.currentTarget).closest("li").attr("id")));
     }, this));
     
@@ -139,7 +139,7 @@ magic.classes.creator.MapLayerSelectorTree.prototype.initSortableList = function
             open: this.OPEN_MARKUP,
             openerCss: this.OPENER_CSS
         },
-        ignoreClass: "layer-name-button"
+        ignoreClass: "ignore-drag-item"
     });
 };
 
@@ -201,16 +201,16 @@ magic.classes.creator.MapLayerSelectorTree.prototype.groupMarkup = function(id, 
     var li = jQuery(
         '<li class="list-group-item list-group-item-heading sortableListsClosed" id="' + id + '">' + 
             '<span class="sortableListsOpener"></span>' +
-            '<div class="class="btn-toolbar" role="toolbar">' +  
-                '<div class="btn-group" role="group" style="display:flex">' + 
-                    '<button style="flex:1" type="button" class="btn btn-info">' + name + '</button>' + 
-                    '<button style="width:40px" type="button" class="btn btn-warning layer-group-edit" ' + 
+            '<div class="class="btn-toolbar ignore-drag-item" role="toolbar">' +  
+                '<div class="btn-group ignore-drag-item" role="group" style="display:flex">' + 
+                    '<button style="flex:1" type="button" class="btn btn-info ignore-drag-item">' + name + '</button>' + 
+                    '<button style="width:40px" type="button" class="btn btn-warning layer-group-edit ignore-drag-item" ' + 
                         'data-container="body" data-toggle="tooltip" data-placement="top" title="Edit layer group data">' + 
-                        '<i class="fa fa-pencil"></i>' + 
+                        '<i class="fa fa-pencil ignore-drag-item"></i>' + 
                     '</button>' + 
-                    '<button style="width:40px" type="button" class="btn btn-danger layer-group-delete" ' + 
+                    '<button style="width:40px" type="button" class="btn btn-danger layer-group-delete ignore-drag-item" ' + 
                         'data-container="body" data-toggle="tooltip" data-placement="top" title="Delete layer group">' + 
-                        '<i class="fa fa-times"></i>' + 
+                        '<i class="fa fa-times ignore-drag-item"></i>' + 
                     '</button>' + 
                 '</div>' + 
             '</div>' + 
@@ -248,19 +248,18 @@ magic.classes.creator.MapLayerSelectorTree.prototype.groupMarkup = function(id, 
 magic.classes.creator.MapLayerSelectorTree.prototype.layerMarkup = function(id, name) {
     var li = jQuery(
         '<li class="list-group-item list-group-item-info" id="' + id + '">' + 
-            '<div class="class="btn-toolbar" role="toolbar">' + 
-                '<div class="btn-group" role="group" style="display:flex">' + 
-                    '<button style="flex:1" type="button" class="btn btn-info">' + name + '</button>' + 
-                    '<button style="width:40px" type="button" class="btn btn-warning layer-edit" ' + 
+            '<div class="class="btn-toolbar ignore-drag-item" role="toolbar">' + 
+                '<div class="btn-group ignore-drag-item" role="group" style="display:flex">' + 
+                    '<button style="flex:1" type="button" class="btn btn-info ignore-drag-item">' + name + '</button>' + 
+                    '<button style="width:40px" type="button" class="btn btn-warning layer-edit ignore-drag-item" ' + 
                         'data-container="body" data-toggle="tooltip" data-placement="top" title="Edit layer data">' + 
-                        '<i class="fa fa-pencil"></i>' + 
+                        '<i class="fa fa-pencil ignore-drag-item"></i>' + 
                     '</button>' + 
-                    '<button style="width:40px" type="button" class="btn btn-danger layer-delete" ' + 
+                    '<button style="width:40px" type="button" class="btn btn-danger layer-delete ignore-drag-item" ' + 
                         'data-container="body" data-toggle="tooltip" data-placement="top" title="Delete layer">' + 
-                        '<i class="fa fa-times"></i>' + 
+                        '<i class="fa fa-times ignore-drag-item"></i>' + 
                     '</button>' + 
-                '</div>' + 
-                
+                '</div>' +                 
             '</div>' +     
         '</li>'
     );
