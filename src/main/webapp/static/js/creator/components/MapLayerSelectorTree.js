@@ -127,8 +127,10 @@ magic.classes.creator.MapLayerSelectorTree.prototype.showContext = function() {
  * @param {jQuery.Event} evt
  */
 magic.classes.creator.MapLayerSelectorTree.prototype.editHandler = function(evt) {
-    var editBtn = jQuery(evt.currentTarget);        
-    jQuery("#" + this.prefix + "-update-panel").closest(".hidden").removeClass("hidden");
+    var editBtn = jQuery(evt.currentTarget);     
+    var updatePanel = jQuery("#" + this.prefix + "-update-panel");
+    updatePanel.parent().removeClass("hidden");
+    updatePanel.show();
     var promptChanged = this.currentlyEditing != null && this.currentlyEditing.isActive() && this.currentlyEditing.isDirty();
     if (promptChanged) {
         bootbox.confirm(
@@ -159,7 +161,7 @@ magic.classes.creator.MapLayerSelectorTree.prototype.deleteHandler = function(ev
                 /* Do the deletion (assuming any group is empty) */
                 jQuery("#" + itemId).remove();
                 this.layerDictionary.del(itemId);
-                jQuery("[id$='-update-panel']").fadeOut("slow");
+                jQuery("#" + this.prefix + "-update-panel").fadeOut("slow");
                 bootbox.hideAll();
             } else {
                 bootbox.hideAll();
@@ -200,10 +202,8 @@ magic.classes.creator.MapLayerSelectorTree.prototype.getContext = function() {
  * Validate the form
  * @return {boolean}
  */
-magic.classes.creator.MapLayerSelectorTree.prototype.validate = function() {               
-    var ok = true;
-    //TODO   
-    return(ok);
+magic.classes.creator.MapLayerSelectorTree.prototype.validate = function() {                      
+    return(true);
 };
 
 /**
@@ -358,7 +358,8 @@ magic.classes.creator.MapLayerSelectorTree.prototype.layerMarkup = function(id, 
  * @param {Object} data
  */
 magic.classes.creator.MapLayerSelectorTree.prototype.writeGroupData = function(data) {
-    //TODO
+    this.layerDictionary.put(data);
+    jQuery("#" + this.prefix + "-update-panel").fadeOut("slow");
 };
 
 /**
@@ -366,7 +367,8 @@ magic.classes.creator.MapLayerSelectorTree.prototype.writeGroupData = function(d
  * @param {Object} data
  */
 magic.classes.creator.MapLayerSelectorTree.prototype.writeLayerData = function(data) {
-    //TODO
+    this.layerDictionary.put(data);
+    jQuery("#" + this.prefix + "-update-panel").fadeOut("slow");
 };
 
 /**

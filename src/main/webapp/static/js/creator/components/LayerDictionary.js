@@ -11,7 +11,9 @@ magic.classes.creator.LayerDictionary.prototype.get = function(id) {
 };
 
 magic.classes.creator.LayerDictionary.prototype.put = function(o) {
-    o.id = magic.modules.Common.uuid();
+    if (!o.id) {
+        o.id = magic.modules.Common.uuid();
+    }
     this.dictionary[o.id] = o;
     return(o.id);
 };

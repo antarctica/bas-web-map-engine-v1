@@ -819,3 +819,8 @@ div.issue-info {
     filter: alpha(opacity=60); /* For IE8 and earlier */
     pointer-events: none;
 }
+
+/* Striping of dropdown menus for better user experience */
+ul.dropdown-menu > li > a:hover {
+  background-color: #e0e0e0;
+}
