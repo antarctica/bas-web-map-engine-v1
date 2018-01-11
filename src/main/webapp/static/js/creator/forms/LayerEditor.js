@@ -1,38 +1,23 @@
 /* Layer group editing form */
 
-magic.classes.creator.LayerGroupEditor = function(options) {            
-    
+magic.classes.creator.LayerEditor = function(options) {
+            
     /* Prefix to strip from ids/names to get corresponding JSON schema entries */
-    this.prefix = options.prefix || "map-layers-group";
+    this.prefix = options.prefix || "map-layers-layer";
     
     /* Callbacks */
     this.onSave = options.onSave || null;
     this.onCancel = options.onCancel || null;
     
     /* Field names */
-    this.formSchema = [
-        {"field": "id", "default": ""},
-        {"field": "name", "default": ""},
-        {"field": "expanded", "default": false},
-        {"field": "base", "default": false},
-        {"field": "autoload", "default": false},
-        {"field": "autoload_filter", "default": ""},
-        {"field": "autoload_popups", "default": false},
-        {"field": "one_only", "default": false}
-    ];   
+    this.formSchema = []; //TODO
     
     /* Form active flag */
     this.active = false;
     
     /* Save and cancel buttons */
     this.saveBtn = jQuery("#" + this.prefix + "-save");
-    this.cancelBtn = jQuery("#" + this.prefix + "-cancel");
-   
-    /* Add handler for autoload checkbox click */
-    jQuery("#" + this.prefix + "-autoload").change(function(evt) {
-        jQuery("#" + evt.currentTarget.id + "_filter").closest("div.form-group").toggleClass("hidden");
-        jQuery("#" + evt.currentTarget.id + "_popups").closest("div.form-group").toggleClass("hidden");
-    });
+    this.cancelBtn = jQuery("#" + this.prefix + "-cancel");   
     
     /* Form change handling */
     this.formDirty = false;
@@ -49,15 +34,15 @@ magic.classes.creator.LayerGroupEditor = function(options) {
             
 };
 
-magic.classes.creator.LayerGroupEditor.prototype.isActive = function() {
+magic.classes.creator.LayerEditor.prototype.isActive = function() {
     return(this.active);
 };
 
-magic.classes.creator.LayerGroupEditor.prototype.isDirty = function() {
+magic.classes.creator.LayerEditor.prototype.isDirty = function() {
     return(this.formDirty);
 };
 
-magic.classes.creator.LayerGroupEditor.prototype.loadContext = function(context) {
+magic.classes.creator.LayerEditor.prototype.loadContext = function(context) {
     
     if (!context) {
         return;
@@ -65,18 +50,7 @@ magic.classes.creator.LayerGroupEditor.prototype.loadContext = function(context)
     
     /* Disable save button until form is changed */
     this.saveBtn.prop("disabled", true);
-    
-    /* Display the filter and popup choice inputs if the autoload checkbox is ticked */
-    var alFilterDiv = jQuery("#" + this.prefix + "-autoload_filter").closest("div.form-group");
-    var alPopupsDiv = jQuery("#" + this.prefix + "-autoload_popups").closest("div.form-group");
-    if (context.autoload) {
-        alFilterDiv.removeClass("hidden");
-        alPopupsDiv.removeClass("hidden");
-    } else {
-        alFilterDiv.addClass("hidden");
-        alPopupsDiv.addClass("hidden");
-    }
-    
+      
     /* Populate form from data */
     magic.modules.Common.jsonToForm(this.formSchema, context, this.prefix);  
     
@@ -87,7 +61,7 @@ magic.classes.creator.LayerGroupEditor.prototype.loadContext = function(context)
     this.active = true;
 };
 
-magic.classes.creator.LayerGroupEditor.prototype.saveContext = function(context) {
+magic.classes.creator.LayerEditor.prototype.saveContext = function(context) {
     
     if (jQuery.isFunction(this.onSave)) {
         /* Populate form from data */
@@ -101,7 +75,7 @@ magic.classes.creator.LayerGroupEditor.prototype.saveContext = function(context)
     this.active = false;
 };
 
-magic.classes.creator.LayerGroupEditor.prototype.cancelEdit = function() {
+magic.classes.creator.LayerEditor.prototype.cancelEdit = function() {
     
     if (jQuery.isFunction(this.onCancel)) {
         /* Callback invocation */
@@ -118,7 +92,7 @@ magic.classes.creator.LayerGroupEditor.prototype.cancelEdit = function() {
 /**
  * Validate form inputs
  */
-magic.classes.creator.LayerGroupEditor.prototype.validate = function() {    
+magic.classes.creator.LayerEditor.prototype.validate = function() {    
     var ok = jQuery("#" + this.prefix + "-form")[0].checkValidity();
     /* Indicate invalid fields */
     jQuery.each(jQuery("#" + this.prefix + "-form").find("input"), function(idx, ri) {

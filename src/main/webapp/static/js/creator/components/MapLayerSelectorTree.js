@@ -17,6 +17,22 @@ magic.classes.creator.MapLayerSelectorTree = function(options) {
     this.OPEN_MARKUP = '<i class="fa fa-plus" style="font-size:20px"></i>';
     this.CLOSE_MARKUP = '<i class="fa fa-minus" style="font-size:20px"></i>';
     
+    /* Template for a new group */
+    this.BLANK_MAP_NEW_GROUP = {
+        "id": null,
+        "name": "New layer group",
+        "layers": []
+    };
+    
+    /* Template for a new layer */
+    this.BLANK_MAP_NEW_LAYER = {            
+        "id": null,
+        "name": "New layer",
+        "source": {
+            "wms_source": ""
+        }
+    };    
+    
     /* Unpack API properties from options */
     
     /* ID prefix */
@@ -28,10 +44,20 @@ magic.classes.creator.MapLayerSelectorTree = function(options) {
     /* Dictionary of layer data, indexed by layer id */
     this.layerDictionary = new magic.classes.creator.LayerDictionary();
     
+    /* Whether we are editing a layer or a group */
+    this.currentlyEditing = null;
+    
     /* Layer group editor */
     this.layerGroupEditor = new magic.classes.creator.LayerGroupEditor({
-        prefix: "map-layers-group",
+        prefix: this.prefix + "-group",
         onSave: jQuery.proxy(this.writeGroupData, this),
+        onCancel: jQuery.proxy(this.cancelEdit, this)
+    });
+    
+    /* Layer group editor */
+    this.layerEditor = new magic.classes.creator.LayerEditor({
+        prefix: this.prefix + "-layer",
+        onSave: jQuery.proxy(this.writeLayerData, this),
         onCancel: jQuery.proxy(this.cancelEdit, this)
     });
    
@@ -62,6 +88,26 @@ magic.classes.creator.MapLayerSelectorTree.prototype.showContext = function() {
     /* Enable drag-n-drop reordering of the layer list */
     this.initSortableList(this.layerTreeUl);
     
+    /* New group handler */
+    jQuery("#" + this.prefix + "-new-group").off("click").on("click", jQuery.proxy(function(evt) {        
+        var id = this.layerDictionary.put(jQuery.extend({}, this.BLANK_MAP_NEW_GROUP));
+        var newLi = this.groupMarkup(id, this.layerDictionary.get(id)["name"]);
+        this.layerTreeUl.append(newLi);
+        newLi.find("button.layer-group-edit").off("click").on("click", jQuery.proxy(this.editHandler, this));
+        newLi.find("button.layer-group-delete").off("click").on("click", jQuery.proxy(this.deleteHandler, this));
+        this.showEditor(jQuery(evt.currentTarget), true);
+    }, this));
+    
+    /* New layer handler */
+    jQuery("#" + this.prefix + "-new-layer").off("click").on("click", jQuery.proxy(function(evt) {
+        var id = this.layerDictionary.put(jQuery.extend({}, this.BLANK_MAP_NEW_LAYER));
+        var newLi = this.layerMarkup(id, this.layerDictionary.get(id)["name"]);
+        this.layerTreeUl.append(newLi);
+        newLi.find("button.layer-edit").off("click").on("click", jQuery.proxy(this.editHandler, this));
+        newLi.find("button.layer-delete").off("click").on("click", jQuery.proxy(this.deleteHandler, this));
+        this.showEditor(jQuery(evt.currentTarget), true);
+    }, this));
+    
     /* Disable delete buttons for all layer groups which have children (only deletable when empty) */
     jQuery("button.layer-group-delete").each(function(idx, elt) {
         var hasSubLayers = jQuery(elt).closest("li").children("ul").find("li").length > 0;
@@ -69,55 +115,76 @@ magic.classes.creator.MapLayerSelectorTree.prototype.showContext = function() {
     });
     
     /* Delete layer/group buttons */
-    jQuery("button[class$='-delete']").off("click").on("click", jQuery.proxy(function(evt) {
-        var delBtn = jQuery(evt.currentTarget);
-        var itemId = delBtn.closest("li").attr("id");
-        var itemName = delBtn.parent().children("button").first().text();
-        bootbox.confirm(
-            '<div class="alert alert-danger" style="margin-top:10px">Are you sure you want to delete ' + itemName + '</div>', 
-            function(result) {
-                if (result) {
-                    /* Do the deletion (assuming any group is empty) */
-                    jQuery("#" + itemId).remove();
-                    this.layerDictionary.del(itemId);
-                    jQuery("[id$='-update-panel']").fadeOut("slow");
-                    bootbox.hideAll();
-                } else {
-                    bootbox.hideAll();
-                }                            
-            }); 
-    }, this));
+    jQuery("button.layer-group-delete").off("click").on("click", jQuery.proxy(this.deleteHandler, this));
     
     /* Edit layer/group buttons */
-    jQuery("button[class$='-edit']").off("click").on("click", jQuery.proxy(function(evt) {
-        jQuery("#" + this.prefix + "-update-panel").closest(".hidden").removeClass("hidden");
-        var promptChanged = this.layerGroupEditor.isActive() && this.layerGroupEditor.isDirty();
-        if (promptChanged) {
-            bootbox.confirm(
-                    //TODO
-                '<div class="alert alert-danger" style="margin-top:10px">Are you sure you want to delete ' + itemName + '</div>', 
-                function(result) {
-                    if (result) {
-                        /* Do the deletion (assuming any group is empty) */
-                        jQuery("#" + itemId).remove();
-                        this.layerDictionary.del(itemId);
-                        jQuery("[id$='-update-panel']").fadeOut("slow");
-                        bootbox.hideAll();
-                    } else {
-                        bootbox.hideAll();
-                    }                            
-                }); 
-        }
+    jQuery("button.layer-group-edit").off("click").on("click", jQuery.proxy(this.editHandler, this));    
+    
+};
+
+/**
+ * Event handler for an edit button click
+ * @param {jQuery.Event} evt
+ */
+magic.classes.creator.MapLayerSelectorTree.prototype.editHandler = function(evt) {
+    var editBtn = jQuery(evt.currentTarget);        
+    jQuery("#" + this.prefix + "-update-panel").closest(".hidden").removeClass("hidden");
+    var promptChanged = this.currentlyEditing != null && this.currentlyEditing.isActive() && this.currentlyEditing.isDirty();
+    if (promptChanged) {
+        bootbox.confirm(
+            '<div class="alert alert-danger" style="margin-top:10px">You have unsaved changes - proceed?</div>', 
+            jQuery.proxy(function(result) {
+                if (result) {
+                    this.showEditor(editBtn, false);
+                }  
+                bootbox.hideAll();
+            }, this)); 
+    } else {
+        this.showEditor(editBtn, false);
+    }        
+};
+
+/**
+ * Event handler for a delete button click
+ * @param {jQuery.Event} evt
+ */
+magic.classes.creator.MapLayerSelectorTree.prototype.deleteHandler = function(evt) {
+    var delBtn = jQuery(evt.currentTarget);
+    var itemId = delBtn.closest("li").attr("id");
+    var itemName = delBtn.parent().children("button").first().text();
+    bootbox.confirm(
+        '<div class="alert alert-danger" style="margin-top:10px">Are you sure you want to delete ' + itemName + '</div>', 
+        function(result) {
+            if (result) {
+                /* Do the deletion (assuming any group is empty) */
+                jQuery("#" + itemId).remove();
+                this.layerDictionary.del(itemId);
+                jQuery("[id$='-update-panel']").fadeOut("slow");
+                bootbox.hideAll();
+            } else {
+                bootbox.hideAll();
+            }                            
+        }); 
+};
+
+/**
+ * Callback to show actual editor content
+ * @param {jQuery.Element} btn
+ * @param {boolean} creating
+ */
+magic.classes.creator.MapLayerSelectorTree.prototype.showEditor = function(btn, creating) {
+    var isGroup = btn.hasClass("layer-group-edit");
+    if (isGroup) {
         jQuery("#" + this.prefix + "-group-div").removeClass("hidden");
         jQuery("#" + this.prefix + "-layer-div").addClass("hidden");
-        this.layerGroupEditor.loadContext(this.layerDictionary.get(jQuery(evt.currentTarget).closest("li").attr("id")));
-    }, this));
-    
-    /* Edit layer buttons */
-    //jQuery("btn.layer-edit']").off("click").on("click", jQuery.proxy(function(evt) {        
-    //    this.layerEditor.loadContext(this.layerDictionary.get(jQuery(evt.currentTarget).closest("li").attr("id")));
-    //}, this));
-    
+        this.layerGroupEditor.loadContext(creating ? this.BLANK_MAP_NEW_GROUP : this.layerDictionary.get(btn.closest("li").attr("id")));
+        this.currentlyEditing = this.layerGroupEditor;
+    } else {
+        jQuery("#" + this.prefix + "-layer-div").removeClass("hidden");
+        jQuery("#" + this.prefix + "-group-div").addClass("hidden");
+        this.layerEditor.loadContext(creating ? this.BLANK_MAP_NEW_LAYER : this.layerDictionary.get(btn.closest("li").attr("id")));
+        this.currentlyEditing = this.layerEditor;
+    }    
 };
 
 /**
@@ -291,6 +358,14 @@ magic.classes.creator.MapLayerSelectorTree.prototype.layerMarkup = function(id, 
  * @param {Object} data
  */
 magic.classes.creator.MapLayerSelectorTree.prototype.writeGroupData = function(data) {
+    //TODO
+};
+
+/**
+ * Callback for save action on a layer
+ * @param {Object} data
+ */
+magic.classes.creator.MapLayerSelectorTree.prototype.writeLayerData = function(data) {
     //TODO
 };
 
