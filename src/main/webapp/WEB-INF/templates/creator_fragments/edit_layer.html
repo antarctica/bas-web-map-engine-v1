@@ -5,180 +5,102 @@
         <title></title>
     </head>    
     <body th:fragment="layout">
-        <p><strong>Layer type</strong></p>
-        <form id="t2-layer-form" class="form-horizontal">
-            <input type="hidden" id="t2-layer-id" name="t2-layer-id"></input>
-            <input type="hidden" id="t2-layer-geom_type" name="t2-layer-geom_type"></input>            
-            <div role="tabpanel">                
-                <!-- Source type tabs -->
-                <ul class="nav nav-pills" role="tablist">
-                    <li role="presentation" class="active">
-                        <a href="#t2-layer-wms-tab" aria-controls="home" role="tab" data-toggle="tab" data-placement="top" title="Data source is a WMS (Web Map Service) feed">WMS</a>
-                    </li>
-                    <li role="presentation">
-                        <a href="#t2-layer-geojson-tab" aria-controls="profile" role="tab" data-toggle="tab" data-placement="top" title="Data source is a GeoJSON feed">GeoJSON</a>
-                    </li>
-                    <li role="presentation">
-                        <a href="#t2-layer-gpx-tab" aria-controls="messages" role="tab" data-toggle="tab" data-placement="top" title="Data source is a GPX route/track or waypoints">GPX</a>
-                    </li>
-                    <li role="presentation">
-                        <a href="#t2-layer-kml-tab" aria-controls="settings" role="tab" data-toggle="tab" data-placement="top" title="Data source is a KML (Google Earth) file">KML</a>
-                    </li>
-                </ul>
-                <!-- Source tab panes -->
-                <div class="tab-content">
-                    <div role="tabpanel" class="tab-pane active" id="t2-layer-wms-tab" th:include="creator_fragments/layer_wms_tab :: layout"></div>
-                    <div role="tabpanel" class="tab-pane" id="t2-layer-geojson-tab" th:include="creator_fragments/layer_geojson_tab :: layout"></div>
-                    <div role="tabpanel" class="tab-pane" id="t2-layer-gpx-tab" th:include="creator_fragments/layer_gpx_tab :: layout"></div>
-                    <div role="tabpanel" class="tab-pane" id="t2-layer-kml-tab" th:include="creator_fragments/layer_kml_tab :: layout"></div>
-                </div>
-            </div>
+        <form id="map-layers-layer-form" class="form-horizontal">
+            <input type="hidden" id="map-layers-layer-id" name="map-layers-layer-id"></input>
+            <input type="hidden" id="map-layers-layer-geom_type" name="map-layers-layer-geom_type"></input>                        
             <div class="form-group">
-                <label for="t2-layer-name" class="col-sm-3 control-label">Layer name</label>
-                <div class="col-sm-9">
-                    <input type="text" class="form-control" id="t2-layer-name" name="t2-layer-name" placeholder="Layer name" 
+                <label for="map-layers-layer-name" class="col-md-3 control-label">Layer name</label>
+                <div class="col-md-9">
+                    <input type="text" class="form-control" id="map-layers-layer-name" name="map-layers-layer-name" placeholder="Layer name" 
                            data-toggle="tooltip" data-placement="left" title="Letters, numbers, spaces and -_(), allowed" pattern="^[A-Za-z0-9_ (),-]+$" required="required">                                   
                     </input>
                 </div>
-            </div>           
+            </div>
+            <div class="hidden">
+                <div id="map-layers-wms-source" th:include="creator_fragments/source_layer_wms :: layout"></div>
+                <div id="map-layers-geojson-source" th:include="creator_fragments/source_layer_geojson :: layout"></div>
+                <div id="map-layers-gpx-source" th:include="creator_fragments/source_layer_gpx :: layout"></div>
+                <div id="map-layers-kml-source" th:include="creator_fragments/source_layer_kml :: layout"></div>
+            </div>
             <div class="form-group">
-                <div class="col-sm-offset-3 col-sm-9">
+                <div class="col-md-offset-3 col-md-12">
                     <div class="checkbox">
                         <label>
-                            <input type="checkbox" id="t2-layer-is_visible" name="t2-layer-is_visible" value="expanded"
+                            <input type="checkbox" id="map-layers-layer-is_interactive" name="map-layers-layer-is_interactive" value="interactive"
+                                   data-toggle="tooltip" data-placement="left" title="Tick if this layer should display a pop-up of selected attributes on the map">                                
+                            </input> Layer should display attribute pop-ups
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <!-- visibility, min_scale, max_scale, opacity -->
+            <div class="form-group">
+                <div class="col-md-offset-3 col-md-9">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="map-layers-layer-is_visible" name="map-layers-layer-is_visible" value="expanded"
                                    data-toggle="tooltip" data-placement="left" title="Tick if you want layer visible in initial map view">                                
                             </input> Layer is visible
                         </label>
                     </div>
                 </div>
+            </div>            
+            <div class="form-group">
+                <label class="col-md-3 control-label" for="map-layers-layer-min_scale">
+                    From min scale
+                </label>
+                <div class="col-md-9">
+                    <input type="number" class="form-control" id="map-layers-layer-min_scale" name="map-layers-layer-min_scale" 
+                           placeholder="Visible at minimum scale denominator" 
+                           min="1000" max="100000000" step="1000"
+                           data-toggle="tooltip" data-placement="left" title="Minimum scale denominator layer should be visible at (defaults to maximum zoom scale of map)">                                   
+                    </input>
+                </div>
             </div>
             <div class="form-group">
-                <label for="t2-layer-legend_graphic" class="col-sm-3 control-label">Legend image</label>
-                <div class="col-sm-9">
-                    <input type="url" class="form-control map-creator-control-sm" id="t2-layer-legend_graphic" name="t2-layer-legend_graphic" placeholder="URL of legend image if required" 
+                <label class="col-md-3 control-label" for="map-layers-layer-max_scale">
+                    To max scale
+                </label>
+                <div class="col-md-9">
+                    <input type="number" class="form-control" id="map-layers-layer-max_scale" name="map-layers-layer-max_scale" 
+                           placeholder="Visible at maximum scale denominator" 
+                           min="1000" max="100000000" step="1000"
+                           data-toggle="tooltip" data-placement="left" title="Maximum scale denominator layer should be visible at (defaults to minimum zoom scale of map)">                                   
+                    </input>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="map-layers-layer-opacity" class="col-md-3 control-label">Opacity</label>
+                <div class="col-md-9">
+                    <input type="number" class="form-control" id="map-layers-layer-opacity" name="map-layers-layer-opacity" 
+                           placeholder="Layer opacity (0->1)"
+                           min="0" max="1" step="0.1"
+                           data-toggle="tooltip" data-placement="left" title="Layer opacity (0.0 = transparent, 1.0 = opaque)">                                   
+                    </input>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="map-layers-layer-legend_graphic" class="col-md-3 control-label">Legend image</label>
+                <div class="col-md-9">
+                    <input type="url" class="form-control" id="map-layers-layer-legend_graphic" name="map-layers-layer-legend_graphic" placeholder="URL of legend image if required" 
                            data-toggle="tooltip" data-placement="left" title="Custom URL for a legend image">                                   
                     </input>
                 </div>
             </div>
             <div class="form-group">
-                <label class="col-sm-3 control-label" for="t2-layer-refresh_rate">
+                <label class="col-md-3 control-label" for="map-layers-layer-refresh_rate">
                     Refresh rate
                 </label>
-                <div class="col-sm-9">
-                    <input type="number" class="form-control map-creator-control-sm" id="t2-layer-refresh_rate" name="t2-layer-refresh_rate"
+                <div class="col-md-9">
+                    <input type="number" class="form-control" id="map-layers-layer-refresh_rate" name="map-layers-layer-refresh_rate"
                        placeholder="Minutes before data is auto-refreshed" 
                        min="0" max="300" step="5"
-                       data-toggle="tooltip" data-placement="left" title="Elapsed minutes before layer data is auto-refreshed">                                   
+                       data-toggle="tooltip" data-placement="left" title="Elapsed minutes before layer data is auto-refreshed, useful for dynamic data">                                   
                     </input>
                 </div>
-            </div>   
-            <div class="panel panel-default" id="t2-layer-symbology-panel">
-                <div class="panel-heading">
-                    <a class="btn btn-primary"  style="width:100%" data-toggle="collapse" href="#t2-layer-style-props-div">Edit symbology</a>
-                </div>            
-                <div class="panel-collapse collapse" id="t2-layer-style-props-div">
-                    <div class="panel-body">
-                        <div id="t2-style-div" th:include="creator_fragments/layer_styler :: layout"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <a class="btn btn-primary"  style="width:100%" data-toggle="collapse" href="#t2-layer-app-props-div">Edit zoom-level visibility and transparency</a>
-                </div>            
-                <div class="panel-collapse collapse" id="t2-layer-app-props-div">
-                    <div class="panel-body">
-                        <!-- min_scale, max_scale, opacity -->
-                        <div class="form-group">
-                            <label class="col-sm-3 control-label" for="t2-layer-min_scale">
-                                Min visible scale
-                            </label>
-                            <div class="col-sm-9">
-                                <input type="number" class="form-control map-creator-control-sm" id="t2-layer-min_scale" name="t2-layer-min_scale" 
-                                       placeholder="Visible at minimum scale denominator" 
-                                       min="1000" max="100000000" step="1000"
-                                       data-toggle="tooltip" data-placement="left" title="Minimum scale denominator layer should be visible at (defaults to maximum zoom scale of map)">                                   
-                                </input>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-3 control-label" for="t2-layer-max_scale">
-                                Max visible scale
-                            </label>
-                            <div class="col-sm-9">
-                                <input type="number" class="form-control map-creator-control-sm" id="t2-layer-max_scale" name="t2-layer-max_scale" 
-                                       placeholder="Visible at maximum scale denominator" 
-                                       min="1000" max="100000000" step="1000"
-                                       data-toggle="tooltip" data-placement="left" title="Maximum scale denominator layer should be visible at (defaults to minimum zoom scale of map)">                                   
-                                </input>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="t2-layer-opacity" class="col-sm-3 control-label">Opacity</label>
-                            <div class="col-sm-9">
-                                <input type="number" class="form-control map-creator-control-sm" id="t2-layer-opacity" name="t2-layer-opacity" 
-                                       placeholder="Layer opacity (0->1)"
-                                       min="0" max="1" step="0.1"
-                                       data-toggle="tooltip" data-placement="left" title="Layer opacity (0.0 = transparent, 1.0 = opaque)">                                   
-                                </input>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <a class="btn btn-primary" style="width:100%" data-toggle="collapse" href="#t2-layer-int-props-div">Edit interactivity properties</a>
-                </div>        
-                <div class="panel-collapse collapse" id="t2-layer-int-props-div">                    
-                    <div class="panel-body show" id="t2-layer-int-yes">
-                        <div class="alert alert-info">
-                            WMS layer features <strong>cannot</strong> be labelled here - change the default style in the WMS
-                        </div>
-                        <!-- is_interactive, is_filterable, attribute_map -->
-                        <div class="form-group">
-                            <label class="col-sm-3 control-label">Geometry type</label>
-                            <div class="col-sm-9">
-                                <div class="btn btn-info geometry-type-indicator" data-toggle="tooltip" data-placement="left" title="May display as unknown if layer is a composite group or a raster">Unknown</div>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <div class="col-sm-12">
-                                <div class="checkbox">
-                                    <label>
-                                        <input type="checkbox" id="t2-layer-is_interactive" name="t2-layer-is_interactive" value="interactive"
-                                               data-toggle="tooltip" data-placement="left" title="Tick if this layer should display a pop-up of selected attributes on the map">                                
-                                        </input> Layer should display attribute pop-ups
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <div class="col-sm-12">
-                                <div class="checkbox">
-                                    <label>
-                                        <input type="checkbox" id="t2-layer-is_filterable" name="t2-layer-is_filterable" value="filterable"
-                                               data-toggle="tooltip" data-placement="left" title="Tick if this layer can be filtered by attribute value(s)">                                
-                                        </input> Layer can be filtered on attribute value(s)
-                                    </label>
-                                </div>
-                            </div>
-                        </div>                        
-                        <div class="panel panel-default" id="t2-layer-attributes-div">
-                            <div class="panel-body">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="panel-body hidden" id="t2-layer-int-no">
-                        <div class="alert alert-warning" style="margin-bottom:0">No interactivity possible for this layer</div>
-                    </div>
-                    <div class="panel-body hidden" id="t2-layer-int-unknown">
-                        <div class="alert alert-warning" style="margin-bottom:0">Update the layer with a feature source first</div>
-                    </div>
-                </div> 
-            </div>            
-            <button id="t2-layer-save" type="button" class="btn btn-primary">Update</button>
-            <button id="t2-layer-delete" type="button" class="btn btn-danger btn-primary">Delete</button>
+            </div>                                       
+            <button id="map-layers-layer-save" type="button" class="btn btn-primary">Save</button>
+            <button id="map-layers-layer-cancel" type="button" class="btn btn-danger btn-primary">Cancel</button>
         </form>
     </body>
 </html>

@@ -88,6 +88,12 @@ magic.classes.creator.MapLayerSelectorTree.prototype.showContext = function() {
     /* Enable drag-n-drop reordering of the layer list */
     this.initSortableList(this.layerTreeUl);
     
+    /* Delete layer/group buttons */
+    jQuery("button.layer-group-delete").off("click").on("click", jQuery.proxy(this.deleteHandler, this));
+    
+    /* Edit layer/group buttons */
+    jQuery("button.layer-group-edit").off("click").on("click", jQuery.proxy(this.editHandler, this));
+    
     /* New group handler */
     jQuery("#" + this.prefix + "-new-group").off("click").on("click", jQuery.proxy(function(evt) {        
         var id = this.layerDictionary.put(jQuery.extend({}, this.BLANK_MAP_NEW_GROUP));
@@ -112,13 +118,7 @@ magic.classes.creator.MapLayerSelectorTree.prototype.showContext = function() {
     jQuery("button.layer-group-delete").each(function(idx, elt) {
         var hasSubLayers = jQuery(elt).closest("li").children("ul").find("li").length > 0;
         jQuery(elt).prop("disabled", hasSubLayers);
-    });
-    
-    /* Delete layer/group buttons */
-    jQuery("button.layer-group-delete").off("click").on("click", jQuery.proxy(this.deleteHandler, this));
-    
-    /* Edit layer/group buttons */
-    jQuery("button.layer-group-edit").off("click").on("click", jQuery.proxy(this.editHandler, this));    
+    });            
     
 };
 
@@ -156,7 +156,7 @@ magic.classes.creator.MapLayerSelectorTree.prototype.deleteHandler = function(ev
     var itemName = delBtn.parent().children("button").first().text();
     bootbox.confirm(
         '<div class="alert alert-danger" style="margin-top:10px">Are you sure you want to delete ' + itemName + '</div>', 
-        function(result) {
+        jQuery.proxy(function(result) {
             if (result) {
                 /* Do the deletion (assuming any group is empty) */
                 jQuery("#" + itemId).remove();
@@ -166,7 +166,7 @@ magic.classes.creator.MapLayerSelectorTree.prototype.deleteHandler = function(ev
             } else {
                 bootbox.hideAll();
             }                            
-        }); 
+        }, this)); 
 };
 
 /**
@@ -179,12 +179,16 @@ magic.classes.creator.MapLayerSelectorTree.prototype.showEditor = function(btn, 
     if (isGroup) {
         jQuery("#" + this.prefix + "-group-div").removeClass("hidden");
         jQuery("#" + this.prefix + "-layer-div").addClass("hidden");
-        this.layerGroupEditor.loadContext(creating ? this.BLANK_MAP_NEW_GROUP : this.layerDictionary.get(btn.closest("li").attr("id")));
+        var context = creating ? this.BLANK_MAP_NEW_GROUP : this.layerDictionary.get(btn.closest("li").attr("id"));
+        jQuery("#" + this.prefix + "-update-panel-title").html("Layer group : " + context.name);
+        this.layerGroupEditor.loadContext(context);
         this.currentlyEditing = this.layerGroupEditor;
     } else {
         jQuery("#" + this.prefix + "-layer-div").removeClass("hidden");
         jQuery("#" + this.prefix + "-group-div").addClass("hidden");
-        this.layerEditor.loadContext(creating ? this.BLANK_MAP_NEW_LAYER : this.layerDictionary.get(btn.closest("li").attr("id")));
+        var context = creating ? this.BLANK_MAP_NEW_LAYER : this.layerDictionary.get(btn.closest("li").attr("id"));
+        jQuery("#" + this.prefix + "-update-panel-title").html("Data layer : " + context.name);
+        this.layerEditor.loadContext(context);
         this.currentlyEditing = this.layerEditor;
     }    
 };
