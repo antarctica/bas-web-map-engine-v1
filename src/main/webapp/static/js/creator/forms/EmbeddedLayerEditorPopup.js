@@ -64,11 +64,11 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.constructor = magic.cla
 
 magic.classes.creator.EmbeddedLayerEditorPopup.prototype.markup = function() {
     return(
-        '<div id="' + this.id + '-edit-view-fs" class="col-sm-12">' +
+        '<div id="' + this.id + '-edit-view-fs" class="col-md-12">' +
             '<input type="hidden" id="' + this.id + '-id"></input>' + 
-            '<div class="form-group form-group-sm col-sm-12">' +                     
-                '<label class="col-sm-3 control-label" for="' + this.id + '-name">Name</label>' + 
-                '<div class="col-sm-9">' + 
+            '<div class="form-group form-group-md col-md-12">' +                     
+                '<label class="col-md-3 control-label" for="' + this.id + '-name">Name</label>' + 
+                '<div class="col-md-9">' + 
                     '<input type="text" id="' + this.id + '-name" class="form-control" ' + 
                         'placeholder="Layer name" maxlength="100" ' + 
                         'data-toggle="tooltip" data-placement="left" ' + 
@@ -78,9 +78,9 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.markup = function() {
                 '</div>' + 
             '</div>' +
             this.wmsSelectors.markup() + 
-            '<div class="form-group form-group-sm col-sm-12">' + 
-                '<label for="' + this.id + '-opacity" class="col-sm-3 control-label">Opacity</label>' + 
-                '<div class="col-sm-9">' + 
+            '<div class="form-group form-group-md col-md-12">' + 
+                '<label for="' + this.id + '-opacity" class="col-md-3 control-label">Opacity</label>' + 
+                '<div class="col-md-9">' + 
                     '<input type="number" class="form-control" id="' + this.id + '-opacity" ' + 
                        'placeholder="Layer opacity (0->1)" ' + 
                        'min="0" max="1" step="0.1" ' + 
@@ -88,7 +88,7 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.markup = function() {
                     '</input>' + 
                 '</div>' + 
             '</div>' + 
-            '<div class="form-group form-group-sm col-sm-12">' +
+            '<div class="form-group form-group-md col-md-12">' +
                 '<div class="checkbox" style="float:left" data-toggle="tooltip" data-placement="left" ' +
                     'title="Layer is a base (backdrop) layer">' + 
                     '<label>' +
@@ -97,7 +97,7 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.markup = function() {
                     '</label>' +
                 '</div>' +                                            
             '</div>' +    
-            '<div class="form-group form-group-sm col-sm-12">' +
+            '<div class="form-group form-group-md col-md-12">' +
                 '<div class="checkbox" style="float:left" data-toggle="tooltip" data-placement="left" ' + 
                     'title="Layer renders as a single large tile, useful for place-names or rasters where tile edge effects are noticeable">' +
                     '<label>' +
@@ -106,7 +106,7 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.markup = function() {
                     '</label>' +
                 '</div>' +                                            
             '</div>' +   
-            '<div class="form-group form-group-sm col-sm-12">' +
+            '<div class="form-group form-group-md col-md-12">' +
                 '<div class="checkbox" style="float:left" data-toggle="tooltip" data-placement="left" ' + 
                     'title="This layer should display interactive pop-ups on the map">' +
                     '<label>' +

@@ -76,8 +76,9 @@ magic.classes.creator.MapLayerSelectorTree.prototype.loadContext = function(cont
     if (layers.length > 0) {
         /* Load the layer data */        
         this.layerTreeUl.empty();
-        this.processLayers(layers, this.layerTreeUl, 0);        
+        this.processLayers(layers, this.layerTreeUl, 0);         
     }
+    this.layerEditor.setRegion(region);
 };
 
 /**
@@ -88,11 +89,23 @@ magic.classes.creator.MapLayerSelectorTree.prototype.showContext = function() {
     /* Enable drag-n-drop reordering of the layer list */
     this.initSortableList(this.layerTreeUl);
     
-    /* Delete layer/group buttons */
+    /* Delete layer group buttons */
     jQuery("button.layer-group-delete").off("click").on("click", jQuery.proxy(this.deleteHandler, this));
+    
+    /* Disable delete buttons for all layer groups which have children (only deletable when empty) */
+    jQuery("button.layer-group-delete").each(function(idx, elt) {
+        var hasSubLayers = jQuery(elt).closest("li").children("ul").find("li").length > 0;
+        jQuery(elt).prop("disabled", hasSubLayers);
+    });      
     
     /* Edit layer/group buttons */
     jQuery("button.layer-group-edit").off("click").on("click", jQuery.proxy(this.editHandler, this));
+    
+    /* Delete layer/group buttons */
+    jQuery("button.layer-delete").off("click").on("click", jQuery.proxy(this.deleteHandler, this));
+   
+    /* Edit layer/group buttons */
+    jQuery("button.layer-edit").off("click").on("click", jQuery.proxy(this.editHandler, this));
     
     /* New group handler */
     jQuery("#" + this.prefix + "-new-group").off("click").on("click", jQuery.proxy(function(evt) {        
@@ -112,14 +125,8 @@ magic.classes.creator.MapLayerSelectorTree.prototype.showContext = function() {
         newLi.find("button.layer-edit").off("click").on("click", jQuery.proxy(this.editHandler, this));
         newLi.find("button.layer-delete").off("click").on("click", jQuery.proxy(this.deleteHandler, this));
         this.showEditor(jQuery(evt.currentTarget), true);
-    }, this));
-    
-    /* Disable delete buttons for all layer groups which have children (only deletable when empty) */
-    jQuery("button.layer-group-delete").each(function(idx, elt) {
-        var hasSubLayers = jQuery(elt).closest("li").children("ul").find("li").length > 0;
-        jQuery(elt).prop("disabled", hasSubLayers);
-    });            
-    
+    }, this));    
+              
 };
 
 /**

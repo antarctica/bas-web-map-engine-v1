@@ -28,25 +28,25 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.formToPayload = function()
 
 magic.classes.creator.WmsFeatureLinkedMenus.prototype.markup = function() {
     return(
-        '<div class="form-group form-group-sm col-sm-12">' +
-            '<label class="col-sm-3 control-label" for="' + this.id + '-wms_source">WMS source</label>' +
-            '<div class="col-sm-9">' +
+        '<div class="form-group form-group-md col-md-12">' +
+            '<label class="col-md-3 control-label" for="' + this.id + '-wms_source">WMS source</label>' +
+            '<div class="col-md-9">' +
                 '<select class="form-control" id="' + this.id + '-wms_source" ' + 
                     'data-toggle="tooltip" data-placement="left" title="Choose a WMS service from which to fetch data" required="required">' +
                 '</select>' +
             '</div>' +
         '</div>' +
-        '<div class="form-group form-group-sm col-sm-12">' +
-            '<label class="col-sm-3 control-label" for="' + this.id + '-feature_name">Feature</label>' +
-            '<div class="col-sm-9">' +
+        '<div class="form-group form-group-md col-md-12">' +
+            '<label class="col-md-3 control-label" for="' + this.id + '-feature_name">Feature</label>' +
+            '<div class="col-md-9">' +
                 '<select class="form-control" id="' + this.id + '-feature_name" ' + 
                     'data-toggle="tooltip" data-placement="left" title="Choose a dataset served by above WMS" required="required">' +
                 '</select>' +
             '</div>' +
         '</div>' +  
-        '<div class="form-group form-group-sm col-sm-12">' +
-            '<label class="col-sm-3 control-label" for="' + this.id + '-style_name">Style</label>' +
-            '<div class="col-sm-9">' +
+        '<div class="form-group form-group-md col-md-12">' +
+            '<label class="col-md-3 control-label" for="' + this.id + '-style_name">Style</label>' +
+            '<div class="col-md-9">' +
                 '<select class="form-control" id="' + this.id + '-style_name" ' +
                     'data-toggle="tooltip" data-placement="left" title="Choose a style to be used with the feature" required="required">' +
                 '</select>' +

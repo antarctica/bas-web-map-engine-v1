@@ -167,7 +167,7 @@ magic.classes.creator.EmbeddedAttributeEditorPopup.prototype.markup = function(a
         }, this));
         html += 
             '</table>' + 
-            magic.modules.Common.buttonFeedbackSet(this.id, "Save attributes", "sm", "Save", true)                                                       
+            magic.modules.Common.buttonFeedbackSet(this.id, "Save attributes", "md", "Save", true)                                                       
     }    
     return(html);
 };

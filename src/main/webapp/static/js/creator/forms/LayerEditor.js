@@ -10,7 +10,46 @@ magic.classes.creator.LayerEditor = function(options) {
     this.onCancel = options.onCancel || null;
     
     /* Field names */
-    this.formSchema = []; //TODO
+    this.formSchema = [
+        {"field": "id", "default": ""}, 
+        {"field": "name", "default": ""},
+        {"field": "refresh_rate", "default": 0},
+        {"field": "legend_graphic", "default": ""},
+        {"field": "geom_type", "default": "unknown"},
+        {"field": "min_scale", "default": 100}, 
+        {"field": "max_scale", "default": 100000000}, 
+        {"field": "opacity", "default": 1.0}, 
+        {"field": "is_visible", "default": false}, 
+        {"field": "is_interactive", "default": false}, 
+        {"field": "is_filterable", "default": false}
+    ];
+    
+    /* Form inputs, per source */
+    this.sourceSchemas = {
+        "wms": [
+            {"field": "wms_source", "default": ""}, 
+            {"field": "feature_name", "default": ""}, 
+            {"field": "style_name", "default": ""},            
+            {"field": "is_base", "default": false}, 
+            {"field": "is_singletile", "default": false}, 
+            {"field": "is_dem", "default": false}, 
+            {"field": "is_time_dependent", "default": false}
+        ],
+        "geojson": [
+            {"field": "geojson_source", "default": ""},
+            {"field": "feature_name", "default": ""},
+            {"field": "srs", "default": ""}
+        ],
+        "gpx": [
+            {"field": "gpx_source", "default": ""}
+        ],
+        "kml": [
+            {"field": "kml_source", "default": ""}
+        ]                
+    };
+    
+    /* Source editor */
+    this.sourceEditor = null;
     
     /* Form active flag */
     this.active = false;
@@ -31,7 +70,10 @@ magic.classes.creator.LayerEditor = function(options) {
     
     /* Cancel button handling */
     this.cancelBtn.off("click").on("click", jQuery.proxy(this.cancelEdit, this));
-            
+    
+    /* Region sources are defined in */
+    this.region = null;
+    
 };
 
 magic.classes.creator.LayerEditor.prototype.isActive = function() {
@@ -42,11 +84,17 @@ magic.classes.creator.LayerEditor.prototype.isDirty = function() {
     return(this.formDirty);
 };
 
+magic.classes.creator.LayerEditor.prototype.setRegion = function(region) {
+    this.region = region;
+};
+
 magic.classes.creator.LayerEditor.prototype.loadContext = function(context) {
     
     if (!context) {
         return;
     }
+    
+    this.sourceMarkup(context);    
     
     /* Disable save button until form is changed */
     this.saveBtn.prop("disabled", true);
@@ -125,4 +173,37 @@ magic.classes.creator.LayerEditor.prototype.validate = function() {
         }
     }
     return(ok);
+};
+
+/**
+ * Show the layer source editing markup
+ * @param {Object} context
+ */
+magic.classes.creator.LayerEditor.prototype.sourceMarkup = function(context) {
+    if (context.source.geojson_source) {
+        /* GeoJSON */
+        this.sourceEditor = new magic.classes.GeoJsonSourceEditor({
+            sourceContext: context.source,
+            region: this.region
+        });
+    } else if (context.source.gpx_source) {
+        /* GPX */
+        this.sourceEditor = new magic.classes.GpxSourceEditor({
+            sourceContext: context.source,
+            region: this.region
+        });
+    } else if (context.source.kml_source) {
+        /* KML */
+        this.sourceEditor = new magic.classes.KmlSourceEditor({
+            sourceContext: context.source,
+            region: this.region
+        });
+    } else {
+        /* Default to WMS */
+        this.sourceEditor = new magic.classes.WmsSourceEditor({
+            sourceContext: context.source,
+            region: this.region
+        });        
+    }
+    jQuery("#" + this.prefix + "-layer-source").removeClass("hidden").html(this.sourceEditor.markup());
 };
