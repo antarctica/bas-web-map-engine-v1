@@ -95,103 +95,111 @@ magic.modules.GeoUtils = function() {
             }
         },
         
-        DEFAULT_LAYERS: {
-            "antarctic": [
-                {
-                    "id": null,
-                    "name": "Hillshade and bathymetry",
-                    "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database"),
-                    "is_base": true,
-                    "feature_name": "add:antarctic_hillshade_and_bathymetry"
-                },
-                {
-                    "id": null,
-                    "name": "Coastline",
-                    "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database"),
-                    "feature_name": "add:antarctic_coastline"
-                },
-                {
-                    "id": null,
-                    "name": "Sub-Antarctic coastline",
-                    "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database"),
-                    "feature_name": "add:sub_antarctic_coastline"
-                },
-                {
-                    "id": null,
-                    "name": "Graticule",
-                    "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database"),
-                    "feature_name": "add:antarctic_graticule",
-                    "is_singletile": true
-                }
-            ],
-            "antarctic_laea": [
-                {
-                    "id": null,
-                    "name": "Hillshade and bathymetry",
-                    "wms_source": magic.modules.Endpoints.getWmsServiceUrl("CCAMLR GIS"),
-                    "feature_name": "gis:hillshade_and_bathymetry",
-                    "is_base": true
-                },
-                {
-                    "id": null,
-                    "name": "Coastline",
-                    "wms_source": magic.modules.Endpoints.getWmsServiceUrl("CCAMLR GIS"),
-                    "feature_name": "gis:coastline"
-                },            
-                {
-                    "id": null,
-                    "name": "Graticule",
-                    "wms_source": magic.modules.Endpoints.getWmsServiceUrl("CCAMLR GIS"),
-                    "feature_name": "gis:graticule",
-                    "is_singletile": true
-                }
-            ],
-            "arctic": [
-                {
-                    "id": null,
-                    "name": "Hillshade and bathymetry",
-                    "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Arctic Open Data"),
-                    "feature_name": "arctic:arctic_hillshade_and_bathymetry",
-                    "is_base": true
-                },
-                {
-                    "id": null,
-                    "name": "Coastline",
-                    "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Arctic Open Data"),
-                    "feature_name": "arctic:arctic_coastline"
-                },
-                {
-                    "id": null,
-                    "name": "Graticule",
-                    "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Arctic Open Data"),
-                    "feature_name": "arctic:arctic_graticule",
-                    "is_singletile": true
-                }
-            ],
-            "southgeorgia": [
-                {
-                    "id": null,
-                    "name": "Hillshade and bathymetry",
-                    "wms_source": magic.modules.Endpoints.getWmsServiceUrl("South Georgia GIS"),
-                    "feature_name": "sggis:sg_hillshade_and_bathymetry",
-                    "is_base": true
-                },
-                {
-                    "id": null,
-                    "name": "Coastline",
-                    "wms_source": magic.modules.Endpoints.getWmsServiceUrl("South Georgia GIS"),
-                    "feature_name": "sggis:sg_coastline"
-                }
-            ],
-            "midlatitudes": [
-                {
-                   "id": null,
-                   "name": "Mid-latitude data",
-                   "wms_source": "osm", 
-                   "feature_name": "osm", 
-                   "is_base": true
-               }
-            ]
+        /**
+         * Default layers for different regions
+         * @param {String} region
+         * @return {Object}
+         */
+        defaultLayers: function(region) {
+            var layers = {
+                "antarctic": [
+                    {
+                        "id": null,
+                        "name": "Hillshade and bathymetry",
+                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database"),
+                        "is_base": true,
+                        "feature_name": "add:antarctic_hillshade_and_bathymetry"
+                    },
+                    {
+                        "id": null,
+                        "name": "Coastline",
+                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database"),
+                        "feature_name": "add:antarctic_coastline"
+                    },
+                    {
+                        "id": null,
+                        "name": "Sub-Antarctic coastline",
+                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database"),
+                        "feature_name": "add:sub_antarctic_coastline"
+                    },
+                    {
+                        "id": null,
+                        "name": "Graticule",
+                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database"),
+                        "feature_name": "add:antarctic_graticule",
+                        "is_singletile": true
+                    }
+                ],
+                "antarctic_laea": [
+                    {
+                        "id": null,
+                        "name": "Hillshade and bathymetry",
+                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("CCAMLR GIS"),
+                        "feature_name": "gis:hillshade_and_bathymetry",
+                        "is_base": true
+                    },
+                    {
+                        "id": null,
+                        "name": "Coastline",
+                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("CCAMLR GIS"),
+                        "feature_name": "gis:coastline"
+                    },            
+                    {
+                        "id": null,
+                        "name": "Graticule",
+                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("CCAMLR GIS"),
+                        "feature_name": "gis:graticule",
+                        "is_singletile": true
+                    }
+                ],
+                "arctic": [
+                    {
+                        "id": null,
+                        "name": "Hillshade and bathymetry",
+                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Arctic Open Data"),
+                        "feature_name": "arctic:arctic_hillshade_and_bathymetry",
+                        "is_base": true
+                    },
+                    {
+                        "id": null,
+                        "name": "Coastline",
+                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Arctic Open Data"),
+                        "feature_name": "arctic:arctic_coastline"
+                    },
+                    {
+                        "id": null,
+                        "name": "Graticule",
+                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Arctic Open Data"),
+                        "feature_name": "arctic:arctic_graticule",
+                        "is_singletile": true
+                    }
+                ],
+                "southgeorgia": [
+                    {
+                        "id": null,
+                        "name": "Hillshade and bathymetry",
+                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("South Georgia GIS"),
+                        "feature_name": "sggis:sg_hillshade_and_bathymetry",
+                        "is_base": true
+                    },
+                    {
+                        "id": null,
+                        "name": "Coastline",
+                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("South Georgia GIS"),
+                        "feature_name": "sggis:sg_coastline"
+                    }
+                ],
+                "midlatitudes": [
+                    {
+                       "id": null,
+                       "name": "Mid-latitude data",
+                       "wms_source": "osm", 
+                       "feature_name": "osm", 
+                       "is_base": true
+                   }
+                ]
+            };
+            return(layers[region]);
         },
         
         /**

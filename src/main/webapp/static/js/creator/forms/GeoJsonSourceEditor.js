@@ -2,6 +2,9 @@
 
 magic.classes.creator.GeoJsonSourceEditor = function(options) {
     
+    /* Identifier */
+    this.prefix = options.prefix;
+    
     /* Pre-populator object */
     this.sourceContext = options.sourceContext;
     

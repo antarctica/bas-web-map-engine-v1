@@ -180,30 +180,23 @@ magic.classes.creator.LayerEditor.prototype.validate = function() {
  * @param {Object} context
  */
 magic.classes.creator.LayerEditor.prototype.sourceMarkup = function(context) {
+    var payload = {
+        prefix: this.prefix,
+        sourceContext: context.source,
+        region: this.region
+    };
     if (context.source.geojson_source) {
         /* GeoJSON */
-        this.sourceEditor = new magic.classes.creator.GeoJsonSourceEditor({
-            sourceContext: context.source,
-            region: this.region
-        });
+        this.sourceEditor = new magic.classes.creator.GeoJsonSourceEditor(payload);
     } else if (context.source.gpx_source) {
         /* GPX */
-        this.sourceEditor = new magic.classes.creator.GpxSourceEditor({
-            sourceContext: context.source,
-            region: this.region
-        });
+        this.sourceEditor = new magic.classes.creator.GpxSourceEditor(payload);
     } else if (context.source.kml_source) {
         /* KML */
-        this.sourceEditor = new magic.classes.creator.KmlSourceEditor({
-            sourceContext: context.source,
-            region: this.region
-        });
+        this.sourceEditor = new magic.classes.creator.KmlSourceEditor(payload);
     } else {
         /* Default to WMS */
-        this.sourceEditor = new magic.classes.creator.WmsSourceEditor({
-            sourceContext: context.source,
-            region: this.region
-        });        
+        this.sourceEditor = new magic.classes.creator.WmsSourceEditor(payload);        
     }
     jQuery("#" + this.prefix + "-layer-source").removeClass("hidden").html(this.sourceEditor.markup());
 };

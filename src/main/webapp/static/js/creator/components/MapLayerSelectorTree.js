@@ -72,7 +72,7 @@ magic.classes.creator.MapLayerSelectorTree.prototype.defaultData = function(regi
     return({
         layers: {
             "type": "json",
-            "value": JSON.stringify(magic.modules.GeoUtils.DEFAULT_LAYERS[region])
+            "value": JSON.stringify(magic.modules.GeoUtils.defaultLayers(region))
         }
     });
 };

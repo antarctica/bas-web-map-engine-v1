@@ -2,6 +2,9 @@
 
 magic.classes.creator.KMLSourceEditor = function(options) {
     
+    /* Identifier */
+    this.prefix = options.prefix;
+    
     /* Pre-populator object */
     this.sourceContext = options.sourceContext;
     

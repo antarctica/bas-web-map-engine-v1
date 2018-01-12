@@ -23,7 +23,7 @@ magic.classes.creator.MapLayerSelector.prototype.defaultData = function(region) 
     return({
         layers: {
             "type": "json",
-            "value": JSON.stringify(magic.modules.GeoUtils.DEFAULT_LAYERS[region])
+            "value": JSON.stringify(magic.modules.GeoUtils.defaultLayers(region))
         }
     });
 };
