@@ -36,11 +36,30 @@ magic.classes.creator.EmbeddedAppContainer = function() {
 /**
  * Callback to load a map context 
  * @param {Object} mapContext
- * @param {String} region antarctic|arctic|southgeorgia|midlatitudes
+ * @param {String} region antarctic|arctic|southgeorgia|midlatitudes, required if mapContext not set
  */
-magic.classes.creator.EmbeddedAppContainer.prototype.loadContext = function(mapContext, region) {
+magic.classes.creator.EmbeddedAppContainer.prototype.loadContext = function(mapContext, region) { 
+    
+    if (!mapContext) {
+        /* Assumed this is a new map, so create default parameter data */
+        if (region) {
+            /* Assemble default map context */
+            mapContext = {};
+            jQuery.each(this.dialogs, jQuery.proxy(function(dn, dialog) {
+                mapContext = jQuery.extend(mapContext, dialog.defaultData(region));
+            }, this));
+        } else {
+            bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">No map context or region data supplied - aborting</div>');
+            return;
+        }
+    }
+    
+    /* Record global projection */
+    magic.runtime.projection = mapContext.projection;
+    
+    /* Load the context */
     jQuery.each(this.dialogs, jQuery.proxy(function(dn, dialog) {
-        dialog.loadContext(mapContext, region);
+        dialog.loadContext(mapContext);
     }, this));
     
     /* Save map handler */

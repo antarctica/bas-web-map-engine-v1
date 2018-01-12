@@ -13,19 +13,22 @@ magic.classes.creator.MapParameterSelector = function(options) {
 };
 
 /**
- * Populate the map-based parameter select according the given data/region
- * @param {Object} context
- * @param (String} region
+ * Default map parameters
+ * @param {String} region antarctic|arctic|southgeorgia|midlatitudes
+ * @return {Object}
  */
-magic.classes.creator.MapParameterSelector.prototype.loadContext = function(context, region) {    
+magic.classes.creator.MapParameterSelector.prototype.defaultData = function(region) {
+    return(magic.modules.GeoUtils.DEFAULT_MAP_PARAMS[region]);
+};
+
+/**
+ * Populate the map-based parameter select according the given data
+ * @param {Object} context
+ */
+magic.classes.creator.MapParameterSelector.prototype.loadContext = function(context) {     
     jQuery("#" + this.prefix + "-selector").closest("div.row").removeClass("hidden");    
-    context = context || magic.modules.GeoUtils.DEFAULT_MAP_PARAMS[region];
     if (!context) {
-        bootbox.alert(
-            '<div class="alert alert-danger" style="margin-top:10px">' + 
-                'No default map parameters for region ' + region + 
-            '</div>'
-        );
+        bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">No default map parameters for region ' + region + '</div>');
         return;
     }
     var data = context;

@@ -3,11 +3,9 @@
 magic.classes.creator.WmsFeatureLinkedMenus = function(options) {
     
     this.id = options.id || "wms-linked-menus";
-    
-    this.mapRegion = options.mapRegion;
-    
+        
     /* Map projection */
-    this.projection = magic.modules.GeoUtils.DEFAULT_MAP_PARAMS[this.mapRegion || "antarctic"].projection;
+    this.projection = magic.runtime.projection;
     
     /* Controls */
     this.dropdowns = {};
@@ -60,12 +58,12 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.markup = function() {
  * @param {Object} data with fields wms_source, feature_name, style_name
  */
 magic.classes.creator.WmsFeatureLinkedMenus.prototype.init = function(data) {
-    
+        
     this.dropdowns.wms_source = jQuery("#" + this.id + "-wms_source");
     this.dropdowns.feature_name = jQuery("#" + this.id + "-feature_name");
     this.dropdowns.style_name = jQuery("#" + this.id + "-style_name");    
     
-    /* Populate the WMS endpoint dropdown with all those endpoints valid for this region */
+    /* Populate the WMS endpoint dropdown with all those endpoints valid for this projection */
     magic.modules.Common.populateSelect(
         this.dropdowns.wms_source, 
         magic.modules.Endpoints.getEndpointsBy("srs", this.projection), 

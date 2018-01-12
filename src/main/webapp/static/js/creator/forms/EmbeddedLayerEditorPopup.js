@@ -9,10 +9,7 @@ magic.classes.creator.EmbeddedLayerEditorPopup = function(options) {
         popoverContentClass: "em-layer-editor-popover-content"
     }, options);
     
-    magic.classes.PopupForm.call(this, options);
-   
-    /* Map region => projection */
-    this.mapRegion = options.mapRegion;
+    magic.classes.PopupForm.call(this, options);    
     
     this.setCallbacks(jQuery.extend(this.controlCallbacks, {
         onSave: options.onSave
@@ -29,8 +26,7 @@ magic.classes.creator.EmbeddedLayerEditorPopup = function(options) {
     
     /* Linked WMS feature select menus */
     this.wmsSelectors = new magic.classes.creator.WmsFeatureLinkedMenus({
-        id: this.id,
-        mapRegion: this.mapRegion
+        id: this.id
     });
     
     /* Attribute map editor */

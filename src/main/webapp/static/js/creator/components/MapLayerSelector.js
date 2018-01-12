@@ -114,18 +114,28 @@ magic.classes.creator.MapLayerSelector = function(options) {
 };
 
 /**
+ * Default layer specifications for given region
+ * @param {String} region antarctic|arctic|southgeorgia|midlatitudes
+ * @return {Object}
+ */
+magic.classes.creator.MapLayerSelector.prototype.defaultData = function(region) {
+    return({
+        layers: {
+            "type": "json",
+            "value": JSON.stringify(this.DEFAULT_LAYERS[region])
+        }
+    });
+};
+
+/**
  * Populate the layer table according to the given data
  * @param {Object} data
- * @param {String} region
  */
-magic.classes.creator.MapLayerSelector.prototype.loadContext = function(data, region) {
+magic.classes.creator.MapLayerSelector.prototype.loadContext = function(data) {
     jQuery("#map-layer-selector").closest("div.row").removeClass("hidden");
-    this.mapRegion = region;
     var layers = null;
     var table = jQuery("#" + this.prefix + "-list");
-    if (!data || (jQuery.isArray(data.layers) && data.layers.length == 0)) {
-        layers = this.DEFAULT_LAYERS[region];
-    } else if (data.layers && data.layers.type == "json" && data.layers.value) {
+    if (data.layers && data.layers.type == "json" && data.layers.value) {
         layers = JSON.parse(data.layers.value);
     }
     var rows = table.find("tbody tr");
@@ -154,7 +164,6 @@ magic.classes.creator.MapLayerSelector.prototype.loadContext = function(data, re
         }
         this.layerDataEditor = new magic.classes.creator.EmbeddedLayerEditorPopup({
             target: evt.currentTarget.id,
-            mapRegion: this.mapRegion,
             onSave: jQuery.proxy(this.updateLayerData, this)
         });
         this.layerDataEditor.activate({});
@@ -218,7 +227,6 @@ magic.classes.creator.MapLayerSelector.prototype.layerMarkup = function(table, l
         }
         this.layerDataEditor = new magic.classes.creator.EmbeddedLayerEditorPopup({
             target: evt.currentTarget.id,
-            mapRegion: this.mapRegion,
             onSave: jQuery.proxy(this.updateLayerData, this)
         });
         this.layerDataEditor.activate(this.layerEdits[layerId]);

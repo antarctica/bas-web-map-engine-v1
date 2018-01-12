@@ -13,6 +13,19 @@ magic.classes.creator.MapMetadataForm = function(options) {
 };
 
 /**
+ * Default form values
+ * @param {String} region (not currently used)
+ * @return {Object}
+ */
+magic.classes.creator.MapMetadataForm.prototype.defaultData = function(region) {
+    var defaultData = {};
+    jQuery.each(this.formSchema, jQuery.proxy(function(idx, elt) {
+        defaultData[elt.field] = elt.default;
+    }, this));
+    return(defaultData);
+};
+
+/**
  * Populate the metadata form according to the given data
  * @param {Object} data
  */
