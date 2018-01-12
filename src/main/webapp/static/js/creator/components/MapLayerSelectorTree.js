@@ -64,6 +64,20 @@ magic.classes.creator.MapLayerSelectorTree = function(options) {
 };
 
 /**
+ * Default layer specifications for given region
+ * @param {String} region antarctic|arctic|southgeorgia|midlatitudes
+ * @return {Object}
+ */
+magic.classes.creator.MapLayerSelectorTree.prototype.defaultData = function(region) {
+    return({
+        layers: {
+            "type": "json",
+            "value": JSON.stringify(magic.modules.GeoUtils.DEFAULT_LAYERS[region])
+        }
+    });
+};
+
+/**
  * Populate the map layer tree according the given data/region
  * @param {Object} context
  * @param (String} region

@@ -95,6 +95,105 @@ magic.modules.GeoUtils = function() {
             }
         },
         
+        DEFAULT_LAYERS: {
+            "antarctic": [
+                {
+                    "id": null,
+                    "name": "Hillshade and bathymetry",
+                    "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database"),
+                    "is_base": true,
+                    "feature_name": "add:antarctic_hillshade_and_bathymetry"
+                },
+                {
+                    "id": null,
+                    "name": "Coastline",
+                    "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database"),
+                    "feature_name": "add:antarctic_coastline"
+                },
+                {
+                    "id": null,
+                    "name": "Sub-Antarctic coastline",
+                    "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database"),
+                    "feature_name": "add:sub_antarctic_coastline"
+                },
+                {
+                    "id": null,
+                    "name": "Graticule",
+                    "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database"),
+                    "feature_name": "add:antarctic_graticule",
+                    "is_singletile": true
+                }
+            ],
+            "antarctic_laea": [
+                {
+                    "id": null,
+                    "name": "Hillshade and bathymetry",
+                    "wms_source": magic.modules.Endpoints.getWmsServiceUrl("CCAMLR GIS"),
+                    "feature_name": "gis:hillshade_and_bathymetry",
+                    "is_base": true
+                },
+                {
+                    "id": null,
+                    "name": "Coastline",
+                    "wms_source": magic.modules.Endpoints.getWmsServiceUrl("CCAMLR GIS"),
+                    "feature_name": "gis:coastline"
+                },            
+                {
+                    "id": null,
+                    "name": "Graticule",
+                    "wms_source": magic.modules.Endpoints.getWmsServiceUrl("CCAMLR GIS"),
+                    "feature_name": "gis:graticule",
+                    "is_singletile": true
+                }
+            ],
+            "arctic": [
+                {
+                    "id": null,
+                    "name": "Hillshade and bathymetry",
+                    "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Arctic Open Data"),
+                    "feature_name": "arctic:arctic_hillshade_and_bathymetry",
+                    "is_base": true
+                },
+                {
+                    "id": null,
+                    "name": "Coastline",
+                    "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Arctic Open Data"),
+                    "feature_name": "arctic:arctic_coastline"
+                },
+                {
+                    "id": null,
+                    "name": "Graticule",
+                    "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Arctic Open Data"),
+                    "feature_name": "arctic:arctic_graticule",
+                    "is_singletile": true
+                }
+            ],
+            "southgeorgia": [
+                {
+                    "id": null,
+                    "name": "Hillshade and bathymetry",
+                    "wms_source": magic.modules.Endpoints.getWmsServiceUrl("South Georgia GIS"),
+                    "feature_name": "sggis:sg_hillshade_and_bathymetry",
+                    "is_base": true
+                },
+                {
+                    "id": null,
+                    "name": "Coastline",
+                    "wms_source": magic.modules.Endpoints.getWmsServiceUrl("South Georgia GIS"),
+                    "feature_name": "sggis:sg_coastline"
+                }
+            ],
+            "midlatitudes": [
+                {
+                   "id": null,
+                   "name": "Mid-latitude data",
+                   "wms_source": "osm", 
+                   "feature_name": "osm", 
+                   "is_base": true
+               }
+            ]
+        },
+        
         /**
          * Format a lon/lat coordinate according to global preference
          * @param {float} coordinate
@@ -509,7 +608,7 @@ magic.modules.GeoUtils = function() {
             for (var i = 0, ii = coords.length - 1; i < ii; ++i) {
                 var c1 = ol.proj.transform(coords[i], map.getView().getProjection().getCode(), "EPSG:4326");
                 var c2 = ol.proj.transform(coords[i + 1], map.getView().getProjection().getCode(), "EPSG:4326");
-                geodesicLength += magic.modules.GeoUtils.WGS84.haversineDistance(c1, c2);
+                geodesicLength += this.WGS84.haversineDistance(c1, c2);
             }    
             return(geodesicLength);
         },
@@ -522,7 +621,7 @@ magic.modules.GeoUtils = function() {
          */
         geodesicArea: function(geom, map) {    
             var polyClone = geom.clone().transform(map.getView().getProjection().getCode(), "EPSG:4326");    
-            return(Math.abs(magic.modules.GeoUtils.WGS84.geodesicArea(polyClone.getLinearRing[0].getCoordinates())));
+            return(Math.abs(this.WGS84.geodesicArea(polyClone.getLinearRing[0].getCoordinates())));
         },
         
         /**

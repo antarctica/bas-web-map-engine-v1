@@ -9,3 +9,7 @@ magic.classes.creator.WmsSourceEditor = function(options) {
     this.region = options.region;
                 
 };
+
+magic.classes.creator.WmsSourceEditor.prototype.markup = function() {
+    return("");
+};

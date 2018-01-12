@@ -9,3 +9,8 @@ magic.classes.creator.GeoJsonSourceEditor = function(options) {
     this.region = options.region;
                 
 };
+
+magic.classes.creator.GeoJsonSourceEditor.prototype.markup = function() {
+    return("");
+};
+

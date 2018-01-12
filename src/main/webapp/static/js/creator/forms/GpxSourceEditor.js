@@ -9,3 +9,8 @@ magic.classes.creator.GpxSourceEditor = function(options) {
     this.region = options.region;
                 
 };
+
+magic.classes.creator.GpxSourceEditor.prototype.markup = function() {
+    return("");
+};
+

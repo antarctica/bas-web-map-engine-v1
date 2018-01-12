@@ -9,3 +9,8 @@ magic.classes.creator.KMLSourceEditor = function(options) {
     this.region = options.region;
                 
 };
+
+magic.classes.creator.KMLSourceEditor.prototype.markup = function() {
+    return("");
+};
+

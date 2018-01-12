@@ -182,25 +182,25 @@ magic.classes.creator.LayerEditor.prototype.validate = function() {
 magic.classes.creator.LayerEditor.prototype.sourceMarkup = function(context) {
     if (context.source.geojson_source) {
         /* GeoJSON */
-        this.sourceEditor = new magic.classes.GeoJsonSourceEditor({
+        this.sourceEditor = new magic.classes.creator.GeoJsonSourceEditor({
             sourceContext: context.source,
             region: this.region
         });
     } else if (context.source.gpx_source) {
         /* GPX */
-        this.sourceEditor = new magic.classes.GpxSourceEditor({
+        this.sourceEditor = new magic.classes.creator.GpxSourceEditor({
             sourceContext: context.source,
             region: this.region
         });
     } else if (context.source.kml_source) {
         /* KML */
-        this.sourceEditor = new magic.classes.KmlSourceEditor({
+        this.sourceEditor = new magic.classes.creator.KmlSourceEditor({
             sourceContext: context.source,
             region: this.region
         });
     } else {
         /* Default to WMS */
-        this.sourceEditor = new magic.classes.WmsSourceEditor({
+        this.sourceEditor = new magic.classes.creator.WmsSourceEditor({
             sourceContext: context.source,
             region: this.region
         });        

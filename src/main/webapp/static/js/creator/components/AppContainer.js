@@ -110,9 +110,27 @@ magic.classes.creator.AppContainer = function() {
  * @param {String} region antarctic|arctic|southgeorgia|midlatitudes
  */
 magic.classes.creator.AppContainer.prototype.loadContext = function(mapContext, region) {
+    
+    if (!mapContext) {
+        /* Assumed this is a new map, so create default parameter data */
+        if (region) {
+            /* Assemble default map context */
+            mapContext = {};
+            jQuery.each(this.dialogs, jQuery.proxy(function(dn, dialog) {
+                mapContext = jQuery.extend(mapContext, dialog.defaultData(region));
+            }, this));
+        } else {
+            bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">No map context or region data supplied - aborting</div>');
+            return;
+        }
+    }
+    
+    /* Record global projection */
+    magic.runtime.projection = mapContext.projection;
+    
     jQuery.each(this.tabDialogs, jQuery.proxy(function(dn, dialog) {
         if (jQuery.isFunction(dialog.loadContext)) {
-            dialog.loadContext(mapContext, region);
+            dialog.loadContext(mapContext);
         }
     }, this));    
 };
