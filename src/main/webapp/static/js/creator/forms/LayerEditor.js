@@ -59,11 +59,24 @@ magic.classes.creator.LayerEditor = function(options) {
     this.cancelBtn = jQuery("#" + this.prefix + "-cancel");   
     
     /* Form change handling */
-    this.formDirty = false;
-    jQuery("[id^='" + this.prefix + "']").filter(":input").on("change keyup", jQuery.proxy(function() {
-        this.saveBtn.prop("disabled", false);
-        this.formDirty = true;
-    }, this)); 
+    this.formDirty = false;        
+    
+    /* Source type dropdown */
+    jQuery("#" + this.prefix + "-layer-source_type").off("change").on("change", jQuery.proxy(function(evt) {
+        var promptChanged = this.sourceEditor && this.sourceEditor.isDirty();
+        if (promptChanged) {
+            bootbox.confirm(
+                '<div class="alert alert-danger" style="margin-top:10px">You have unsaved changes - proceed?</div>', 
+                jQuery.proxy(function(result) {
+                    if (result) {
+                        this.sourceMarkup(jQuery(evt.currentTarget.val(), null));
+                    }  
+                    bootbox.hideAll();
+                }, this)); 
+        } else {
+            this.sourceMarkup(jQuery(evt.currentTarget.val(), null));
+        }        
+    }, this));
     
     /* Save button handling */
     this.saveBtn.off("click").on("click", jQuery.proxy(this.saveContext, this));
@@ -94,7 +107,12 @@ magic.classes.creator.LayerEditor.prototype.loadContext = function(context) {
         return;
     }
     
-    this.sourceMarkup(context);    
+    this.sourceMarkup(context); 
+    
+    jQuery("[id^='" + this.prefix + "']").filter(":input").off("change keyup").on("change keyup", jQuery.proxy(function() {
+        this.saveBtn.prop("disabled", false);
+        this.formDirty = true;
+    }, this)); 
     
     /* Disable save button until form is changed */
     this.saveBtn.prop("disabled", true);
@@ -177,26 +195,43 @@ magic.classes.creator.LayerEditor.prototype.validate = function() {
 
 /**
  * Show the layer source editing markup
+ * @param {String} type
  * @param {Object} context
  */
-magic.classes.creator.LayerEditor.prototype.sourceMarkup = function(context) {
+magic.classes.creator.LayerEditor.prototype.sourceMarkup = function(type, context) {
+    if (!type) {
+        type = this.typeFromContext(context);   
+        jQuery("#" + this.prefix + "-layer-source_type").val(type);
+    }
     var payload = {
         prefix: this.prefix,
-        sourceContext: context.source,
+        sourceContext: context ? context.source : null, 
         region: this.region
     };
-    if (context.source.geojson_source) {
-        /* GeoJSON */
-        this.sourceEditor = new magic.classes.creator.GeoJsonSourceEditor(payload);
-    } else if (context.source.gpx_source) {
-        /* GPX */
-        this.sourceEditor = new magic.classes.creator.GpxSourceEditor(payload);
-    } else if (context.source.kml_source) {
-        /* KML */
-        this.sourceEditor = new magic.classes.creator.KmlSourceEditor(payload);
-    } else {
-        /* Default to WMS */
-        this.sourceEditor = new magic.classes.creator.WmsSourceEditor(payload);        
-    }
+    switch(type) {
+        case "geojson": this.sourceEditor = new magic.classes.creator.GeoJsonSourceEditor(payload); break;
+        case "gpx": this.sourceEditor = new magic.classes.creator.GpxSourceEditor(payload); break;
+        case "kml": this.sourceEditor = new magic.classes.creator.KmlSourceEditor(payload); break;
+        default: this.sourceEditor = new magic.classes.creator.WmsSourceEditor(payload); break;
+    }   
     jQuery("#" + this.prefix + "-layer-source").removeClass("hidden").html(this.sourceEditor.markup());
+};
+
+/**
+ * Determine a one word data source type from an existing context
+ * @param {Object} context
+ * @return {String}
+ */
+magic.classes.creator.LayerEditor.prototype.typeFromContext = function(context) {
+    var type = "wms";            
+    if (context && context.source) {
+        var sourceTypes = ["geojson", "gpx", "kml", "wms"];
+        for (var i = 0; i < sourceTypes.length; i++) {
+            if (context.source[sourceTypes[i] + "_source"]) {
+                type = sourceTypes[i];
+                break;
+            }
+        }        
+    }
+    return(type);
 };
