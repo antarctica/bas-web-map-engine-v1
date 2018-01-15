@@ -69,7 +69,9 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.init = function(data) {
         magic.modules.Endpoints.getEndpointsBy("srs", this.projection), 
         "url", "name", data.wms_source, true
     );
-    this.loadFeaturesFromService(data.wms_source, data.feature_name);
+    if (data.feature_name) {
+        this.loadFeaturesFromService(data.wms_source, data.feature_name);
+    }
     
     /* Assign handler for endpoint selection */
     this.dropdowns.wms_source.on("change", jQuery.proxy(function() {       

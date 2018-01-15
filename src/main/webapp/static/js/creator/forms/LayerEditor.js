@@ -25,16 +25,7 @@ magic.classes.creator.LayerEditor = function(options) {
     ];
     
     /* Form inputs, per source */
-    this.sourceSchemas = {
-        "wms": [
-            {"field": "wms_source", "default": ""}, 
-            {"field": "feature_name", "default": ""}, 
-            {"field": "style_name", "default": ""},            
-            {"field": "is_base", "default": false}, 
-            {"field": "is_singletile", "default": false}, 
-            {"field": "is_dem", "default": false}, 
-            {"field": "is_time_dependent", "default": false}
-        ],
+    this.sourceSchemas = {        
         "geojson": [
             {"field": "geojson_source", "default": ""},
             {"field": "feature_name", "default": ""},
@@ -84,9 +75,6 @@ magic.classes.creator.LayerEditor = function(options) {
     /* Cancel button handling */
     this.cancelBtn.off("click").on("click", jQuery.proxy(this.cancelEdit, this));
     
-    /* Region sources are defined in */
-    this.region = null;
-    
 };
 
 magic.classes.creator.LayerEditor.prototype.isActive = function() {
@@ -97,17 +85,13 @@ magic.classes.creator.LayerEditor.prototype.isDirty = function() {
     return(this.formDirty);
 };
 
-magic.classes.creator.LayerEditor.prototype.setRegion = function(region) {
-    this.region = region;
-};
-
 magic.classes.creator.LayerEditor.prototype.loadContext = function(context) {
     
     if (!context) {
         return;
     }
     
-    this.sourceMarkup(context); 
+    this.sourceMarkup(null, context); 
     
     jQuery("[id^='" + this.prefix + "']").filter(":input").off("change keyup").on("change keyup", jQuery.proxy(function() {
         this.saveBtn.prop("disabled", false);
@@ -201,12 +185,11 @@ magic.classes.creator.LayerEditor.prototype.validate = function() {
 magic.classes.creator.LayerEditor.prototype.sourceMarkup = function(type, context) {
     if (!type) {
         type = this.typeFromContext(context);   
-        jQuery("#" + this.prefix + "-layer-source_type").val(type);
+        jQuery("#" + this.prefix + "-source_type").val(type);
     }
     var payload = {
         prefix: this.prefix,
-        sourceContext: context ? context.source : null, 
-        region: this.region
+        sourceContext: context ? context.source : null
     };
     switch(type) {
         case "geojson": this.sourceEditor = new magic.classes.creator.GeoJsonSourceEditor(payload); break;
@@ -214,7 +197,8 @@ magic.classes.creator.LayerEditor.prototype.sourceMarkup = function(type, contex
         case "kml": this.sourceEditor = new magic.classes.creator.KmlSourceEditor(payload); break;
         default: this.sourceEditor = new magic.classes.creator.WmsSourceEditor(payload); break;
     }   
-    jQuery("#" + this.prefix + "-layer-source").removeClass("hidden").html(this.sourceEditor.markup());
+    jQuery("#" + this.prefix + "-source").removeClass("hidden").html(this.sourceEditor.markup());
+    this.sourceEditor.loadContext(payload.sourceContext);
 };
 
 /**

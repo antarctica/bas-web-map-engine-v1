@@ -78,11 +78,10 @@ magic.classes.creator.MapLayerSelectorTree.prototype.defaultData = function(regi
 };
 
 /**
- * Populate the map layer tree according the given data/region
+ * Populate the map layer tree according the given data
  * @param {Object} context
- * @param (String} region
  */
-magic.classes.creator.MapLayerSelectorTree.prototype.loadContext = function(context, region) {
+magic.classes.creator.MapLayerSelectorTree.prototype.loadContext = function(context) {
     var layers = [];
     try {
         layers = JSON.parse(context.data.value).layers;
@@ -92,7 +91,6 @@ magic.classes.creator.MapLayerSelectorTree.prototype.loadContext = function(cont
         this.layerTreeUl.empty();
         this.processLayers(layers, this.layerTreeUl, 0);         
     }
-    this.layerEditor.setRegion(region);
 };
 
 /**

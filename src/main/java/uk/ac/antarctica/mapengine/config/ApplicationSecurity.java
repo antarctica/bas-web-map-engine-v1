@@ -168,8 +168,8 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
             /* Attempt to authenticate an in-memory user, useful when LDAP and other providers are not available */
             auth
                 .inMemoryAuthentication()
-                .withUser("mapengine")
-                .password("m4P3NG1n3")
+                .withUser("darb1")
+                .password("oypsmaj")
                 .roles("USER");
         }
 

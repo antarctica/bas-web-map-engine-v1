@@ -126,7 +126,12 @@ magic.classes.creator.AppContainer.prototype.loadContext = function(mapContext, 
     }
     
     /* Record global projection */
-    magic.runtime.projection = mapContext.projection;
+    try {
+        magic.runtime.projection = JSON.parse(mapContext.data.value).projection;
+    } catch(e) {
+        bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to determine projection - aborting</div>');
+        return;
+    }
     
     jQuery.each(this.tabDialogs, jQuery.proxy(function(dn, dialog) {
         if (jQuery.isFunction(dialog.loadContext)) {
