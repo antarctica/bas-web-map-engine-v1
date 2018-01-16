@@ -19,7 +19,7 @@ magic.classes.StylerPopup = function(options) {
     this.styleInputs = ["mode", "marker", "radius", "stroke_width", "stroke_color", "stroke_opacity", "stroke_linestyle", "fill_color", "fill_opacity"];
     
     this.inputDefaults = {
-        "mode": "point",    /* Allowed values: default|file|point|line|polygon */
+        "mode": "point",    /* Allowed values: default|file|predefined|point|line|polygon */
         "marker": "circle", 
         "radius": 5, 
         "stroke_width": 1, 

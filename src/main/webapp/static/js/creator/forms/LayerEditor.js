@@ -26,11 +26,6 @@ magic.classes.creator.LayerEditor = function(options) {
     
     /* Form inputs, per source */
     this.sourceSchemas = {        
-        "geojson": [
-            {"field": "geojson_source", "default": ""},
-            {"field": "feature_name", "default": ""},
-            {"field": "srs", "default": ""}
-        ],
         "gpx": [
             {"field": "gpx_source", "default": ""}
         ],
@@ -50,24 +45,7 @@ magic.classes.creator.LayerEditor = function(options) {
     this.cancelBtn = jQuery("#" + this.prefix + "-cancel");   
     
     /* Form change handling */
-    this.formDirty = false;        
-    
-    /* Source type dropdown */
-    jQuery("#" + this.prefix + "-layer-source_type").off("change").on("change", jQuery.proxy(function(evt) {
-        var promptChanged = this.sourceEditor && this.sourceEditor.isDirty();
-        if (promptChanged) {
-            bootbox.confirm(
-                '<div class="alert alert-danger" style="margin-top:10px">You have unsaved changes - proceed?</div>', 
-                jQuery.proxy(function(result) {
-                    if (result) {
-                        this.sourceMarkup(jQuery(evt.currentTarget.val(), null));
-                    }  
-                    bootbox.hideAll();
-                }, this)); 
-        } else {
-            this.sourceMarkup(jQuery(evt.currentTarget.val(), null));
-        }        
-    }, this));
+    this.formDirty = false;                
     
     /* Save button handling */
     this.saveBtn.off("click").on("click", jQuery.proxy(this.saveContext, this));
@@ -100,6 +78,22 @@ magic.classes.creator.LayerEditor.prototype.loadContext = function(context) {
     
     /* Disable save button until form is changed */
     this.saveBtn.prop("disabled", true);
+    
+    /* Source type dropdown */
+    jQuery("#" + this.prefix + "-source_type").off("change").on("change", jQuery.proxy(function(evt) {
+        if (this.formDirty) {
+            bootbox.confirm(
+                '<div class="alert alert-danger" style="margin-top:10px">You have unsaved changes - proceed?</div>', 
+                jQuery.proxy(function(result) {
+                    if (result) {
+                        this.sourceMarkup(jQuery(evt.currentTarget).val(), null);
+                    }  
+                    bootbox.hideAll();
+                }, this)); 
+        } else {
+            this.sourceMarkup(jQuery(evt.currentTarget).val(), null);
+        }        
+    }, this));
       
     /* Populate form from data */
     magic.modules.Common.jsonToForm(this.formSchema, context, this.prefix);  
