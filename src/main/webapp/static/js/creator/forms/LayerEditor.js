@@ -24,18 +24,11 @@ magic.classes.creator.LayerEditor = function(options) {
         {"field": "is_filterable", "default": false}
     ];
     
-    /* Form inputs, per source */
-    this.sourceSchemas = {        
-        "gpx": [
-            {"field": "gpx_source", "default": ""}
-        ],
-        "kml": [
-            {"field": "kml_source", "default": ""}
-        ]                
-    };
-    
     /* Source editor */
     this.sourceEditor = null;
+    
+    /* Attribute editor */
+    this.attributeEditor = null;
     
     /* Form active flag */
     this.active = false;
@@ -96,7 +89,30 @@ magic.classes.creator.LayerEditor.prototype.loadContext = function(context) {
     }, this));
       
     /* Populate form from data */
-    magic.modules.Common.jsonToForm(this.formSchema, context, this.prefix);  
+    magic.modules.Common.jsonToForm(this.formSchema, context, this.prefix);
+    
+    /* Interactivity triggers */
+    jQuery("#" + this.prefix + "-is_interactive").off("change").on("change", jQuery.proxy(function(evt) {
+        if (jQuery(evt.currentTarget).prop("checked") === true) {
+            jQuery("div.attribute-editor").removeClass("hidden");
+        } else {
+            jQuery("div.attribute-editor").addClass("hidden");
+        }
+    }, this));
+    if (context.is_interactive === true) {
+        jQuery("div.attribute-editor").removeClass("hidden");
+    } else {
+        jQuery("div.attribute-editor").addClass("hidden");
+    }
+    /* Attribute edit button */
+    jQuery("#" + this.prefix + "-attribute-edit").off("click").on("click", jQuery.proxy(function(evt) {
+        if (!this.attributeEditor) {
+            this.attributeEditor = new magic.classes.creator.AttributeEditorPopup({
+                target: this.prefix + "-attribute-edit"
+            });
+        }
+        this.attributeEditor.activate(jQuery.extend({}, context.source, {"attribute_map": context.attribute_map}));
+    }, this));
     
     /* Clean the form */
     this.formDirty = false;
