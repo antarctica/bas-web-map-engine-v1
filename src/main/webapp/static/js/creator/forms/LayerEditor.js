@@ -111,7 +111,15 @@ magic.classes.creator.LayerEditor.prototype.loadContext = function(context) {
                 target: this.prefix + "-attribute-edit"
             });
         }
-        this.attributeEditor.activate(jQuery.extend({}, context.source, {"attribute_map": context.attribute_map}));
+        if (this.sourceEditor.sourceSpecified()) {
+            this.attributeEditor.activate(jQuery.extend({}, context.source, {"attribute_map": context.attribute_map}));
+        } else {
+            bootbox.alert(
+                '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                    'Please specify at least a source URL (and a feature name for WFS feeds)' + 
+                '</div>'
+            );
+        }
     }, this));
     
     /* Clean the form */
@@ -208,7 +216,7 @@ magic.classes.creator.LayerEditor.prototype.sourceMarkup = function(type, contex
         default: this.sourceEditor = new magic.classes.creator.WmsSourceEditor(payload); break;
     }   
     jQuery("#" + this.prefix + "-source").removeClass("hidden").html(this.sourceEditor.markup());
-    this.sourceEditor.loadContext(payload.sourceContext);
+    this.sourceEditor.loadContext(payload.sourceContext);      
 };
 
 /**

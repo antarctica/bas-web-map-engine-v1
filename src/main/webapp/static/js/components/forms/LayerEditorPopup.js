@@ -128,7 +128,9 @@ magic.classes.LayerEditorPopup.prototype.assignHandlers = function() {
     
     /* Change handler for style mode */
     jQuery("#" + this.id + "-layer-style-mode").change(jQuery.proxy(function(evt) {
-        jQuery("#" + this.id + "-layer-styledef").val("{\"mode\":\"" + jQuery(evt.currentTarget).val() + "\"}");
+        var mode = jQuery(evt.currentTarget).val();
+        jQuery("#" + this.id + "-layer-styledef").val("{\"mode\":\"" + mode + "\"}");
+        jQuery("#" + this.id + "-layer-style-edit").prop("disabled", (mode == "file" || mode == "default"));
     }, this));
     
     /* Style edit button */
@@ -155,7 +157,7 @@ magic.classes.LayerEditorPopup.prototype.assignHandlers = function() {
  */
 magic.classes.LayerEditorPopup.prototype.writeStyle = function(styledef) {
     styledef = styledef || {"mode": "default"};
-    jQuery("#" + this.id + "-layer-styledef").val(JSON.stringify(styledef));
+    jQuery("#" + this.id + "-layer-styledef").val(JSON.stringify(styledef));    
 };
 
 magic.classes.LayerEditorPopup.prototype.saveForm = function() {
@@ -212,7 +214,8 @@ magic.classes.LayerEditorPopup.prototype.payloadToForm = function(populator) {
         lastMod.closest("div.form-group").addClass("hidden");
     }
     /* Set styling mode */
-    jQuery("#" + this.id + "-layer-style-mode").val(styledef["mode"]);
+    jQuery("#" + this.id + "-layer-style-mode").val(styledef.mode);
+    jQuery("#" + this.id + "-layer-style-edit").prop("disabled", (styledef.mode == "file" || styledef.mode == "default"));
 };
 
 /**

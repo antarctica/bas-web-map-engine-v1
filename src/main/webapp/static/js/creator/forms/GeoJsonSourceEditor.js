@@ -63,7 +63,7 @@ magic.classes.creator.GeoJsonSourceEditor.prototype.markup = function() {
             '<div class="form-inline col-md-9">' + 
                 '<select id="' + this.prefix + '-style-mode" class="form-control" ' + 
                     'data-toggle="tooltip" data-placement="left" title="Layer styling">' +
-                    '<option value="default" default>Default</option>' + 
+                    '<option value="default" selected="selected">Default</option>' + 
                     '<option value="predefined">Use pre-defined style</option>' +
                     '<option value="point">Point style</option>' +
                     '<option value="line">Line style</option>' +
@@ -111,6 +111,7 @@ magic.classes.creator.GeoJsonSourceEditor.prototype.init = function() {
         } else {
             jQuery("div.predefined-style-input").addClass("hidden");
         }
+        jQuery("#" + this.prefix + "-style-edit").prop("disabled", (changedTo == "predefined" || changedTo == "default"));
     }, this));
     
     /* Style edit button */
@@ -145,6 +146,7 @@ magic.classes.creator.GeoJsonSourceEditor.prototype.writeStyle = function(styled
         }
     }
     jQuery("#" + this.prefix + "-style_definition").val(JSON.stringify(styledef));
+    jQuery("#" + this.prefix + "-style-edit").prop("disabled", (mode == "predefined" || mode == "default"));
 };
 
 /**
@@ -161,4 +163,11 @@ magic.classes.creator.GeoJsonSourceEditor.prototype.populateCannedStylesDropdown
         populator.push({key: key, value: key});
     });    
     magic.modules.Common.populateSelect(jQuery("#" + this.prefix + "-style-predefined"), populator, "key", "value", "", false);
+};
+
+magic.classes.creator.GeoJsonSourceEditor.prototype.sourceSpecified = function() {
+    var sourceUrl = jQuery("#" + this.prefix + "-geojson_source").val();
+    var featureName = jQuery("#" + this.prefix + "-feature_name").val();
+    var isWfs = sourceUrl.indexOf("/wfs") > 0;
+    return((isWfs && sourceUrl && featureName) || (!isWfs && sourceUrl));
 };

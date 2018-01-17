@@ -142,7 +142,7 @@ magic.classes.creator.AttributeEditorPopup.prototype.getVectorFeatureAttributes 
                     } else {
                         bootbox.alert(
                             '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                                'Error :  Failed to parse test feature from ' + feedUrl + " from server while reading attributes" + 
+                                'Error :  Failed to parse test feature from ' + feedUrl + ' from server while reading attributes' + 
                             '</div>'
                         );
                     }
@@ -164,7 +164,7 @@ magic.classes.creator.AttributeEditorPopup.prototype.getVectorFeatureAttributes 
                 } else {
                     bootbox.alert(
                         '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                            'Error : ' + message + " from server while reading attributes" + 
+                            'Error : ' + message + ' from server while reading attributes' + 
                         '</div>'
                     );
                 }

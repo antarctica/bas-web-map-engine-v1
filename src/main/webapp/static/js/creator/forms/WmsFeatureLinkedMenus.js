@@ -53,6 +53,10 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.markup = function() {
     );          
 };
 
+magic.classes.creator.WmsFeatureLinkedMenus.prototype.sourceSpecified = function() {
+    return(this.dropdowns.wms_source.val() != "" && this.dropdowns.feature_name.val() != "");
+};
+
 /**
  * Initialise the menus
  * @param {Object} data with fields wms_source, feature_name, style_name
