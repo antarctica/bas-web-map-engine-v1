@@ -70,7 +70,7 @@ magic.classes.creator.GeoJsonSourceEditor.prototype.markup = function() {
                     '<option value="polygon">Polygon style</option>' +
                 '</select>' + 
                 '<button id="' + this.prefix + '-style-edit" data-trigger="manual" data-container="body" data-toggle="popover" data-placement="left" ' + 
-                    ' type="button" role="button"class="btn btn-md btn-primary"><span class="fa fa-pencil"></span>' + 
+                    ' type="button" role="button"class="btn btn-md btn-primary" disabled="disabled"><span class="fa fa-pencil"></span>' + 
                 '</button>' +
             '</div>' + 
         '</div>' + 
