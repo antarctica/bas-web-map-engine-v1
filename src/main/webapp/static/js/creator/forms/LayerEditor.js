@@ -30,6 +30,9 @@ magic.classes.creator.LayerEditor = function(options) {
     /* Attribute editor */
     this.attributeEditor = null;
     
+    /* Edited attribute map repository */
+    this.attrEditorUpdates = {};
+    
     /* Form active flag */
     this.active = false;
     
@@ -53,7 +56,7 @@ magic.classes.creator.LayerEditor.prototype.isActive = function() {
 };
 
 magic.classes.creator.LayerEditor.prototype.isDirty = function() {
-    return(this.formDirty);
+    return(this.formDirty || !jQuery.isEmptyObject(this.attrEditorUpdates));
 };
 
 magic.classes.creator.LayerEditor.prototype.loadContext = function(context) {
@@ -61,7 +64,7 @@ magic.classes.creator.LayerEditor.prototype.loadContext = function(context) {
     if (!context) {
         return;
     }
-    
+        
     this.sourceMarkup(null, context); 
     
     jQuery("[id^='" + this.prefix + "']").filter(":input").off("change keyup").on("change keyup", jQuery.proxy(function() {
@@ -108,11 +111,15 @@ magic.classes.creator.LayerEditor.prototype.loadContext = function(context) {
     jQuery("#" + this.prefix + "-attribute-edit").off("click").on("click", jQuery.proxy(function(evt) {
         if (!this.attributeEditor) {
             this.attributeEditor = new magic.classes.creator.AttributeEditorPopup({
-                target: this.prefix + "-attribute-edit"
+                target: this.prefix + "-attribute-edit",
+                onSave: jQuery.proxy(this.saveAttributes, this)
             });
         }
         if (this.sourceEditor.sourceSpecified()) {
-            this.attributeEditor.activate(jQuery.extend({}, context.source, {"attribute_map": context.attribute_map}));
+            this.attributeEditor.activate(jQuery.extend({}, context.source, {
+                "attribute_map": context.attribute_map,
+                "geom_type": context.geom_type || "unknown"
+            }));
         } else {
             bootbox.alert(
                 '<div class="alert alert-warning" style="margin-bottom:0">' + 
@@ -125,6 +132,9 @@ magic.classes.creator.LayerEditor.prototype.loadContext = function(context) {
     /* Clean the form */
     this.formDirty = false;
     
+    /* Clear any previously saved attribute data */
+    this.attrEditorUpdates = {};
+    
     /* Activate */
     this.active = true;
 };
@@ -133,7 +143,10 @@ magic.classes.creator.LayerEditor.prototype.saveContext = function(context) {
     
     if (jQuery.isFunction(this.onSave)) {
         /* Populate form from data */
-        this.onSave(magic.modules.Common.formToJson(this.formSchema, this.prefix));
+        this.onSave(jQuery.extend({},
+            magic.modules.Common.formToJson(this.formSchema, this.prefix),
+            this.attrEditorUpdates
+        ));
     }
     
     /* Clean the form */
@@ -141,6 +154,11 @@ magic.classes.creator.LayerEditor.prototype.saveContext = function(context) {
     
     /* Deactivate */
     this.active = false;
+};
+
+magic.classes.creator.LayerEditor.prototype.saveAttributes = function(attrPayload) {
+    this.attrEditorUpdates = attrPayload;
+    this.saveBtn.prop("disabled", false);
 };
 
 magic.classes.creator.LayerEditor.prototype.cancelEdit = function() {

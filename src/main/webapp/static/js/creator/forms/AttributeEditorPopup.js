@@ -56,7 +56,7 @@ magic.classes.creator.AttributeEditorPopup.prototype.constructor = magic.classes
 magic.classes.creator.AttributeEditorPopup.prototype.getVectorFeatureAttributes = function() {
     if (this.prePopulator && !jQuery.isEmptyObject(this.prePopulator)) {
         /* Restore form and contents from stored attributes */
-        jQuery(".attr-editor-popover-content").html(this.markup(this.attributeMap, this.computeOgcGeomType(this.attributeMap)));
+        jQuery(".attr-editor-popover-content").html(this.markup());
         this.assignHandlers();
     } else {
         /* Need to read a sample feature to get attribute schema */
@@ -122,10 +122,11 @@ magic.classes.creator.AttributeEditorPopup.prototype.getVectorFeatureAttributes 
                             var allowedKeys = jQuery.grep(attrKeys, function(elt) {
                                 return(elt.indexOf("geom") == 0 || elt.indexOf("extension") == 0);
                             }, true);
-                            var attrList = [];
+                            this.attributeMap = [];
+                            this.geomType = "unknown";
                             jQuery.each(allowedKeys, jQuery.proxy(function(idx, akey) {
                                 var value = testFeat.get(akey);
-                                attrList.push({
+                                this.attributeMap.push({
                                     "name": akey,
                                     "type": jQuery.isNumeric(value) ? "decimal" : "string",
                                     "nillable": true,
@@ -136,7 +137,8 @@ magic.classes.creator.AttributeEditorPopup.prototype.getVectorFeatureAttributes 
                                     "unique_values": false
                                 });                        
                             }, this));
-                            jQuery(".attr-editor-popover-content").html(this.markup(attrList, this.computeOgcGeomType(attrList)));
+                            this.geomType = this.computeOgcGeomType(this.attributeMap);
+                            jQuery(".attr-editor-popover-content").html(this.markup());
                             this.assignHandlers();
                         }
                     } else {
@@ -183,7 +185,7 @@ magic.classes.creator.AttributeEditorPopup.prototype.getWmsFeatureAttributes = f
         jQuery(".attr-editor-popover-content").html('<div class="alert alert-info">No attributes found</div>');
     } else if (this.prePopulator && !jQuery.isEmptyObject(this.prePopulator)) {
         /* Restore form and contents from stored attributes */
-        jQuery(".attr-editor-popover-content").html(this.markup(this.attributeMap, this.computeOgcGeomType(this.attributeMap)));
+        jQuery(".attr-editor-popover-content").html(this.markup());
         this.assignHandlers();        
     } else {
         /* Issue DescribeFeatureType request via WFS */
@@ -195,7 +197,7 @@ magic.classes.creator.AttributeEditorPopup.prototype.getWmsFeatureAttributes = f
         .done(jQuery.proxy(function(response) {
             /* Update : 13/09/2017 - As of about version 60, Chrome now suddenly works like everything else... */
             var elts = elts = jQuery(response).find("xsd\\:sequence").find("xsd\\:element");
-            var attrList = [];
+            this.attributeMap = [];
             jQuery.each(elts, function(idx, elt) {
                 var attrs = {};
                 jQuery.each(elt.attributes, function(i, a) {
@@ -205,9 +207,10 @@ magic.classes.creator.AttributeEditorPopup.prototype.getWmsFeatureAttributes = f
                         attrs[a.name] = a.value;
                     }                 
                 });
-                attrList.push(attrs);
+                this.attributeMap.push(attrs);
             });
-            jQuery(".attr-editor-popover-content").html(this.markup(this.attributeMap, this.computeOgcGeomType(this.attributeMap)));
+            this.geomType = this.computeOgcGeomType(this.attributeMap)
+            jQuery(".attr-editor-popover-content").html(this.markup());
             this.assignHandlers();            
         }, this))
         .fail(jQuery.proxy(function(xhr, status, message) {
@@ -253,20 +256,18 @@ magic.classes.creator.AttributeEditorPopup.prototype.assignHandlers = function()
 };
 
 /**
- * Create form HTML for the attribute map
- * @param {Array} attrList
- * @param {String} geomType
+ * Create form HTML for the attribute map 
  * @returns {String}
  */
-magic.classes.creator.AttributeEditorPopup.prototype.markup = function(attrList, geomType) {    
+magic.classes.creator.AttributeEditorPopup.prototype.markup = function() {    
     var html = "";
-    if (attrList.length == 0) {
+    if (this.attributeMap.length == 0) {
         /* No attributes found */
         html = '<div class="alert alert-info">No attributes found</div>';
     } else {
         /* Show attribute table */
         html += 
-            '<div class="alert alert-info">Geometry type is <strong>' + geomType + '</strong></div>' + 
+            '<div class="alert alert-info">Geometry type is <strong>' + this.geomType + '</strong></div>' + 
             '<table id="' + this.id + '-attr-table" class="table table-condensed table-striped table-hover table-responsive">' + 
                 '<tr>' + 
                     '<th>Name</th>' + 
@@ -282,7 +283,7 @@ magic.classes.creator.AttributeEditorPopup.prototype.markup = function(attrList,
                         '<i class="fa fa-eye" data-toggle="tooltip" data-placement="top" title="Attribute is visible in pop-ups"><i>' + 
                     '</th>' + 
                 '</tr>';
-        jQuery.each(attrList, jQuery.proxy(function(idx, entry) {
+        jQuery.each(this.attributeMap, jQuery.proxy(function(idx, entry) {
             html += '<input type="hidden" id="_amap_name_' + idx + '" value="' + (entry.name || "") + '"></input>';
             html += '<input type="hidden" id="_amap_type_' + idx + '" value="' + (entry.type || "") + '"></input>';
             html += '<input type="hidden" id="_amap_nillable_' + idx + '" value="' + (entry.nillable || "") + '"></input>';
@@ -329,7 +330,10 @@ magic.classes.creator.AttributeEditorPopup.prototype.formToPayload = function() 
             payload.push(attrData);
         }
     }, this));
-    return(payload);    
+    return({
+        "attribute_map": payload,
+        "geom_type": this.geomType
+    });    
 };
 
 /**
@@ -339,6 +343,7 @@ magic.classes.creator.AttributeEditorPopup.prototype.formToPayload = function() 
  */
 magic.classes.creator.AttributeEditorPopup.prototype.computeOgcGeomType = function(attrList) {
     var geomType = "unknown";
+    console.log(attrList);
     jQuery.each(attrList, function(idx, data){
         if (data.type && data.type.indexOf("gml:") == 0) {
             /* This is the geometry attribute */
@@ -377,5 +382,6 @@ magic.classes.creator.AttributeEditorPopup.prototype.extractSourceInfo = functio
         }
         this.featureName = this.prePopulator.feature_name || null;
         this.attributeMap = this.prePopulator.attribute_map || [];
+        this.geomType = this.prePopulator.geom_type || "unknown";
     }
 };

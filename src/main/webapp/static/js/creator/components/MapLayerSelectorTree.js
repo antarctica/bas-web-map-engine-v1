@@ -390,6 +390,9 @@ magic.classes.creator.MapLayerSelectorTree.prototype.writeGroupData = function(d
  * @param {Object} data
  */
 magic.classes.creator.MapLayerSelectorTree.prototype.writeLayerData = function(data) {
+    console.log("---- Updated data ----");
+    console.log(data);
+    console.log("---- End ----");
     this.layerDictionary.put(data);
     jQuery("#" + this.prefix + "-update-panel").fadeOut("slow");
 };

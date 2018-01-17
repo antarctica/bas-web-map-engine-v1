@@ -170,33 +170,35 @@ magic.classes.creator.AppContainer.prototype.saveContext = function() {
                 );
             } else {
                 /* Schema validation was ok */
-                var existingId = context.id;
-                var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content");
-                var csrfHeader = jQuery("meta[name='_csrf_header']").attr("content");
-                jQuery.ajax({
-                    url: magic.config.paths.baseurl + "/maps/" + (existingId != "" ? "update/" + existingId : "save"),                        
-                    method: "POST",
-                    processData: false,
-                    data: JSON.stringify(context),
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    beforeSend: function(xhr) {
-                        xhr.setRequestHeader(csrfHeader, csrfHeaderVal);
-                    }
-                })
-                .done(function(response) {
-                    //TODO                    
-                })
-                .fail(function(xhr) {
-                    var detail = JSON.parse(xhr.responseText)["detail"];
-                    bootbox.alert(
-                        '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                            '<p>Failed to save your map - details below:</p>' + 
-                            '<p>' + detail + '</p>' + 
-                        '</div>'
-                    );
-                });
+                console.log("Validated context");
+                console.log(context);
+//                var existingId = context.id;
+//                var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content");
+//                var csrfHeader = jQuery("meta[name='_csrf_header']").attr("content");
+//                jQuery.ajax({
+//                    url: magic.config.paths.baseurl + "/maps/" + (existingId != "" ? "update/" + existingId : "save"),                        
+//                    method: "POST",
+//                    processData: false,
+//                    data: JSON.stringify(context),
+//                    headers: {
+//                        "Content-Type": "application/json"
+//                    },
+//                    beforeSend: function(xhr) {
+//                        xhr.setRequestHeader(csrfHeader, csrfHeaderVal);
+//                    }
+//                })
+//                .done(function(response) {
+//                    //TODO                    
+//                })
+//                .fail(function(xhr) {
+//                    var detail = JSON.parse(xhr.responseText)["detail"];
+//                    bootbox.alert(
+//                        '<div class="alert alert-warning" style="margin-bottom:0">' + 
+//                            '<p>Failed to save your map - details below:</p>' + 
+//                            '<p>' + detail + '</p>' + 
+//                        '</div>'
+//                    );
+//                });
             }
         }, this))
         .fail(function(xhr) {
