@@ -16,7 +16,7 @@ magic.classes.creator.EmbeddedAppContainer = function() {
             ]
         }),
         "mapLayerSelector": new magic.classes.creator.MapLayerSelector({}),
-        "mapParameterSelector": new magic.classes.creator.MapParameterSelector({})
+        "mapParameterSelector": new magic.classes.creator.MapParameterSelector({embedded: true})
     };
     
     /* Master region selector (may load a map context here if a search string exists) */

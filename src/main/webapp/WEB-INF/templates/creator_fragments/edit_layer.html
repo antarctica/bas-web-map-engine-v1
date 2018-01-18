@@ -20,6 +20,7 @@
                 <div class="col-md-9">
                     <select class="form-control" id="map-layers-layer-source_type" name="map-layers-layer-source_type"
                            data-toggle="tooltip" data-placement="left" title="Type of data source" required="required">
+                        <option value="" selected="selected">Please select</option>
                         <option value="wms">WMS service</option>
                         <option value="geojson">GeoJSON feed (including WFS)</option>
                         <option value="gpx">GPX waypoints or tracks</option>
@@ -116,8 +117,8 @@
                     </input>
                 </div>
             </div>                                       
-            <button id="map-layers-layer-save" type="button" class="btn btn-primary">Save</button>
-            <button id="map-layers-layer-cancel" type="button" class="btn btn-danger btn-primary">Cancel</button>
+            <button id="map-layers-layer-save" type="button" class="btn btn-primary"><span class="fa fa-floppy-o"></span> Save</button>
+            <button id="map-layers-layer-cancel" type="button" class="btn btn-danger btn-primary"><span class="fa fa-times-circle"></span> Cancel</button>
         </form>
     </body>
 </html>

@@ -7,6 +7,9 @@ magic.classes.creator.MapParameterSelector = function(options) {
     /* ID prefix */
     this.prefix = options.prefix || "map-parameters";
     
+    /* Embedded map context */
+    this.embedded = options.embedded;
+    
     /* Internal properties */
     this.map = null;   
         
@@ -18,7 +21,10 @@ magic.classes.creator.MapParameterSelector = function(options) {
  * @return {Object}
  */
 magic.classes.creator.MapParameterSelector.prototype.defaultData = function(region) {
-    return(magic.modules.GeoUtils.DEFAULT_MAP_PARAMS[region]);
+    var defaults = magic.modules.GeoUtils.DEFAULT_MAP_PARAMS[region];
+    return(this.embedded ? defaults : {
+        data: defaults
+    });
 };
 
 /**
@@ -28,15 +34,10 @@ magic.classes.creator.MapParameterSelector.prototype.defaultData = function(regi
 magic.classes.creator.MapParameterSelector.prototype.loadContext = function(context) {     
     jQuery("#" + this.prefix + "-selector").closest("div.row").removeClass("hidden");    
     if (!context) {
-        bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">No default map parameters for region ' + region + '</div>');
+        bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">No default map parameters supplied</div>');
         return;
     }
-    var data = context;
-    if (context.data) {
-        /* More complex non-embedded map schema uses 'data' field in the supplied context for layer/map information, and should only be rendered when tab shown */
-       data = (typeof context.data.value === "string") ? JSON.parse(context.data.value) : context.data.value;
-    }
-    this.renderMap(data);
+    this.renderMap(this.embedded ? context : context.data);
 };
 
 magic.classes.creator.MapParameterSelector.prototype.showContext = function() {
@@ -197,10 +198,9 @@ magic.classes.creator.MapParameterSelector.prototype.renderMap = function(data) 
 
 /**
  * Retrieve the current context
- * @param {boolean} embedded
  * @return {Object}
  */
-magic.classes.creator.MapParameterSelector.prototype.getContext = function(embedded) {    
+magic.classes.creator.MapParameterSelector.prototype.getContext = function() {    
     var mapView = this.map.getView();
     var rotation = parseFloat(jQuery("#" + this.prefix + "-rotation").val());
     var context = {
@@ -211,7 +211,7 @@ magic.classes.creator.MapParameterSelector.prototype.getContext = function(embed
         resolutions: mapView.getResolutions(),
         rotation: isNaN(rotation) ? 0.0 : rotation
     };
-    return(embedded ? context : {
+    return(this.embedded ? context : {
         data: context
     });
 };

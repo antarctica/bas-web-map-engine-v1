@@ -112,9 +112,9 @@ magic.classes.UserLayerManagerForm.prototype.setButtonStates = function(disableS
     for (var lt in this.controls) {
         jQuery.each(this.controls[lt].btn, function(k, v) {
             if (disableStates[lt][k]) {
-                v.addClass("disabled");
+                v.prop("disabled", true);
             } else {
-                v.removeClass("disabled");
+                v.prop("disabled", false);
             }
         });
     }
@@ -472,9 +472,9 @@ magic.classes.UserLayerManagerForm.prototype.selectLayer = function(evt) {
         this.provisionLayer(this.userLayerData[selId], isChecked, false);
         /* Enable/disable the zoom to layer link for this layer according to checkbox state */
         if (isChecked) {
-            this.controls[lt].dd.ztl.closest("li").removeClass("disabled");
+            this.controls[lt].dd.ztl.closest("li").prop("disabled", false);
         } else {
-            this.controls[lt].dd.ztl.closest("li").addClass("disabled");
+            this.controls[lt].dd.ztl.closest("li").prop("disabled", true);
         }
         /* Set the dropdown button caption and visibility indicator */
         elt.closest(".dropdown-menu").prev().html(

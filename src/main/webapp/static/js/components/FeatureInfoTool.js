@@ -89,7 +89,7 @@ magic.classes.FeatureInfoTool.prototype.queryFeatures = function(evt) {
             );  
         }
         if (url) {
-            deferreds.push(jQuery.get(magic.modules.Common.proxyUrl(url)).success(function(data) {
+            deferreds.push(jQuery.get(magic.modules.Common.proxyUrl(url), function(data) {
                 if (typeof data == "string") {
                     data = JSON.parse(data);
                 }

@@ -62,11 +62,13 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.sourceSpecified = function
  * @param {Object} data with fields wms_source, feature_name, style_name
  */
 magic.classes.creator.WmsFeatureLinkedMenus.prototype.init = function(data) {
-        
+    
+    console.log("WmsLinked init()");
+    
     this.dropdowns.wms_source = jQuery("#" + this.id + "-wms_source");
     this.dropdowns.feature_name = jQuery("#" + this.id + "-feature_name");
-    this.dropdowns.style_name = jQuery("#" + this.id + "-style_name");    
-    
+    this.dropdowns.style_name = jQuery("#" + this.id + "-style_name"); 
+        
     /* Populate the WMS endpoint dropdown with all those endpoints valid for this projection */
     magic.modules.Common.populateSelect(
         this.dropdowns.wms_source, 
@@ -78,33 +80,35 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.init = function(data) {
     }
     
     /* Assign handler for endpoint selection */
-    this.dropdowns.wms_source.on("change", jQuery.proxy(function() {       
+    this.dropdowns.wms_source.off("change").on("change", jQuery.proxy(function() {       
         var wms = this.dropdowns.wms_source.val();
         if (!wms || wms == "osm") {
             /* No WMS selection, or OpenStreetMap */
-            this.dropdowns.feature_name.addClass("disabled").empty();
-            this.dropdowns.style_name.addClass("disabled").empty();
+            this.dropdowns.feature_name.prop("disabled", true).empty();
+            this.dropdowns.style_name.prop("disabled", true).empty();
         } else {
             /* Selected a new WMS */
-            this.dropdowns.feature_name.removeClass("disabled");
+            this.dropdowns.feature_name.prop("disabled", false);
             this.loadFeaturesFromService(wms, "");
-            this.dropdowns.style_name.addClass("disabled").empty();
+            this.dropdowns.style_name.prop("disabled", true).empty();
         }        
     }, this));
     
     /* Assign handler for feature selection */
-    this.dropdowns.feature_name.on("change", jQuery.proxy(function() {  
+    this.dropdowns.feature_name.off("change").on("change", jQuery.proxy(function() {  
         var wms = this.dropdowns.wms_source.val();
         var fname = this.dropdowns.feature_name.val();
         if (!fname) {
             /* No feature selection */
-            this.dropdowns.style_name.addClass("disabled").empty();
+            this.dropdowns.style_name.prop("disabled", true).empty();
         } else {
             /* Selected a new WMS */
-            this.dropdowns.style_name.removeClass("disabled");
+            this.dropdowns.style_name.prop("disabled", false);
             this.loadStylesForFeature(wms, fname, "");
         }        
     }, this));
+    
+    console.log("Finished init()");
     
 };
 
@@ -115,7 +119,7 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.init = function(data) {
  */
 magic.classes.creator.WmsFeatureLinkedMenus.prototype.loadFeaturesFromService = function(serviceUrl, selectedFeat) {
     
-    this.dropdowns.feature_name.removeClass("disabled");
+    this.dropdowns.feature_name.prop("disabled", false);
     
     /* Strip namespace if present */
     var selectedFeatNoNs = selectedFeat.split(":").pop();
@@ -141,8 +145,8 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.loadFeaturesFromService = 
                             'Failed to parse capabilities for WMS ' + serviceUrl + 
                         '</div>'
                     );
-                    this.dropdowns.feature_name.addClass("disabled").empty();
-                    this.dropdowns.style_name.addClass("disabled").empty();
+                    this.dropdowns.feature_name.prop("disabled", true).empty();
+                    this.dropdowns.style_name.prop("disabled", true).empty();
                 }
             } catch(e) {
                 bootbox.alert(
@@ -150,8 +154,8 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.loadFeaturesFromService = 
                         'Failed to parse capabilities for WMS ' + serviceUrl + 
                     '</div>'
                 );
-                this.dropdowns.feature_name.addClass("disabled").empty();
-                this.dropdowns.style_name.addClass("disabled").empty();
+                this.dropdowns.feature_name.prop("disabled", true).empty();
+                this.dropdowns.style_name.prop("disabled", true).empty();
             }
         }, this)).fail(jQuery.proxy(function() {                
             bootbox.alert(
@@ -159,8 +163,8 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.loadFeaturesFromService = 
                     'Failed to read capabilities for WMS ' + serviceUrl + 
                 '</div>'
             );
-            this.dropdowns.feature_name.addClass("disabled").empty();
-            this.dropdowns.style_name.addClass("disabled").empty();
+            this.dropdowns.feature_name.prop("disabled", true).empty();
+            this.dropdowns.style_name.prop("disabled", true).empty();
         }, this));
     }
 };

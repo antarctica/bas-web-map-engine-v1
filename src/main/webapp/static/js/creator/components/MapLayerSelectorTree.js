@@ -28,9 +28,7 @@ magic.classes.creator.MapLayerSelectorTree = function(options) {
     this.BLANK_MAP_NEW_LAYER = {            
         "id": null,
         "name": "New layer",
-        "source": {
-            "wms_source": ""
-        }
+        "source": null
     };    
     
     /* Unpack API properties from options */
@@ -70,9 +68,8 @@ magic.classes.creator.MapLayerSelectorTree = function(options) {
  */
 magic.classes.creator.MapLayerSelectorTree.prototype.defaultData = function(region) {
     return({
-        layers: {
-            "type": "json",
-            "value": JSON.stringify(magic.modules.GeoUtils.defaultLayers(region))
+        data: {
+            layers: magic.modules.GeoUtils.defaultLayers(region)
         }
     });
 };
@@ -82,10 +79,7 @@ magic.classes.creator.MapLayerSelectorTree.prototype.defaultData = function(regi
  * @param {Object} context
  */
 magic.classes.creator.MapLayerSelectorTree.prototype.loadContext = function(context) {
-    var layers = [];
-    try {
-        layers = JSON.parse(context.data.value).layers;
-    } catch(e) {}
+    var layers = context.data.layers;    
     if (layers.length > 0) {
         /* Load the layer data */        
         this.layerTreeUl.empty();
@@ -126,7 +120,6 @@ magic.classes.creator.MapLayerSelectorTree.prototype.showContext = function() {
         this.layerTreeUl.append(newLi);
         newLi.find("button.layer-group-edit").off("click").on("click", jQuery.proxy(this.editHandler, this));
         newLi.find("button.layer-group-delete").off("click").on("click", jQuery.proxy(this.deleteHandler, this));
-        this.showEditor(jQuery(evt.currentTarget), true);
     }, this));
     
     /* New layer handler */
@@ -136,7 +129,6 @@ magic.classes.creator.MapLayerSelectorTree.prototype.showContext = function() {
         this.layerTreeUl.append(newLi);
         newLi.find("button.layer-edit").off("click").on("click", jQuery.proxy(this.editHandler, this));
         newLi.find("button.layer-delete").off("click").on("click", jQuery.proxy(this.deleteHandler, this));
-        this.showEditor(jQuery(evt.currentTarget), true);
     }, this));    
               
 };
@@ -156,12 +148,12 @@ magic.classes.creator.MapLayerSelectorTree.prototype.editHandler = function(evt)
             '<div class="alert alert-danger" style="margin-top:10px">You have unsaved changes - proceed?</div>', 
             jQuery.proxy(function(result) {
                 if (result) {
-                    this.showEditor(editBtn, false);
+                    this.showEditor(editBtn);
                 }  
                 bootbox.hideAll();
             }, this)); 
     } else {
-        this.showEditor(editBtn, false);
+        this.showEditor(editBtn);
     }        
 };
 
@@ -191,21 +183,20 @@ magic.classes.creator.MapLayerSelectorTree.prototype.deleteHandler = function(ev
 /**
  * Callback to show actual editor content
  * @param {jQuery.Element} btn
- * @param {boolean} creating
  */
-magic.classes.creator.MapLayerSelectorTree.prototype.showEditor = function(btn, creating) {
+magic.classes.creator.MapLayerSelectorTree.prototype.showEditor = function(btn) {
     var isGroup = btn.hasClass("layer-group-edit");
     if (isGroup) {
         jQuery("#" + this.prefix + "-group-div").removeClass("hidden");
         jQuery("#" + this.prefix + "-layer-div").addClass("hidden");
-        var context = creating ? this.BLANK_MAP_NEW_GROUP : this.layerDictionary.get(btn.closest("li").attr("id"));
+        var context = this.layerDictionary.get(btn.closest("li").attr("id"));
         jQuery("#" + this.prefix + "-update-panel-title").html("Layer group : " + context.name);
         this.layerGroupEditor.loadContext(context);
         this.currentlyEditing = this.layerGroupEditor;
     } else {
         jQuery("#" + this.prefix + "-layer-div").removeClass("hidden");
         jQuery("#" + this.prefix + "-group-div").addClass("hidden");
-        var context = creating ? this.BLANK_MAP_NEW_LAYER : this.layerDictionary.get(btn.closest("li").attr("id"));
+        var context = this.layerDictionary.get(btn.closest("li").attr("id"));
         jQuery("#" + this.prefix + "-update-panel-title").html("Data layer : " + context.name);
         this.layerEditor.loadContext(context);
         this.currentlyEditing = this.layerEditor;
@@ -350,7 +341,7 @@ magic.classes.creator.MapLayerSelectorTree.prototype.groupMarkup = function(id, 
             '<span class="sortableListsOpener"></span>' +
             '<div class="class="btn-toolbar ignore-drag-item" role="toolbar">' +  
                 '<div class="btn-group ignore-drag-item" role="group" style="display:flex">' + 
-                    '<button style="flex:1" type="button" class="btn btn-info ignore-drag-item">' + name + '</button>' + 
+                    '<button style="flex:1" type="button" class="btn btn-info ignore-drag-item name-area">' + name + '</button>' + 
                     '<button style="width:40px" type="button" class="btn btn-warning layer-group-edit ignore-drag-item" ' + 
                         'data-container="body" data-toggle="tooltip" data-placement="top" title="Edit layer group data">' + 
                         '<i class="fa fa-pencil ignore-drag-item"></i>' + 
@@ -397,7 +388,7 @@ magic.classes.creator.MapLayerSelectorTree.prototype.layerMarkup = function(id, 
         '<li class="list-group-item list-group-item-info" id="' + id + '">' + 
             '<div class="class="btn-toolbar ignore-drag-item" role="toolbar">' + 
                 '<div class="btn-group ignore-drag-item" role="group" style="display:flex">' + 
-                    '<button style="flex:1" type="button" class="btn btn-info ignore-drag-item">' + name + '</button>' + 
+                    '<button style="flex:1" type="button" class="btn btn-info ignore-drag-item name-area">' + name + '</button>' + 
                     '<button style="width:40px" type="button" class="btn btn-warning layer-edit ignore-drag-item" ' + 
                         'data-container="body" data-toggle="tooltip" data-placement="top" title="Edit layer data">' + 
                         '<i class="fa fa-pencil ignore-drag-item"></i>' + 
@@ -419,6 +410,7 @@ magic.classes.creator.MapLayerSelectorTree.prototype.layerMarkup = function(id, 
  */
 magic.classes.creator.MapLayerSelectorTree.prototype.writeGroupData = function(data) {
     this.layerDictionary.put(data);
+    jQuery("#" + data.id).find("button.name-area").first().text(data.name);
     jQuery("#" + this.prefix + "-update-panel").fadeOut("slow");
 };
 
@@ -431,6 +423,7 @@ magic.classes.creator.MapLayerSelectorTree.prototype.writeLayerData = function(d
     console.log(data);
     console.log("---- End ----");
     this.layerDictionary.put(data);
+    jQuery("#" + data.id).find("button.name-area").first().text(data.name);
     jQuery("#" + this.prefix + "-update-panel").fadeOut("slow");
 };
 

@@ -177,9 +177,9 @@ magic.classes.MapViewManagerForm.prototype.setButtonStates = function(disableSta
     }
     jQuery.each(this.controls.btn, function(k, v) {
         if (disableStates[k]) {
-            v.addClass("disabled");
+            v.prop("disabled", true);
         } else {
-            v.removeClass("disabled");
+            v.prop("disabled", false);
         }
     });
 };

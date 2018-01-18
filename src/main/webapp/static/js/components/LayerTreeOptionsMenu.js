@@ -45,7 +45,7 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
             jQuery("#ztl-" + this.nodeid).off("click").on("click", jQuery.proxy(this.zoomToExtent, this));        
         } else {
             /* Layer invisible (or OSM), so option is unavailable */
-            jQuery("#ztl-" + this.nodeid).parent().addClass("disabled");
+            jQuery("#ztl-" + this.nodeid).parent().prop("disabled", true);
         }
         
         /* Apply an alternate style */
@@ -59,7 +59,7 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
             }, this));
         } else {
             /* Layer invisible (or OSM/non-WMS), so option is unavailable */
-            jQuery("#sty-" + this.nodeid).parent().addClass("disabled");
+            jQuery("#sty-" + this.nodeid).parent().prop("disabled", true);
         }
         
         /* Filter layer */
@@ -74,7 +74,7 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
             }, this));
         } else {
             /* Hide filter link for layer where it isn't possible */
-            jQuery("#ftr-" + this.nodeid).parent().addClass("disabled");        
+            jQuery("#ftr-" + this.nodeid).parent().prop("disabled", true);        
         }                                
         
         /* Transparency control */
@@ -96,7 +96,7 @@ magic.classes.LayerTreeOptionsMenu.prototype.addWebglSliderHandler = function(id
             evt.stopPropagation();
             var wrapper = jQuery(evt.currentTarget).next("div");
             if (wrapper.hasClass("hidden")) {
-                wrapper.removeClass("hidden").addClass("show");
+                wrapper.removeClass("hidden");
                 var layer = this.layer;
                 var startValue = 0.0;
                 switch(idbase) {
@@ -120,11 +120,11 @@ magic.classes.LayerTreeOptionsMenu.prototype.addWebglSliderHandler = function(id
                     }
                 });
             } else {
-                wrapper.removeClass("show").addClass("hidden");
+                wrapper.addClass("hidden");
             }                        
         }, this));
     } else {
-        jQuery("#" + idbase + "-" + this.nodeid).parent().addClass("disabled");
+        jQuery("#" + idbase + "-" + this.nodeid).parent().prop("disabled", true);
     }
 };
 

@@ -65,6 +65,8 @@ magic.classes.creator.LayerEditor.prototype.loadContext = function(context) {
         return;
     }
         
+    console.log("loadContext() for layerEditor");
+    console.log(context);
     this.sourceMarkup(null, context); 
     
     jQuery("[id^='" + this.prefix + "']").filter(":input").off("change keyup").on("change keyup", jQuery.proxy(function() {
@@ -217,22 +219,25 @@ magic.classes.creator.LayerEditor.prototype.validate = function() {
  * @param {Object} context
  */
 magic.classes.creator.LayerEditor.prototype.sourceMarkup = function(type, context) {
-    if (!type) {
-        type = this.typeFromContext(context);   
-        jQuery("#" + this.prefix + "-source_type").val(type);
-    }
+    console.log("sourceMarkup() entered");
+    type = type || this.typeFromContext(context);   
+    jQuery("#" + this.prefix + "-source_type").val(type);
     var payload = {
         prefix: this.prefix,
-        sourceContext: context ? context.source : null
-    };
+        sourceContext: context ? (context.source || null) : null
+    };    
     switch(type) {
         case "geojson": this.sourceEditor = new magic.classes.creator.GeoJsonSourceEditor(payload); break;
         case "gpx": this.sourceEditor = new magic.classes.creator.GpxSourceEditor(payload); break;
         case "kml": this.sourceEditor = new magic.classes.creator.KmlSourceEditor(payload); break;
         default: this.sourceEditor = new magic.classes.creator.WmsSourceEditor(payload); break;
     }   
+    console.log(type);
     jQuery("#" + this.prefix + "-source").removeClass("hidden").html(this.sourceEditor.markup());
-    this.sourceEditor.loadContext(payload.sourceContext);      
+    console.log("markup done");
+    this.sourceEditor.loadContext(payload.sourceContext); 
+    console.log("loadContext() done");
+    console.log("sourceMarkup() exited");
 };
 
 /**

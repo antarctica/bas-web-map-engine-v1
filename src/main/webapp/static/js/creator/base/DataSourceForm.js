@@ -17,12 +17,16 @@ magic.classes.creator.DataSourceForm = function (options) {
 };
 
 magic.classes.creator.DataSourceForm.prototype.loadContext = function(context) {
+    console.log("DataSourceForm loadContext()");
     if (!context) {
         context = this.defaultData();
     }
+    console.log(context);
     if (jQuery.isFunction(this.controlCallbacks.onLoadContext)) {
+        console.log("Calling onLoadContext()...");
         this.controlCallbacks.onLoadContext(context);
     }
+    console.log("DataSourceForm loadContext() done");
 };
 
 magic.classes.creator.DataSourceForm.prototype.formToPayload = function(context) {

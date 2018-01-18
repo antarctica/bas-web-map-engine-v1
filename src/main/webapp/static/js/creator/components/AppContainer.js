@@ -24,7 +24,7 @@ magic.classes.creator.AppContainer = function() {
         }),
         new magic.classes.creator.MapLayerSelectorTree({}),
         new magic.classes.creator.MapControlSelector({}),
-        new magic.classes.creator.MapParameterSelector({})
+        new magic.classes.creator.MapParameterSelector({embedded: false})
     ];    
     
     /* Master region selector (may load a map context here if a search string exists) */
@@ -110,28 +110,35 @@ magic.classes.creator.AppContainer = function() {
  * @param {String} region antarctic|arctic|southgeorgia|midlatitudes
  */
 magic.classes.creator.AppContainer.prototype.loadContext = function(mapContext, region) {
-    
+        
     if (!mapContext) {
         /* Assumed this is a new map, so create default parameter data */
         if (region) {
             /* Assemble default map context */
             mapContext = {};
             jQuery.each(this.dialogs, jQuery.proxy(function(dn, dialog) {
-                mapContext = jQuery.extend(mapContext, dialog.defaultData(region));
-            }, this));
+                mapContext = jQuery.extend(true, mapContext, dialog.defaultData(region));
+            }, this));            
         } else {
             bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">No map context or region data supplied - aborting</div>');
             return;
         }
+    } 
+    if (mapContext.data && typeof mapContext.data.value == "string") {
+        /* Unpick the data from an existing source */
+        mapContext.data = JSON.parse(mapContext.data.value);
     }
-    
-    /* Record global projection */
+            
+    /* Record global projection from input context */
     try {
-        magic.runtime.projection = JSON.parse(mapContext.data.value).projection;
+        magic.runtime.projection = mapContext.data.projection;
     } catch(e) {
         bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to determine projection - aborting</div>');
         return;
     }
+    
+    console.log(mapContext);
+    console.log(magic.runtime.projection);
     
     jQuery.each(this.dialogs, jQuery.proxy(function(dn, dialog) {
         if (jQuery.isFunction(dialog.loadContext)) {
@@ -152,7 +159,7 @@ magic.classes.creator.AppContainer.prototype.saveContext = function() {
         /* Forms were valid */
         var context = {};
         jQuery.each(this.dialogs, jQuery.proxy(function(dn, dialog) {
-            context = jQuery.extend(true, context, dialog.getContext(false));
+            context = jQuery.extend(true, context, dialog.getContext());
         }, this));
         /* Now validate the assembled map context against the JSON schema in /static/js/json/embedded_web_map_schema.json
          * https://github.com/geraintluff/tv4 is the validator used */            

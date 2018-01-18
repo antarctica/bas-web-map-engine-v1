@@ -558,7 +558,7 @@ magic.classes.LayerFilter.prototype.resetFilter = function() {
         /* GPX/KML */
         this.filterVectorSource(this.layer.getSource().getSource(), true);
     }
-    jQuery("#ftr-btn-reset-" + this.nodeid).addClass("disabled");    
+    jQuery("#ftr-btn-reset-" + this.nodeid).prop("disabled", true);    
     /* Hide filter badge */
     jQuery("#layer-filter-badge-" + this.nodeid).removeClass("show").addClass("hidden");
     
