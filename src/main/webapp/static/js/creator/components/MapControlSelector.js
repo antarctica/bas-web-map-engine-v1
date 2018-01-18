@@ -39,26 +39,30 @@ magic.classes.creator.MapControlSelector.prototype.loadContext = function(contex
 
 /**
  * Retrieve the current context
+ * @param {boolean} embedded
  * @return {Object}
  */
-magic.classes.creator.MapControlSelector.prototype.getContext = function() {
+magic.classes.creator.MapControlSelector.prototype.getContext = function(embedded) {
     var context = {};
-    var controls = [];
-    var formControls = jQuery("input[name='" + this.prefix + "']");
-    if (formControls.length > 0) {
-        jQuery.each(formControls, function(idx, f) {
-            var fe = jQuery(f);
-            if (fe.attr("type") != "checkbox" || (fe.attr("type") == "checkbox" && fe.prop("checked") === true)) {
-                controls.push(fe.val());
-            }
-        });
+    if (!embedded) {
+        context.data = {};
+        var controls = [];
+        var formControls = jQuery("input[name='" + this.prefix + "']");
+        if (formControls.length > 0) {
+            jQuery.each(formControls, function(idx, f) {
+                var fe = jQuery(f);
+                if (fe.attr("type") != "checkbox" || (fe.attr("type") == "checkbox" && fe.prop("checked") === true)) {
+                    controls.push(fe.val());
+                }
+            });            
+        }
         context.data.controls = controls;
+        /* Security inputs */
+        context.allowed_usage = jQuery("select[name='" + this.prefix + "-allowed_usage']").val();
+        context.allowed_download = jQuery("select[name='" + this.prefix + "-allowed_download']").val();
+        context.allowed_edit = jQuery("select[name='" + this.prefix + "-allowed_edit']").val();
+        context.repository = jQuery("input[name='" + this.prefix + "-repository']").val();
     }
-    /* Security inputs */
-    context.allowed_usage = jQuery("select[name='" + this.prefix + "-allowed_usage']").val();
-    context.allowed_download = jQuery("select[name='" + this.prefix + "-allowed_download']").val();
-    context.allowed_edit = jQuery("select[name='" + this.prefix + "-allowed_edit']").val();
-    context.repository = jQuery("input[name='" + this.prefix + "-repository']").val();
     return(context);    
 };
 

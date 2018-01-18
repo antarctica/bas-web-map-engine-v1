@@ -6,7 +6,7 @@ magic.classes.creator.AppContainer = function() {
     this.currentTabIndex = -1;
     
     /* Initialise the various form dialogs */
-    this.tabDialogs = [
+    this.dialogs = [
         new magic.classes.creator.MapMetadataForm({
             formSchema: [
                 {"field": "id", "default": ""},
@@ -50,8 +50,8 @@ magic.classes.creator.AppContainer = function() {
                  * Therefore have reverted to BW 1.0.0 until a better replacement can be found - future reliance on
                  * this particular library looks to be unwise
                  */
-                if (jQuery.isFunction(this.tabDialogs[index].showContext)) {
-                    this.tabDialogs[index].showContext();
+                if (jQuery.isFunction(this.dialogs[index].showContext)) {
+                    this.dialogs[index].showContext();
                 }
                 if (index == total-1) {
                     jQuery("ul.pager li.finish").removeClass("hidden");
@@ -70,7 +70,7 @@ magic.classes.creator.AppContainer = function() {
         }, this),
         onNext: jQuery.proxy(function (tab, navigation, index) {
             var total = navigation.find("li").length;
-            if (this.tabDialogs[index-1].validate()) {                 
+            if (this.dialogs[index-1].validate()) {                 
                 if (index >= total-1) {                        
                     jQuery("ul.pager li.finish").removeClass("hidden");
                 } else {
@@ -82,7 +82,7 @@ magic.classes.creator.AppContainer = function() {
             }
         }, this),
         onBack: jQuery.proxy(function (tab, navigation, index) {
-            return(this.tabDialogs[index-1].validate());
+            return(this.dialogs[index-1].validate());
         }, this),
         onTabClick: function() {
             /* Clicking on a random tab is not allowed */
@@ -133,7 +133,7 @@ magic.classes.creator.AppContainer.prototype.loadContext = function(mapContext, 
         return;
     }
     
-    jQuery.each(this.tabDialogs, jQuery.proxy(function(dn, dialog) {
+    jQuery.each(this.dialogs, jQuery.proxy(function(dn, dialog) {
         if (jQuery.isFunction(dialog.loadContext)) {
             dialog.loadContext(mapContext);
         }
@@ -152,7 +152,7 @@ magic.classes.creator.AppContainer.prototype.saveContext = function() {
         /* Forms were valid */
         var context = {};
         jQuery.each(this.dialogs, jQuery.proxy(function(dn, dialog) {
-            jQuery.extend(context, dialog.getContext());
+            context = jQuery.extend(true, context, dialog.getContext(false));
         }, this));
         /* Now validate the assembled map context against the JSON schema in /static/js/json/embedded_web_map_schema.json
          * https://github.com/geraintluff/tv4 is the validator used */            
@@ -172,33 +172,38 @@ magic.classes.creator.AppContainer.prototype.saveContext = function() {
                 /* Schema validation was ok */
                 console.log("Validated context");
                 console.log(context);
-//                var existingId = context.id;
-//                var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content");
-//                var csrfHeader = jQuery("meta[name='_csrf_header']").attr("content");
-//                jQuery.ajax({
-//                    url: magic.config.paths.baseurl + "/maps/" + (existingId != "" ? "update/" + existingId : "save"),                        
-//                    method: "POST",
-//                    processData: false,
-//                    data: JSON.stringify(context),
-//                    headers: {
-//                        "Content-Type": "application/json"
-//                    },
-//                    beforeSend: function(xhr) {
-//                        xhr.setRequestHeader(csrfHeader, csrfHeaderVal);
-//                    }
-//                })
-//                .done(function(response) {
-//                    //TODO                    
-//                })
-//                .fail(function(xhr) {
-//                    var detail = JSON.parse(xhr.responseText)["detail"];
-//                    bootbox.alert(
-//                        '<div class="alert alert-warning" style="margin-bottom:0">' + 
-//                            '<p>Failed to save your map - details below:</p>' + 
-//                            '<p>' + detail + '</p>' + 
-//                        '</div>'
-//                    );
-//                });
+                var existingId = context.id;
+                var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content");
+                var csrfHeader = jQuery("meta[name='_csrf_header']").attr("content");
+                jQuery.ajax({
+                    url: magic.config.paths.baseurl + "/maps/" + (existingId != "" ? "update/" + existingId : "save"),                        
+                    method: "POST",
+                    processData: false,
+                    data: JSON.stringify(context),
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    beforeSend: function(xhr) {
+                        xhr.setRequestHeader(csrfHeader, csrfHeaderVal);
+                    }
+                })
+                .done(function(response) {
+                    /* Load up the finished map into a new tab */
+                    if (context.allowed_usage == "public") {
+                        window.open(magic.config.paths.baseurl + "/home" + (debug ? "d" : "") + "/" + context.name, "_blank");
+                    } else {
+                        window.open(magic.config.paths.baseurl + "/restricted" + (debug ? "d" : "") + "/" + context.name, "_blank");
+                    }               
+                })
+                .fail(function(xhr) {
+                    var detail = JSON.parse(xhr.responseText)["detail"];
+                    bootbox.alert(
+                        '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                            '<p>Failed to save your map - details below:</p>' + 
+                            '<p>' + detail + '</p>' + 
+                        '</div>'
+                    );
+                });
             }
         }, this))
         .fail(function(xhr) {

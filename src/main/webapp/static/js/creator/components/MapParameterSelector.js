@@ -195,16 +195,24 @@ magic.classes.creator.MapParameterSelector.prototype.renderMap = function(data) 
     }, this));
 };
 
-magic.classes.creator.MapParameterSelector.prototype.getContext = function() {    
+/**
+ * Retrieve the current context
+ * @param {boolean} embedded
+ * @return {Object}
+ */
+magic.classes.creator.MapParameterSelector.prototype.getContext = function(embedded) {    
     var mapView = this.map.getView();
     var rotation = parseFloat(jQuery("#" + this.prefix + "-rotation").val());
-    return({
+    var context = {
         center: mapView.getCenter(),
         zoom: mapView.getZoom(),
         projection: mapView.getProjection().getCode(),
         proj_extent: mapView.getProjection().getExtent(),
         resolutions: mapView.getResolutions(),
         rotation: isNaN(rotation) ? 0.0 : rotation
+    };
+    return(embedded ? context : {
+        data: context
     });
 };
 

@@ -80,7 +80,7 @@ magic.classes.creator.EmbeddedAppContainer.prototype.saveContext = function() {
         /* Forms were valid */
         var context = {};
         jQuery.each(this.dialogs, jQuery.proxy(function(dn, dialog) {
-            jQuery.extend(context, dialog.getContext());
+            jQuery.extend(context, dialog.getContext(true));
         }, this));
         console.log(context);
         /* Now validate the assembled map context against the JSON schema in /static/js/json/embedded_web_map_schema.json

@@ -54,7 +54,7 @@ magic.classes.creator.AttributeEditorPopup.prototype.constructor = magic.classes
  * Retrieve attribute map for vector source (GeoJSON/WFS, GPX or KML)
  */
 magic.classes.creator.AttributeEditorPopup.prototype.getVectorFeatureAttributes = function() {
-    if (this.prePopulator && !jQuery.isEmptyObject(this.prePopulator)) {
+    if (this.attributeMap.length > 0) {
         /* Restore form and contents from stored attributes */
         jQuery(".attr-editor-popover-content").html(this.markup());
         this.assignHandlers();
@@ -183,7 +183,7 @@ magic.classes.creator.AttributeEditorPopup.prototype.getWmsFeatureAttributes = f
     var dftUrl = magic.modules.Common.getWxsRequestUrl(this.serviceUrl, "DescribeFeatureType", this.featureName);
     if (!dftUrl) {
         jQuery(".attr-editor-popover-content").html('<div class="alert alert-info">No attributes found</div>');
-    } else if (this.prePopulator && !jQuery.isEmptyObject(this.prePopulator)) {
+    } else if (this.attributeMap.length > 0) {
         /* Restore form and contents from stored attributes */
         jQuery(".attr-editor-popover-content").html(this.markup());
         this.assignHandlers();        

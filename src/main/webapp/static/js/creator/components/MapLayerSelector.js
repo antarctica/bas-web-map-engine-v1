@@ -71,13 +71,23 @@ magic.classes.creator.MapLayerSelector.prototype.loadContext = function(data) {
     }, this));
 };
 
-magic.classes.creator.MapLayerSelector.prototype.getContext = function() {
-    var layers = jQuery("#" + this.prefix + "-list").find("tr").map(jQuery.proxy(function(idx, tr) {
-        return(this.layerEdits[jQuery(tr).data("id")]);
-    }, this));
-    return({
-       layers: layers.get() 
-    });
+/**
+ * Retrieve the current context
+ * @param {boolean} embedded
+ * @return {Object}
+ */
+magic.classes.creator.MapLayerSelector.prototype.getContext = function(embedded) {
+    if (embedded) {
+        var layers = jQuery("#" + this.prefix + "-list").find("tr").map(jQuery.proxy(function(idx, tr) {
+            return(this.layerEdits[jQuery(tr).data("id")]);
+        }, this));
+        return({
+           data: {
+               layers: layers.get() 
+           }
+        });
+    }
+    return({});
 };
 
 magic.classes.creator.MapLayerSelector.prototype.validate = function() {

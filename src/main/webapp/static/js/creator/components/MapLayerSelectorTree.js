@@ -214,12 +214,49 @@ magic.classes.creator.MapLayerSelectorTree.prototype.showEditor = function(btn, 
 
 /**
  * Retrieve the current context
+ * @param {boolean} embedded
  * @return {Object}
  */
-magic.classes.creator.MapLayerSelectorTree.prototype.getContext = function() {
-    //TODO
+magic.classes.creator.MapLayerSelectorTree.prototype.getContext = function(embedded) {
+    if (!embedded) {
+        var layerArr = [];
+        var layerHierarchy = this.layerTreeUl.sortableListsToHierarchy();
+        this.sortLayers(layerArr, layerHierarchy);
+        return({
+            data: {
+                layers: layerArr
+            }
+        });
+    }
     return({});    
 };
+
+/** 
+ * Do the re-ordering of layers from the sortable list
+ * @param {Array} tree
+ * @param {Array} hierarchy
+ */
+magic.classes.creator.MapLayerSelectorTree.prototype.sortLayers = function(tree, hierarchy) {           
+    for (var i = 0; i < hierarchy.length; i++) {
+        var node = hierarchy[i];
+        if (node.children.length > 0) {
+            /* Is a group node */
+            this.layerDictionary.get(node.id).layers = [];
+            this.sortLayers(this.layerDictionary.get(node.id).layers, node.children);
+            tree.push(this.layerDictionary.get(node.id));
+        } else {
+            /* Is a layer (i.e. leaf) node */
+            var ldo = this.layerDictionary.get(node.id);
+            /* Ensure we don't include deleted layers */
+            if (ldo.layers) {
+                ldo.layers = jQuery.grep(ldo.layers, jQuery.proxy(function(lyr, idx) {
+                    return(!jQuery.isEmptyObject(this.layerDictionary.get(lyr.id)));
+                }, this));
+            }
+            tree.push(ldo);
+        }
+    }  
+};      
 
 /**
  * Validate the form
