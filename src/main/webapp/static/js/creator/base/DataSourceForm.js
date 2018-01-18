@@ -25,6 +25,12 @@ magic.classes.creator.DataSourceForm.prototype.loadContext = function(context) {
     }
 };
 
+magic.classes.creator.DataSourceForm.prototype.formToPayload = function(context) {
+    return({
+        "source": magic.modules.Common.formToJson(this.formSchema, this.prefix)
+    });
+};
+
 magic.classes.creator.DataSourceForm.prototype.defaultData = function() {
     var defaultData = {};
     jQuery.each(this.formSchema, jQuery.proxy(function(idx, elt) {

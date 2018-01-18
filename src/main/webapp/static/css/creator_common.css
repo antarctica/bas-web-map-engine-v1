@@ -99,3 +99,7 @@ div[class$="-popover-content"] {
 .modal {
     z-index: 9000;
 }
+
+div[class$="attr-editor-popover-content"] {
+    width: 500px;
+}

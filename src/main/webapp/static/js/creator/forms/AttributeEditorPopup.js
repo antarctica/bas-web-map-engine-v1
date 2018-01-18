@@ -209,7 +209,7 @@ magic.classes.creator.AttributeEditorPopup.prototype.getWmsFeatureAttributes = f
                 });
                 this.attributeMap.push(attrs);
             });
-            this.geomType = this.computeOgcGeomType(this.attributeMap)
+            this.geomType = this.computeOgcGeomType(this.attributeMap);
             jQuery(".attr-editor-popover-content").html(this.markup());
             this.assignHandlers();            
         }, this))
@@ -266,21 +266,29 @@ magic.classes.creator.AttributeEditorPopup.prototype.markup = function() {
         html = '<div class="alert alert-info">No attributes found</div>';
     } else {
         /* Show attribute table */
+        var wmsDisabled = this.serviceType == "wms" ? ' disabled="disabled"' : '';
         html += 
             '<div class="alert alert-info">Geometry type is <strong>' + this.geomType + '</strong></div>' + 
-            '<table id="' + this.id + '-attr-table" class="table table-condensed table-striped table-hover table-responsive">' + 
+            '<table id="' + this.id + '-attr-table" class="table table-condensed table-striped table-hover table-responsive" style="width:100%">' + 
                 '<tr>' + 
-                    '<th>Name</th>' + 
-                    '<th>Type</th>' + 
-                    '<th>' + 
+                    '<th style="width:140px">Name</th>' + 
+                    '<th style="width:120px">' + 
                         '<span data-toggle="tooltip" data-placement="top" title="Human-friendly name for the attribute in pop-up">Alias<span>' + 
                     '</th>' + 
                     '<th style="width:40px">' + 
-                        '<i class="fa fa-list-ol" data-toggle="tooltip" data-placement="top" title="Ordering of attribute in pop-up">' + 
-                        '<i>' + 
+                        '<i class="fa fa-list-ol" data-toggle="tooltip" data-placement="top" title="Ordering of attribute in pop-up"><i>' + 
+                    '</th>' + 
+                    '<th style="width:40px">' + 
+                        '<i class="fa fa-tag" data-toggle="tooltip" data-placement="top" title="Use attribute as a feature label (not for WMS layers)"><i>' + 
                     '</th>' + 
                     '<th style="width:40px">' + 
                         '<i class="fa fa-eye" data-toggle="tooltip" data-placement="top" title="Attribute is visible in pop-ups"><i>' + 
+                    '</th>' + 
+                    '<th style="width:40px">' + 
+                        '<i class="fa fa-filter" data-toggle="tooltip" data-placement="top" title="Can filter layer on this attribute"><i>' + 
+                    '</th>' + 
+                    '<th style="width:40px">' + 
+                        '<span data-toggle="tooltip" data-placement="top" title="Display unique attribute values when filtering">U</span>' + 
                     '</th>' + 
                 '</tr>';
         jQuery.each(this.attributeMap, jQuery.proxy(function(idx, entry) {
@@ -291,11 +299,15 @@ magic.classes.creator.AttributeEditorPopup.prototype.markup = function() {
                 /* This is not the geometry field */                
                 html += 
                 '<tr>' + 
-                    '<td>' + (entry.name || "") + '</td>' +
-                    '<td>' + entry.type.replace("xsd:", "") + '</td>' + 
-                    '<td><input type="text" id="_amap_alias_' + idx + '" value="' + (entry.alias || "") + '"></input></td>' + 
-                    '<td><input type="number" size="2" style="width: 37px" min="1" max="99" id="_amap_ordinal_' + idx + '" value="' + (entry.ordinal || "") + '"></input></td>' +                              
-                    '<td><input type="checkbox" id="_amap_displayed_' + idx + '" value="display"' + (entry.displayed === true ? ' checked="checked"' : '') + '></input></td>' +                
+                    '<td>' + 
+                        '<span data-toggle="tooltip" data-placement="top" title="Field type is : '+ entry.type.replace("xsd:", "") + '">' + (entry.name || "") + '</span>' +
+                    '</td>' +
+                    '<td><input type="text" style="width:120px" id="_amap_alias_' + idx + '" value="' + (entry.alias || "") + '"></input></td>' + 
+                    '<td><input type="number" style="width:40px" size="2" min="1" max="99" id="_amap_ordinal_' + idx + '" value="' + (entry.ordinal || "") + '"></input></td>' + 
+                    '<td><input type="checkbox" id="_amap_label_' + idx + '" value="label"' + (entry.label === true ? ' checked="checked"' : '') + wmsDisabled + '></input></td>' +
+                    '<td><input type="checkbox" id="_amap_displayed_' + idx + '" value="display"' + (entry.displayed === true ? ' checked="checked"' : '') + '></input></td>' +
+                    '<td><input type="checkbox" id="_amap_filterable_' + idx + '" value="filter"' + (entry.filterable === true ? ' checked="checked"' : '') + '></input></td>' +
+                    '<td><input type="checkbox" id="_amap_unique_values_' + idx + '" value="unique"' + (entry.unique_values === true ? ' checked="checked"' : '') + '></input></td>' +
                 '</tr>';
             }
         }, this));
@@ -365,22 +377,23 @@ magic.classes.creator.AttributeEditorPopup.prototype.computeOgcGeomType = functi
  * Populates the serviceType, serviceUrl, serviceSrs and featureName members from context information
  */
 magic.classes.creator.AttributeEditorPopup.prototype.extractSourceInfo = function() {
-    if (this.prePopulator) {
-        if (this.prePopulator.wms_source) {
+    if (this.prePopulator && this.prePopulator.source) {
+        var source = this.prePopulator.source;
+        if (source.wms_source) {
             this.serviceType = "wms";
-            this.serviceUrl = this.prePopulator.wms_source || null;
-        } else if (this.prePopulator.geojson_source) {
+            this.serviceUrl = source.wms_source || null;
+        } else if (source.geojson_source) {
             this.serviceType = "geojson";
-            this.serviceUrl = this.prePopulator.geojson_source || null;
-            this.serviceSrs = this.prePopulator.srs || null;
-        } else if (this.prePopulator.gpx_source) {
+            this.serviceUrl = source.geojson_source || null;
+            this.serviceSrs = source.srs || null;
+        } else if (source.gpx_source) {
             this.serviceType = "gpx";
-            this.serviceUrl = this.prePopulator.gpx_source || null;
-        } else if (this.prePopulator.kml_source) {
+            this.serviceUrl = source.gpx_source || null;
+        } else if (source.kml_source) {
             this.serviceType = "kml";
-            this.serviceUrl = this.prePopulator.kml_source || null;
+            this.serviceUrl = source.kml_source || null;
         }
-        this.featureName = this.prePopulator.feature_name || null;
+        this.featureName = source.feature_name || null;
         this.attributeMap = this.prePopulator.attribute_map || [];
         this.geomType = this.prePopulator.geom_type || "unknown";
     }

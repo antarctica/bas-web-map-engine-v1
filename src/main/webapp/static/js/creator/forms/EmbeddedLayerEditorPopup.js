@@ -30,10 +30,10 @@ magic.classes.creator.EmbeddedLayerEditorPopup = function(options) {
     });
     
     /* Attribute map editor */
-    this.subForms.attributes = null;
+    this.subForms.attributeEditor = null;
     
     /* Repository for layer attributes edited via the above sub-form */
-    this.editedAttributes = {};
+    this.editedAttributes = [];
     
     this.target.popover({
         template: this.template,
@@ -46,7 +46,7 @@ magic.classes.creator.EmbeddedLayerEditorPopup = function(options) {
         
         jQuery("#" + this.id + "-name").focus();
         
-        this.editedAttributes = {};
+        this.editedAttributes = [];
         
         this.assignCloseButtonHandler();                
         this.assignHandlers();                
@@ -127,17 +127,17 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.assignHandlers = functi
     /* Attributes checkbox */
     jQuery("#" + this.id + "-is_interactive").off("change").on("change", jQuery.proxy(function(evt, populator) {
         var checked = jQuery(evt.currentTarget).prop("checked");
-        if (this.subForms.attributes && this.subForms.attributes.isActive()) {
-            this.subForms.attributes.deactivate();
+        if (this.subForms.attributeEditor && this.subForms.attributeEditor.isActive()) {
+            this.subForms.attributeEditor.deactivate();
         }
         if (checked) {            
-            this.subForms.attributes = new magic.classes.creator.EmbeddedAttributeEditorPopup({
+            this.subForms.attributeEditor = new magic.classes.creator.EmbeddedAttributeEditorPopup({
                 target: evt.currentTarget.id,
                 wms_source: this.wmsSelectors.getValue("wms_source"),
                 feature_name: this.wmsSelectors.getValue("feature_name"),
                 onSave: jQuery.proxy(this.saveAttributes, this)
             });
-            this.subForms.attributes.activate(this.editedAttributes);
+            this.subForms.attributeEditor.activate(this.editedAttributes);
         }
     }, this));
     

@@ -116,10 +116,7 @@ magic.classes.creator.LayerEditor.prototype.loadContext = function(context) {
             });
         }
         if (this.sourceEditor.sourceSpecified()) {
-            this.attributeEditor.activate(jQuery.extend({}, context.source, {
-                "attribute_map": context.attribute_map,
-                "geom_type": context.geom_type || "unknown"
-            }));
+            this.attributeEditor.activate(context);
         } else {
             bootbox.alert(
                 '<div class="alert alert-warning" style="margin-bottom:0">' + 
@@ -145,6 +142,7 @@ magic.classes.creator.LayerEditor.prototype.saveContext = function(context) {
         /* Populate form from data */
         this.onSave(jQuery.extend({},
             magic.modules.Common.formToJson(this.formSchema, this.prefix),
+            this.sourceEditor.formToPayload(),
             this.attrEditorUpdates
         ));
     }
