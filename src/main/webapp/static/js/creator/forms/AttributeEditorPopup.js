@@ -198,7 +198,7 @@ magic.classes.creator.AttributeEditorPopup.prototype.getWmsFeatureAttributes = f
             /* Update : 13/09/2017 - As of about version 60, Chrome now suddenly works like everything else... */
             var elts = elts = jQuery(response).find("xsd\\:sequence").find("xsd\\:element");
             this.attributeMap = [];
-            jQuery.each(elts, function(idx, elt) {
+            jQuery.each(elts, jQuery.proxy(function(idx, elt) {
                 var attrs = {};
                 jQuery.each(elt.attributes, function(i, a) {
                     if (a.name == "type") {
@@ -208,7 +208,7 @@ magic.classes.creator.AttributeEditorPopup.prototype.getWmsFeatureAttributes = f
                     }                 
                 });
                 this.attributeMap.push(attrs);
-            });
+            }, this));
             this.geomType = this.computeOgcGeomType(this.attributeMap);
             jQuery(".attr-editor-popover-content").html(this.markup());
             this.assignHandlers();            
@@ -355,7 +355,6 @@ magic.classes.creator.AttributeEditorPopup.prototype.formToPayload = function() 
  */
 magic.classes.creator.AttributeEditorPopup.prototype.computeOgcGeomType = function(attrList) {
     var geomType = "unknown";
-    console.log(attrList);
     jQuery.each(attrList, function(idx, data){
         if (data.type && data.type.indexOf("gml:") == 0) {
             /* This is the geometry attribute */

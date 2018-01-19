@@ -64,11 +64,7 @@ magic.classes.creator.LayerEditor.prototype.loadContext = function(context) {
     if (!context) {
         return;
     }
-        
-    console.log("loadContext() for layerEditor");
-    console.log(context);
-    this.sourceMarkup(null, context); 
-    
+   
     jQuery("[id^='" + this.prefix + "']").filter(":input").off("change keyup").on("change keyup", jQuery.proxy(function() {
         this.saveBtn.prop("disabled", false);
         this.formDirty = true;
@@ -78,7 +74,8 @@ magic.classes.creator.LayerEditor.prototype.loadContext = function(context) {
     this.saveBtn.prop("disabled", true);
     
     /* Source type dropdown */
-    jQuery("#" + this.prefix + "-source_type").off("change").on("change", jQuery.proxy(function(evt) {
+    var ddSourceType = jQuery("#" + this.prefix + "-source_type");
+    ddSourceType.off("change").on("change", jQuery.proxy(function(evt) {
         if (this.formDirty) {
             bootbox.confirm(
                 '<div class="alert alert-danger" style="margin-top:10px">You have unsaved changes - proceed?</div>', 
@@ -97,18 +94,17 @@ magic.classes.creator.LayerEditor.prototype.loadContext = function(context) {
     magic.modules.Common.jsonToForm(this.formSchema, context, this.prefix);
     
     /* Interactivity triggers */
-    jQuery("#" + this.prefix + "-is_interactive").off("change").on("change", jQuery.proxy(function(evt) {
+    var chkInteractivity = jQuery("#" + this.prefix + "-is_interactive");
+    chkInteractivity.off("change").on("change", jQuery.proxy(function(evt) {
         if (jQuery(evt.currentTarget).prop("checked") === true) {
             jQuery("div.attribute-editor").removeClass("hidden");
         } else {
             jQuery("div.attribute-editor").addClass("hidden");
         }
     }, this));
-    if (context.is_interactive === true) {
-        jQuery("div.attribute-editor").removeClass("hidden");
-    } else {
-        jQuery("div.attribute-editor").addClass("hidden");
-    }
+    chkInteractivity.prop("checked", context.is_interactive === true);
+    chkInteractivity.trigger("change");
+   
     /* Attribute edit button */
     jQuery("#" + this.prefix + "-attribute-edit").off("click").on("click", jQuery.proxy(function(evt) {
         if (!this.attributeEditor) {
@@ -118,7 +114,7 @@ magic.classes.creator.LayerEditor.prototype.loadContext = function(context) {
             });
         }
         if (this.sourceEditor.sourceSpecified()) {
-            this.attributeEditor.activate(context);
+            this.attributeEditor.activate(jQuery.extend(context, this.sourceEditor.formToPayload()));
         } else {
             bootbox.alert(
                 '<div class="alert alert-warning" style="margin-bottom:0">' + 
@@ -127,6 +123,8 @@ magic.classes.creator.LayerEditor.prototype.loadContext = function(context) {
             );
         }
     }, this));
+    
+    ddSourceType.trigger("change");
     
     /* Clean the form */
     this.formDirty = false;
@@ -219,7 +217,6 @@ magic.classes.creator.LayerEditor.prototype.validate = function() {
  * @param {Object} context
  */
 magic.classes.creator.LayerEditor.prototype.sourceMarkup = function(type, context) {
-    console.log("sourceMarkup() entered");
     type = type || this.typeFromContext(context);   
     jQuery("#" + this.prefix + "-source_type").val(type);
     var payload = {
@@ -232,12 +229,8 @@ magic.classes.creator.LayerEditor.prototype.sourceMarkup = function(type, contex
         case "kml": this.sourceEditor = new magic.classes.creator.KmlSourceEditor(payload); break;
         default: this.sourceEditor = new magic.classes.creator.WmsSourceEditor(payload); break;
     }   
-    console.log(type);
     jQuery("#" + this.prefix + "-source").removeClass("hidden").html(this.sourceEditor.markup());
-    console.log("markup done");
     this.sourceEditor.loadContext(payload.sourceContext); 
-    console.log("loadContext() done");
-    console.log("sourceMarkup() exited");
 };
 
 /**

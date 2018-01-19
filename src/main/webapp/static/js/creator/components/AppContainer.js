@@ -136,10 +136,7 @@ magic.classes.creator.AppContainer.prototype.loadContext = function(mapContext, 
         bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to determine projection - aborting</div>');
         return;
     }
-    
-    console.log(mapContext);
-    console.log(magic.runtime.projection);
-    
+   
     jQuery.each(this.dialogs, jQuery.proxy(function(dn, dialog) {
         if (jQuery.isFunction(dialog.loadContext)) {
             dialog.loadContext(mapContext);

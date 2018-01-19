@@ -118,6 +118,23 @@ magic.classes.creator.MapLayerSelectorTree.prototype.showContext = function() {
         var id = this.layerDictionary.put(jQuery.extend({}, this.BLANK_MAP_NEW_GROUP));
         var newLi = this.groupMarkup(id, this.layerDictionary.get(id)["name"]);
         this.layerTreeUl.append(newLi);
+        var openerSpan = jQuery('<span/>')
+            .addClass("sortableListsOpener ignore-drag-item")
+            .css(this.OPENER_CSS)
+            .on("mousedown", jQuery.proxy(function(evt) {
+                var li = jQuery(evt.currentTarget).closest("li");
+                if (li.hasClass("sortableListsClosed")) {
+                    li.removeClass("sortableListsClosed").addClass("sortableListsOpen");
+                    li.children("ul").css("display", "block");
+                    jQuery(evt.currentTarget).html(this.CLOSE_MARKUP);
+                } else {
+                    li.removeClass("sortableListsOpen").addClass("sortableListsClosed");
+                    li.children("ul").css("display", "none");
+                    jQuery(evt.currentTarget).html(this.OPEN_MARKUP);
+                }
+            }, this))
+            .html(this.CLOSE_MARKUP);
+        openerSpan.clone(true).prependTo(newLi.children("div").first());
         newLi.find("button.layer-group-edit").off("click").on("click", jQuery.proxy(this.editHandler, this));
         newLi.find("button.layer-group-delete").off("click").on("click", jQuery.proxy(this.deleteHandler, this));
     }, this));
@@ -170,7 +187,16 @@ magic.classes.creator.MapLayerSelectorTree.prototype.deleteHandler = function(ev
         jQuery.proxy(function(result) {
             if (result) {
                 /* Do the deletion (assuming any group is empty) */
-                jQuery("#" + itemId).remove();
+                var parent = jQuery("#" + itemId).parents("li.list-group-item-heading").first();
+                if (parent != null) {
+                    /* Enable delete button on original parent if there are no more children */
+                    console.log("Number of children of parent " + parent.find("ul").children("li").length);
+                    if (parent.find("ul").children("li").length == 1) {
+                        /* What we are about to delete is the last child */
+                        parent.find("button.layer-group-delete").prop("disabled", false);
+                    }
+                }
+                jQuery("#" + itemId).remove();                
                 this.layerDictionary.del(itemId);
                 jQuery("#" + this.prefix + "-update-panel").fadeOut("slow");
                 bootbox.hideAll();
@@ -277,7 +303,38 @@ magic.classes.creator.MapLayerSelectorTree.prototype.initSortableList = function
             open: this.OPEN_MARKUP,
             openerCss: this.OPENER_CSS
         },
-        ignoreClass: "ignore-drag-item"
+        ignoreClass: "ignore-drag-item",
+        onDragStart: jQuery.proxy(function(evt, elt) {
+            var parentLi = jQuery(elt).parents("li.list-group-item-heading").first();
+            this.originalParent = parentLi.length > 0 ? parentLi : null;
+        }, this),
+        onChange: jQuery.proxy(function(elt) {
+            /* Check the opener is in the right place and swap it if not */
+            var dropped = jQuery(elt);            
+            var parentLi = dropped.parents("li.list-group-item-heading").first();
+            if (parentLi.length > 0) {
+                /* Disable delete button on new parent */
+                parentLi.find("button.layer-group-delete").prop("disabled", true);
+                /* Ensure opener is first element in div */
+                var tb = parentLi.find("div.btn-toolbar").first();
+                if (tb.length > 0) {
+                    /* Found toolbar, so look if <span> for list opener is next and swap if so - looks like a sortableLists bug/infelicity */
+                    var op = tb.next();
+                    if (op.length > 0 && op.hasClass("sortableListsOpener")) {
+                        var opClone = op.clone(true);
+                        op.remove();
+                        opClone.insertBefore(tb);
+                    }
+                }
+            }
+            if (this.originalParent != null) {
+                /* Enable delete button on original parent if there are no more children */
+                if (this.originalParent.find("ul").children("li").length == 0) {
+                    this.originalParent.find("button.layer-group-delete").prop("disabled", false);
+                }
+                this.originalParent = null;
+            }
+        }, this)
     });
 };
 
@@ -338,42 +395,45 @@ magic.classes.creator.MapLayerSelectorTree.prototype.allowedDragHandler = functi
 magic.classes.creator.MapLayerSelectorTree.prototype.groupMarkup = function(id, name) {   
     var li = jQuery(
         '<li class="list-group-item list-group-item-heading sortableListsClosed" id="' + id + '">' + 
-            '<span class="sortableListsOpener"></span>' +
-            '<div class="class="btn-toolbar ignore-drag-item" role="toolbar">' +  
-                '<div class="btn-group ignore-drag-item" role="group" style="display:flex">' + 
-                    '<button style="flex:1" type="button" class="btn btn-info ignore-drag-item name-area">' + name + '</button>' + 
-                    '<button style="width:40px" type="button" class="btn btn-warning layer-group-edit ignore-drag-item" ' + 
-                        'data-container="body" data-toggle="tooltip" data-placement="top" title="Edit layer group data">' + 
-                        '<i class="fa fa-pencil ignore-drag-item"></i>' + 
-                    '</button>' + 
-                    '<button style="width:40px" type="button" class="btn btn-danger layer-group-delete ignore-drag-item" ' + 
-                        'data-container="body" data-toggle="tooltip" data-placement="top" title="Delete layer group">' + 
-                        '<i class="fa fa-times ignore-drag-item"></i>' + 
-                    '</button>' + 
-                '</div>' + 
+            '<div>' + 
+                '<div class="btn-toolbar ignore-drag-item" role="toolbar">' +                  
+                    '<div class="btn-group ignore-drag-item" role="group" style="width:100%;display:flex">' + 
+                        '<button style="flex:1" type="button" class="btn btn-info ignore-drag-item name-area">' + name + '</button>' + 
+                        '<button style="width:40px" type="button" class="btn btn-warning layer-group-edit ignore-drag-item" ' + 
+                            'data-container="body" data-toggle="tooltip" data-placement="top" title="Edit layer group data">' + 
+                            '<i class="fa fa-pencil ignore-drag-item"></i>' + 
+                        '</button>' + 
+                        '<button style="width:40px" type="button" class="btn btn-danger layer-group-delete ignore-drag-item" ' + 
+                            'data-container="body" data-toggle="tooltip" data-placement="top" title="Delete layer group">' + 
+                            '<i class="fa fa-times ignore-drag-item"></i>' + 
+                        '</button>' + 
+                    '</div>' + 
+                '</div>' +
             '</div>' + 
             '<ul class="list-group" style="display:none"></ul>' + 
         '</li>'
     );
     /* Unfortunately the sortable lists plugin doesn't allow dynamic addition of items to the tree, just d-n-d re-ordering of existing ones
      * Hence we have copied some of the event handlers here to allow open/close of dynamically added layer groups */
-    li.children("span")
-        .css(this.OPENER_CSS)
-        .off("mousedown").on("mousedown", jQuery.proxy(function(evt) {                    
-            if (li.hasClass("sortableListsClosed")) {
-                jQuery(evt.currentTarget).html(this.CLOSE_MARKUP);
-                li.removeClass("sortableListsClosed").addClass("sortableListsOpen");
-                li.children("ul, ol").css("display", "block");
-                li.children("div").children(".sortableListsOpener").first().html(this.CLOSE_MARKUP);
-            }
-            else { 
-                jQuery(evt.currentTarget).html(this.OPEN_MARKUP);
-                li.removeClass("sortableListsOpen").addClass("sortableListsClosed");
-                li.children("ul, ol").css("display", "none");
-                li.children("div").children(".sortableListsOpener").first().html(this.OPEN_MARKUP);
-            }
-            return(false);
-    }, this));
+//    li.children("div").children("span.sortableListsOpener")
+//        .css(this.OPENER_CSS)
+//        .off("mousedown").on("mousedown", jQuery.proxy(function(evt) {                    
+//            if (li.hasClass("sortableListsClosed")) {
+//                jQuery(evt.currentTarget).html(this.CLOSE_MARKUP);
+//                li.removeClass("sortableListsClosed").addClass("sortableListsOpen");
+//                li.children("ul, ol").css("display", "block");
+//                //console.log(li.children("ul").find(".sortableListsOpener"));
+//                //li.children("ul").find(".sortableListsOpener").first().html(this.CLOSE_MARKUP);
+//            }
+//            else { 
+//                jQuery(evt.currentTarget).html(this.OPEN_MARKUP);
+//                li.removeClass("sortableListsOpen").addClass("sortableListsClosed");
+//                li.children("ul, ol").css("display", "none");
+//                //console.log(li.children("ul").find(".sortableListsOpener"));
+//                //li.children("ul").find(".sortableListsOpener").first().html(this.OPEN_MARKUP);
+//            }
+//            return(false);
+//    }, this));
     return(li);
 };
 
@@ -418,10 +478,7 @@ magic.classes.creator.MapLayerSelectorTree.prototype.writeGroupData = function(d
  * Callback for save action on a layer
  * @param {Object} data
  */
-magic.classes.creator.MapLayerSelectorTree.prototype.writeLayerData = function(data) {
-    console.log("---- Updated data ----");
-    console.log(data);
-    console.log("---- End ----");
+magic.classes.creator.MapLayerSelectorTree.prototype.writeLayerData = function(data) {    
     this.layerDictionary.put(data);
     jQuery("#" + data.id).find("button.name-area").first().text(data.name);
     jQuery("#" + this.prefix + "-update-panel").fadeOut("slow");

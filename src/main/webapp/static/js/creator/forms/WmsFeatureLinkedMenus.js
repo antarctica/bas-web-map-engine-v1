@@ -62,9 +62,7 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.sourceSpecified = function
  * @param {Object} data with fields wms_source, feature_name, style_name
  */
 magic.classes.creator.WmsFeatureLinkedMenus.prototype.init = function(data) {
-    
-    console.log("WmsLinked init()");
-    
+        
     this.dropdowns.wms_source = jQuery("#" + this.id + "-wms_source");
     this.dropdowns.feature_name = jQuery("#" + this.id + "-feature_name");
     this.dropdowns.style_name = jQuery("#" + this.id + "-style_name"); 
@@ -107,9 +105,7 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.init = function(data) {
             this.loadStylesForFeature(wms, fname, "");
         }        
     }, this));
-    
-    console.log("Finished init()");
-    
+        
 };
 
 /**
