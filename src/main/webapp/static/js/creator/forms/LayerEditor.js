@@ -92,6 +92,7 @@ magic.classes.creator.LayerEditor.prototype.loadContext = function(context) {
       
     /* Populate form from data */
     magic.modules.Common.jsonToForm(this.formSchema, context, this.prefix);
+    this.sourceMarkup(null, context);
     
     /* Interactivity triggers */
     var chkInteractivity = jQuery("#" + this.prefix + "-is_interactive");
@@ -122,9 +123,7 @@ magic.classes.creator.LayerEditor.prototype.loadContext = function(context) {
                 '</div>'
             );
         }
-    }, this));
-    
-    ddSourceType.trigger("change");
+    }, this));    
     
     /* Clean the form */
     this.formDirty = false;

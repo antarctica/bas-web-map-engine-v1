@@ -8,8 +8,7 @@ import it.geosolutions.geoserver.rest.HTTPUtils;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -17,6 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -411,6 +412,12 @@ public class HomeController {
      */
     private String getUserName(HttpServletRequest request) {    
         Principal p = request.getUserPrincipal();
+        Collection<? extends GrantedAuthority> auths = SecurityContextHolder.getContext().getAuthentication().getAuthorities();
+        System.out.println("Authorities of current user");
+        auths.forEach((ga) -> {
+            System.out.println("--> " + ga.getAuthority());
+        });
+        System.out.println("End");
         return(p != null ? p.getName() : "guest");
     }        
 
