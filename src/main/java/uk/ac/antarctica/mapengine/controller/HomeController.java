@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -417,6 +418,11 @@ public class HomeController {
         auths.forEach((ga) -> {
             System.out.println("--> " + ga.getAuthority());
         });
+        System.out.println("End");
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        System.out.println("Credentials from context holder");
+        System.out.println("--> Username : " + auth.getName());
+        System.out.println("--> Password : " + auth.getDetails());
         System.out.println("End");
         return(p != null ? p.getName() : "guest");
     }        

@@ -169,7 +169,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
             auth
                 .inMemoryAuthentication()
                 .withUser("darb1")
-                .password("oypsmaj")
+                .password("testing123")                    
                 .roles("USER");
         }
 
