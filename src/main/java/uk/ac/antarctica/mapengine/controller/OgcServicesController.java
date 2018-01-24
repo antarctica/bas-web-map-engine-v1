@@ -366,7 +366,7 @@ public class OgcServicesController implements ServletContextAware {
     }
     
     /**
-     * Post-apply user layer secuirity checks to the GetCaps document
+     * Post-apply user layer security checks to the GetCaps document
      * @param HttpServletResponse response
      * @param HttpServletRequest request
      * @param String url

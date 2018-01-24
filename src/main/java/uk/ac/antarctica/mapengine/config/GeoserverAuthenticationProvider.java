@@ -8,6 +8,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Base64;
 import javax.net.ssl.HttpsURLConnection;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -23,14 +24,14 @@ public class GeoserverAuthenticationProvider implements AuthenticationProvider {
     
     private String loginUrl;
     
-    private UserAuthorities ua;
+    private JdbcTemplate tpl;
     
     public GeoserverAuthenticationProvider() {
     }
     
-    public GeoserverAuthenticationProvider(String loginUrl, UserAuthorities ua) {
+    public GeoserverAuthenticationProvider(String loginUrl, JdbcTemplate tpl) {
         this.loginUrl = loginUrl;
-        this.ua = ua;
+        this.tpl = tpl;
     }
     
     @Override
@@ -76,7 +77,8 @@ public class GeoserverAuthenticationProvider implements AuthenticationProvider {
             int status = conn.getResponseCode();
             if (status < 400) {
                 /* Record the Geoserver credentials so they are recoverable by the security context holder */
-                System.out.println("Geoserver authentication successful for user " + name);                
+                System.out.println("Geoserver authentication successful for user " + name);
+                UserAuthorities ua = new UserAuthorities(getTpl());              
                 return(new UsernamePasswordAuthenticationToken(name, password, ua.toGrantedAuthorities(name, password)));
             } else if (status == 401) {
                 throw new GeoserverAuthenticationException("Invalid credentials");
@@ -101,8 +103,16 @@ public class GeoserverAuthenticationProvider implements AuthenticationProvider {
         return loginUrl;
     }
 
-    public void seLoginUrl(String loginUrl) {
+    public void setLoginUrl(String loginUrl) {
         this.loginUrl = loginUrl;
+    }
+
+    public JdbcTemplate getTpl() {
+        return tpl;
+    }
+
+    public void setTpl(JdbcTemplate tpl) {
+        this.tpl = tpl;
     }
     
 }

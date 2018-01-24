@@ -28,7 +28,6 @@ import org.springframework.security.web.savedrequest.SavedRequest;
 import org.springframework.security.web.util.RegexRequestMatcher;
 import org.springframework.security.web.util.RequestMatcher;
 import uk.ac.antarctica.mapengine.config.ApplicationSecurity.CsrfSecurityRequestMatcher;
-import uk.ac.antarctica.mapengine.model.UserAuthorities;
 
 @Configuration
 @EnableWebMvcSecurity
@@ -154,8 +153,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
         
         /* Authentication against the local Geoserver instance (incorporates LDAP) */
         if (env.getProperty("authentication.geoserver").equals("yes")) {
-            UserAuthorities ua = new UserAuthorities(magicDataTpl);
-            auth.authenticationProvider(new GeoserverAuthenticationProvider(geoserverUrl, ua));
+            auth.authenticationProvider(new GeoserverAuthenticationProvider(geoserverUrl, magicDataTpl));
         }
     }
 
