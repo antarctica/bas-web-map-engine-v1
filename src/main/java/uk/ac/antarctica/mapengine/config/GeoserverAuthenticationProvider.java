@@ -5,30 +5,15 @@ package uk.ac.antarctica.mapengine.config;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Base64;
-import java.util.List;
 import javax.net.ssl.HttpsURLConnection;
-import org.apache.commons.io.IOUtils;
-import org.apache.http.ParseException;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.fluent.Executor;
-import org.apache.http.client.fluent.Request;
-import org.apache.http.entity.ContentType;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 import uk.ac.antarctica.mapengine.exception.GeoserverAuthenticationException;
-import uk.ac.antarctica.mapengine.util.ProcessUtils;
+import uk.ac.antarctica.mapengine.model.UserAuthorities;
 
 @Component
 public class GeoserverAuthenticationProvider implements AuthenticationProvider {
@@ -38,12 +23,14 @@ public class GeoserverAuthenticationProvider implements AuthenticationProvider {
     
     private String loginUrl;
     
+    private UserAuthorities ua;
+    
     public GeoserverAuthenticationProvider() {
     }
     
-    public GeoserverAuthenticationProvider(String loginUrl) {
-        System.out.println("Creating GS Auth Provider with URL : " + loginUrl);
+    public GeoserverAuthenticationProvider(String loginUrl, UserAuthorities ua) {
         this.loginUrl = loginUrl;
+        this.ua = ua;
     }
     
     @Override
@@ -89,14 +76,12 @@ public class GeoserverAuthenticationProvider implements AuthenticationProvider {
             int status = conn.getResponseCode();
             if (status < 400) {
                 /* Record the Geoserver credentials so they are recoverable by the security context holder */
-                System.out.println("Geoserver authentication successful for user " + name);
-                List<GrantedAuthority> grantedAuths = new ArrayList<>();                
-                grantedAuths.add(new SimpleGrantedAuthority("geoserver:" + hostname + ":" + name + ":" + password));
-                return(new UsernamePasswordAuthenticationToken(name, password, grantedAuths));
+                System.out.println("Geoserver authentication successful for user " + name);                
+                return(new UsernamePasswordAuthenticationToken(name, password, ua.toGrantedAuthorities(name, password)));
             } else if (status == 401) {
                 throw new GeoserverAuthenticationException("Invalid credentials");
             } else {
-                
+                throw new GeoserverAuthenticationException("Unexpected status code " + status + " attempting to authenticate");
             }
         } catch(IOException ioe) {
             throw new GeoserverAuthenticationException("Unable to authenticate against local Geoserver - IOException was: " + ioe.getMessage());
@@ -104,43 +89,7 @@ public class GeoserverAuthenticationProvider implements AuthenticationProvider {
             if (conn != null) {
                 conn.disconnect();
             }
-        } 
-        
-        HttpResponse response = null;
-        
-        CloseableHttpClient client = HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy()).build();
-        
-        try {
-            /* If the request succeeds it will be because we have been sent to the login page */
-            System.out.println("POST request to GS...");
-            Request request = Request.Post(loginUrl + "/j_spring_security_check")
-                .bodyString("username=" + name + "&password=" + password, ContentType.APPLICATION_FORM_URLENCODED);                
-            response = Executor.newInstance(client).execute(request).returnResponse();
-            String content = IOUtils.toString(response.getEntity().getContent());
-            if (content.contains("<span class=\"username\">Logged in as <span>" + name + "</span>.</span>")) {
-                /* Record the Geoserver credentials so they are recoverable by the security context holder */
-                System.out.println("GS authentication successful");
-                List<GrantedAuthority> grantedAuths = new ArrayList<>();
-                String hostname = ProcessUtils.execReadToString("hostname");
-                System.out.println(hostname);
-                grantedAuths.add(new SimpleGrantedAuthority("geoserver:" + hostname + ":" + name + ":" + password));
-                return(new UsernamePasswordAuthenticationToken(name, password, grantedAuths));
-            } else {
-                throw new GeoserverAuthenticationException("Unable to authenticate against local Geoserver");
-            }
-        } catch(ClientProtocolException cpe) {
-            throw new GeoserverAuthenticationException("Unable to authenticate against local Geoserver - ClientProtocolException was: " + cpe.getMessage());            
-        } catch (IOException ioe) {
-            throw new GeoserverAuthenticationException("Unable to authenticate against local Geoserver - IOException was: " + ioe.getMessage());
-        } catch (ParseException pe) {
-            throw new GeoserverAuthenticationException("Unable to authenticate against local Geoserver - ParseException was: " + pe.getMessage());
-        } finally {
-            try {
-                client.close();
-            } catch(IOException ioe) {
-                throw new GeoserverAuthenticationException("IO exception authenticating against local Geoserver - error was: " + ioe.getMessage());
-            }
-        } 
+        }         
     }
  
     @Override
