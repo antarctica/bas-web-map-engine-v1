@@ -4,10 +4,15 @@
 package uk.ac.antarctica.mapengine.config;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
+import javax.net.ssl.HttpsURLConnection;
 import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpResponse;
 import org.apache.http.ParseException;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.fluent.Executor;
@@ -28,6 +33,9 @@ import uk.ac.antarctica.mapengine.util.ProcessUtils;
 @Component
 public class GeoserverAuthenticationProvider implements AuthenticationProvider {
     
+    private static final int CONNECT_TIMEOUT_MILLIS = 10000;
+    private static final int REQUEST_TIMEOUT_MILLIS = 10000;
+    
     private String loginUrl;
     
     public GeoserverAuthenticationProvider() {
@@ -41,11 +49,67 @@ public class GeoserverAuthenticationProvider implements AuthenticationProvider {
     @Override
     public Authentication authenticate(Authentication authentication) 
       throws GeoserverAuthenticationException {
+        
+        HttpURLConnection conn = null;
+        
+        System.out.println("Geoserver authentication provider starting...");
+        
+        try {
+            /* Get user's credentials */
+            String name = authentication.getName();
+            String password = authentication.getCredentials().toString();
+
+            /* Open the URL connection - the URL is a little-used service on the local Geoserver instance which has been locked down to only
+             * be accessible to ROLE_AUTHENTICATED users - this will serve as an authentication gateway for Geoserver - David 24/01/2018
+             */
+            String storedQueries = loginUrl + "/wfs?request=listStoredQueries";
+            URL serverEndpoint = new URL(storedQueries);            
+            if (loginUrl.startsWith("http://")) {
+                /* Non-secure URL */
+                conn = (HttpURLConnection)serverEndpoint.openConnection();
+            } else {
+                /* Use secure connection */
+                conn = (HttpsURLConnection)serverEndpoint.openConnection();
+            }
+
+            /* Set Basic Authentication headers */
+            byte[] encCreds = Base64.getEncoder().encode((name + ":" + password).getBytes());        
+            conn.setRequestProperty("Authorization", "Basic " + new String(encCreds));
+            
+            /* Set timeouts and other connection properties */
+            conn.setConnectTimeout(CONNECT_TIMEOUT_MILLIS);
+            conn.setReadTimeout(REQUEST_TIMEOUT_MILLIS);
+            conn.setRequestMethod("GET");
+            conn.setUseCaches(false);
+            conn.setDoInput(true);
+            conn.setDoOutput(true);
+            
+            conn.connect();
+
+            int status = conn.getResponseCode();
+            if (status < 400) {
+                /* Record the Geoserver credentials so they are recoverable by the security context holder */
+                System.out.println("Geoserver authentication successful for user " + name);
+                List<GrantedAuthority> grantedAuths = new ArrayList<>();                
+                grantedAuths.add(new SimpleGrantedAuthority("geoserver:" + hostname + ":" + name + ":" + password));
+                return(new UsernamePasswordAuthenticationToken(name, password, grantedAuths));
+            } else if (status == 401) {
+                throw new GeoserverAuthenticationException("Invalid credentials");
+            } else {
+                
+            }
+        } catch(IOException ioe) {
+            throw new GeoserverAuthenticationException("Unable to authenticate against local Geoserver - IOException was: " + ioe.getMessage());
+        } finally {
+            if (conn != null) {
+                conn.disconnect();
+            }
+        } 
+        
         HttpResponse response = null;
-        System.out.println("GS authentication starting...");
+        
         CloseableHttpClient client = HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy()).build();
-        String name = authentication.getName();
-        String password = authentication.getCredentials().toString();
+        
         try {
             /* If the request succeeds it will be because we have been sent to the login page */
             System.out.println("POST request to GS...");

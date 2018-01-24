@@ -9,22 +9,17 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.servlet.configuration.EnableWebMvcSecurity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.ldap.authentication.BindAuthenticator;
-import org.springframework.security.ldap.authentication.LdapAuthenticationProvider;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
@@ -39,17 +34,8 @@ import uk.ac.antarctica.mapengine.config.ApplicationSecurity.CsrfSecurityRequest
 public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 
     @Autowired
-    private Environment env;
-
-    @Autowired
-    private SecurityProperties security;
-
-    @Autowired
-    private DataSource userDataSource;
-
-    @Autowired
-    private LdapContextSource contextSource;
-    
+    private Environment env;   
+   
     @Autowired
     private JdbcTemplate magicDataTpl;
 
@@ -87,8 +73,8 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
     /* See https://blogs.sourceallies.com/2014/04/customizing-csrf-protection-in-spring-security/ - want to protect GET requests to /ogc/proxy for security reasons */
     public class CsrfSecurityRequestMatcher implements RequestMatcher {
 
-        private Pattern allowedMethods = Pattern.compile("^(HEAD|TRACE|OPTIONS)$");
-        private RegexRequestMatcher proxyMatcher = new RegexRequestMatcher("/ogc/proxy", null);
+        private final Pattern allowedMethods = Pattern.compile("^(HEAD|TRACE|OPTIONS)$");
+        private final RegexRequestMatcher proxyMatcher = new RegexRequestMatcher("/ogc/proxy", null);
 
         @Override
         public boolean matches(HttpServletRequest request) {
@@ -159,44 +145,16 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 
     @Override
     public void configure(AuthenticationManagerBuilder auth) throws Exception {
-
+        
+        /* CCAMLR GIS - authentication via Drupal CHOCCHIPSSL cookie */
         if (env.getProperty("authentication.ccamlr").equals("yes")) {
             auth.authenticationProvider(new CcamlrAuthenticationProvider());
         }
         
-        if (env.getProperty("authentication.inmemory").equals("yes")) {
-            /* Attempt to authenticate an in-memory user, useful when LDAP and other providers are not available */
-            auth
-                .inMemoryAuthentication()
-                .withUser("darb1")
-                .password("testing123")                    
-                .roles("USER");
-        }
-
-        if (env.getProperty("authentication.geoserver").equals("yes")) {
-            /* Attempt to authenticate against a local Geoserver instance */
+        /* Authentication against the local Geoserver instance (incorporates LDAP) */
+        if (env.getProperty("authentication.geoserver").equals("yes")) {            
             auth.authenticationProvider(new GeoserverAuthenticationProvider(geoserverUrl));
         }
-
-        if (env.getProperty("authentication.basldap").equals("yes")) {
-            /* Attempt to authenticate against BAS LDAP */
-            String catalinaBase = System.getProperty("catalina.base");
-            boolean isDevEnvironment = catalinaBase.contains("Application Support") || catalinaBase.contains("NetBeans");
-            if (!isDevEnvironment) {
-                /* Temporary fix for Tomcat aborting operations because of being unable to see BAS LDAP server - will be fixed by VPN */
-                try {
-                    BindAuthenticator ba = new BindAuthenticator(this.contextSource);
-                    ba.setUserDnPatterns(new String[]{"uid={0},ou=People"});
-                    auth.authenticationProvider(new LdapAuthenticationProvider(ba));
-                } catch (Exception ex) {
-                    /* Failing to contact the LDAP server should not invalidate the other authentication options */
-                    System.out.println(ex.getMessage() + " " + ex.getClass().toString());
-                }
-            }
-        }
-
-        /* Attempt to authenticate against Ramadda if present */
-//        auth.authenticationProvider(new RamaddaAuthenticationProvider("/repository/user/login"));
     }
 
 }

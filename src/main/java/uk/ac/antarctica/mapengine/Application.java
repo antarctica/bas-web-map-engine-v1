@@ -14,7 +14,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
@@ -36,24 +35,6 @@ public class Application extends SpringBootServletInitializer {
     }
 
     private static Class<Application> applicationClass = Application.class;
-
-    @Bean
-    public LdapContextSource contextSource() {
-        LdapContextSource contextSource = new LdapContextSource();
-        String catalinaBase = System.getProperty("catalina.base");
-        boolean isDevEnvironment = catalinaBase.contains("Application Support") || catalinaBase.contains("NetBeans");
-        if (isDevEnvironment) {
-            /* Need to do 'ssh -L 9999:ldap.nerc-bas.ac.uk:389 darb1@bslcenb.nerc-bas.ac.uk' to enable BAS LDAP on localhost:9999 */
-            contextSource.setUrl("ldap://localhost:9999");
-        } else {
-            /* Can see LDAP server directly */
-            contextSource.setUrl("ldap://ldap.nerc-bas.ac.uk");
-        }        
-        contextSource.setBase("dc=nerc-bas,dc=ac,dc=uk");
-        contextSource.setUserDn("ou=People");
-        contextSource.setPassword("password");
-        return (contextSource);
-    }
 
     @Bean
     @Primary
