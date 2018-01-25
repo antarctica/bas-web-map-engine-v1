@@ -54,7 +54,7 @@ public class GeoserverAuthenticationProvider implements AuthenticationProvider {
             if (status < 400) {
                 /* Record the Geoserver credentials so they are recoverable by the security context holder */
                 System.out.println("Geoserver authentication successful for user " + name);
-                UserAuthorities ua = new UserAuthorities(getTpl());              
+                UserAuthorities ua = new UserAuthorities(getTpl(), getEnv());              
                 return(new UsernamePasswordAuthenticationToken(name, password, ua.toGrantedAuthorities(name, password, env.getProperty("geoserver.local.defaultRole"))));
             } else if (status == 401) {
                 throw new GeoserverAuthenticationException("Invalid credentials");

@@ -33,7 +33,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class GeoserverRestController {   
     
     /**
-     * NOTE: 2017-06-12 David - updating CCAMLR GIS
+     * NOTE: 2017-06-12 David
      * It is very likely that all the methods in here should be applicable to any Geoserver REST endpoint URL which we have the appropriate credentials for
      * not just the local Geoserver.  It is likely that an extra endpoint id REST parameter be added to each eventually
      */

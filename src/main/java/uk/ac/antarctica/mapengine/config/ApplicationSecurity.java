@@ -22,7 +22,6 @@ import org.springframework.security.config.annotation.web.servlet.configuration.
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.SavedRequest;
 import org.springframework.security.web.util.RegexRequestMatcher;
@@ -90,66 +89,40 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        
-        if (env.getProperty("authentication.ccamlr").equals("yes")) {
-            /* Authentication via Drupal CHOCCHIPSSL cookie */
-            System.out.println("CCAMLR authentication via Drupal ChocChip filter");
-            http
-                .addFilterBefore(new DrupalChocChipHeaderAuthenticationFilter(env, magicDataTpl), BasicAuthenticationFilter.class)
-                .authorizeRequests()
-                .antMatchers("/*.ico", "/static/**", "/ping", "/home/**", "/homed/**",
-                        "/maps/dropdown/**", "/maps/name/**", "/maps/id/**", "/thumbnails", "/feedback",
-                        "/embedded_maps/dropdown/**", "/embedded_maps/name/**", "/embedded_maps/id/**",
-                        "/usermaps/data", "/ogc/**",
-                        "/thumbnail/show/**", "/prefs/get", "/gs/**").permitAll()
-                .antMatchers("/creator", "/creatord", "/embedded_creator", "/embedded_creatord",
-                        "/restricted/**", "/restrictedd/**",
-                        "/userlayers/**", "/prefs/set", "/feedback/issues/**",
-                        "/maps/save", "/maps/update/**", "/maps/delete/**", "/maps/deletebyname/**",
-                        "/embedded_maps/save", "/embedded_maps/update/**", "/embedded_maps/delete/**", "/embedded_maps/deletebyname/**",
-                        "/usermaps/save", "/usermaps/update/**", "/usermaps/delete/**",
-                        "/thumbnail/save/**", "/thumbnail/delete/**")
-                .fullyAuthenticated();                    
-        } else {
-            /* Form-based authentication of some kind */
-            System.out.println("Ordinary authentication via login form");
-            http
-                .authorizeRequests()
-                .antMatchers("/*.ico", "/static/**", "/ping", "/home/**", "/homed/**",
-                        "/maps/dropdown/**", "/maps/name/**", "/maps/id/**", "/thumbnails", "/feedback",
-                        "/embedded_maps/dropdown/**", "/embedded_maps/name/**", "/embedded_maps/id/**",
-                        "/usermaps/data", "/ogc/**",
-                        "/thumbnail/show/**", "/prefs/get", "/gs/**").permitAll()
-                .antMatchers("/creator", "/creatord", "/embedded_creator", "/embedded_creatord",
-                        "/restricted/**", "/restrictedd/**",
-                        "/userlayers/**", "/prefs/set", "/feedback/issues/**",
-                        "/maps/save", "/maps/update/**", "/maps/delete/**", "/maps/deletebyname/**",
-                        "/embedded_maps/save", "/embedded_maps/update/**", "/embedded_maps/delete/**", "/embedded_maps/deletebyname/**",
-                        "/usermaps/save", "/usermaps/update/**", "/usermaps/delete/**",
-                        "/thumbnail/save/**", "/thumbnail/delete/**", "/rothera_reports/**")
-                .fullyAuthenticated()
-                .and()
-                .formLogin()
-                .loginPage("/login")
-                .successHandler(successHandler())
-                .permitAll()
-                .and()
-                .logout()
-                .logoutSuccessUrl("/home")
-                .permitAll();
-        }
+                   
+        /* Form-based authentication of some kind */
+        System.out.println("Ordinary authentication via login form");
+        http
+            .authorizeRequests()
+            .antMatchers("/*.ico", "/static/**", "/ping", "/home/**", "/homed/**",
+                    "/maps/dropdown/**", "/maps/name/**", "/maps/id/**", "/thumbnails", "/feedback",
+                    "/embedded_maps/dropdown/**", "/embedded_maps/name/**", "/embedded_maps/id/**",
+                    "/usermaps/data", "/ogc/**",
+                    "/thumbnail/show/**", "/prefs/get", "/gs/**").permitAll()
+            .antMatchers("/creator", "/creatord", "/embedded_creator", "/embedded_creatord",
+                    "/restricted/**", "/restrictedd/**",
+                    "/userlayers/**", "/prefs/set", "/feedback/issues/**",
+                    "/maps/save", "/maps/update/**", "/maps/delete/**", "/maps/deletebyname/**",
+                    "/embedded_maps/save", "/embedded_maps/update/**", "/embedded_maps/delete/**", "/embedded_maps/deletebyname/**",
+                    "/usermaps/save", "/usermaps/update/**", "/usermaps/delete/**",
+                    "/thumbnail/save/**", "/thumbnail/delete/**", "/rothera_reports/**")
+            .fullyAuthenticated()
+            .and()
+            .formLogin()
+            .loginPage("/login")
+            .successHandler(successHandler())
+            .permitAll()
+            .and()
+            .logout()
+            .logoutSuccessUrl("/home")
+            .permitAll();
 
         /* Apply CSRF checks to all POST|PUT|DELETE requests, and GET to selected ones */
         http.csrf().requireCsrfProtectionMatcher(new CsrfSecurityRequestMatcher());
     }
 
     @Override
-    public void configure(AuthenticationManagerBuilder auth) throws Exception {
-        
-        /* CCAMLR GIS - authentication via Drupal CHOCCHIPSSL cookie */
-        if (env.getProperty("authentication.ccamlr").equals("yes")) {
-            auth.authenticationProvider(new CcamlrAuthenticationProvider());
-        }
+    public void configure(AuthenticationManagerBuilder auth) throws Exception {                
         
         /* Authentication against the local Geoserver instance (incorporates LDAP) */
         if (env.getProperty("authentication.geoserver").equals("yes")) {

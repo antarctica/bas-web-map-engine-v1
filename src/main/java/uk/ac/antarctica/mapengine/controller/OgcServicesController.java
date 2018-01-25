@@ -414,7 +414,7 @@ public class OgcServicesController implements ServletContextAware {
         String userLayersTable = env.getProperty("postgres.local.userlayersTable");
         
         /* Query the currently stored security context */
-        UserAuthorities ua = new UserAuthorities(magicDataTpl);
+        UserAuthorities ua = new UserAuthorities(magicDataTpl, env);
         String userName = ua.currentUserName();
         JsonArray userRoles = ua.currentUserRoles();
 
@@ -469,7 +469,7 @@ public class OgcServicesController implements ServletContextAware {
         String authHeader = null;
         String localServer = env.getProperty("geoserver.local.url");
         if (url.startsWith(localServer)) {
-            UserAuthorities ua = new UserAuthorities(magicDataTpl);
+            UserAuthorities ua = new UserAuthorities(magicDataTpl, env);
             authHeader = ua.basicAuthorizationHeader();
         }        
         

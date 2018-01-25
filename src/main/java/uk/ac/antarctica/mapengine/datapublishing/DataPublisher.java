@@ -226,12 +226,8 @@ public abstract class DataPublisher {
             fromName = "temp_" + UUID.randomUUID().toString();
         }
         /* Replace all non-lowercase alphanumerics with _ and truncate maximum allowed length */
-        String schemaName = "user_" + standardiseName(fromName, false, MAX_SCHEMANAME_LENGTH);
-        /* Sigh - cope with the fact we only have Postgres 9.2 on the CCAMLR server where 'IF NOT EXISTS' is not implemented...duh */
-        int nsch = getMagicDataTpl().queryForObject("SELECT count(schema_name) FROM information_schema.schemata WHERE schema_name=?", Integer.class, schemaName);
-        if (nsch == 0) {
-            getMagicDataTpl().execute("CREATE SCHEMA " + schemaName + " AUTHORIZATION " + getEnv().getProperty("datasource.magic.username"));
-        }
+        String schemaName = "user_" + standardiseName(fromName, false, MAX_SCHEMANAME_LENGTH);        
+        getMagicDataTpl().execute("CREATE SCHEMA IF NOT EXISTS " + schemaName + " AUTHORIZATION " + getEnv().getProperty("datasource.magic.username"));
         return(schemaName);
     }
     

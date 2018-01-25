@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.Authentication;
@@ -21,10 +20,10 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 public class UserAuthorities {
-    
-    private static final String USER_ROLES_TABLE = "webmap.user_roles";
-    
+        
     private JdbcTemplate tpl;
+    
+    private Environment env;
     
     /**
      * Credentials are stored as stringified JSON thus:
@@ -42,8 +41,9 @@ public class UserAuthorities {
      */
     private JsonObject authorities;   
     
-    public UserAuthorities(JdbcTemplate tpl) {
+    public UserAuthorities(JdbcTemplate tpl, Environment env) {
         this.tpl = tpl;
+        this.env = env;
         this.authorities = new JsonObject();        
     }
     
@@ -143,7 +143,8 @@ public class UserAuthorities {
             getAuthorities().addProperty("username", username);
             getAuthorities().addProperty("password", password);
             JsonArray roles = new JsonArray();
-            List<Map<String,Object>> roleList = tpl.queryForList("SELECT rolename FROM " + USER_ROLES_TABLE + " WHERE username=?", username);
+            String userRolesTable = getEnv().getProperty("postgres.local.rolesTable");
+            List<Map<String,Object>> roleList = tpl.queryForList("SELECT rolename FROM " + userRolesTable + " WHERE username=?", username);
             for (Map<String, Object> rolemap : roleList) {
                 roles.add(new JsonPrimitive((String)rolemap.get("rolename")));            
             }
@@ -175,7 +176,7 @@ public class UserAuthorities {
 
     public void setTpl(JdbcTemplate tpl) {
         this.tpl = tpl;
-    }
+    }        
 
     public JsonObject getAuthorities() {
         return authorities;
@@ -184,5 +185,13 @@ public class UserAuthorities {
     public void setAuthorities(JsonObject authorities) {
         this.authorities = authorities;
     }  
+
+    public Environment getEnv() {
+        return env;
+    }
+
+    public void setEnv(Environment env) {
+        this.env = env;
+    }
     
 }
