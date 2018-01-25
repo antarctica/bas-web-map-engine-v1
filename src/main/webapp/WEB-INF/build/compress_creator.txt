@@ -20,8 +20,7 @@ js/jquery.bootstrap.wizard.min.js
 js/jquery-sortable-lists.min.js
 js/prettify.js
 js/init.js
+js/creator/base
+js/creator/forms
 js/creator/components
-js/modules/Endpoints.js
-js/modules/Common.js
-js/modules/VectorStyles.js
-js/creator/modules
+js/modules

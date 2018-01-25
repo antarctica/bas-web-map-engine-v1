@@ -287,11 +287,11 @@ magic.classes.LayerFilter.prototype.loadExistingFilter = function() {
     var exFilter = magic.runtime.filters[this.layer.get("name")];
     var valid = exFilter && exFilter.attr && exFilter.comparison && exFilter.op && exFilter.val1;
     if (valid) {
-        this.attr = exFilter.attr,
-        this.comparison = exFilter.comparison,
-        this.op = exFilter.op,
-        this.val1 = exFilter.val1,
-        this.val2 = exFilter.val2
+        this.attr = exFilter.attr;
+        this.comparison = exFilter.comparison;
+        this.op = exFilter.op;
+        this.val1 = exFilter.val1;
+        this.val2 = exFilter.val2;
     } else {
         var filterables = jQuery.grep(this.attribute_map, jQuery.proxy(function(elt) {
             return(elt.filterable);
@@ -331,7 +331,7 @@ magic.classes.LayerFilter.prototype.getUniqueValues = function(attrName, attrVal
             } else {
                 url = url.replace(/wms$/, "wfs") + qry;
             }            
-            var jqXhr = jQuery.ajax(url)
+            jQuery.ajax(url)
                 .done(jQuery.proxy(function(data) {
                     var arr = data.split(/\n/);
                     if (arr.length > 0) {

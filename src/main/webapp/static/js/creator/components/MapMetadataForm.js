@@ -20,7 +20,7 @@ magic.classes.creator.MapMetadataForm = function(options) {
 magic.classes.creator.MapMetadataForm.prototype.defaultData = function(region) {
     var defaultData = {};
     jQuery.each(this.formSchema, jQuery.proxy(function(idx, elt) {
-        defaultData[elt.field] = elt.default;
+        defaultData[elt["field"]] = elt["default"];
     }, this));
     return(defaultData);
 };

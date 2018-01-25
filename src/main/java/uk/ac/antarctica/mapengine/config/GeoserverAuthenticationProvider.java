@@ -5,9 +5,7 @@ package uk.ac.antarctica.mapengine.config;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.Base64;
-import javax.net.ssl.HttpsURLConnection;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -15,23 +13,24 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 import uk.ac.antarctica.mapengine.exception.GeoserverAuthenticationException;
 import uk.ac.antarctica.mapengine.model.UserAuthorities;
+import uk.ac.antarctica.mapengine.util.HttpConnectionUtils;
 
 @Component
 public class GeoserverAuthenticationProvider implements AuthenticationProvider {
-    
-    private static final int CONNECT_TIMEOUT_MILLIS = 10000;
-    private static final int REQUEST_TIMEOUT_MILLIS = 10000;
     
     private String loginUrl;
     
     private JdbcTemplate tpl;
     
+    private Environment env;
+    
     public GeoserverAuthenticationProvider() {
     }
     
-    public GeoserverAuthenticationProvider(String loginUrl, JdbcTemplate tpl) {
+    public GeoserverAuthenticationProvider(String loginUrl, JdbcTemplate tpl, Environment env) {
         this.loginUrl = loginUrl;
         this.tpl = tpl;
+        this.env = env;
     }
     
     @Override
@@ -50,36 +49,13 @@ public class GeoserverAuthenticationProvider implements AuthenticationProvider {
             /* Open the URL connection - the URL is a little-used service on the local Geoserver instance which has been locked down to only
              * be accessible to ROLE_AUTHENTICATED users - this will serve as an authentication gateway for Geoserver - David 24/01/2018
              */
-            String storedQueries = loginUrl + "/wfs?request=listStoredQueries";
-            URL serverEndpoint = new URL(storedQueries);            
-            if (loginUrl.startsWith("http://")) {
-                /* Non-secure URL */
-                conn = (HttpURLConnection)serverEndpoint.openConnection();
-            } else {
-                /* Use secure connection */
-                conn = (HttpsURLConnection)serverEndpoint.openConnection();
-            }
-
-            /* Set Basic Authentication headers */
-            byte[] encCreds = Base64.getEncoder().encode((name + ":" + password).getBytes());        
-            conn.setRequestProperty("Authorization", "Basic " + new String(encCreds));
-            
-            /* Set timeouts and other connection properties */
-            conn.setConnectTimeout(CONNECT_TIMEOUT_MILLIS);
-            conn.setReadTimeout(REQUEST_TIMEOUT_MILLIS);
-            conn.setRequestMethod("GET");
-            conn.setUseCaches(false);
-            conn.setDoInput(true);
-            conn.setDoOutput(true);
-            
-            conn.connect();
-
+            conn = HttpConnectionUtils.openConnection(loginUrl + "/wfs?request=listStoredQueries", name, password);            
             int status = conn.getResponseCode();
             if (status < 400) {
                 /* Record the Geoserver credentials so they are recoverable by the security context holder */
                 System.out.println("Geoserver authentication successful for user " + name);
                 UserAuthorities ua = new UserAuthorities(getTpl());              
-                return(new UsernamePasswordAuthenticationToken(name, password, ua.toGrantedAuthorities(name, password)));
+                return(new UsernamePasswordAuthenticationToken(name, password, ua.toGrantedAuthorities(name, password, env.getProperty("geoserver.local.defaultRole"))));
             } else if (status == 401) {
                 throw new GeoserverAuthenticationException("Invalid credentials");
             } else {
@@ -114,5 +90,13 @@ public class GeoserverAuthenticationProvider implements AuthenticationProvider {
     public void setTpl(JdbcTemplate tpl) {
         this.tpl = tpl;
     }
+
+    public Environment getEnv() {
+        return env;
+    }
+
+    public void setEnv(Environment env) {
+        this.env = env;
+    }        
     
 }

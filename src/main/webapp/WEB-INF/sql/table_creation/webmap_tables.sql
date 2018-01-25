@@ -59,9 +59,9 @@ CREATE TABLE webmap.maps
   owner_email character varying(150), -- Email address of the map owner
   metadata_url character varying(255), -- URL of a metadata catalogue entry for map
   data json, -- The web map context data
-  allowed_usage character varying(10), -- public|login|owner
-  allowed_download character varying(10), -- public|login|nobody
-  allowed_edit character varying(10), -- login|owner
+  allowed_usage character varying(255), -- public|login|owner|(role1,role2,...role<n>)
+  allowed_download character varying(255), -- public|login|nobody
+  allowed_edit character varying(255), -- login|owner|(role1,role2,...role<n>)
   infolink character varying(255), -- URL of a background information page about this map
   newslink character varying(255), -- URL of a news information page about this map
   watermark character varying(255), -- URL of an image to use a map watermark
@@ -133,8 +133,8 @@ CREATE TABLE webmap.embedded_maps
   proj_extent character varying(100), -- Bounding box of the projection extent
   resolutions character varying(255), -- Array of resolutions for the map gridset
   layers json, -- Configurations for individual map layers
-  allowed_usage character varying(10), -- public|login|owner
-  allowed_edit character varying(10), -- login|owner
+  allowed_usage character varying(255), -- public|login|owner|(role1,role2,...role<n>)
+  allowed_edit character varying(255), -- login|owner|(role1,role2,...role<n>)
   CONSTRAINT embedded_maps_pkey PRIMARY KEY (id),
   CONSTRAINT embedded_maps_name_unique UNIQUE (name)
 )
@@ -198,8 +198,8 @@ CREATE TABLE webmap.usermaps
   modified_date timestamp without time zone, -- When map was last modified
   owner_name character varying(150), -- Owner username
   owner_email character varying(150), -- Owner email address
-  allowed_usage character varying(10), -- public|login|owner
-  allowed_edit character varying(10), -- login|owner
+  allowed_usage character varying(255), -- public|login|owner|(role1,role2,...role<n>)
+  allowed_edit character varying(255), -- login|owner|(role1,role2,...role<n>)
   basemap character varying(50), -- Base map (in webmap.maps table) that this view derives from
   data json, -- Map configuration data
   CONSTRAINT usermaps_pkey PRIMARY KEY (id),
@@ -239,7 +239,7 @@ CREATE TABLE webmap.userlayers
   owner character varying(150), -- Owning username
   creation_date timestamp without time zone, -- When layer was uploaded
   modified_date timestamp without time zone, -- Last modified date
-  allowed_usage character varying(10), -- public|login|owner
+  allowed_usage character varying(255), -- public|login|owner|(role1,role2,...role<n>)
   styledef json, -- Style configuration
   CONSTRAINT user_data_pkey PRIMARY KEY (id)
 )

@@ -153,7 +153,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
         
         /* Authentication against the local Geoserver instance (incorporates LDAP) */
         if (env.getProperty("authentication.geoserver").equals("yes")) {
-            auth.authenticationProvider(new GeoserverAuthenticationProvider(geoserverUrl, magicDataTpl));
+            auth.authenticationProvider(new GeoserverAuthenticationProvider(geoserverUrl, magicDataTpl, env));
         }
     }
 

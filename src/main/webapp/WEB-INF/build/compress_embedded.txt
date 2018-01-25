@@ -1,0 +1,6 @@
+css/ol.css
+js/embedded/ol_embedded.min.js
+js/embedded/jquery.min.js
+js/embedded/proj4.js
+js/embedded/proj4defs
+js/embedded/embedded.js

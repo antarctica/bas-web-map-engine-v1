@@ -34,7 +34,7 @@ magic.classes.creator.DataSourceForm.prototype.formToPayload = function(context)
 magic.classes.creator.DataSourceForm.prototype.defaultData = function() {
     var defaultData = {};
     jQuery.each(this.formSchema, jQuery.proxy(function(idx, elt) {
-        defaultData[elt.field] = elt.default;
+        defaultData[elt["field"]] = elt["default"];
     }, this));
     return(defaultData);
 };

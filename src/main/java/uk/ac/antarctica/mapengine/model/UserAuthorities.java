@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -38,7 +40,7 @@ public class UserAuthorities {
      *   ]
      * }
      */
-    private JsonObject authorities;
+    private JsonObject authorities;   
     
     public UserAuthorities(JdbcTemplate tpl) {
         this.tpl = tpl;
@@ -58,6 +60,18 @@ public class UserAuthorities {
             return(roles.contains(new JsonPrimitive(rolename)));
         }
         return(hasRole);
+    }
+    
+    /**
+     * Get current user's roles
+     * @return JsonArray
+     */
+    public JsonArray currentUserRoles() {
+        populateRoles(null, null);
+        if (isFullySpecified()) {
+            return(getAuthorities().getAsJsonArray("roles"));
+        }
+        return(null);
     }
     
     /**
@@ -84,12 +98,17 @@ public class UserAuthorities {
      * 
      * @param String username
      * @param String password
+     * @param String defaultRole
      * @return ArrayList<SimpleGrantedAuthority>
      */
-    public ArrayList<SimpleGrantedAuthority> toGrantedAuthorities(String username, String password) {
+    public ArrayList<SimpleGrantedAuthority> toGrantedAuthorities(String username, String password, String defaultRole) {
         ArrayList<SimpleGrantedAuthority> ga = new ArrayList();
         populateRoles(username, password);
-        ga.add(new SimpleGrantedAuthority(getAuthorities().getAsString()));      
+        if (defaultRole != null && !defaultRole.isEmpty() && getAuthorities().has("roles") && getAuthorities().getAsJsonArray("roles").size() == 0) {
+            /* User who has logged in but has no roles gets a default role here */
+            getAuthorities().getAsJsonArray("roles").add(new JsonPrimitive(defaultRole));
+        }
+        ga.add(new SimpleGrantedAuthority(getAuthorities().toString()));      
         return(ga);
     }
     
@@ -100,10 +119,10 @@ public class UserAuthorities {
      */
     private void populateRoles(String username, String password) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (!isFullySpecified() && auth != null) {
+        if (auth != null) {
             /* Try to recover the information from the security context */                        
             JsonParser jpr = new JsonParser();
-            for (GrantedAuthority ga : auth.getAuthorities()) {                                               
+            for (GrantedAuthority ga : auth.getAuthorities()) {  
                 setAuthorities((JsonObject)jpr.parse(ga.getAuthority()));                                         
             }
         }
@@ -152,6 +171,6 @@ public class UserAuthorities {
 
     public void setAuthorities(JsonObject authorities) {
         this.authorities = authorities;
-    }
+    }  
     
 }

@@ -14,22 +14,16 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import javax.imageio.ImageIO;
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
+import javax.net.ssl.HttpsURLConnection;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -46,27 +40,13 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.NameValuePair;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URLEncodedUtils;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
 import org.geotools.ows.ServiceException;
 import org.w3c.dom.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -75,6 +55,8 @@ import org.springframework.web.context.ServletContextAware;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+import uk.ac.antarctica.mapengine.model.UserAuthorities;
+import uk.ac.antarctica.mapengine.util.HttpConnectionUtils;
 
 @Controller
 public class OgcServicesController implements ServletContextAware {        
@@ -201,7 +183,6 @@ public class OgcServicesController implements ServletContextAware {
                     if (mimeType == null) {
                         mimeType = "image/png";
                     }
-                    //System.out.println("About to get WMS data from " + serviceUrl + "?" + request.getQueryString());
                     getFromUrl(response, serviceUrl + "?" + request.getQueryString(), mimeType, !operation.toLowerCase().equals("getlegendgraphic"));
                     break;
                 case "getfeatureinfo":
@@ -347,7 +328,6 @@ public class OgcServicesController implements ServletContextAware {
         try {
             IOUtils.copy(new ByteArrayInputStream(jsonOut.getBytes(StandardCharsets.UTF_8)), response.getOutputStream());
         } catch (IOException ioe) {
-            //System.out.println("Error writing message to response stream!");
         }
     }
     
@@ -409,7 +389,6 @@ public class OgcServicesController implements ServletContextAware {
                 }
                 int nKept = 0, nRemoved = 0;
                 for (int i = 0; i < layerList.size(); i++) {
-                    //System.out.println("Layer " + i);
                     Node layer = layerList.get(i);
                     NodeList layerChildren = layer.getChildNodes();
                     Node layerName = null;
@@ -420,21 +399,16 @@ public class OgcServicesController implements ServletContextAware {
                         }
                     }
                     if (layerName != null) {
-                        //System.out.println("Found a name node");
                         String nameText = layerName.getTextContent();
-                        //System.out.println("Layer name is " + nameText);
                         nameText = nameText.substring(nameText.indexOf(":")+1);
                         if (!userlayerDict.containsKey(nameText)) {
-                            //System.out.println("Not in dictionary => remove");
                             layer.getParentNode().removeChild(layer);
                             nRemoved++;
                         } else {
-                            //System.out.println("In dictionary => keep");
                             nKept++;
                         }
                     }
                 }
-                //System.out.println("Kept " + nKept + ", removed " + nRemoved);
                 doc.normalizeDocument();
                 /* https://stackoverflow.com/questions/865039/how-to-create-an-inputstream-from-a-document-or-node */
                 ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -448,13 +422,10 @@ public class OgcServicesController implements ServletContextAware {
                 writeErrorResponse(response, 400, "application/json", "Failed to retrieve GetCapabilities document from " + url);
             }
         } catch (SAXException sax) {
-            //System.out.println("Error parsing GetCaps document : " + sax.getMessage());
             writeErrorResponse(response, 500, "application/json", "Error parsing GetCapabilities document from " + url + ": " + sax.getMessage());
         } catch (IOException | ParserConfigurationException | TransformerConfigurationException ioe) {
-            //System.out.println("Error parsing GetCaps document : " + ioe.getMessage());
             writeErrorResponse(response, 500, "application/json", "Error parsing GetCapabilities document from " + url + ": " + ioe.getMessage());
         } catch (TransformerException tre) {
-            //System.out.println("Error parsing GetCaps document : " + tre.getMessage());
             writeErrorResponse(response, 500, "application/json", "Error parsing GetCapabilities document from " + url + ": " + tre.getMessage());
         } 
     }
@@ -468,113 +439,36 @@ public class OgcServicesController implements ServletContextAware {
      * @throws IOException, RestrictedDataException
      */
     private void getFromUrl(HttpServletResponse response, String url, String mimeType, boolean secured) throws IOException, RestrictedDataException { 
-                
-        /* Commented out until needed for debugging purposes - leads to MB of logs in no time... */
-        String reqId = UUID.randomUUID().toString();
-        //System.out.println(reqId + ": getFromUrl: Retrieving " + url + "...");
-                
-        int status = 200;     
-        InputStream authorisedContent = null;
-        CloseableHttpClient httpclient = null;
-        CloseableHttpResponse httpResponse = null;
-                
-        HttpClientBuilder builder = HttpClients.custom();
-        RequestConfig requestConfig = RequestConfig.custom()
-            .setSocketTimeout(SOCKET_TIMEOUT)
-            .setConnectTimeout(CONNECT_TIMEOUT)
-            .setConnectionRequestTimeout(CONNECT_TIMEOUT)
-            .build();
-        HttpGet httpget = new HttpGet(url);
-        httpget.setConfig(requestConfig);
         
-        if (url.startsWith("https://")) {
-            /* SSL - override SSL checking
-             * See http://stackoverflow.com/questions/13626965/how-to-ignore-pkix-path-building-failed-sun-security-provider-certpath-suncertp */
-            try {
-                System.setProperty ("jsse.enableSNIExtension", "false");
-                TrustManager[] trustAllCerts = new TrustManager[] {new X509TrustManager() {
-                    @Override
-                    public java.security.cert.X509Certificate[] getAcceptedIssuers() {return null;}
-                    @Override
-                    public void checkClientTrusted(X509Certificate[] certs, String authType) {}
-                    @Override
-                    public void checkServerTrusted(X509Certificate[] certs, String authType) {}
-                }};
-                SSLContext sc = SSLContext.getInstance("SSL");
-                sc.init(null, trustAllCerts, new java.security.SecureRandom());
-                /* Create all-trusting host name verifier */
-                HostnameVerifier allHostsValid = new HostnameVerifier() {
-                    @Override
-                    public boolean verify(String hostname, SSLSession session) {return true;}
-                };
-                builder.setSSLSocketFactory(new SSLConnectionSocketFactory(sc, allHostsValid));
-            } catch(KeyManagementException | NoSuchAlgorithmException ex) {
-                //System.out.println(reqId + ": Exception encountered : " + ex.getMessage());
-                return;
-            }
-        }
+        HttpURLConnection conn = null;
         
-        /* Try anonymous access first */
-        //System.out.println(reqId + ": Try anonymous access attempt");
-        httpclient = builder.build();                            
-        httpResponse = httpclient.execute(httpget);
-        status = httpResponse.getStatusLine().getStatusCode();    
-        if (status < 400) {
-            //System.out.println(reqId + ": Anonymous access successful");
-            authorisedContent = httpResponse.getEntity().getContent();
-        } else {
-            //System.out.println(reqId + ": Anonymous access failed");
-        }
+        /* Determine if URL comes from local Geoserver */
+        String authHeader = null;
+        String localServer = env.getProperty("geoserver.local.url");
+        if (url.startsWith(localServer)) {
+            UserAuthorities ua = new UserAuthorities(magicDataTpl);
+            authHeader = ua.basicAuthorizationHeader();
+        }        
         
-        if (authorisedContent == null && secured) {
-            /* Obtain credentials for each user role and test whether the requested data is available with each set in turn */
-            //System.out.println(reqId + ": Test for secured layer");
-            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            if (auth != null) {
-                //System.out.println(reqId + ": Authenticated user found");
-                //System.out.println(reqId + ": Authorities collection has " + auth.getAuthorities().size() + " members");
-                for (GrantedAuthority ga : auth.getAuthorities()) {
-                    //System.out.println(reqId + ": " + ga.getAuthority());
-                    String[] creds = ga.getAuthority().split(":");                                               
-                    if (creds[0].equals("geoserver") && creds.length == 4) {
-                        CredentialsProvider credsProvider = new BasicCredentialsProvider();
-                        credsProvider.setCredentials(
-                            new AuthScope(AuthScope.ANY),
-                            new UsernamePasswordCredentials(creds[2], creds[3]));
-                        //System.out.println(reqId + ": Test data access with credentials: username = " + creds[2] + ", password = " + creds[3]);
-                        builder.setDefaultCredentialsProvider(credsProvider);
-                        httpclient = builder.build();                            
-                        httpResponse = httpclient.execute(httpget);
-                        status = httpResponse.getStatusLine().getStatusCode();    
-                        if (status < 400) {
-                            //System.out.println(reqId + ": Successful access - status = " + status);
-                            authorisedContent = httpResponse.getEntity().getContent();
-                            break;
-                        } else {
-                            //System.out.println(reqId + ": Failed access - status = " + status + ", continue trying other authorities for user");
-                            httpclient.close();
-                            httpclient = null;
-                        }                        
-                    }                    
-                }
+        try {
+            conn = HttpConnectionUtils.openConnection(url, authHeader);
+            int status = conn.getResponseCode();
+            if (status < 400) {
+                /* Pipe the output to servlet response stream */
+                response.setContentType(mimeType);
+                IOUtils.copy(conn.getInputStream(), response.getOutputStream());
+            } else if (status == 401) {
+                /* User unauthorised */
+                throw new RestrictedDataException("You are not authorised to access this resource");
+            } else {
+                throw new RestrictedDataException("Unexpected response code " + status + " when accessing resource");
             }
-        }
-                        
-        if (authorisedContent != null) {
-            //System.out.println(reqId + ": Sending content...");
-            response.setContentType(mimeType);
-            IOUtils.copy(authorisedContent, response.getOutputStream()); 
-            if (httpclient != null) {
-                httpclient.close();
+        } catch(IOException ioe) {
+        } finally {
+            if (conn != null) {
+                conn.disconnect();
             }
-            //System.out.println(reqId + ": Done");
-        } else {
-            //System.out.println(reqId + ": Content unauthorised - raising RestrictedDataException...");
-            if (httpclient != null) {
-                httpclient.close();
-            }
-            throw new RestrictedDataException("You are not authorised to access this resource");
-        }                                 
+        }        
     }
 
     /**
