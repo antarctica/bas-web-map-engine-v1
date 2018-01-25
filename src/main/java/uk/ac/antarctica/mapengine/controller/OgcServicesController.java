@@ -4,6 +4,8 @@
 
 package uk.ac.antarctica.mapengine.controller;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonPrimitive;
 import it.geosolutions.geoserver.rest.HTTPUtils;
 import java.awt.Color;
 import java.awt.Font;
@@ -15,7 +17,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -23,7 +24,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.imageio.ImageIO;
-import javax.net.ssl.HttpsURLConnection;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -290,28 +290,18 @@ public class OgcServicesController implements ServletContextAware {
      * @return boolean
      */
     private boolean userLayerSecurityCheck(HttpServletRequest request, String layer) {
+        
         if (layer == null) {
             return(false);
-        }
-        String userName = request.getUserPrincipal() == null ? null : request.getUserPrincipal().getName();
-        String userlayerSql;
-        Object[] args;
-        if (layer.startsWith("user:")) {
-            layer = layer.substring(5);
-        } else {
+        } else if (!layer.startsWith("user:")) {
             /* This is not a user layer, so we defer to Geoserver to decide */
-            return(true);
-        }
-        if (userName == null) {
-            userlayerSql = "SELECT count(id) FROM " + env.getProperty("postgres.local.userlayersTable") + " WHERE layer=? AND allowed_usage='public'";
-            args = new Object[]{layer};
+            return(true);            
         } else {
-            userlayerSql = "SELECT count(id) FROM " + env.getProperty("postgres.local.userlayersTable") + " " + 
-                "WHERE layer=? AND (allowed_usage='public' OR allowed_usage='login' OR (allowed_usage='owner' AND owner=?))";
-            args = new Object[]{layer, userName};
+            /* Strip workspace */
+            layer = layer.substring(5);
         }
-        int nrecs = magicDataTpl.queryForObject(userlayerSql, Integer.class, args);
-        return(nrecs == 1);
+        HashMap<String,Boolean> accessibleLayers = determineAccessibleLayers();
+        return(accessibleLayers.containsKey(layer));        
     }
     
     /**
@@ -353,28 +343,11 @@ public class OgcServicesController implements ServletContextAware {
      * @param String mimeType 
      */
     private void getUserlayersCapsFromUrl(HttpServletResponse response, HttpServletRequest request, String url, String mimeType) {
-        
-        String userName = request.getUserPrincipal() == null ? null : request.getUserPrincipal().getName();
-        
+               
         try {
-            /* Compute the set of layers this user has access to */
-            String userlayerSql;
-            Object[] args = new Object[]{};        
-            if (userName == null) {
-                userlayerSql = "SELECT layer FROM " + env.getProperty("postgres.local.userlayersTable") + " WHERE allowed_usage='public'";
-            } else {
-                userlayerSql = "SELECT layer FROM " + env.getProperty("postgres.local.userlayersTable") + " " + 
-                    "WHERE allowed_usage='public' OR allowed_usage='login' OR (allowed_usage='owner' AND owner=?)";
-                args = new Object[]{userName};
-            }
-            List<Map<String,Object>> listLayers = magicDataTpl.queryForList(userlayerSql, args);
-            /* Now have the list - create an easy-to-read dictionary */
-            HashMap<String,Boolean> userlayerDict = new HashMap();
-            if (listLayers != null) {
-                for (Map lnm : listLayers) {
-                    userlayerDict.put((String)lnm.get("layer"), Boolean.TRUE);
-                }
-            }
+            /* Find the layers this user can access */
+            HashMap<String,Boolean> userlayerDict = determineAccessibleLayers();
+            
             /* Now get the Capabilities document and parse for the layers, removing those that don't have dictionary entries */
             String caps = HTTPUtils.get(url);
             if (caps != null) {
@@ -428,6 +401,56 @@ public class OgcServicesController implements ServletContextAware {
         } catch (TransformerException tre) {
             writeErrorResponse(response, 500, "application/json", "Error parsing GetCapabilities document from " + url + ": " + tre.getMessage());
         } 
+    }
+    
+    /**
+     * Compute the set of layers this user has access to 
+     * @return HashMap<String,Boolean>
+     */
+    private HashMap<String,Boolean> determineAccessibleLayers() {
+        
+        HashMap<String,Boolean> userlayerDict = new HashMap();
+        
+        String userLayersTable = env.getProperty("postgres.local.userlayersTable");
+        
+        /* Query the currently stored security context */
+        UserAuthorities ua = new UserAuthorities(magicDataTpl);
+        String userName = ua.currentUserName();
+        JsonArray userRoles = ua.currentUserRoles();
+
+        /* Get the definite layers the user can access */
+        String userlayerSql = "SELECT layer FROM " + userLayersTable + " WHERE allowed_usage='public'";
+        Object[] args = new Object[]{};        
+        if (userName != null) {
+            userlayerSql += " OR allowed_usage='login' OR (allowed_usage='owner' AND owner=?)";
+            args = new Object[]{userName};
+        }
+        List<Map<String,Object>> listLayers = magicDataTpl.queryForList(userlayerSql, args);
+        /* Now have the "definites" list - create an easy-to-read dictionary */        
+        if (listLayers != null) {
+            for (Map lnm : listLayers) {
+                userlayerDict.put((String)lnm.get("layer"), Boolean.TRUE);
+            }
+        }
+        
+        /* See if there are any role-specific layers the user can also access */
+        if (userRoles != null && userRoles.size() > 0) {
+            /* List the layers not public or generic login or owner only */
+            userlayerSql = "SELECT layer, allowed_usage FROM " + userLayersTable + " WHERE " + 
+                "allowed_usage IS NOT NULL AND allowed_usage <> 'public' AND allowed_usage <> 'login' AND allowed_usage <> 'owner'";
+            listLayers = magicDataTpl.queryForList(userlayerSql);
+            for (Map<String, Object> layerPerms : listLayers) {
+                String layerName = (String)layerPerms.get("layer");
+                String[] allowedRoles = ((String)layerPerms.get("allowed_usage")).split(",");
+                for (String role : allowedRoles) {
+                    if (userRoles.contains(new JsonPrimitive(role))) {
+                        userlayerDict.put(layerName, Boolean.TRUE);
+                        break;
+                    }
+                }
+            }
+        }
+        return(userlayerDict);
     }
     
     /**

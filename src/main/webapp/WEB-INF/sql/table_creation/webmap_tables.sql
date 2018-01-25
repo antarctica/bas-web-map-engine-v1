@@ -14,8 +14,6 @@ CREATE TABLE webmap.endpoints
   coast_layers character varying(255), -- Comma-separated list of fully-qualified layer names corresponding to a coastline
   graticule_layer character varying(100), -- Fully-qualified layer name corresponding to graticule ('ol' means use OpenLayers)
   proxied_url character varying(255), -- Original URL which the endpoint proxies, if required (i.e. if CORS not implemented by server)
-  admin_user character varying(100), -- Administration/REST username for endpoint
-  admin_pass character varying(100), -- Administration/REST password for endpoint
   srs character varying(20), -- Spatial Reference System as an EPSG code
   has_wfs boolean, -- Whether a WFS service is available at the same endpoint (improved user experience on interactive layers possible)
   is_user_service boolean, -- Whether this endpoint represents a WMS for user uploaded data
@@ -36,8 +34,6 @@ COMMENT ON COLUMN webmap.endpoints.low_bandwidth IS 'If location is a low bandwi
 COMMENT ON COLUMN webmap.endpoints.coast_layers IS 'Comma-separated list of fully-qualified layer names corresponding to a coastline';
 COMMENT ON COLUMN webmap.endpoints.graticule_layer IS 'Fully-qualified layer name corresponding to graticule (''ol'' means use OpenLayers)';
 COMMENT ON COLUMN webmap.endpoints.proxied_url IS 'Original URL which the endpoint proxies, if required (i.e. if CORS not implemented by server)';
-COMMENT ON COLUMN webmap.endpoints.admin_user IS 'Administration/REST username for endpoint';
-COMMENT ON COLUMN webmap.endpoints.admin_pass IS 'Administration/REST password for endpoint';
 COMMENT ON COLUMN webmap.endpoints.srs IS 'Spatial Reference System as an EPSG code';
 COMMENT ON COLUMN webmap.endpoints.has_wfs IS 'Whether a WFS service is available at the same endpoint (improved user experience on interactive layers possible)';
 COMMENT ON COLUMN webmap.endpoints.is_user_service IS 'Whether this endpoint represents a WMS for user uploaded data'
