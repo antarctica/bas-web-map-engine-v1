@@ -5,6 +5,7 @@ package uk.ac.antarctica.mapengine.controller;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
@@ -16,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import uk.ac.antarctica.mapengine.model.AbstractMapData;
+import uk.ac.antarctica.mapengine.model.UserAuthorities;
 import uk.ac.antarctica.mapengine.util.PackagingUtils;
 
 public class AbstractMapController {
@@ -32,74 +34,63 @@ public class AbstractMapController {
     /**
      * Get {id: <uuid>, name: <name>} dropdown populator for a particular action
      * @param AbstractMapData webmapData
-     * @param String username
      * @param String action view|clone|edit
      * @return ResponseEntity<String>
      */
-    protected ResponseEntity<String> getMapDropdownData(AbstractMapData webmapData, String username, String action) {
-        ResponseEntity<String> ret = null;
-        List<Map<String, Object>> userMapData = null;
+    protected ResponseEntity<String> getMapDropdownData(AbstractMapData webmapData, String action) {
+        
+        ResponseEntity<String> ret = null;        
+        
+        UserAuthorities ua = new UserAuthorities(getMagicDataTpl(), getEnv());
+        ArrayList args = new ArrayList();
+        String sql = null, accessClause = null;
+        
         switch (action) {
             case "delete":
                 /* Users can delete only maps they own */
-                if (username == null) {
+                accessClause = ua.sqlRoleClause("allowed_usage", "owner_name", args, "delete");
+                if (accessClause == null) {
                     ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to delete maps");
                 } else {
-                    userMapData = getMagicDataTpl().queryForList(
-                        "SELECT name, title FROM " + webmapData.getTableName() + " " + 
-                        "WHERE owner_name=? ORDER BY title", 
-                        username
-                    );
-                }   break;
+                    sql= "SELECT name, title FROM " + webmapData.getTableName() + " WHERE " + accessClause + " ORDER BY title";                   
+                }   
+                break;
             case "edit":
                 /* Users can edit maps they own, or those allowed to be edited by logged in users */
-                if (username == null) {
+                accessClause = ua.sqlRoleClause("allowed_usage", "owner_name", args, "update");
+                if (accessClause == null) {
                     ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to edit maps");
                 } else {
-                    userMapData = getMagicDataTpl().queryForList(
-                        "SELECT name, title FROM " + webmapData.getTableName() + " " + 
-                        "WHERE owner_name=? OR allowed_edit='login' ORDER BY title", 
-                        username
-                    );
-                }   break;
+                    sql = "SELECT name, title FROM " + webmapData.getTableName() + " WHERE " + accessClause + " ORDER BY title";                    
+                }   
+                break;
             case "clone":
-                if (username == null) {
+                accessClause = ua.sqlRoleClause("allowed_usage", "owner_name", args, "update");
+                if (accessClause == null) {
                     ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to clone maps");
                 } else {
                     /* Logged in users can clone public, login-restricted maps and ones they own */
-                    String where = "allowed_usage='public' OR allowed_usage='login' OR (allowed_usage='owner' AND owner_name=?)";
-                    userMapData = getMagicDataTpl().queryForList(
-                        "SELECT name, title FROM " + webmapData.getTableName() + " " + 
-                        "WHERE " + where + " ORDER BY title", 
-                        username
-                    );
-                }   break;
+                    sql = "SELECT name, title FROM " + webmapData.getTableName() + " WHERE " + accessClause + " ORDER BY title";
+                }   
+                break;
             case "view":
-                if (username == null) {
-                    /* Guests can view public maps */
-                    userMapData = getMagicDataTpl().queryForList(
-                        "SELECT allowed_usage || ':' || name as name, title FROM " + webmapData.getTableName() + " " + 
-                        "WHERE allowed_usage='public' ORDER BY title"
-                    );
-                } else {
-                    /* Logged in users can view public, login-restricted maps and ones they own */
-                    String where = "allowed_usage='public' OR allowed_usage='login' OR (allowed_usage='owner' AND owner_name=?)";
-                    userMapData = getMagicDataTpl().queryForList(
-                        "SELECT allowed_usage || ':' || name as name, title FROM " + webmapData.getTableName() + " " + 
-                        "WHERE " + where + " ORDER BY title", 
-                        username
-                    );
-                }   break;
+                accessClause = ua.sqlRoleClause("allowed_usage", "owner_name", args, "read");
+                sql = "SELECT allowed_usage || ':' || name as name, title FROM " + webmapData.getTableName() + " WHERE " + accessClause + " ORDER BY title";
+                break;
             default:
                 ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Unrecognised action " + action);
                 break;
         }
-        if (userMapData != null && !userMapData.isEmpty()) {
-            JsonArray views = getMapper().toJsonTree(userMapData).getAsJsonArray();
-            ret = PackagingUtils.packageResults(HttpStatus.OK, views.toString(), null);
-        } else if (ret == null) {
-            /* No data is fine - simply return empty results array */
-            ret = PackagingUtils.packageResults(HttpStatus.OK, "[]", null);
+        if (ret == null) {
+            /* Retrieve the map data */
+            List<Map<String, Object>> userMapData = getMagicDataTpl().queryForList(sql, args.toArray());
+            if (userMapData != null && !userMapData.isEmpty()) {
+                JsonArray views = getMapper().toJsonTree(userMapData).getAsJsonArray();
+                ret = PackagingUtils.packageResults(HttpStatus.OK, views.toString(), null);
+            } else if (ret == null) {
+                /* No data is fine - simply return empty results array */
+                ret = PackagingUtils.packageResults(HttpStatus.OK, "[]", null);
+            }
         }
         return(ret);
     }
@@ -107,32 +98,26 @@ public class AbstractMapController {
     /**
      * Get full map data by attribute/value
      * @param AbstractWebmapData webmapData
-     * @param String username
      * @param String attr
      * @param String value
      * @param Integer usermapid
      * @return ResponseEntity<String>
      */
-    protected ResponseEntity<String> getMapByAttribute(AbstractMapData webmapData, String username, String attr, String value, Integer usermapid) {
+    protected ResponseEntity<String> getMapByAttribute(AbstractMapData webmapData, String attr, String value, Integer usermapid) {
+        
         ResponseEntity<String> ret;
+        
+        UserAuthorities ua = new UserAuthorities(getMagicDataTpl(), getEnv());
+        ArrayList args = new ArrayList();
+        
         try {
-            String where;
-            Map<String, Object> userMapData;
-            if (username == null) {
-                where = "allowed_usage='public'";
-                userMapData = getMagicDataTpl().queryForMap(
-                    "SELECT * FROM " + webmapData.getTableName() + " " + 
-                    "WHERE " + attr + "=? AND " + where, 
-                    value
-                );
-            } else {
-                where = "(allowed_usage='public' OR allowed_usage='login' OR (allowed_usage='owner' AND owner_name=?))";
-                userMapData = getMagicDataTpl().queryForMap(
-                    "SELECT * FROM " + webmapData.getTableName() + " " + 
-                    "WHERE " + attr + "=? AND " + where, 
-                    value, username
-                );
-            }
+            args.add(value);
+            Map<String, Object> userMapData = getMagicDataTpl().queryForMap(
+                "SELECT * FROM " + webmapData.getTableName() + " WHERE " + attr + "=? AND " + 
+                ua.sqlRoleClause("allowed_usage", "owner_name", args, "read"), 
+                args.toArray()
+            );
+            
             /* Tag on the list of data endpoints to the payload */
             List<Map<String, Object>> endpointData = getDataEndpoints();
             if (endpointData != null && endpointData.size() > 0) {
@@ -145,20 +130,13 @@ public class AbstractMapController {
                 if (userTableName != null && !userTableName.isEmpty()) {
                     try {
                         /* Get map settings */
-                        Map<String, Object> bookmarkData;
-                        if (username != null) {
-                            bookmarkData = getMagicDataTpl().queryForMap(
-                                "SELECT * FROM " + userTableName + " " + 
-                                "WHERE id=? AND (allowed_usage='public' OR allowed_usage='login' OR (allowed_usage='owner' AND owner_name=?))", 
-                                usermapid, username
-                            );
-                        } else {
-                            bookmarkData = getMagicDataTpl().queryForMap(
-                                "SELECT * FROM " + userTableName + " " + 
-                                "WHERE id=? AND allowed_usage='public'", 
-                                usermapid
-                            );
-                        }                                
+                        ArrayList bmkArgs = new ArrayList();
+                        bmkArgs.add(usermapid);
+                        Map<String, Object> bookmarkData = getMagicDataTpl().queryForMap(
+                            "SELECT * FROM " + userTableName + " WHERE id=? AND " + 
+                            ua.sqlRoleClause("allowed_usage", "owner_name", args, "read"), 
+                            bmkArgs.toArray()
+                        );                                              
                         userMapData.put("userdata", bookmarkData);                                                
                     } catch (IncorrectResultSizeDataAccessException irsdae2) {
                         /* Don't care about non-existence of user map data - just serve the default base map */
@@ -206,15 +184,19 @@ public class AbstractMapController {
     /**
      * Method to do deletion of a map view by UUID or name
      * @param AbstractMapData webmapData
-     * @param String username
      * @param String attr
      * @param String value
      * @return ResponseEntity<String>
      */
-    protected ResponseEntity<String> deleteMapByAttribute(AbstractMapData webmapData, String username, String attr, String value) {
+    protected ResponseEntity<String> deleteMapByAttribute(AbstractMapData webmapData, String attr, String value) {
+        
         ResponseEntity<String> ret;
-        if (username != null && (attr.equals("id") || attr.equals("name")) && value != null) {
-            /* Check logged in user is the owner of the map */
+              
+        UserAuthorities ua = new UserAuthorities(getMagicDataTpl(), getEnv());
+        String username = ua.currentUserName();
+        
+        if (username != null) {
+            /* Logged in user is the owner of the map */
             String mapId = attr.equals("name") ? idFromName(webmapData.getTableName(), value) : value;
             String owner = recordOwner(webmapData.getTableName(), mapId);
             if (owner == null) {
@@ -236,16 +218,7 @@ public class AbstractMapController {
             ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Supports deleting map by name or id only");
         }       
         return (ret);
-    }
-    
-    /**
-     * Get the logged in username
-     * @param HttpServletRequest request
-     * @return String
-     */
-    protected String loggedInUsername(HttpServletRequest request) {
-        return(request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null);
-    }
+    }    
     
     /**
      * @param String tableName

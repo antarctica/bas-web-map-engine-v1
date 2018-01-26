@@ -12,10 +12,10 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -87,6 +87,78 @@ public class UserAuthorities {
     }
     
     /**
+     * Apply user roles to create an SQL filter clause (of the supplied field) based on current user privileges for the 
+     * given type of operation (read|update|delete)
+     * The returned string will contain standard '?' placeholders for client substitution of the populated arguments list
+     * @param String permField permissions field name
+     * @param String ownerField owning username field
+     * @param ArrayList args
+     * @param String opType
+     * @return String 
+     */
+    public String sqlRoleClause(String permField, String ownerField, ArrayList args, String opType) {
+        StringJoiner joiner = new StringJoiner(" OR ");        
+        populateRoles(null, null);
+        switch (opType) {
+            case "update":
+                /* Updating of objects potentially allowed for owner|login|<role1>,<role2>,...,<rolen> */
+                addLoginClause(permField, joiner, args);
+                addOwnerClause(ownerField, joiner, args);
+                addRoleClause(permField, joiner, args);                
+                break;
+            case "delete":
+                /* Deleting of objects allowed only for owner */  
+                addOwnerClause(ownerField, joiner, args);
+                break;
+            default:
+                /* Reading of objects potentially allowed for public|owner|login|<role1>,<role2>,...,<rolen> */
+                addPublicClause(permField, joiner, args);
+                addLoginClause(permField, joiner, args);
+                addOwnerClause(ownerField, joiner, args);
+                addRoleClause(permField, joiner, args);                
+                break;
+        }
+        return(joiner.length() == 0 ? null : "(" + joiner.toString() + ")");     
+    }
+    
+    private void addPublicClause(String fieldName, StringJoiner joiner, ArrayList args) {
+        joiner.add(fieldName + "='public'");
+    }
+    
+    private void addLoginClause(String fieldName, StringJoiner joiner, ArrayList args) {
+        if (getAuthorities().has("username")) {
+            joiner.add(fieldName + "='login'");
+        }
+    }
+    
+    private void addOwnerClause(String fieldName, StringJoiner joiner, ArrayList args) {
+        if (getAuthorities().has("username")) {
+            joiner.add("" + fieldName + "=?");
+            args.add(getAuthorities().get("username").getAsString());
+        }
+    }
+    
+    private void addRoleClause(String fieldName, StringJoiner joiner, ArrayList args) {
+        if (getAuthorities().has("username")) {
+            if (getAuthorities().has("roles")) {
+                /* Allow for roles (stored as a comma-separated list) */
+                JsonArray userRoles = getAuthorities().getAsJsonArray("roles");                    
+                for (int i = 0; i < userRoles.size(); i++) {
+                    joiner
+                        .add("(" + fieldName + "=?")
+                        .add(fieldName + " LIKE '?,%'")
+                        .add(fieldName + " LIKE ',?,'")
+                        .add(fieldName + " LIKE '%,?'?)");
+                    args.add(userRoles.get(i));
+                    args.add(userRoles.get(i));
+                    args.add(userRoles.get(i));
+                    args.add(userRoles.get(i));                
+                }
+            } 
+        }
+    }
+    
+    /**
      * Construct username:password string ready for use as a basic authentication header
      * @return String
      */
@@ -134,9 +206,9 @@ public class UserAuthorities {
         if (auth != null) {
             /* Try to recover the information from the security context */                        
             JsonParser jpr = new JsonParser();
-            for (GrantedAuthority ga : auth.getAuthorities()) {  
-                setAuthorities((JsonObject)jpr.parse(ga.getAuthority()));                                         
-            }
+            auth.getAuthorities().forEach((ga) -> {
+                setAuthorities((JsonObject)jpr.parse(ga.getAuthority()));
+            });
         }
         if (!isFullySpecified() && username != null && password != null) {
             /* Populate authorities from database table */
@@ -145,9 +217,9 @@ public class UserAuthorities {
             JsonArray roles = new JsonArray();
             String userRolesTable = getEnv().getProperty("postgres.local.rolesTable");
             List<Map<String,Object>> roleList = tpl.queryForList("SELECT rolename FROM " + userRolesTable + " WHERE username=?", username);
-            for (Map<String, Object> rolemap : roleList) {
-                roles.add(new JsonPrimitive((String)rolemap.get("rolename")));            
-            }
+            roleList.forEach((rolemap) -> {
+                roles.add(new JsonPrimitive((String)rolemap.get("rolename")));
+            });
             getAuthorities().add("roles", roles);
         }
         if (!isFullySpecified()) {

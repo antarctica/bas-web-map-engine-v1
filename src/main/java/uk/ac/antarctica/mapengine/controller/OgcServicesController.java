@@ -23,8 +23,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 import javax.imageio.ImageIO;
-import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -51,7 +51,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.context.ServletContextAware;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -59,20 +58,13 @@ import uk.ac.antarctica.mapengine.model.UserAuthorities;
 import uk.ac.antarctica.mapengine.util.HttpConnectionUtils;
 
 @Controller
-public class OgcServicesController implements ServletContextAware {        
+public class OgcServicesController {        
     
     @Autowired
     Environment env;
     
     @Autowired
-    private JdbcTemplate magicDataTpl;
-    
-    private static final int SOCKET_TIMEOUT = 60000;
-    
-    private static final int CONNECT_TIMEOUT = 60000;
-    
-    /* Servlet context */
-    private ServletContext context; 
+    private JdbcTemplate magicDataTpl;        
     
     /**
      * Proxy for OGC readonly WMS and WFS services
@@ -410,46 +402,20 @@ public class OgcServicesController implements ServletContextAware {
     private HashMap<String,Boolean> determineAccessibleLayers() {
         
         HashMap<String,Boolean> userlayerDict = new HashMap();
-        
-        String userLayersTable = env.getProperty("postgres.local.userlayersTable");
-        
+                
         /* Query the currently stored security context */
-        UserAuthorities ua = new UserAuthorities(magicDataTpl, env);
-        String userName = ua.currentUserName();
-        JsonArray userRoles = ua.currentUserRoles();
-
-        /* Get the definite layers the user can access */
-        String userlayerSql = "SELECT layer FROM " + userLayersTable + " WHERE allowed_usage='public'";
-        Object[] args = new Object[]{};        
-        if (userName != null) {
-            userlayerSql += " OR allowed_usage='login' OR (allowed_usage='owner' AND owner=?)";
-            args = new Object[]{userName};
-        }
-        List<Map<String,Object>> listLayers = magicDataTpl.queryForList(userlayerSql, args);
+        ArrayList args = new ArrayList();        
+        List<Map<String,Object>> listLayers = magicDataTpl.queryForList(
+            "SELECT layer FROM " + env.getProperty("postgres.local.userlayersTable") + " WHERE " + 
+            new UserAuthorities(magicDataTpl, env).sqlRoleClause("allowed_usage", "owner", args, "read"), 
+            args.toArray()
+        );
         /* Now have the "definites" list - create an easy-to-read dictionary */        
         if (listLayers != null) {
-            for (Map lnm : listLayers) {
+            listLayers.forEach((lnm) -> {
                 userlayerDict.put((String)lnm.get("layer"), Boolean.TRUE);
-            }
-        }
-        
-        /* See if there are any role-specific layers the user can also access */
-        if (userRoles != null && userRoles.size() > 0) {
-            /* List the layers not public or generic login or owner only */
-            userlayerSql = "SELECT layer, allowed_usage FROM " + userLayersTable + " WHERE " + 
-                "allowed_usage IS NOT NULL AND allowed_usage <> 'public' AND allowed_usage <> 'login' AND allowed_usage <> 'owner'";
-            listLayers = magicDataTpl.queryForList(userlayerSql);
-            for (Map<String, Object> layerPerms : listLayers) {
-                String layerName = (String)layerPerms.get("layer");
-                String[] allowedRoles = ((String)layerPerms.get("allowed_usage")).split(",");
-                for (String role : allowedRoles) {
-                    if (userRoles.contains(new JsonPrimitive(role))) {
-                        userlayerDict.put(layerName, Boolean.TRUE);
-                        break;
-                    }
-                }
-            }
-        }
+            });
+        }        
         return(userlayerDict);
     }
     
@@ -508,11 +474,6 @@ public class OgcServicesController implements ServletContextAware {
         }
         return(null);
     }
-
-    @Override
-    public void setServletContext(ServletContext sc) {
-        this.context = sc;
-    } 
     
     public class RestrictedDataException extends Exception {
         public RestrictedDataException(String message) {

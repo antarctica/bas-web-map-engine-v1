@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import uk.ac.antarctica.mapengine.model.EmbeddedMapData;
+import uk.ac.antarctica.mapengine.model.UserAuthorities;
 
 @RestController
 public class EmbeddedMapController extends AbstractMapController {
@@ -38,7 +39,7 @@ public class EmbeddedMapController extends AbstractMapController {
     @ResponseBody
     public ResponseEntity<String> embeddedMapViews(HttpServletRequest request)
         throws ServletException, IOException, ServiceException {        
-        return(getMapDropdownData(new EmbeddedMapData(getEnv().getProperty("postgres.local.embeddedMapsTable")), loggedInUsername(request), "view"));
+        return(getMapDropdownData(new EmbeddedMapData(getEnv().getProperty("postgres.local.embeddedMapsTable")), "view"));
     }
     
     /**
@@ -53,7 +54,7 @@ public class EmbeddedMapController extends AbstractMapController {
     @ResponseBody
     public ResponseEntity<String> embeddedMapViews(HttpServletRequest request, @PathVariable("action") String action)
         throws ServletException, IOException, ServiceException {        
-        return(getMapDropdownData(new EmbeddedMapData(getEnv().getProperty("postgres.local.embeddedMapsTable")), loggedInUsername(request), action));
+        return(getMapDropdownData(new EmbeddedMapData(getEnv().getProperty("postgres.local.embeddedMapsTable")), action));
     }
     
     /*---------------------------------------------------------------- Get map by id/name ----------------------------------------------------------------*/
@@ -70,7 +71,7 @@ public class EmbeddedMapController extends AbstractMapController {
     @ResponseBody
     public ResponseEntity<String> embeddedMapByName(HttpServletRequest request, @PathVariable("name") String name)
         throws ServletException, IOException, ServiceException {       
-        return(getMapByAttribute(new EmbeddedMapData(getEnv().getProperty("postgres.local.embeddedMapsTable")), loggedInUsername(request), "name", name, null));
+        return(getMapByAttribute(new EmbeddedMapData(getEnv().getProperty("postgres.local.embeddedMapsTable")), "name", name, null));
     }
     
     /*---------------------------------------------------------------- Save map data ----------------------------------------------------------------*/
@@ -84,7 +85,8 @@ public class EmbeddedMapController extends AbstractMapController {
     public ResponseEntity<String> saveMap(HttpServletRequest request,
         @RequestBody String payload) throws Exception {
         EmbeddedMapData emd = new EmbeddedMapData(getEnv().getProperty("postgres.local.embeddedMapsTable"));
-        emd.fromPayload(payload, loggedInUsername(request));                
+        UserAuthorities ua = new UserAuthorities(getMagicDataTpl(), getEnv());
+        emd.fromPayload(payload, ua.currentUserName());                
         return (saveMapData(emd, null));
     }
     
@@ -98,8 +100,9 @@ public class EmbeddedMapController extends AbstractMapController {
     public ResponseEntity<String> updateMap(HttpServletRequest request,
         @PathVariable("id") String id,
         @RequestBody String payload) throws Exception {
+        UserAuthorities ua = new UserAuthorities(getMagicDataTpl(), getEnv());
         EmbeddedMapData emd = new EmbeddedMapData(getEnv().getProperty("postgres.local.embeddedMapsTable"));       
-        emd.fromPayload(payload, loggedInUsername(request));
+        emd.fromPayload(payload, ua.currentUserName());
         return (saveMapData(emd, id));
     }
     
@@ -113,7 +116,7 @@ public class EmbeddedMapController extends AbstractMapController {
     @RequestMapping(value = "/embedded_maps/delete/{id}", method = RequestMethod.DELETE, produces = "application/json; charset=utf-8")
     public ResponseEntity<String> deleteMap(HttpServletRequest request,
         @PathVariable("id") String id) throws Exception {            
-        return(deleteMapByAttribute(new EmbeddedMapData(getEnv().getProperty("postgres.local.embeddedMapsTable")), loggedInUsername(request), "id", id));
+        return(deleteMapByAttribute(new EmbeddedMapData(getEnv().getProperty("postgres.local.embeddedMapsTable")), "id", id));
     }      
     
     /**
@@ -124,6 +127,6 @@ public class EmbeddedMapController extends AbstractMapController {
     @RequestMapping(value = "/embedded_maps/deletebyname/{name}", method = RequestMethod.DELETE, produces = "application/json; charset=utf-8")
     public ResponseEntity<String> deleteMapByName(HttpServletRequest request,
         @PathVariable("name") String name) throws Exception {         
-        return(deleteMapByAttribute(new EmbeddedMapData(getEnv().getProperty("postgres.local.embeddedMapsTable")), loggedInUsername(request), "name", name));
+        return(deleteMapByAttribute(new EmbeddedMapData(getEnv().getProperty("postgres.local.embeddedMapsTable")), "name", name));
     }      
 }
