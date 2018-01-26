@@ -118,11 +118,12 @@ public class UserAuthorities {
                 addRoleClause(permField, joiner, args);                
                 break;
         }
+        System.out.println(joiner.toString());
         return(joiner.length() == 0 ? null : "(" + joiner.toString() + ")");     
     }
     
     private void addPublicClause(String fieldName, StringJoiner joiner, ArrayList args) {
-        joiner.add(fieldName + "='public'");
+        joiner.add(fieldName + "='public'");        
     }
     
     private void addLoginClause(String fieldName, StringJoiner joiner, ArrayList args) {
@@ -133,7 +134,7 @@ public class UserAuthorities {
     
     private void addOwnerClause(String fieldName, StringJoiner joiner, ArrayList args) {
         if (getAuthorities().has("username")) {
-            joiner.add("" + fieldName + "=?");
+            joiner.add(fieldName + "=?");
             args.add(getAuthorities().get("username").getAsString());
         }
     }
@@ -146,13 +147,14 @@ public class UserAuthorities {
                 for (int i = 0; i < userRoles.size(); i++) {
                     joiner
                         .add("(" + fieldName + "=?")
-                        .add(fieldName + " LIKE '?,%'")
-                        .add(fieldName + " LIKE ',?,'")
-                        .add(fieldName + " LIKE '%,?'?)");
-                    args.add(userRoles.get(i));
-                    args.add(userRoles.get(i));
-                    args.add(userRoles.get(i));
-                    args.add(userRoles.get(i));                
+                        .add(fieldName + " LIKE ? || ',' || '%'")
+                        .add(fieldName + " LIKE ',' || ? || ','")
+                        .add(fieldName + " LIKE '%' || ',' || ?)");
+                    String role = userRoles.get(i).getAsString();
+                    args.add(role);
+                    args.add(role);
+                    args.add(role);
+                    args.add(role);                
                 }
             } 
         }
