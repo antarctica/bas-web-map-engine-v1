@@ -5,6 +5,7 @@ package uk.ac.antarctica.mapengine.controller;
 
 import com.google.gson.JsonArray;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.ServletException;
@@ -78,10 +79,9 @@ public class UserMapController extends AbstractMapController {
         @RequestBody String payload) throws Exception {
         ResponseEntity<String> ret;
         UserAuthorities ua = new UserAuthorities(getMagicDataTpl(), getEnv());
-        String username = ua.currentUserName();
         UserMapData umd = new UserMapData(getEnv().getProperty("postgres.local.usermapsTable"));          
-        umd.fromPayload(payload, username);
-        if (basemapExists(username, umd.getBasemap())) {
+        umd.fromPayload(payload, ua.currentUserName());
+        if (basemapExists(ua, umd.getBasemap())) {
             ret = saveMapData(umd, null);
         } else {
             ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Base map " + umd.getBasemap() + " does not exist or is not accessible");
@@ -101,10 +101,9 @@ public class UserMapController extends AbstractMapController {
         @RequestBody String payload) throws Exception {
         ResponseEntity<String> ret;
         UserAuthorities ua = new UserAuthorities(getMagicDataTpl(), getEnv());
-        String username = ua.currentUserName();
         UserMapData umd = new UserMapData(getEnv().getProperty("postgres.local.usermapsTable"));          
-        umd.fromPayload(payload, username);
-        if (basemapExists(username, umd.getBasemap())) {
+        umd.fromPayload(payload, ua.currentUserName());
+        if (basemapExists(ua, umd.getBasemap())) {
             ret = saveMapData(umd, id + "");
         } else {
             ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Base map " + umd.getBasemap() + " does not exist or is not accessible");
@@ -122,26 +121,24 @@ public class UserMapController extends AbstractMapController {
     @RequestMapping(value = "/usermaps/delete/{id}", method = RequestMethod.DELETE, produces = "application/json; charset=utf-8")
     public ResponseEntity<String> deleteUserMap(HttpServletRequest request,
         @PathVariable("id") Integer id) throws Exception {
-        ResponseEntity<String> ret;
         return(deleteMapByAttribute(new UserMapData(getEnv().getProperty("postgres.local.usermapsTable")), "id", id + ""));        
     }             
 
     /**
      * Decide whether a readable map of the given name exists for the given user
-     * @param String username
+     * @param UserAuthorities ua
      * @param String basemap
      * @return boolean
      */    
-    private boolean basemapExists(String username, String basemap) {
-        int nbase = getMagicDataTpl().queryForObject
-            (
-                "SELECT count(id) FROM " + 
-                getEnv().getProperty("postgres.local.mapsTable") + " " + 
-                "WHERE name=? AND (allowed_usage = 'public' OR allowed_usage = 'login' OR (allowed_usage='owner' AND owner_name=?))", 
-                Integer.class,
-                basemap,
-                username
-            );
+    private boolean basemapExists(UserAuthorities ua, String basemap) {
+        ArrayList args = new ArrayList();
+        args.add(basemap);
+        int nbase = getMagicDataTpl().queryForObject(
+            "SELECT count(id) FROM " +  getEnv().getProperty("postgres.local.mapsTable") + " WHERE name=? AND " + 
+            ua.sqlRoleClause("allowed_usage", "owner", args, "read"), 
+            Integer.class, 
+            args.toArray()
+        );
         return(nbase > 0);
     }
 

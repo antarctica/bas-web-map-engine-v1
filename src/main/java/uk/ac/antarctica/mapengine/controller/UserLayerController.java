@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -56,6 +57,7 @@ import uk.ac.antarctica.mapengine.datapublishing.KmlPublisher;
 import uk.ac.antarctica.mapengine.datapublishing.NoUploadPublisher;
 import uk.ac.antarctica.mapengine.datapublishing.ShpZipPublisher;
 import uk.ac.antarctica.mapengine.model.UploadedData;
+import uk.ac.antarctica.mapengine.model.UserAuthorities;
 import uk.ac.antarctica.mapengine.util.PackagingUtils;
 
 @Controller
@@ -85,17 +87,18 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
     @ResponseBody
     public ResponseEntity<String> getUserLayerData(HttpServletRequest request)
         throws ServletException, IOException, ServiceException {
+        
         ResponseEntity<String> ret;
-        String userName = request.getUserPrincipal().getName();
+        
+        UserAuthorities ua = new UserAuthorities(getMagicDataTpl(), getEnv());
         String tableName = getEnv().getProperty("postgres.local.userlayersTable");
         try {
+            ArrayList args = new ArrayList();
             List<Map<String, Object>> userLayerData = getMagicDataTpl().queryForList(
-                "(SELECT id,caption,description,service,layer,modified_date,owner,allowed_usage,styledef::text FROM " + tableName + " " + 
-                "WHERE owner=? ORDER BY caption)" + 
-                " UNION " + 
-                "(SELECT id,caption,description,service,layer,modified_date,owner,allowed_usage,styledef::text FROM " + tableName + " " + 
-                "WHERE owner <> ? AND (allowed_usage = 'public' OR allowed_usage = 'login') GROUP BY owner, caption, id ORDER BY caption)", 
-                userName, userName);
+                "SELECT id,caption,description,service,layer,modified_date,owner,allowed_usage,styledef::text FROM " + tableName + " WHERE " + 
+                ua.sqlRoleClause("allowed_usage", "owner", args, "read") + " ORDER BY caption",
+                args.toArray()
+            );
             if (userLayerData != null && !userLayerData.isEmpty()) {
                 JsonArray views = getMapper().toJsonTree(userLayerData).getAsJsonArray();
                 ret = PackagingUtils.packageResults(HttpStatus.OK, views.toString(), null);
@@ -121,13 +124,19 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
     public void getUserlayerField(HttpServletRequest request, HttpServletResponse response,
         @PathVariable("id") String id,
         @PathVariable("op") String op) throws Exception {
+        
         String mimeType = "application/json; charset=utf-8";
-        String userName = request.getUserPrincipal().getName();        
+        UserAuthorities ua = new UserAuthorities(getMagicDataTpl(), getEnv());  
+        ArrayList args = new ArrayList();
+        
         switch(op) {
-            case "extent":
-                String layer = getMagicDataTpl().queryForObject("SELECT layer FROM " + getEnv().getProperty("postgres.local.userlayersTable") + " " +
-                    "WHERE id=? AND (allowed_usage='public' OR allowed_usage='login' OR (allowed_usage='owner' AND owner=?))", String.class, 
-                    id, userName
+            case "extent":                
+                args.add(id);
+                String layer = getMagicDataTpl().queryForObject(
+                    "SELECT layer FROM " + getEnv().getProperty("postgres.local.userlayersTable") + " WHERE id=? AND " +
+                    ua.sqlRoleClause("allowed_usage", "owner", args, "read"),
+                    String.class, 
+                    args.toArray()
                 );
                 if (layer != null && !layer.isEmpty()) {
                     boolean foundIt = false;
@@ -159,9 +168,11 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
                 }
                 break;
             case "data":
-                List<Map<String, Object>> ulDataList = getMagicDataTpl().queryForList("SELECT filetype, upload, layer FROM " + getEnv().getProperty("postgres.local.userlayersTable") + " " + 
-                    "WHERE id=? AND (allowed_usage='public' OR allowed_usage='login' OR (allowed_usage='owner' AND owner=?))", 
-                    id, userName
+                args.add(id);
+                List<Map<String, Object>> ulDataList = getMagicDataTpl().queryForList(
+                    "SELECT filetype, upload, layer FROM " + getEnv().getProperty("postgres.local.userlayersTable") + " WHERE id=? AND " + 
+                    ua.sqlRoleClause("allowed_usage", "owner", args, "read"),
+                    args.toArray()
                 );
                 if (!ulDataList.isEmpty() && ulDataList.size() == 1) {
                     Map<String, Object> ulData = ulDataList.get(0);
@@ -197,7 +208,8 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
                 
         int count = 0;
         ResponseEntity<String> ret = null;
-        String userName = request.getUserPrincipal().getName();
+        UserAuthorities ua = new UserAuthorities(getMagicDataTpl(), getEnv());
+        String userName = ua.currentUserName();
         String uuid = request.getParameter("id");
         
         if (isOwner(uuid, userName)) {
@@ -282,8 +294,11 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
     public ResponseEntity<String> updateMap(HttpServletRequest request,
         @PathVariable("id") String id,
         @RequestBody String payload) throws Exception {
+        
         ResponseEntity<String> ret;        
-        String userName = request.getUserPrincipal().getName();        
+        
+        UserAuthorities ua = new UserAuthorities(getMagicDataTpl(), getEnv());
+        String userName = ua.currentUserName();     
         if (isOwner(id, userName)) {
             try {
                 /* No file upload => save attribute data only */
@@ -321,8 +336,11 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
     @RequestMapping(value = "/userlayers/delete/{id}", method = RequestMethod.DELETE, produces = "application/json; charset=utf-8")
     public ResponseEntity<String> deleteUserLayer(HttpServletRequest request,
         @PathVariable("id") String id) throws Exception {
+        
         ResponseEntity<String> ret;
-        String userName = request.getUserPrincipal().getName();
+        
+        UserAuthorities ua = new UserAuthorities(getMagicDataTpl(), getEnv());
+        String userName = ua.currentUserName();
         if (isOwner(id, userName)) {
             /* Logged-in user is the owner of the layer => do deletion */            
             try {
@@ -365,23 +383,7 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
         response.setContentType(mimeType);
         response.setStatus(status);
         IOUtils.copy(bais, response.getOutputStream());
-    }
-    
-    /**
-     * Prepare string data to go into a PostgreSQL json field
-     * @param String value
-     * @return PGObject
-     */
-    private PGobject getJsonDataAsPgObject(String value) {
-        /* A bit of "cargo-cult" programming from https://github.com/denishpatel/java/blob/master/PgJSONExample.java - what a palaver! */
-        PGobject dataObject = new PGobject();
-        dataObject.setType("json");
-        try {
-            dataObject.setValue(value);
-        } catch (SQLException ex) {            
-        }
-        return(dataObject);
-    }
+    }    
 
     public ApplicationContext getApplicationContext() {
         return applicationContext;
