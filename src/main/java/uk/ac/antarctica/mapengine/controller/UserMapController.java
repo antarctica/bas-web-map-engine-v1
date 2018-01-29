@@ -11,6 +11,7 @@ import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import org.geotools.ows.ServiceException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +29,9 @@ import uk.ac.antarctica.mapengine.util.PackagingUtils;
 
 @RestController
 public class UserMapController extends AbstractMapController {
+    
+    @Autowired
+    private UserAuthorities ua;
         
     @InitBinder
     protected void initBinder(WebDataBinder binder) {        
@@ -49,7 +53,6 @@ public class UserMapController extends AbstractMapController {
         ResponseEntity<String> ret;
         String tableName = getEnv().getProperty("postgres.local.usermapsTable");
         try {
-            UserAuthorities ua = new UserAuthorities(getMagicDataTpl(), getEnv());
             List<Map<String, Object>> userMapData = getMagicDataTpl().queryForList(
                 "SELECT * FROM " + tableName + " WHERE owner_name=? GROUP BY basemap, id ORDER BY name", 
                 ua.currentUserName()
@@ -78,7 +81,6 @@ public class UserMapController extends AbstractMapController {
     public ResponseEntity<String> saveUserMap(HttpServletRequest request,
         @RequestBody String payload) throws Exception {
         ResponseEntity<String> ret;
-        UserAuthorities ua = new UserAuthorities(getMagicDataTpl(), getEnv());
         UserMapData umd = new UserMapData(getEnv().getProperty("postgres.local.usermapsTable"));          
         umd.fromPayload(payload, ua.currentUserName());
         if (basemapExists(ua, umd.getBasemap())) {
@@ -100,7 +102,6 @@ public class UserMapController extends AbstractMapController {
         @PathVariable("id") Integer id,
         @RequestBody String payload) throws Exception {
         ResponseEntity<String> ret;
-        UserAuthorities ua = new UserAuthorities(getMagicDataTpl(), getEnv());
         UserMapData umd = new UserMapData(getEnv().getProperty("postgres.local.usermapsTable"));          
         umd.fromPayload(payload, ua.currentUserName());
         if (basemapExists(ua, umd.getBasemap())) {

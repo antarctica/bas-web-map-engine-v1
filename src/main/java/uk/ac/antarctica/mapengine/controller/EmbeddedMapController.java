@@ -85,8 +85,7 @@ public class EmbeddedMapController extends AbstractMapController {
     public ResponseEntity<String> saveMap(HttpServletRequest request,
         @RequestBody String payload) throws Exception {
         EmbeddedMapData emd = new EmbeddedMapData(getEnv().getProperty("postgres.local.embeddedMapsTable"));
-        UserAuthorities ua = new UserAuthorities(getMagicDataTpl(), getEnv());
-        emd.fromPayload(payload, ua.currentUserName());                
+        emd.fromPayload(payload, getUa().currentUserName());                
         return (saveMapData(emd, null));
     }
     
@@ -100,9 +99,8 @@ public class EmbeddedMapController extends AbstractMapController {
     public ResponseEntity<String> updateMap(HttpServletRequest request,
         @PathVariable("id") String id,
         @RequestBody String payload) throws Exception {
-        UserAuthorities ua = new UserAuthorities(getMagicDataTpl(), getEnv());
         EmbeddedMapData emd = new EmbeddedMapData(getEnv().getProperty("postgres.local.embeddedMapsTable"));       
-        emd.fromPayload(payload, ua.currentUserName());
+        emd.fromPayload(payload, getUa().currentUserName());
         return (saveMapData(emd, id));
     }
     

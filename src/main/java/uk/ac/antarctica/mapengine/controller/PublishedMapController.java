@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import uk.ac.antarctica.mapengine.model.PublishedMapData;
-import uk.ac.antarctica.mapengine.model.UserAuthorities;
 import uk.ac.antarctica.mapengine.util.PackagingUtils;
 
 @RestController
@@ -150,9 +149,8 @@ public class PublishedMapController extends AbstractMapController {
     @RequestMapping(value = "/maps/save", method = RequestMethod.POST, headers = {"Content-type=application/json"})
     public ResponseEntity<String> saveMap(HttpServletRequest request,
         @RequestBody String payload) throws Exception {
-        UserAuthorities ua = new UserAuthorities(getMagicDataTpl(), getEnv());
         PublishedMapData pmd = new PublishedMapData(getEnv().getProperty("postgres.local.mapsTable"));          
-        pmd.fromPayload(payload, ua.currentUserName());                
+        pmd.fromPayload(payload, getUa().currentUserName());                
         return (saveMapData(pmd, null));
     }
     
@@ -166,9 +164,8 @@ public class PublishedMapController extends AbstractMapController {
     public ResponseEntity<String> updateMap(HttpServletRequest request,
         @PathVariable("id") String id,
         @RequestBody String payload) throws Exception {
-        UserAuthorities ua = new UserAuthorities(getMagicDataTpl(), getEnv());
         PublishedMapData pmd = new PublishedMapData(getEnv().getProperty("postgres.local.mapsTable"));          
-        pmd.fromPayload(payload, ua.currentUserName());
+        pmd.fromPayload(payload, getUa().currentUserName());
         return (saveMapData(pmd, id));
     }
     

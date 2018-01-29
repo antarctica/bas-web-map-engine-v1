@@ -4,8 +4,6 @@
 
 package uk.ac.antarctica.mapengine.controller;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonPrimitive;
 import it.geosolutions.geoserver.rest.HTTPUtils;
 import java.awt.Color;
 import java.awt.Font;
@@ -23,7 +21,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.StringJoiner;
 import javax.imageio.ImageIO;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -64,7 +61,10 @@ public class OgcServicesController {
     Environment env;
     
     @Autowired
-    private JdbcTemplate magicDataTpl;        
+    private JdbcTemplate magicDataTpl; 
+    
+    @Autowired
+    private UserAuthorities ua; 
     
     /**
      * Proxy for OGC readonly WMS and WFS services
@@ -407,7 +407,7 @@ public class OgcServicesController {
         ArrayList args = new ArrayList();        
         List<Map<String,Object>> listLayers = magicDataTpl.queryForList(
             "SELECT layer FROM " + env.getProperty("postgres.local.userlayersTable") + " WHERE " + 
-            new UserAuthorities(magicDataTpl, env).sqlRoleClause("allowed_usage", "owner", args, "read"), 
+            ua.sqlRoleClause("allowed_usage", "owner", args, "read"), 
             args.toArray()
         );
         /* Now have the "definites" list - create an easy-to-read dictionary */        
@@ -435,7 +435,6 @@ public class OgcServicesController {
         String authHeader = null;
         String localServer = env.getProperty("geoserver.local.url");
         if (url.startsWith(localServer)) {
-            UserAuthorities ua = new UserAuthorities(magicDataTpl, env);
             authHeader = ua.basicAuthorizationHeader();
         }        
         

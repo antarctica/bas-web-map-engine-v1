@@ -5,6 +5,7 @@ package uk.ac.antarctica.mapengine.config;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -24,13 +25,16 @@ public class GeoserverAuthenticationProvider implements AuthenticationProvider {
     
     private Environment env;
     
+    private UserAuthorities ua;
+    
     public GeoserverAuthenticationProvider() {
     }
     
-    public GeoserverAuthenticationProvider(String loginUrl, JdbcTemplate tpl, Environment env) {
+    public GeoserverAuthenticationProvider(String loginUrl, JdbcTemplate tpl, Environment env, UserAuthorities ua) {
         this.loginUrl = loginUrl;
         this.tpl = tpl;
         this.env = env;
+        this.ua = ua;
     }
     
     @Override
@@ -54,8 +58,7 @@ public class GeoserverAuthenticationProvider implements AuthenticationProvider {
             if (status < 400) {
                 /* Record the Geoserver credentials so they are recoverable by the security context holder */
                 System.out.println("Geoserver authentication successful for user " + name);
-                UserAuthorities ua = new UserAuthorities(getTpl(), getEnv());              
-                return(new UsernamePasswordAuthenticationToken(name, password, ua.toGrantedAuthorities(name, password, env.getProperty("geoserver.local.defaultRole"))));
+                return(new UsernamePasswordAuthenticationToken(name, password, ua.toGrantedAuthorities(name, password, env.getProperty("geoserver.local.internalSuperuserRole"))));
             } else if (status == 401) {
                 throw new GeoserverAuthenticationException("Invalid credentials");
             } else {

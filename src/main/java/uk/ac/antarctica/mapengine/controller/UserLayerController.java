@@ -16,7 +16,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
@@ -30,7 +29,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.geotools.ows.ServiceException;
-import org.postgresql.util.PGobject;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -69,6 +67,9 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
     @Autowired
     private JdbcTemplate magicDataTpl;
     
+    @Autowired
+    private UserAuthorities ua;
+    
     private ApplicationContext applicationContext;
     
     private ServletContext servletContext;
@@ -90,7 +91,6 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
         
         ResponseEntity<String> ret;
         
-        UserAuthorities ua = new UserAuthorities(getMagicDataTpl(), getEnv());
         String tableName = getEnv().getProperty("postgres.local.userlayersTable");
         try {
             ArrayList args = new ArrayList();
@@ -126,7 +126,6 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
         @PathVariable("op") String op) throws Exception {
         
         String mimeType = "application/json; charset=utf-8";
-        UserAuthorities ua = new UserAuthorities(getMagicDataTpl(), getEnv());  
         ArrayList args = new ArrayList();
         
         switch(op) {
@@ -208,7 +207,6 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
                 
         int count = 0;
         ResponseEntity<String> ret = null;
-        UserAuthorities ua = new UserAuthorities(getMagicDataTpl(), getEnv());
         String userName = ua.currentUserName();
         String uuid = request.getParameter("id");
         
@@ -297,7 +295,6 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
         
         ResponseEntity<String> ret;        
         
-        UserAuthorities ua = new UserAuthorities(getMagicDataTpl(), getEnv());
         String userName = ua.currentUserName();     
         if (isOwner(id, userName)) {
             try {
@@ -339,7 +336,6 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
         
         ResponseEntity<String> ret;
         
-        UserAuthorities ua = new UserAuthorities(getMagicDataTpl(), getEnv());
         String userName = ua.currentUserName();
         if (isOwner(id, userName)) {
             /* Logged-in user is the owner of the layer => do deletion */            

@@ -6,24 +6,38 @@ package uk.ac.antarctica.mapengine.model;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.StringJoiner;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 public class UserAuthorities {
+    
+    /**
+     * Role hierarchy is simple:
+     * 
+     * admin (single user) - administrator
+     * magic (group of LDAP users) - Geoserver admins
+     * bas (LDAP user) - superusers with all internal and external roles
+     * internal (group of LDAP users) - defined in user_roles - a different set of BAS users
+     * external (group of non-LDAP users) - non-BAS users
+     * 
+     */
         
     private JdbcTemplate tpl;
     
     private Environment env;
+    
+    /**
+     * Properties for each role
+     */
+    private JsonObject roleProps;   
     
     /**
      * Credentials are stored as stringified JSON thus:
@@ -54,7 +68,6 @@ public class UserAuthorities {
      */
     public boolean userHasRole(String rolename) {
         boolean hasRole = false;
-        populateRoles(null, null);
         if (isFullySpecified()) {
             JsonArray roles = getAuthorities().getAsJsonArray("roles");
             return(roles.contains(new JsonPrimitive(rolename)));
@@ -63,11 +76,30 @@ public class UserAuthorities {
     }
     
     /**
+     * Is the current user on given type (internal|external, admin|superuser)
+     * @param String intExt
+     * @param String userType
+     * @return boolean
+     */
+    public boolean isUserOfType(String intExt, String userType) {
+        if (isFullySpecified()) {
+            Set<Map.Entry<String, JsonElement>> entries = getRoleProps().entrySet();
+            for (Map.Entry<String, JsonElement> entry : entries) {
+                String rolename = entry.getKey();
+                JsonObject props = (JsonObject)entry.getValue();
+                if (props.get(intExt).getAsBoolean() && props.get(userType).getAsBoolean()) {
+                    return(true);
+                }
+            }
+        }
+        return(false);
+    }
+    
+    /**
      * Get current username
      * @return String
      */
     public String currentUserName() {
-        populateRoles(null, null);
         if (isFullySpecified()) {
             return(getAuthorities().get("username").getAsString());
         }
@@ -79,7 +111,6 @@ public class UserAuthorities {
      * @return JsonArray
      */
     public JsonArray currentUserRoles() {
-        populateRoles(null, null);
         if (isFullySpecified()) {
             return(getAuthorities().getAsJsonArray("roles"));
         }
@@ -98,7 +129,10 @@ public class UserAuthorities {
      */
     public String sqlRoleClause(String permField, String ownerField, ArrayList args, String opType) {
         StringJoiner joiner = new StringJoiner(" OR ");        
-        populateRoles(null, null);
+        /* Check for admin role, allow any operation */
+        if (currentUserName().equals("admin")) {
+            return("True");
+        }
         switch (opType) {
             case "update":
                 /* Updating of objects potentially allowed for owner|login|<role1>,<role2>,...,<rolen> */
@@ -165,7 +199,6 @@ public class UserAuthorities {
      * @return String
      */
     public String basicAuthorizationHeader() {
-        populateRoles(null, null);
         if (isFullySpecified()) {
             String username = getAuthorities().get("username").getAsString();
             String password = getAuthorities().get("password").getAsString();
@@ -191,11 +224,22 @@ public class UserAuthorities {
         ArrayList<SimpleGrantedAuthority> ga = new ArrayList();
         populateRoles(username, password);
         if (defaultRole != null && !defaultRole.isEmpty() && getAuthorities().has("roles") && getAuthorities().getAsJsonArray("roles").size() == 0) {
-            /* User who has logged in but has no roles gets a default role here */
+            /* User who has logged in but has no roles gets a default role here */            
             getAuthorities().getAsJsonArray("roles").add(new JsonPrimitive(defaultRole));
         }
         ga.add(new SimpleGrantedAuthority(getAuthorities().toString()));      
         return(ga);
+    }
+    
+    /**
+     * Assemble the roles the current user is able to assign to objects
+     * @return JsonObject
+     */
+    public JsonObject assignableRoles() {
+        
+        //TODO
+        return(null);
+        
     }
     
     /**
@@ -204,27 +248,41 @@ public class UserAuthorities {
      * @param String password 
      */
     private void populateRoles(String username, String password) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null) {
-            /* Try to recover the information from the security context */                        
-            JsonParser jpr = new JsonParser();
-            auth.getAuthorities().forEach((ga) -> {
-                setAuthorities((JsonObject)jpr.parse(ga.getAuthority()));
-            });
-        }
-        if (!isFullySpecified() && username != null && password != null) {
+                
+        String rolePropsTable = getEnv().getProperty("postgres.local.rolePropsTable");
+        String userRolesTable = getEnv().getProperty("postgres.local.userRolesTable");
+        
+        /* Populate role hierarchy */        
+        List<Map<String,Object>> roleMapList = getTpl().queryForList("SELECT * FROM " + rolePropsTable);
+        setRoleProps(new JsonObject());
+        roleMapList.forEach((rm) -> {
+            
+            JsonObject roleData;
+            
+            String rolename = (String)rm.get("name");
+            String propname = (String)rm.get("propname");
+            String propvalue = (String)rm.get("propvalue");
+
+            if (getRoleProps().has(rolename)) {
+                roleData = getRoleProps().getAsJsonObject("name");
+            } else {
+                roleData = new JsonObject();
+                getRoleProps().add(rolename, roleData);
+            }
+            roleData.add("propname", new JsonPrimitive(propvalue.equals("yes"))); 
+        });
+                
+        if (username != null && password != null) {
             /* Populate authorities from database table */
             getAuthorities().addProperty("username", username);
             getAuthorities().addProperty("password", password);
             JsonArray roles = new JsonArray();
-            String userRolesTable = getEnv().getProperty("postgres.local.rolesTable");
             List<Map<String,Object>> roleList = tpl.queryForList("SELECT rolename FROM " + userRolesTable + " WHERE username=?", username);
             roleList.forEach((rolemap) -> {
                 roles.add(new JsonPrimitive((String)rolemap.get("rolename")));
             });
             getAuthorities().add("roles", roles);
-        }
-        if (!isFullySpecified()) {
+        } else {
             setAuthorities(new JsonObject());
         }
     }
@@ -267,5 +325,13 @@ public class UserAuthorities {
     public void setEnv(Environment env) {
         this.env = env;
     }
-    
+
+    public JsonObject getRoleProps() {
+        return roleProps;
+    }
+
+    public void setRoleProps(JsonObject roleProps) {
+        this.roleProps = roleProps;
+    }
+
 }

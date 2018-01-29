@@ -8,7 +8,6 @@ import com.google.gson.JsonArray;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
@@ -27,6 +26,9 @@ public class AbstractMapController {
    
     @Autowired
     private JdbcTemplate magicDataTpl;
+    
+    @Autowired
+    private UserAuthorities ua;
 
     /* JSON mapper */
     private Gson mapper = new Gson();
@@ -41,7 +43,6 @@ public class AbstractMapController {
         
         ResponseEntity<String> ret = null;        
         
-        UserAuthorities ua = new UserAuthorities(getMagicDataTpl(), getEnv());
         ArrayList args = new ArrayList();
         String sql = null, accessClause = null;
         
@@ -107,7 +108,6 @@ public class AbstractMapController {
         
         ResponseEntity<String> ret;
         
-        UserAuthorities ua = new UserAuthorities(getMagicDataTpl(), getEnv());
         ArrayList args = new ArrayList();
         
         try {
@@ -192,7 +192,6 @@ public class AbstractMapController {
         
         ResponseEntity<String> ret;
               
-        UserAuthorities ua = new UserAuthorities(getMagicDataTpl(), getEnv());
         String username = ua.currentUserName();
         
         if (username != null) {
@@ -301,6 +300,14 @@ public class AbstractMapController {
 
     public void setMapper(Gson mapper) {
         this.mapper = mapper;
+    }
+
+    public UserAuthorities getUa() {
+        return ua;
+    }
+
+    public void setUa(UserAuthorities ua) {
+        this.ua = ua;
     }
     
 }

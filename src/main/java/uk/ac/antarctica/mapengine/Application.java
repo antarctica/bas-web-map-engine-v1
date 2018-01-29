@@ -12,10 +12,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.web.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Scope;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import uk.ac.antarctica.mapengine.model.UserAuthorities;
 
 @EnableScheduling
 @EnableTransactionManagement
@@ -51,6 +53,12 @@ public class Application extends SpringBootServletInitializer {
     @Bean
     public HttpSessionListener httpSessionListener() {
         return (new SessionListener());
+    }
+    
+    @Bean
+    @Scope(value = "Session")
+    public UserAuthorities userAuthorities() {
+        return(new UserAuthorities(magicDataTpl(), env));
     }
     
     public class SessionListener implements HttpSessionListener {
