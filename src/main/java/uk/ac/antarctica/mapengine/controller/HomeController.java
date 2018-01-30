@@ -469,6 +469,7 @@ public class HomeController {
      * @return ArrayList
      */
     private ArrayList<MapPlugin> listPlugins(String type) {
+        System.out.println("===== HomeController.listPlugins() starting with type : " + type);
         System.out.println("List plugins of type " + type);
         ArrayList<MapPlugin> pluginList = new ArrayList();
         String plugins = env.getProperty("plugins." + type);
@@ -477,7 +478,7 @@ public class HomeController {
             String[] pluginArr = plugins.split(",");
             if (pluginArr.length % 5 == 0) {
                 /* Plausible */ 
-                System.out.println("Good length");
+                System.out.println("Properties file record is of plausible length");
                 for (int i = 0; i < pluginArr.length; i += 5) {
                     MapPlugin mp = new MapPlugin();
                     mp.setName(pluginArr[i]);
@@ -485,11 +486,13 @@ public class HomeController {
                     mp.setCaption(pluginArr[i+2]);
                     mp.setTooltip(pluginArr[i+3]);
                     mp.setIconclass(pluginArr[i+4]);
-                    System.out.println("Name : " + mp.getName() + ", icon class : " + mp.getIconclass());
+                    System.out.println("--> Name : " + mp.getName());
+                    System.out.println("--> Icon class : " + mp.getIconclass());
                     pluginList.add(mp);
                 }                
             }
         }
+        System.out.println("===== HomeController.listPlugins() complete");
         return(pluginList.isEmpty() ? null : pluginList);
     }
 

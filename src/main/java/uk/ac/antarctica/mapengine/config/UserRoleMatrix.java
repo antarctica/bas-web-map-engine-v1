@@ -14,9 +14,9 @@ import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-@Component
+@Service
 public class UserRoleMatrix {
     
     /**
@@ -48,6 +48,7 @@ public class UserRoleMatrix {
         System.out.println("======== UserRoleMatrix.initialise() starting...");             
                 
         String rolePropsTable = env.getProperty("postgres.local.rolePropsTable");
+        System.out.println("Query table : " + rolePropsTable);
         
         /* Populate role matrix */        
         List<Map<String,Object>> roleMapList = magicDataTpl.queryForList("SELECT * FROM " + rolePropsTable);
@@ -59,7 +60,13 @@ public class UserRoleMatrix {
             String rolename = (String)rm.get("name");
             String propname = (String)rm.get("propname");
             String propvalue = (String)rm.get("propvalue");
-
+            
+            System.out.println("Record start...");
+            System.out.println("--> Role name : " + rolename);
+            System.out.println("--> Property name : " + propname);
+            System.out.println("--> Property value : " + propvalue);
+            System.out.println("Record end");
+            
             if (getRoleMatrix().has(rolename)) {
                 roleData = getRoleMatrix().getAsJsonObject("name");
             } else {

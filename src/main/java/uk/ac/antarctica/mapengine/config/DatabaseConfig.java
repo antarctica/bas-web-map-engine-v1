@@ -25,10 +25,5 @@ public class DatabaseConfig {
     public JdbcTemplate magicDataTpl() {
         return (new JdbcTemplate(magicDataSource()));
     }
-    
-    @Bean
-    public UserRoleMatrix userRoleMatrix() {
-        return (new UserRoleMatrix());
-    }
 
 }
