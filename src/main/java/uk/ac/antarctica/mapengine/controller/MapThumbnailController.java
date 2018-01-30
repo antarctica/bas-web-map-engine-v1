@@ -82,27 +82,27 @@ public class MapThumbnailController implements ServletContextAware {
         int port = request.getServerPort();
         String server = request.getScheme() + "://" + request.getServerName() + (port != 80 ? (":" + port) : "");
         
-        List<Map<String, Object>> mapData = getMagicDataTpl().queryForList(
+        List<Map<String, Object>> mapData = magicDataTpl.queryForList(
             "SELECT name, title, description, modified_date, version, allowed_usage, allowed_edit, owner_name FROM " + 
-            getEnv().getProperty("postgres.local.mapsTable") + " " + 
+            env.getProperty("postgres.local.mapsTable") + " " + 
             "ORDER BY title"
         );        
         if (mapData != null && !mapData.isEmpty()) {
             /* Package map data as JSON array - note we want to list all maps regardless of whether login required */
             JsonArray ja = new JsonArray();
-            for (Map m : mapData) {
+            mapData.stream().map((m) -> {
                 String mapName = (String)m.get("name");
                 String allowedUsage = (String)m.get("allowed_usage");
                 String allowedEdit = (String)m.get("allowed_edit");
                 String owner = (String)m.get("owner_name");
-                boolean canView = 
-                    allowedUsage.equals("public") || 
-                    (username != null && allowedUsage.equals("login")) ||
-                    owner.equals(username);
-                boolean canEdit = 
-                    allowedEdit.equals("public") ||
-                    (username != null && allowedEdit.equals("login")) ||
-                    owner.equals(username);
+                boolean canView =
+                        allowedUsage.equals("public") ||
+                        (username != null && allowedUsage.equals("login")) ||
+                        owner.equals(username);
+                boolean canEdit =
+                        allowedEdit.equals("public") ||
+                        (username != null && allowedEdit.equals("login")) ||
+                        owner.equals(username);
                 boolean canDelete = owner.equals(username);
                 JsonObject jm = getMapper().toJsonTree(m).getAsJsonObject();
                 jm.remove("allowed_usage");
@@ -113,8 +113,10 @@ public class MapThumbnailController implements ServletContextAware {
                 jm.addProperty("d", canDelete);
                 /* Get the thumbnail for public sites - restricted ones can have a thumbnail uploaded or use a placeholder */                
                 jm.addProperty("thumburl", server + "/thumbnail/show/" + mapName);
+                return jm;
+            }).forEachOrdered((jm) -> {
                 ja.add(jm);
-            }
+            });
             ret = PackagingUtils.packageResults(HttpStatus.OK, ja.toString(), null);
         } else {
             /* No data is fine - simply return empty results array */
@@ -139,9 +141,9 @@ public class MapThumbnailController implements ServletContextAware {
         
         InputStream thumbStream = null;
         String contentType = "image/jpg";
-        String thumbUrl = getEnv().getProperty("default.thumbnailUrl");                          
-        try (Connection conn = getMagicDataTpl().getDataSource().getConnection()) {            
-            PreparedStatement ps = conn.prepareStatement("SELECT mime_type, thumbnail FROM " + getEnv().getProperty("postgres.local.thumbnailsTable") + " WHERE \"name\" = ?");
+        String thumbUrl = env.getProperty("default.thumbnailUrl");                          
+        try (Connection conn = magicDataTpl.getDataSource().getConnection()) {            
+            PreparedStatement ps = conn.prepareStatement("SELECT mime_type, thumbnail FROM " + env.getProperty("postgres.local.thumbnailsTable") + " WHERE \"name\" = ?");
             ps.setString(1, mapname);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
@@ -174,10 +176,10 @@ public class MapThumbnailController implements ServletContextAware {
     @RequestMapping(value = "/thumbnail/save/{mapname}", method = RequestMethod.POST, consumes = "multipart/form-data", produces = {"application/json"})
     public ResponseEntity<String> saveThumbnailData(MultipartHttpServletRequest request, @PathVariable("mapname") String mapname) throws Exception {
         ResponseEntity<String> ret = null;
-        Connection conn = getMagicDataTpl().getDataSource().getConnection();
+        Connection conn = magicDataTpl.getDataSource().getConnection();
         String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
         try {
-            Integer count = getMagicDataTpl().queryForObject("SELECT count(id) FROM " + getEnv().getProperty("postgres.local.mapsTable") + " WHERE \"name\"=? AND (owner_name=? OR allowed_edit='login')", 
+            Integer count = magicDataTpl.queryForObject("SELECT count(id) FROM " + env.getProperty("postgres.local.mapsTable") + " WHERE \"name\"=? AND (owner_name=? OR allowed_edit='login')", 
                 Integer.class, mapname, username
             );
             String contentType = "image/jpg";
@@ -196,9 +198,9 @@ public class MapThumbnailController implements ServletContextAware {
                 PreparedStatement ps;
                 try {
                     /* Current user is the owner and is therefore allowed to add a thumbnail */
-                    Integer existingId = getMagicDataTpl().queryForObject("SELECT id FROM " + getEnv().getProperty("postgres.local.thumbnailsTable") + " " + 
+                    Integer existingId = magicDataTpl.queryForObject("SELECT id FROM " + env.getProperty("postgres.local.thumbnailsTable") + " " + 
                         "WHERE \"name\"=?", Integer.class, mapname);                    
-                    ps = conn.prepareStatement("UPDATE " + getEnv().getProperty("postgres.local.thumbnailsTable") + " " + 
+                    ps = conn.prepareStatement("UPDATE " + env.getProperty("postgres.local.thumbnailsTable") + " " + 
                         "SET mime_type=?, thumbnail=? WHERE id=?"
                     );
                     ps.setString(1, contentType);
@@ -206,7 +208,7 @@ public class MapThumbnailController implements ServletContextAware {
                     ps.setInt(3, existingId);
                 } catch (IncorrectResultSizeDataAccessException irsdae) {
                     /* This is an insert */
-                    ps = conn.prepareStatement("INSERT INTO " + getEnv().getProperty("postgres.local.thumbnailsTable") + " " + 
+                    ps = conn.prepareStatement("INSERT INTO " + env.getProperty("postgres.local.thumbnailsTable") + " " + 
                         "(\"name\", mime_type, thumbnail) " + 
                         "VALUES(?, ?, ?)"
                     );
@@ -245,11 +247,11 @@ public class MapThumbnailController implements ServletContextAware {
         String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;        
         try {
             /* Check logged in user is the owner of the map */
-            Integer count = getMagicDataTpl().queryForObject("SELECT count(id) FROM " + getEnv().getProperty("postgres.local.mapsTable") + " WHERE \"name\"=? AND owner_name=?", 
+            Integer count = magicDataTpl.queryForObject("SELECT count(id) FROM " + env.getProperty("postgres.local.mapsTable") + " WHERE \"name\"=? AND owner_name=?", 
                 Integer.class, mapname, username
             );               
             /* Do deletion as we have the owner */                
-            getMagicDataTpl().update("DELETE FROM " + getEnv().getProperty("postgres.local.thumbnailsTable") + " WHERE \"name\"=?", mapname);                        
+            magicDataTpl.update("DELETE FROM " + env.getProperty("postgres.local.thumbnailsTable") + " WHERE \"name\"=?", mapname);                        
             ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Successfully deleted");
         } catch (IncorrectResultSizeDataAccessException irsdae) {
             /* Unable to determine if owner */
@@ -261,25 +263,9 @@ public class MapThumbnailController implements ServletContextAware {
         return (ret);
     }
 
-     @Override
+    @Override
     public void setServletContext(ServletContext sc) {
         this.setContext(sc);
-    }
-
-    public Environment getEnv() {
-        return env;
-    }
-
-    public void setEnv(Environment env) {
-        this.env = env;
-    }
-
-    public JdbcTemplate getMagicDataTpl() {
-        return magicDataTpl;
-    }
-
-    public void setMagicDataTpl(JdbcTemplate magicDataTpl) {
-        this.magicDataTpl = magicDataTpl;
     }
 
     public ServletContext getContext() {

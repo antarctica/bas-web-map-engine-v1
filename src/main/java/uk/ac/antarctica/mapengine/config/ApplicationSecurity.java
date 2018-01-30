@@ -24,10 +24,9 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.SavedRequest;
-import org.springframework.security.web.util.RegexRequestMatcher;
-import org.springframework.security.web.util.RequestMatcher;
+import org.springframework.security.web.util.matcher.RegexRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import uk.ac.antarctica.mapengine.config.ApplicationSecurity.CsrfSecurityRequestMatcher;
-import uk.ac.antarctica.mapengine.model.UserAuthorities;
 
 @Configuration
 @EnableWebMvcSecurity
@@ -37,10 +36,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
     private Environment env;   
    
     @Autowired
-    private JdbcTemplate magicDataTpl;
-    
-    @Autowired
-    private UserAuthorities ua;    
+    private JdbcTemplate magicDataTpl;    
 
     @Value("${geoserver.local.adminUrl}")
     private String geoserverUrl;
@@ -130,7 +126,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
         
         /* Authentication against the local Geoserver instance (incorporates LDAP) */
         if (env.getProperty("authentication.geoserver").equals("yes")) {
-            auth.authenticationProvider(new GeoserverAuthenticationProvider(geoserverUrl, magicDataTpl, ua));
+            auth.authenticationProvider(new GeoserverAuthenticationProvider(geoserverUrl, magicDataTpl));
         }
     }
 

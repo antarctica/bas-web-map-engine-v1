@@ -51,7 +51,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-import uk.ac.antarctica.mapengine.model.UserAuthorities;
+import uk.ac.antarctica.mapengine.config.UserAuthorities;
 import uk.ac.antarctica.mapengine.util.HttpConnectionUtils;
 
 @Controller
@@ -62,9 +62,6 @@ public class OgcServicesController {
     
     @Autowired
     private JdbcTemplate magicDataTpl; 
-    
-    @Autowired
-    private UserAuthorities ua; 
     
     /**
      * Proxy for OGC readonly WMS and WFS services
@@ -407,7 +404,7 @@ public class OgcServicesController {
         ArrayList args = new ArrayList();        
         List<Map<String,Object>> listLayers = magicDataTpl.queryForList(
             "SELECT layer FROM " + env.getProperty("postgres.local.userlayersTable") + " WHERE " + 
-            ua.sqlRoleClause("allowed_usage", "owner", args, "read"), 
+            new UserAuthorities().sqlRoleClause("allowed_usage", "owner", args, "read"), 
             args.toArray()
         );
         /* Now have the "definites" list - create an easy-to-read dictionary */        
@@ -435,7 +432,7 @@ public class OgcServicesController {
         String authHeader = null;
         String localServer = env.getProperty("geoserver.local.url");
         if (url.startsWith(localServer)) {
-            authHeader = ua.basicAuthorizationHeader();
+            authHeader = new UserAuthorities().basicAuthorizationHeader();
         }        
         
         try {

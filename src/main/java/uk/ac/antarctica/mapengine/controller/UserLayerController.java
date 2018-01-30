@@ -55,7 +55,7 @@ import uk.ac.antarctica.mapengine.datapublishing.KmlPublisher;
 import uk.ac.antarctica.mapengine.datapublishing.NoUploadPublisher;
 import uk.ac.antarctica.mapengine.datapublishing.ShpZipPublisher;
 import uk.ac.antarctica.mapengine.model.UploadedData;
-import uk.ac.antarctica.mapengine.model.UserAuthorities;
+import uk.ac.antarctica.mapengine.config.UserAuthorities;
 import uk.ac.antarctica.mapengine.util.PackagingUtils;
 
 @Controller
@@ -66,9 +66,6 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
     
     @Autowired
     private JdbcTemplate magicDataTpl;
-    
-    @Autowired
-    private UserAuthorities ua;
     
     private ApplicationContext applicationContext;
     
@@ -91,12 +88,12 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
         
         ResponseEntity<String> ret;
         
-        String tableName = getEnv().getProperty("postgres.local.userlayersTable");
+        String tableName = env.getProperty("postgres.local.userlayersTable");
         try {
             ArrayList args = new ArrayList();
-            List<Map<String, Object>> userLayerData = getMagicDataTpl().queryForList(
+            List<Map<String, Object>> userLayerData = magicDataTpl.queryForList(
                 "SELECT id,caption,description,service,layer,modified_date,owner,allowed_usage,styledef::text FROM " + tableName + " WHERE " + 
-                ua.sqlRoleClause("allowed_usage", "owner", args, "read") + " ORDER BY caption",
+                new UserAuthorities().sqlRoleClause("allowed_usage", "owner", args, "read") + " ORDER BY caption",
                 args.toArray()
             );
             if (userLayerData != null && !userLayerData.isEmpty()) {
@@ -131,21 +128,21 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
         switch(op) {
             case "extent":                
                 args.add(id);
-                String layer = getMagicDataTpl().queryForObject(
-                    "SELECT layer FROM " + getEnv().getProperty("postgres.local.userlayersTable") + " WHERE id=? AND " +
-                    ua.sqlRoleClause("allowed_usage", "owner", args, "read"),
+                String layer = magicDataTpl.queryForObject(
+                    "SELECT layer FROM " + env.getProperty("postgres.local.userlayersTable") + " WHERE id=? AND " +
+                    new UserAuthorities().sqlRoleClause("allowed_usage", "owner", args, "read"),
                     String.class, 
                     args.toArray()
                 );
                 if (layer != null && !layer.isEmpty()) {
                     boolean foundIt = false;
                     GeoServerRESTManager grm = new GeoServerRESTManager(
-                        new URL(getEnv().getProperty("geoserver.local.url")), 
-                        getEnv().getProperty("geoserver.local.username"), 
-                        getEnv().getProperty("geoserver.local.password")
+                        new URL(env.getProperty("geoserver.local.url")), 
+                        env.getProperty("geoserver.local.username"), 
+                        env.getProperty("geoserver.local.password")
                     );
-                    if (grm.getReader().existsLayer(getEnv().getProperty("geoserver.local.userWorkspace"), layer, true)) {
-                        RESTLayer gsLayer = grm.getReader().getLayer(getEnv().getProperty("geoserver.local.userWorkspace"), layer);
+                    if (grm.getReader().existsLayer(env.getProperty("geoserver.local.userWorkspace"), layer, true)) {
+                        RESTLayer gsLayer = grm.getReader().getLayer(env.getProperty("geoserver.local.userWorkspace"), layer);
                         if (gsLayer != null) {
                             RESTResource gsFt = grm.getReader().getResource(gsLayer);
                             if (gsFt != null) {
@@ -168,9 +165,9 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
                 break;
             case "data":
                 args.add(id);
-                List<Map<String, Object>> ulDataList = getMagicDataTpl().queryForList(
-                    "SELECT filetype, upload, layer FROM " + getEnv().getProperty("postgres.local.userlayersTable") + " WHERE id=? AND " + 
-                    ua.sqlRoleClause("allowed_usage", "owner", args, "read"),
+                List<Map<String, Object>> ulDataList = magicDataTpl.queryForList(
+                    "SELECT filetype, upload, layer FROM " + env.getProperty("postgres.local.userlayersTable") + " WHERE id=? AND " + 
+                    new UserAuthorities().sqlRoleClause("allowed_usage", "owner", args, "read"),
                     args.toArray()
                 );
                 if (!ulDataList.isEmpty() && ulDataList.size() == 1) {
@@ -207,7 +204,7 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
                 
         int count = 0;
         ResponseEntity<String> ret = null;
-        String userName = ua.currentUserName();
+        String userName = new UserAuthorities().currentUserName();
         String uuid = request.getParameter("id");
         
         if (isOwner(uuid, userName)) {
@@ -295,7 +292,7 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
         
         ResponseEntity<String> ret;        
         
-        String userName = ua.currentUserName();     
+        String userName = new UserAuthorities().currentUserName();     
         if (isOwner(id, userName)) {
             try {
                 /* No file upload => save attribute data only */
@@ -336,11 +333,11 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
         
         ResponseEntity<String> ret;
         
-        String userName = ua.currentUserName();
+        String userName = new UserAuthorities().currentUserName();
         if (isOwner(id, userName)) {
             /* Logged-in user is the owner of the layer => do deletion */            
             try {
-                getMagicDataTpl().update("DELETE FROM " + getEnv().getProperty("postgres.local.userlayersTable") + " WHERE id=?", id);                        
+                magicDataTpl.update("DELETE FROM " + env.getProperty("postgres.local.userlayersTable") + " WHERE id=?", id);                        
                 ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Successfully deleted");
             } catch(DataAccessException dae) {
                 ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Error deleting data, message was: " + dae.getMessage());
@@ -405,27 +402,11 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
         if (uuid == null || uuid.isEmpty()) {
             return(true);
         }
-        return(getMagicDataTpl().queryForObject(
-            "SELECT count(id) FROM " + getEnv().getProperty("postgres.local.userlayersTable") + " WHERE id=? AND owner=?", 
+        return(magicDataTpl.queryForObject(
+            "SELECT count(id) FROM " + env.getProperty("postgres.local.userlayersTable") + " WHERE id=? AND owner=?", 
             new Object[]{uuid, userName}, 
             Integer.class
         ) == 1);
-    }
-
-    public Environment getEnv() {
-        return env;
-    }
-
-    public void setEnv(Environment env) {
-        this.env = env;
-    }
-
-    public JdbcTemplate getMagicDataTpl() {
-        return magicDataTpl;
-    }
-
-    public void setMagicDataTpl(JdbcTemplate magicDataTpl) {
-        this.magicDataTpl = magicDataTpl;
     }
 
     public Gson getMapper() {

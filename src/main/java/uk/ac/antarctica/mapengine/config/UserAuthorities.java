@@ -1,43 +1,36 @@
 /*
- * Packaging for user credentials and roles data
+ * Working with current user credential data
  */
-package uk.ac.antarctica.mapengine.model;
+package uk.ac.antarctica.mapengine.config;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.StringJoiner;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 public class UserAuthorities {
     
-    /**
-     * Role hierarchy is simple:
-     * 
-     * admin (single user) - administrator
-     * magic (group of LDAP users) - Geoserver admins
-     * bas (LDAP user) - superusers with all internal and external roles
-     * internal (group of LDAP users) - defined in user_roles - a different set of BAS users
-     * external (group of non-LDAP users) - non-BAS users
-     * 
-     */
-        
-    private JdbcTemplate tpl;
+    @Autowired
+    private JdbcTemplate magicDataTpl;
     
+    @Autowired
     private Environment env;
     
-    /**
-     * Properties for each role
-     */
-    private JsonObject roleMatrix;   
+    @Autowired
+    private UserRoleMatrix userRoleMatrix;
     
     /**
      * Credentials are stored as stringified JSON thus:
@@ -55,10 +48,7 @@ public class UserAuthorities {
      */
     private JsonObject authorities;   
     
-    public UserAuthorities(JdbcTemplate tpl, Environment env) {
-        this.tpl = tpl;
-        this.env = env;
-        this.authorities = new JsonObject();        
+    public UserAuthorities() {        
     }
     
     /**
@@ -67,19 +57,21 @@ public class UserAuthorities {
      * @return boolean
      */
     public boolean userHasRole(String rolename) {
+        populateRoles();
         if (rolename != null && !rolename.isEmpty() && isFullySpecified()) {
             JsonArray roles = getAuthorities().getAsJsonArray("roles");
             return(roles.contains(new JsonPrimitive(rolename)));
         }
         return(false);
     }
-    
+   
     /**
      * Does the current user have one of the specified roles?
      * @param JsonArray rolenames
      * @return boolean
      */
     public boolean userHasRole(JsonArray rolenames) {
+        populateRoles();        
         if (rolenames != null && !rolenames.isJsonNull() && rolenames.size() != 0 && isFullySpecified()) {
             JsonArray roles = getAuthorities().getAsJsonArray("roles");
             for (JsonElement jeRolename : rolenames) {
@@ -92,31 +84,11 @@ public class UserAuthorities {
     }
     
     /**
-     * Is the current user on given type (internal|external, admin|superuser|all)
-     * @param String intExt value of 'internal' property - yes|no
-     * @param String userType value of 'type' property - admin|superuser|user
-     * @return JsonArray
-     */
-    public JsonArray getRolesByProperties(String intExt, String userType) {
-        JsonArray roles = new JsonArray();
-        if (isFullySpecified()) {
-            Set<Map.Entry<String, JsonElement>> entries = getRoleMatrix().entrySet();
-            entries.forEach((entry) -> {
-                String rolename = entry.getKey();
-                JsonObject props = (JsonObject)entry.getValue();
-                if (props.get("internal").getAsString().equals(intExt) && props.get("type").getAsString().equals(userType)) {
-                    roles.add(new JsonPrimitive(rolename));
-                }
-            });
-        }
-        return(roles);
-    }
-    
-    /**
      * Get current username
      * @return String
      */
     public String currentUserName() {
+        populateRoles();
         if (isFullySpecified()) {
             return(getAuthorities().get("username").getAsString());
         }
@@ -128,6 +100,7 @@ public class UserAuthorities {
      * @return JsonArray
      */
     public JsonArray currentUserRoles() {
+        populateRoles();
         if (isFullySpecified()) {
             return(getAuthorities().getAsJsonArray("roles"));
         }
@@ -149,9 +122,10 @@ public class UserAuthorities {
         StringJoiner joiner = new StringJoiner(" OR ");        
         
         /* Check for admin role, allow any operation - internal admins can do anything but delete objects */        
-        if (userHasRole(getRolesByProperties("internal", "admin"))) {
+        if (userHasRole(userRoleMatrix.getRolesByProperties("internal", "admin"))) {
             return("True");
         }
+        populateRoles();
         
         switch (opType) {
             case "update":
@@ -219,6 +193,7 @@ public class UserAuthorities {
      * @return String
      */
     public String basicAuthorizationHeader() {
+        populateRoles();
         if (isFullySpecified()) {
             String username = getAuthorities().get("username").getAsString();
             String password = getAuthorities().get("password").getAsString();
@@ -242,7 +217,7 @@ public class UserAuthorities {
     public ArrayList<SimpleGrantedAuthority> toGrantedAuthorities(String username, String password) {
         ArrayList<SimpleGrantedAuthority> ga = new ArrayList();
         populateRoles(username, password);
-        JsonArray defaultRoles = getRolesByProperties("internal", "superuser");
+        JsonArray defaultRoles = userRoleMatrix.getRolesByProperties("internal", "superuser");
         if (defaultRoles != null && getAuthorities().has("roles") && getAuthorities().getAsJsonArray("roles").size() == 0) {
             /* User who has logged in but has no roles gets a default role here */            
             getAuthorities().getAsJsonArray("roles").add(defaultRoles.get(0));
@@ -252,86 +227,48 @@ public class UserAuthorities {
     }
     
     /**
-     * Dump of the part of the role matrix current user has control of
-     * Returns a JsonObject of the form:
-     * {
-     *     "admin": [<role>],
-     *     "superuser": [<role>],
-     *     "defaults": ["owner", "public", "login"],
-     *     "internal": [<role1>, <role2>,...<rolen>],
-     *     "external": [<role1>, <role2>,...<rolen>],
-     * }
-     * @return JsonObject
+     * Find the current user roles and populate authorities from current security context
      */
-    public JsonObject assignableRoles() {
-        
-        JsonObject subMatrix = new JsonObject();
-        
-        /* Everyone gets these roles */
-        JsonArray defaultRoles = new JsonArray();
-        defaultRoles.add(new JsonPrimitive("owner"));
-        defaultRoles.add(new JsonPrimitive("login"));
-        defaultRoles.add(new JsonPrimitive("public"));
-        subMatrix.add("defaults", defaultRoles);
-                  
-        JsonArray adminRoles = getRolesByProperties("yes", "admin");
-        JsonArray superUserRoles = getRolesByProperties("yes", "superuser");        
-        boolean isAdmin = userHasRole(adminRoles);
-        
-        if (isAdmin) {
-            subMatrix.add("admin", defaultRoles);                      
+    private void populateRoles() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getAuthorities().isEmpty()) {
+            setAuthorities(new JsonObject());
+        } else {
+            GrantedAuthority ga = auth.getAuthorities().stream().findFirst().get();
+            setAuthorities((JsonObject)new JsonParser().parse(ga.getAuthority()));
         }
-        if (isAdmin || userHasRole(superUserRoles)) {            
-            subMatrix.add("superuser", superUserRoles);
-            subMatrix.add("internal", getRolesByProperties("yes", "user"));
-            subMatrix.add("external", getRolesByProperties("no", "user"));
-        }        
-        return(subMatrix);        
     }
     
     /**
-     * Find the current user roles and populate authorities (username and password may be null if a user is logged in)
+     * Find the current user roles and populate authorities given the user login credentials
      * @param String username
      * @param String password 
      */
     private void populateRoles(String username, String password) {
-                
-        String rolePropsTable = getEnv().getProperty("postgres.local.rolePropsTable");
-        String userRolesTable = getEnv().getProperty("postgres.local.userRolesTable");
         
-        /* Populate role matrix */        
-        List<Map<String,Object>> roleMapList = getTpl().queryForList("SELECT * FROM " + rolePropsTable);
-        setRoleMatrix(new JsonObject());
-        roleMapList.forEach((rm) -> {
-            
-            JsonObject roleData;
-            
-            String rolename = (String)rm.get("name");
-            String propname = (String)rm.get("propname");
-            String propvalue = (String)rm.get("propvalue");
-
-            if (getRoleMatrix().has(rolename)) {
-                roleData = getRoleMatrix().getAsJsonObject("name");
-            } else {
-                roleData = new JsonObject();
-                getRoleMatrix().add(rolename, roleData);
-            }
-            roleData.add("propname", new JsonPrimitive(propvalue)); 
-        });
+        System.out.println("======== UserAuthorities.populateRoles() starting...");
+        System.out.println("--> Username : " + username);
+        System.out.println("--> Password : " + password);        
                 
+        String userRolesTable = env.getProperty("postgres.local.userRolesTable");
+        
         if (username != null && password != null) {
             /* Populate authorities from database table */
+            System.out.println("Retrieving roles from database...");
             getAuthorities().addProperty("username", username);
             getAuthorities().addProperty("password", password);
             JsonArray roles = new JsonArray();
-            List<Map<String,Object>> roleList = tpl.queryForList("SELECT rolename FROM " + userRolesTable + " WHERE username=?", username);
+            List<Map<String,Object>> roleList = magicDataTpl.queryForList("SELECT rolename FROM " + userRolesTable + " WHERE username=?", username);
             roleList.forEach((rolemap) -> {
+                System.out.println("--> Adding role : " + (String)rolemap.get("rolename"));
                 roles.add(new JsonPrimitive((String)rolemap.get("rolename")));
             });
             getAuthorities().add("roles", roles);
+            System.out.println("Finished adding roles");
         } else {
             setAuthorities(new JsonObject());
         }
+        System.out.println("======== UserAuthorities.populateRoles() complete");
     }
     
     /**
@@ -348,37 +285,13 @@ public class UserAuthorities {
             jeRoles != null && jeRoles.isJsonArray() && jeRoles.getAsJsonArray().size() > 0
         );
     }
-    
-    public JdbcTemplate getTpl() {
-        return tpl;
-    }
-
-    public void setTpl(JdbcTemplate tpl) {
-        this.tpl = tpl;
-    }        
-
+   
     public JsonObject getAuthorities() {
         return authorities;
     }
 
     public void setAuthorities(JsonObject authorities) {
         this.authorities = authorities;
-    }  
-
-    public Environment getEnv() {
-        return env;
-    }
-
-    public void setEnv(Environment env) {
-        this.env = env;
-    }
-
-    public JsonObject getRoleMatrix() {
-        return roleMatrix;
-    }
-
-    public void setRoleMatrix(JsonObject roleMatrix) {
-        this.roleMatrix = roleMatrix;
-    }
-
+    }    
+    
 }

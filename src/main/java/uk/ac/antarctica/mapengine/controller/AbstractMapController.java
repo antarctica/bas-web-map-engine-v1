@@ -16,19 +16,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import uk.ac.antarctica.mapengine.model.AbstractMapData;
-import uk.ac.antarctica.mapengine.model.UserAuthorities;
+import uk.ac.antarctica.mapengine.config.UserAuthorities;
 import uk.ac.antarctica.mapengine.util.PackagingUtils;
 
 public class AbstractMapController {
            
     @Autowired
-    private Environment env;
+    protected Environment env;
    
     @Autowired
-    private JdbcTemplate magicDataTpl;
-    
-    @Autowired
-    private UserAuthorities ua;
+    protected JdbcTemplate magicDataTpl;    
 
     /* JSON mapper */
     private Gson mapper = new Gson();
@@ -45,6 +42,7 @@ public class AbstractMapController {
         
         ArrayList args = new ArrayList();
         String sql = null, accessClause = null;
+        UserAuthorities ua = new UserAuthorities();
         
         switch (action) {
             case "delete":
@@ -84,7 +82,7 @@ public class AbstractMapController {
         }
         if (ret == null) {
             /* Retrieve the map data */
-            List<Map<String, Object>> userMapData = getMagicDataTpl().queryForList(sql, args.toArray());
+            List<Map<String, Object>> userMapData = magicDataTpl.queryForList(sql, args.toArray());
             if (userMapData != null && !userMapData.isEmpty()) {
                 JsonArray views = getMapper().toJsonTree(userMapData).getAsJsonArray();
                 ret = PackagingUtils.packageResults(HttpStatus.OK, views.toString(), null);
@@ -109,10 +107,11 @@ public class AbstractMapController {
         ResponseEntity<String> ret;
         
         ArrayList args = new ArrayList();
+        UserAuthorities ua = new UserAuthorities();
         
         try {
             args.add(value);
-            Map<String, Object> userMapData = getMagicDataTpl().queryForMap(
+            Map<String, Object> userMapData = magicDataTpl.queryForMap(
                 "SELECT * FROM " + webmapData.getTableName() + " WHERE " + attr + "=? AND " + 
                 ua.sqlRoleClause("allowed_usage", "owner_name", args, "read"), 
                 args.toArray()
@@ -132,7 +131,7 @@ public class AbstractMapController {
                         /* Get map settings */
                         ArrayList bmkArgs = new ArrayList();
                         bmkArgs.add(usermapid);
-                        Map<String, Object> bookmarkData = getMagicDataTpl().queryForMap(
+                        Map<String, Object> bookmarkData = magicDataTpl.queryForMap(
                             "SELECT * FROM " + userTableName + " WHERE id=? AND " + 
                             ua.sqlRoleClause("allowed_usage", "owner_name", args, "read"), 
                             bmkArgs.toArray()
@@ -168,9 +167,9 @@ public class AbstractMapController {
         ResponseEntity<String> ret;
         try {
             if (id != null) {
-                getMagicDataTpl().update(webmapData.updateSql(), webmapData.updateArgs(id));
+                magicDataTpl.update(webmapData.updateSql(), webmapData.updateArgs(id));
             } else {
-                getMagicDataTpl().update(webmapData.insertSql(), webmapData.insertArgs());
+                magicDataTpl.update(webmapData.insertSql(), webmapData.insertArgs());
             }
             ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Successfully saved");
         } catch(DataAccessException dae) {
@@ -192,7 +191,7 @@ public class AbstractMapController {
         
         ResponseEntity<String> ret;
               
-        String username = ua.currentUserName();
+        String username = new UserAuthorities().currentUserName();
         
         if (username != null) {
             /* Logged in user is the owner of the map */
@@ -207,7 +206,7 @@ public class AbstractMapController {
             } else {
                 /* Do deletion */                
                 try {
-                    getMagicDataTpl().update(webmapData.deleteSql(), webmapData.deleteArgs(mapId));                        
+                    magicDataTpl.update(webmapData.deleteSql(), webmapData.deleteArgs(mapId));                        
                     ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Successfully deleted");
                 } catch(DataAccessException dae) {
                     ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Error deleting data, message was: " + dae.getMessage());
@@ -227,7 +226,7 @@ public class AbstractMapController {
     protected String idFromName(String tableName, String mapName) {
         String id = null;
         try {
-            id = getMagicDataTpl().queryForObject("SELECT id FROM " + tableName + " WHERE name=?", new Object[]{mapName}, String.class);              
+            id = magicDataTpl.queryForObject("SELECT id FROM " + tableName + " WHERE name=?", new Object[]{mapName}, String.class);              
         } catch(DataAccessException dae) {                
         }
         return(id);
@@ -242,7 +241,7 @@ public class AbstractMapController {
     protected String recordOwner(String tableName, String id) {
         String owner = null;
         try {
-            owner = getMagicDataTpl().queryForObject("SELECT owner_name FROM " + tableName + " WHERE id=?", new Object[]{id}, String.class);              
+            owner = magicDataTpl.queryForObject("SELECT owner_name FROM " + tableName + " WHERE id=?", new Object[]{id}, String.class);              
         } catch(DataAccessException dae) {                
         }
         return(owner);
@@ -253,13 +252,13 @@ public class AbstractMapController {
      * @return List<Map<String, Object>>
      */
     protected List<Map<String, Object>> getDataEndpoints() {
-        String location = getEnv().getProperty("default.physicalLocation");
+        String location = env.getProperty("default.physicalLocation");
         if (location == null) {
             location = "cambridge";
         }
-        List<Map<String, Object>> eps = getMagicDataTpl().queryForList(
+        List<Map<String, Object>> eps = magicDataTpl.queryForList(
             "SELECT id, name, url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs, has_wfs, is_user_service, url_aliases FROM " + 
-            getEnv().getProperty("postgres.local.endpointsTable") + " " +  
+            env.getProperty("postgres.local.endpointsTable") + " " +  
             "WHERE location=? ORDER BY name", location
         );
         return(eps);
@@ -270,28 +269,12 @@ public class AbstractMapController {
      * @return String
      */
     protected String getActiveProfile() {
-        String[] profiles = getEnv().getActiveProfiles();
+        String[] profiles = env.getActiveProfiles();
         String activeProfile = "add";
         if (profiles != null && profiles.length > 0) {
             activeProfile = profiles[0];
         }
         return(activeProfile);
-    }
-
-    public Environment getEnv() {
-        return env;
-    }
-
-    public void setEnv(Environment env) {
-        this.env = env;
-    }
-
-    public JdbcTemplate getMagicDataTpl() {
-        return magicDataTpl;
-    }
-
-    public void setMagicDataTpl(JdbcTemplate magicDataTpl) {
-        this.magicDataTpl = magicDataTpl;
     }
 
     public Gson getMapper() {
@@ -300,14 +283,6 @@ public class AbstractMapController {
 
     public void setMapper(Gson mapper) {
         this.mapper = mapper;
-    }
-
-    public UserAuthorities getUa() {
-        return ua;
-    }
-
-    public void setUa(UserAuthorities ua) {
-        this.ua = ua;
     }
     
 }

@@ -4,7 +4,6 @@
 package uk.ac.antarctica.mapengine.controller;
 
 import java.util.Map;
-import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.web.ErrorAttributes;
@@ -17,13 +16,12 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.context.ServletContextAware;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import uk.ac.antarctica.mapengine.util.PackagingUtils;
 
 @Controller
-public class CustomErrorController implements ErrorController, ServletContextAware {
+public class CustomErrorController implements ErrorController {
 
     private static final String ERROR_PATH = "/error";
 
@@ -32,9 +30,6 @@ public class CustomErrorController implements ErrorController, ServletContextAwa
 
     @Autowired
     private ErrorAttributes errorAttributes;
-    
-    /* Servlet context */
-    private ServletContext context;   
 
     /**
      * Output an error
@@ -118,11 +113,6 @@ public class CustomErrorController implements ErrorController, ServletContextAwa
             activeProfile = profiles[0];
         }
         return(activeProfile);
-    }
-
-    @Override
-    public void setServletContext(ServletContext sc) {
-        this.context = sc;
     }
 
 }

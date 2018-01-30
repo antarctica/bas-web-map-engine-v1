@@ -11,7 +11,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 import uk.ac.antarctica.mapengine.exception.GeoserverAuthenticationException;
-import uk.ac.antarctica.mapengine.model.UserAuthorities;
 import uk.ac.antarctica.mapengine.util.HttpConnectionUtils;
 
 @Component
@@ -20,16 +19,13 @@ public class GeoserverAuthenticationProvider implements AuthenticationProvider {
     private String loginUrl;
     
     private JdbcTemplate tpl;
-        
-    private UserAuthorities ua;
-    
+            
     public GeoserverAuthenticationProvider() {
     }
     
-    public GeoserverAuthenticationProvider(String loginUrl, JdbcTemplate tpl, UserAuthorities ua) {
+    public GeoserverAuthenticationProvider(String loginUrl, JdbcTemplate tpl) {
         this.loginUrl = loginUrl;
         this.tpl = tpl;
-        this.ua = ua;
     }
     
     @Override
@@ -53,7 +49,7 @@ public class GeoserverAuthenticationProvider implements AuthenticationProvider {
             if (status < 400) {
                 /* Record the Geoserver credentials so they are recoverable by the security context holder */
                 System.out.println("Geoserver authentication successful for user " + name);
-                return(new UsernamePasswordAuthenticationToken(name, password, ua.toGrantedAuthorities(name, password)));
+                return(new UsernamePasswordAuthenticationToken(name, password, new UserAuthorities().toGrantedAuthorities(name, password)));
             } else if (status == 401) {
                 throw new GeoserverAuthenticationException("Invalid credentials");
             } else {

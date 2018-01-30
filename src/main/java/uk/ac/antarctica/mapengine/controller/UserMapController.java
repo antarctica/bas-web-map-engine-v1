@@ -23,16 +23,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-import uk.ac.antarctica.mapengine.model.UserAuthorities;
+import uk.ac.antarctica.mapengine.config.UserAuthorities;
 import uk.ac.antarctica.mapengine.model.UserMapData;
 import uk.ac.antarctica.mapengine.util.PackagingUtils;
 
 @RestController
 public class UserMapController extends AbstractMapController {
     
-    @Autowired
-    private UserAuthorities ua;
-        
     @InitBinder
     protected void initBinder(WebDataBinder binder) {        
     }
@@ -51,11 +48,11 @@ public class UserMapController extends AbstractMapController {
     public ResponseEntity<String> userMapViews(HttpServletRequest request)
         throws ServletException, IOException, ServiceException {
         ResponseEntity<String> ret;
-        String tableName = getEnv().getProperty("postgres.local.usermapsTable");
+        String tableName = env.getProperty("postgres.local.usermapsTable");
         try {
-            List<Map<String, Object>> userMapData = getMagicDataTpl().queryForList(
+            List<Map<String, Object>> userMapData = magicDataTpl.queryForList(
                 "SELECT * FROM " + tableName + " WHERE owner_name=? GROUP BY basemap, id ORDER BY name", 
-                ua.currentUserName()
+                new UserAuthorities().currentUserName()
             );
             if (userMapData != null && !userMapData.isEmpty()) {
                 JsonArray views = getMapper().toJsonTree(userMapData).getAsJsonArray();
@@ -81,9 +78,9 @@ public class UserMapController extends AbstractMapController {
     public ResponseEntity<String> saveUserMap(HttpServletRequest request,
         @RequestBody String payload) throws Exception {
         ResponseEntity<String> ret;
-        UserMapData umd = new UserMapData(getEnv().getProperty("postgres.local.usermapsTable"));          
-        umd.fromPayload(payload, ua.currentUserName());
-        if (basemapExists(ua, umd.getBasemap())) {
+        UserMapData umd = new UserMapData(env.getProperty("postgres.local.usermapsTable"));          
+        umd.fromPayload(payload, new UserAuthorities().currentUserName());
+        if (basemapExists(umd.getBasemap())) {
             ret = saveMapData(umd, null);
         } else {
             ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Base map " + umd.getBasemap() + " does not exist or is not accessible");
@@ -102,9 +99,9 @@ public class UserMapController extends AbstractMapController {
         @PathVariable("id") Integer id,
         @RequestBody String payload) throws Exception {
         ResponseEntity<String> ret;
-        UserMapData umd = new UserMapData(getEnv().getProperty("postgres.local.usermapsTable"));          
-        umd.fromPayload(payload, ua.currentUserName());
-        if (basemapExists(ua, umd.getBasemap())) {
+        UserMapData umd = new UserMapData(env.getProperty("postgres.local.usermapsTable"));          
+        umd.fromPayload(payload, new UserAuthorities().currentUserName());
+        if (basemapExists(umd.getBasemap())) {
             ret = saveMapData(umd, id + "");
         } else {
             ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Base map " + umd.getBasemap() + " does not exist or is not accessible");
@@ -122,7 +119,7 @@ public class UserMapController extends AbstractMapController {
     @RequestMapping(value = "/usermaps/delete/{id}", method = RequestMethod.DELETE, produces = "application/json; charset=utf-8")
     public ResponseEntity<String> deleteUserMap(HttpServletRequest request,
         @PathVariable("id") Integer id) throws Exception {
-        return(deleteMapByAttribute(new UserMapData(getEnv().getProperty("postgres.local.usermapsTable")), "id", id + ""));        
+        return(deleteMapByAttribute(new UserMapData(env.getProperty("postgres.local.usermapsTable")), "id", id + ""));        
     }             
 
     /**
@@ -131,12 +128,12 @@ public class UserMapController extends AbstractMapController {
      * @param String basemap
      * @return boolean
      */    
-    private boolean basemapExists(UserAuthorities ua, String basemap) {
+    private boolean basemapExists(String basemap) {
         ArrayList args = new ArrayList();
         args.add(basemap);
-        int nbase = getMagicDataTpl().queryForObject(
-            "SELECT count(id) FROM " +  getEnv().getProperty("postgres.local.mapsTable") + " WHERE name=? AND " + 
-            ua.sqlRoleClause("allowed_usage", "owner", args, "read"), 
+        int nbase = magicDataTpl.queryForObject(
+            "SELECT count(id) FROM " +  env.getProperty("postgres.local.mapsTable") + " WHERE name=? AND " + 
+            new UserAuthorities().sqlRoleClause("allowed_usage", "owner", args, "read"), 
             Integer.class, 
             args.toArray()
         );
