@@ -136,7 +136,7 @@ public class UserRoleMatrix {
         
         if (isAdmin) {
             subMatrix.add("admin", adminRoles);                      
-        }
+        } 
         if (isAdmin || isSuperUser) {            
             subMatrix.add("superuser", superUserRoles);
             subMatrix.add("internal", getRolesByProperties("yes", "user"));

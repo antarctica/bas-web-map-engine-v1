@@ -5,6 +5,8 @@ package uk.ac.antarctica.mapengine.config;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -15,17 +17,14 @@ import uk.ac.antarctica.mapengine.util.HttpConnectionUtils;
 
 @Component
 public class GeoserverAuthenticationProvider implements AuthenticationProvider {
+        
+    @Autowired
+    private Environment env;
     
-    private String loginUrl;
+    @Autowired
+    protected SessionConfig.UserAuthoritiesProvider userAuthoritiesProvider;
     
-    private JdbcTemplate tpl;
-            
     public GeoserverAuthenticationProvider() {
-    }
-    
-    public GeoserverAuthenticationProvider(String loginUrl, JdbcTemplate tpl) {
-        this.loginUrl = loginUrl;
-        this.tpl = tpl;
     }
     
     @Override
@@ -34,7 +33,7 @@ public class GeoserverAuthenticationProvider implements AuthenticationProvider {
         
         HttpURLConnection conn = null;
         
-        System.out.println("Geoserver authentication provider starting...");
+        System.out.println("===== Geoserver authentication provider starting...");
         
         try {
             /* Get user's credentials */
@@ -44,12 +43,12 @@ public class GeoserverAuthenticationProvider implements AuthenticationProvider {
             /* Open the URL connection - the URL is a little-used service on the local Geoserver instance which has been locked down to only
              * be accessible to ROLE_AUTHENTICATED users - this will serve as an authentication gateway for Geoserver - David 24/01/2018
              */
-            conn = HttpConnectionUtils.openConnection(loginUrl + "/wfs?request=listStoredQueries", name, password);            
+            conn = HttpConnectionUtils.openConnection(env.getProperty("geoserver.local.adminUrl") + "/wfs?request=listStoredQueries", name, password);            
             int status = conn.getResponseCode();
             if (status < 400) {
                 /* Record the Geoserver credentials so they are recoverable by the security context holder */
                 System.out.println("Geoserver authentication successful for user " + name);
-                return(new UsernamePasswordAuthenticationToken(name, password, new UserAuthorities().toGrantedAuthorities(name, password)));
+                return(new UsernamePasswordAuthenticationToken(name, password, userAuthoritiesProvider.getInstance().toGrantedAuthorities(name, password)));
             } else if (status == 401) {
                 throw new GeoserverAuthenticationException("Invalid credentials");
             } else {
@@ -61,28 +60,13 @@ public class GeoserverAuthenticationProvider implements AuthenticationProvider {
             if (conn != null) {
                 conn.disconnect();
             }
+            System.out.println("===== Geoserver authentication provider complete");
         }         
     }
  
     @Override
     public boolean supports(Class<?> authentication) {
         return authentication.equals(UsernamePasswordAuthenticationToken.class);
-    }
-
-    public String getLoginUrl() {
-        return loginUrl;
-    }
-
-    public void setLoginUrl(String loginUrl) {
-        this.loginUrl = loginUrl;
-    }
-
-    public JdbcTemplate getTpl() {
-        return tpl;
-    }
-
-    public void setTpl(JdbcTemplate tpl) {
-        this.tpl = tpl;
     }
     
 }

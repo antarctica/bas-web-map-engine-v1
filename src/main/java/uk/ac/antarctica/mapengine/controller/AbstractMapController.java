@@ -15,6 +15,7 @@ import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
+import uk.ac.antarctica.mapengine.config.SessionConfig.UserAuthoritiesProvider;
 import uk.ac.antarctica.mapengine.model.AbstractMapData;
 import uk.ac.antarctica.mapengine.config.UserAuthorities;
 import uk.ac.antarctica.mapengine.util.PackagingUtils;
@@ -25,7 +26,10 @@ public class AbstractMapController {
     protected Environment env;
    
     @Autowired
-    protected JdbcTemplate magicDataTpl;    
+    protected JdbcTemplate magicDataTpl;  
+    
+    @Autowired
+    protected UserAuthoritiesProvider userAuthoritiesProvider;
 
     /* JSON mapper */
     private Gson mapper = new Gson();
@@ -42,7 +46,7 @@ public class AbstractMapController {
         
         ArrayList args = new ArrayList();
         String sql = null, accessClause = null;
-        UserAuthorities ua = new UserAuthorities();
+        UserAuthorities ua = userAuthoritiesProvider.getInstance();
         
         switch (action) {
             case "delete":
@@ -107,7 +111,7 @@ public class AbstractMapController {
         ResponseEntity<String> ret;
         
         ArrayList args = new ArrayList();
-        UserAuthorities ua = new UserAuthorities();
+        UserAuthorities ua = userAuthoritiesProvider.getInstance();
         
         try {
             args.add(value);
@@ -191,7 +195,7 @@ public class AbstractMapController {
         
         ResponseEntity<String> ret;
               
-        String username = new UserAuthorities().currentUserName();
+        String username = userAuthoritiesProvider.getInstance().currentUserName();
         
         if (username != null) {
             /* Logged in user is the owner of the map */

@@ -13,7 +13,6 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.Authentication;
@@ -23,13 +22,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 public class UserAuthorities {
     
-    @Autowired
     private JdbcTemplate magicDataTpl;
     
-    @Autowired
     private Environment env;
     
-    @Autowired
     private UserRoleMatrix userRoleMatrix;
     
     /**
@@ -51,6 +47,22 @@ public class UserAuthorities {
     public UserAuthorities() {        
     }
     
+    /**
+     * Is the current user an internal admin?
+     * @return boolean
+     */
+    public boolean userIsAdmin() {
+        return(userHasRole(userRoleMatrix.getRolesByProperties("yes", "admin")));
+    }
+    
+    /**
+     * Is the current user an internal superuser?
+     * @return boolean
+     */
+    public boolean userIsSuperUser() {
+        return(userHasRole(userRoleMatrix.getRolesByProperties("yes", "superuser")));
+    }
+                   
     /**
      * Does the current user have the specified role?
      * @param String rolename
@@ -119,10 +131,12 @@ public class UserAuthorities {
      */
     public String sqlRoleClause(String permField, String ownerField, ArrayList args, String opType) {
         
+        System.out.println("======== UserAuthorities.sqlRoleClause() starting...");
+        
         StringJoiner joiner = new StringJoiner(" OR ");        
         
         /* Check for admin role, allow any operation - internal admins can do anything but delete objects */        
-        if (userHasRole(userRoleMatrix.getRolesByProperties("internal", "admin"))) {
+        if (userHasRole(getUserRoleMatrix().getRolesByProperties("internal", "admin"))) {
             return("True");
         }
         populateRoles();
@@ -146,7 +160,9 @@ public class UserAuthorities {
                 addRoleClause(permField, joiner, args);                
                 break;
         }
-        System.out.println(joiner.toString());
+        System.out.println("--> Clause : " + joiner.toString());
+        System.out.println("======== UserAuthorities.sqlRoleClause() complete");
+        
         return(joiner.length() == 0 ? null : "(" + joiner.toString() + ")");     
     }
     
@@ -215,14 +231,21 @@ public class UserAuthorities {
      * @return ArrayList<SimpleGrantedAuthority>
      */
     public ArrayList<SimpleGrantedAuthority> toGrantedAuthorities(String username, String password) {
+        
+        System.out.println("======== UserAuthorities.toGrantedAuthorities() starting...");
+        
         ArrayList<SimpleGrantedAuthority> ga = new ArrayList();
         populateRoles(username, password);
-        JsonArray defaultRoles = userRoleMatrix.getRolesByProperties("internal", "superuser");
+        JsonArray defaultRoles = getUserRoleMatrix().getRolesByProperties("internal", "superuser");
         if (defaultRoles != null && getAuthorities().has("roles") && getAuthorities().getAsJsonArray("roles").size() == 0) {
             /* User who has logged in but has no roles gets a default role here */            
             getAuthorities().getAsJsonArray("roles").add(defaultRoles.get(0));
         }
-        ga.add(new SimpleGrantedAuthority(getAuthorities().toString()));      
+        ga.add(new SimpleGrantedAuthority(getAuthorities().toString()));  
+        
+        System.out.println("--> Authorities : " + getAuthorities().toString());
+        System.out.println("======== UserAuthorities.toGrantedAuthorities() complete");
+        
         return(ga);
     }
     
@@ -235,7 +258,7 @@ public class UserAuthorities {
             setAuthorities(new JsonObject());
         } else {
             GrantedAuthority ga = auth.getAuthorities().stream().findFirst().get();
-            setAuthorities((JsonObject)new JsonParser().parse(ga.getAuthority()));
+            setAuthorities((JsonObject)(new JsonParser().parse(ga.getAuthority())));
         }
     }
     
@@ -248,9 +271,15 @@ public class UserAuthorities {
         
         System.out.println("======== UserAuthorities.populateRoles() starting...");
         System.out.println("--> Username : " + username);
-        System.out.println("--> Password : " + password);        
+        
+        System.out.println("Injected beans start:");
+        System.out.println(getEnv());
+        System.out.println(getMagicDataTpl());
+        System.out.println("Injected beans end");
+        
+        setAuthorities(new JsonObject());
                 
-        String userRolesTable = env.getProperty("postgres.local.userRolesTable");
+        String userRolesTable = getEnv().getProperty("postgres.local.userRolesTable");
         
         if (username != null && password != null) {
             /* Populate authorities from database table */
@@ -258,15 +287,13 @@ public class UserAuthorities {
             getAuthorities().addProperty("username", username);
             getAuthorities().addProperty("password", password);
             JsonArray roles = new JsonArray();
-            List<Map<String,Object>> roleList = magicDataTpl.queryForList("SELECT rolename FROM " + userRolesTable + " WHERE username=?", username);
+            List<Map<String,Object>> roleList = getMagicDataTpl().queryForList("SELECT rolename FROM " + userRolesTable + " WHERE username=?", username);
             roleList.forEach((rolemap) -> {
                 System.out.println("--> Adding role : " + (String)rolemap.get("rolename"));
                 roles.add(new JsonPrimitive((String)rolemap.get("rolename")));
             });
             getAuthorities().add("roles", roles);
             System.out.println("Finished adding roles");
-        } else {
-            setAuthorities(new JsonObject());
         }
         System.out.println("======== UserAuthorities.populateRoles() complete");
     }
@@ -293,5 +320,29 @@ public class UserAuthorities {
     public void setAuthorities(JsonObject authorities) {
         this.authorities = authorities;
     }    
+
+    public JdbcTemplate getMagicDataTpl() {
+        return magicDataTpl;
+    }
+
+    public void setMagicDataTpl(JdbcTemplate magicDataTpl) {
+        this.magicDataTpl = magicDataTpl;
+    }
+
+    public Environment getEnv() {
+        return env;
+    }
+
+    public void setEnv(Environment env) {
+        this.env = env;
+    }
+
+    public UserRoleMatrix getUserRoleMatrix() {
+        return userRoleMatrix;
+    }
+
+    public void setUserRoleMatrix(UserRoleMatrix userRoleMatrix) {
+        this.userRoleMatrix = userRoleMatrix;
+    }        
     
 }

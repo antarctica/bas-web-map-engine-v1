@@ -4,25 +4,26 @@
 package uk.ac.antarctica.mapengine.controller;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import it.geosolutions.geoserver.rest.HTTPUtils;
 import java.io.IOException;
-import java.security.Principal;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import uk.ac.antarctica.mapengine.config.SessionConfig;
+import uk.ac.antarctica.mapengine.config.UserAuthorities;
+import uk.ac.antarctica.mapengine.config.UserRoleMatrix;
 import uk.ac.antarctica.mapengine.model.MapPlugin;
 import uk.ac.antarctica.mapengine.util.ActivityLogger;
 
@@ -34,6 +35,12 @@ public class HomeController {
     
     @Autowired
     private JdbcTemplate magicDataTpl;
+    
+    @Autowired
+    private UserRoleMatrix userRoleMatrix;
+    
+    @Autowired
+    private SessionConfig.UserAuthoritiesProvider userAuthoritiesProvider;
 
     /* JSON mapper */
     private final Gson mapper = new Gson();    
@@ -272,8 +279,13 @@ public class HomeController {
      * @throws IOException
      */
     @RequestMapping(value = "/creator", method = RequestMethod.GET)
-    public String creator(HttpServletRequest request, ModelMap model) throws ServletException, IOException {
-        return(renderPage(request, model, "creator", null, null, null, false));
+    public String creator(HttpServletRequest request, HttpServletResponse response, ModelMap model) throws ServletException, IOException {        
+        UserAuthorities ua = userAuthoritiesProvider.getInstance();
+        if (ua.userIsAdmin() || ua.userIsSuperUser()) {
+            return(renderPage(request, model, "creator", null, null, null, false));
+        } else {
+            return("redirect:/errorpage");
+        }
     }
     
     /**
@@ -286,7 +298,12 @@ public class HomeController {
      */
     @RequestMapping(value = "/creatord", method = RequestMethod.GET)
     public String creatorDebug(HttpServletRequest request, ModelMap model) throws ServletException, IOException {
-        return(renderPage(request, model, "creator", null, null, null, true));
+        UserAuthorities ua = userAuthoritiesProvider.getInstance();
+        if (ua.userIsAdmin() || ua.userIsSuperUser()) {
+            return(renderPage(request, model, "creator", null, null, null, true));
+        } else {
+            return("redirect:/errorpage");
+        }
     }
     
     /**
@@ -329,9 +346,9 @@ public class HomeController {
     private String renderPage(HttpServletRequest request, ModelMap model, String tplName, String mapName, Integer issueNumber, Integer userMapId, boolean debug) {
         
         /* Set username */
-        String message = "";
+        String message;
         String activeProfile = getActiveProfile();
-        String username = getUserName(request);        
+        String username = userAuthoritiesProvider.getInstance().currentUserName();        
         model.addAttribute("username", username);
         model.addAttribute("profile", activeProfile);
 
@@ -405,22 +422,6 @@ public class HomeController {
         return(tplName);        
     }
   
-    /**
-     * Get user name
-     * @param HttpServletRequest request
-     * @return String
-     */
-    private String getUserName(HttpServletRequest request) {    
-        Principal p = request.getUserPrincipal();
-        Collection<? extends GrantedAuthority> auths = SecurityContextHolder.getContext().getAuthentication().getAuthorities();
-        System.out.println("Authorities of current user");
-        auths.forEach((ga) -> {
-            System.out.println("--> " + ga.getAuthority());
-        });
-        System.out.println("End");        
-        return(p != null ? p.getName() : "guest");
-    }        
-
     /**
      * Retrieve data for Redmine issue <issue>
      * @param Integer issue

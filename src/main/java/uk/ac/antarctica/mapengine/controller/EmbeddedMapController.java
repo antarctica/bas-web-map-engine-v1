@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-import uk.ac.antarctica.mapengine.config.UserAuthorities;
 import uk.ac.antarctica.mapengine.model.EmbeddedMapData;
 
 @RestController
@@ -85,7 +84,7 @@ public class EmbeddedMapController extends AbstractMapController {
     public ResponseEntity<String> saveMap(HttpServletRequest request,
         @RequestBody String payload) throws Exception {
         EmbeddedMapData emd = new EmbeddedMapData(env.getProperty("postgres.local.embeddedMapsTable"));
-        emd.fromPayload(payload, new UserAuthorities().currentUserName());                
+        emd.fromPayload(payload, userAuthoritiesProvider.getInstance().currentUserName());                
         return (saveMapData(emd, null));
     }
     
@@ -100,7 +99,7 @@ public class EmbeddedMapController extends AbstractMapController {
         @PathVariable("id") String id,
         @RequestBody String payload) throws Exception {
         EmbeddedMapData emd = new EmbeddedMapData(env.getProperty("postgres.local.embeddedMapsTable"));       
-        emd.fromPayload(payload, new UserAuthorities().currentUserName());
+        emd.fromPayload(payload, userAuthoritiesProvider.getInstance().currentUserName());
         return (saveMapData(emd, id));
     }
     

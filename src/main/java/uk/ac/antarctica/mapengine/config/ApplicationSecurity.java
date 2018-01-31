@@ -10,11 +10,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -33,13 +31,12 @@ import uk.ac.antarctica.mapengine.config.ApplicationSecurity.CsrfSecurityRequest
 public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 
     @Autowired
-    private Environment env;   
-   
-    @Autowired
-    private JdbcTemplate magicDataTpl;    
-
-    @Value("${geoserver.local.adminUrl}")
-    private String geoserverUrl;
+    private Environment env;
+    
+    @Bean
+    public GeoserverAuthenticationProvider geoserverAuthenticationProvider() {
+        return(new GeoserverAuthenticationProvider());
+    }
 
     @Bean
     public AuthenticationSuccessHandler successHandler() {
@@ -101,7 +98,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
                     "/thumbnail/show/**", "/prefs/get", "/gs/**").permitAll()
             .antMatchers("/creator", "/creatord", "/embedded_creator", "/embedded_creatord",
                     "/restricted/**", "/restrictedd/**",
-                    "/userlayers/**", "/prefs/set", "/feedback/issues/**",
+                    "/userlayers/**", "/prefs/set", "/feedback/issues/**", "/assignable_roles",
                     "/maps/save", "/maps/update/**", "/maps/delete/**", "/maps/deletebyname/**",
                     "/embedded_maps/save", "/embedded_maps/update/**", "/embedded_maps/delete/**", "/embedded_maps/deletebyname/**",
                     "/usermaps/save", "/usermaps/update/**", "/usermaps/delete/**",
@@ -126,7 +123,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
         
         /* Authentication against the local Geoserver instance (incorporates LDAP) */
         if (env.getProperty("authentication.geoserver").equals("yes")) {
-            auth.authenticationProvider(new GeoserverAuthenticationProvider(geoserverUrl, magicDataTpl));
+            auth.authenticationProvider(geoserverAuthenticationProvider());
         }
     }
 

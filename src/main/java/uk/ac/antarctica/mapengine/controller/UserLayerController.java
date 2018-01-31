@@ -47,6 +47,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.ServletContextAware;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
+import uk.ac.antarctica.mapengine.config.SessionConfig;
 import uk.ac.antarctica.mapengine.datapublishing.CsvPublisher;
 import uk.ac.antarctica.mapengine.datapublishing.DataPublisher;
 import uk.ac.antarctica.mapengine.datapublishing.DataPublisher.GeoserverPublishException;
@@ -55,7 +56,6 @@ import uk.ac.antarctica.mapengine.datapublishing.KmlPublisher;
 import uk.ac.antarctica.mapengine.datapublishing.NoUploadPublisher;
 import uk.ac.antarctica.mapengine.datapublishing.ShpZipPublisher;
 import uk.ac.antarctica.mapengine.model.UploadedData;
-import uk.ac.antarctica.mapengine.config.UserAuthorities;
 import uk.ac.antarctica.mapengine.util.PackagingUtils;
 
 @Controller
@@ -66,6 +66,9 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
     
     @Autowired
     private JdbcTemplate magicDataTpl;
+    
+    @Autowired
+    protected SessionConfig.UserAuthoritiesProvider userAuthoritiesProvider;
     
     private ApplicationContext applicationContext;
     
@@ -93,7 +96,7 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
             ArrayList args = new ArrayList();
             List<Map<String, Object>> userLayerData = magicDataTpl.queryForList(
                 "SELECT id,caption,description,service,layer,modified_date,owner,allowed_usage,styledef::text FROM " + tableName + " WHERE " + 
-                new UserAuthorities().sqlRoleClause("allowed_usage", "owner", args, "read") + " ORDER BY caption",
+                userAuthoritiesProvider.getInstance().sqlRoleClause("allowed_usage", "owner", args, "read") + " ORDER BY caption",
                 args.toArray()
             );
             if (userLayerData != null && !userLayerData.isEmpty()) {
@@ -130,7 +133,7 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
                 args.add(id);
                 String layer = magicDataTpl.queryForObject(
                     "SELECT layer FROM " + env.getProperty("postgres.local.userlayersTable") + " WHERE id=? AND " +
-                    new UserAuthorities().sqlRoleClause("allowed_usage", "owner", args, "read"),
+                    userAuthoritiesProvider.getInstance().sqlRoleClause("allowed_usage", "owner", args, "read"),
                     String.class, 
                     args.toArray()
                 );
@@ -167,7 +170,7 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
                 args.add(id);
                 List<Map<String, Object>> ulDataList = magicDataTpl.queryForList(
                     "SELECT filetype, upload, layer FROM " + env.getProperty("postgres.local.userlayersTable") + " WHERE id=? AND " + 
-                    new UserAuthorities().sqlRoleClause("allowed_usage", "owner", args, "read"),
+                    userAuthoritiesProvider.getInstance().sqlRoleClause("allowed_usage", "owner", args, "read"),
                     args.toArray()
                 );
                 if (!ulDataList.isEmpty() && ulDataList.size() == 1) {
@@ -204,7 +207,7 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
                 
         int count = 0;
         ResponseEntity<String> ret = null;
-        String userName = new UserAuthorities().currentUserName();
+        String userName = userAuthoritiesProvider.getInstance().currentUserName();
         String uuid = request.getParameter("id");
         
         if (isOwner(uuid, userName)) {
@@ -292,7 +295,7 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
         
         ResponseEntity<String> ret;        
         
-        String userName = new UserAuthorities().currentUserName();     
+        String userName = userAuthoritiesProvider.getInstance().currentUserName();     
         if (isOwner(id, userName)) {
             try {
                 /* No file upload => save attribute data only */
@@ -333,7 +336,7 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
         
         ResponseEntity<String> ret;
         
-        String userName = new UserAuthorities().currentUserName();
+        String userName = userAuthoritiesProvider.getInstance().currentUserName();
         if (isOwner(id, userName)) {
             /* Logged-in user is the owner of the layer => do deletion */            
             try {
