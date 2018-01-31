@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import uk.ac.antarctica.mapengine.config.SessionConfig;
 import uk.ac.antarctica.mapengine.util.PackagingUtils;
 
 @RestController
@@ -29,6 +30,9 @@ public class UserPreferencesController {
         
     @Autowired
     private JdbcTemplate magicDataTpl;
+    
+    @Autowired
+    private SessionConfig.UserAuthoritiesProvider userAuthoritiesProvider;
     
     /* JSON mapper */
     private final Gson mapper = new Gson();
@@ -44,7 +48,7 @@ public class UserPreferencesController {
     @ResponseBody
     public ResponseEntity<String> getPrefs(HttpServletRequest request) throws ServletException, IOException {
         ResponseEntity<String> ret;
-        String userName = (request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null);
+        String userName = userAuthoritiesProvider.getInstance().currentUserName();
         if (userName == null || userName.isEmpty()) {
             /* Default set for an anonymous user */
             ret = PackagingUtils.packageResults(HttpStatus.OK, defaultPreferenceSet(), null);
@@ -74,7 +78,7 @@ public class UserPreferencesController {
     @ResponseBody
     public ResponseEntity<String> setPrefs(HttpServletRequest request, @RequestBody PreferenceSet prefs) throws ServletException, IOException {
         ResponseEntity<String> ret;
-        String userName = (request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null);       
+        String userName = userAuthoritiesProvider.getInstance().currentUserName();       
         /* Save to db */
         try {
             int id = magicDataTpl.queryForObject("SELECT id FROM " + env.getProperty("postgres.local.prefsTable") + " WHERE username=?", new Object[]{userName}, Integer.class); 

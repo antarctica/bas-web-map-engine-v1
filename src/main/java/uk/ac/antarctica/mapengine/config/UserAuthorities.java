@@ -253,13 +253,26 @@ public class UserAuthorities {
      * Find the current user roles and populate authorities from current security context
      */
     private void populateRoles() {
+        
+        System.out.println("======== UserAuthorities.populateRoles() starting...");
+        
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || auth.getAuthorities().isEmpty()) {
+            System.out.println("No user logged in");
             setAuthorities(new JsonObject());
         } else {
+            System.out.println("Checking for anonymous role...");
             GrantedAuthority ga = auth.getAuthorities().stream().findFirst().get();
-            setAuthorities((JsonObject)(new JsonParser().parse(ga.getAuthority())));
+            System.out.println("--> " + ga.getAuthority());
+            if (ga.getAuthority() == null || ga.getAuthority().isEmpty() || ga.getAuthority().toLowerCase().equals("role_anonymous")) {
+                System.out.println("Anonymous (guest) user found");
+                setAuthorities(new JsonObject());
+            } else {
+                System.out.println("Registered user found");
+                setAuthorities((JsonObject)(new JsonParser().parse(ga.getAuthority())));
+            }
         }
+        System.out.println("======== UserAuthorities.populateRoles() complete");
     }
     
     /**

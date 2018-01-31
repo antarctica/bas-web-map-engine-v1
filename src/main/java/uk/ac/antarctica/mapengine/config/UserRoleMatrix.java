@@ -57,7 +57,7 @@ public class UserRoleMatrix {
             
             JsonObject roleData;
             
-            String rolename = (String)rm.get("name");
+            String rolename = (String)rm.get("rolename");
             String propname = (String)rm.get("propname");
             String propvalue = (String)rm.get("propvalue");
             
@@ -68,12 +68,15 @@ public class UserRoleMatrix {
             System.out.println("Record end");
             
             if (getRoleMatrix().has(rolename)) {
-                roleData = getRoleMatrix().getAsJsonObject("name");
+                System.out.println("Entry with key " + rolename + " already present");
+                roleData = getRoleMatrix().get(rolename).getAsJsonObject();
             } else {
-                roleData = new JsonObject();
+                System.out.println("New entry with key " + rolename);
+                roleData = new JsonObject();                
                 getRoleMatrix().add(rolename, roleData);
-            }
-            roleData.add("propname", new JsonPrimitive(propvalue)); 
+            }    
+            roleData.add(propname, new JsonPrimitive(propvalue)); 
+            System.out.println("Added ok");
         });
         
         System.out.println("--> Role matrix start");

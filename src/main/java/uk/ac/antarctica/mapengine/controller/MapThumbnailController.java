@@ -41,6 +41,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.ServletContextAware;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
+import uk.ac.antarctica.mapengine.config.SessionConfig;
+import uk.ac.antarctica.mapengine.config.UserAuthorities;
 import uk.ac.antarctica.mapengine.util.PackagingUtils;
 
 @RestController
@@ -54,6 +56,9 @@ public class MapThumbnailController implements ServletContextAware {
     
     @Autowired
     private JdbcTemplate magicDataTpl;
+    
+    @Autowired
+    private SessionConfig.UserAuthoritiesProvider userAuthoritiesProvider;
     
     /* JSON mapper */
     private Gson mapper = new Gson();
@@ -78,7 +83,7 @@ public class MapThumbnailController implements ServletContextAware {
         throws ServletException, IOException, ServiceException {
         ResponseEntity<String> ret;
         
-        String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
+        String username = userAuthoritiesProvider.getInstance().currentUserName();
         int port = request.getServerPort();
         String server = request.getScheme() + "://" + request.getServerName() + (port != 80 ? (":" + port) : "");
         
@@ -177,7 +182,7 @@ public class MapThumbnailController implements ServletContextAware {
     public ResponseEntity<String> saveThumbnailData(MultipartHttpServletRequest request, @PathVariable("mapname") String mapname) throws Exception {
         ResponseEntity<String> ret = null;
         Connection conn = magicDataTpl.getDataSource().getConnection();
-        String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
+        String username = userAuthoritiesProvider.getInstance().currentUserName();
         try {
             Integer count = magicDataTpl.queryForObject("SELECT count(id) FROM " + env.getProperty("postgres.local.mapsTable") + " WHERE \"name\"=? AND (owner_name=? OR allowed_edit='login')", 
                 Integer.class, mapname, username
@@ -244,7 +249,7 @@ public class MapThumbnailController implements ServletContextAware {
     @RequestMapping(value = "/thumbnail/delete/{mapname}", method = RequestMethod.DELETE, produces = {"application/json"})
     public ResponseEntity<String> saveThumbnailData(HttpServletRequest request, @PathVariable("mapname") String mapname) throws Exception {
         ResponseEntity<String> ret;
-        String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;        
+        String username = userAuthoritiesProvider.getInstance().currentUserName();        
         try {
             /* Check logged in user is the owner of the map */
             Integer count = magicDataTpl.queryForObject("SELECT count(id) FROM " + env.getProperty("postgres.local.mapsTable") + " WHERE \"name\"=? AND owner_name=?", 

@@ -116,7 +116,6 @@ public class FeedbackController {
     @ResponseBody
     public ResponseEntity<String> allIssues(HttpServletRequest request) throws ServletException, IOException {
         ResponseEntity<String> ret;
-        String userName = request.getUserPrincipal().getName();
         String issuesTable = env.getProperty("postgres.local.issuesTable");
         if (issuesTable != null && !issuesTable.isEmpty()) {
             /* There's an issues table */
