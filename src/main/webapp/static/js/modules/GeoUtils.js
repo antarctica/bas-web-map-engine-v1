@@ -96,12 +96,12 @@ magic.modules.GeoUtils = function() {
         },
         
         /**
-         * Default layers for embedded maps of different regions
+         * Default embedded map layers for different regions
          * @param {String} region
          * @return {Object}
          */
         defaultEmbeddedLayers: function(region) {
-            return(this.getBaseLayers(region).concat(this.getTopoLayers(region)));
+            return(this.getBaseLayers(region, true).concat(this.getTopoLayers(region, true)));
         },
         
         /**
@@ -109,7 +109,7 @@ magic.modules.GeoUtils = function() {
          * @param {String} region
          * @return {Object}
          */
-        defaultLayers: function(region) {
+        defaultLayers: function(region) {            
             if (region == "antarctic") {
                 return([
                     {
@@ -117,13 +117,13 @@ magic.modules.GeoUtils = function() {
                         "name": "Base layers",                        
                         "expanded": true,
                         "base": true,
-                        "layers": this.getBaseLayers("antarctic")
+                        "layers": this.getBaseLayers("antarctic", false)
                     },
                     {
                         "id": null,
                         "name": "Topo layers",
                         "expanded": true,
-                        "layers": this.getTopoLayers("antarctic")
+                        "layers": this.getTopoLayers("antarctic", false)
                     }
                 ]);
             } else if (region == "antarctic_laea") {
@@ -133,13 +133,13 @@ magic.modules.GeoUtils = function() {
                         "name": "Base layers",                        
                         "expanded": true,
                         "base": true,
-                        "layers": this.getBaseLayers("antarctic_laea")
+                        "layers": this.getBaseLayers("antarctic_laea", false)
                     },
                     {
                         "id": null,
                         "name": "Topo layers",
                         "expanded": true,
-                        "layers": this.getTopoLayers("antarctic_laea")
+                        "layers": this.getTopoLayers("antarctic_laea", false)
                     }
                 ]);
             } else if (region == "arctic") {
@@ -149,13 +149,13 @@ magic.modules.GeoUtils = function() {
                         "name": "Base layers",
                         "expanded": true,
                         "base": true,
-                        "layers": this.getBaseLayers("arctic")
+                        "layers": this.getBaseLayers("arctic", false)
                     },
                     {
                         "id": null,
                         "name": "Topo layers",
                         "expanded": true,
-                        "layers": this.getTopoLayers("arctic")
+                        "layers": this.getTopoLayers("arctic", false)
                     }
                 ]);
             } else if (region == "southgeorgia") {
@@ -165,17 +165,17 @@ magic.modules.GeoUtils = function() {
                         "name": "Base layers",
                         "expanded": true,
                         "base": true,
-                        "layers": this.getBaseLayers("southgeorgia")
+                        "layers": this.getBaseLayers("southgeorgia", false)
                     },
                     {
                         "id": null,
                         "name": "Topo layers",
                         "expanded": true,
-                        "layers": this.getTopoLayers("southgeorgia")
+                        "layers": this.getTopoLayers("southgeorgia", false)
                     }
                 ]);
             } else if (region == "midlatitudes") {
-                return(this.getBaseLayers("midlatitudes"));
+                return(this.getBaseLayers("midlatitudes", false));
             } else {
                 return([]);
             }            
@@ -184,67 +184,39 @@ magic.modules.GeoUtils = function() {
         /**
          * Get array of base layer definitions for the supplied region
          * @param {String} region antarctic|antarctic_laea|arctic|southgeorgia|midlatitudes
+         * @param {boolean} embedded
          * @return {Array}
          */
-        getBaseLayers: function(region) {
+        getBaseLayers: function(region, embedded) {            
             if (region == "antarctic") {
-                return ([
-                    {
-                        "id": null,
-                        "name": "Hillshade and bathymetry",
-                        "source": {
-                            "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database"),
-                            "feature_name": "add:antarctic_hillshade_and_bathymetry",
-                            "is_base": true
-                        },
-                        "is_visible": true
-                    }
-                ]);
+                return ([this.layerSpecification("Hillshade and bathymetry", {
+                    "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database"),
+                    "feature_name": "add:antarctic_hillshade_and_bathymetry",
+                    "is_base": true
+                }, embedded)]);               
             } else if (region == "antarctic_laea") {                
-                return([
-                    {
-                        "id": null,
-                        "name": "Hillshade and bathymetry",
-                        "source": {
-                            "wms_source": magic.modules.Endpoints.getWmsServiceUrl("CCAMLR GIS"),
-                            "feature_name": "gis:hillshade_and_bathymetry",
-                            "is_base": true
-                        },
-                        "is_visible": true
-                    }
-                ]);
+                return([this.layerSpecification("Hillshade and bathymetry", {
+                    "wms_source": magic.modules.Endpoints.getWmsServiceUrl("CCAMLR GIS"),
+                    "feature_name": "gis:hillshade_and_bathymetry",
+                    "is_base": true
+                }, embedded)]);
             } else if (region == "arctic") {
-                return([
-                    {
-                        "id": null,
-                        "name": "Hillshade and bathymetry",
-                        "source": {
-                            "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Arctic Open Data"),
-                            "feature_name": "arctic:arctic_hillshade_and_bathymetry",
-                            "is_base": true,
-                            "is_dem": true
-                        },  
-                        "is_visible": true
-
-                    }
-                ]);
+                return([this.layerSpecification("Hillshade and bathymetry", {
+                    "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Arctic Open Data"),
+                    "feature_name": "arctic:arctic_hillshade_and_bathymetry",
+                    "is_base": true,
+                    "is_dem": true
+                }, embedded)]);
             } else if (region == "southgeorgia") {
-                return([
-                    {
-                        "id": null,
-                        "name": "Hillshade and bathymetry",
-                        "source": {
-                            "wms_source": magic.modules.Endpoints.getWmsServiceUrl("South Georgia GIS"),
-                            "feature_name": "sggis:sg_hillshade_and_bathymetry",
-                            "is_base": true,
-                            "is_dem": true
-                        },                                   
-                        "is_visible": true                                
-                    }
-                ]);
+                return([this.layerSpecification("Hillshade and bathymetry", {
+                    "wms_source": magic.modules.Endpoints.getWmsServiceUrl("South Georgia GIS"),
+                    "feature_name": "sggis:sg_hillshade_and_bathymetry",
+                    "is_base": true,
+                    "is_dem": true
+                }, embedded)]);                
             } else if (region == "midlatitudes") {
                 return([
-                    magic.modules.Endpoints.getMidLatitudeCoastSource()
+                    magic.modules.Endpoints.getMidLatitudeCoastSource(embedded)
                 ]);
             } else {             
                 return([]);
@@ -254,78 +226,64 @@ magic.modules.GeoUtils = function() {
         /**
          * Get array of topo layer definitions for the supplied region
          * @param {String} region antarctic|antarctic_laea|arctic|southgeorgia|midlatitudes
+         * @param {boolean} embedded
          * @return {Array}
          */
-        getTopoLayers: function(region) {
+        getTopoLayers: function(region, embedded) {
             if (region == "antarctic") {
                 return ([
-                    {
-                        "id": null,
-                        "name": "Coastline",
-                        "source": {
-                            "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database"),
-                            "feature_name": "add:antarctic_coastline"
-                        },     
-                        "is_visible": true
-                    },
-                    {
-                        "id": null,
-                        "name": "Sub-Antarctic coastline",
-                        "source": {
-                            "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database"),
-                            "feature_name": "add:sub_antarctic_coastline"
-                        },     
-                        "is_visible": true
-                    }
-                ]);
+                    this.layerSpecification("Coastline", {
+                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database"),
+                        "feature_name": "add:antarctic_coastline"
+                    }, embedded),
+                    this.layerSpecification("Sub-Antarctic coastline", {
+                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Antarctic Digital Database"),
+                        "feature_name": "add:sub_antarctic_coastline"
+                    }, embedded)
+                ]);                 
             } else if (region == "antarctic_laea") {
-                return([
-                    {
-                        "id": null,
-                        "name": "Coastline",
-                        "source": {
-                            "wms_source": magic.modules.Endpoints.getWmsServiceUrl("CCAMLR GIS"),
-                            "feature_name": "gis:coastline"
-                        },     
-                        "is_visible": true
-                    }
-                ]);
+                return ([
+                    this.layerSpecification("Coastline", {
+                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("CCAMLR GIS"),
+                        "feature_name": "gis:coastline"
+                    }, embedded)
+                ]);                
             } else if (region == "arctic") {
-                return([
-                    {
-                        "id": null,
-                        "name": "Coastline",
-                        "source": {
-                            "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Arctic Open Data"),
-                            "feature_name": "arctic:arctic_coastline"
-                        },   
-                        "is_visible": true
-                    }
-                ]);
+                return ([
+                    this.layerSpecification("Coastline", {
+                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("Arctic Open Data"),
+                        "feature_name": "arctic:arctic_coastline"
+                    }, embedded)
+                ]);                         
             } else if (region == "southgeorgia") {
-                return([
-                    {
-                        "id": null,
-                        "name": "Coastline",
-                        "source": {
-                            "wms_source": magic.modules.Endpoints.getWmsServiceUrl("South Georgia GIS"),
-                            "feature_name": "sggis:sg_coastline"
-                        },   
-                        "is_visible": true
-                    },
-                    {
-                        "id": null,
-                        "name": "Surface",
-                        "source": {
-                            "wms_source": magic.modules.Endpoints.getWmsServiceUrl("South Georgia GIS"),
-                            "feature_name": "sggis:sg_surface"
-                        },   
-                        "is_visible": true
-                    }
-                ]);
+                return ([
+                    this.layerSpecification("Coastline", {
+                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("South Georgia GIS"),
+                        "feature_name": "sggis:sg_coastline"
+                    }, embedded),
+                    this.layerSpecification("Surface", {
+                        "wms_source": magic.modules.Endpoints.getWmsServiceUrl("South Georgia GIS"),
+                        "feature_name": "sggis:sg_surface"
+                    }, embedded)
+                ]);                    
             } else {            
                 return([]);
             }
+        },
+                
+        /**
+         * Construct layer specification JSON object
+         * @param {String} name
+         * @param {Object} sourceData
+         * @param {boolean} embedded
+         * @return {Object}
+         */
+        layerSpecification: function(name, sourceData, embedded) {
+            return(jQuery.extend({
+                "id": null,
+                "name": name,
+                "is_visible": true
+            }, embedded ? sourceData : {"source": sourceData}));
         },
         
         /**

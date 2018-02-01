@@ -83,7 +83,7 @@ magic.classes.creator.EmbeddedAppContainer.prototype.saveContext = function() {
             jQuery.extend(context, dialog.getContext(true));
         }, this));
         /* Postprocess to set map centre and zoom level in the event that these must be take from data layers */
-        modifyMapExtentByDataLayers(context);
+        this.modifyMapExtentByDataLayers(context);
         console.log(context);
         /* Now validate the assembled map context against the JSON schema in /static/js/json/embedded_web_map_schema.json
          * https://github.com/geraintluff/tv4 is the validator used */            

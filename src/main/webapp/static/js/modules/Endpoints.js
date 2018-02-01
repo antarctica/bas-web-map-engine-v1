@@ -149,21 +149,21 @@ magic.modules.Endpoints = function () {
         },
         /**
          * Construct a mid-latitude coastline source object
+         * @param {boolean} embedded 
          * @returns {Object}
          */
-        getMidLatitudeCoastSource: function() {
-            var midlats = this.getEndpointBy("name", "midlatitude");          
-            return({
+        getMidLatitudeCoastSource: function(embedded) {
+            var midlats = this.getEndpointBy("name", "midlatitude");  
+            var source = {
+                "wms_source": (midlats && midlats.url != "osm") ? midlats.url : "osm", 
+                "feature_name": (midlats && midlats.url != "osm") ? midlats.coast_layers : "osm", 
+                "is_base": true
+            };
+            return(jQuery.extend({
                "id": null,
-               "name": "Mid-latitude data",
-               "source": {
-                    "wms_source": (midlats && midlats.url != "osm") ? midlats.url : "osm", 
-                    "feature_name": (midlats && midlats.url != "osm") ? midlats.coast_layers : "osm", 
-                    "is_base": true
-               },
+               "name": "Mid-latitude data",               
                "is_visible": true
-            });
-            
+            }, embedded ? source : {"source": source}));            
         }
 
     });

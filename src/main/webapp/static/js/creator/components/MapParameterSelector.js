@@ -104,7 +104,7 @@ magic.classes.creator.MapParameterSelector.prototype.renderMap = function(data) 
                 minZoom: 1,
                 maxZoom: 20,
                 rotation: rotation,
-                zoom: data.zoom,
+                zoom: parseInt(data.zoom),
                 projection: proj
             });
         } else {
@@ -166,7 +166,7 @@ magic.classes.creator.MapParameterSelector.prototype.renderMap = function(data) 
                 maxResolution: data.resolutions[0],
                 resolutions: data.resolutions,
                 rotation: rotation,
-                zoom: data.zoom,
+                zoom: parseInt(data.zoom),
                 projection: proj
             });
         }
@@ -205,7 +205,7 @@ magic.classes.creator.MapParameterSelector.prototype.getContext = function() {
     var rotation = parseFloat(jQuery("#" + this.prefix + "-rotation").val());
     var context = {
         center: mapView.getCenter(),
-        zoom: mapView.getZoom(),
+        zoom: parseInt(mapView.getZoom()),
         projection: mapView.getProjection().getCode(),
         proj_extent: mapView.getProjection().getExtent(),
         resolutions: mapView.getResolutions(),
