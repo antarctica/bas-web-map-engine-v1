@@ -1,5 +1,4 @@
 css/ol.css
-css/bootstrap.min.css
 css/bootstrap-slider.min.css
 css/bootstrap-tagsinput.min.css
 css/dropzone.min.css

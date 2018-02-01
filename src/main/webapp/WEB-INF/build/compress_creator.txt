@@ -1,5 +1,4 @@
 css/ol.css
-css/bootstrap.min.css
 css/prettify.css
 css/nav.css
 css/creator_common.css

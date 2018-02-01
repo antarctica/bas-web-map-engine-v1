@@ -312,6 +312,15 @@ magic.modules.GeoUtils = function() {
                             "feature_name": "sggis:sg_coastline"
                         },   
                         "is_visible": true
+                    },
+                    {
+                        "id": null,
+                        "name": "Surface",
+                        "source": {
+                            "wms_source": magic.modules.Endpoints.getWmsServiceUrl("South Georgia GIS"),
+                            "feature_name": "sggis:sg_surface"
+                        },   
+                        "is_visible": true
                     }
                 ]);
             } else {            

@@ -155,5 +155,6 @@ magic.classes.creator.EmbeddedAppContainer.prototype.saveContext = function() {
  * @param {Object} context
  */
 magic.classes.creator.EmbeddedAppContainer.prototype.modifyMapExtentByDataLayers = function(context) {
-    
+    console.log(context);
+    console.log("Map parameters may be modified here - TO DO");
 };

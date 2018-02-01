@@ -1,4 +1,4 @@
-/* Map Creator map layer selector class */
+/* Embedded Map Creator map layer selector class */
 
 magic.classes.creator.MapLayerSelector = function(options) {
     
@@ -23,7 +23,7 @@ magic.classes.creator.MapLayerSelector.prototype.defaultData = function(region) 
     return({
         layers: {
             "type": "json",
-            "value": JSON.stringify(magic.modules.GeoUtils.defaultLayers(region))
+            "value": JSON.stringify(magic.modules.GeoUtils.defaultEmbeddedLayers(region))
         }
     });
 };
