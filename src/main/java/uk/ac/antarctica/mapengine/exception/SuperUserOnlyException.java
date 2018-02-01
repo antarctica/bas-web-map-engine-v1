@@ -1,5 +1,5 @@
 /*
- * Packaging for Ramadda exceptions
+ * Packaging for superuser-only authentication exceptions
  */
 package uk.ac.antarctica.mapengine.exception;
 
@@ -7,10 +7,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-@ResponseStatus(value = HttpStatus.UNAUTHORIZED)
-public class RamaddaAuthenticationException extends AuthenticationException {
+@ResponseStatus(value = HttpStatus.UNAUTHORIZED, reason = "Super users only permitted to do this")
+public class SuperUserOnlyException extends AuthenticationException {
 
-    public RamaddaAuthenticationException(String msg) {
+    public SuperUserOnlyException(String msg) {
         super(msg);
     }
         

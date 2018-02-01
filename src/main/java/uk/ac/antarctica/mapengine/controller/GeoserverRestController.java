@@ -6,6 +6,7 @@ package uk.ac.antarctica.mapengine.controller;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import it.geosolutions.geoserver.rest.GeoServerRESTReader;
 import it.geosolutions.geoserver.rest.HTTPUtils;
 import it.geosolutions.geoserver.rest.decoder.RESTCoverage;
@@ -161,6 +162,46 @@ public class GeoserverRestController {
     public void geoserverMetadataForLayer(HttpServletRequest request, HttpServletResponse response, @PathVariable("layer") String layer)
         throws ServletException, IOException, ServiceException {        
         IOUtils.copy(IOUtils.toInputStream(getLayerAttributes(layer).toString()), response.getOutputStream());       
+    }
+    
+    /**
+     * Proxy Geoserver REST API call to get the WGS84 extent of a layer
+     * @param HttpServletRequest request,
+     * @param String layer
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/gs/extent/{layer}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
+    @ResponseBody
+    public void geoserverExtentForLayer(HttpServletRequest request, HttpServletResponse response, @PathVariable("layer") String layer)
+        throws ServletException, IOException, ServiceException { 
+        
+        JsonArray jarr = new JsonArray();                      
+        
+        RESTLayer gsl = getReader().getLayer(layer);
+        if (gsl != null) {
+            try {
+                /* Test for a vector layer */
+                RESTFeatureType gsf = gs.getFeatureType(gsl);
+                if (gsf != null) {
+                    jarr.add(new JsonPrimitive(gsf.getMinX()));
+                    jarr.add(new JsonPrimitive(gsf.getMinY()));
+                    jarr.add(new JsonPrimitive(gsf.getMaxX()));
+                    jarr.add(new JsonPrimitive(gsf.getMaxY()));
+                }
+            } catch(RuntimeException rte) {
+                /* Must be a coverage */
+                RESTCoverage gsc = gs.getCoverage(gsl);
+                if (gsc != null) {
+                    jarr.add(new JsonPrimitive(gsc.getMinX()));
+                    jarr.add(new JsonPrimitive(gsc.getMinY()));
+                    jarr.add(new JsonPrimitive(gsc.getMaxX()));
+                    jarr.add(new JsonPrimitive(gsc.getMaxY()));
+                }
+            }
+        }
+        IOUtils.copy(IOUtils.toInputStream(jarr.toString()), response.getOutputStream());
     }
     
     /**

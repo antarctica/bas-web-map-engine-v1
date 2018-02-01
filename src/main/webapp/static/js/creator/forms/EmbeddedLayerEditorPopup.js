@@ -110,7 +110,16 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.markup = function() {
                          '</input> Layer displays interactive map pop-ups' +
                     '</label>' +
                 '</div>' +                                            
-            '</div>' +            
+            '</div>' +        
+            '<div class="form-group form-group-md col-md-12">' +
+                '<div class="checkbox" style="float:left" data-toggle="tooltip" data-placement="left" ' + 
+                    'title="Use this layer to determine the starting extent of the map">' +
+                    '<label>' +
+                        '<input id="' + this.id + '-is_extent" type="checkbox" data-toggle="popover" data-placement="bottom" data-trigger="manual">' +
+                         '</input> Layer should be used to determine map extent' +
+                    '</label>' +
+                '</div>' +                                            
+            '</div>' +        
             magic.modules.Common.buttonFeedbackSet(this.id, "Save data", "sm", "Save", true) +                 
         '</div>'
     );

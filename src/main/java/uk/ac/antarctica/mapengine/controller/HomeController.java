@@ -4,7 +4,6 @@
 package uk.ac.antarctica.mapengine.controller;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
 import it.geosolutions.geoserver.rest.HTTPUtils;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -24,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import uk.ac.antarctica.mapengine.config.SessionConfig;
 import uk.ac.antarctica.mapengine.config.UserAuthorities;
 import uk.ac.antarctica.mapengine.config.UserRoleMatrix;
+import uk.ac.antarctica.mapengine.exception.SuperUserOnlyException;
 import uk.ac.antarctica.mapengine.model.MapPlugin;
 import uk.ac.antarctica.mapengine.util.ActivityLogger;
 
@@ -279,12 +279,12 @@ public class HomeController {
      * @throws IOException
      */
     @RequestMapping(value = "/creator", method = RequestMethod.GET)
-    public String creator(HttpServletRequest request, HttpServletResponse response, ModelMap model) throws ServletException, IOException {        
+    public String creator(HttpServletRequest request, ModelMap model) throws ServletException, IOException {        
         UserAuthorities ua = userAuthoritiesProvider.getInstance();
         if (ua.userIsAdmin() || ua.userIsSuperUser()) {
             return(renderPage(request, model, "creator", null, null, null, false));
         } else {
-            return("redirect:/errorpage");
+            throw new SuperUserOnlyException("You are not authorised to create maps");
         }
     }
     
@@ -302,7 +302,7 @@ public class HomeController {
         if (ua.userIsAdmin() || ua.userIsSuperUser()) {
             return(renderPage(request, model, "creator", null, null, null, true));
         } else {
-            return("redirect:/errorpage");
+            throw new SuperUserOnlyException("You are not authorised to create maps");
         }
     }
     
@@ -389,7 +389,7 @@ public class HomeController {
                     request.getSession().setAttribute("map", mapName);
                     model.addAttribute("map", mapName);
                     /* Issue data */
-                    if (!username.equals("guest") && issueNumber != null) {
+                    if (username != null && issueNumber != null) {
                         model.addAttribute("issuedata", getIssueData(issueNumber));
                     }  
                     /* User state information */

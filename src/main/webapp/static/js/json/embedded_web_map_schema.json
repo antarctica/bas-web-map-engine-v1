@@ -168,7 +168,11 @@
                         "type": "boolean"
                     },
                     "is_interactive": {
-                        "description": "Is this an interactive layer that can be filtered?",
+                        "description": "Is this an interactive layer needing to show pop-ups?",
+                        "type": "boolean"
+                    },
+                    "is_extent": {
+                        "description": "Is this a layer used to determine map extent?",
                         "type": "boolean"
                     },
                     "attribute_map": {

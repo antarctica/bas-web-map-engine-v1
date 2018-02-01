@@ -1,4 +1,4 @@
-/* Layer group editing form */
+/* Layer editing form */
 
 magic.classes.creator.LayerEditor = function(options) {
             
