@@ -108,6 +108,18 @@ public class UserAuthorities {
     }
     
     /**
+     * Get current password
+     * @return String
+     */
+    public String currentUserPassword() {
+        populateRoles();
+        if (isFullySpecified()) {
+            return(getAuthorities().get("password").getAsString());
+        }
+        return(null);
+    }
+    
+    /**
      * Get current user's roles
      * @return JsonArray
      */

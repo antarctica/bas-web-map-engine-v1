@@ -4,16 +4,17 @@
 package uk.ac.antarctica.mapengine.config;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 import uk.ac.antarctica.mapengine.exception.GeoserverAuthenticationException;
-import uk.ac.antarctica.mapengine.util.HttpConnectionUtils;
+import uk.ac.antarctica.mapengine.util.GenericUrlConnector;
 
 @Component
 public class GeoserverAuthenticationProvider implements AuthenticationProvider {
@@ -31,7 +32,7 @@ public class GeoserverAuthenticationProvider implements AuthenticationProvider {
     public Authentication authenticate(Authentication authentication) 
       throws GeoserverAuthenticationException {
         
-        HttpURLConnection conn = null;
+        GenericUrlConnector guc = null;
         
         System.out.println("===== Geoserver authentication provider starting...");
         
@@ -43,8 +44,9 @@ public class GeoserverAuthenticationProvider implements AuthenticationProvider {
             /* Open the URL connection - the URL is a little-used service on the local Geoserver instance which has been locked down to only
              * be accessible to ROLE_AUTHENTICATED users - this will serve as an authentication gateway for Geoserver - David 24/01/2018
              */
-            conn = HttpConnectionUtils.openConnection(env.getProperty("geoserver.local.adminUrl") + "/wfs?request=listStoredQueries", name, password);            
-            int status = conn.getResponseCode();
+            String securedUrl = env.getProperty("geoserver.internal.url") + "/wfs?request=listStoredQueries";
+            guc = new GenericUrlConnector(securedUrl.startsWith("https"));
+            int status = guc.get(securedUrl, name, password);
             if (status < 400) {
                 /* Record the Geoserver credentials so they are recoverable by the security context holder */
                 System.out.println("Geoserver authentication successful for user " + name);
@@ -56,9 +58,11 @@ public class GeoserverAuthenticationProvider implements AuthenticationProvider {
             }
         } catch(IOException ioe) {
             throw new GeoserverAuthenticationException("Unable to authenticate against local Geoserver - IOException was: " + ioe.getMessage());
+        } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException ex) {
+            throw new GeoserverAuthenticationException("SSL error trying to authenticate against Geoserver - exception was: " + ex.getMessage());
         } finally {
-            if (conn != null) {
-                conn.disconnect();
+            if (guc != null) {
+                guc.close();
             }
             System.out.println("===== Geoserver authentication provider complete");
         }         

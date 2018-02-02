@@ -36,7 +36,7 @@ public class NoUploadPublisher extends DataPublisher {
         );
         if (exLayerTable != null && !exLayerTable.isEmpty()) {
             String styleName = createLayerStyling(ud.getUfue().getUserPgSchema(), exLayerTable, ud.getUfmd().getStyledef(), null);
-            if (!getGrm().getPublisher().configureLayer(getEnv().getProperty("geoserver.local.userWorkspace"), exLayerTable, configureLayerData(styleName))) {
+            if (!getGrm().getPublisher().configureLayer(getEnv().getProperty("geoserver.internal.userWorkspace"), exLayerTable, configureLayerData(styleName))) {
                 throw new GeoserverPublishException("Failed to publish new style for layer " + exLayerTable);
             }
         }

@@ -63,7 +63,7 @@ public class ShpZipPublisher extends DataPublisher {
                     String styleName = createLayerStyling(pgUserSchema, pgTable, ud.getUfmd().getStyledef(), sld);                
                     /* Publish feature to Geoserver */                    
                     if (!getGrm().getPublisher().publishDBLayer(
-                            getEnv().getProperty("geoserver.local.userWorkspace"), 
+                            getEnv().getProperty("geoserver.internal.userWorkspace"), 
                             ud.getUfue().getUserDatastore(), 
                             configureFeatureType(ud.getUfmd(), newTableName), 
                             configureLayerData(styleName)

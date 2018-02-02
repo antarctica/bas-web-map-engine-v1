@@ -16,10 +16,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -51,7 +56,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import uk.ac.antarctica.mapengine.config.SessionConfig;
-import uk.ac.antarctica.mapengine.util.HttpConnectionUtils;
+import uk.ac.antarctica.mapengine.config.UserAuthorities;
+import uk.ac.antarctica.mapengine.util.GenericUrlConnector;
 
 @Controller
 public class OgcServicesController {        
@@ -151,7 +157,8 @@ public class OgcServicesController {
             throw new ServletException("Query string >" + request.getQueryString() + "< contains no 'request' parameter");
         }                
         
-        String serviceUrl = (servicedata == null) ? env.getProperty("geoserver.local.url") + "/user/wms" : (String)servicedata.get("url");        
+        String serviceUrl = (servicedata == null) ? 
+            env.getProperty("geoserver.internal.url") + "/" + env.getProperty("geoserver.internal.userWorkspace") + "/wms" : (String)servicedata.get("url");        
         try {
             switch(operation.toLowerCase()) {
                 case "getcapabilities": 
@@ -159,7 +166,7 @@ public class OgcServicesController {
                     String version = getQueryParameter(params, "version");
                     mimeType = "text/xml";
                     if (servicedata == null) {
-                        getUserlayersCapsFromUrl(response, request, serviceUrl + "?service=wms&request=getcapabilities" + (version != null ? "&version=" + version : ""), mimeType);
+                        getUserlayersCapsFromUrl(response, serviceUrl + "?service=wms&request=getcapabilities" + (version != null ? "&version=" + version : ""), mimeType);
                     } else {
                         getFromUrl(response, serviceUrl + "?service=wms&request=getcapabilities" + (version != null ? "&version=" + version : ""), mimeType, false); 
                     }
@@ -230,7 +237,8 @@ public class OgcServicesController {
         throws RestrictedDataException, ServletException, IOException { 
                
         boolean hasWfs = (servicedata == null) ? true : (Boolean)servicedata.get("has_wfs");
-        String serviceUrl = (servicedata == null) ? env.getProperty("geoserver.local.url") + "/user/wfs" : (String)servicedata.get("url");                
+        String serviceUrl = (servicedata == null) ? 
+            env.getProperty("geoserver.internal.url") + "/" + env.getProperty("geoserver.internal.userWorkspace") + "/wfs" : (String)servicedata.get("url");                
         
         if (hasWfs) {
             /* Service offers WFS - assume that the URL is a simple swap of 'wfs' for 'wms' at the end */            
@@ -329,11 +337,10 @@ public class OgcServicesController {
     /**
      * Post-apply user layer security checks to the GetCaps document
      * @param HttpServletResponse response
-     * @param HttpServletRequest request
      * @param String url
      * @param String mimeType 
      */
-    private void getUserlayersCapsFromUrl(HttpServletResponse response, HttpServletRequest request, String url, String mimeType) {
+    private void getUserlayersCapsFromUrl(HttpServletResponse response, String url, String mimeType) {
                
         try {
             /* Find the layers this user can access */
@@ -428,22 +435,37 @@ public class OgcServicesController {
      */
     private void getFromUrl(HttpServletResponse response, String url, String mimeType, boolean secured) throws IOException, RestrictedDataException { 
         
-        java.net.HttpURLConnection conn = null;
+        GenericUrlConnector guc = null;
+        
+        UserAuthorities ua = userAuthoritiesProvider.getInstance();
         
         /* Determine if URL comes from local Geoserver */
-        String authHeader = null;
-        String localServer = env.getProperty("geoserver.local.url");
-        if (url.startsWith(localServer)) {
-            authHeader = userAuthoritiesProvider.getInstance().basicAuthorizationHeader();
+        String username = null, password = null;
+        String localServer = env.getProperty("geoserver.internal.url");
+        boolean isLocal = url.startsWith(localServer);
+        
+        if (!isLocal) {
+            String[] externalAliases = env.getProperty("geoserver.external.url").split(",");
+            for (String alias : externalAliases) {
+                if (url.startsWith(alias)) {
+                    isLocal = true;
+                    break;
+                }
+            }
+        }
+        if (isLocal) {
+            /* Get username and password */
+            username = ua.currentUserName();
+            password = ua.currentUserPassword();
         }        
         
         try {
-            conn = HttpConnectionUtils.openConnection(url, authHeader);
-            int status = conn.getResponseCode();
+            guc = new GenericUrlConnector(url.startsWith("https"));
+            int status = guc.get(url, username, password);
             if (status < 400) {
                 /* Pipe the output to servlet response stream */
                 response.setContentType(mimeType);
-                IOUtils.copy(conn.getInputStream(), response.getOutputStream());
+                IOUtils.copy(guc.getContent(), response.getOutputStream());
             } else if (status == 401) {
                 /* User unauthorised */
                 throw new RestrictedDataException("You are not authorised to access this resource");
@@ -451,9 +473,12 @@ public class OgcServicesController {
                 throw new RestrictedDataException("Unexpected response code " + status + " when accessing resource");
             }
         } catch(IOException ioe) {
+            System.out.println("Failed to get content from " + url + ", exception was: " + ioe.getMessage());
+        } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException ex) {
+            System.out.println("SSL error getting content from " + url + ", exception was: " + ex.getMessage());
         } finally {
-            if (conn != null) {
-                conn.disconnect();
+            if (guc != null) {
+                guc.close();
             }
         }        
     }

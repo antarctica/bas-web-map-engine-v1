@@ -96,14 +96,14 @@ public class GeoserverRestController {
     @ResponseBody
     public void geoserverStylesForLayer(HttpServletRequest request, HttpServletResponse response, @PathVariable("layer") String layer)
         throws ServletException, IOException, ServiceException {
-        String restUrl = env.getProperty("geoserver.local.adminUrl");
+        String restUrl = env.getProperty("geoserver.internal.url");
         if (restUrl == null || restUrl.isEmpty()) {
-            restUrl = env.getProperty("geoserver.local.url");
+            restUrl = env.getProperty("geoserver.internal.url");
         }
         String content = HTTPUtils.get(
             restUrl + "/rest/layers/" + layer + "/styles.json", 
-            env.getProperty("geoserver.local.username"), 
-            env.getProperty("geoserver.local.password")
+            env.getProperty("geoserver.internal.username"), 
+            env.getProperty("geoserver.internal.password")
         );
         if (content == null) { 
             content = "{styles: \"\"}";
@@ -137,8 +137,8 @@ public class GeoserverRestController {
                     System.out.println("Get granules from " + mUrl);
                     content = HTTPUtils.get(
                         mUrl, 
-                        env.getProperty("geoserver.local.username"), 
-                        env.getProperty("geoserver.local.password")
+                        env.getProperty("geoserver.internal.username"), 
+                        env.getProperty("geoserver.internal.password")
                     );
                     if (content == null) { 
                         content = "{features: []}";
@@ -223,7 +223,7 @@ public class GeoserverRestController {
                     /* Translate longhand to JSON (Gson has trouble with circular refs) */                                        
                     jo.addProperty("feature_name", gsf.getNameSpace() + ":" + gsf.getNativeName());
                     jo.addProperty("name", gsf.getTitle());
-                    jo.addProperty("wms_source", env.getProperty("geoserver.local.url") + "/" + gsf.getNameSpace() + "/wms");
+                    jo.addProperty("wms_source", env.getProperty("geoserver.internal.url") + "/" + gsf.getNameSpace() + "/wms");
                     JsonArray attrs = new JsonArray();
                     for (RESTFeatureType.Attribute attr : gsf.getAttributes()) {                    
                         String binding = attr.getBinding();
@@ -244,7 +244,7 @@ public class GeoserverRestController {
                 /* Must be a coverage */
                 RESTCoverage gsc = gs.getCoverage(gsl);
                 jo.addProperty("feature_name", gsc.getNameSpace() + ":" + gsc.getNativeName());
-                jo.addProperty("wms_source", env.getProperty("geoserver.local.url") + "/" + gsc.getNameSpace() + "/wms");
+                jo.addProperty("wms_source", env.getProperty("geoserver.internal.url") + "/" + gsc.getNameSpace() + "/wms");
                 jo.addProperty("name", gsc.getTitle());
                 jo.addProperty("geom_type", "raster");
             }
@@ -257,14 +257,14 @@ public class GeoserverRestController {
      */
     private GeoServerRESTReader getReader() throws MalformedURLException {
         if (gs == null) {
-            String restUrl = env.getProperty("geoserver.local.adminUrl");
+            String restUrl = env.getProperty("geoserver.internal.url");
             if (restUrl == null || restUrl.isEmpty()) {
-                restUrl = env.getProperty("geoserver.local.url");
+                restUrl = env.getProperty("geoserver.internal.url");
             }
             gs = new GeoServerRESTReader(
                 restUrl, 
-                env.getProperty("geoserver.local.username"), 
-                env.getProperty("geoserver.local.password")
+                env.getProperty("geoserver.internal.username"), 
+                env.getProperty("geoserver.internal.password")
             );
         }
         return(gs);

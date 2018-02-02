@@ -108,9 +108,9 @@ public abstract class DataPublisher {
         if (getGrm() == null) {
             /* Create Geoserver store manager */
             setGrm(new GeoServerRESTManager(
-                new URL(getEnv().getProperty("geoserver.local.url")), 
-                getEnv().getProperty("geoserver.local.username"), 
-                getEnv().getProperty("geoserver.local.password")
+                new URL(getEnv().getProperty("geoserver.internal.url")), 
+                getEnv().getProperty("geoserver.internal.username"), 
+                getEnv().getProperty("geoserver.internal.password")
             ));
         }
                 
@@ -188,9 +188,9 @@ public abstract class DataPublisher {
      */
     public void clearCache(String layerName) {
         System.out.println("Result of cache clear was : " + HTTPUtils.delete(
-            getEnv().getProperty("geoserver.local.adminUrl") + "/gwc/rest/layers/" + layerName,
-            getEnv().getProperty("geoserver.local.username"),
-            getEnv().getProperty("geoserver.local.password")
+            getEnv().getProperty("geoserver.internal.url") + "/gwc/rest/layers/" + layerName,
+            getEnv().getProperty("geoserver.internal.username"),
+            getEnv().getProperty("geoserver.internal.password")
         ));
         /* Reload Geoserver catalogue */
         System.out.println("Reloading catalogue...");        
@@ -247,7 +247,7 @@ public abstract class DataPublisher {
      * @return String the datastore name
      */
     protected String createPgSchemaDatastore(String schemaName) throws GeoserverPublishException {
-        String ws = getEnv().getProperty("geoserver.local.userWorkspace");
+        String ws = getEnv().getProperty("geoserver.internal.userWorkspace");
         RESTDataStore rds = getGrm().getReader().getDatastore(ws, schemaName);
         if (rds == null) {
             GSPostGISDatastoreEncoder dse = new GSPostGISDatastoreEncoder(schemaName);
@@ -292,13 +292,13 @@ public abstract class DataPublisher {
             case "file":
                 /* Style is in file supplied (shapefile), or internal to the file (GPX/KML) when exStyleFile is null */
                 if (exStyleFile != null) {
-                    if (getGrm().getReader().existsStyle(getEnv().getProperty("geoserver.local.userWorkspace"), tableName)) {
+                    if (getGrm().getReader().existsStyle(getEnv().getProperty("geoserver.internal.userWorkspace"), tableName)) {
                         System.out.println("Style " + tableName + " exists");
-                        stylePublished = getGrm().getPublisher().updateStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), exStyleFile, tableName);
+                        stylePublished = getGrm().getPublisher().updateStyleInWorkspace(getEnv().getProperty("geoserver.internal.userWorkspace"), exStyleFile, tableName);
                         System.out.println("Updated " + stylePublished);
                     } else {
                         System.out.println("Style " + tableName + " not present");
-                        stylePublished = getGrm().getPublisher().publishStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), exStyleFile, tableName);
+                        stylePublished = getGrm().getPublisher().publishStyleInWorkspace(getEnv().getProperty("geoserver.internal.userWorkspace"), exStyleFile, tableName);
                         System.out.println("Created " + stylePublished);
                     }
                 }      
@@ -319,13 +319,13 @@ public abstract class DataPublisher {
                         josd.has("stroke_opacity") ? josd.get("stroke_opacity").getAsString() : "1.0",
                         josd.has("stroke_linestyle") ? getDashArray(josd.get("stroke_linestyle").getAsString()) : ""
                     });                
-                if (getGrm().getReader().existsStyle(getEnv().getProperty("geoserver.local.userWorkspace"), tableName)) {
+                if (getGrm().getReader().existsStyle(getEnv().getProperty("geoserver.internal.userWorkspace"), tableName)) {
                     System.out.println("Style " + tableName + " exists");
-                    stylePublished = getGrm().getPublisher().updateStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, tableName);
+                    stylePublished = getGrm().getPublisher().updateStyleInWorkspace(getEnv().getProperty("geoserver.internal.userWorkspace"), sldOut, tableName);
                     System.out.println("Updated " + stylePublished);
                 } else {
                     System.out.println("Style " + tableName + " not present");
-                    stylePublished = getGrm().getPublisher().publishStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), sldOut, tableName);
+                    stylePublished = getGrm().getPublisher().publishStyleInWorkspace(getEnv().getProperty("geoserver.internal.userWorkspace"), sldOut, tableName);
                     System.out.println("Created " + stylePublished);
                 }                
                 break;            
@@ -466,10 +466,10 @@ public abstract class DataPublisher {
         
         /* Drop any Geoserver feature corresponding to this table */
         boolean unpubOk = false;
-        if (getGrm().getReader().existsLayer(getEnv().getProperty("geoserver.local.userWorkspace"), tableName, true)) {
+        if (getGrm().getReader().existsLayer(getEnv().getProperty("geoserver.internal.userWorkspace"), tableName, true)) {
             System.out.println("Unpublishing existing feature " + tableName + "...");
             unpubOk = getGrm().getPublisher().unpublishFeatureType(
-                getEnv().getProperty("geoserver.local.userWorkspace"),
+                getEnv().getProperty("geoserver.internal.userWorkspace"),
                 dataStore,
                 tableName
             );
@@ -477,9 +477,9 @@ public abstract class DataPublisher {
         System.out.println("Unpublish feature type status " + unpubOk);
         /* Drop any Geoserver style relating to the table */
         unpubOk = false;
-        if (getGrm().getReader().existsStyle(getEnv().getProperty("geoserver.local.userWorkspace"), tableName)) {
+        if (getGrm().getReader().existsStyle(getEnv().getProperty("geoserver.internal.userWorkspace"), tableName)) {
             System.out.println("Remove existing style with name " + tableName + "...");
-            unpubOk = getGrm().getPublisher().removeStyleInWorkspace(getEnv().getProperty("geoserver.local.userWorkspace"), tableName, true);
+            unpubOk = getGrm().getPublisher().removeStyleInWorkspace(getEnv().getProperty("geoserver.internal.userWorkspace"), tableName, true);
         }            
         System.out.println("Removal of style status " + unpubOk);
         /* Drop the existing table, including any sequence and index previously created by ogr2ogr */
@@ -510,7 +510,7 @@ public abstract class DataPublisher {
                     ud.getUfmd().getDescription(),
                     IOUtils.toByteArray(new FileInputStream(ud.getUfmd().getUploaded())),
                     ud.getUfmd().getFiletype(),
-                    getEnv().getProperty("geoserver.local.url") + "/" + getEnv().getProperty("geoserver.local.userWorkspace") + "/wms",
+                    getEnv().getProperty("geoserver.internal.url") + "/" + getEnv().getProperty("geoserver.internal.userWorkspace") + "/wms",
                     ud.getUfue().getUserDatastore(),
                     ud.getUfue().getUserPgLayer(),
                     ud.getUfue().getUserName(),

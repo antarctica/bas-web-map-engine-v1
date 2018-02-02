@@ -140,12 +140,12 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
                 if (layer != null && !layer.isEmpty()) {
                     boolean foundIt = false;
                     GeoServerRESTManager grm = new GeoServerRESTManager(
-                        new URL(env.getProperty("geoserver.local.url")), 
-                        env.getProperty("geoserver.local.username"), 
-                        env.getProperty("geoserver.local.password")
+                        new URL(env.getProperty("geoserver.internal.url")), 
+                        env.getProperty("geoserver.internal.username"), 
+                        env.getProperty("geoserver.internal.password")
                     );
-                    if (grm.getReader().existsLayer(env.getProperty("geoserver.local.userWorkspace"), layer, true)) {
-                        RESTLayer gsLayer = grm.getReader().getLayer(env.getProperty("geoserver.local.userWorkspace"), layer);
+                    if (grm.getReader().existsLayer(env.getProperty("geoserver.internal.userWorkspace"), layer, true)) {
+                        RESTLayer gsLayer = grm.getReader().getLayer(env.getProperty("geoserver.internal.userWorkspace"), layer);
                         if (gsLayer != null) {
                             RESTResource gsFt = grm.getReader().getResource(gsLayer);
                             if (gsFt != null) {

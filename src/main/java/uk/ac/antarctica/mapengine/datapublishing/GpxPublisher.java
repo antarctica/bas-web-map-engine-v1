@@ -72,7 +72,7 @@ public class GpxPublisher extends DataPublisher {
                     String styleName = createLayerStyling(pgUserSchema, pgTable, ud.getUfmd().getStyledef(), null);
                     /* Now publish to Geoserver */                                                      
                     if (!getGrm().getPublisher().publishDBLayer(
-                        getEnv().getProperty("geoserver.local.userWorkspace"), 
+                        getEnv().getProperty("geoserver.internal.userWorkspace"), 
                         ud.getUfue().getUserDatastore(), 
                         configureFeatureType(ud.getUfmd(), destTableName), 
                         configureLayerData(styleName)
