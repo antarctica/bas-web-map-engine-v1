@@ -4,10 +4,8 @@
 package uk.ac.antarctica.mapengine.util;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Base64;
-import javax.net.ssl.HttpsURLConnection;
 
 public class HttpConnectionUtils {
     
@@ -21,18 +19,18 @@ public class HttpConnectionUtils {
      * @return
      * @throws IOException 
      */
-    public static HttpURLConnection openConnection(String url, String authHeader) throws IOException {
+    public static java.net.HttpURLConnection openConnection(String url, String authHeader) throws IOException {
         
-        HttpURLConnection conn = null;
+        java.net.HttpURLConnection conn = null;
         
         try {
             URL serverEndpoint = new URL(url);            
             if (url.startsWith("http://")) {
                 /* Non-secure URL */
-                conn = (HttpURLConnection)serverEndpoint.openConnection();
+                conn = (java.net.HttpURLConnection)serverEndpoint.openConnection();
             } else {
                 /* Use secure connection */
-                conn = (HttpsURLConnection)serverEndpoint.openConnection();
+                conn = (javax.net.ssl.HttpsURLConnection)serverEndpoint.openConnection();
             }
 
             if (authHeader != null) {
@@ -63,18 +61,18 @@ public class HttpConnectionUtils {
      * @return
      * @throws IOException 
      */
-    public static HttpURLConnection openConnection(String url, String username, String password) throws IOException {
+    public static java.net.HttpURLConnection openConnection(String url, String username, String password) throws IOException {
         
-        HttpURLConnection conn = null;
+        java.net.HttpURLConnection conn = null;
         
         try {
             URL serverEndpoint = new URL(url);            
             if (url.startsWith("http://")) {
                 /* Non-secure URL */
-                conn = (HttpURLConnection)serverEndpoint.openConnection();
+                conn = (java.net.HttpURLConnection)serverEndpoint.openConnection();
             } else {
                 /* Use secure connection */
-                conn = (HttpsURLConnection)serverEndpoint.openConnection();
+                conn = (javax.net.ssl.HttpsURLConnection)serverEndpoint.openConnection();
             }
 
             if (username != null && password != null) {

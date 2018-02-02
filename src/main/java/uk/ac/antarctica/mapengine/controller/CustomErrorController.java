@@ -36,7 +36,8 @@ public class CustomErrorController implements ErrorController {
         Map<String, Object> errAttrs = getErrorAttributes(request, true);
         int status = (int)errAttrs.get("status");
         
-        System.out.println("===== CustomErrorController.error() method called...");
+        System.out.println("===== CustomErrorController.error() method called with attributes...");
+        errAttrs.entrySet().stream().forEach(System.out::println);
                 
         String header = request.getHeader("X-Requested-With");
         if (header != null && header.equals("XMLHttpRequest")) {
@@ -74,6 +75,8 @@ public class CustomErrorController implements ErrorController {
                      .addAttribute("pagetitle", pageTitle)
                      .addAttribute("profile", getActiveProfile())
                      .addAttribute("navbarclass", navbarClass);
+                System.out.println("--> Model attributes for error page");
+                model.entrySet().stream().forEach(System.out::println);
                 System.out.println("===== CustomErrorController.error() generating error page with status " + status);
                 return("error");                
             }

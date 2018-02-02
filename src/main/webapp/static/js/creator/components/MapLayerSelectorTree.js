@@ -256,7 +256,7 @@ magic.classes.creator.MapLayerSelectorTree.prototype.getContext = function(embed
 magic.classes.creator.MapLayerSelectorTree.prototype.sortLayers = function(tree, hierarchy) {           
     for (var i = 0; i < hierarchy.length; i++) {
         var node = hierarchy[i];
-        if (node.children.length > 0) {
+        if ("children" in node) {
             /* Is a group node */
             this.layerDictionary.get(node.id).layers = [];
             this.sortLayers(this.layerDictionary.get(node.id).layers, node.children);
@@ -347,7 +347,7 @@ magic.classes.creator.MapLayerSelectorTree.prototype.initSortableList = function
 magic.classes.creator.MapLayerSelectorTree.prototype.processLayers = function(layers, parent, level) {    
     for (var i = 0; i < layers.length; i++) {
         var id = this.layerDictionary.put(layers[i]);                
-        if (jQuery.isArray(layers[i].layers) && layers[i].layers.length > 0) {
+        if (jQuery.isArray(layers[i].layers)) {
             /* A layer group */
             var groupEl = this.groupMarkup(id, layers[i].name);
             parent.append(groupEl);
@@ -412,28 +412,7 @@ magic.classes.creator.MapLayerSelectorTree.prototype.groupMarkup = function(id, 
             '</div>' + 
             '<ul class="list-group" style="display:none"></ul>' + 
         '</li>'
-    );
-    /* Unfortunately the sortable lists plugin doesn't allow dynamic addition of items to the tree, just d-n-d re-ordering of existing ones
-     * Hence we have copied some of the event handlers here to allow open/close of dynamically added layer groups */
-//    li.children("div").children("span.sortableListsOpener")
-//        .css(this.OPENER_CSS)
-//        .off("mousedown").on("mousedown", jQuery.proxy(function(evt) {                    
-//            if (li.hasClass("sortableListsClosed")) {
-//                jQuery(evt.currentTarget).html(this.CLOSE_MARKUP);
-//                li.removeClass("sortableListsClosed").addClass("sortableListsOpen");
-//                li.children("ul, ol").css("display", "block");
-//                //console.log(li.children("ul").find(".sortableListsOpener"));
-//                //li.children("ul").find(".sortableListsOpener").first().html(this.CLOSE_MARKUP);
-//            }
-//            else { 
-//                jQuery(evt.currentTarget).html(this.OPEN_MARKUP);
-//                li.removeClass("sortableListsOpen").addClass("sortableListsClosed");
-//                li.children("ul, ol").css("display", "none");
-//                //console.log(li.children("ul").find(".sortableListsOpener"));
-//                //li.children("ul").find(".sortableListsOpener").first().html(this.OPEN_MARKUP);
-//            }
-//            return(false);
-//    }, this));
+    );    
     return(li);
 };
 

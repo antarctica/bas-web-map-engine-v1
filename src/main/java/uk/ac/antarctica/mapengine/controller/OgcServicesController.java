@@ -14,7 +14,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -429,7 +428,7 @@ public class OgcServicesController {
      */
     private void getFromUrl(HttpServletResponse response, String url, String mimeType, boolean secured) throws IOException, RestrictedDataException { 
         
-        HttpURLConnection conn = null;
+        java.net.HttpURLConnection conn = null;
         
         /* Determine if URL comes from local Geoserver */
         String authHeader = null;

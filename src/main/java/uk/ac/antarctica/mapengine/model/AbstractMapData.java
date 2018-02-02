@@ -109,8 +109,6 @@ public abstract class AbstractMapData {
     }
     
     public PGobject getJsonDataAsPgObject(String value) {
-        System.out.println("===== getJsonDataAsPgObject() starting...");
-        System.out.println("--> " + value);
         /* A bit of "cargo-cult" programming from https://github.com/denishpatel/java/blob/master/PgJSONExample.java - what a palaver! */
         PGobject dataObject = new PGobject();
         dataObject.setType("json");
@@ -119,8 +117,6 @@ public abstract class AbstractMapData {
         } catch (SQLException ex) {
             System.out.println("Problem preparing JSON value for PostGIS ingestion : " + ex.getMessage());
         }
-        System.out.println("--> " + dataObject.getValue());
-        System.out.println("===== getJsonDataAsPgObject() complete");
         return(dataObject);
     }
 

@@ -243,7 +243,8 @@ public class UserAuthorities {
         }
         ga.add(new SimpleGrantedAuthority(getAuthorities().toString()));  
         
-        System.out.println("--> Authorities : " + getAuthorities().toString());
+        System.out.println("--> Username : " + getAuthorities().get("username").getAsString());
+        System.out.println("--> Roles : " + getAuthorities().get("roles").toString());
         System.out.println("======== UserAuthorities.toGrantedAuthorities() complete");
         
         return(ga);
@@ -263,7 +264,6 @@ public class UserAuthorities {
         } else {
             System.out.println("Checking for anonymous role...");
             GrantedAuthority ga = auth.getAuthorities().stream().findFirst().get();
-            System.out.println("--> " + ga.getAuthority());
             if (ga.getAuthority() == null || ga.getAuthority().isEmpty() || ga.getAuthority().toLowerCase().equals("role_anonymous")) {
                 System.out.println("Anonymous (guest) user found");
                 setAuthorities(new JsonObject());

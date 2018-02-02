@@ -39,10 +39,7 @@ public class EmbeddedMapData extends AbstractMapData {
         setProjection((String)getJsonElement(jo, "projection", false, "EPSG:4326"));
         setProj_extent((String)getJsonElement(jo, "proj_extent", false, "-180.0,-90.0,180.0,90.0"));
         setResolutions((String)getJsonElement(jo, "resolutions", false, ""));
-        setLayers((String)getJsonElement(jo, "layers", false, "[]"));
-        System.out.println("===== EmbeddedMapData.fromPayload() : Layers data follows:");
-        System.out.println("--> " + getLayers());
-        System.out.println("===== EmbeddedMapData.fromPayload() : End");
+        setLayers((String)getJsonElement(jo, "layers", false, "[]"));        
         setAllowed_usage((String)getJsonElement(jo, "allowed_usage", false, "public"));        
         setAllowed_edit((String)getJsonElement(jo, "allowed_edit", false, "login"));       
     }

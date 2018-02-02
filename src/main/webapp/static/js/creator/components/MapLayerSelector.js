@@ -82,10 +82,8 @@ magic.classes.creator.MapLayerSelector.prototype.getContext = function(embedded)
             return(this.layerEdits[jQuery(tr).data("id")]);
         }, this));
         console.log(layers);
-        return({
-           data: {
-               layers: layers.get() 
-           }
+        return({           
+           layers: layers.get() 
         });
     }
     return({});
