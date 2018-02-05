@@ -75,6 +75,22 @@
             "minimum": 0,
             "maximum": 20
         },
+        "data_extent": {
+            "description": "Extent of embedded map from data",
+            "anyOf": [
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    },
+                    "minItems": 4,
+                    "maxItems": 4
+                },
+                {
+                    "type": "null"
+                }
+            ]
+        },
         "rotation": {
             "description": "Rotation of map, clockwise positive, in degrees",
             "type": "number",

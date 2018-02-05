@@ -21,7 +21,8 @@ magic.classes.creator.EmbeddedLayerEditorPopup = function(options) {
         {"field": "opacity", "default": 1.0},
         {"field": "is_base", "default": false},            
         {"field": "is_singletile", "default": false},                
-        {"field": "is_interactive", "default": false}
+        {"field": "is_interactive", "default": false},
+        {"field": "is_extent", "default": false}
     ];
     
     /* Linked WMS feature select menus */

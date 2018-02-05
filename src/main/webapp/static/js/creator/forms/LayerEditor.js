@@ -105,6 +105,15 @@ magic.classes.creator.LayerEditor.prototype.loadContext = function(context) {
     }, this));
     chkInteractivity.prop("checked", context.is_interactive === true);
     chkInteractivity.trigger("change");
+    
+    /* Filterability triggers */
+    var chkFilterable = jQuery("#" + this.prefix + "-is_filterable");
+    chkFilterable.off("change").on("change", jQuery.proxy(function(evt) {
+        if (jQuery(evt.currentTarget).prop("checked") === true) {
+            jQuery("div.attribute-editor").removeClass("hidden");
+        }
+    }, this));
+    chkFilterable.prop("checked", context.is_filterable === true);
    
     /* Attribute edit button */
     jQuery("#" + this.prefix + "-attribute-edit").off("click").on("click", jQuery.proxy(function(evt) {

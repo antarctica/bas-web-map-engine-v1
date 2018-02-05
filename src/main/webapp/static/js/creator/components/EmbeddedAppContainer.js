@@ -66,6 +66,12 @@ magic.classes.creator.EmbeddedAppContainer.prototype.loadContext = function(mapC
     var saveBtn = jQuery("#map-save-context");
     saveBtn.closest("div.row").removeClass("hidden");
     saveBtn.off("click").on("click", jQuery.proxy(this.saveContext, this));
+    
+    /* Delete map handler */
+    var delBtn = jQuery("#map-delete");   
+    delBtn.off("click").on("click", jQuery.proxy(function() {
+        this.deleteMap(mapContext.id);
+    }, this));
 };
 
 /**
@@ -104,11 +110,12 @@ magic.classes.creator.EmbeddedAppContainer.prototype.saveContext = function() {
                 var existingId = context.id;
                 var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content");
                 var csrfHeader = jQuery("meta[name='_csrf_header']").attr("content");
+                console.log(JSON.stringify(context));
                 jQuery.ajax({
                     url: magic.config.paths.baseurl + "/embedded_maps/" + (existingId != "" ? "update/" + existingId : "save"),                        
                     method: "POST",
                     processData: false,
-                    data: JSON.stringify(context),
+                    data: context,//TODO
                     headers: {
                         "Content-Type": "application/json"
                     },
@@ -155,6 +162,70 @@ magic.classes.creator.EmbeddedAppContainer.prototype.saveContext = function() {
  * @param {Object} context
  */
 magic.classes.creator.EmbeddedAppContainer.prototype.modifyMapExtentByDataLayers = function(context) {
-    console.log(context);
-    console.log("Map parameters may be modified here - TO DO");
+    var extents = [];
+    var extentRequests = [];
+    jQuery.each(context.layers, jQuery.proxy(function(idx, elt) {
+        if (elt.is_extent === true && elt.feature_name) {
+            extentRequests.push(jQuery.get(magic.config.paths.baseurl + "/gs/extent/" + elt.feature_name, 
+                jQuery.proxy(function(data, status, xhr) {
+                    if (typeof data == "string") {
+                        data = JSON.parse(data);
+                    }
+                    if (jQuery.isArray(data)) {
+                        extents.push(magic.modules.GeoUtils.extentFromWgs84Extent(data, context.projection));
+                    }
+                }, this))
+            );
+        }
+    }, this));
+    if (extentRequests.length > 0) {
+        jQuery.when.apply(jQuery, extentRequests)
+        .always(jQuery.proxy(function() {
+            context.data_extent = magic.modules.GeoUtils.uniteExtents(extents);
+        }, this))
+        .fail(function(xhr) {
+            bootbox.alert(
+                '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                    '<p>Failed to calculate embedded map extent from data layers:</p>' + 
+                    '<p>' + JSON.parse(xhr.responseText)["detail"] + '</p>' + 
+                '</div>'
+            );
+        });
+    }
+};
+
+/**
+ * Delete an embedded map
+ * @param {String} id
+ */
+magic.classes.creator.EmbeddedAppContainer.prototype.deleteMap = function(id) {
+    bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">Are you sure you want to delete this map?</div>', jQuery.proxy(function(result) {
+        if (result) {
+            /* Do the deletion */
+            jQuery.ajax({
+                url: magic.config.paths.baseurl + "/embedded_maps/delete/" + id,
+                method: "DELETE",
+                beforeSend: function (xhr) {                        
+                    xhr.setRequestHeader(
+                        jQuery("meta[name='_csrf_header']").attr("content"), 
+                        jQuery("meta[name='_csrf']").attr("content")
+                    );
+                }
+            })
+            .done(function() {
+                window.location = magic.config.paths.baseurl + "/embedded_creatord";
+            })
+            .fail(function (xhr) {
+                bootbox.alert(
+                    '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                        '<p>Failed to delete user map view - details below:</p>' + 
+                        '<p>' + JSON.parse(xhr.responseText)["detail"] + '</p>' + 
+                    '</div>'
+                );
+            });                   
+            bootbox.hideAll();
+        } else {
+            bootbox.hideAll();
+        }                            
+    }, this));  
 };

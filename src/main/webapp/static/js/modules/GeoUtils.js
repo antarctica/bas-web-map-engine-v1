@@ -717,12 +717,36 @@ magic.modules.GeoUtils = function() {
         },
         
         /**
+         * Compute the sum of all the supplied extents
+         * @param {Array<ol.extent>} extents
+         * @return {Array}
+         */
+        uniteExtents: function(extents) {
+            var minx = null, miny = null, maxx = null, maxy = null;
+            for (var i = 0; i < extents.length; i++) {
+                minx = (minx == null ? extents[i][0] : Math.min(minx, extents[i][0]));
+                miny = (miny == null ? extents[i][1] : Math.min(miny, extents[i][1]));
+                maxx = (maxx == null ? extents[i][2] : Math.max(maxx, extents[i][2]));
+                maxy = (maxy == null ? extents[i][3] : Math.max(maxy, extents[i][3]));
+            }
+            return([minx, miny, maxx, maxy]);
+        },
+        
+        /**
          * Compute the minimum enclosing extent in projected co-ordinates of the given EPSG:4326 extent
          * Done by breaking the extent at the dateline if necessary, then densifying and reprojecting
-         * @param {ol.extent} extent        
+         * @param {ol.extent} extent    
+         * @param {String} destProj e.g. EPSG:3031    
          * @return {ol.extent}
          */
-        extentFromWgs84Extent: function(extent) {
+        extentFromWgs84Extent: function(extent, destProj) {
+            if (!destProj) {
+                if (magic.runtime.map) {
+                    destProj = magic.runtime.map.getView().getProjection().getCode()
+                } else {
+                    return(extent);
+                }
+            }
             var bbox = [];
             var finalExtent = null;
             var lon0 = extent[0], lat0 = extent[1], lon1 = extent[2], lat1 = extent[3];
@@ -730,7 +754,7 @@ magic.modules.GeoUtils = function() {
             if (this.isCircumpolar(lon0, lon1)) {
                 /* Pan-Antarctic request */
                 var extPt = new ol.geom.Point([0, lat1]);
-                extPt.transform(sourceProj, magic.runtime.map.getView().getProjection().getCode());
+                extPt.transform(sourceProj, destProj);
                 var ymax = extPt.getCoordinates()[1];
                 finalExtent = [-ymax, -ymax, ymax, ymax];
             } else {
@@ -743,7 +767,7 @@ magic.modules.GeoUtils = function() {
                 }
                 for (var i = 0; i < bbox.length; i++) {
                     var densifiedPoly = this.densify(bbox[i]);
-                    densifiedPoly.transform(sourceProj, magic.runtime.map.getView().getProjection().getCode());                    
+                    densifiedPoly.transform(sourceProj, destProj);                    
                     if (finalExtent == null) {
                         finalExtent = densifiedPoly.getExtent();
                     } else {

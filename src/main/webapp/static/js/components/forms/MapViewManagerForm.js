@@ -404,7 +404,7 @@ magic.classes.MapViewManagerForm.prototype.mapPayload = function() {
     if (this.map) {
         /* Save view parameters */
         payload.center = this.map.getView().getCenter();
-        payload.zoom = this.map.getView().getZoom();
+        payload.zoom = parseInt(this.map.getView().getZoom());
         payload.rotation = this.map.getView().getRotation();
         /* Save layer visibility states */
         payload.layers = {};
