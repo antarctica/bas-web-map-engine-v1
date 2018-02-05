@@ -108,7 +108,7 @@ magic.classes.LayerTreeOptionsMenu.prototype.addWebglSliderHandler = function(id
                 jQuery("#" + idbase + "-slider-" + this.nodeid).slider({
                     value: startValue,
                     formatter: function(value) {
-                        return("Value: " + value);
+                        return(value);
                     }
                 }).on("slide", function(evt) {
                     var newVal = evt.value;

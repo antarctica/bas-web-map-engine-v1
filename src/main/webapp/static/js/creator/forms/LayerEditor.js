@@ -175,37 +175,19 @@ magic.classes.creator.LayerEditor.prototype.cancelEdit = function() {
 /**
  * Validate form inputs
  */
-magic.classes.creator.LayerEditor.prototype.validate = function() {    
+magic.classes.creator.LayerEditor.prototype.validate = function() {
+    magic.modules.Common.resetFormIndicators();
     var ok = jQuery("#" + this.prefix + "-form")[0].checkValidity();
     /* Indicate invalid fields */
     jQuery.each(jQuery("#" + this.prefix + "-form").find("input"), function(idx, ri) {
         var riEl = jQuery(ri);
-        var fg = riEl.closest("div.form-group");
         var vState = riEl.prop("validity");
-        if (vState.valid) {
-            fg.removeClass("has-error").addClass("has-success");
-        } else {
-            fg.removeClass("has-success").addClass("has-error");
+        if (!vState.valid) {
+            magic.modules.Common.flagInputError(riEl);
         }
-    });
+    });    
     if (ok) {
-        /* Check filter is specified if autoload box is ticked */
-        if (jQuery("#" + this.prefix + "-autoload").is(":checked")) {
-            var filterInput = jQuery("#" + this.prefix + "-autoload_filter");
-            if (!filterInput.val()) {                
-                filterInput.closest("div.form-group").removeClass("hidden has-success").addClass("show has-error");
-                ok = false;
-            } else {
-                /* Add the capability to use wildcards ? (0-1 chars), * (0 or more chars), + (1 or more chars) - David 13/03/2017 */
-                var fval = filterInput.val();
-                if (fval.match(/[A-Za-z0-9+*?-_]+/)) {                
-                    filterInput.closest("div.form-group").removeClass("has-error").addClass("has-success");
-                } else {
-                    filterInput.closest("div.form-group").removeClass("hidden has-success").addClass("show has-error");
-                    ok = false;
-                }                
-            }            
-        }
+        ok = this.sourceEditor.validate();
     }
     return(ok);
 };

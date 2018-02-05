@@ -171,3 +171,22 @@ magic.classes.creator.GeoJsonSourceEditor.prototype.sourceSpecified = function()
     var isWfs = sourceUrl.indexOf("/wfs") > 0;
     return((isWfs && sourceUrl && featureName) || (!isWfs && sourceUrl));
 };
+
+magic.classes.creator.GeoJsonSourceEditor.prototype.validate = function() {
+    magic.modules.Common.resetFormIndicators();
+    var sourceUrlInput = jQuery("#" + this.prefix + "-geojson_source");
+    var sourceUrl = sourceUrlInput.val();   
+    var featureNameInput = jQuery("#" + this.prefix + "-feature_name");
+    var featureName = featureNameInput.val();
+    var isWfs = sourceUrl.indexOf("/wfs") > 0;
+    if ((isWfs && sourceUrl && featureName) || (!isWfs && sourceUrl)) {
+        /* Ok - remove all errors */        
+        return(true);
+    }
+    /* Url is not filled in => error */
+    magic.modules.Common.flagInputError(sourceUrlInput);
+    if (isWfs && !featureName) {
+        magic.modules.Common.flagInputError(featureNameInput);  
+    }
+    return(false);
+};

@@ -97,3 +97,13 @@ magic.classes.creator.GpxSourceEditor.prototype.sourceSpecified = function() {
     return(jQuery("#" + this.prefix + "-gpx_source").val() ? true : false);    
 };
 
+magic.classes.creator.GpxSourceEditor.prototype.validate = function() {
+    magic.modules.Common.resetFormIndicators();
+    if (this.sourceSpecifed()) {
+        return(true);
+    } else {
+        magic.modules.Common.flagInputError(jQuery("#" + this.prefix + "-gpx_source"));
+        return(false);
+    }
+};
+

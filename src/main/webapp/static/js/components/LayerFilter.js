@@ -32,7 +32,7 @@ magic.classes.LayerFilter = function(options) {
         this.target.html(
             '<div class="panel panel-default">' +
                 '<div class="panel-body layer-filter-panel">' + 
-                    '<form id="ftr-form-' + this.nodeid + '" style="width: 230px; margin-top: 10px">' +
+                    '<form id="ftr-form-' + this.nodeid + '">' +
                         '<input id="ftr-comparison-type-' + this.nodeid + '" type="hidden" value="string">' + 
                         '<div class="form-group form-group-sm col-sm-12">' +
                             '<select id="ftr-attr-' + this.nodeid + '" class="form-control">' +
@@ -65,36 +65,36 @@ magic.classes.LayerFilter = function(options) {
                         '</div>' +
                         '<div class="form-group form-group-sm col-sm-12">' +
                             '<input id="ftr-val-str-' + this.nodeid + '" class="form-control" type="text" required="true" placeholder="Attribute value" ' + 
-                                'data-toggle="tooltip" data-placement="right" title="Enter the attribute value to filter on"></input>' + 
+                                'data-toggle="tooltip" data-placement="bottom" title="Enter the attribute value to filter on"></input>' + 
                         '</div>' + 
                         '<div class="form-group form-group-sm col-sm-12 hidden">' +
                             '<select id="ftr-val-str-unique-' + this.nodeid + '" class="form-control" type="text" required="true" placeholder="Attribute value" ' + 
-                                'data-toggle="tooltip" data-placement="right" title="Select the attribute value to filter on">' + 
+                                'data-toggle="tooltip" data-placement="bottom" title="Select the attribute value to filter on">' + 
                             '</select>' + 
                         '</div>' + 
                         '<div class="form-group form-group-sm col-sm-12 hidden">' +
                             '<input id="ftr-val-num1-' + this.nodeid + '" class="form-control" type="number" required="true" placeholder="Numeric attribute value" ' + 
-                                'data-toggle="tooltip" data-placement="right" title="Enter numeric attribute value to filter on"></input>' + 
+                                'data-toggle="tooltip" data-placement="bottom" title="Enter numeric attribute value to filter on"></input>' + 
                         '</div>' + 
                         '<div class="form-group form-group-sm col-sm-12 hidden">' +
                             '<input id="ftr-val-num2-' + this.nodeid + '" class="form-control" type="number" required="false" placeholder="Numeric attribute value" ' + 
-                                'data-toggle="tooltip" data-placement="right" title="Enter upper numeric attribute value to filter on"></input>' + 
+                                'data-toggle="tooltip" data-placement="bottom" title="Enter upper numeric attribute value to filter on"></input>' + 
                         '</div>' + 
                         '<div class="form-group form-group-sm col-sm-12 hidden">' +
                             '<input id="ftr-val-date1-' + this.nodeid + '" class="form-control" type="date" required="true" placeholder="Date as yyyy-mm-dd hh:mm:ss" ' + 
-                                'data-toggle="tooltip" data-placement="right" title="Enter date/time to filter on"></input>' + 
+                                'data-toggle="tooltip" data-placement="bottom" title="Enter date/time to filter on"></input>' + 
                         '</div>' + 
                         '<div class="form-group form-group-sm col-sm-12 hidden">' +
                             '<input id="ftr-val-date2-' + this.nodeid + '" class="form-control" type="date" required="false" placeholder="Date as yyyy-mm-dd hh:mm:ss" ' + 
-                                'data-toggle="tooltip" data-placement="right" title="Enter date/time to filter on"></input>' + 
+                                'data-toggle="tooltip" data-placement="bottom" title="Enter date/time to filter on"></input>' + 
                         '</div>' + 
                         '<div class="form-group form-group-sm col-sm-12">' +
                             '<button id="ftr-btn-go-' + this.nodeid + '" class="btn btn-primary btn-xs" type="button" ' + 
-                                'data-toggle="tooltip" data-placement="right" title="Set filter on layer" style="margin-right:5px">' + 
+                                'data-toggle="tooltip" data-placement="bottom" title="Set filter on layer" style="margin-right:5px">' + 
                                 '<span class="fa fa-filter"></span>Apply' + 
                             '</button>' +
                             '<button id="ftr-btn-reset-' + this.nodeid + '" class="btn btn-danger btn-xs" type="button" ' + 
-                                'data-toggle="tooltip" data-placement="right" title="Remove layer filter">' + 
+                                'data-toggle="tooltip" data-placement="bottom" title="Remove layer filter">' + 
                                 '<span class="fa fa-minus-circle"></span>Reset' + 
                             '</button>' +
                         '</div>' + 

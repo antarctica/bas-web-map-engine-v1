@@ -650,8 +650,7 @@ ul.layer-options-dd-menu {
 }
 
 .layer-options-slider .slider {
-    /*margin-left: 10px;*/
-    width: 180px !important;
+    width: 210px !important;
 }
 
 a.download-file-tool {

@@ -173,7 +173,7 @@ magic.modules.Common = function () {
         flagInputError: function(inputEl) {
              var fg = inputEl.closest("div.form-group");
              if (fg) {
-                 fg.removeClass("has-success").addClass("has-error");
+                 fg.addClass("has-error");
              }
         },
         /**
@@ -655,7 +655,7 @@ magic.modules.Common = function () {
          * Remove all success/error indications on all form inputs on a page
          */
         resetFormIndicators: function() {
-            jQuery("div.form-group").removeClass("has-error").removeClass("has-success");
+            jQuery("div.form-group").removeClass("has-error");
         },        
         /**
          * Does the given key name look name-like?

@@ -439,7 +439,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                             '<a class="layer-tool" id="layer-opts-' + nd.id + '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
                                 '<span class="fa fa-bars"></span><b class="caret"></b>' +
                             '</a>' +
-                            '<ul id="layer-opts-dm-' + nd.id + '" aria-labelled-by="layer-opts-' + nd.id + '" class="dropdown-menu dropdown-menu-right">' +
+                            '<ul id="layer-opts-dm-' + nd.id + '" aria-labelled-by="layer-opts-' + nd.id + '" class="dropdown-menu dropdown-menu-right layer-options-dd-menu">' +
                             '</ul>' +
                         '</td>' +
                     '</tr>' + 

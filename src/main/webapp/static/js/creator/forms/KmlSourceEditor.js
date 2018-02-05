@@ -98,3 +98,13 @@ magic.classes.creator.KmlSourceEditor.prototype.sourceSpecified = function() {
     return(jQuery("#" + this.prefix + "-kml_source").val() ? true : false);    
 };
 
+magic.classes.creator.KmlSourceEditor.prototype.validate = function() {
+    magic.modules.Common.resetFormIndicators();
+    if (this.sourceSpecifed()) {
+        return(true);
+    } else {
+        magic.modules.Common.flagInputError(jQuery("#" + this.prefix + "-kml_source"));
+        return(false);
+    }
+};
+

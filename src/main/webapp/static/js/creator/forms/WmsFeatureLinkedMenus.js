@@ -57,6 +57,17 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.sourceSpecified = function
     return(this.dropdowns.wms_source.val() != "" && this.dropdowns.feature_name.val() != "");
 };
 
+magic.classes.creator.WmsFeatureLinkedMenus.prototype.validate = function() {
+    var ok = this.sourceSpecified();
+    if (!this.dropdowns.wms_source.val()) {
+        magic.modules.Common.flagInputError(this.dropdowns.wms_source);
+    }
+    if (!this.dropdowns.wms_source.val()) {
+        magic.modules.Common.flagInputError(this.dropdowns.feature_name);
+    }    
+    return(ok);
+};
+
 /**
  * Initialise the menus
  * @param {Object} data with fields wms_source, feature_name, style_name

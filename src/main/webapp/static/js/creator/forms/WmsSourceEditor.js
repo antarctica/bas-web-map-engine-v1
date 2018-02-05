@@ -85,3 +85,7 @@ magic.classes.creator.WmsSourceEditor.prototype.markup = function () {
 magic.classes.creator.WmsSourceEditor.prototype.sourceSpecified = function () {
     return(this.wmsMenus.sourceSpecified());
 };
+
+magic.classes.creator.WmsSourceEditor.prototype.validate = function () {
+    return(this.wmsMenus.validate());
+};

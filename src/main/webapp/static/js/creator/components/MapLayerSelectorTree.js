@@ -238,7 +238,13 @@ magic.classes.creator.MapLayerSelectorTree.prototype.getContext = function(embed
     if (!embedded) {
         var layerArr = [];
         var layerHierarchy = this.layerTreeUl.sortableListsToHierarchy();
+        console.log("===== MapLayerSelectorTree.getContext =====");
+        console.log(layerHierarchy);
+        console.log(this.layerDictionary);
+        console.log("===== Sorting... =====");
+        console.log(layerArr);
         this.sortLayers(layerArr, layerHierarchy);
+        console.log("===== End =====");
         return({
             data: {
                 layers: layerArr
@@ -256,20 +262,14 @@ magic.classes.creator.MapLayerSelectorTree.prototype.getContext = function(embed
 magic.classes.creator.MapLayerSelectorTree.prototype.sortLayers = function(tree, hierarchy) {           
     for (var i = 0; i < hierarchy.length; i++) {
         var node = hierarchy[i];
-        if ("children" in node) {
+        var ldo = this.layerDictionary.get(node.id);
+        if ("children" in node && !("source" in ldo)) {
             /* Is a group node */
             this.layerDictionary.get(node.id).layers = [];
             this.sortLayers(this.layerDictionary.get(node.id).layers, node.children);
             tree.push(this.layerDictionary.get(node.id));
         } else {
-            /* Is a layer (i.e. leaf) node */
-            var ldo = this.layerDictionary.get(node.id);
-            /* Ensure we don't include deleted layers */
-            if (ldo.layers) {
-                ldo.layers = jQuery.grep(ldo.layers, jQuery.proxy(function(lyr, idx) {
-                    return(!jQuery.isEmptyObject(this.layerDictionary.get(lyr.id)));
-                }, this));
-            }
+            /* Is a layer (i.e. leaf) node */            
             tree.push(ldo);
         }
     }  
@@ -448,19 +448,25 @@ magic.classes.creator.MapLayerSelectorTree.prototype.layerMarkup = function(id, 
  * @param {Object} data
  */
 magic.classes.creator.MapLayerSelectorTree.prototype.writeGroupData = function(data) {
+    console.log("===== MapLayerSelectorTree.writeGroupData() called =====");
+    console.log(data);
     this.layerDictionary.put(data);
     jQuery("#" + data.id).find("button.name-area").first().text(data.name);
     jQuery("#" + this.prefix + "-update-panel").fadeOut("slow");
+    console.log("===== MapLayerSelectorTree.writeGroupData() Complete =====");
 };
 
 /**
  * Callback for save action on a layer
  * @param {Object} data
  */
-magic.classes.creator.MapLayerSelectorTree.prototype.writeLayerData = function(data) {    
+magic.classes.creator.MapLayerSelectorTree.prototype.writeLayerData = function(data) {  
+    console.log("===== MapLayerSelectorTree.writeLayerData() called =====");
+    console.log(data);
     this.layerDictionary.put(data);
     jQuery("#" + data.id).find("button.name-area").first().text(data.name);
     jQuery("#" + this.prefix + "-update-panel").fadeOut("slow");
+    console.log("===== MapLayerSelectorTree.writeLayerData() Complete =====");
 };
 
 /**
