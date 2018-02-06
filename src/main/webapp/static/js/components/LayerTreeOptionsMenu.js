@@ -18,7 +18,7 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
             '<a href="Javascript:void(0)" id="sty-' + this.nodeid + '">Apply alternate style</a>' +
             '<div class="panel panel-default hidden" style="margin-bottom:0px" id="wrapper-sty-' + this.nodeid + '">' + 
                 '<div class="panel-body" style="padding:5px">' + 
-                    '<div class="form-group form-group-sm col-sm-12">' + 
+                    '<div class="form-group form-group-sm col-sm-12" style="margin-bottom:0px">' + 
                         '<select class="form-control" id="sty-alts-' + this.nodeid +'"></select>' + 
                     '</div>' + 
                 '</div>' + 

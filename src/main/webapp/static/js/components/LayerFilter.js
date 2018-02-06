@@ -33,7 +33,7 @@ magic.classes.LayerFilter = function(options) {
             '<div class="layer-filter-panel">' + 
                 '<form id="ftr-form-' + this.nodeid + '">' +
                     '<input id="ftr-comparison-type-' + this.nodeid + '" type="hidden" value="string">' + 
-                    '<div class="form-group form-group-sm col-sm-12" style="margin-bottom:0px">' +
+                    '<div class="form-group form-group-sm col-sm-12">' +
                         '<select id="ftr-attr-' + this.nodeid + '" class="form-control">' +
                             opts + 
                         '</select>' +                            
@@ -87,7 +87,7 @@ magic.classes.LayerFilter = function(options) {
                         '<input id="ftr-val-date2-' + this.nodeid + '" class="form-control" type="date" required="false" placeholder="Date as yyyy-mm-dd hh:mm:ss" ' + 
                             'data-toggle="tooltip" data-placement="bottom" title="Enter date/time to filter on"></input>' + 
                     '</div>' + 
-                    '<div class="form-group form-group-sm col-sm-12">' +
+                    '<div class="form-group form-group-sm col-sm-12" style="margin-bottom:0px">' +
                         '<button id="ftr-btn-go-' + this.nodeid + '" class="btn btn-primary btn-xs" type="button" ' + 
                             'data-toggle="tooltip" data-placement="bottom" title="Set filter on layer" style="margin-right:5px">' + 
                             '<span class="fa fa-filter"></span>Apply' + 

@@ -629,14 +629,6 @@ ul.layer-options-dd-menu {
     width: 240px;
 }
 
-.layer-options-dd-entry {
-    /*margin-bottom: 10px;*/
-}
-
-.layer-options-slider .slider {
-    /*width: 210px !important;*/
-}
-
 a.layer-tool {
     float: right;
     color: #202020;

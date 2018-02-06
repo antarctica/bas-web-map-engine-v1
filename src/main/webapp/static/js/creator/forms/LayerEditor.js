@@ -144,15 +144,22 @@ magic.classes.creator.LayerEditor.prototype.loadContext = function(context) {
     this.active = true;
 };
 
-magic.classes.creator.LayerEditor.prototype.saveContext = function(context) {
+magic.classes.creator.LayerEditor.prototype.saveContext = function() {
     
     if (jQuery.isFunction(this.onSave)) {
         /* Populate form from data */
-        this.onSave(jQuery.extend({},
+        console.log("===== LayerEditor.saveContext() called");
+        console.trace();
+        var totalPayload = jQuery.extend({},
             magic.modules.Common.formToJson(this.formSchema, this.prefix),
             this.sourceEditor.formToPayload(),
             this.attrEditorUpdates
-        ));
+        );
+        console.log("Payload to write follows...");
+        console.log(totalPayload);
+        console.log("===== LayerEditor.saveContext() calling onSave...");
+        this.onSave(totalPayload);
+        console.log("===== LayerEditor.saveContext() Done");
     }
     
     /* Clean the form */

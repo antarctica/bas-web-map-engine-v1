@@ -52,7 +52,7 @@ magic.classes.creator.MapLayerSelectorTree = function(options) {
         onCancel: jQuery.proxy(this.cancelEdit, this)
     });
     
-    /* Layer group editor */
+    /* Layer editor */
     this.layerEditor = new magic.classes.creator.LayerEditor({
         prefix: this.prefix + "-layer",
         onSave: jQuery.proxy(this.writeLayerData, this),

@@ -87,11 +87,17 @@ magic.classes.creator.LayerGroupEditor.prototype.loadContext = function(context)
     this.active = true;
 };
 
-magic.classes.creator.LayerGroupEditor.prototype.saveContext = function(context) {
+magic.classes.creator.LayerGroupEditor.prototype.saveContext = function() {
+    
+    console.log("===== LayerGroupEditor.saveContext() called");
     
     if (jQuery.isFunction(this.onSave)) {
         /* Populate form from data */
-        this.onSave(magic.modules.Common.formToJson(this.formSchema, this.prefix));
+        var payload = magic.modules.Common.formToJson(this.formSchema, this.prefix);
+        if (!payload.layers) {
+            payload.layers = [];
+        }
+        this.onSave(payload);
     }
     
     /* Clean the form */
@@ -99,6 +105,8 @@ magic.classes.creator.LayerGroupEditor.prototype.saveContext = function(context)
     
     /* Deactivate */
     this.active = false;
+    
+    console.log("===== LayerGroupEditor.saveContext() end");
 };
 
 magic.classes.creator.LayerGroupEditor.prototype.cancelEdit = function() {
