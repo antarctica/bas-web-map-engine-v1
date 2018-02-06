@@ -16,42 +16,52 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
         '</li>' + 
         '<li>' + 
             '<a href="Javascript:void(0)" id="sty-' + this.nodeid + '">Apply alternate style</a>' +
-            '<div class="layer-options-dd-entry hidden" id="wrapper-sty-' + this.nodeid + '">' + 
-                '<form class="form-inline">' + 
+            '<div class="panel panel-default hidden" style="margin-bottom:0px" id="wrapper-sty-' + this.nodeid + '">' + 
+                '<div class="panel-body" style="padding:5px">' + 
                     '<div class="form-group form-group-sm col-sm-12">' + 
                         '<select class="form-control" id="sty-alts-' + this.nodeid +'"></select>' + 
                     '</div>' + 
-                '</form>' + 
+                '</div>' + 
             '</div>' + 
         '</li>' + 
         '<li>' + 
             '<a href="Javascript:void(0)" id="ftr-' + this.nodeid + '">Filter by attribute</a>' +
-            '<div class="hidden" id="wrapper-ftr-' + this.nodeid + '">' +                                    
+            '<div class="panel panel-default hidden" style="margin-bottom:0px" id="wrapper-ftr-' + this.nodeid + '">' +  
+                '<div class="panel-body" style="padding:5px">' +
+                '</div>' + 
             '</div>' + 
         '</li>' +         
         '<li>' + 
             '<a href="Javascript:void(0)" id="opc-' + this.nodeid + '">Change layer transparency</a>' + 
-            '<div class="layer-options-dd-entry layer-options-slider hidden" id="wrapper-opc-' + this.nodeid + '">' + 
-                '<input id="opc-slider-' + this.nodeid + '" data-slider-id="opc-slider-' + this.nodeid + '" data-slider-min="0" data-slider-max="1" data-slider-step="0.1" data-slider-value="1">' + 
+            '<div class="panel panel-default hidden" style="margin-bottom:0px" id="wrapper-opc-' + this.nodeid + '">' + 
+                '<div class="panel-body" style="padding:5px">' +
+                    '<input id="opc-slider-' + this.nodeid + '" data-slider-id="opc-slider-' + this.nodeid + '" ' + 
+                        'data-slider-min="0" data-slider-max="1" data-slider-step="0.1" data-slider-value="1">' + 
+                    '</input>' + 
+                '</div>' +                
             '</div>' + 
         '</li>'
     );        
     if (this.layer) {
         /* Add handlers */
+        var ztlMenuLink = jQuery("#ztl-" + this.nodeid);
+        var styMenuLink = jQuery("#sty-" + this.nodeid);
+        var ftrMenuLink = jQuery("#ftr-" + this.nodeid);
 
         /* Zoom to layer extent */        
         if (this.canZoomToExtent()) {
-            /* Layer is visible on the map, and this is not an OSM layer */        
-            jQuery("#ztl-" + this.nodeid).off("click").on("click", jQuery.proxy(this.zoomToExtent, this));        
+            /* Layer is visible on the map, and this is not an OSM layer */            
+            ztlMenuLink.off("click").on("click", jQuery.proxy(this.zoomToExtent, this));        
         } else {
             /* Layer invisible (or OSM), so option is unavailable */
-            jQuery("#ztl-" + this.nodeid).parent().prop("disabled", true);
+            ztlMenuLink.parent().addClass("disabled");
+            ztlMenuLink.off("click").on("click", function() {return(false);});
         }
         
         /* Apply an alternate style */
         if (this.canApplyAlternateStyles()) {
             /* Layer is visible on the map, and this is a non-OSM WMS layer */        
-            jQuery("#sty-" + this.nodeid).off("click").on("click", jQuery.proxy(function(evt) {
+            styMenuLink.off("click").on("click", jQuery.proxy(function(evt) {
                 evt.stopPropagation();
                 /* Allow clicking on the inputs without the dropdown going away */
                 jQuery(evt.currentTarget).next("div").find("form").click(function(evt2) {evt2.stopPropagation()});
@@ -59,72 +69,67 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
             }, this));
         } else {
             /* Layer invisible (or OSM/non-WMS), so option is unavailable */
-            jQuery("#sty-" + this.nodeid).parent().prop("disabled", true);
+            styMenuLink.parent().addClass("disabled");
+            styMenuLink.off("click").on("click", function() {return(false);});
         }
         
         /* Filter layer */
         if (this.canFilter()) {
-            jQuery("#ftr-" + this.nodeid).off("click").on("click", jQuery.proxy(function(evt) {
+            ftrMenuLink.off("click").on("click", jQuery.proxy(function(evt) {
                 evt.stopPropagation();
-                new magic.classes.LayerFilter({               
-                    target: jQuery(evt.currentTarget).next("div"),
-                    nodeid: this.nodeid,
-                    layer: this.layer
-                });                       
+                var wrapper = jQuery("#wrapper-ftr-" + this.nodeid);
+                if (wrapper.hasClass("hidden")) {
+                    wrapper.removeClass("hidden");
+                    new magic.classes.LayerFilter({               
+                        target: wrapper.find("div.panel-body"),
+                        nodeid: this.nodeid,
+                        layer: this.layer
+                    });
+                } else {
+                    wrapper.addClass("hidden");
+                }
             }, this));
         } else {
             /* Hide filter link for layer where it isn't possible */
-            jQuery("#ftr-" + this.nodeid).parent().prop("disabled", true);        
+            ftrMenuLink.parent().addClass("disabled"); 
+            ftrMenuLink.off("click").on("click", function() {return(false);});
         }                                
         
         /* Transparency control */
-        this.addWebglSliderHandler("opc", 0.0, 1.0, 0.1);        
+        this.addOpacitySliderHandler();        
     }
 };
 
 /**
- * WebGL property slider initialiser
- * @param {string} idbase (opc|brt|ctr for opacity, brightness and contrast respectively)
- * @param {float} minVal slider minimum value
- * @param {float} maxVal slider maximum value
- * @param {float} step 
+ * Opacity property slider initialiser
  */
-magic.classes.LayerTreeOptionsMenu.prototype.addWebglSliderHandler = function(idbase, minVal, maxVal, step) { 
+magic.classes.LayerTreeOptionsMenu.prototype.addOpacitySliderHandler = function() {
+    var sliderLink = jQuery("#opc-" + this.nodeid);
     if (this.layer.getVisible()) {
-        /* Add the handlers */
-        jQuery("#" + idbase + "-" + this.nodeid).off("click").on("click", jQuery.proxy(function(evt) {
+        /* Add the handlers */        
+        sliderLink.off("click").on("click", jQuery.proxy(function(evt) {
             evt.stopPropagation();
-            var wrapper = jQuery(evt.currentTarget).next("div");
+            var wrapper = jQuery("#wrapper-opc-" + this.nodeid);
             if (wrapper.hasClass("hidden")) {
+                /* Show the slider and add handlers */
                 wrapper.removeClass("hidden");
-                var layer = this.layer;
-                var startValue = 0.0;
-                switch(idbase) {
-                    case "opc": startValue = layer.getOpacity(); break;
-                    /* These have been removed from OL3 - may be other means to do them */
-                    case "brt": startValue = layer.getBrightness(); break;
-                    case "ctr": startValue = layer.getContrast(); break;        
-                }
-                jQuery("#" + idbase + "-slider-" + this.nodeid).slider({
-                    value: startValue,
-                    formatter: function(value) {
-                        return(value);
-                    }
-                }).on("slide", function(evt) {
-                    var newVal = evt.value;
-                    switch(idbase) {
-                        case "opc": layer.setOpacity(newVal); break;
-                         /* These have been removed from OL3 - may be other means to do them */
-                        case "brt": layer.setBrightness(newVal); break;
-                        case "ctr": layer.setContrast(newVal); break;        
-                    }
-                });
+                jQuery("#opc-slider-" + this.nodeid).slider({
+                    min: 0.0,
+                    max: 1.0,
+                    step: 0.1,
+                    value: this.layer.getOpacity()
+                }).off("slide").on("slide", jQuery.proxy(function(evt) {
+                    this.layer.setOpacity(evt.value);                    
+                }, this));
             } else {
+                jQuery("#opc-slider-" + this.nodeid).slider("destroy");
                 wrapper.addClass("hidden");
             }                        
         }, this));
     } else {
-        jQuery("#" + idbase + "-" + this.nodeid).parent().prop("disabled", true);
+        /* Disable the link */
+        sliderLink.parent().addClass("disabled"); 
+        sliderLink.off("click").on("click", function() {return(false);});
     }
 };
 
@@ -200,38 +205,42 @@ magic.classes.LayerTreeOptionsMenu.prototype.zoomToExtent = function() {
  */
 magic.classes.LayerTreeOptionsMenu.prototype.applyAlternateStyle = function() {
     var choices = jQuery("#sty-alts-" + this.nodeid);
-    var wrapperDiv = jQuery("#wrapper-sty-" + this.nodeid);
-    wrapperDiv.toggleClass("hidden");
-    var feature = null;
-    try {
-        feature = this.layer.get("metadata").source.feature_name;
-    } catch(e) {}
-    if (feature != null) {
-        jQuery.ajax({
-            url: magic.config.paths.baseurl + "/gs/styles/" + feature, 
-            method: "GET",
-            dataType: "json",
-            contentType: "application/json"
-        }).done(jQuery.proxy(function(data) {
-            if (data.styles && typeof data.styles == "object" && jQuery.isArray(data.styles.style)) {
-                if (data.styles.style.length > 0) {
-                    magic.modules.Common.populateSelect(choices, data.styles.style, "name", "name", false);
-                    choices.change(jQuery.proxy(function(evt) {
-                        this.layer.getSource().updateParams(jQuery.extend({}, 
-                            this.layer.getSource().getParams(), 
-                            {"STYLES": choices.val()}
-                        ));
-                    }, this));
+    var wrapper = jQuery("#wrapper-sty-" + this.nodeid);
+    if (wrapper.hasClass("hidden")) {
+        wrapper.removeClass("hidden");
+        var feature = null;
+        try {
+            feature = this.layer.get("metadata").source.feature_name;
+        } catch(e) {}
+        if (feature != null) {
+            jQuery.ajax({
+                url: magic.config.paths.baseurl + "/gs/styles/" + feature, 
+                method: "GET",
+                dataType: "json",
+                contentType: "application/json"
+            }).done(jQuery.proxy(function(data) {
+                if (data.styles && typeof data.styles == "object" && jQuery.isArray(data.styles.style)) {
+                    if (data.styles.style.length > 0) {
+                        magic.modules.Common.populateSelect(choices, data.styles.style, "name", "name", false);
+                        choices.change(jQuery.proxy(function(evt) {
+                            this.layer.getSource().updateParams(jQuery.extend({}, 
+                                this.layer.getSource().getParams(), 
+                                {"STYLES": choices.val()}
+                            ));
+                        }, this));
+                    } else {
+                        magic.modules.Common.populateSelect(choices, [{"name": "Default only"}], "name", "name", false);
+                    }
                 } else {
                     magic.modules.Common.populateSelect(choices, [{"name": "Default only"}], "name", "name", false);
-                }
-            } else {
-                magic.modules.Common.populateSelect(choices, [{"name": "Default only"}], "name", "name", false);
-            }                                       
-        }, this)).fail(jQuery.proxy(function(xhr) {
-            magic.modules.Common.populateSelect(choices, [{"name": "Default only"}], "name", "name", false);                
-        }, this));
-    }
+                }                                       
+            }, this)).fail(jQuery.proxy(function(xhr) {
+                magic.modules.Common.populateSelect(choices, [{"name": "Default only"}], "name", "name", false);                
+            }, this));
+        }
+    } else {
+        wrapper.addClass("hidden");
+    }        
 };
 
 /**

@@ -196,8 +196,15 @@ magic.classes.creator.MapLayerSelectorTree.prototype.deleteHandler = function(ev
                         parent.find("button.layer-group-delete").prop("disabled", false);
                     }
                 }
-                jQuery("#" + itemId).remove();                
+                console.log("===== Deleting list element with id " + itemId);
+                jQuery("#" + itemId).remove();   
+                console.log("--> Layer dictionary before...");
+                console.log(this.layerDictionary);
+                console.log("--> End");
                 this.layerDictionary.del(itemId);
+                console.log("--> Layer dictionary after...");
+                console.log(this.layerDictionary);
+                console.log("--> End");
                 jQuery("#" + this.prefix + "-update-panel").fadeOut("slow");
                 bootbox.hideAll();
             } else {

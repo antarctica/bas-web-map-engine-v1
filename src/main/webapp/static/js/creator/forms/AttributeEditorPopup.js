@@ -24,7 +24,7 @@ magic.classes.creator.AttributeEditorPopup = function(options) {
     /* Feature name (for WFS) from above, if relevant */
     this.featureName = null;
     
-    this.inputs = ["name", "type", "nillable", "alias", "ordinal", "displayed"];
+    this.inputs = ["name", "type", "nillable", "alias", "ordinal", "label", "displayed", "filterable", "unique_values"];
        
     this.target.popover({
         template: this.template,

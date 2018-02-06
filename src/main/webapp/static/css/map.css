@@ -620,12 +620,6 @@ div.measure-true {
     border-top-color: #ffcc33;
 }
 
-/* Ensure modals don't get too large and display a scrollbar */
-.modal .modal-body {
-    max-height: 600px;
-    overflow-y: auto;
-}
-
 /* Layer options menu styles */
 div.layer-options-dd {
     float: right;
@@ -635,47 +629,12 @@ ul.layer-options-dd-menu {
     width: 240px;
 }
 
-/* Set popover max width */
-.popover-auto-width {
-    max-width: none;
-}
-
-/* Set popover max height */
-.popover-auto-height {
-    max-height: none;
-}
-
 .layer-options-dd-entry {
-    margin-left: 10px;
+    /*margin-bottom: 10px;*/
 }
 
 .layer-options-slider .slider {
-    width: 210px !important;
-}
-
-a.download-file-tool {
-    float: right;
-    color: #202020;
-}
-
-div.download-group-panel {
-    border-radius: 0px;
-    margin-bottom: 0px;
-    border-bottom: 0px;
-}
-
-span.download-group-panel-title {
-    margin-left: 5px;
-}
-
-ul.download-list-group {
-    margin-bottom: 0px;
-    border-radius: 0px !important;
-}
-
-li.download-list-group-item {
-    height: 40px;
-    border-radius: 0px !important;
+    /*width: 210px !important;*/
 }
 
 a.layer-tool {
@@ -695,10 +654,6 @@ a.layer-group-tool {
 
 a.layer-group-tool:hover {
     text-decoration: underline;
-}
-
-a.download-file-tool:hover {
-    text-decoration: none; 
 }
 
 div.tooltip-inner {
@@ -766,8 +721,21 @@ div.watermark {
     z-index: 9999 !important;
 }
 
-.modal {
+/* Ensure modals don't get too large and display a scrollbar */
+.modal .modal-body {
     z-index: 9000;
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+/* Set popover max width */
+.popover-auto-width {
+    max-width: none;
+}
+
+/* Set popover max height */
+.popover-auto-height {
+    max-height: none;
 }
 
 /* Allow pretty much arbitrary width popovers - could be dodgy! */

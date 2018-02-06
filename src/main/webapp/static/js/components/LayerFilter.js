@@ -30,79 +30,77 @@ magic.classes.LayerFilter = function(options) {
     if (this.target.html() == "") {
         /* Add markup and handlers */
         this.target.html(
-            '<div class="panel panel-default">' +
-                '<div class="panel-body layer-filter-panel">' + 
-                    '<form id="ftr-form-' + this.nodeid + '">' +
-                        '<input id="ftr-comparison-type-' + this.nodeid + '" type="hidden" value="string">' + 
-                        '<div class="form-group form-group-sm col-sm-12">' +
-                            '<select id="ftr-attr-' + this.nodeid + '" class="form-control">' +
-                                opts + 
-                            '</select>' +                            
-                        '</div>' +
-                        '<div class="form-group form-group-sm col-sm-12">' +
-                            '<select id="ftr-op-str-' + this.nodeid + '" class="form-control">' +                             
-                                '<option id="ftr-op-str-eq-' + this.nodeid + '" value="eq">equal to (case-insensitive)</option>' +
-                                '<option id="ftr-op-str-sw-' + this.nodeid + '" value="sw">starts with (case-insensitive)</option>' +
-                                '<option id="ftr-op-str-ew-' + this.nodeid + '" value="ew">Ends with (case-insensitive)</option>' +
-                                '<option id="ftr-op-str-ct-' + this.nodeid + '" value="ct">Contains (case-insensitive)</option>' +
-                                '<option id="ftr-op-str-nn-' + this.nodeid + '" value="nn">Has a non-null value</option>' +
-                            '</select>' +                            
-                        '</div>' +
-                        '<div class="form-group form-group-sm col-sm-12 hidden">' +
-                            '<select id="ftr-op-str-unique-' + this.nodeid + '" class="form-control">' +                             
-                                '<option id="ftr-op-str-eq-' + this.nodeid + '" value="eq">equal to</option>' +                            
-                            '</select>' +                            
-                        '</div>' +
-                        '<div class="form-group form-group-sm col-sm-12 hidden">' +
-                            '<select id="ftr-op-num-' + this.nodeid + '" class="form-control">' +
-                                '<option id="ftr-op-num-eq-' + this.nodeid + '" value="=" selected>equal to</option>' +
-                                '<option id="ftr-op-num-gt-' + this.nodeid + '" value=">">greater than</option>' +
-                                '<option id="ftr-op-num-lt-' + this.nodeid + '" value="<">less than</option>' +
-                                '<option id="ftr-op-num-gte-' + this.nodeid + '" value=">=">greater than or equal to</option>' +
-                                '<option id="ftr-op-num-lte-' + this.nodeid + '" value="<=">less than or equal to</option>' +
-                                '<option id="ftr-op-num-btw-' + this.nodeid + '" value="between">between</option>' +
-                            '</select>' +                            
-                        '</div>' +
-                        '<div class="form-group form-group-sm col-sm-12">' +
-                            '<input id="ftr-val-str-' + this.nodeid + '" class="form-control" type="text" required="true" placeholder="Attribute value" ' + 
-                                'data-toggle="tooltip" data-placement="bottom" title="Enter the attribute value to filter on"></input>' + 
-                        '</div>' + 
-                        '<div class="form-group form-group-sm col-sm-12 hidden">' +
-                            '<select id="ftr-val-str-unique-' + this.nodeid + '" class="form-control" type="text" required="true" placeholder="Attribute value" ' + 
-                                'data-toggle="tooltip" data-placement="bottom" title="Select the attribute value to filter on">' + 
-                            '</select>' + 
-                        '</div>' + 
-                        '<div class="form-group form-group-sm col-sm-12 hidden">' +
-                            '<input id="ftr-val-num1-' + this.nodeid + '" class="form-control" type="number" required="true" placeholder="Numeric attribute value" ' + 
-                                'data-toggle="tooltip" data-placement="bottom" title="Enter numeric attribute value to filter on"></input>' + 
-                        '</div>' + 
-                        '<div class="form-group form-group-sm col-sm-12 hidden">' +
-                            '<input id="ftr-val-num2-' + this.nodeid + '" class="form-control" type="number" required="false" placeholder="Numeric attribute value" ' + 
-                                'data-toggle="tooltip" data-placement="bottom" title="Enter upper numeric attribute value to filter on"></input>' + 
-                        '</div>' + 
-                        '<div class="form-group form-group-sm col-sm-12 hidden">' +
-                            '<input id="ftr-val-date1-' + this.nodeid + '" class="form-control" type="date" required="true" placeholder="Date as yyyy-mm-dd hh:mm:ss" ' + 
-                                'data-toggle="tooltip" data-placement="bottom" title="Enter date/time to filter on"></input>' + 
-                        '</div>' + 
-                        '<div class="form-group form-group-sm col-sm-12 hidden">' +
-                            '<input id="ftr-val-date2-' + this.nodeid + '" class="form-control" type="date" required="false" placeholder="Date as yyyy-mm-dd hh:mm:ss" ' + 
-                                'data-toggle="tooltip" data-placement="bottom" title="Enter date/time to filter on"></input>' + 
-                        '</div>' + 
-                        '<div class="form-group form-group-sm col-sm-12">' +
-                            '<button id="ftr-btn-go-' + this.nodeid + '" class="btn btn-primary btn-xs" type="button" ' + 
-                                'data-toggle="tooltip" data-placement="bottom" title="Set filter on layer" style="margin-right:5px">' + 
-                                '<span class="fa fa-filter"></span>Apply' + 
-                            '</button>' +
-                            '<button id="ftr-btn-reset-' + this.nodeid + '" class="btn btn-danger btn-xs" type="button" ' + 
-                                'data-toggle="tooltip" data-placement="bottom" title="Remove layer filter">' + 
-                                '<span class="fa fa-minus-circle"></span>Reset' + 
-                            '</button>' +
-                        '</div>' + 
-                    '</form>' + 
-                '</div>' +
+            '<div class="layer-filter-panel">' + 
+                '<form id="ftr-form-' + this.nodeid + '">' +
+                    '<input id="ftr-comparison-type-' + this.nodeid + '" type="hidden" value="string">' + 
+                    '<div class="form-group form-group-sm col-sm-12" style="margin-bottom:0px">' +
+                        '<select id="ftr-attr-' + this.nodeid + '" class="form-control">' +
+                            opts + 
+                        '</select>' +                            
+                    '</div>' +
+                    '<div class="form-group form-group-sm col-sm-12">' +
+                        '<select id="ftr-op-str-' + this.nodeid + '" class="form-control">' +                             
+                            '<option id="ftr-op-str-eq-' + this.nodeid + '" value="eq">equal to (case-insensitive)</option>' +
+                            '<option id="ftr-op-str-sw-' + this.nodeid + '" value="sw">starts with (case-insensitive)</option>' +
+                            '<option id="ftr-op-str-ew-' + this.nodeid + '" value="ew">Ends with (case-insensitive)</option>' +
+                            '<option id="ftr-op-str-ct-' + this.nodeid + '" value="ct">Contains (case-insensitive)</option>' +
+                            '<option id="ftr-op-str-nn-' + this.nodeid + '" value="nn">Has a non-null value</option>' +
+                        '</select>' +                            
+                    '</div>' +
+                    '<div class="form-group form-group-sm col-sm-12 hidden">' +
+                        '<select id="ftr-op-str-unique-' + this.nodeid + '" class="form-control">' +                             
+                            '<option id="ftr-op-str-eq-' + this.nodeid + '" value="eq">equal to</option>' +                            
+                        '</select>' +                            
+                    '</div>' +
+                    '<div class="form-group form-group-sm col-sm-12 hidden">' +
+                        '<select id="ftr-op-num-' + this.nodeid + '" class="form-control">' +
+                            '<option id="ftr-op-num-eq-' + this.nodeid + '" value="=" selected>equal to</option>' +
+                            '<option id="ftr-op-num-gt-' + this.nodeid + '" value=">">greater than</option>' +
+                            '<option id="ftr-op-num-lt-' + this.nodeid + '" value="<">less than</option>' +
+                            '<option id="ftr-op-num-gte-' + this.nodeid + '" value=">=">greater than or equal to</option>' +
+                            '<option id="ftr-op-num-lte-' + this.nodeid + '" value="<=">less than or equal to</option>' +
+                            '<option id="ftr-op-num-btw-' + this.nodeid + '" value="between">between</option>' +
+                        '</select>' +                            
+                    '</div>' +
+                    '<div class="form-group form-group-sm col-sm-12">' +
+                        '<input id="ftr-val-str-' + this.nodeid + '" class="form-control" type="text" required="true" placeholder="Attribute value" ' + 
+                            'data-toggle="tooltip" data-placement="bottom" title="Enter the attribute value to filter on"></input>' + 
+                    '</div>' + 
+                    '<div class="form-group form-group-sm col-sm-12 hidden">' +
+                        '<select id="ftr-val-str-unique-' + this.nodeid + '" class="form-control" type="text" required="true" placeholder="Attribute value" ' + 
+                            'data-toggle="tooltip" data-placement="bottom" title="Select the attribute value to filter on">' + 
+                        '</select>' + 
+                    '</div>' + 
+                    '<div class="form-group form-group-sm col-sm-12 hidden">' +
+                        '<input id="ftr-val-num1-' + this.nodeid + '" class="form-control" type="number" required="true" placeholder="Numeric attribute value" ' + 
+                            'data-toggle="tooltip" data-placement="bottom" title="Enter numeric attribute value to filter on"></input>' + 
+                    '</div>' + 
+                    '<div class="form-group form-group-sm col-sm-12 hidden">' +
+                        '<input id="ftr-val-num2-' + this.nodeid + '" class="form-control" type="number" required="false" placeholder="Numeric attribute value" ' + 
+                            'data-toggle="tooltip" data-placement="bottom" title="Enter upper numeric attribute value to filter on"></input>' + 
+                    '</div>' + 
+                    '<div class="form-group form-group-sm col-sm-12 hidden">' +
+                        '<input id="ftr-val-date1-' + this.nodeid + '" class="form-control" type="date" required="true" placeholder="Date as yyyy-mm-dd hh:mm:ss" ' + 
+                            'data-toggle="tooltip" data-placement="bottom" title="Enter date/time to filter on"></input>' + 
+                    '</div>' + 
+                    '<div class="form-group form-group-sm col-sm-12 hidden">' +
+                        '<input id="ftr-val-date2-' + this.nodeid + '" class="form-control" type="date" required="false" placeholder="Date as yyyy-mm-dd hh:mm:ss" ' + 
+                            'data-toggle="tooltip" data-placement="bottom" title="Enter date/time to filter on"></input>' + 
+                    '</div>' + 
+                    '<div class="form-group form-group-sm col-sm-12">' +
+                        '<button id="ftr-btn-go-' + this.nodeid + '" class="btn btn-primary btn-xs" type="button" ' + 
+                            'data-toggle="tooltip" data-placement="bottom" title="Set filter on layer" style="margin-right:5px">' + 
+                            '<span class="fa fa-filter"></span>Apply' + 
+                        '</button>' +
+                        '<button id="ftr-btn-reset-' + this.nodeid + '" class="btn btn-danger btn-xs" type="button" ' + 
+                            'data-toggle="tooltip" data-placement="bottom" title="Remove layer filter">' + 
+                            '<span class="fa fa-minus-circle"></span>Reset' + 
+                        '</button>' +
+                    '</div>' + 
+                '</form>' + 
             '</div>'
         );
-        this.target.find("form").click(function(evt2) {evt2.stopPropagation()});        
+        this.target.find("form").click(function(evt2) {evt2.stopPropagation();});        
         jQuery("#ftr-attr-" + this.nodeid).on("change", jQuery.proxy(function(evt) {
             this.setFilterOptions("attr", jQuery(evt.target).val());                                
         }, this));
@@ -111,14 +109,8 @@ magic.classes.LayerFilter = function(options) {
         }, this));      
         jQuery("#ftr-btn-go-" + this.nodeid).on("click", jQuery.proxy(this.applyFilter, this));
         jQuery("#ftr-btn-reset-" + this.nodeid).on("click", jQuery.proxy(this.resetFilter, this));
-    }
-       
-    if (this.target.hasClass("hidden")) {
-        this.target.removeClass("hidden").addClass("show");
-        this.setFilterOptions("init", null);        
-    } else {
-        this.target.removeClass("show").addClass("hidden");        
-    }           
+    }       
+    this.setFilterOptions("init", null);
 };
 
 /**
@@ -167,19 +159,19 @@ magic.classes.LayerFilter.prototype.setFilterOptions = function(changed, to) {
             var inputValNum2 = form.find("input[id*='-num2']");
             if (to == "between") {
                 /* Make second value visible */
-                inputValNum2.parent().removeClass("hidden").addClass("show"); 
+                inputValNum2.parent().removeClass("hidden"); 
             } else {
                 /* Hide second value */
-                inputValNum2.parent().removeClass("show").addClass("hidden"); 
+                inputValNum2.parent().addClass("hidden"); 
             }
         } else if (comparisonType == "date") {
             var inputValDate2 = form.find("input[id*='-date2']");
             if (to == "between") {
                 /* Make second value visible */
-                inputValDate2.parent().removeClass("hidden").addClass("show"); 
+                inputValDate2.parent().removeClass("hidden"); 
             } else {
                 /* Hide second value */
-                inputValDate2.parent().removeClass("show").addClass("hidden"); 
+                inputValDate2.parent().addClass("hidden"); 
             }
         }
     } else if (changed == "init") {
@@ -232,9 +224,9 @@ magic.classes.LayerFilter.prototype.setFilterOptions = function(changed, to) {
                 var inputValNum2 = jQuery("#ftr-val-num2-" + this.nodeid);
                 if (this.op == "between") {
                     inputValNum2.val(this.val2);
-                    inputValNum2.parent().removeClass("hidden").addClass("show").val(this.val2);
+                    inputValNum2.parent().removeClass("hidden").val(this.val2);
                 } else {
-                    inputValNum2.parent().removeClass("show").addClass("hidden").val("");
+                    inputValNum2.parent().addClass("hidden").val("");
                 }
             } else if (this.comparison == "date") {
                 /* Date */
@@ -245,9 +237,9 @@ magic.classes.LayerFilter.prototype.setFilterOptions = function(changed, to) {
                 var inputValDate2 = jQuery("#ftr-val-date2-" + this.nodeid);
                 if (this.op == "between") {
                     inputValDate2.val(this.val2);
-                    inputValDate2.parent().removeClass("hidden").addClass("show").val(this.val2);
+                    inputValDate2.parent().removeClass("hidden").val(this.val2);
                 } else {
-                    inputValDate2.parent().removeClass("show").addClass("hidden").val("");
+                    inputValDate2.parent().addClass("hidden").val("");
                 }
             }
         } else {
@@ -266,20 +258,20 @@ magic.classes.LayerFilter.prototype.setFilterOptions = function(changed, to) {
 magic.classes.LayerFilter.prototype.showFormFields = function(form, attrType) {
     if (attrType == "string") {
         /* Hide all inputs/selects concerning numbers or dates */
-        form.find("input[id*='-num'],select[id*='-num'],input[id*='-date']").parent().removeClass("show").addClass("hidden");
+        form.find("input[id*='-num'],select[id*='-num'],input[id*='-date']").parent().addClass("hidden");
         /* Show default string inputs and hide unique-type ones, pending an extra enquiry */
-        form.find("input[id*='-str-" + this.nodeid + "'],select[id*='-str-" + this.nodeid + "']").parent().removeClass("hidden").addClass("show");        
-        form.find("input[id*='-str-unique-'],select[id*='-str-unique']").parent().removeClass("show").addClass("hidden");
+        form.find("input[id*='-str-" + this.nodeid + "'],select[id*='-str-" + this.nodeid + "']").parent().removeClass("hidden");        
+        form.find("input[id*='-str-unique-'],select[id*='-str-unique']").parent().addClass("hidden");
     } else if (attrType == "number") {
         /* Hide all inputs/selects concerning strings, and any inputs concerning dates */
-        form.find("input[id*='-str'],select[id*='-str'],input[id*='-date']").parent().removeClass("show").addClass("hidden");     
+        form.find("input[id*='-str'],select[id*='-str'],input[id*='-date']").parent().addClass("hidden");     
         /* Show number inputs and numeric comparison select */
-        form.find("input[id*='-num'],select[id*='-num-']").parent().removeClass("hidden").addClass("show");
+        form.find("input[id*='-num'],select[id*='-num-']").parent().removeClass("hidden");
     } else if (attrType == "date") {
         /* Hide all inputs/selects concerning strings, and any inputs concerning numbers */
-        form.find("input[id*='-str'],select[id*='-str'],input[id*='-num']").parent().removeClass("show").addClass("hidden");     
+        form.find("input[id*='-str'],select[id*='-str'],input[id*='-num']").parent().addClass("hidden");     
         /* Show date inputs and numeric comparison select */
-        form.find("input[id*='-date'],select[id*='-num-']").parent().removeClass("hidden").addClass("show");
+        form.find("input[id*='-date'],select[id*='-num-']").parent().removeClass("hidden");
     }
 };
 
@@ -522,7 +514,7 @@ magic.classes.LayerFilter.prototype.applyFilter = function() {
         jQuery("#ftr-btn-reset-" + this.nodeid).removeClass("disabled");
         /* Show filter badge */
         var filterBadge = jQuery("#layer-filter-badge-" + this.nodeid);
-        filterBadge.removeClass("hidden").addClass("show").attr("data-original-title", filterString + " (click to remove filter)").tooltip("fixTitle");
+        filterBadge.removeClass("hidden").attr("data-original-title", filterString + " (click to remove filter)").tooltip("fixTitle");
         filterBadge.closest("a").click(jQuery.proxy(this.resetFilter, this));
         /* Reset the errors */
         jQuery("div.layer-filter-panel").find("div.form-group").removeClass("has-error");        
@@ -560,7 +552,7 @@ magic.classes.LayerFilter.prototype.resetFilter = function() {
     }
     jQuery("#ftr-btn-reset-" + this.nodeid).prop("disabled", true);    
     /* Hide filter badge */
-    jQuery("#layer-filter-badge-" + this.nodeid).removeClass("show").addClass("hidden");
+    jQuery("#layer-filter-badge-" + this.nodeid).addClass("hidden");
     
 };
 
@@ -617,8 +609,8 @@ magic.classes.LayerFilter.prototype.populateUniqueValueSelection = function(attr
     if (selOpt != null) {
         selOpt.prop("selected", "selected");
     }
-    uniqueSelect.parent().removeClass("hidden").addClass("show");
-    jQuery("#ftr-op-str-unique-" + this.nodeid).prop("selectedIndex", 0).parent().removeClass("hidden").addClass("show");
-    jQuery("#ftr-val-str-" + this.nodeid).parent().removeClass("show").addClass("hidden");
-    jQuery("#ftr-op-str-" + this.nodeid).parent().removeClass("show").addClass("hidden");
+    uniqueSelect.parent().removeClass("hidden");
+    jQuery("#ftr-op-str-unique-" + this.nodeid).prop("selectedIndex", 0).parent().removeClass("hidden");
+    jQuery("#ftr-val-str-" + this.nodeid).parent().addClass("hidden");
+    jQuery("#ftr-op-str-" + this.nodeid).parent().addClass("hidden");
 };
