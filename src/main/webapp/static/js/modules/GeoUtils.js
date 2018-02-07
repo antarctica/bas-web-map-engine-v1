@@ -722,6 +722,9 @@ magic.modules.GeoUtils = function() {
          * @return {Array}
          */
         uniteExtents: function(extents) {
+            if (!extents || (jQuery.isArray(extents) && extents.length == 0)) {
+                return(null);
+            }
             var minx = null, miny = null, maxx = null, maxy = null;
             for (var i = 0; i < extents.length; i++) {
                 minx = (minx == null ? extents[i][0] : Math.min(minx, extents[i][0]));

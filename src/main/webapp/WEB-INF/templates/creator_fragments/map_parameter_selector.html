@@ -19,16 +19,13 @@
         </div>
         <div class="col-md-4">
             <div class="form-group form-inline">               
-                <label for="map-parameters-rotation" class="col-md-5 control-label">Map rotation</label>
-                <div class="col-md-7">
-                    <input type="number" class="form-control" id="map-parameters-rotation" name="map-parameters-rotation" 
-                           placeholder="Map rotation" 
-                           min="-180" max="180" step="1"
-                           data-toggle="tooltip" data-placement="left" title="Clockwise rotation of map in degrees, -180 &lt;= rotation &lt;= 180">                                   
-                    </input>
-                    <button id="map-parameters-rotation-set" type="button" class="btn btn-primary">Set</button>
-                </div>                
+                <input type="number" class="form-control" id="map-parameters-rotation" name="map-parameters-rotation" 
+                       placeholder="Map rotation angle" 
+                       min="-180" max="180" step="1"
+                       data-toggle="tooltip" data-placement="left" title="Clockwise rotation of map in degrees, -180 &lt;= rotation &lt;= 180">                                   
+                </input>
+                <button id="map-parameters-rotation-set" type="button" class="btn btn-primary">Set</button>
             </div>
-        </div>           
+        </div>             
     </body>
 </html>

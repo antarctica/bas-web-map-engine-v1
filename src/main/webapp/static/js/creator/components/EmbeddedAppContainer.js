@@ -87,67 +87,66 @@ magic.classes.creator.EmbeddedAppContainer.prototype.saveContext = function() {
         var context = {};
         jQuery.each(this.dialogs, jQuery.proxy(function(dn, dialog) {
             jQuery.extend(true, context, dialog.getContext(true));
-        }, this));
-        /* Postprocess to set map centre and zoom level in the event that these must be taken from data layers */
-        jQuery.extend(true, context, {
-            "data_extent": this.modifyMapExtentByDataLayers(context)
-        });
+        }, this));        
         console.log(context);
-        /* Now validate the assembled map context against the JSON schema in /static/js/json/embedded_web_map_schema.json
-         * https://github.com/geraintluff/tv4 is the validator used */            
-        jQuery.getJSON(magic.config.paths.baseurl + "/static/js/json/embedded_web_map_schema.json", jQuery.proxy(function(schema) {        
-            var validated = tv4.validate(context, schema);               
-            if (!validated) {
-                 /* Failed to validate the data against the schema - complain */
-                var validationErrors = JSON.stringify(tv4.error, null, 4);
-                bootbox.alert(
-                    '<div class="alert alert-danger" style="margin-top:10px">' + 
-                        '<p>Failed to validate your map data against the web map schema</p>' + 
-                        '<p>Detailed explanation of the failure below:</p>' + 
-                        '<p>' + validationErrors + '</p>' + 
-                    '</div>'
-                );
-            } else {
-                /* Schema validation was ok */
-                var existingId = context.id;
-                var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content");
-                var csrfHeader = jQuery("meta[name='_csrf_header']").attr("content");
-                jQuery.ajax({
-                    url: magic.config.paths.baseurl + "/embedded_maps/" + (existingId != "" ? "update/" + existingId : "save"),                        
-                    method: "POST",
-                    processData: false,
-                    data: JSON.stringify(context),
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    beforeSend: function(xhr) {
-                        xhr.setRequestHeader(csrfHeader, csrfHeaderVal);
-                    }
-                })
-                .done(function(response) {
-                    /* Load up example finished map into test bed in a new tab */
-                    magic.runtime.serviceUrl = magic.config.paths.baseurl + "/embedded_maps/name/" + context.name;
-                    window.open(magic.config.paths.baseurl + "/static/html/test_embed.html");                    
-                })
-                .fail(function(xhr) {
-                    var detail = JSON.parse(xhr.responseText)["detail"];
+        this.modifyMapExtentByDataLayers(context, jQuery.proxy(function(postData) {
+            /* Now validate the assembled map context against the JSON schema in /static/js/json/embedded_web_map_schema.json
+             * https://github.com/geraintluff/tv4 is the validator used */            
+            jQuery.getJSON(magic.config.paths.baseurl + "/static/js/json/embedded_web_map_schema.json", jQuery.proxy(function(schema) {        
+                var validated = tv4.validate(postData, schema);               
+                if (!validated) {
+                    /* Failed to validate the data against the schema - complain */
+                    var validationErrors = JSON.stringify(tv4.error, null, 4);
                     bootbox.alert(
-                        '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                            '<p>Failed to save your map - details below:</p>' + 
-                            '<p>' + detail + '</p>' + 
+                        '<div class="alert alert-danger" style="margin-top:10px">' + 
+                            '<p>Failed to validate your map data against the web map schema</p>' + 
+                            '<p>Detailed explanation of the failure below:</p>' + 
+                            '<p>' + validationErrors + '</p>' + 
                         '</div>'
                     );
-                });
-            }
-        }, this))
-        .fail(function(xhr) {
-            bootbox.alert(
-                '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                    '<p>Failed to retrieve JSON schema for embedded map - details below:</p>' + 
-                    '<p>' + JSON.parse(xhr.responseText)["detail"] + '</p>' + 
-                '</div>'
-            );
-        });  
+                } else {
+                    /* Schema validation was ok */
+                    var existingId = postData.id;                    
+                    jQuery.ajax({
+                        url: magic.config.paths.baseurl + "/embedded_maps/" + (existingId != "" ? "update/" + existingId : "save"),                        
+                        method: "POST",
+                        processData: false,
+                        data: JSON.stringify(postData),
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        beforeSend: function(xhr) {
+                            xhr.setRequestHeader(
+                                jQuery("meta[name='_csrf_header']").attr("content"), 
+                                jQuery("meta[name='_csrf']").attr("content")
+                            );
+                        }
+                    })
+                    .done(function(response) {
+                        /* Load up example finished map into test bed in a new tab */
+                        magic.runtime.serviceUrl = magic.config.paths.baseurl + "/embedded_maps/name/" + postData.name;
+                        window.open(magic.config.paths.baseurl + "/static/html/test_embed.html");                    
+                    })
+                    .fail(function(xhr) {
+                        var detail = JSON.parse(xhr.responseText)["detail"];
+                        bootbox.alert(
+                            '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                                '<p>Failed to save your map - details below:</p>' + 
+                                '<p>' + detail + '</p>' + 
+                            '</div>'
+                        );
+                    });
+                }
+            }, this))
+            .fail(function(xhr) {
+                bootbox.alert(
+                    '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                        '<p>Failed to retrieve JSON schema for embedded map - details below:</p>' + 
+                        '<p>' + JSON.parse(xhr.responseText)["detail"] + '</p>' + 
+                    '</div>'
+                );
+            });  
+        }, this));        
     } else {
         /* Validation errors */
         bootbox.alert(
@@ -161,20 +160,16 @@ magic.classes.creator.EmbeddedAppContainer.prototype.saveContext = function() {
 /** 
  * Check if any data layers had the 'is_extent' attribute set, find their combined extent and modify the map extent accordingly
  * @param {Object} context
- * @return {Array}
+ * @param {Function} callback
  */
-magic.classes.creator.EmbeddedAppContainer.prototype.modifyMapExtentByDataLayers = function(context) {
-    var finalExtent = null;
+magic.classes.creator.EmbeddedAppContainer.prototype.modifyMapExtentByDataLayers = function(context, callback) {
     var extents = [];
     var extentRequests = [];
     jQuery.each(context.layers, jQuery.proxy(function(idx, elt) {
         if (elt.is_extent === true && elt.feature_name) {
-            extentRequests.push(jQuery.get(magic.config.paths.baseurl + "/gs/extent/" + elt.feature_name, 
-                jQuery.proxy(function(data, status, xhr) {
-                    if (typeof data == "string") {
-                        data = JSON.parse(data);
-                    }
-                    if (jQuery.isArray(data)) {
+            extentRequests.push(jQuery.getJSON(magic.config.paths.baseurl + "/gs/extent/" + elt.feature_name, 
+                jQuery.proxy(function(data) {                   
+                    if (jQuery.isArray(data) && data.length == 4) {
                         extents.push(magic.modules.GeoUtils.extentFromWgs84Extent(data, context.projection));
                     }
                 }, this))
@@ -184,7 +179,13 @@ magic.classes.creator.EmbeddedAppContainer.prototype.modifyMapExtentByDataLayers
     if (extentRequests.length > 0) {
         jQuery.when.apply(jQuery, extentRequests)
         .always(jQuery.proxy(function() {
-            finalExtent = magic.modules.GeoUtils.uniteExtents(extents);
+            /* Postprocess to set map centre and zoom level in the event that these must be taken from data layers */
+            jQuery.extend(true, context, {
+                "data_extent": magic.modules.GeoUtils.uniteExtents(extents)
+            });
+            if (jQuery.isFunction(callback)) {
+                callback(context);
+            }
         }, this))
         .fail(function(xhr) {
             bootbox.alert(
@@ -194,8 +195,7 @@ magic.classes.creator.EmbeddedAppContainer.prototype.modifyMapExtentByDataLayers
                 '</div>'
             );
         });
-    }
-    return(finalExtent);
+    }    
 };
 
 /**
