@@ -16,19 +16,6 @@ function isApexContext() {
 }
 
 /**
- * Apply proxying to a URL (e.g. a vector feed) unless it's from the same host
- * @param {String} url
- * @returns {String}
- */
-function proxyUrl(url) {
-    var proxyUrl = url;
-    if (url.indexOf(window.location.protocol + "//" + window.location.hostname) != 0) {
-        proxyUrl = baseUrl + "/proxy?url=" + encodeURIComponent(url);
-    }
-    return(proxyUrl);
-}
-
-/**
  * Get scale of map
  * https://groups.google.com/forum/#!searchin/ol3-dev/dpi/ol3-dev/RAJa4locqaM/4AzBrkndL9AJ
  * @param {ol.Map} map
@@ -181,10 +168,7 @@ function addGetFeatureInfoHandlers(map) {
                 }
             );  
             if (url) {
-                deferreds.push(jQuery.get(proxyUrl(url), function(data) {
-                    if (typeof data == "string") {
-                        data = JSON.parse(data);
-                    }
+                deferreds.push(jQuery.getJSON(url, function(data) {                    
                     if (jQuery.isArray(data.features) && data.features.length > 0) {
                         jQuery.each(data.features, function(idx, f) {
                             if (f.geometry) {                                                                                            
@@ -354,7 +338,7 @@ function init() {
         embeds.each(function(idx, serviceDiv) {
             var serviceUrl = jQuery(serviceDiv).data("service");
             jQuery.ajax({
-                url: proxyUrl(serviceUrl),
+                url: serviceUrl,
                 method: "GET",
                 dataType: "json"
             }).done(function(data) {                
@@ -403,9 +387,12 @@ function init() {
                     /* Add click handlers to display pop-ups */
                     addGetFeatureInfoHandlers(embeddedMaps[data.name]);
                     /* Set view to data extent if defined */
-                    if (jQuery.isArray(data.data_extent) && data.data_extent.length == 4) {
-                        embeddedMaps[data.name].getView().fit(data.data_extent, embeddedMaps[data.name].getSize());
-                    }                    
+                    if (data.data_extent != null) {
+                        var theExtent = (typeof data.data_extent == "string") ? JSON.parse(data.data_extent) : data.data_extent;                        
+                        if (jQuery.isArray(theExtent) && theExtent.length == 4) {
+                            embeddedMaps[data.name].getView().fit(theExtent, embeddedMaps[data.name].getSize());
+                        }   
+                    }
                 } else {
                     showAlert("Map contains no data layers");
                 }
