@@ -150,7 +150,7 @@ magic.classes.creator.LayerEditor.prototype.saveContext = function() {
         /* Populate form from data */
         console.log("===== LayerEditor.saveContext() called");
         console.trace();
-        var totalPayload = jQuery.extend({},
+        var totalPayload = jQuery.extend(true, {},
             magic.modules.Common.formToJson(this.formSchema, this.prefix),
             this.sourceEditor.formToPayload(),
             this.attrEditorUpdates

@@ -177,7 +177,7 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.assignHandlers = functi
  * @return {Object}
  */
 magic.classes.creator.EmbeddedLayerEditorPopup.prototype.formToPayload = function() {
-    return(jQuery.extend(
+    return(jQuery.extend(true, {},
         magic.modules.Common.formToJson(this.formSchema, this.id), 
         {attribute_map: this.editedAttributes}, 
         this.wmsSelectors.formToPayload()

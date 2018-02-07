@@ -90,7 +90,7 @@ magic.classes.creator.EmbeddedAppContainer.prototype.saveContext = function() {
         }, this));
         /* Postprocess to set map centre and zoom level in the event that these must be taken from data layers */
         jQuery.extend(true, context, {
-            "data_extent": this.modifyMapExtentByDataLayers();
+            "data_extent": this.modifyMapExtentByDataLayers(context)
         });
         console.log(context);
         /* Now validate the assembled map context against the JSON schema in /static/js/json/embedded_web_map_schema.json
@@ -112,12 +112,11 @@ magic.classes.creator.EmbeddedAppContainer.prototype.saveContext = function() {
                 var existingId = context.id;
                 var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content");
                 var csrfHeader = jQuery("meta[name='_csrf_header']").attr("content");
-                console.log(JSON.stringify(context));
                 jQuery.ajax({
                     url: magic.config.paths.baseurl + "/embedded_maps/" + (existingId != "" ? "update/" + existingId : "save"),                        
                     method: "POST",
                     processData: false,
-                    data: context,//TODO
+                    data: JSON.stringify(context),
                     headers: {
                         "Content-Type": "application/json"
                     },
@@ -165,7 +164,7 @@ magic.classes.creator.EmbeddedAppContainer.prototype.saveContext = function() {
  * @return {Array}
  */
 magic.classes.creator.EmbeddedAppContainer.prototype.modifyMapExtentByDataLayers = function(context) {
-    var finalExtent = [];
+    var finalExtent = null;
     var extents = [];
     var extentRequests = [];
     jQuery.each(context.layers, jQuery.proxy(function(idx, elt) {
