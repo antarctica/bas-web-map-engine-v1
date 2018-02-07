@@ -126,7 +126,8 @@ CREATE TABLE webmap.embedded_maps
   zoom integer, -- Initial zoom level of the map
   rotation decimal, -- Initial rotation of the map in degrees
   projection character varying(20), -- EPSG code of the map projection
-  proj_extent character varying(100), -- Bounding box of the projection extent
+  proj_extent character varying(255), -- Bounding box of the projection extent
+  data_extent character varying(255), -- Selected data layer bounding extent
   resolutions character varying(255), -- Array of resolutions for the map gridset
   layers json, -- Configurations for individual map layers
   allowed_usage character varying(255), -- public|login|owner|(role1,role2,...role<n>)
@@ -154,6 +155,7 @@ COMMENT ON COLUMN webmap.embedded_maps.zoom IS 'Initial zoom level of the map';
 COMMENT ON COLUMN webmap.embedded_maps.rotation IS 'Initial rotation of the map in degrees';
 COMMENT ON COLUMN webmap.embedded_maps.projection IS 'EPSG code of the map projection';
 COMMENT ON COLUMN webmap.embedded_maps.proj_extent IS 'Bounding box of the projection extent';
+COMMENT ON COLUMN webmap.embedded_maps.data_extent IS 'Selected data layer bounding extent';
 COMMENT ON COLUMN webmap.embedded_maps.resolutions IS 'Array of resolutions for the map gridset';
 COMMENT ON COLUMN webmap.embedded_maps.layers IS 'Configurations for individual map layers';
 COMMENT ON COLUMN webmap.embedded_maps.allowed_usage IS 'public|login|owner';

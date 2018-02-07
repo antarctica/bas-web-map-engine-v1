@@ -402,6 +402,10 @@ function init() {
                     });
                     /* Add click handlers to display pop-ups */
                     addGetFeatureInfoHandlers(embeddedMaps[data.name]);
+                    /* Set view to data extent if defined */
+                    if (jQuery.isArray(data.data_extent) && data.data_extent.length == 4) {
+                        embeddedMaps[data.name].getView().fit(data.data_extent, embeddedMaps[data.name].getSize());
+                    }                    
                 } else {
                     showAlert("Map contains no data layers");
                 }

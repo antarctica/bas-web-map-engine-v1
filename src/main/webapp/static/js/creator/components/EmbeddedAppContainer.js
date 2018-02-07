@@ -87,8 +87,7 @@ magic.classes.creator.EmbeddedAppContainer.prototype.saveContext = function() {
         var context = {};
         jQuery.each(this.dialogs, jQuery.proxy(function(dn, dialog) {
             jQuery.extend(true, context, dialog.getContext(true));
-        }, this));        
-        console.log(context);
+        }, this));                
         this.modifyMapExtentByDataLayers(context, jQuery.proxy(function(postData) {
             /* Now validate the assembled map context against the JSON schema in /static/js/json/embedded_web_map_schema.json
              * https://github.com/geraintluff/tv4 is the validator used */            
@@ -106,12 +105,14 @@ magic.classes.creator.EmbeddedAppContainer.prototype.saveContext = function() {
                     );
                 } else {
                     /* Schema validation was ok */
-                    var existingId = postData.id;                    
+                    var existingId = postData.id; 
+                    console.log(postData);
+                    var postDataStr = JSON.stringify(postData);
                     jQuery.ajax({
                         url: magic.config.paths.baseurl + "/embedded_maps/" + (existingId != "" ? "update/" + existingId : "save"),                        
                         method: "POST",
                         processData: false,
-                        data: JSON.stringify(postData),
+                        data: postDataStr,
                         headers: {
                             "Content-Type": "application/json"
                         },

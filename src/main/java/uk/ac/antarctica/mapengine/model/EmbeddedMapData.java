@@ -16,6 +16,7 @@ public class EmbeddedMapData extends AbstractMapData {
     private double rotation = 0.0;
     private String projection = "";    
     private String proj_extent = ""; 
+    private String data_extent = "";
     private String resolutions = ""; 
     private String layers = "";
     
@@ -38,6 +39,7 @@ public class EmbeddedMapData extends AbstractMapData {
         setRotation((double)getJsonElement(jo, "rotation", false, 0.0, Double.class));
         setProjection((String)getJsonElement(jo, "projection", false, "EPSG:4326"));
         setProj_extent((String)getJsonElement(jo, "proj_extent", false, "-180.0,-90.0,180.0,90.0"));
+        setData_extent((String)getJsonElement(jo, "data_extent", false, ""));
         setResolutions((String)getJsonElement(jo, "resolutions", false, ""));
         setLayers((String)getJsonElement(jo, "layers", false, "[]"));        
         setAllowed_usage((String)getJsonElement(jo, "allowed_usage", false, "public"));        
@@ -46,7 +48,7 @@ public class EmbeddedMapData extends AbstractMapData {
 
     @Override
     public String insertSql() {
-        return("INSERT INTO " + getTableName() + " VALUES(?,?,?,?,current_timestamp,current_timestamp,?,?,?,?,?,?,?,?,?,?,?)");
+        return("INSERT INTO " + getTableName() + " VALUES(?,?,?,?,current_timestamp,current_timestamp,?,?,?,?,?,?,?,?,?,?,?,?)");
     }
 
     @Override
@@ -63,6 +65,7 @@ public class EmbeddedMapData extends AbstractMapData {
             getRotation(),
             getProjection(),
             getProj_extent(),
+            getData_extent(),
             getResolutions(),
             getJsonDataAsPgObject(getLayers()),
             getAllowed_usage(),
@@ -83,6 +86,7 @@ public class EmbeddedMapData extends AbstractMapData {
             "rotation=?, " + 
             "projection=?, " +
             "proj_extent=?, " +
+            "data_extent=?, " +
             "resolutions=?, " +
             "layers=?, " + 
             "allowed_usage=?, " +
@@ -103,6 +107,7 @@ public class EmbeddedMapData extends AbstractMapData {
             getRotation(),
             getProjection(),
             getProj_extent(),
+            getData_extent(),
             getResolutions(),
             getJsonDataAsPgObject(getLayers()),
             getAllowed_usage(),
@@ -175,6 +180,14 @@ public class EmbeddedMapData extends AbstractMapData {
 
     public void setLayers(String layers) {
         this.layers = layers;
+    }
+
+    public String getData_extent() {
+        return data_extent;
+    }
+
+    public void setData_extent(String data_extent) {
+        this.data_extent = data_extent;
     }
     
 }
