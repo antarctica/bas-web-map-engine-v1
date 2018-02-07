@@ -38,11 +38,23 @@ magic.classes.creator.MapRegionSelector = function(options) {
                 if (action == "edit" || action == "clone") {
                     /* Service returns [{name: <name>, title: <title>},...] */
                     select.find("option").remove();
-                    jQuery.getJSON(this.mapTitleService + "/" + action, jQuery.proxy(function (data) {
+                    jQuery.getJSON(this.mapTitleService + "/" + action, jQuery.proxy(function (data) {                        
                         magic.modules.Common.populateSelect(select, data, "name", "title", mapName, true); 
                         magic.modules.Common.resetFormIndicators();
                         if (mapName && action == "edit") {
-                            this.loadContext(action, mapName);
+                            /* Check any map name entered in the URL is in fact one this user can work with */
+                            var alloweds = jQuery.grep(data, function(elt) {
+                                return(elt.name == mapName);
+                            });
+                            if (alloweds.length > 0) {
+                                this.loadContext(action, mapName);
+                            } else {
+                                bootbox.alert(
+                                    '<div class="alert alert-danger" style="margin-top:10px">' + 
+                                        'You are not allowed to edit the map ' + mapName + 
+                                    '</div>'
+                                );
+                            }
                         }
                     }, this)).fail(function(xhr, status, message) {
                         bootbox.alert(

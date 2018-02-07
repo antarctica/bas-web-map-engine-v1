@@ -46,7 +46,7 @@ magic.classes.creator.EmbeddedAppContainer.prototype.loadContext = function(mapC
             /* Assemble default map context */
             mapContext = {};
             jQuery.each(this.dialogs, jQuery.proxy(function(dn, dialog) {
-                mapContext = jQuery.extend(mapContext, dialog.defaultData(region));
+                mapContext = jQuery.extend(true, mapContext, dialog.defaultData(region));
             }, this));
         } else {
             bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">No map context or region data supplied - aborting</div>');
@@ -86,10 +86,12 @@ magic.classes.creator.EmbeddedAppContainer.prototype.saveContext = function() {
         /* Forms were valid */
         var context = {};
         jQuery.each(this.dialogs, jQuery.proxy(function(dn, dialog) {
-            jQuery.extend(context, dialog.getContext(true));
+            jQuery.extend(true, context, dialog.getContext(true));
         }, this));
-        /* Postprocess to set map centre and zoom level in the event that these must be take from data layers */
-        this.modifyMapExtentByDataLayers(context);
+        /* Postprocess to set map centre and zoom level in the event that these must be taken from data layers */
+        jQuery.extend(true, context, {
+            "data_extent": this.modifyMapExtentByDataLayers();
+        });
         console.log(context);
         /* Now validate the assembled map context against the JSON schema in /static/js/json/embedded_web_map_schema.json
          * https://github.com/geraintluff/tv4 is the validator used */            
@@ -160,8 +162,10 @@ magic.classes.creator.EmbeddedAppContainer.prototype.saveContext = function() {
 /** 
  * Check if any data layers had the 'is_extent' attribute set, find their combined extent and modify the map extent accordingly
  * @param {Object} context
+ * @return {Array}
  */
 magic.classes.creator.EmbeddedAppContainer.prototype.modifyMapExtentByDataLayers = function(context) {
+    var finalExtent = [];
     var extents = [];
     var extentRequests = [];
     jQuery.each(context.layers, jQuery.proxy(function(idx, elt) {
@@ -181,7 +185,7 @@ magic.classes.creator.EmbeddedAppContainer.prototype.modifyMapExtentByDataLayers
     if (extentRequests.length > 0) {
         jQuery.when.apply(jQuery, extentRequests)
         .always(jQuery.proxy(function() {
-            context.data_extent = magic.modules.GeoUtils.uniteExtents(extents);
+            finalExtent = magic.modules.GeoUtils.uniteExtents(extents);
         }, this))
         .fail(function(xhr) {
             bootbox.alert(
@@ -192,6 +196,7 @@ magic.classes.creator.EmbeddedAppContainer.prototype.modifyMapExtentByDataLayers
             );
         });
     }
+    return(finalExtent);
 };
 
 /**

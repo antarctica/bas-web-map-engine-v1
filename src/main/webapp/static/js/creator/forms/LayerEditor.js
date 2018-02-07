@@ -138,7 +138,7 @@ magic.classes.creator.LayerEditor.prototype.loadContext = function(context) {
     this.formDirty = false;
     
     /* Clear any previously saved attribute data */
-    this.attrEditorUpdates = {};
+    //this.attrEditorUpdates = {};
     
     /* Activate */
     this.active = true;

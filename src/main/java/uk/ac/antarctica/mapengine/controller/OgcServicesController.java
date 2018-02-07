@@ -201,11 +201,20 @@ public class OgcServicesController {
             if (operation.toLowerCase().equals("getmap")) {
                 /* Output 256x256 transparent PNG image informing user of restricted access */
                 mimeType = "image/png";
-                String[] annotations = new String[] {
-                    "Layer " + getQueryParameter(params, "layers"),
-                    "contains restricted data",
-                    "log in to view"
-                };
+                String[] annotations;
+                if (rde.getMessage().startsWith("Error:")) {                    
+                    annotations = new String[] {
+                        "Error status " + rde.getMessage().substring(rde.getMessage().indexOf(":")+1),
+                        "fetching " + getQueryParameter(params, "layers"),
+                        "is server down?"
+                    };
+                } else {
+                    annotations = new String[] {
+                        "Layer " + getQueryParameter(params, "layers"),
+                        "contains restricted data",
+                        "log in to view"
+                    };
+                }
                 BufferedImage bi = new BufferedImage(256, 256, BufferedImage.TRANSLUCENT);
                 Graphics g = bi.getGraphics();
                 g.setColor(new Color(1f, 1f, 1f, 0.5f));
@@ -341,6 +350,9 @@ public class OgcServicesController {
      * @param String mimeType 
      */
     private void getUserlayersCapsFromUrl(HttpServletResponse response, String url, String mimeType) {
+        
+        /* Note: Extents for dynamic layers like BLIP etc may be out if fetched from GetCapabilities see:
+         * https://gis.stackexchange.com/questions/124527/how-to-make-geoserver-dynamically-calculate-the-bounding-box-of-a-postgis-backed */
                
         try {
             /* Find the layers this user can access */
@@ -470,7 +482,7 @@ public class OgcServicesController {
                 /* User unauthorised */
                 throw new RestrictedDataException("You are not authorised to access this resource");
             } else {
-                throw new RestrictedDataException("Unexpected response code " + status + " when accessing resource");
+                throw new RestrictedDataException("Error:" + status);
             }
         } catch(IOException ioe) {
             System.out.println("Failed to get content from " + url + ", exception was: " + ioe.getMessage());
