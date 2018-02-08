@@ -124,7 +124,7 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.markup = function() {
             '</div>' +     
             '<div class="form-group form-group-md col-md-12">' +
                 '<div class="checkbox" style="float:left" data-toggle="tooltip" data-placement="left" ' + 
-                    'title="Use this layer to determine the starting extent of the map">' +
+                    'title="Filter this layer via the \'filter\' URL parameter">' +
                     '<label>' +
                         '<input id="' + this.id + '-is_filterable" type="checkbox" data-toggle="popover" data-placement="bottom" data-trigger="manual">' +
                          '</input> Filter this layer via URL parameters' +

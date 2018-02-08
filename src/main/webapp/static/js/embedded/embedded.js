@@ -12,12 +12,14 @@ function showAlert(msg) {
 /**
  * Compensate for lack of universal support of URLSearchParams
  * @param {String} name
+ * @param {String} url
  * @return {String}
  */
-function getUrlParameter(name) {
+function getUrlParameter(name, url) {
+    url = url || window.location.search;
     name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
     var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
-    var results = regex.exec(location.search);
+    var results = regex.exec(url);
     return(results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' ')));
 };
 
@@ -88,10 +90,11 @@ function getViewData(data) {
  * Create the OL layers necessary for the map
  * @param {Object} data
  * @param {ol.view} view
+ * @param {String} serviceUrl
  */
-function createLayers(data, view) { 
+function createLayers(data, view, serviceUrl) { 
     var layers = [];
-    var apexFilter = getUrlParameter("filter");
+    var apexFilter = getUrlParameter("filter", serviceUrl);
     var dataLayers = JSON.parse(data.layers.value);
     if (jQuery.isArray(dataLayers)) {
         var proj = view.getProjection();
@@ -317,9 +320,6 @@ function ensureJQueryLoaded() {
 }
 ensureJQueryLoaded();
 
-/* Base URL */
-var baseUrl = (window.location.origin || (window.location.protocol + "//" + window.location.hostname + (window.location.port ? ":" + window.location.port: "")));
-
 /**
  * Stores the embedded map references keyed by map name i.e:
  * {
@@ -358,7 +358,7 @@ function init() {
                     return;
                 }
                 var embedView = new ol.View(getViewData(data));
-                var embedLayers = createLayers(data, embedView);
+                var embedLayers = createLayers(data, embedView, serviceUrl);
                 if (embedLayers.length > 0) {
                     /* Some data to display */
                     embeddedMaps[data.name] = new ol.Map({
