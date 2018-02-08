@@ -21,7 +21,7 @@ magic.classes.creator.EmbeddedAttributeEditorPopup = function(options) {
     /* Feature name from above */
     this.featureName = options.feature_name;
     
-    this.inputs = ["name", "type", "nillable", "alias", "ordinal", "displayed"];
+    this.inputs = ["name", "type", "nillable", "alias", "filter", "ordinal", "displayed"];
        
     this.target.popover({
         template: this.template,
@@ -136,10 +136,13 @@ magic.classes.creator.EmbeddedAttributeEditorPopup.prototype.markup = function(a
             '<div class="alert alert-info">Geometry type is <strong>' + geomType + '</strong></div>' + 
             '<table id="' + this.id + '-attr-table" class="table table-condensed table-striped table-hover table-responsive">' + 
                 '<tr>' + 
-                    '<th>Name</th>' + 
-                    '<th>Type</th>' + 
-                    '<th>' + 
+                    '<th style="width:170px">Name</th>' + 
+                    '<th style="width:80px">Type</th>' + 
+                    '<th style="width:100px">' + 
                         '<span data-toggle="tooltip" data-placement="top" title="Human-friendly name for the attribute in pop-up">Alias<span>' + 
+                    '</th>' + 
+                    '<th style="width:40px">' + 
+                        '<span data-toggle="tooltip" data-placement="top" title="Filter this attribute accordin to the Apex trigger">Filter<span>' + 
                     '</th>' + 
                     '<th style="width:40px">' + 
                         '<i class="fa fa-list-ol" data-toggle="tooltip" data-placement="top" title="Ordering of attribute in pop-up">' + 
@@ -160,6 +163,7 @@ magic.classes.creator.EmbeddedAttributeEditorPopup.prototype.markup = function(a
                     '<td>' + (entry.name || "") + '</td>' +
                     '<td>' + entry.type.replace("xsd:", "") + '</td>' + 
                     '<td><input type="text" id="_amap_alias_' + idx + '" value="' + (entry.alias || "") + '"></input></td>' + 
+                    '<td><input type="text" id="_amap_filter_' + idx + '" value="' + (entry.filter || "") + '"></input></td>' + 
                     '<td><input type="number" size="2" style="width: 37px" min="1" max="99" id="_amap_ordinal_' + idx + '" value="' + (entry.ordinal || "") + '"></input></td>' +                              
                     '<td><input type="checkbox" id="_amap_displayed_' + idx + '" value="display"' + (entry.displayed === true ? ' checked="checked"' : '') + '></input></td>' +                
                 '</tr>';

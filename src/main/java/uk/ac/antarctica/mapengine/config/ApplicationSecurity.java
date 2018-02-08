@@ -89,7 +89,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
                    
         /* Form-based authentication of some kind */
         System.out.println("Ordinary authentication via login form");
-        http
+        http            
             .authorizeRequests()
             .antMatchers("/*.ico", "/static/**", "/ping", "/home/**", "/homed/**",
                     "/maps/dropdown/**", "/maps/name/**", "/maps/id/**", "/thumbnails", "/feedback",

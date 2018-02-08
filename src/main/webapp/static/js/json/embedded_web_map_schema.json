@@ -173,6 +173,18 @@
                             }
                         ]
                     },
+                    "apex_trigger": {
+                        "description": "ID of Apex element to trigger filtering on",
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "pattern": "^[a-zA-Z0-9_]+$"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
                     "opacity": {
                         "description": "Layer opacity",
                         "type": "number",
