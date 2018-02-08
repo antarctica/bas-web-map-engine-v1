@@ -9,11 +9,17 @@ function showAlert(msg) {
     alert(msg);
 }
 
-function isApexContext() {
-    //TODO - logic here to detect an Application Express context from the DOM - this will trigger a special event to inform Apex of a map click,
-    // and will NOT display pop-ups on the map (as the information will be available in the database report)
-    return(false);
-}
+/**
+ * Compensate for lack of universal support of URLSearchParams
+ * @param {String} name
+ * @return {String}
+ */
+function getUrlParameter(name) {
+    name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+    var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+    var results = regex.exec(location.search);
+    return(results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' ')));
+};
 
 /**
  * Get scale of map
@@ -85,25 +91,29 @@ function getViewData(data) {
  */
 function createLayers(data, view) { 
     var layers = [];
+    var apexFilter = getUrlParameter("filter");
     var dataLayers = JSON.parse(data.layers.value);
     if (jQuery.isArray(dataLayers)) {
         var proj = view.getProjection();
         for (var i = 0; i < dataLayers.length; i++) {
             var layer;
             var nd = dataLayers[i];
+            var cqlFilter = (nd.is_filterable === true && apexFilter) ? {
+                "CQL_FILTER": apexFilter
+            } : {};
             if (nd.wms_source == "osm") {
                 /* OpenStreetMap layer */
                 layer = new ol.layer.Tile({source: new ol.source.OSM()});
                 layer.set("metadata", nd);
             } else if (nd.is_single_tile) {
-                /* Render point layers with a single tile for labelling free of tile boundary effects */
+                /* Render point layers with a single tile for labelling free of tile boundary effects */                
                 var wmsSource = new ol.source.ImageWMS(({
                     url: nd.wms_source,
                     crossOrigin: "anonymous",
-                    params: {
+                    params: jQuery.extend({
                         "LAYERS": nd.feature_name,
-                        "STYLES": ""
-                    },
+                        "STYLES": nd.style_name || ""
+                    }, cqlFilter),
                     projection: proj
                 }));
                 layer = new ol.layer.Image({
@@ -111,23 +121,23 @@ function createLayers(data, view) {
                     visible: true,
                     opacity: nd.opacity || 1.0,
                     metadata: nd,
-                    source: wmsSource
+                    source: wmsSource                    
                 });                    
             } else {
                 /* Non-point layer */
-                var wmsVersion = "1.3.0";
+                var wmsVersion = "1.3.0";                
                 var wmsSource = new ol.source.TileWMS({
                     url: nd.wms_source,
                     crossOrigin: "anonymous",
-                    params: {
+                    params: jQuery.extend({
                         "LAYERS": nd.feature_name,
-                        "STYLES": "",
+                        "STYLES": nd.style_name || "",
                         "TRANSPARENT": true,
                         "CRS": proj.getCode(),
                         "SRS": proj.getCode(),
                         "VERSION": wmsVersion,
                         "TILED": true
-                    },
+                    }, cqlFilter),
                     tileGrid: new ol.tilegrid.TileGrid({
                         resolutions: view.getResolutions(),
                         origin: proj.getExtent().slice(0, 2)

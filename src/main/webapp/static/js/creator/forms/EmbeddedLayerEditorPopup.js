@@ -19,11 +19,11 @@ magic.classes.creator.EmbeddedLayerEditorPopup = function(options) {
         {"field": "id", "default": ""},
         {"field": "name","default": ""},
         {"field": "opacity", "default": 1.0},
-        {"field": "apex_trigger", "default": ""},
         {"field": "is_base", "default": false},            
         {"field": "is_singletile", "default": false},                
         {"field": "is_interactive", "default": false},
-        {"field": "is_extent", "default": false}
+        {"field": "is_extent", "default": false},
+        {"field": "is_filterable", "default": false}
     ];
     
     /* Linked WMS feature select menus */
@@ -85,16 +85,7 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.markup = function() {
                        'data-toggle="tooltip" data-placement="left" title="Layer opacity (0.0 = transparent, 1.0 = opaque)" value="1.0">' + 
                     '</input>' + 
                 '</div>' + 
-            '</div>' + 
-            '<div class="form-group form-group-md col-md-12">' + 
-                '<label for="' + this.id + '-apex_trigger" class="col-md-3 control-label">Trigger ID/label>' + 
-                '<div class="col-md-9">' + 
-                    '<input type="number" class="form-control" id="' + this.id + '-apex_trigger" ' + 
-                       'placeholder="Apex element ID" ' + 
-                       'data-toggle="tooltip" data-placement="left" title="ID of the Apex element that triggers a filter of layer data">' + 
-                    '</input>' + 
-                '</div>' + 
-            '</div>' + 
+            '</div>' +             
             '<div class="form-group form-group-md col-md-12">' +
                 '<div class="checkbox" style="float:left" data-toggle="tooltip" data-placement="left" ' +
                     'title="Layer is a base (backdrop) layer">' + 
@@ -130,7 +121,16 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.markup = function() {
                          '</input> Determine map extent from layer data' +
                     '</label>' +
                 '</div>' +                                            
-            '</div>' +        
+            '</div>' +     
+            '<div class="form-group form-group-md col-md-12">' +
+                '<div class="checkbox" style="float:left" data-toggle="tooltip" data-placement="left" ' + 
+                    'title="Use this layer to determine the starting extent of the map">' +
+                    '<label>' +
+                        '<input id="' + this.id + '-is_filterable" type="checkbox" data-toggle="popover" data-placement="bottom" data-trigger="manual">' +
+                         '</input> Filter this layer via URL parameters' +
+                    '</label>' +
+                '</div>' +                                            
+            '</div>' +     
             magic.modules.Common.buttonFeedbackSet(this.id, "Save data", "sm", "Save", true) +                 
         '</div>'
     );
