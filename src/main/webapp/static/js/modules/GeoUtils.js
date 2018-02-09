@@ -825,13 +825,19 @@ magic.modules.GeoUtils = function() {
         /**
          * Get resolution corresponding to given scale
          * @param {number} scale
+         * @param {Array} resolutions
+         * @param {ol.proj.projection} proj
          * @returns {float}
          */
-        getResolutionFromScale: function(scale) {
-            var resolutions = magic.runtime.map.getView().getResolutions();
+        getResolutionFromScale: function(scale, resolutions, proj) {
+            if ((!resolutions || !proj) && !magic.runtime.map) {
+                return(0.0);
+            }
+            resolutions = resolutions || magic.runtime.map.getView().getResolutions();
+            proj = proj || magic.runtime.map.getView().getProjection();
             var res = resolutions[0];
             if (!isNaN(scale)) {
-                var units = magic.runtime.map.getView().getProjection().getUnits();
+                var units = proj.getUnits();
                 var dpi = 25.4 / 0.28;
                 var mpu = ol.proj.METERS_PER_UNIT[units];
                 res = parseFloat(scale)/(mpu * 39.37 * dpi);

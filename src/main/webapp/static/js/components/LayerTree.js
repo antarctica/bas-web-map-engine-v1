@@ -456,11 +456,11 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
         if (resolutions) {
             minRes = resolutions[resolutions.length-1];
             maxRes = resolutions[0]+1;   /* Note: OL applies this one exclusively, whereas minRes is inclusive - duh! */  
-            if (jQuery.isNumeric(nd.minScale)) {
-                minRes = magic.modules.GeoUtils.getResolutionFromScale(nd.min_scale);
+            if (jQuery.isNumeric(nd.min_scale)) {
+                minRes = magic.modules.GeoUtils.getResolutionFromScale(nd.min_scale, resolutions, proj);
             }
-            if (jQuery.isNumeric(nd.maxScale)) {
-                maxRes = magic.modules.GeoUtils.getResolutionFromScale(nd.max_scale);
+            if (jQuery.isNumeric(nd.max_scale)) {
+                maxRes = magic.modules.GeoUtils.getResolutionFromScale(nd.max_scale, resolutions, proj);
             }
         }
     }
