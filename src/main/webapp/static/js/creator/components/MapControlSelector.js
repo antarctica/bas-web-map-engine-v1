@@ -6,7 +6,7 @@ magic.classes.creator.MapControlSelector = function(options) {
     
     /* ID prefix */
     this.prefix = options.prefix || "map-controls";
-   
+    //TODO
 };
 
 /**
