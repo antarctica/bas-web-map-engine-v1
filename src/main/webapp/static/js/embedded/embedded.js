@@ -397,11 +397,32 @@ function init() {
                     /* Add click handlers to display pop-ups */
                     addGetFeatureInfoHandlers(embeddedMaps[data.name]);
                     /* Set view to data extent if defined */
-                    if (data.data_extent != null) {
-                        var theExtent = (typeof data.data_extent == "string") ? JSON.parse(data.data_extent) : data.data_extent;                        
-                        if (jQuery.isArray(theExtent) && theExtent.length == 4) {
-                            embeddedMaps[data.name].getView().fit(theExtent, embeddedMaps[data.name].getSize());
-                        }   
+                    var defaultExtent = (typeof data.data_extent == "string") ? JSON.parse(data.data_extent) : data.data_extent;                        
+                    if (!jQuery.isArray(defaultExtent) || defaultExtent.length != 4) {
+                        defaultExtent = embeddedMaps[data.name].getView().getProjection().getExtent();
+                    }   
+                    /* See if we can be more precise by applying filter to the filterable data layer */
+                    var filterFeat = null;
+                    embeddedMaps[data.name].getLayers().forEach(function(layer) {
+                        var md = layer.get("metadata");
+                        if (filterFeat == null && md && md.is_filterable) {
+                            filterFeat = md.feature_name;
+                        }
+                    });
+                    if (filterFeat) {
+                        var serviceBase = serviceUrl.substring(0, serviceUrl.indexOf("embedded_maps/name"));
+                        jQuery.ajax({
+                            url: serviceBase + "gs/extent/" + encodeURIComponent(filterFeat) + "/" + encodeURIComponent(getUrlParameter("filter", serviceUrl)),
+                            method: "GET",
+                            dataType: "json"
+                        }).done(function(data) {  
+                            if (typeof data == "string") {
+                                data = JSON.parse(data);
+                            }
+                            embeddedMaps[data.name].getView().fit(data, embeddedMaps[data.name].getSize());
+                        });
+                    } else {                       
+                        embeddedMaps[data.name].getView().fit(defaultExtent, embeddedMaps[data.name].getSize());
                     }
                 } else {
                     showAlert("Map contains no data layers");
