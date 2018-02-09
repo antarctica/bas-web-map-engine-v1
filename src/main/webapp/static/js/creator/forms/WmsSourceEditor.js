@@ -24,7 +24,13 @@ magic.classes.creator.WmsSourceEditor = function (options) {
     });
     
     this.setCallbacks(jQuery.extend(this.controlCallbacks, {
-        onLoadContext: jQuery.proxy(this.wmsMenus.init, this.wmsMenus)
+        onLoadContext: jQuery.proxy(function(context) {
+            this.wmsMenus.init(context);
+            var cbOnly = jQuery.grep(this.formSchema, function(elt) {
+                return(elt.field.indexOf("is_") == 0);
+            });
+            magic.modules.Common.jsonToForm(cbOnly, context, this.prefix);
+        }, this)
     }));
     
 };

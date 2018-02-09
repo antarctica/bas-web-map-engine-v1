@@ -88,7 +88,7 @@ magic.classes.creator.GeoJsonSourceEditor.prototype.markup = function() {
     );
 };
 
-magic.classes.creator.GeoJsonSourceEditor.prototype.init = function() {
+magic.classes.creator.GeoJsonSourceEditor.prototype.init = function(context) {
     
     /* Populate the projection choices */
     jQuery("#" + this.prefix + "-srs").html(
@@ -126,6 +126,8 @@ magic.classes.creator.GeoJsonSourceEditor.prototype.init = function() {
     }, this));
     
     this.populateCannedStylesDropdown();
+    
+    magic.modules.Common.jsonToForm(this.formSchema, context, this.prefix);
 };
 
 /**

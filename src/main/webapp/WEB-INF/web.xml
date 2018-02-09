@@ -7,6 +7,9 @@
     <description>Open Source stack powered online maps</description>        
    
     <listener>
-		<listener-class>uk.ac.antarctica.mapengine.config.CustomServletContextListener</listener-class>
-	</listener>
+        <listener-class>uk.ac.antarctica.mapengine.config.CustomServletContextListener</listener-class>
+    </listener>
+    <session-config>
+        <session-timeout>60</session-timeout>
+    </session-config>    
 </web-app>

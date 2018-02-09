@@ -3,15 +3,21 @@
  */
 package uk.ac.antarctica.mapengine.config;
 
+import java.util.List;
 import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.session.SessionDestroyedEvent;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 @Configuration
@@ -61,4 +67,5 @@ public class SessionConfig {
             System.out.println("==== Session destroyed ====");
         }
     }
+    
 }

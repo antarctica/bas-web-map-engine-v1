@@ -80,6 +80,7 @@ magic.classes.creator.KmlSourceEditor.prototype.init = function() {
         this.styler.activate(styledef);
     }, this));
     
+    magic.modules.Common.jsonToForm(this.formSchema, context, this.prefix);
 };
 
 /**

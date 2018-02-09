@@ -115,7 +115,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
             .permitAll();
 
         /* Apply CSRF checks to all POST|PUT|DELETE requests, and GET to selected ones */
-        http.csrf().requireCsrfProtectionMatcher(new CsrfSecurityRequestMatcher());
+        http.csrf().requireCsrfProtectionMatcher(new CsrfSecurityRequestMatcher());        
     }
 
     @Override

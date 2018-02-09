@@ -63,12 +63,7 @@ magic.classes.creator.LayerEditor.prototype.loadContext = function(context) {
     
     if (!context) {
         return;
-    }
-   
-    jQuery("[id^='" + this.prefix + "']").filter(":input").off("change keyup").on("change keyup", jQuery.proxy(function() {
-        this.saveBtn.prop("disabled", false);
-        this.formDirty = true;
-    }, this)); 
+    }    
     
     /* Disable save button until form is changed */
     this.saveBtn.prop("disabled", true);
@@ -93,6 +88,12 @@ magic.classes.creator.LayerEditor.prototype.loadContext = function(context) {
     /* Populate form from data */
     magic.modules.Common.jsonToForm(this.formSchema, context, this.prefix);
     this.sourceMarkup(null, context);
+    
+    /* Determine when there has been a form change */
+    jQuery("[id^='" + this.prefix + "']").filter(":input").off("change keyup").on("change keyup", jQuery.proxy(function() {
+        this.saveBtn.prop("disabled", false);
+        this.formDirty = true;
+    }, this)); 
     
     /* Interactivity triggers */
     var chkInteractivity = jQuery("#" + this.prefix + "-is_interactive");
@@ -135,10 +136,7 @@ magic.classes.creator.LayerEditor.prototype.loadContext = function(context) {
     }, this));    
     
     /* Clean the form */
-    this.formDirty = false;
-    
-    /* Clear any previously saved attribute data */
-    //this.attrEditorUpdates = {};
+    this.formDirty = false;  
     
     /* Activate */
     this.active = true;

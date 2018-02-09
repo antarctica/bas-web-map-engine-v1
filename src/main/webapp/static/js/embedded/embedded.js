@@ -411,15 +411,12 @@ function init() {
                     });
                     if (filterFeat) {
                         var serviceBase = serviceUrl.substring(0, serviceUrl.indexOf("embedded_maps/name"));
-                        jQuery.ajax({
-                            url: serviceBase + "gs/extent/" + encodeURIComponent(filterFeat) + "/" + encodeURIComponent(getUrlParameter("filter", serviceUrl)),
-                            method: "GET",
-                            dataType: "json"
-                        }).done(function(data) {  
-                            if (typeof data == "string") {
-                                data = JSON.parse(data);
+                        jQuery.getJSON(serviceBase + "gs/extent/" + encodeURIComponent(filterFeat) + "/" + encodeURIComponent(getUrlParameter("filter", serviceUrl)),
+                        function(wfsExtent) {  
+                            if (typeof wfsExtent == "string") {
+                                wfsExtent = JSON.parse(wfsExtent);
                             }
-                            embeddedMaps[data.name].getView().fit(data, embeddedMaps[data.name].getSize());
+                            embeddedMaps[data.name].getView().fit(wfsExtent, embeddedMaps[data.name].getSize());
                         });
                     } else {                       
                         embeddedMaps[data.name].getView().fit(defaultExtent, embeddedMaps[data.name].getSize());
