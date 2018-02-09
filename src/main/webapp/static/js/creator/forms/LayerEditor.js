@@ -97,24 +97,32 @@ magic.classes.creator.LayerEditor.prototype.loadContext = function(context) {
     
     /* Interactivity triggers */
     var chkInteractivity = jQuery("#" + this.prefix + "-is_interactive");
-    chkInteractivity.off("change").on("change", jQuery.proxy(function(evt) {
+    var chkFilterable = jQuery("#" + this.prefix + "-is_filterable");
+    chkInteractivity.on("change", jQuery.proxy(function(evt) {
         if (jQuery(evt.currentTarget).prop("checked") === true) {
             jQuery("div.attribute-editor").removeClass("hidden");
-        } else {
+        } else if (chkFilterable.prop("checked") === false) {
             jQuery("div.attribute-editor").addClass("hidden");
         }
     }, this));
-    chkInteractivity.prop("checked", context.is_interactive === true);
-    chkInteractivity.trigger("change");
     
-    /* Filterability triggers */
-    var chkFilterable = jQuery("#" + this.prefix + "-is_filterable");
-    chkFilterable.off("change").on("change", jQuery.proxy(function(evt) {
+    /* Initialise attribute button sensitive checkboxes */
+    chkInteractivity.prop("checked", context.is_interactive);
+    chkFilterable.prop("checked", context.is_filterable);
+    if (context.is_interactive === true || context.is_filterable === true) {        
+        jQuery("div.attribute-editor").removeClass("hidden");
+    } else {
+        jQuery("div.attribute-editor").addClass("hidden");
+    }
+    
+    /* Filterability trigger */    
+    chkFilterable.on("change", jQuery.proxy(function(evt) {
         if (jQuery(evt.currentTarget).prop("checked") === true) {
             jQuery("div.attribute-editor").removeClass("hidden");
+        } else if (chkInteractivity.prop("checked") === false) {
+            jQuery("div.attribute-editor").addClass("hidden");
         }
     }, this));
-    chkFilterable.prop("checked", context.is_filterable === true);
    
     /* Attribute edit button */
     jQuery("#" + this.prefix + "-attribute-edit").off("click").on("click", jQuery.proxy(function(evt) {
