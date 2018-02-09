@@ -13,13 +13,18 @@ import it.geosolutions.geoserver.rest.decoder.RESTCoverage;
 import it.geosolutions.geoserver.rest.decoder.RESTFeatureType;
 import it.geosolutions.geoserver.rest.decoder.RESTLayer;
 import it.geosolutions.geoserver.rest.decoder.RESTLayerList;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.io.IOUtils;
 import org.geotools.ows.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +34,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Node;
+import org.xml.sax.SAXException;
 
 @Controller
 public class GeoserverRestController {   
@@ -200,6 +209,59 @@ public class GeoserverRestController {
                     jarr.add(new JsonPrimitive(gsc.getMaxY()));
                 }
             }
+        }
+        IOUtils.copy(IOUtils.toInputStream(jarr.toString()), response.getOutputStream());
+    }
+    
+    /**
+     * Proxy Geoserver WFS call to get the extent of a layer in native projection, applying a CQL filter
+     * Used by embedded maps to determine the extent of a subset of Oracle table data
+     * @param HttpServletRequest request,
+     * @param String layer
+     * @param String filter
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/gs/extent/{layer}/{filter}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
+    @ResponseBody
+    public void geoserverExtentForFilteredLayer(
+        HttpServletRequest request, 
+        HttpServletResponse response, 
+        @PathVariable("layer") String layer,
+        @PathVariable("filter") String filter)
+        throws ServletException, IOException, ServiceException { 
+        
+        JsonArray jarr = new JsonArray(); 
+        
+        String wfs = env.getProperty("geoserver.internal.url") + 
+            "/wfs?service=wfs&version=2.0.0&request=GetFeature&" + 
+            "typeNames=" + layer + "&" + 
+            "propertyName=ID&" + 
+            "cql_filter=" + filter;
+                
+        String wfsXml = HTTPUtils.get(wfs);
+        if (wfsXml != null) {
+            /* Something plausible at least */
+            try {
+                DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+                dbf.setValidating(false);
+                DocumentBuilder db = dbf.newDocumentBuilder();
+                Document doc = db.parse(new ByteArrayInputStream(wfsXml.getBytes(StandardCharsets.UTF_8)));
+                NodeList wfsBounds = doc.getElementsByTagName("wfs:boundedBy");
+                Node envelope = wfsBounds.item(0).getFirstChild();
+                NodeList bounds = envelope.getChildNodes();
+                String bl = bounds.item(0).getTextContent();
+                String tr = bounds.item(1).getTextContent();
+                if (bl != null && !bl.isEmpty() && tr != null && !tr.isEmpty()) {
+                    for (String coord : bl.split(" ")) {
+                        jarr.add(new JsonPrimitive(Double.parseDouble(coord)));
+                    }
+                    for (String coord : tr.split(" ")) {
+                        jarr.add(new JsonPrimitive(Double.parseDouble(coord)));
+                    }
+                }
+            } catch(IOException | ParserConfigurationException | SAXException ex) {}
         }
         IOUtils.copy(IOUtils.toInputStream(jarr.toString()), response.getOutputStream());
     }
