@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
@@ -402,6 +401,7 @@ public class HomeController {
             case "creator":
                 message = "Map creator";
                 pageTitle += " - Map Creation Wizard";
+                model.addAttribute("roles", userRoleMatrix.assignableRoles(userAuthoritiesProvider.getInstance().getUserType()));
                 break;            
             default:
                 message = "Unknown page " + tplName;

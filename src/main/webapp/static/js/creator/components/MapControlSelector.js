@@ -29,7 +29,7 @@ magic.classes.creator.MapControlSelector.prototype.loadContext = function(contex
     /* Security inputs */
     /* Usage */
     jQuery.each(context.allowed_usage.split(","), jQuery.proxy(function(idx, c) {
-        var formControl = jQuery("input[type='checkbox'][name='" + this.prefix + "-allowed_usage'][value='" + c + "']");
+        var formControl = jQuery("input[name='" + this.prefix + "-allowed_usage'][value='" + c + "']");
         if (formControl.length > 0) {
             /* This control has a checkbox that needs to reflect its state */
             formControl.prop("checked", true);
@@ -37,7 +37,7 @@ magic.classes.creator.MapControlSelector.prototype.loadContext = function(contex
     }, this));
     /* Edits */
     jQuery.each(context.allowed_edit.split(","), jQuery.proxy(function(idx, c) {
-        var formControl = jQuery("input[type='checkbox'][name='" + this.prefix + "-allowed_edit'][value='" + c + "']");
+        var formControl = jQuery("input[name='" + this.prefix + "-allowed_edit'][value='" + c + "']");
         if (formControl.length > 0) {
             /* This control has a checkbox that needs to reflect its state */
             formControl.prop("checked", true);
@@ -45,7 +45,7 @@ magic.classes.creator.MapControlSelector.prototype.loadContext = function(contex
     }, this));
     /* Download */
     jQuery.each(context.allowed_download.split(","), jQuery.proxy(function(idx, c) {
-        var formControl = jQuery("input[type='checkbox'][name='" + this.prefix + "-allowed_download'][value='" + c + "']");
+        var formControl = jQuery("input[name='" + this.prefix + "-allowed_download'][value='" + c + "']");
         if (formControl.length > 0) {
             /* This control has a checkbox that needs to reflect its state */
             formControl.prop("checked", true);
@@ -94,19 +94,19 @@ magic.classes.creator.MapControlSelector.prototype.getContext = function() {
     }
     context.data.controls = controls;
     /* Security inputs */
-    var cbAu = jQuery("input[type='checkbox'][name='" + this.prefix + "-allowed_usage']");
+    var cbAu = jQuery("input[name='" + this.prefix + "-allowed_usage']");
     if (cbAu.length > 0) {
         context.allowed_usage = cbAu.val().join(",");
     } else {
         context.allowed_usage = "public";
     }
-    var cbEd = jQuery("input[type='checkbox'][name='" + this.prefix + "-allowed_edit']");
+    var cbEd = jQuery("input[name='" + this.prefix + "-allowed_edit']");
     if (cbEd.length > 0) {
         context.allowed_edit = cbEd.val().join(",");
     } else {
         context.allowed_edit = "owner";
     }
-    var cbDl = jQuery("input[type='checkbox'][name='" + this.prefix + "-allowed_download']");
+    var cbDl = jQuery("input[name='" + this.prefix + "-allowed_download']");
     if (cbDl.length > 0) {
         context.allowed_download = cbDl.val().join(",");
     } else {

@@ -62,6 +62,14 @@ public class UserAuthorities {
     public boolean userIsSuperUser() {
         return(userHasRole(userRoleMatrix.getRolesByProperties("yes", "superuser")));
     }
+    
+    /**
+     * Get current user category - admin|superuser|user
+     * @return String
+     */
+    public String getUserType() {
+        return(userIsAdmin() ? "admin" : (userIsSuperUser() ? "superuser" : "user"));
+    }
                    
     /**
      * Does the current user have the specified role?

@@ -114,30 +114,35 @@
                         <tr>
                             <th style="width:55%">User level</th>
                             <th style="width:15%">
-                                <span data-toggle="tooltip" data-placement="top" title="View this map (not necessarily all data within it)">View map<span>
+                                <span data-toggle="tooltip" data-placement="top" title="View this map (not necessarily all data within it)">View map</span>
                             </th>
                             <th style="width:15%">
-                                <span data-toggle="tooltip" data-placement="top" title="Change this map">Edit map<span>
+                                <span data-toggle="tooltip" data-placement="top" title="Change this map">Edit map</span>
                             </th>
                             <th style="width:15%">
-                                <span data-toggle="tooltip" data-placement="top" title="Download data through this map">Download data<span>
+                                <span data-toggle="tooltip" data-placement="top" title="Download data through this map">Download data</span>
                             </th>                        
                         </tr>
                         <tbody class="role-permission-matrix">
-                            <tr th:each="role : ${roles}">
-                                <td th:text="${role}"></td>
-                                <td><input type="checkbox" name="map-controls-allowed_usage" th:value="${role}"></input></td>
-                                <td th:switch="${#strings.substringBefore(role, ':'}">
+                            <tr th:each="role : ${roles}" th:with="usertype = ${#strings.contains(role, ':')} ? ${#strings.substringBefore(role, ':')} : ${role}, userrole = ${#strings.contains(role, ':')} ? ${#strings.substringAfter(role, ':')} : ${role}">
+                                <td th:text="${userrole}"></td>
+                                <td th:switch="${usertype}">
                                     <span th:case="'admin'" class="fa fa-check"><input type="hidden" name="map-controls-allowed_edit" value="admin"></input></span>
-                                    <input th:case="'superuser'" type="checkbox" name="map-controls-allowed_edit" th:value="${role}"></input>
-                                    <input th:case="'internal'" type="checkbox" name="map-controls-allowed_edit" th:value="${role}"></input>
-                                    <span th:case="'external'" class="fa fa-times"></span>
+                                    <span th:case="'owner'" class="fa fa-check"><input type="hidden" name="map-controls-allowed_edit" value="owner"></input></span>
+                                    <input th:case="*" type="checkbox" name="map-controls-allowed_edit" th:value="${userrole}"></input>                                                                
                                 </td>
-                                <td th:switch="${#strings.substringBefore(role, ':'}">
+                                <td th:switch="${usertype}">
+                                    <span th:case="'admin'" class="fa fa-check"><input type="hidden" name="map-controls-allowed_edit" value="admin"></input></span>
+                                    <span th:case="'owner'" class="fa fa-check"><input type="hidden" name="map-controls-allowed_edit" value="owner"></input></span>
+                                    <input th:case="'superuser'" type="checkbox" name="map-controls-allowed_edit" th:value="${userrole}"></input>
+                                    <input th:case="'internal'" type="checkbox" name="map-controls-allowed_edit" th:value="${userrole}"></input>
+                                    <input th:case="'login'" type="checkbox" name="map-controls-allowed_edit" th:value="${userrole}"></input>
+                                    <span th:case="*" class="fa fa-times"></span>                                    
+                                </td>
+                                <td th:switch="${usertype}">
                                     <span th:case="'admin'" class="fa fa-check"><input type="hidden" name="map-controls-allowed_download" value="admin"></input></span>
-                                    <input th:case="'superuser'" type="checkbox" name="map-controls-allowed_download" th:value="${role}"></input>
-                                    <input th:case="'internal'" type="checkbox" name="map-controls-allowed_download" th:value="${role}"></input>
-                                    <input th:case="'external'" type="checkbox" name="map-controls-allowed_download" th:value="${role}"></input>
+                                    <span th:case="'owner'" class="fa fa-check"><input type="hidden" name="map-controls-allowed_edit" value="owner"></input></span>
+                                    <input th:case="*" type="checkbox" name="map-controls-allowed_download" th:value="${userrole}"></input>                                    
                                 </td>
                             </tr>
                         </tbody>
@@ -145,7 +150,7 @@
                     <div class="form-group hidden">
                         <label for="map-controls-repository" class="col-md-2 control-label">Download repo</label>
                         <div class="col-md-10">
-                            <input type="url" class="form-control map-creator-control-xl" id="map-controls-repository" name="map-controls-repository" placeholder="http://" 
+                            <input type="url" class="form-control" id="map-controls-repository" name="map-controls-repository" placeholder="http://" 
                                    maxlength="254" data-toggle="tooltip" data-placement="right" title="Full URL of download repository (e.g. Ramadda)">                                   
                             </input>
                         </div>
