@@ -599,17 +599,17 @@
         "allowed_usage": {
             "description": "Who is allowed to use this map",
             "type": "string",
-            "enum": ["public", "login", "owner"]
+            "pattern": "^([A-Za-z0-9_]+)(,[A-Za-z0-9_]+)*$"
         },
         "allowed_edit": {
             "description": "Who is allowed to edit this map",
             "type": "string",
-            "enum": ["login", "owner"]
+            "pattern": "^([A-Za-z0-9_]+)(,[A-Za-z0-9_]+)*$"
         },
         "allowed_download": {
             "description": "Who is allowed to download underlying data from this map",
             "type": "string",
-            "enum": ["public", "login", "nobody"]
+            "pattern": "^([A-Za-z0-9_]+)(,[A-Za-z0-9_]+)*$"
         },
         "required": [
             "name", "description", "owner_name", "owner_email"

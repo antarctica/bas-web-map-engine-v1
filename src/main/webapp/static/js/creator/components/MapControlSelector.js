@@ -96,19 +96,25 @@ magic.classes.creator.MapControlSelector.prototype.getContext = function() {
     /* Security inputs */
     var cbAu = jQuery("input[name='" + this.prefix + "-allowed_usage']");
     if (cbAu.length > 0) {
-        context.allowed_usage = cbAu.val().join(",");
+        context.allowed_usage = cbAu.map(function() {
+            return($(this).val());
+        }).get().join(",");
     } else {
         context.allowed_usage = "public";
     }
     var cbEd = jQuery("input[name='" + this.prefix + "-allowed_edit']");
     if (cbEd.length > 0) {
-        context.allowed_edit = cbEd.val().join(",");
+        context.allowed_edit = cbEd.map(function() {
+            return($(this).val());
+        }).get().join(",");
     } else {
         context.allowed_edit = "owner";
     }
     var cbDl = jQuery("input[name='" + this.prefix + "-allowed_download']");
     if (cbDl.length > 0) {
-        context.allowed_download = cbDl.val().join(",");
+        context.allowed_download = cbDl.map(function() {
+            return($(this).val());
+        }).get().join(",");
     } else {
         context.allowed_download = "owner";
     }    
