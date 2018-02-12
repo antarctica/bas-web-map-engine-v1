@@ -123,7 +123,23 @@
                                 <span data-toggle="tooltip" data-placement="top" title="Download data through this map">Download data<span>
                             </th>                        
                         </tr>
-                        <tbody class="role-permission-matrix">                            
+                        <tbody class="role-permission-matrix">
+                            <tr th:each="role : ${roles}">
+                                <td th:text="${role}"></td>
+                                <td><input type="checkbox" name="map-controls-allowed_usage" th:value="${role}"></input></td>
+                                <td th:switch="${#strings.substringBefore(role, ':'}">
+                                    <span th:case="'admin'" class="fa fa-check"><input type="hidden" name="map-controls-allowed_edit" value="admin"></input></span>
+                                    <input th:case="'superuser'" type="checkbox" name="map-controls-allowed_edit" th:value="${role}"></input>
+                                    <input th:case="'internal'" type="checkbox" name="map-controls-allowed_edit" th:value="${role}"></input>
+                                    <span th:case="'external'" class="fa fa-times"></span>
+                                </td>
+                                <td th:switch="${#strings.substringBefore(role, ':'}">
+                                    <span th:case="'admin'" class="fa fa-check"><input type="hidden" name="map-controls-allowed_download" value="admin"></input></span>
+                                    <input th:case="'superuser'" type="checkbox" name="map-controls-allowed_download" th:value="${role}"></input>
+                                    <input th:case="'internal'" type="checkbox" name="map-controls-allowed_download" th:value="${role}"></input>
+                                    <input th:case="'external'" type="checkbox" name="map-controls-allowed_download" th:value="${role}"></input>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>                    
                     <div class="form-group hidden">

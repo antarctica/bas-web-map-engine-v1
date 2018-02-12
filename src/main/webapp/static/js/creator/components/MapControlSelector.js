@@ -15,10 +15,11 @@ magic.classes.creator.MapControlSelector = function(options) {
  * @param (String} region
  */
 magic.classes.creator.MapControlSelector.prototype.loadContext = function(context, region) {
+    /* Map controls, both within map and in navigation bar */
     var controls = context.data.controls;
     if (jQuery.isArray(controls)) {
         jQuery.each(controls, jQuery.proxy(function(idx, c) {
-            var formControl = jQuery("#" + this.prefix + "-form input[type='checkbox'][value='" + c + "']");
+            var formControl = jQuery("input[type='checkbox'][name='" + this.prefix + "'][value='" + c + "']");
             if (formControl.length > 0) {
                 /* This control has a checkbox that needs to reflect its state */
                 formControl.prop("checked", true);
@@ -26,9 +27,31 @@ magic.classes.creator.MapControlSelector.prototype.loadContext = function(contex
         }, this));     
     }
     /* Security inputs */
-    jQuery("select[name='" + this.prefix + "-allowed_usage']").val(context.allowed_usage);
-    jQuery("select[name='" + this.prefix + "-allowed_download']").val(context.allowed_download);
-    jQuery("select[name='" + this.prefix + "-allowed_edit']").val(context.allowed_edit);
+    /* Usage */
+    jQuery.each(context.allowed_usage.split(","), jQuery.proxy(function(idx, c) {
+        var formControl = jQuery("input[type='checkbox'][name='" + this.prefix + "-allowed_usage'][value='" + c + "']");
+        if (formControl.length > 0) {
+            /* This control has a checkbox that needs to reflect its state */
+            formControl.prop("checked", true);
+        }
+    }, this));
+    /* Edits */
+    jQuery.each(context.allowed_edit.split(","), jQuery.proxy(function(idx, c) {
+        var formControl = jQuery("input[type='checkbox'][name='" + this.prefix + "-allowed_edit'][value='" + c + "']");
+        if (formControl.length > 0) {
+            /* This control has a checkbox that needs to reflect its state */
+            formControl.prop("checked", true);
+        }
+    }, this));
+    /* Download */
+    jQuery.each(context.allowed_download.split(","), jQuery.proxy(function(idx, c) {
+        var formControl = jQuery("input[type='checkbox'][name='" + this.prefix + "-allowed_download'][value='" + c + "']");
+        if (formControl.length > 0) {
+            /* This control has a checkbox that needs to reflect its state */
+            formControl.prop("checked", true);
+        }
+    }, this));   
+
     jQuery("input[name='" + this.prefix + "-repository']").val(context.repository);
 };
 
@@ -46,7 +69,7 @@ magic.classes.creator.MapControlSelector.prototype.defaultData = function() {
         },
         allowed_usage: "public",
         allowed_edit: "owner",
-        allowed_download: "nobody",
+        allowed_download: "",
         repository: ""
     });
 };
@@ -71,9 +94,24 @@ magic.classes.creator.MapControlSelector.prototype.getContext = function() {
     }
     context.data.controls = controls;
     /* Security inputs */
-    context.allowed_usage = jQuery("select[name='" + this.prefix + "-allowed_usage']").val();
-    context.allowed_download = jQuery("select[name='" + this.prefix + "-allowed_download']").val();
-    context.allowed_edit = jQuery("select[name='" + this.prefix + "-allowed_edit']").val();
+    var cbAu = jQuery("input[type='checkbox'][name='" + this.prefix + "-allowed_usage']");
+    if (cbAu.length > 0) {
+        context.allowed_usage = cbAu.val().join(",");
+    } else {
+        context.allowed_usage = "public";
+    }
+    var cbEd = jQuery("input[type='checkbox'][name='" + this.prefix + "-allowed_edit']");
+    if (cbEd.length > 0) {
+        context.allowed_edit = cbEd.val().join(",");
+    } else {
+        context.allowed_edit = "owner";
+    }
+    var cbDl = jQuery("input[type='checkbox'][name='" + this.prefix + "-allowed_download']");
+    if (cbDl.length > 0) {
+        context.allowed_download = cbDl.val().join(",");
+    } else {
+        context.allowed_download = "owner";
+    }    
     context.repository = jQuery("input[name='" + this.prefix + "-repository']").val();
     return(context);    
 };

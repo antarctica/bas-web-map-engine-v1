@@ -7,6 +7,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -108,29 +109,18 @@ public class UserRoleMatrix {
     }
     
     /**
-     * Dump of the part of the role matrix current user has control of
-     * Returns a JsonObject of the form:
-     * {
-     *     "admin": [<role>],
-     *     "superuser": [<role>],
-     *     "defaults": ["owner", "public", "login"],
-     *     "internal": [<role1>, <role2>,...<rolen>],
-     *     "external": [<role1>, <role2>,...<rolen>],
-     * }
-     * 
+     * Dump of the roles within the role matrix current user has control of
      * @param String userType admin|superuser|user
-     * @return JsonObject
+     * @return ArrayList<String>
      */
-    public JsonObject assignableRoles(String userType) {
+    public ArrayList<String> assignableRoles(String userType) {
         
-        JsonObject subMatrix = new JsonObject();
-        
-        /* Everyone gets these roles */
-        JsonArray defaultRoles = new JsonArray();
-        defaultRoles.add(new JsonPrimitive("owner"));
-        defaultRoles.add(new JsonPrimitive("login"));
-        defaultRoles.add(new JsonPrimitive("public"));
-        subMatrix.add("defaults", defaultRoles);
+        ArrayList<String> assignableRoles = new ArrayList();
+                
+        /* Everyone gets these roles */        
+        assignableRoles.add("owner");
+        assignableRoles.add("login");
+        assignableRoles.add("public");       
                   
         JsonArray adminRoles = getRolesByProperties("yes", "admin");
         JsonArray superUserRoles = getRolesByProperties("yes", "superuser");        
@@ -138,14 +128,24 @@ public class UserRoleMatrix {
         boolean isSuperUser = userType.equals("superuser");
         
         if (isAdmin) {
-            subMatrix.add("admin", adminRoles);                      
+            for (int i = 0; i < adminRoles.size(); i++) {
+                assignableRoles.add("admin:" + adminRoles.get(i).getAsString());
+            }
         } 
-        if (isAdmin || isSuperUser) {            
-            subMatrix.add("superuser", superUserRoles);
-            subMatrix.add("internal", getRolesByProperties("yes", "user"));
-            subMatrix.add("external", getRolesByProperties("no", "user"));
+        if (isAdmin || isSuperUser) {
+            for (int i = 0; i < superUserRoles.size(); i++) {
+                assignableRoles.add("superuser:" + superUserRoles.get(i).getAsString());
+            }
+            JsonArray internalRoles = getRolesByProperties("yes", "user");
+            for (int i = 0; i < internalRoles.size(); i++) {
+                assignableRoles.add("internal:" + internalRoles.get(i).getAsString());
+            }
+            JsonArray externalRoles = getRolesByProperties("no", "user");
+            for (int i = 0; i < externalRoles.size(); i++) {
+                assignableRoles.add("external:" + externalRoles.get(i).getAsString());
+            }            
         }        
-        return(subMatrix);        
+        return(assignableRoles);        
     }
 
     public JsonObject getRoleMatrix() {
