@@ -112,7 +112,8 @@
                 <div class="panel-body">
                     <table class="table table-condensed table-striped table-hover table-responsive" style="width:100%">
                         <tr>
-                            <th style="width:55%">User level</th>
+                            <th style="width:25%">Role</th>
+                            <th style="width:30%">User level</th>
                             <th style="width:15%">
                                 <span data-toggle="tooltip" data-placement="top" title="View this map (not necessarily all data within it)">View map</span>
                             </th>
@@ -127,9 +128,18 @@
                             <tr th:each="role : ${roles}" th:with="usertype = ${#strings.contains(role, ':')} ? ${#strings.substringBefore(role, ':')} : ${role}, userrole = ${#strings.contains(role, ':')} ? ${#strings.substringAfter(role, ':')} : ${role}">
                                 <td th:text="${userrole}"></td>
                                 <td th:switch="${usertype}">
-                                    <span th:case="'admin'" class="fa fa-check"><input type="hidden" name="map-controls-allowed_edit" value="admin"></input></span>
-                                    <span th:case="'owner'" class="fa fa-check"><input type="hidden" name="map-controls-allowed_edit" value="owner"></input></span>
-                                    <input th:case="*" type="checkbox" name="map-controls-allowed_edit" th:value="${userrole}"></input>                                                                
+                                    <span th:case="'owner'">Map owner</span>
+                                    <span th:case="'login'">Any logged-in user</span>
+                                    <span th:case="'public'">Guest users</span>
+                                    <span th:case="'admin'">Administrators</span>
+                                    <span th:case="'login'">Super users</span>
+                                    <span th:case="'internal'">Internal user</span>
+                                    <span th:case="'external'">External user</span>
+                                </td>
+                                <td th:switch="${usertype}">
+                                    <span th:case="'admin'" class="fa fa-check"><input type="hidden" name="map-controls-allowed_usage" value="admin"></input></span>
+                                    <span th:case="'owner'" class="fa fa-check"><input type="hidden" name="map-controls-allowed_usage" value="owner"></input></span>
+                                    <input th:case="*" type="checkbox" name="map-controls-allowed_usage" th:value="${userrole}"></input>                                                                
                                 </td>
                                 <td th:switch="${usertype}">
                                     <span th:case="'admin'" class="fa fa-check"><input type="hidden" name="map-controls-allowed_edit" value="admin"></input></span>
@@ -141,7 +151,7 @@
                                 </td>
                                 <td th:switch="${usertype}">
                                     <span th:case="'admin'" class="fa fa-check"><input type="hidden" name="map-controls-allowed_download" value="admin"></input></span>
-                                    <span th:case="'owner'" class="fa fa-check"><input type="hidden" name="map-controls-allowed_edit" value="owner"></input></span>
+                                    <span th:case="'owner'" class="fa fa-check"><input type="hidden" name="map-controls-allowed_download" value="owner"></input></span>
                                     <input th:case="*" type="checkbox" name="map-controls-allowed_download" th:value="${userrole}"></input>                                    
                                 </td>
                             </tr>
