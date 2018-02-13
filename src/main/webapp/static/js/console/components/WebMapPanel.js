@@ -39,7 +39,7 @@ magic.classes.console.WebMapPanel = function () {
             init: function() {
                 this.on("success", jQuery.proxy(function() {
                     /* Display thumbnail */
-                    jQuery("#tn-" + this.name).attr("src", magic.config.paths.baseurl + "/thumbnail/show/" + this.name);
+                    jQuery("#tn-" + this.name).attr("src", magic.config.paths.baseurl + "/thumbnail/show/" + this.name + "?buster=" + new Date().getTime());
                 }, {name: name}));
                 this.on("complete", function(file) {
                     this.removeFile(file);
