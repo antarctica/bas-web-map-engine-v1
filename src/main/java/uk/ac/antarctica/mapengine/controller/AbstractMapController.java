@@ -51,7 +51,7 @@ public class AbstractMapController {
         switch (action) {
             case "delete":
                 /* Users can delete only maps they own */
-                accessClause = ua.sqlRoleClause("allowed_usage", "owner_name", args, "delete");
+                accessClause = ua.sqlRoleClause("allowed_edit", "owner_name", args, "delete");
                 if (accessClause == null) {
                     ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to delete maps");
                 } else {
@@ -60,7 +60,7 @@ public class AbstractMapController {
                 break;
             case "edit":
                 /* Users can edit maps they own, or those allowed to be edited by logged in users */
-                accessClause = ua.sqlRoleClause("allowed_usage", "owner_name", args, "update");
+                accessClause = ua.sqlRoleClause("allowed_edit", "owner_name", args, "update");
                 if (accessClause == null) {
                     ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to edit maps");
                 } else {
@@ -68,7 +68,7 @@ public class AbstractMapController {
                 }   
                 break;
             case "clone":
-                accessClause = ua.sqlRoleClause("allowed_usage", "owner_name", args, "update");
+                accessClause = ua.sqlRoleClause("allowed_edit", "owner_name", args, "update");
                 if (accessClause == null) {
                     ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "You need to be logged in to clone maps");
                 } else {

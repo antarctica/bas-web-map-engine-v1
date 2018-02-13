@@ -7,11 +7,13 @@ import com.google.gson.Gson;
 import it.geosolutions.geoserver.rest.HTTPUtils;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Controller;
@@ -377,6 +379,7 @@ public class HomeController {
         switch (tplName) {
             case "home":                
                 message = "Public home page";
+                model.addAttribute("accessible_maps", listAccessibleMaps());
                 break;
             case "map":
                 /* Map-specifics */
@@ -462,6 +465,50 @@ public class HomeController {
             activeProfile = profiles[0];
         }
         return(activeProfile);
+    }
+    
+    /**
+     * List the maps that can be accessed by the current user
+     * @return 
+     */
+    private List<Map<String,Object>> listAccessibleMaps() {
+        
+        List<Map<String, Object>> accessMapData = null;
+                
+        ArrayList args = new ArrayList();
+        String accessClause = userAuthoritiesProvider.getInstance().sqlRoleClause("allowed_usage", "owner_name", args, "read");
+        try {
+            accessMapData = magicDataTpl.queryForList(
+                "SELECT name, title, description FROM " + env.getProperty("postgres.local.mapsTable") + " WHERE " + 
+                accessClause + " ORDER BY title", args.toArray()
+            );
+            /* Determine which maps the user can additionally edit and delete */
+            ArrayList wargs = new ArrayList();
+            List<Map<String,Object>> writeMapData = magicDataTpl.queryForList(
+                "SELECT name FROM " + env.getProperty("postgres.local.mapsTable") + " WHERE " + 
+                userAuthoritiesProvider.getInstance().sqlRoleClause("allowed_edit", "owner_name", wargs, "update") + " ORDER BY title", wargs.toArray()
+            );
+            ArrayList dargs = new ArrayList();
+            List<Map<String,Object>> deleteMapData = magicDataTpl.queryForList(
+                "SELECT name FROM " + env.getProperty("postgres.local.mapsTable") + " WHERE " + 
+                userAuthoritiesProvider.getInstance().sqlRoleClause("allowed_edit", "owner_name", dargs, "delete") + " ORDER BY title", dargs.toArray()
+            );
+            for (Map<String,Object> mapData : accessMapData) {
+                mapData.put("w", "no");
+                mapData.put("d", "no");
+                String name = (String)mapData.get("name");
+                writeMapData.stream().map((wData) -> (String)wData.get("name")).filter((wName) -> (wName.equals(name))).forEachOrdered((_item) -> {
+                    mapData.put("w", "yes");
+                });
+                deleteMapData.stream().map((dData) -> (String)dData.get("name")).filter((dName) -> (dName.equals(name))).forEachOrdered((_item) -> {
+                    mapData.put("d", "yes");
+                });
+            }
+        } catch(DataAccessException dae) {
+            accessMapData = new ArrayList();
+            System.out.println("Failed to determine accessible maps for user, error was : " + dae.getMessage());
+        }
+        return(accessMapData);
     }
 
     /**

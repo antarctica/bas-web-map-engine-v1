@@ -4,8 +4,6 @@
 package uk.ac.antarctica.mapengine.controller;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -16,7 +14,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.Map;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -42,7 +39,6 @@ import org.springframework.web.context.ServletContextAware;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import uk.ac.antarctica.mapengine.config.SessionConfig;
-import uk.ac.antarctica.mapengine.config.UserAuthorities;
 import uk.ac.antarctica.mapengine.util.PackagingUtils;
 
 @RestController
@@ -68,66 +64,6 @@ public class MapThumbnailController implements ServletContextAware {
   
     @InitBinder
     protected void initBinder(WebDataBinder binder) {        
-    }
-    
-    /**
-     * Get all the data necessary for displaying gallery of all available map thumbnails
-     * @param HttpServletRequest request,
-     * @return
-     * @throws ServletException
-     * @throws IOException
-     */
-    @RequestMapping(value = "/thumbnails", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
-    @ResponseBody
-    public ResponseEntity<String> thumbnailData(HttpServletRequest request)
-        throws ServletException, IOException, ServiceException {
-        ResponseEntity<String> ret;
-        
-        String username = userAuthoritiesProvider.getInstance().currentUserName();
-        int port = request.getServerPort();
-        String server = request.getScheme() + "://" + request.getServerName() + (port != 80 ? (":" + port) : "");
-        
-        List<Map<String, Object>> mapData = magicDataTpl.queryForList(
-            "SELECT name, title, description, modified_date, version, allowed_usage, allowed_edit, owner_name FROM " + 
-            env.getProperty("postgres.local.mapsTable") + " " + 
-            "ORDER BY title"
-        );        
-        if (mapData != null && !mapData.isEmpty()) {
-            /* Package map data as JSON array - note we want to list all maps regardless of whether login required */
-            JsonArray ja = new JsonArray();
-            mapData.stream().map((m) -> {
-                String mapName = (String)m.get("name");
-                String allowedUsage = (String)m.get("allowed_usage");
-                String allowedEdit = (String)m.get("allowed_edit");
-                String owner = (String)m.get("owner_name");
-                boolean canView =
-                        allowedUsage.equals("public") ||
-                        (username != null && allowedUsage.equals("login")) ||
-                        owner.equals(username);
-                boolean canEdit =
-                        allowedEdit.equals("public") ||
-                        (username != null && allowedEdit.equals("login")) ||
-                        owner.equals(username);
-                boolean canDelete = owner.equals(username);
-                JsonObject jm = getMapper().toJsonTree(m).getAsJsonObject();
-                jm.remove("allowed_usage");
-                jm.remove("allowed_edit");
-                jm.remove("owner_name");
-                jm.addProperty("r", canView);
-                jm.addProperty("w", canEdit);
-                jm.addProperty("d", canDelete);
-                /* Get the thumbnail for public sites - restricted ones can have a thumbnail uploaded or use a placeholder */                
-                jm.addProperty("thumburl", server + "/thumbnail/show/" + mapName);
-                return jm;
-            }).forEachOrdered((jm) -> {
-                ja.add(jm);
-            });
-            ret = PackagingUtils.packageResults(HttpStatus.OK, ja.toString(), null);
-        } else {
-            /* No data is fine - simply return empty results array */
-            ret = PackagingUtils.packageResults(HttpStatus.OK, "[]", null);
-        }
-        return(ret);
     }
     
     /**
