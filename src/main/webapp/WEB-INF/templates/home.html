@@ -7,12 +7,12 @@
         <div id="wrapper">
             <div th:include="fragments/nav :: layout"></div>
             <div th:if="${not #lists.isEmpty(accessible_maps)}" class="container" id="map-gallery">
-                <div th:each="${index: #numbers.sequence(0, accessible_maps.length, 4)}" th:with="rowsize = ${accessible_maps.length - index >= 4} ? 4 : ${accessible_maps.length - index}" class="row">
-                    <div th:each="item : ${#numbers.sequence(0, ${rowsize - 1})}" th:with="tdata = ${accessible_maps[index + item]}" th:remove="tag">
-                        <div class="col-md-3 col-sm-4 col-xs-6" th:data-name="${tdata.name}">
-                            <a href="@{'/home/' + ${tdata.name}}">                                    
+                <div th:each="index: ${#numbers.sequence(0, accessible_maps.size(), 4)}" th:with="rowsize = ${accessible_maps.size() - index >= 4} ? 4 : ${accessible_maps.size() - index}" class="row">
+                    <div th:each="item : ${#numbers.sequence(0, rowsize - 1)}" th:with="tdata = ${accessible_maps[index + item]}" th:remove="tag">
+                        <div class="col-md-3 col-sm-4 col-xs-6" th:attr="data-name=${tdata.name}">
+                            <a th:href="@{'/home/' + ${tdata.name}}">                                    
                                 <img th:id="'tn-' + ${tdata.name}" th:src="@{'/thumbnail/show/' + ${tdata.name}}" 
-                                th:onerror="this.src='\'' + @{'/static/images/thumbnail_cache/bas.jpg'} + '\''"
+                                th:onerror="'this.src=\'' + @{'/static/images/thumbnail_cache/bas.jpg'} + '\''"
                                 data-toggle="tooltip" data-placement="bottom" th:title="${tdata.description}" 
                                 width="200" height="150"></img>
                             </a>
@@ -25,7 +25,7 @@
                                 <a th:if="${tdata.w} == 'yes'" class="map-remove-thumbnail-button" href="Javascript:void(0)" title="Remove map thumbnail">
                                     <i style="font-size: 20px; color: #d9534f; margin-right: 5px" class="fa fa-file-image-o"></i>
                                 </a>
-                                <a th:if="${tdata.d} == 'yes'" class="map-delete-button" href="Javascript:void(0)" title="Delete this map from the gallery">' +
+                                <a th:if="${tdata.d} == 'yes'" class="map-delete-button" href="Javascript:void(0)" title="Delete this map from the gallery">
                                     <i style="font-size: 20px; color: #d9534f" class="fa fa-trash"></i>
                                 </a> 
                             </span>
