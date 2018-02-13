@@ -98,7 +98,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
                     "/thumbnail/show/**", "/prefs/get", "/gs/**").permitAll()
             .antMatchers("/creator", "/creatord", "/embedded_creator", "/embedded_creatord",
                     "/restricted/**", "/restrictedd/**",
-                    "/userlayers/**", "/prefs/set", "/feedback/issues/**", "/assignable_roles",
+                    "/userlayers/**", "/prefs/set", "/feedback/issues/**",
                     "/maps/save", "/maps/update/**", "/maps/delete/**", "/maps/deletebyname/**",
                     "/embedded_maps/save", "/embedded_maps/update/**", "/embedded_maps/delete/**", "/embedded_maps/deletebyname/**",
                     "/usermaps/save", "/usermaps/update/**", "/usermaps/delete/**",

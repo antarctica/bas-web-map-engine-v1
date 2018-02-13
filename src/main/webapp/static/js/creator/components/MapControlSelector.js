@@ -6,7 +6,6 @@ magic.classes.creator.MapControlSelector = function(options) {
     
     /* ID prefix */
     this.prefix = options.prefix || "map-controls";
-    //TODO
 };
 
 /**
@@ -53,6 +52,34 @@ magic.classes.creator.MapControlSelector.prototype.loadContext = function(contex
     }, this));   
 
     jQuery("input[name='" + this.prefix + "-repository']").val(context.repository);
+    
+    /* Assign handlers to bulk tick/untick checkboxes for public/login options */
+    
+    /* Viewing: tick all non-public boxes if 'login' is ticked. Ensure that 'public' checkbox is unticked in all cases */
+    jQuery("input[type='checkbox'][value='login'][name='" + this.prefix + "-allowed_usage']").off("change").on("change", jQuery.proxy(function(evt) {
+        var thisCb = jQuery(evt.currentTarget);
+        jQuery("input[type='checkbox'][value!='login'][name='" + this.prefix + "-allowed_usage']").each(function(idx, elt) {
+            var targCb = jQuery(elt);
+            targCb.prop("checked", targCb.attr("value") != "public" && thisCb.prop("checked") === true);
+        });
+    }, this));
+    
+    /* Editing: tick all boxes if 'login' is ticked */
+    jQuery("input[type='checkbox'][value='login'][name='" + this.prefix + "-allowed_edit']").off("change").on("change", jQuery.proxy(function(evt) {
+        var thisCb = jQuery(evt.currentTarget);
+        jQuery("input[type='checkbox'][value!='login'][name='" + this.prefix + "-allowed_edit']").each(function(idx, elt) {
+            jQuery(elt).prop("checked", thisCb.prop("checked") === true);
+        });
+    }, this));
+    
+    /* Downloading: tick all boxes if 'login' is ticked */
+    jQuery("input[type='checkbox'][value='login'][name='" + this.prefix + "-allowed_download']").off("change").on("change", jQuery.proxy(function(evt) {
+        var thisCb = jQuery(evt.currentTarget);
+        jQuery("input[type='checkbox'][value!='login'][name='" + this.prefix + "-allowed_download']").each(function(idx, elt) {
+            var targCb = jQuery(elt);
+            targCb.prop("checked", targCb.attr("value") != "public" && thisCb.prop("checked") === true);
+        });
+    }, this));
 };
 
 magic.classes.creator.MapControlSelector.prototype.defaultData = function() {
@@ -96,25 +123,44 @@ magic.classes.creator.MapControlSelector.prototype.getContext = function() {
     /* Security inputs */
     var cbAu = jQuery("input[name='" + this.prefix + "-allowed_usage']");
     if (cbAu.length > 0) {
-        context.allowed_usage = cbAu.map(function() {
-            return($(this).val());
-        }).get().join(",");
+        var cbVals = cbAu.map(function() {
+            return(jQuery(this).val());
+        }).get();
+        if (cbVals.indexOf("login") != -1) {
+            context.allowed_usage = "login";
+        } else if (cbVals.indexOf("public") != -1) {
+            context.allowed_usage = "public";
+        } else {
+            context.allowed_usage = cbVals.join(",");
+        }
     } else {
         context.allowed_usage = "public";
     }
     var cbEd = jQuery("input[name='" + this.prefix + "-allowed_edit']");
     if (cbEd.length > 0) {
-        context.allowed_edit = cbEd.map(function() {
-            return($(this).val());
-        }).get().join(",");
+        var cbVals = cbEd.map(function() {
+            return(jQuery(this).val());
+        }).get();
+        if (cbVals.indexOf("login") != -1) {
+            context.allowed_edit = "login";
+        } else {
+            context.allowed_edit = cbVals.join(",");
+        }        
     } else {
         context.allowed_edit = "owner";
     }
     var cbDl = jQuery("input[name='" + this.prefix + "-allowed_download']");
     if (cbDl.length > 0) {
-        context.allowed_download = cbDl.map(function() {
-            return($(this).val());
-        }).get().join(",");
+        var cbVals = cbDl.map(function() {
+            return(jQuery(this).val());
+        }).get();
+        if (cbVals.indexOf("login") != -1) {
+            context.allowed_download = "login";
+        } else if (cbVals.indexOf("public") != -1) {
+            context.allowed_download = "public";
+        } else {
+            context.allowed_download = cbVals.join(",");
+        }
     } else {
         context.allowed_download = "owner";
     }    

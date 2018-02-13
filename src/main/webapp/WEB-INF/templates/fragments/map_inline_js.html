@@ -27,7 +27,11 @@
             new magic.classes.AppContainer();
         });
         prefsRequest.fail(function(xhr, status) {
-            bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to get payload and preferences for map ' + backendVars.mapname + '</div>');
+            if (xhr.status == 401) {
+                bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">You are not authorised to view map ' + backendVars.mapname + '</div>');
+            } else {
+                bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to get payload and preferences for map ' + backendVars.mapname + '</div>');
+            }
         });
     }
 
