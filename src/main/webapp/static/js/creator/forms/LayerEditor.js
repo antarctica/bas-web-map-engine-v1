@@ -90,7 +90,7 @@ magic.classes.creator.LayerEditor.prototype.loadContext = function(context) {
     this.sourceMarkup(null, context);
     
     /* Determine when there has been a form change */
-    jQuery("[id^='" + this.prefix + "']").filter(":input").off("change keyup").on("change keyup", jQuery.proxy(function() {
+    jQuery("[id^='" + this.prefix + "']").filter(":input").on("change keyup", jQuery.proxy(function() {
         this.saveBtn.prop("disabled", false);
         this.formDirty = true;
     }, this)); 

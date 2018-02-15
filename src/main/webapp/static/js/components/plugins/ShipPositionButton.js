@@ -18,7 +18,7 @@ magic.classes.ShipPositionButton.prototype.getData = function() {
     /* Ship positional API */
     jQuery.ajax({
         /* Might be nice to get this listed as part of the maps.bas.ac.uk stable... */
-        url: "http://add.antarctica.ac.uk/geoserver/assets/wfs?service=wfs&request=getfeature&version=2.0.0&typeNames=assets:latest_ship_positions&outputFormat=json",
+        url: "https://add.data.bas.ac.uk/geoserver/assets/wfs?service=wfs&request=getfeature&version=2.0.0&typeNames=assets:latest_ship_positions&outputFormat=json",
         method: "GET",
         success: jQuery.proxy(function(data) {
             if (!this.geoJson) {

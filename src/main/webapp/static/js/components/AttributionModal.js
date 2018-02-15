@@ -218,7 +218,6 @@ magic.classes.AttributionModal.prototype.populateRecordWms = function(getCaps, f
     if (getCaps && getCaps[featureName]) {
         var proj = magic.runtime.map.getView().getProjection().getCode();
         var caps = getCaps[featureName];
-        var serveResourceUrl = magic.config.paths.baseurl + "/proxy";
         /* Read abstract */
         rec["abstract"] = caps["Abstract"] || "";
         /* Read SRS */

@@ -88,8 +88,8 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.init = function(data) {
         this.loadFeaturesFromService(data.wms_source, data.feature_name);
     }
     
-    /* Assign handler for endpoint selection */
-    this.dropdowns.wms_source.off("change").on("change", jQuery.proxy(function() {       
+    /* Assign handler for endpoint selection */    
+    this.dropdowns.wms_source.off("change").on("change", jQuery.proxy(function() {    
         var wms = this.dropdowns.wms_source.val();
         if (!wms || wms == "osm") {
             /* No WMS selection, or OpenStreetMap */
@@ -129,13 +129,13 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.loadFeaturesFromService = 
     this.dropdowns.feature_name.prop("disabled", false);
     
     /* Strip namespace if present */
-    var selectedFeatNoNs = selectedFeat.split(":").pop();
+    //var selectedFeatNoNs = selectedFeat.split(":").pop();
     
     /* Examine GetCapabilities list of features */
     var fopts = magic.runtime.creator.catalogues[serviceUrl];    
     if (fopts && fopts.length > 0) {
         /* Have previously read the GetCapabilities document - read stored feature data into select list */
-        magic.modules.Common.populateSelect(this.dropdowns.feature_name, fopts, "value", "name", selectedFeatNoNs, true);
+        magic.modules.Common.populateSelect(this.dropdowns.feature_name, fopts, "value", "name", selectedFeat, true);
         this.loadStylesForFeature(selectedFeat, "");
     } else {
         /* Read available layer data from the service GetCapabilities document */
@@ -144,7 +144,7 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.loadFeaturesFromService = 
                 var capsJson = jQuery.parseJSON(JSON.stringify(new ol.format.WMSCapabilities().read(response)));
                 if (capsJson) {
                     magic.runtime.creator.catalogues[serviceUrl] = this.extractFeatureTypes(capsJson);
-                    magic.modules.Common.populateSelect(this.dropdowns.feature_name, magic.runtime.creator.catalogues[serviceUrl], "value", "name", selectedFeatNoNs, true);
+                    magic.modules.Common.populateSelect(this.dropdowns.feature_name, magic.runtime.creator.catalogues[serviceUrl], "value", "name", selectedFeat, true);
                     this.loadStylesForFeature(selectedFeat, "");
                 } else {
                     bootbox.alert(
@@ -230,7 +230,7 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.getFeatures = function(fty
             /* Leaf node - a named layer */
             ftypes.push({
                 name: layer.Title,
-                value: layer.Name.split(":").pop(),
+                value: layer.Name,
                 styles: layer.Style
             });
         } else if ("Layer" in layer && jQuery.isArray(layer["Layer"])) {

@@ -29,6 +29,8 @@ import org.apache.commons.io.IOUtils;
 import org.geotools.ows.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -51,12 +53,14 @@ public class GeoserverRestController {
     @Autowired
     Environment env;
     
-    GeoServerRESTReader gs = null;
-    
+    @Autowired
+    JdbcTemplate magicDataTpl;
+        
     /**
-     * Proxy Geoserver REST API call to get filtered list of layers with attributes
+     * Proxy Geoserver REST API call to default endpoint to get filtered list of layers with attributes
      * http://stackoverflow.com/questions/16332092/spring-mvc-pathvariable-with-dot-is-getting-truncated explains the :.+ in the path variable 'filter'
      * @param HttpServletRequest request,
+     * @param HttpServletResponse response
      * @param String filter
      * @return
      * @throws ServletException
@@ -64,38 +68,79 @@ public class GeoserverRestController {
      */
     @RequestMapping(value = "/gs/layers/filter/{filter:.+}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
     @ResponseBody
-    public void geoserverFilteredLayerList(HttpServletRequest request, HttpServletResponse response, @PathVariable("filter") String filter)
+    public void geoserverFilteredLayerList(
+        HttpServletRequest request, 
+        HttpServletResponse response, 
+        @PathVariable("filter") String filter)
         throws ServletException, IOException, ServiceException {
-        
-        String content = "[]";
-        
-        RESTLayerList layers = getReader().getLayers();
-        if (layers != null) {
-            /* Replace pseudo-wildcards in the filter string */
-            filter = filter.replaceAll("\\?", ".?");
-            filter = filter.replaceAll("\\*", ".*");            
-            filter = filter.replaceAll("\\+", ".+");
-            Pattern reFilter = Pattern.compile("^" + filter + "$", Pattern.CASE_INSENSITIVE);
-            JsonArray filteredList = new JsonArray();
-            for (String name : layers.getNames()) {
-                if (name != null) {
-                    Matcher m = reFilter.matcher(name);
-                    if (m.matches()) {
-                        JsonObject attrData = getLayerAttributes(name);
-                        if (attrData.has("feature_name")) {
-                            filteredList.add(attrData);
-                        }
-                    }
-                }
-            }
-            content = filteredList.toString();
-        }        
-        IOUtils.copy(IOUtils.toInputStream(content), response.getOutputStream());           
+        IOUtils.copy(IOUtils.toInputStream(listFilteredLayers(getReader(null), filter, null)), response.getOutputStream());   
     }
     
     /**
-     * Proxy Geoserver REST API call to get all defined styles for a layer
+     * Proxy Geoserver REST API call to endpoint with specified id to get filtered list of layers with attributes
+     * http://stackoverflow.com/questions/16332092/spring-mvc-pathvariable-with-dot-is-getting-truncated explains the :.+ in the path variable 'filter'
      * @param HttpServletRequest request,
+     * @param HttpServletResponse response
+     * @param String filter
+     * @param int endpointid
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/gs/layers/filter/{filter:.+}/{endpointid}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
+    @ResponseBody
+    public void geoserverFilteredLayerListFromEndpoint(
+        HttpServletRequest request, 
+        HttpServletResponse response, 
+        @PathVariable("filter") String filter,
+        @PathVariable("endpointid") Integer endpointid)
+        throws ServletException, IOException, ServiceException {        
+        IOUtils.copy(IOUtils.toInputStream(listFilteredLayers(getReader(endpointid), filter, endpointid)), response.getOutputStream());           
+    }
+    
+    /**
+     * Filter a layer list fetched from a REST endpoint
+     * @param GeoServerRESTReader gs
+     * @param String filter
+     * @param Integer endpointid
+     * @return String 
+     */
+    private String listFilteredLayers(GeoServerRESTReader gs, String filter, Integer endpointid) {
+        
+        String content = "[]";
+        
+        if (gs != null) {
+            RESTLayerList layers = gs.getLayers();
+            if (layers != null) {
+                /* Replace pseudo-wildcards in the filter string */
+                filter = filter.replaceAll("\\?", ".?");
+                filter = filter.replaceAll("\\*", ".*");            
+                filter = filter.replaceAll("\\+", ".+");
+                Pattern reFilter = Pattern.compile("^" + filter + "$", Pattern.CASE_INSENSITIVE);
+                JsonArray filteredList = new JsonArray();
+                layers.getNames().stream().filter((name) -> (name != null)).forEachOrdered((name) -> {
+                    Matcher m = reFilter.matcher(name);
+                    if (m.matches()) {
+                        JsonObject attrData;
+                        try {
+                            attrData = getLayerAttributes(name, endpointid);
+                            if (attrData.has("feature_name")) {
+                                filteredList.add(attrData);
+                            }   
+                        } catch (MalformedURLException ex) {
+                        }                                           
+                    }
+                });
+                content = filteredList.toString();
+            } 
+        }
+        return(content);
+    }
+    
+    /**
+     * Proxy Geoserver REST API call to gdefault endpoint to get all defined styles for a layer
+     * @param HttpServletRequest request,
+     * @param HttpServletResponse response
      * @param String layer
      * @return
      * @throws ServletException
@@ -103,26 +148,70 @@ public class GeoserverRestController {
      */
     @RequestMapping(value = "/gs/styles/{layer}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
     @ResponseBody
-    public void geoserverStylesForLayer(HttpServletRequest request, HttpServletResponse response, @PathVariable("layer") String layer)
-        throws ServletException, IOException, ServiceException {
-        String restUrl = env.getProperty("geoserver.internal.url");
-        if (restUrl == null || restUrl.isEmpty()) {
-            restUrl = env.getProperty("geoserver.internal.url");
-        }
-        String content = HTTPUtils.get(
-            restUrl + "/rest/layers/" + layer + "/styles.json", 
-            env.getProperty("geoserver.internal.username"), 
-            env.getProperty("geoserver.internal.password")
-        );
-        if (content == null) { 
-            content = "{styles: \"\"}";
-        }
-        IOUtils.copy(IOUtils.toInputStream(content), response.getOutputStream());       
+    public void geoserverStylesForLayer(
+        HttpServletRequest request, 
+        HttpServletResponse response, 
+        @PathVariable("layer") String layer)
+        throws ServletException, IOException, ServiceException {                
+        IOUtils.copy(IOUtils.toInputStream(listStylesForLayer(layer, null)), response.getOutputStream());       
     }
     
     /**
-     * Proxy Geoserver REST API call to get all granules for a mosaic coverage
+     * Proxy Geoserver REST API call to endpoint with specified id to get all defined styles for a layer
      * @param HttpServletRequest request,
+     * @param HttpServletResponse response
+     * @param String layer
+     * @param Integer endpointid
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/gs/styles/{layer}/{endpointid}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
+    @ResponseBody
+    public void geoserverStylesForLayerFromEndpoint(
+        HttpServletRequest request, 
+        HttpServletResponse response, 
+        @PathVariable("layer") String layer,
+        @PathVariable("endpointid") Integer endpointid)
+        throws ServletException, IOException, ServiceException {
+        IOUtils.copy(IOUtils.toInputStream(listStylesForLayer(layer, endpointid)), response.getOutputStream());      
+    }
+    
+    /**
+     * Call REST service at appropriate endpoint to list all available styles for a layer
+     * @param String layer
+     * @param Integer endpointid
+     * @return String
+     */    
+    private String listStylesForLayer(String layer, Integer endpointid) {
+        
+        String content = null;        
+        
+        if (endpointid == null) {
+            content = HTTPUtils.get(
+                env.getProperty("geoserver.internal.url") + "/rest/layers/" + layer + "/styles.json", 
+                env.getProperty("geoserver.internal.username"), 
+                env.getProperty("geoserver.internal.password")
+            );
+        } else {
+            String restUrl = getEndpointUrl(endpointid);
+            if (restUrl != null) {
+                try {
+                    content = HTTPUtils.get(restUrl);
+                } catch (MalformedURLException ex) {
+                }
+            }
+        }
+        if (content == null) {
+            content = "{styles: \"\"}";
+        }
+        return(content);
+    }
+    
+    /**
+     * Proxy Geoserver REST API call to default endpoint to get all granules for a mosaic coverage
+     * @param HttpServletRequest request
+     * @param HttpServletResponse response
      * @param String layer
      * @return
      * @throws ServletException
@@ -130,37 +219,76 @@ public class GeoserverRestController {
      */
     @RequestMapping(value = "/gs/granules/{layer}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
     @ResponseBody
-    public void geoserverGranulesForMosaic(HttpServletRequest request, HttpServletResponse response, @PathVariable("layer") String layer)
+    public void geoserverGranulesForMosaic(
+        HttpServletRequest request, 
+        HttpServletResponse response, 
+        @PathVariable("layer") String layer)
         throws ServletException, IOException, ServiceException {
-        String content = "{features: []}";
-        RESTLayer gsLayer = getReader().getLayer(layer);
-        if (layer != null) {
-            RESTCoverage mosaic = getReader().getCoverage(gsLayer);
-            if (mosaic != null) {
-                String mType = mosaic.getStoreType();                
-                if (mType.equals("coverageStore")) {
-                    /* Store URL will look like http://localhost:8080/geoserver/rest/workspaces/gis/coveragestores/bremen_sic.xml */
-                    String mUrl = mosaic.getStoreUrl();
-                    mUrl = mUrl.substring(0, mUrl.lastIndexOf("."));  /* Strip .<extension> */
-                    mUrl = mUrl + "/coverages/" + layer + "/index/granules.json";
-                    System.out.println("Get granules from " + mUrl);
-                    content = HTTPUtils.get(
-                        mUrl, 
-                        env.getProperty("geoserver.internal.username"), 
-                        env.getProperty("geoserver.internal.password")
-                    );
-                    if (content == null) { 
-                        content = "{features: []}";
-                    }
-                }                
-            }
-        }
-        IOUtils.copy(IOUtils.toInputStream(content), response.getOutputStream());
+        IOUtils.copy(IOUtils.toInputStream(listGranulesForLayer(getReader(null), layer)), response.getOutputStream());
     }
     
     /**
-     * Proxy Geoserver REST API call to get all attributes for a layer
-     * @param HttpServletRequest request,
+     * Proxy Geoserver REST API call to endpoint with specified id to get all granules for a mosaic coverage
+     * @param HttpServletRequest request
+     * @param HttpServletResponse response
+     * @param String layer
+     * @param Integer endpointid
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/gs/granules/{layer}/{endpointid}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
+    @ResponseBody
+    public void geoserverGranulesForMosaicFromEndpoint(
+        HttpServletRequest request, 
+        HttpServletResponse response, 
+        @PathVariable("layer") String layer,
+        @PathVariable("endpointid") Integer endpointid)
+        throws ServletException, IOException, ServiceException {        
+        IOUtils.copy(IOUtils.toInputStream(listGranulesForLayer(getReader(endpointid), layer)), response.getOutputStream());
+    }
+    
+    /**
+     * Call REST service to list all granules for a mosaic coverage layer
+     * @param GeoServerRESTReader gs
+     * @param String layer
+     * @return String
+     */
+    private String listGranulesForLayer(GeoServerRESTReader gs, String layer) {
+        
+        String content = "{features: []}";
+        
+        if (gs != null) {
+            RESTLayer gsLayer = gs.getLayer(layer);        
+            if (gsLayer != null) {
+                RESTCoverage mosaic = gs.getCoverage(gsLayer);
+                if (mosaic != null) {
+                    String mType = mosaic.getStoreType();                
+                    if (mType.equals("coverageStore")) {
+                        /* Store URL will look like http://localhost:8080/geoserver/rest/workspaces/gis/coveragestores/bremen_sic.xml */
+                        String mUrl = mosaic.getStoreUrl();
+                        mUrl = mUrl.substring(0, mUrl.lastIndexOf("."));  /* Strip .<extension> */
+                        mUrl = mUrl + "/coverages/" + layer + "/index/granules.json";
+                        System.out.println("Get granules from " + mUrl);
+                        content = HTTPUtils.get(
+                            mUrl, 
+                            env.getProperty("geoserver.internal.username"), 
+                            env.getProperty("geoserver.internal.password")
+                        );
+                        if (content == null) { 
+                            content = "{features: []}";
+                        }
+                    }                
+                }
+            }
+        }
+        return(content);
+    }
+    
+    /**
+     * Proxy Geoserver REST API call to default endpoint to get all attributes for a layer
+     * @param HttpServletRequest request
+     * @param HttpServletResponse response
      * @param String layer
      * @return
      * @throws ServletException
@@ -168,14 +296,39 @@ public class GeoserverRestController {
      */
     @RequestMapping(value = "/gs/attributes/{layer}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
     @ResponseBody
-    public void geoserverMetadataForLayer(HttpServletRequest request, HttpServletResponse response, @PathVariable("layer") String layer)
+    public void geoserverMetadataForLayer(
+        HttpServletRequest request, 
+        HttpServletResponse response, 
+        @PathVariable("layer") String layer)
         throws ServletException, IOException, ServiceException {        
-        IOUtils.copy(IOUtils.toInputStream(getLayerAttributes(layer).toString()), response.getOutputStream());       
+        IOUtils.copy(IOUtils.toInputStream(getLayerAttributes(layer, null).toString()), response.getOutputStream());       
     }
     
     /**
-     * Proxy Geoserver REST API call to get the WGS84 extent of a layer
-     * @param HttpServletRequest request,
+     * Proxy Geoserver REST API call to endpoint with the specified id to get all attributes for a layer
+     * @param HttpServletRequest request
+     * @param HttpServletResponse response
+     * @param String layer
+     * @param Integer endpointid
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/gs/attributes/{layer}/{endpointid}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
+    @ResponseBody
+    public void geoserverMetadataForLayerFromEndpoint(
+        HttpServletRequest request, 
+        HttpServletResponse response, 
+        @PathVariable("layer") String layer,
+        @PathVariable("endpointid") Integer endpointid)
+        throws ServletException, IOException, ServiceException {        
+        IOUtils.copy(IOUtils.toInputStream(getLayerAttributes(layer, endpointid).toString()), response.getOutputStream());       
+    }
+    
+    /**
+     * Proxy Geoserver REST API call to default endpoint to get the WGS84 extent of a layer
+     * @param HttpServletRequest request
+     * @param HttpServletResponse response
      * @param String layer
      * @return
      * @throws ServletException
@@ -183,34 +336,70 @@ public class GeoserverRestController {
      */
     @RequestMapping(value = "/gs/extent/{layer}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
     @ResponseBody
-    public void geoserverExtentForLayer(HttpServletRequest request, HttpServletResponse response, @PathVariable("layer") String layer)
+    public void geoserverExtentForLayer(
+        HttpServletRequest request, 
+        HttpServletResponse response, 
+        @PathVariable("layer") String layer)
         throws ServletException, IOException, ServiceException { 
+        IOUtils.copy(IOUtils.toInputStream(getExtentForLayer(getReader(null), layer)), response.getOutputStream());
+    }
+    
+    /**
+     * Proxy Geoserver REST API call to default endpoint to get the WGS84 extent of a layer
+     * @param HttpServletRequest request
+     * @param HttpServletResponse response
+     * @param String layer
+     * @param Integer endpointid
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/gs/extent/{layer}/{endpointid}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
+    @ResponseBody
+    public void geoserverExtentForLayerFromEndpoint(
+        HttpServletRequest request, 
+        HttpServletResponse response, 
+        @PathVariable("layer") String layer,
+        @PathVariable("endpointid") Integer endpointid)
+        throws ServletException, IOException, ServiceException {                 
+        IOUtils.copy(IOUtils.toInputStream(getExtentForLayer(getReader(endpointid), layer)), response.getOutputStream());
+    }
+    
+    /**
+     * Get the extent of a layer in WGS84, optionally from a non-default REST endpoint
+     * @param GeoServerRESTReader gs
+     * @param String layer
+     * @return String 
+     */
+    private String getExtentForLayer(GeoServerRESTReader gs, String layer) {
         
         JsonArray jarr = new JsonArray();                      
         
-        RESTLayer gsl = getReader().getLayer(layer);
-        if (gsl != null) {
-            try {
-                /* Test for a vector layer */
-                RESTFeatureType gsf = gs.getFeatureType(gsl);
-                if (gsf != null) {
-                    jarr.add(new JsonPrimitive(gsf.getMinX()));
-                    jarr.add(new JsonPrimitive(gsf.getMinY()));
-                    jarr.add(new JsonPrimitive(gsf.getMaxX()));
-                    jarr.add(new JsonPrimitive(gsf.getMaxY()));
-                }
-            } catch(RuntimeException rte) {
-                /* Must be a coverage */
-                RESTCoverage gsc = gs.getCoverage(gsl);
-                if (gsc != null) {
-                    jarr.add(new JsonPrimitive(gsc.getMinX()));
-                    jarr.add(new JsonPrimitive(gsc.getMinY()));
-                    jarr.add(new JsonPrimitive(gsc.getMaxX()));
-                    jarr.add(new JsonPrimitive(gsc.getMaxY()));
+        if (gs != null) {
+            RESTLayer gsl = gs.getLayer(layer);
+            if (gsl != null) {
+                try {
+                    /* Test for a vector layer */
+                    RESTFeatureType gsf = gs.getFeatureType(gsl);
+                    if (gsf != null) {
+                        jarr.add(new JsonPrimitive(gsf.getMinX()));
+                        jarr.add(new JsonPrimitive(gsf.getMinY()));
+                        jarr.add(new JsonPrimitive(gsf.getMaxX()));
+                        jarr.add(new JsonPrimitive(gsf.getMaxY()));
+                    }
+                } catch(RuntimeException rte) {
+                    /* Must be a coverage */
+                    RESTCoverage gsc = gs.getCoverage(gsl);
+                    if (gsc != null) {
+                        jarr.add(new JsonPrimitive(gsc.getMinX()));
+                        jarr.add(new JsonPrimitive(gsc.getMinY()));
+                        jarr.add(new JsonPrimitive(gsc.getMaxX()));
+                        jarr.add(new JsonPrimitive(gsc.getMaxY()));
+                    }
                 }
             }
         }
-        IOUtils.copy(IOUtils.toInputStream(jarr.toString()), response.getOutputStream());
+        return(jarr.toString());
     }
     
     /**
@@ -267,69 +456,103 @@ public class GeoserverRestController {
     }
     
     /**
-     * Retrieve layer attribues, feature name/workspace and geometry type
+     * Retrieve layer attributes from optionally specified endpoint, feature name/workspace and geometry type
      * @param String layer
+     * @param Integer endpointid
      * @return JsonObject
      * @throws MalformedURLException 
      */
-    private JsonObject getLayerAttributes(String layer) throws MalformedURLException {
+    private JsonObject getLayerAttributes(String layer, Integer endpointid) throws MalformedURLException {
         
-        JsonObject jo = new JsonObject();                      
+        JsonObject jo = new JsonObject(); 
+        GeoServerRESTReader gs = getReader(endpointid);
         
-        RESTLayer gsl = getReader().getLayer(layer);
-        if (gsl != null) {
-            try {
-                /* Test for a vector layer */
-                RESTFeatureType gsf = gs.getFeatureType(gsl);
-                if (gsf != null) {
-                    /* Translate longhand to JSON (Gson has trouble with circular refs) */                                        
-                    jo.addProperty("feature_name", gsf.getNameSpace() + ":" + gsf.getNativeName());
-                    jo.addProperty("name", gsf.getTitle());
-                    jo.addProperty("wms_source", env.getProperty("geoserver.internal.url") + "/" + gsf.getNameSpace() + "/wms");
-                    JsonArray attrs = new JsonArray();
-                    for (RESTFeatureType.Attribute attr : gsf.getAttributes()) {                    
-                        String binding = attr.getBinding();
-                        if (binding.contains("geom")) {
-                            /* Geometry field - extract type */
-                            jo.addProperty("geom_type", decodeGeomType(binding));
-                        } else {
-                            /* Ordinary attribute */
-                            JsonObject attrData = new JsonObject();
-                            attrData.addProperty("name", attr.getName());                    
-                            attrData.addProperty("type", binding.endsWith("String") ? "string" : "decimal");                        
-                            attrs.add(attrData);
-                        }                                        
+        if (gs != null) {        
+            RESTLayer gsl = gs.getLayer(layer);
+            if (gsl != null) {
+                try {
+                    /* Test for a vector layer */
+                    RESTFeatureType gsf = gs.getFeatureType(gsl);
+                    if (gsf != null) {
+                        /* Translate longhand to JSON (Gson has trouble with circular refs) */                                        
+                        jo.addProperty("feature_name", gsf.getNameSpace() + ":" + gsf.getNativeName());
+                        jo.addProperty("name", gsf.getTitle());
+                        jo.addProperty("wms_source", env.getProperty("geoserver.internal.url") + "/" + gsf.getNameSpace() + "/wms");
+                        JsonArray attrs = new JsonArray();
+                        for (RESTFeatureType.Attribute attr : gsf.getAttributes()) {                    
+                            String binding = attr.getBinding();
+                            if (binding.contains("geom")) {
+                                /* Geometry field - extract type */
+                                jo.addProperty("geom_type", decodeGeomType(binding));
+                            } else {
+                                /* Ordinary attribute */
+                                JsonObject attrData = new JsonObject();
+                                attrData.addProperty("name", attr.getName());                    
+                                attrData.addProperty("type", binding.endsWith("String") ? "string" : "decimal");                        
+                                attrs.add(attrData);
+                            }                                        
+                        }
+                        jo.add("attribute_map", attrs);
                     }
-                    jo.add("attribute_map", attrs);
+                } catch(RuntimeException rte) {
+                    /* Must be a coverage */
+                    RESTCoverage gsc = gs.getCoverage(gsl);
+                    jo.addProperty("feature_name", gsc.getNameSpace() + ":" + gsc.getNativeName());
+                    jo.addProperty("wms_source", env.getProperty("geoserver.internal.url") + "/" + gsc.getNameSpace() + "/wms");
+                    jo.addProperty("name", gsc.getTitle());
+                    jo.addProperty("geom_type", "raster");
                 }
-            } catch(RuntimeException rte) {
-                /* Must be a coverage */
-                RESTCoverage gsc = gs.getCoverage(gsl);
-                jo.addProperty("feature_name", gsc.getNameSpace() + ":" + gsc.getNativeName());
-                jo.addProperty("wms_source", env.getProperty("geoserver.internal.url") + "/" + gsc.getNameSpace() + "/wms");
-                jo.addProperty("name", gsc.getTitle());
-                jo.addProperty("geom_type", "raster");
             }
         }
         return(jo);
     }
     
     /**
-     * Lazily allocate a Geoserver REST reader, thereby not creating a connection unless needed 
+     * Allocate a Geoserver REST reader for the given endpoint
+     * @param Integer endpointid
+     * @return GeoserverRESTReader
      */
-    private GeoServerRESTReader getReader() throws MalformedURLException {
-        if (gs == null) {
-            String restUrl = env.getProperty("geoserver.internal.url");
-            if (restUrl == null || restUrl.isEmpty()) {
-                restUrl = env.getProperty("geoserver.internal.url");
-            }
+    private GeoServerRESTReader getReader(Integer endpointid) throws MalformedURLException {
+        
+        GeoServerRESTReader gs = null;
+                
+        if (endpointid == null) {
+            /* Local Geoserver */
             gs = new GeoServerRESTReader(
-                restUrl, 
+                env.getProperty("geoserver.internal.url"), 
                 env.getProperty("geoserver.internal.username"), 
                 env.getProperty("geoserver.internal.password")
             );
-        }
+        } else {
+            String restUrl = getEndpointUrl(endpointid);
+            if (restUrl != null) {
+                gs = new GeoServerRESTReader(restUrl);
+                if (!gs.existGeoserver()) {
+                    /* No Geoserver at this endpoint */
+                    gs = null;
+                }
+            }
+        }        
         return(gs);
+    }
+    
+    /**
+     * Translate endpoint id to a URL with REST services
+     * @param Integer endpointid
+     * @return String 
+     */
+    private String getEndpointUrl(Integer endpointid) {
+        
+        String restUrl = null;
+        
+        try {
+            restUrl = magicDataTpl.queryForObject(
+                "SELECT url FROM " + env.getProperty("postgres.local.endpointsTable") + " WHERE id=?", 
+                String.class, 
+                endpointid
+            );            
+        } catch(DataAccessException dae) {}   
+        return(restUrl);
     }
 
     /**
