@@ -77,7 +77,12 @@ magic.classes.MosaicTimeSeriesPlayer = function(options) {
                 this.loadGranules(this.cache[this.nodeid]);
             } else {
                 /* Fetch the granule data - could be slow and costly for big datasets */
-                jQuery.getJSON(magic.config.paths.baseurl + "/gs/granules/" + featureType, jQuery.proxy(function(data) {
+                var restEndpoint = magic.modules.Endpoints.getEndpointBy("url", this.layer.get("metadata").source.wms_source);
+                var restGranules = magic.config.paths.baseurl + "/gs/granules/" + featureType;
+                if (restEndpoint != null) {
+                    restGranules = restGranules + "/" + restEndpoint.id;
+                }
+                jQuery.getJSON(restGranules, jQuery.proxy(function(data) {
                     this.loadGranules(data);
                     this.cache[this.nodeid] = data;
                 }, this));

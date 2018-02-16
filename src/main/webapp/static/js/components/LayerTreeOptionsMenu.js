@@ -208,13 +208,19 @@ magic.classes.LayerTreeOptionsMenu.prototype.applyAlternateStyle = function() {
     var wrapper = jQuery("#wrapper-sty-" + this.nodeid);
     if (wrapper.hasClass("hidden")) {
         wrapper.removeClass("hidden");
-        var feature = null;
+        var feature = null, restEndpoint = null;
         try {
-            feature = this.layer.get("metadata").source.feature_name;
+            var md = this.layer.get("metadata");
+            feature = md.source.feature_name;
+            restEndpoint = magic.modules.Endpoints.getEndpointBy("url", md.source.wms_source);            
         } catch(e) {}
         if (feature != null) {
+            var restStyles = magic.config.paths.baseurl + "/gs/styles/" + feature;
+            if (restEndpoint != null) {
+                restStyles = restStyles + "/" + restEndpoint.id;
+            }
             jQuery.ajax({
-                url: magic.config.paths.baseurl + "/gs/styles/" + feature, 
+                url: restStyles, 
                 method: "GET",
                 dataType: "json",
                 contentType: "application/json"

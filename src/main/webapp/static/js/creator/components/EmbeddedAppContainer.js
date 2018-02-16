@@ -168,7 +168,12 @@ magic.classes.creator.EmbeddedAppContainer.prototype.modifyMapExtentByDataLayers
     var extentRequests = [];
     jQuery.each(context.layers, jQuery.proxy(function(idx, elt) {
         if (elt.is_extent === true && elt.feature_name) {
-            extentRequests.push(jQuery.getJSON(magic.config.paths.baseurl + "/gs/extent/" + elt.feature_name, 
+            var restExtent = magic.config.paths.baseurl + "/gs/extent/" + elt.feature_name;
+            var restEndpoint = magic.modules.Endpoints.getEndpointBy("url", elt.wms_source);
+            if (restEndpoint != null) {
+                restExtent = restExtent + "/" + restEndpoint.id;
+            }
+            extentRequests.push(jQuery.getJSON(restExtent, 
                 jQuery.proxy(function(data) {                   
                     if (jQuery.isArray(data) && data.length == 4) {
                         extents.push(magic.modules.GeoUtils.extentFromWgs84Extent(data, context.projection));

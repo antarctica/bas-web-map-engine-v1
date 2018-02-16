@@ -48,6 +48,10 @@ public class GeoserverRestController {
      * NOTE: 2017-06-12 David
      * It is very likely that all the methods in here should be applicable to any Geoserver REST endpoint URL which we have the appropriate credentials for
      * not just the local Geoserver.  It is likely that an extra endpoint id REST parameter be added to each eventually
+     * 
+     * NOTE: updated 2018-02-16 David
+     * All REST methods now have an optional 'endpointid' parameter which will use that endpoint URL rather than the local default Geoserver
+     * note that other endpoints are assumed to be publically accessible via the GET method - we don't manage sets of credentials here
      */
     
     @Autowired
