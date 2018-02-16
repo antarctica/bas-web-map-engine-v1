@@ -349,9 +349,11 @@ public class HomeController {
         /* Set username */
         String message;
         String activeProfile = getActiveProfile();
-        String username = userAuthoritiesProvider.getInstance().currentUserName();        
+        UserAuthorities ua = userAuthoritiesProvider.getInstance();
+        String username = ua.currentUserName();        
         model.addAttribute("username", username);
         model.addAttribute("profile", activeProfile);
+        model.addAttribute("isadmin", ua.userIsAdmin() ? "yes" : "no");
 
         /* Page parameters */
         String pageTitle = env.getProperty("default.title") != null ? env.getProperty("default.title") : "";
