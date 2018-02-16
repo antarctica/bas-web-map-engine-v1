@@ -128,7 +128,7 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.loadFeaturesFromService = 
     
     this.dropdowns.feature_name.prop("disabled", false);
     
-    /* Strip namespace if present */
+    /* Strip namespace if present - removed 2018-02-16 David - caused confusion as things failed through lack of the <namespace>: at the beginning */
     //var selectedFeatNoNs = selectedFeat.split(":").pop();
     
     /* Examine GetCapabilities list of features */

@@ -435,7 +435,7 @@ magic.modules.Common = function () {
                 callback(magic.runtime.map_context.capabilities[url], typename);
             } else {
                 var parser = new ol.format.WMSCapabilities();                
-                var jqXhr = jQuery.get(this.getWxsRequestUrl(url, "GetCapabilities"), jQuery.proxy(function(response) {
+                jQuery.get(this.getWxsRequestUrl(url, "GetCapabilities"), jQuery.proxy(function(response) {
                     try {
                         var capsJson = jQuery.parseJSON(JSON.stringify(parser.read(response)));
                         if (capsJson) {
