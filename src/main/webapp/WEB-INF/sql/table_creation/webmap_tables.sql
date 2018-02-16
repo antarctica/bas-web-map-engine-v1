@@ -18,6 +18,7 @@ CREATE TABLE webmap.endpoints
   has_wfs boolean, -- Whether a WFS service is available at the same endpoint (improved user experience on interactive layers possible)
   is_user_service boolean, -- Whether this endpoint represents a WMS for user uploaded data
   url_aliases character varying(255), -- To allow maps to continue working with stored URLs that may be out of date due to server moves, SSL etc
+  rest_endpoint character varying(255), -- Access to Geoserver REST services which may not be accessible via the main URL (e.g. load balanced services)
   CONSTRAINT endpoints_pkey PRIMARY KEY (id)
 )
 WITH (
@@ -36,8 +37,9 @@ COMMENT ON COLUMN webmap.endpoints.graticule_layer IS 'Fully-qualified layer nam
 COMMENT ON COLUMN webmap.endpoints.proxied_url IS 'Original URL which the endpoint proxies, if required (i.e. if CORS not implemented by server)';
 COMMENT ON COLUMN webmap.endpoints.srs IS 'Spatial Reference System as an EPSG code';
 COMMENT ON COLUMN webmap.endpoints.has_wfs IS 'Whether a WFS service is available at the same endpoint (improved user experience on interactive layers possible)';
-COMMENT ON COLUMN webmap.endpoints.is_user_service IS 'Whether this endpoint represents a WMS for user uploaded data'
-COMMENT ON COLUMN webmap.endpoints.url_aliases IS 'To allow maps to continue working with stored URLs that may be out of date due to server moves, SSL etc'
+COMMENT ON COLUMN webmap.endpoints.is_user_service IS 'Whether this endpoint represents a WMS for user uploaded data';
+COMMENT ON COLUMN webmap.endpoints.url_aliases IS 'To allow maps to continue working with stored URLs that may be out of date due to server moves, SSL etc';
+COMMENT ON COLUMN webmap.endpoints.rest_endpoint IS 'Access to Geoserver REST services which may not be accessible via the main URL (e.g. load balanced services)';
 
 CREATE TABLE webmap.maps
 (
