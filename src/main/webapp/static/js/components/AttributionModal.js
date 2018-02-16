@@ -213,89 +213,120 @@ magic.classes.AttributionModal.prototype.populateRecordRamadda = function(data) 
  * @param {string} featureName
  * @param {string} errMsg
  */
-magic.classes.AttributionModal.prototype.populateRecordWms = function(getCaps, featureName, errMsg) {
+magic.classes.AttributionModal.prototype.populateRecordWms = function(getCaps, featureName, errMsg) {    
     var rec = {};
-    if (getCaps && getCaps[featureName]) {
+    if (getCaps) {
         var proj = magic.runtime.map.getView().getProjection().getCode();
-        var caps = getCaps[featureName];
-        /* Read abstract */
-        rec["abstract"] = caps["Abstract"] || "";
-        /* Read SRS */
-        rec["srs"] = magic.modules.GeoUtils.formatProjection("EPSG:4326");
-        if (jQuery.isArray(caps["CRS"])) {        
-            for (var i = 0; i < caps["CRS"].length; i++) {
-                if (caps["CRS"][i] == proj) {
-                    rec["srs"] = magic.modules.GeoUtils.formatProjection(caps["CRS"][i]);
-                    break;
+        var caps = this.findFeatureInCaps(getCaps, featureName);
+        if (caps != null) {
+            /* Read abstract */
+            rec["abstract"] = caps["Abstract"] || "";
+            /* Read SRS */
+            rec["srs"] = magic.modules.GeoUtils.formatProjection("EPSG:4326");
+            if (jQuery.isArray(caps["CRS"])) {        
+                for (var i = 0; i < caps["CRS"].length; i++) {
+                    if (caps["CRS"][i] == proj) {
+                        rec["srs"] = magic.modules.GeoUtils.formatProjection(caps["CRS"][i]);
+                        break;
+                    }
                 }
             }
-        }
-        /* Read WMS feed */
-        var wmsSource = this.layer.get("metadata")["source"]["wms_source"];
-        rec["wmsfeed"] = magic.modules.Endpoints.getOgcEndpoint(wmsSource, "wms") + "?" + 
-            "SERVICE=WMS&" + 
-            "VERSION=1.3.0&" + 
-            "REQUEST=GetMap&" + 
-            "FORMAT=image/png&" + 
-            "TRANSPARENT=true&" + 
-            "LAYERS=" + featureName + "&" + 
-            "CRS=" + proj + "&" + 
-            "SRS=" + proj + "&" + 
-            "TILED=true&" + 
-            "WIDTH=1000&" + 
-            "HEIGHT=1000&" + 
-            "STYLES=&" + 
-            "BBOX=" + magic.runtime.map.getView().getProjection().getExtent().join(",");
-        /* Read keywords */
-        rec["keywords"] = caps["KeywordList"] ? caps["KeywordList"].join("<br>") : "";
-        /* Read SRS bounding box */
-        if (jQuery.isArray(caps["BoundingBox"])) {
-            jQuery.each(caps["BoundingBox"], function(idx, bb) {
-                if (bb.crs == magic.runtime.map.getView().getProjection().getCode()) {
-                    rec["bboxsrs"] = magic.modules.GeoUtils.formatBbox(bb.extent, 0);
-                    return(false);
+            /* Read WMS feed */
+            var wmsSource = this.layer.get("metadata")["source"]["wms_source"];
+            rec["wmsfeed"] = magic.modules.Endpoints.getOgcEndpoint(wmsSource, "wms") + "?" + 
+                "SERVICE=WMS&" + 
+                "VERSION=1.3.0&" + 
+                "REQUEST=GetMap&" + 
+                "FORMAT=image/png&" + 
+                "TRANSPARENT=true&" + 
+                "LAYERS=" + featureName + "&" + 
+                "CRS=" + proj + "&" + 
+                "SRS=" + proj + "&" + 
+                "TILED=true&" + 
+                "WIDTH=1000&" + 
+                "HEIGHT=1000&" + 
+                "STYLES=&" + 
+                "BBOX=" + magic.runtime.map.getView().getProjection().getExtent().join(",");
+            /* Read keywords */
+            rec["keywords"] = caps["KeywordList"] ? caps["KeywordList"].join("<br>") : "";
+            /* Read SRS bounding box */
+            if (jQuery.isArray(caps["BoundingBox"])) {
+                jQuery.each(caps["BoundingBox"], function(idx, bb) {
+                    if (bb.crs == magic.runtime.map.getView().getProjection().getCode()) {
+                        rec["bboxsrs"] = magic.modules.GeoUtils.formatBbox(bb.extent, 0);
+                        return(false);
+                    }
+                }); 
+            }
+            /* Read WGS84 bounding box */
+            if (jQuery.isArray(caps["EX_GeographicBoundingBox"])) {
+                rec["bboxwgs84"] = magic.modules.GeoUtils.formatBbox(caps["EX_GeographicBoundingBox"], 0);
+            }
+            /* Read attribution */
+            if (caps["Attribution"]) {
+                var value = caps["Attribution"];
+                if ("source" in value && "url" in value) {
+                    rec["attribution"] = '<a href="' + value.url + '">' + value.source + '</a>';
                 }
-            }); 
-        }
-        /* Read WGS84 bounding box */
-        if (jQuery.isArray(caps["EX_GeographicBoundingBox"])) {
-            rec["bboxwgs84"] = magic.modules.GeoUtils.formatBbox(caps["EX_GeographicBoundingBox"], 0);
-        }
-        /* Read attribution */
-        if (caps["Attribution"]) {
-            var value = caps["Attribution"];
-            if ("source" in value && "url" in value) {
-                rec["attribution"] = '<a href="' + value.url + '">' + value.source + '</a>';
             }
-        }
-        /* Read metadata URL(s) */
-        if (caps["MetadataURL"]) {
-            var value = caps["MetadataURL"];    
-            if (!jQuery.isArray(value)) {    
-                value = [value];
+            /* Read metadata URL(s) */
+            if (caps["MetadataURL"]) {
+                var value = caps["MetadataURL"];    
+                if (!jQuery.isArray(value)) {    
+                    value = [value];
+                }
+                var links = [];
+                jQuery.each(value, function(mui, murl) {
+                    links.push('<a href="' + murl["OnlineResource"] + '" target="_blank">[external resource]</a>');
+                });
+                rec["metadataurl"] = links.join("<br>");
             }
-            var links = [];
-            jQuery.each(value, function(mui, murl) {
-                links.push('<a href="' + murl["OnlineResource"] + '" target="_blank">[external resource]</a>');
-            });
-            rec["metadataurl"] = links.join("<br>");
-        }
-        /* Read data URL(s) */
-        if (caps["DataURL"]) {
-            var value = caps["DataURL"];    
-            if (!jQuery.isArray(value)) {    
-                value = [value];
+            /* Read data URL(s) */
+            if (caps["DataURL"]) {
+                var value = caps["DataURL"];    
+                if (!jQuery.isArray(value)) {    
+                    value = [value];
+                }
+                var links = [];
+                jQuery.each(value, function(dui, durl) {
+                    links.push('<a href="' + durl["OnlineResource"] + '" target="_blank">[get data]</a>');
+                });
+                rec["dataurl"] = links.join("<br>");
             }
-            var links = [];
-            jQuery.each(value, function(dui, durl) {
-                links.push('<a href="' + durl["OnlineResource"] + '" target="_blank">[get data]</a>');
-            });
-            rec["dataurl"] = links.join("<br>");
+        } else {
+            rec = {"error": "No entry for feature in capabilities document - has it been deleted?"};
         }
     } else {
         rec = {"error": errMsg};
     }
     this.tabulate(rec);
+};
+
+/**
+ * Find the entry for 'featName' in the capabilities document - copes with legacy decisions about the presence/absence of a <namespace>: at the beginning of 
+ * the feature name
+ * @param {Object} caps
+ * @param {String} featName
+ * @return {Object}
+ */
+magic.classes.AttributionModal.prototype.findFeatureInCaps = function(caps, featName) {
+    if (!caps[featName]) {
+        /* Do more work => scan the capabilities object for a key match without the namespace */
+        var matches = [];
+        for (var key in caps) {
+            if (featName == key.split(":").pop()) {
+                matches.push(key);
+            }
+        }
+        if (matches.length == 1) {
+            return(caps[matches[0]]);
+        } else {
+            /* Ambiguous, so give up rather than return the wrong metadata */
+            return(null);
+        }
+    } else {
+        return(caps[featName]);
+    }
 };
     
 /**
