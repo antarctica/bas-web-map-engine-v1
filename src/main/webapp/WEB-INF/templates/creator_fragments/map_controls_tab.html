@@ -144,9 +144,7 @@
                                 <td th:switch="${usertype}">
                                     <span th:case="'admin'" class="fa fa-check"><input type="hidden" name="map-controls-allowed_edit" value="admin"></input></span>
                                     <span th:case="'owner'" class="fa fa-check"><input type="hidden" name="map-controls-allowed_edit" value="owner"></input></span>
-                                    <input th:case="'superuser'" type="checkbox" name="map-controls-allowed_edit" th:value="${userrole}"></input>
-                                    <input th:case="'internal'" type="checkbox" name="map-controls-allowed_edit" th:value="${userrole}"></input>
-                                    <input th:case="'login'" type="checkbox" name="map-controls-allowed_edit" th:value="${userrole}"></input>
+                                    <input th:case="'superuser'" type="checkbox" name="map-controls-allowed_edit" th:value="${userrole}"></input>                                    
                                     <span th:case="*" class="fa fa-times"></span>                                    
                                 </td>
                                 <td th:switch="${usertype}">

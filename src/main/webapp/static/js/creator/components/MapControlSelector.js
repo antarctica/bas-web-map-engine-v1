@@ -124,7 +124,12 @@ magic.classes.creator.MapControlSelector.prototype.getContext = function() {
     var cbAu = jQuery("input[name='" + this.prefix + "-allowed_usage']");
     if (cbAu.length > 0) {
         var cbVals = cbAu.map(function() {
-            return(jQuery(this).val());
+            var input = jQuery(this);
+            if (input.attr("type") == "checkbox") {
+                return(input.prop("checked") ? input.val() : null);
+            } else {
+                return(input.val());
+            }
         }).get();
         if (cbVals.indexOf("login") != -1) {
             context.allowed_usage = "login";
@@ -139,7 +144,12 @@ magic.classes.creator.MapControlSelector.prototype.getContext = function() {
     var cbEd = jQuery("input[name='" + this.prefix + "-allowed_edit']");
     if (cbEd.length > 0) {
         var cbVals = cbEd.map(function() {
-            return(jQuery(this).val());
+            var input = jQuery(this);
+            if (input.attr("type") == "checkbox") {
+                return(input.prop("checked") ? input.val() : null);
+            } else {
+                return(input.val());
+            }
         }).get();
         if (cbVals.indexOf("login") != -1) {
             context.allowed_edit = "login";
@@ -152,7 +162,12 @@ magic.classes.creator.MapControlSelector.prototype.getContext = function() {
     var cbDl = jQuery("input[name='" + this.prefix + "-allowed_download']");
     if (cbDl.length > 0) {
         var cbVals = cbDl.map(function() {
-            return(jQuery(this).val());
+            var input = jQuery(this);
+            if (input.attr("type") == "checkbox") {
+                return(input.prop("checked") ? input.val() : null);
+            } else {
+                return(input.val());
+            }
         }).get();
         if (cbVals.indexOf("login") != -1) {
             context.allowed_download = "login";
