@@ -70,13 +70,13 @@ public class UserMapData extends AbstractMapData {
     }
 
     @Override
-    public Object[] updateArgs(String id) {
+    public Object[] updateArgs(Object id) {
         return(new Object[] {
             getName(),               
             getAllowed_usage(),
             getBasemap(),
             getJsonDataAsPgObject(getData()),
-            Integer.parseInt(id)
+            id
         });
     }
     
@@ -86,9 +86,9 @@ public class UserMapData extends AbstractMapData {
     }
     
     @Override
-    public Object[] deleteArgs(String id) {
+    public Object[] deleteArgs(Object id) {
         return(new Object[] {
-            Integer.parseInt(id)
+            id
         });
     }
 

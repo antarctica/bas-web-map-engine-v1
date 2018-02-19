@@ -94,7 +94,7 @@ public class EndpointData extends JsonCrudApp {
     }
 
     @Override
-    public Object[] updateArgs(String id) {
+    public Object[] updateArgs(Object id) {
         return(new Object[] {
             getName(),
             getUrl(),
@@ -118,7 +118,7 @@ public class EndpointData extends JsonCrudApp {
     }
 
     @Override
-    public Object[] deleteArgs(String id) {
+    public Object[] deleteArgs(Object id) {
         return(new Object[] {id});
     }
     

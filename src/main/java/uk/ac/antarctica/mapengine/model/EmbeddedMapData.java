@@ -96,7 +96,7 @@ public class EmbeddedMapData extends AbstractMapData {
     }
 
     @Override
-    public Object[] updateArgs(String id) {
+    public Object[] updateArgs(Object id) {
         return(new Object[] {
             getName(),
             getTitle(),
@@ -122,7 +122,7 @@ public class EmbeddedMapData extends AbstractMapData {
     }
     
     @Override
-    public Object[] deleteArgs(String id) {
+    public Object[] deleteArgs(Object id) {
         return(new Object[] {id});
     }
 

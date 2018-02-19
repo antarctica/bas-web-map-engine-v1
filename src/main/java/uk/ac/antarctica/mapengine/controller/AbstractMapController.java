@@ -161,10 +161,7 @@ public class AbstractMapController {
     /**
      * Save map data
      * @param AbstractWebmapData webmapData
-     * @param String username
-     * @param String attr
-     * @param String value
-     * @param Integer usermapid
+     * @param String id     
      * @return ResponseEntity<String>
      */
     protected ResponseEntity<String> saveMapData(AbstractMapData webmapData, String id) {

@@ -20,11 +20,11 @@ public abstract class JsonCrudApp {
     
     public abstract String updateSql();
     
-    public abstract Object[] updateArgs(String id); 
+    public abstract Object[] updateArgs(Object id); 
     
     public abstract String deleteSql();
     
-    public abstract Object[] deleteArgs(String id);    
+    public abstract Object[] deleteArgs(Object id);    
     
     public Object getJsonElement(JsonObject jo, String key, boolean allowEmpty, Object defaultValue) {
         return(getJsonElement(jo, key, allowEmpty, defaultValue, String.class));
