@@ -394,20 +394,20 @@ magic.classes.UserLayerManagerForm.prototype.markup = function() {
                     (lt == "user" ? 
                     '<button id="' + this.id + '-' + lt + '-layer-add" class="btn btn-sm btn-primary" type="button" ' + 
                         'data-toggle="popover" data-trigger="manual" data-placement="bottom">' + 
-                        '<i data-toggle="tooltip" data-placement="top" title="Add a new layer" class="fa fa-star"></i>' + 
+                        '<i data-toggle="tooltip" data-placement="top" data-trigger="hover" title="Add a new layer" class="fa fa-star"></i>' + 
                     '</button>' +
                     '<button type="button" class="btn btn-sm btn-warning" id="' + this.id + '-' + lt + '-layer-edit" ' + 
                         'data-toggle="popover" data-trigger="manual" data-placement="bottom">' + 
-                        '<i style="font-size:14px" data-toggle="tooltip" data-placement="top" title="Edit selected layer data" class="fa fa-pencil"></i>' + 
+                        '<i style="font-size:14px" data-toggle="tooltip" data-placement="top" data-trigger="hover" title="Edit selected layer data" class="fa fa-pencil"></i>' + 
                     '</button>' +
                     '<button type="button" class="btn btn-sm btn-danger" id="' + this.id + '-' + lt + '-layer-del">' +
-                        '<i data-toggle="tooltip" data-placement="top" title="Delete selected layer" class="fa fa-trash"></i>' + 
+                        '<i data-toggle="tooltip" data-placement="top" data-trigger="hover" title="Delete selected layer" class="fa fa-trash"></i>' + 
                     '</button>' : '') + 
                 '</div>' + 
                 '<div class="btn-group dropdown" role="group">' + 
                     '<button id="' + this.id + '-' + lt + '-layer-actions" type="button" class="btn btn-sm btn-default dropdown-toggle" ' + 
                         'data-toggle="dropdown" data-container="body">' + 
-                        '<i data-toggle="tooltip" data-placement="top" title="Further actions" class="fa fa-ellipsis-h"></i>&nbsp;&nbsp;<span class="caret"></span>' + 
+                        '<i data-toggle="tooltip" data-placement="top" data-trigger="hover" title="Further actions" class="fa fa-ellipsis-h"></i>&nbsp;&nbsp;<span class="caret"></span>' + 
                     '</button>' + 
                     '<ul class="dropdown-menu dropdown-menu-right" style="overflow:auto">' + 
                         '<li><a id="' + this.id + '-' + lt + '-layer-ztl" href="Javascript:void(0)">Zoom to layer extent</a></li>' + 
