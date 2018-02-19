@@ -7,10 +7,35 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import java.beans.PropertyDescriptor;
 import java.sql.SQLException;
+import java.util.Date;
 import org.postgresql.util.PGobject;
+import org.springframework.beans.BeanUtils;
 
 public abstract class JsonCrudApp {
+    
+    public String toPayload() throws Exception {
+        JsonObject jo = new JsonObject();
+        for (PropertyDescriptor pd : BeanUtils.getPropertyDescriptors(this.getClass())) {
+            if (!pd.getDisplayName().equals("tableName")) {
+                Object propVal = pd.getReadMethod().invoke(this);
+                Class propClass = propVal.getClass();
+                if (propClass == Boolean.class) {
+                    jo.add(pd.getDisplayName(), new JsonPrimitive((Boolean)propVal));
+                } else if (propClass == Double.class) {
+                    jo.add(pd.getDisplayName(), new JsonPrimitive((Double)propVal));
+                } else if (propClass == Integer.class) {
+                    jo.add(pd.getDisplayName(), new JsonPrimitive((Integer)propVal));
+                } else if (propClass == Date.class) {
+                    jo.add(pd.getDisplayName(), new JsonPrimitive(((Date)propVal).toString()));
+                } else {
+                    jo.add(pd.getDisplayName(), new JsonPrimitive((String)propVal));
+                }                
+            }
+        }        
+        return(jo.toString());
+    }    
         
     public abstract void fromPayload(String payload, String username);
     

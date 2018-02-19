@@ -3,7 +3,12 @@
  */
 package uk.ac.antarctica.mapengine.controller;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +21,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import uk.ac.antarctica.mapengine.config.SessionConfig;
 import uk.ac.antarctica.mapengine.config.UserAuthorities;
@@ -34,6 +40,8 @@ public class EndpointManagerController {
     
     @Autowired
     private SessionConfig.UserAuthoritiesProvider userAuthoritiesProvider;
+    
+    private Gson mapper;
         
     /**
      * Output the manager console     
@@ -50,6 +58,57 @@ public class EndpointManagerController {
             throw new SuperUserOnlyException("You are not authorised to manage WMS endpoints for this server");
         }
     }
+    
+    /*---------------------------------------------------------------- Dropdown populators ----------------------------------------------------------------*/
+    
+    /**
+     * Get {id: <id>, name: <name>} for all endpoints
+     * @param HttpServletRequest request,    
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/endpoints/dropdown", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
+    @ResponseBody
+    public ResponseEntity<String> endpointsDropdown(HttpServletRequest request)
+        throws ServletException, IOException {
+        ResponseEntity<String> ret;
+        try {
+            List<Map<String,Object>> epdata = magicDataTpl.queryForList("SELECT id, name FROM " + env.getProperty("postgres.local.endpointsTable") + " ORDER BY name");
+            JsonArray views = mapper.toJsonTree(epdata).getAsJsonArray();
+            ret = PackagingUtils.packageResults(HttpStatus.OK, views.toString(), null);
+        } catch(DataAccessException dae) {
+            ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Database error : message was " + dae.getMessage());
+        }
+        return(ret);
+    }    
+    
+    /**
+     * Get {id: <id>, name: <name>} for all endpoints
+     * @param HttpServletRequest request, 
+     * @param Integer id,
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/endpoints/get/{id}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
+    @ResponseBody
+    public ResponseEntity<String> getEndpoint(HttpServletRequest request, @PathVariable("id") Integer id)
+        throws ServletException, IOException {
+        ResponseEntity<String> ret;
+        try {
+            Map<String,Object> epdata = magicDataTpl.queryForMap("SELECT * FROM " + env.getProperty("postgres.local.endpointsTable") + " WHERE id=?", id);
+            if (epdata != null) {
+                JsonObject epj = mapper.toJsonTree(epdata).getAsJsonObject();
+                ret = PackagingUtils.packageResults(HttpStatus.OK, epj.toString(), null);
+            } else {
+                ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "No records found with id " + id);
+            }
+        } catch(DataAccessException dae) {
+            ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Database error : message was " + dae.getMessage());
+        }
+        return(ret);
+    }    
     
     /*---------------------------------------------------------------- Save endpoint data ----------------------------------------------------------------*/
     
@@ -87,7 +146,7 @@ public class EndpointManagerController {
      * @throws Exception
      */
     @RequestMapping(value = "/endpoint/delete/{id}", method = RequestMethod.DELETE, produces = "application/json; charset=utf-8")
-    public ResponseEntity<String> deleteMap(HttpServletRequest request,
+    public ResponseEntity<String> deleteEndpoint(HttpServletRequest request,
         @PathVariable("id") Integer id) throws Exception {
         return (executeOp(request, new EndpointData(env.getProperty("postgres.local.endpointsTable")), id));        
     }      
@@ -121,7 +180,7 @@ public class EndpointManagerController {
                 }                
                 ret = PackagingUtils.packageResults(HttpStatus.OK, null, msg);
             } catch(DataAccessException dae) {
-                ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Error saving data, message was: " + dae.getMessage());
+                ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Database error, message was: " + dae.getMessage());
             }
         } else {
             throw new SuperUserOnlyException("You are not authorised to manage WMS endpoints for this server");
