@@ -18,9 +18,11 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
             '<a href="Javascript:void(0)" id="sty-' + this.nodeid + '">Apply alternate style</a>' +
             '<div class="panel panel-default hidden" style="margin-bottom:0px" id="wrapper-sty-' + this.nodeid + '">' + 
                 '<div class="panel-body" style="padding:5px">' + 
-                    '<div class="form-group form-group-sm col-sm-12" style="margin-bottom:0px">' + 
-                        '<select class="form-control" id="sty-alts-' + this.nodeid +'"></select>' + 
-                    '</div>' + 
+                    '<form class="form-inline">' + 
+                        '<div class="form-group form-group-sm col-sm-12" style="margin-bottom:0px">' + 
+                            '<select class="form-control" id="sty-alts-' + this.nodeid +'"></select>' + 
+                        '</div>' + 
+                    '</form>' + 
                 '</div>' + 
             '</div>' + 
         '</li>' + 
@@ -226,8 +228,8 @@ magic.classes.LayerTreeOptionsMenu.prototype.applyAlternateStyle = function() {
                 contentType: "application/json"
             }).done(jQuery.proxy(function(data) {
                 if (data.styles && typeof data.styles == "object" && jQuery.isArray(data.styles.style)) {
-                    if (data.styles.style.length > 0) {
-                        magic.modules.Common.populateSelect(choices, data.styles.style, "name", "name", false);
+                    if (data.styles.style.length > 1) {
+                        magic.modules.Common.populateSelect(choices, data.styles.style, "name", "name", true);
                         choices.change(jQuery.proxy(function(evt) {
                             this.layer.getSource().updateParams(jQuery.extend({}, 
                                 this.layer.getSource().getParams(), 

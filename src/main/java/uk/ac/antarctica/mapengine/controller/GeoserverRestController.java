@@ -201,7 +201,7 @@ public class GeoserverRestController {
             String restUrl = getEndpointUrl(endpointid);
             if (restUrl != null) {
                 try {
-                    content = HTTPUtils.get(restUrl);
+                    content = HTTPUtils.get(restUrl + "/rest/layers/" + layer + "/styles.json");
                 } catch (MalformedURLException ex) {
                 }
             }
@@ -551,7 +551,7 @@ public class GeoserverRestController {
         
         try {
             restUrl = magicDataTpl.queryForObject(
-                "SELECT url FROM " + env.getProperty("postgres.local.endpointsTable") + " WHERE id=?", 
+                "SELECT COALESCE(rest_endpoint, url) FROM " + env.getProperty("postgres.local.endpointsTable") + " WHERE id=?", 
                 String.class, 
                 endpointid
             );            

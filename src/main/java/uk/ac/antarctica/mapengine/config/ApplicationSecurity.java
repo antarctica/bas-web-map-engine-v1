@@ -94,7 +94,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
             .antMatchers("/*.ico", "/static/**", "/ping", "/home/**", "/homed/**",
                     "/maps/dropdown/**", "/maps/name/**", "/maps/id/**", "/feedback",
                     "/embedded_maps/dropdown/**", "/embedded_maps/name/**", "/embedded_maps/id/**",
-                    "/usermaps/data", "/ogc/**",
+                    "/usermaps/data", "/ogc/**", "/endpoints/get/**", "/endpoints/dropdown",
                     "/thumbnail/show/**", "/prefs/get", "/gs/**").permitAll()
             .antMatchers("/creator", "/creatord", "/embedded_creator", "/embedded_creatord",
                     "/restricted/**", "/restrictedd/**",
@@ -102,7 +102,8 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
                     "/maps/save", "/maps/update/**", "/maps/delete/**", "/maps/deletebyname/**",
                     "/embedded_maps/save", "/embedded_maps/update/**", "/embedded_maps/delete/**", "/embedded_maps/deletebyname/**",
                     "/usermaps/save", "/usermaps/update/**", "/usermaps/delete/**",
-                    "/thumbnail/save/**", "/thumbnail/delete/**", "/rothera_reports/**")
+                    "/thumbnail/save/**", "/thumbnail/delete/**", "/rothera_reports/**",
+                    "/endpoint_manager", "/endpoints/save", "/endpoints/update/**", "/endpoints/delete/**")
             .fullyAuthenticated()
             .and()
             .formLogin()

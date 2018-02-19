@@ -41,7 +41,7 @@ public class EndpointManagerController {
     @Autowired
     private SessionConfig.UserAuthoritiesProvider userAuthoritiesProvider;
     
-    private Gson mapper;
+    private Gson mapper = new Gson();
         
     /**
      * Output the manager console     
@@ -117,7 +117,7 @@ public class EndpointManagerController {
      * @param String payload   
      * @throws Exception
      */
-    @RequestMapping(value = "/endpoint/save", method = RequestMethod.PUT, headers = {"Content-type=application/json"})
+    @RequestMapping(value = "/endpoints/save", method = RequestMethod.PUT, headers = {"Content-type=application/json"})
     public ResponseEntity<String> saveEndpoint(HttpServletRequest request,
         @RequestBody String payload) throws Exception {        
         EndpointData epd = new EndpointData(env.getProperty("postgres.local.endpointsTable"));
@@ -131,7 +131,7 @@ public class EndpointManagerController {
      * @param String payload   
      * @throws Exception
      */
-    @RequestMapping(value = "/endpoint/update/{id}", method = RequestMethod.PUT, headers = {"Content-type=application/json"})
+    @RequestMapping(value = "/endpoints/update/{id}", method = RequestMethod.PUT, headers = {"Content-type=application/json"})
     public ResponseEntity<String> updateEndpoint(HttpServletRequest request,
         @PathVariable("id") Integer id,
         @RequestBody String payload) throws Exception {       
@@ -145,7 +145,7 @@ public class EndpointManagerController {
      * @param Integer id
      * @throws Exception
      */
-    @RequestMapping(value = "/endpoint/delete/{id}", method = RequestMethod.DELETE, produces = "application/json; charset=utf-8")
+    @RequestMapping(value = "/endpoints/delete/{id}", method = RequestMethod.DELETE, produces = "application/json; charset=utf-8")
     public ResponseEntity<String> deleteEndpoint(HttpServletRequest request,
         @PathVariable("id") Integer id) throws Exception {
         return (executeOp(request, new EndpointData(env.getProperty("postgres.local.endpointsTable")), id));        
