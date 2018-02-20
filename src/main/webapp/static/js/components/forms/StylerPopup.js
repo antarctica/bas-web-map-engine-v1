@@ -111,7 +111,7 @@ magic.classes.StylerPopup.prototype.markup = function() {
                     '<div class="col-sm-8">' +
                         '<input type="number" class="form-control" id="' + this.id + '-stroke_width" ' + 
                                'placeholder="Width of outline in pixels" ' + 
-                               'min="3" max="20" step="0.2" value="1" ' + 
+                               'min="0.2" max="20" step="0.2" value="1.0" ' + 
                                'data-toggle="tooltip" data-placement="right" title="Width of outline in pixels, default 1">' + 
                         '</input>' +
                     '</div>' + 
@@ -137,7 +137,7 @@ magic.classes.StylerPopup.prototype.markup = function() {
                 '<div class="form-group form-group-sm col-sm-12">' + 
                     '<label class="col-sm-4 control-label" for="' + this.id + '-stroke_linestyle">Line style</label>' + 
                     '<div class="col-sm-8">' + 
-                        '<select class="form-control id="' + this.id + '-stroke_linestyle" ' +                                       
+                        '<select class="form-control" id="' + this.id + '-stroke_linestyle" ' +                                       
                                 'data-toggle="tooltip" data-placement="right" title="Type of line">' + 
                             '<option value="solid">Solid</option>'+ 
                             '<option value="dotted">Dotted</option>' +

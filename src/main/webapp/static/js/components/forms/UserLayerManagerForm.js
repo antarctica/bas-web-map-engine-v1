@@ -245,7 +245,7 @@ magic.classes.UserLayerManagerForm.prototype.assignHandlers = function() {
         bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">Are you sure you want to delete this layer?</div>', jQuery.proxy(function(result) {
             if (result) {
                 /* Do the deletion */
-                var id = this.currentSelection;
+                var id = this.currentSelection.user;
                 jQuery.ajax({
                     url: magic.config.paths.baseurl + "/userlayers/delete/" + id,
                     method: "DELETE",
@@ -263,6 +263,11 @@ magic.classes.UserLayerManagerForm.prototype.assignHandlers = function() {
                     /* Reload the layers */
                     delete this.userLayerData[id];
                     this.refreshLayerLists();
+                    /* Reset the dropdown button caption and visibility indicator */
+                    jQuery("#" + this.id + "-user-layer-select").html('Select a layer&nbsp;&nbsp;<span class="caret"></span>');                       
+                    /* Reset the current selection and reset button statuses */
+                    this.setSelection("user", null);
+                    this.setButtonStates(null);
                 }, this))
                 .fail(function (xhr) {
                     bootbox.alert(
@@ -379,10 +384,10 @@ magic.classes.UserLayerManagerForm.prototype.markup = function() {
             '<div class="form-group form-group-sm col-sm-12"><strong>' + (lt == "user" ? 'My' : 'Community') + ' uploaded layers</strong></div>' +
             '<div class="btn-toolbar" style="margin-bottom:10px">' + 
                 '<div class="btn-group" role="group">' + 
-                    '<button id="' + this.id + '-' + lt + '-layer-select" type="button" class="btn btn-sm btn-default dropdown-toggle" ' + 
+                    '<a id="' + this.id + '-' + lt + '-layer-select" type="button" class="btn btn-sm btn-default dropdown-toggle" ' + 
                         'data-toggle="dropdown" style="width:180px">' + 
                         'Select a layer&nbsp;&nbsp;<span class="caret"></span>' + 
-                    '</button>' + 
+                    '</a>' + 
                     '<ul id="' + this.id + '-' + lt + '-layers" class="dropdown-menu">' +                     
                     '</ul>' + 
                 '</div>' + 
@@ -392,23 +397,23 @@ magic.classes.UserLayerManagerForm.prototype.markup = function() {
                         '<i style="pointer-events:none" title="Legend for selected layer" class="fa fa-list"></i>' + 
                     '</button>' +
                     (lt == "user" ? 
-                    '<button id="' + this.id + '-' + lt + '-layer-add" class="btn btn-sm btn-primary" type="button" ' + 
+                    '<a id="' + this.id + '-' + lt + '-layer-add" class="btn btn-sm btn-primary" type="button" ' + 
                         'data-toggle="popover" data-trigger="manual" data-placement="bottom">' + 
                         '<i data-toggle="tooltip" data-placement="top" data-trigger="hover" title="Add a new layer" class="fa fa-star"></i>' + 
-                    '</button>' +
-                    '<button type="button" class="btn btn-sm btn-warning" id="' + this.id + '-' + lt + '-layer-edit" ' + 
+                    '</a>' +
+                    '<a type="button" class="btn btn-sm btn-warning" id="' + this.id + '-' + lt + '-layer-edit" ' + 
                         'data-toggle="popover" data-trigger="manual" data-placement="bottom">' + 
                         '<i style="font-size:14px" data-toggle="tooltip" data-placement="top" data-trigger="hover" title="Edit selected layer data" class="fa fa-pencil"></i>' + 
-                    '</button>' +
-                    '<button type="button" class="btn btn-sm btn-danger" id="' + this.id + '-' + lt + '-layer-del">' +
+                    '</a>' +
+                    '<a type="button" class="btn btn-sm btn-danger" id="' + this.id + '-' + lt + '-layer-del">' +
                         '<i data-toggle="tooltip" data-placement="top" data-trigger="hover" title="Delete selected layer" class="fa fa-trash"></i>' + 
-                    '</button>' : '') + 
+                    '</a>' : '') + 
                 '</div>' + 
                 '<div class="btn-group dropdown" role="group">' + 
-                    '<button id="' + this.id + '-' + lt + '-layer-actions" type="button" class="btn btn-sm btn-default dropdown-toggle" ' + 
+                    '<a id="' + this.id + '-' + lt + '-layer-actions" type="button" class="btn btn-sm btn-default dropdown-toggle" ' + 
                         'data-toggle="dropdown" data-container="body">' + 
                         '<i data-toggle="tooltip" data-placement="top" data-trigger="hover" title="Further actions" class="fa fa-ellipsis-h"></i>&nbsp;&nbsp;<span class="caret"></span>' + 
-                    '</button>' + 
+                    '</a>' + 
                     '<ul class="dropdown-menu dropdown-menu-right" style="overflow:auto">' + 
                         '<li><a id="' + this.id + '-' + lt + '-layer-ztl" href="Javascript:void(0)">Zoom to layer extent</a></li>' + 
                         '<li role="separator" class="divider"></li>' + 
