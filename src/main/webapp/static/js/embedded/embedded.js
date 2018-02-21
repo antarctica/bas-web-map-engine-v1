@@ -414,7 +414,7 @@ function init() {
                         var filter = getUrlParameter("filter", serviceUrl);
                         var filterUrl = serviceBase + "gs/filtered_extent/" + encodeURIComponent(filterFeat);
                         if (filter != null && filter !="") {
-                            filterUrl = filterUrl + "/" + encodeURIComponent(filter);
+                            filterUrl = filterUrl + "/" + encodeURIComponent(filter).replace(/'/g, "%27");
                         }
                         jQuery.getJSON(filterUrl,
                         function(data) {  

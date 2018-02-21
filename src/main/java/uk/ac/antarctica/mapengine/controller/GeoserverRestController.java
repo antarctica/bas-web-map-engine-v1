@@ -15,7 +15,9 @@ import it.geosolutions.geoserver.rest.decoder.RESTLayer;
 import it.geosolutions.geoserver.rest.decoder.RESTLayerList;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -423,7 +425,8 @@ public class GeoserverRestController {
         HttpServletRequest request, 
         HttpServletResponse response, 
         @PathVariable("layer") String layer)
-        throws ServletException, IOException, ServiceException {                 
+        throws ServletException, IOException, ServiceException {    
+        response.setContentType("application/json");
         IOUtils.copy(IOUtils.toInputStream(getFilteredExtent(layer, null)), response.getOutputStream());
     }
     
@@ -446,7 +449,8 @@ public class GeoserverRestController {
         HttpServletResponse response, 
         @PathVariable("layer") String layer,
         @PathVariable("filter") String filter)
-        throws ServletException, IOException, ServiceException {                 
+        throws ServletException, IOException, ServiceException {
+        response.setContentType("application/json");
         IOUtils.copy(IOUtils.toInputStream(getFilteredExtent(layer, filter)), response.getOutputStream());
     }
     
@@ -457,7 +461,7 @@ public class GeoserverRestController {
      * @return String
      * @throws MalformedURLException 
      */
-    private String getFilteredExtent(String layer, String filter) throws MalformedURLException {
+    private String getFilteredExtent(String layer, String filter) throws MalformedURLException, UnsupportedEncodingException {
         
         JsonObject jo = new JsonObject();
         JsonArray jarr = new JsonArray(); 
@@ -467,7 +471,7 @@ public class GeoserverRestController {
             "typeNames=" + layer + "&" + 
             "propertyName=ID";
         if (filter != null && !filter.isEmpty())  {
-            wfs = wfs + "&cql_filter=" + filter;
+            wfs = wfs + "&cql_filter=" + URLEncoder.encode(filter, "UTF-8");
         }
                 
         String wfsXml = HTTPUtils.get(wfs);
