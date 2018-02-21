@@ -20,7 +20,7 @@ function getUrlParameter(name, url) {
     name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
     var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
     var results = regex.exec(url);
-    return(results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' ')));
+    return(results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' ').replace(/%%/g, "%").replace(/%27/g, "'")));
 };
 
 /**
@@ -417,23 +417,26 @@ function init() {
                             filterUrl = filterUrl + "/" + encodeURIComponent(filter).replace(/'/g, "%27");
                         }
                         jQuery.getJSON(filterUrl,
-                        function(data) {  
-                            if (jQuery.isArray(data.extent)) {
-                                embeddedMaps[data.name].getView().fit(data.extent, {
+                        function(wfsData) {  
+                            if (jQuery.isArray(wfsData.extent) && wfsData.length == 4) {
+                                embeddedMaps[data.name].getView().fit(wfsData.extent, {
                                     size: embeddedMaps[data.name].getSize(),
-                                    constrainResolution: false
+                                    constrainResolution: false,
+                                    padding: [30, 30, 30, 30]
                                 });
                             } else {
                                 embeddedMaps[data.name].getView().fit(defaultExtent, {
                                     size: embeddedMaps[data.name].getSize(),
-                                    constrainResolution: false
+                                    constrainResolution: false,
+                                    padding: [30, 30, 30, 30]
                                 });
                             }
                         });
                     } else {                       
                         embeddedMaps[data.name].getView().fit(defaultExtent, {
                             size: embeddedMaps[data.name].getSize(),
-                            constrainResolution: false
+                            constrainResolution: false,
+                            padding: [30, 30, 30, 30]
                         });
                     }
                 } else {

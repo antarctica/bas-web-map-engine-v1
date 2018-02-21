@@ -466,14 +466,16 @@ public class GeoserverRestController {
         JsonObject jo = new JsonObject();
         JsonArray jarr = new JsonArray(); 
         
+        System.out.println("Filter : >" + filter + "<");
         String wfs = env.getProperty("geoserver.internal.url") + 
             "/wfs?service=wfs&version=2.0.0&request=GetFeature&" + 
             "typeNames=" + layer + "&" + 
             "propertyName=ID";
         if (filter != null && !filter.isEmpty())  {
-            wfs = wfs + "&cql_filter=" + URLEncoder.encode(filter, "UTF-8");
+            wfs = wfs + "&cql_filter=" + URLEncoder.encode(filter, "UTF-8").replaceAll("'", "%27");
         }
                 
+        System.out.println("Retrieve WFS URL : >" + wfs + "<");
         String wfsXml = HTTPUtils.get(wfs);
         if (wfsXml != null) {
             /* Something plausible at least */
@@ -483,16 +485,18 @@ public class GeoserverRestController {
                 DocumentBuilder db = dbf.newDocumentBuilder();
                 Document doc = db.parse(new ByteArrayInputStream(wfsXml.getBytes(StandardCharsets.UTF_8)));
                 NodeList wfsBounds = doc.getElementsByTagName("wfs:boundedBy");
-                Node envelope = wfsBounds.item(0).getFirstChild();
-                NodeList bounds = envelope.getChildNodes();
-                String bl = bounds.item(0).getTextContent();
-                String tr = bounds.item(1).getTextContent();
-                if (bl != null && !bl.isEmpty() && tr != null && !tr.isEmpty()) {
-                    for (String coord : bl.split(" ")) {
-                        jarr.add(new JsonPrimitive(Double.parseDouble(coord)));
-                    }
-                    for (String coord : tr.split(" ")) {
-                        jarr.add(new JsonPrimitive(Double.parseDouble(coord)));
+                if (wfsBounds != null && wfsBounds.getLength() > 0) {
+                    Node envelope = wfsBounds.item(0).getFirstChild();
+                    NodeList bounds = envelope.getChildNodes();
+                    String bl = bounds.item(0).getTextContent();
+                    String tr = bounds.item(1).getTextContent();
+                    if (bl != null && !bl.isEmpty() && tr != null && !tr.isEmpty()) {
+                        for (String coord : bl.split(" ")) {
+                            jarr.add(new JsonPrimitive(Double.parseDouble(coord)));
+                        }
+                        for (String coord : tr.split(" ")) {
+                            jarr.add(new JsonPrimitive(Double.parseDouble(coord)));
+                        }
                     }
                 }
             } catch(IOException | ParserConfigurationException | SAXException ex) {}
