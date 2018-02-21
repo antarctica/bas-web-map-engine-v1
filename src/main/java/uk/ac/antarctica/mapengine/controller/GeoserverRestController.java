@@ -459,6 +459,7 @@ public class GeoserverRestController {
      */
     private String getFilteredExtent(String layer, String filter) throws MalformedURLException {
         
+        JsonObject jo = new JsonObject();
         JsonArray jarr = new JsonArray(); 
         
         String wfs = env.getProperty("geoserver.internal.url") + 
@@ -492,7 +493,8 @@ public class GeoserverRestController {
                 }
             } catch(IOException | ParserConfigurationException | SAXException ex) {}
         }
-        return(jarr.toString());
+        jo.add("extent", jarr);
+        return(jo.toString());
     }
     
     /**

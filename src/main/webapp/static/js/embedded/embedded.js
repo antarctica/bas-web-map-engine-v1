@@ -417,14 +417,24 @@ function init() {
                             filterUrl = filterUrl + "/" + encodeURIComponent(filter);
                         }
                         jQuery.getJSON(filterUrl,
-                        function(wfsExtent) {  
-                            if (typeof wfsExtent == "string") {
-                                wfsExtent = JSON.parse(wfsExtent);
+                        function(data) {  
+                            if (jQuery.isArray(data.extent)) {
+                                embeddedMaps[data.name].getView().fit(data.extent, {
+                                    size: embeddedMaps[data.name].getSize(),
+                                    constrainResolution: false
+                                });
+                            } else {
+                                embeddedMaps[data.name].getView().fit(defaultExtent, {
+                                    size: embeddedMaps[data.name].getSize(),
+                                    constrainResolution: false
+                                });
                             }
-                            embeddedMaps[data.name].getView().fit(wfsExtent, embeddedMaps[data.name].getSize());
                         });
                     } else {                       
-                        embeddedMaps[data.name].getView().fit(defaultExtent, embeddedMaps[data.name].getSize());
+                        embeddedMaps[data.name].getView().fit(defaultExtent, {
+                            size: embeddedMaps[data.name].getSize(),
+                            constrainResolution: false
+                        });
                     }
                 } else {
                     showAlert("Map contains no data layers");
