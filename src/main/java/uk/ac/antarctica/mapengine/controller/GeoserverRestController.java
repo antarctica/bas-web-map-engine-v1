@@ -539,12 +539,15 @@ public class GeoserverRestController {
                             env.getProperty("geoserver.internal.password")
                         );
                     } else {
+                        if (restUrl.endsWith("/")) {
+                            restUrl = restUrl.substring(0, restUrl.length()-1);
+                        }
                         gs = new GeoServerRESTReader(restUrl);
-                    }
-                    if (!gs.existGeoserver()) {
-                        /* No Geoserver at this endpoint */
-                        gs = null;
-                    }
+                        if (!gs.existGeoserver()) {
+                            /* No Geoserver at this endpoint */
+                            gs = null;
+                        }
+                    }                    
                 }
             }        
         } catch(IllegalArgumentException iae) {
