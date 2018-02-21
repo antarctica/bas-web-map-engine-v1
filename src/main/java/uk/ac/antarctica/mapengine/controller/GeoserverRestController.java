@@ -520,24 +520,36 @@ public class GeoserverRestController {
     private GeoServerRESTReader getReader(Integer endpointid) throws MalformedURLException {
         
         GeoServerRESTReader gs = null;
-                
-        if (endpointid == null) {
-            /* Local Geoserver */
-            gs = new GeoServerRESTReader(
-                env.getProperty("geoserver.internal.url"), 
-                env.getProperty("geoserver.internal.username"), 
-                env.getProperty("geoserver.internal.password")
-            );
-        } else {
-            String restUrl = getEndpointUrl(endpointid);
-            if (restUrl != null) {
-                gs = new GeoServerRESTReader(restUrl);
-                if (!gs.existGeoserver()) {
-                    /* No Geoserver at this endpoint */
-                    gs = null;
+         
+        try {
+            if (endpointid == null) {
+                /* Local Geoserver */
+                gs = new GeoServerRESTReader(
+                    env.getProperty("geoserver.internal.url"), 
+                    env.getProperty("geoserver.internal.username"), 
+                    env.getProperty("geoserver.internal.password")
+                );
+            } else {
+                String restUrl = getEndpointUrl(endpointid);
+                if (restUrl != null) {
+                    if (restUrl.equals(env.getProperty("geoserver.internal.url"))) {
+                        gs = new GeoServerRESTReader(
+                            env.getProperty("geoserver.internal.url"), 
+                            env.getProperty("geoserver.internal.username"), 
+                            env.getProperty("geoserver.internal.password")
+                        );
+                    } else {
+                        gs = new GeoServerRESTReader(restUrl);
+                    }
+                    if (!gs.existGeoserver()) {
+                        /* No Geoserver at this endpoint */
+                        gs = null;
+                    }
                 }
-            }
-        }        
+            }        
+        } catch(IllegalArgumentException iae) {
+            System.out.println("Failed to find endpoint URL for id " + endpointid + " - error was : " + iae.getMessage());
+        }
         return(gs);
     }
     
@@ -551,12 +563,17 @@ public class GeoserverRestController {
         String restUrl = null;
         
         try {
+            System.out.println("GeoserverRestController.getEndpointUrl() entered");
             restUrl = magicDataTpl.queryForObject(
                 "SELECT COALESCE(rest_endpoint, url) FROM " + env.getProperty("postgres.local.endpointsTable") + " WHERE id=?", 
                 String.class, 
                 endpointid
-            );            
-        } catch(DataAccessException dae) {}   
+            );
+            System.out.println("--> Found REST URL : " + restUrl);
+        } catch(DataAccessException dae) {
+            System.out.println("--> Database error : " + dae.getMessage());
+        }   
+        System.out.println("GeoserverRestController.getEndpointUrl() complete");
         return(restUrl);
     }
 
