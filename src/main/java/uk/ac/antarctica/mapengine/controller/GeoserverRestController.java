@@ -63,7 +63,7 @@ public class GeoserverRestController {
     /**
      * Proxy Geoserver REST API call to default endpoint to get filtered list of layers with attributes
      * http://stackoverflow.com/questions/16332092/spring-mvc-pathvariable-with-dot-is-getting-truncated explains the :.+ in the path variable 'filter'
-     * @param HttpServletRequest request,
+     * @param HttpServletRequest request
      * @param HttpServletResponse response
      * @param String filter
      * @return
@@ -83,7 +83,7 @@ public class GeoserverRestController {
     /**
      * Proxy Geoserver REST API call to endpoint with specified id to get filtered list of layers with attributes
      * http://stackoverflow.com/questions/16332092/spring-mvc-pathvariable-with-dot-is-getting-truncated explains the :.+ in the path variable 'filter'
-     * @param HttpServletRequest request,
+     * @param HttpServletRequest request
      * @param HttpServletResponse response
      * @param String filter
      * @param int endpointid
@@ -143,7 +143,7 @@ public class GeoserverRestController {
     
     /**
      * Proxy Geoserver REST API call to gdefault endpoint to get all defined styles for a layer
-     * @param HttpServletRequest request,
+     * @param HttpServletRequest request
      * @param HttpServletResponse response
      * @param String layer
      * @return
@@ -162,7 +162,7 @@ public class GeoserverRestController {
     
     /**
      * Proxy Geoserver REST API call to endpoint with specified id to get all defined styles for a layer
-     * @param HttpServletRequest request,
+     * @param HttpServletRequest request
      * @param HttpServletResponse response
      * @param String layer
      * @param Integer endpointid
@@ -407,10 +407,32 @@ public class GeoserverRestController {
     }
     
     /**
+     * Proxy Geoserver WFS call to get the extent of a layer in native projection, no CQL filter
+     * Used by embedded maps to determine the extent of a subset of Oracle table data
+     * NOTE: does NOT support arbitrary REST endpoints - must be local Geoserver
+     * @param HttpServletRequest request
+     * @param HttpServletResponse response
+     * @param String layer
+     * @return
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/gs/filtered_extent/{layer}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
+    @ResponseBody
+    public void geoserverExtentForNonFilteredLayer(
+        HttpServletRequest request, 
+        HttpServletResponse response, 
+        @PathVariable("layer") String layer)
+        throws ServletException, IOException, ServiceException {                 
+        IOUtils.copy(IOUtils.toInputStream(getFilteredExtent(layer, null)), response.getOutputStream());
+    }
+    
+    /**
      * Proxy Geoserver WFS call to get the extent of a layer in native projection, applying a CQL filter
      * Used by embedded maps to determine the extent of a subset of Oracle table data
      * NOTE: does NOT support arbitrary REST endpoints - must be local Geoserver
-     * @param HttpServletRequest request,
+     * @param HttpServletRequest request
+     * @param HttpServletResponse response
      * @param String layer
      * @param String filter
      * @return
@@ -424,15 +446,28 @@ public class GeoserverRestController {
         HttpServletResponse response, 
         @PathVariable("layer") String layer,
         @PathVariable("filter") String filter)
-        throws ServletException, IOException, ServiceException { 
+        throws ServletException, IOException, ServiceException {                 
+        IOUtils.copy(IOUtils.toInputStream(getFilteredExtent(layer, filter)), response.getOutputStream());
+    }
+    
+    /**
+     * Common method for computing layer extent via REST for embedded maps
+     * @param String layer
+     * @param String filter
+     * @return String
+     * @throws MalformedURLException 
+     */
+    private String getFilteredExtent(String layer, String filter) throws MalformedURLException {
         
         JsonArray jarr = new JsonArray(); 
         
         String wfs = env.getProperty("geoserver.internal.url") + 
             "/wfs?service=wfs&version=2.0.0&request=GetFeature&" + 
             "typeNames=" + layer + "&" + 
-            "propertyName=ID&" + 
-            "cql_filter=" + filter;
+            "propertyName=ID";
+        if (filter != null && !filter.isEmpty())  {
+            wfs = wfs + "&cql_filter=" + filter;
+        }
                 
         String wfsXml = HTTPUtils.get(wfs);
         if (wfsXml != null) {
@@ -457,7 +492,7 @@ public class GeoserverRestController {
                 }
             } catch(IOException | ParserConfigurationException | SAXException ex) {}
         }
-        IOUtils.copy(IOUtils.toInputStream(jarr.toString()), response.getOutputStream());
+        return(jarr.toString());
     }
     
     /**
