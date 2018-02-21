@@ -360,10 +360,16 @@ magic.classes.LayerEditorPopup.prototype.initDropzone = function() {
                                 this.delayedDeactivate(2000);                                  
                             }, this.lep))
                             .fail(function (xhr) {
+                                var msg;
+                                try {
+                                    msg = JSON.parse(xhr.responseText)["detail"];
+                                } catch(e) {
+                                    msg = xhr.responseText;
+                                }
                                 bootbox.alert(
                                     '<div class="alert alert-warning" style="margin-bottom:0">' + 
                                         '<p>Failed to save user layer data - details below:</p>' + 
-                                        '<p>' + JSON.parse(xhr.responseText)["detail"] + '</p>' + 
+                                        '<p>' + msg + '</p>' + 
                                     '</div>'
                                 );
                             });    

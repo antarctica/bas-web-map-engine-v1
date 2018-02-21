@@ -397,7 +397,7 @@ function init() {
                     /* Add click handlers to display pop-ups */
                     addGetFeatureInfoHandlers(embeddedMaps[data.name]);
                     /* Set view to data extent if defined */
-                    var defaultExtent = (typeof data.data_extent == "string") ? JSON.parse(data.data_extent) : data.data_extent;                        
+                    var defaultExtent = (typeof data.data_extent == "string" && data.dataExtent != "") ? JSON.parse(data.data_extent) : data.data_extent;                        
                     if (!jQuery.isArray(defaultExtent) || defaultExtent.length != 4) {
                         defaultExtent = embeddedMaps[data.name].getView().getProjection().getExtent();
                     }   
@@ -411,7 +411,7 @@ function init() {
                     });
                     if (filterFeat) {
                         var serviceBase = serviceUrl.substring(0, serviceUrl.indexOf("embedded_maps/name"));
-                        jQuery.getJSON(serviceBase + "gs/extent/" + encodeURIComponent(filterFeat) + "/" + encodeURIComponent(getUrlParameter("filter", serviceUrl)),
+                        jQuery.getJSON(serviceBase + "gs/filtered_extent/" + encodeURIComponent(filterFeat) + "/" + encodeURIComponent(getUrlParameter("filter", serviceUrl)),
                         function(wfsExtent) {  
                             if (typeof wfsExtent == "string") {
                                 wfsExtent = JSON.parse(wfsExtent);

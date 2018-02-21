@@ -556,7 +556,11 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                         if (xhr.status == 401) {
                             msg = "Not authorised to access layer " + nd.source.feature_name;
                         } else {
-                            msg = JSON.parse(xhr.responseText)["detail"];
+                            try {
+                                msg = JSON.parse(xhr.responseText)["detail"];
+                            } catch(e) {
+                                msg = xhr.responseText;
+                            }
                         }
                         bootbox.alert(
                             '<div class="alert alert-warning" style="margin-bottom:0">' + 

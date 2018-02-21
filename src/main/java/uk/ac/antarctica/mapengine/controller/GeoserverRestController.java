@@ -409,6 +409,7 @@ public class GeoserverRestController {
     /**
      * Proxy Geoserver WFS call to get the extent of a layer in native projection, applying a CQL filter
      * Used by embedded maps to determine the extent of a subset of Oracle table data
+     * NOTE: does NOT support arbitrary REST endpoints - must be local Geoserver
      * @param HttpServletRequest request,
      * @param String layer
      * @param String filter
@@ -416,7 +417,7 @@ public class GeoserverRestController {
      * @throws ServletException
      * @throws IOException
      */
-    @RequestMapping(value = "/gs/extent/{layer}/{filter}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
+    @RequestMapping(value = "/gs/filtered_extent/{layer}/{filter}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
     @ResponseBody
     public void geoserverExtentForFilteredLayer(
         HttpServletRequest request, 

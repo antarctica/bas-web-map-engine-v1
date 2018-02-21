@@ -229,7 +229,7 @@ magic.classes.LayerTreeOptionsMenu.prototype.applyAlternateStyle = function() {
             }).done(jQuery.proxy(function(data) {
                 if (data.styles && typeof data.styles == "object" && jQuery.isArray(data.styles.style)) {
                     if (data.styles.style.length > 1) {
-                        magic.modules.Common.populateSelect(choices, data.styles.style, "name", "name", true);
+                        magic.modules.Common.populateSelect(choices, data.styles.style, "name", "name", "", true);
                         choices.change(jQuery.proxy(function(evt) {
                             this.layer.getSource().updateParams(jQuery.extend({}, 
                                 this.layer.getSource().getParams(), 

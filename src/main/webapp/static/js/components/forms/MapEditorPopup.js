@@ -110,10 +110,16 @@ magic.classes.MapEditorPopup.prototype.assignHandlers = function() {
                 this.init();
             }, this))
             .fail(function (xhr) {
+                var msg;
+                try {
+                    msg = JSON.parse(xhr.responseText)["detail"];
+                } catch(e) {
+                    msg = xhr.responseText;
+                }
                 bootbox.alert(
                     '<div class="alert alert-warning" style="margin-bottom:0">' + 
                         '<p>Failed to save user map - details below:</p>' + 
-                        '<p>' + JSON.parse(xhr.responseText)["detail"] + '</p>' + 
+                        '<p>' + msg + '</p>' + 
                     '</div>'
                 );
             });    

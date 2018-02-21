@@ -129,21 +129,32 @@ magic.classes.creator.EmbeddedAppContainer.prototype.saveContext = function() {
                         window.open(magic.config.paths.baseurl + "/static/html/test_embed.html");                    
                     })
                     .fail(function(xhr) {
-                        var detail = JSON.parse(xhr.responseText)["detail"];
+                        var msg;
+                        try {
+                            msg = JSON.parse(xhr.responseText)["detail"];
+                        } catch(e) {
+                            msg = xhr.responseText;
+                        }
                         bootbox.alert(
                             '<div class="alert alert-warning" style="margin-bottom:0">' + 
                                 '<p>Failed to save your map - details below:</p>' + 
-                                '<p>' + detail + '</p>' + 
+                                '<p>' + msg + '</p>' + 
                             '</div>'
                         );
                     });
                 }
             }, this))
             .fail(function(xhr) {
+                var msg;
+                try {
+                    msg = JSON.parse(xhr.responseText)["detail"];
+                } catch(e) {
+                    msg = xhr.responseText;
+                }
                 bootbox.alert(
                     '<div class="alert alert-warning" style="margin-bottom:0">' + 
                         '<p>Failed to retrieve JSON schema for embedded map - details below:</p>' + 
-                        '<p>' + JSON.parse(xhr.responseText)["detail"] + '</p>' + 
+                        '<p>' + msg + '</p>' + 
                     '</div>'
                 );
             });  
@@ -194,10 +205,16 @@ magic.classes.creator.EmbeddedAppContainer.prototype.modifyMapExtentByDataLayers
             }
         }, this))
         .fail(function(xhr) {
+            var msg;
+            try {
+                msg = JSON.parse(xhr.responseText)["detail"];
+            } catch(e) {
+                msg = xhr.responseText;
+            }
             bootbox.alert(
                 '<div class="alert alert-warning" style="margin-bottom:0">' + 
                     '<p>Failed to calculate embedded map extent from data layers:</p>' + 
-                    '<p>' + JSON.parse(xhr.responseText)["detail"] + '</p>' + 
+                    '<p>' + msg + '</p>' + 
                 '</div>'
             );
         });
@@ -226,10 +243,16 @@ magic.classes.creator.EmbeddedAppContainer.prototype.deleteMap = function(id) {
                 window.location = magic.config.paths.baseurl + "/embedded_creatord";
             })
             .fail(function (xhr) {
+                var msg;
+                try {
+                    msg = JSON.parse(xhr.responseText)["detail"];
+                } catch(e) {
+                    msg = xhr.responseText;
+                }
                 bootbox.alert(
                     '<div class="alert alert-warning" style="margin-bottom:0">' + 
                         '<p>Failed to delete user map view - details below:</p>' + 
-                        '<p>' + JSON.parse(xhr.responseText)["detail"] + '</p>' + 
+                        '<p>' + msg + '</p>' + 
                     '</div>'
                 );
             });                   

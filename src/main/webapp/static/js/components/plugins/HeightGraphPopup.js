@@ -139,10 +139,16 @@ magic.classes.HeightGraphPopup.prototype.activate = function(route) {
             this.target.popover("show");
         }, this))
         .fail(jQuery.proxy(function(xhr) {
+            var msg;
+            try {
+                msg = JSON.parse(xhr.responseText)["detail"];
+            } catch(e) {
+                msg = xhr.responseText;
+            }
             bootbox.alert(
                 '<div class="alert alert-warning" style="margin-bottom:0">' + 
                     '<p>Failed to generate data for height graph - details below:</p>' + 
-                    '<p>' + JSON.parse(xhr.responseText)["detail"] + '</p>' + 
+                    '<p>' + msg + '</p>' + 
                 '</div>'
             );
         }, this));        
