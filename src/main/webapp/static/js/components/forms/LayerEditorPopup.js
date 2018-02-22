@@ -254,33 +254,35 @@ magic.classes.LayerEditorPopup.prototype.destroyDropzone = function() {
 magic.classes.LayerEditorPopup.prototype.initDropzone = function() {
     var previewTemplate =             
         '<div class="row col-sm-12">' + 
-            '<div class="col-sm-4" style="padding-left:0px !important">' +
+            '<div class="row col-sm-12" style="padding-left:0px !important">' +
                 '<p class="name" data-dz-name style="font-weight:bold"></p>' +                
             '</div>' +
-            '<div class="col-sm-2">' +
-                '<p class="size" data-dz-size=""></p>' +
-            '</div>' +
-            '<div class="col-sm-4 publish-feedback">' +
-                '<div class="progress progress-striped active show" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">' +
-                    '<div class="progress-bar progress-bar-success" style="width:0%;" data-dz-uploadprogress></div>' +
+            '<div class="row">' + 
+                '<div class="col-sm-4">' +
+                    '<p class="size" data-dz-size=""></p>' +
                 '</div>' +
-                '<div class="publish-feedback-msg hidden">' + 
-                '</div>' + 
-            '</div>' +
-            '<div class="col-sm-2">' +
-                '<button data-dz-remove class="btn btn-xs btn-danger publish-delete show">' +
-                    '<i class="fa fa-trash-o"></i>' +
-                    '<span>&nbsp;Delete</span>' +
-                '</button>' +
-                '<button class="btn btn-xs btn-success publish-success hidden">' +
-                    '<i class="fa fa-check"></i>' +
-                    '<span>&nbsp;Publish ok</span>' +
-                '</button>' +
-                '<button class="btn btn-xs btn-warning publish-error hidden">' +
-                    '<i class="fa fa-times"></i>' +
-                    '<span>&nbsp;Publish failed</span>' +
-                '</button>' +
-            '</div>' +   
+                '<div class="col-sm-6 publish-feedback">' +
+                    '<div class="progress progress-striped active show" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">' +
+                        '<div class="progress-bar progress-bar-success" style="width:0%;" data-dz-uploadprogress></div>' +
+                    '</div>' +
+                    '<div class="publish-feedback-msg hidden">' + 
+                    '</div>' + 
+                '</div>' +
+                '<div class="col-sm-2">' +
+                    '<button data-dz-remove class="btn btn-xs btn-danger publish-delete show">' +
+                        '<i class="fa fa-trash-o"></i>' +
+                        '<span>&nbsp;Delete</span>' +
+                    '</button>' +
+                    '<button class="btn btn-xs btn-success publish-success hidden">' +
+                        '<i class="fa fa-check"></i>' +
+                        '<span>&nbsp;Publish ok</span>' +
+                    '</button>' +
+                    '<button class="btn btn-xs btn-warning publish-error hidden">' +
+                        '<i class="fa fa-times"></i>' +
+                        '<span>&nbsp;Publish failed</span>' +
+                    '</button>' +
+                '</div>' +   
+            '</div>' + 
             '<div class="row col-sm-12">' + 
                 '<strong class="error text-danger" data-dz-errormessage></strong>' + 
             '</div>' + 
