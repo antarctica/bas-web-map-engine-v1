@@ -254,7 +254,7 @@ magic.classes.LayerEditorPopup.prototype.destroyDropzone = function() {
 magic.classes.LayerEditorPopup.prototype.initDropzone = function() {
     var previewTemplate =             
         '<div class="row col-sm-12">' + 
-            '<div class="row col-sm-12" style="padding-left:0px !important">' +
+            '<div class="row col-sm-12">' +
                 '<p class="name" data-dz-name style="font-weight:bold"></p>' +                
             '</div>' +
             '<div class="row">' + 
@@ -329,7 +329,7 @@ magic.classes.LayerEditorPopup.prototype.initDropzone = function() {
                 this.addFile(file);
             });
             this.on("addedfile", function(file) {
-                jQuery("div#publish-files-dz").find("p.name").html(magic.modules.Common.ellipsis(file.name, 18));
+                jQuery("div#publish-files-dz").find("p.name").html(file.name);
             });
             this.on("error", jQuery.proxy(function() {
                 window.setTimeout(jQuery.proxy(this.removeAllFiles, this), 3000);

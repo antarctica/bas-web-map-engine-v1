@@ -79,6 +79,7 @@ public class GeoserverRestController {
         HttpServletResponse response, 
         @PathVariable("filter") String filter)
         throws ServletException, IOException, ServiceException {
+        response.setContentType("application/json");
         IOUtils.copy(IOUtils.toInputStream(listFilteredLayers(getReader(null), filter, null)), response.getOutputStream());   
     }
     
@@ -100,7 +101,8 @@ public class GeoserverRestController {
         HttpServletResponse response, 
         @PathVariable("filter") String filter,
         @PathVariable("endpointid") Integer endpointid)
-        throws ServletException, IOException, ServiceException {        
+        throws ServletException, IOException, ServiceException {   
+        response.setContentType("application/json");
         IOUtils.copy(IOUtils.toInputStream(listFilteredLayers(getReader(endpointid), filter, endpointid)), response.getOutputStream());           
     }
     
@@ -158,7 +160,8 @@ public class GeoserverRestController {
         HttpServletRequest request, 
         HttpServletResponse response, 
         @PathVariable("layer") String layer)
-        throws ServletException, IOException, ServiceException {                
+        throws ServletException, IOException, ServiceException {    
+        response.setContentType("application/json");
         IOUtils.copy(IOUtils.toInputStream(listStylesForLayer(layer, null)), response.getOutputStream());       
     }
     
@@ -180,6 +183,7 @@ public class GeoserverRestController {
         @PathVariable("layer") String layer,
         @PathVariable("endpointid") Integer endpointid)
         throws ServletException, IOException, ServiceException {
+        response.setContentType("application/json");
         IOUtils.copy(IOUtils.toInputStream(listStylesForLayer(layer, endpointid)), response.getOutputStream());      
     }
     
@@ -230,6 +234,7 @@ public class GeoserverRestController {
         HttpServletResponse response, 
         @PathVariable("layer") String layer)
         throws ServletException, IOException, ServiceException {
+        response.setContentType("application/json");
         IOUtils.copy(IOUtils.toInputStream(listGranulesForLayer(getReader(null), layer)), response.getOutputStream());
     }
     
@@ -250,7 +255,8 @@ public class GeoserverRestController {
         HttpServletResponse response, 
         @PathVariable("layer") String layer,
         @PathVariable("endpointid") Integer endpointid)
-        throws ServletException, IOException, ServiceException {        
+        throws ServletException, IOException, ServiceException {
+        response.setContentType("application/json");        
         IOUtils.copy(IOUtils.toInputStream(listGranulesForLayer(getReader(endpointid), layer)), response.getOutputStream());
     }
     
@@ -306,7 +312,8 @@ public class GeoserverRestController {
         HttpServletRequest request, 
         HttpServletResponse response, 
         @PathVariable("layer") String layer)
-        throws ServletException, IOException, ServiceException {        
+        throws ServletException, IOException, ServiceException {   
+        response.setContentType("application/json");
         IOUtils.copy(IOUtils.toInputStream(getLayerAttributes(layer, null).toString()), response.getOutputStream());       
     }
     
@@ -327,7 +334,8 @@ public class GeoserverRestController {
         HttpServletResponse response, 
         @PathVariable("layer") String layer,
         @PathVariable("endpointid") Integer endpointid)
-        throws ServletException, IOException, ServiceException {        
+        throws ServletException, IOException, ServiceException { 
+        response.setContentType("application/json");
         IOUtils.copy(IOUtils.toInputStream(getLayerAttributes(layer, endpointid).toString()), response.getOutputStream());       
     }
     
@@ -347,6 +355,7 @@ public class GeoserverRestController {
         HttpServletResponse response, 
         @PathVariable("layer") String layer)
         throws ServletException, IOException, ServiceException { 
+        response.setContentType("application/json");
         IOUtils.copy(IOUtils.toInputStream(getExtentForLayer(getReader(null), layer)), response.getOutputStream());
     }
     
@@ -367,7 +376,8 @@ public class GeoserverRestController {
         HttpServletResponse response, 
         @PathVariable("layer") String layer,
         @PathVariable("endpointid") Integer endpointid)
-        throws ServletException, IOException, ServiceException {                 
+        throws ServletException, IOException, ServiceException {  
+        response.setContentType("application/json");
         IOUtils.copy(IOUtils.toInputStream(getExtentForLayer(getReader(endpointid), layer)), response.getOutputStream());
     }
     

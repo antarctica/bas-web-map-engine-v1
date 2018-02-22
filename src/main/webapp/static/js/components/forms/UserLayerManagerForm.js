@@ -599,7 +599,7 @@ magic.classes.UserLayerManagerForm.prototype.provisionLayer = function(layerData
                 max_scale: 50000000,
                 opacity: 1.0,
                 is_visible: false,
-                is_interactive: false,
+                is_interactive: true,
                 is_filterable: false        
             };
             var defaultSourceAttrs = {
