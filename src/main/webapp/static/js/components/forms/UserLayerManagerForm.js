@@ -390,10 +390,10 @@ magic.classes.UserLayerManagerForm.prototype.markup = function() {
             '<div class="form-group form-group-sm col-sm-12"><strong>' + (lt == "user" ? 'My' : 'Community') + ' uploaded layers</strong></div>' +
             '<div class="btn-toolbar" style="margin-bottom:10px">' + 
                 '<div class="btn-group" role="group">' + 
-                    '<a id="' + this.id + '-' + lt + '-layer-select" type="button" class="btn btn-sm btn-default dropdown-toggle" ' + 
+                    '<button id="' + this.id + '-' + lt + '-layer-select" type="button" class="btn btn-sm btn-default dropdown-toggle" ' + 
                         'data-toggle="dropdown" style="width:180px">' + 
                         'Select a layer&nbsp;&nbsp;<span class="caret"></span>' + 
-                    '</a>' + 
+                    '</button>' + 
                     '<ul id="' + this.id + '-' + lt + '-layers" class="dropdown-menu">' +                     
                     '</ul>' + 
                 '</div>' + 
@@ -403,23 +403,23 @@ magic.classes.UserLayerManagerForm.prototype.markup = function() {
                         '<i style="pointer-events:none" title="Legend for selected layer" class="fa fa-list"></i>' + 
                     '</button>' +
                     (lt == "user" ? 
-                    '<a id="' + this.id + '-' + lt + '-layer-add" class="btn btn-sm btn-primary" type="button" ' + 
+                    '<button id="' + this.id + '-' + lt + '-layer-add" class="btn btn-sm btn-primary" type="button" ' + 
                         'data-toggle="popover" data-trigger="manual" data-placement="bottom">' + 
                         '<i data-toggle="tooltip" data-placement="top" data-trigger="hover" title="Add a new layer" class="fa fa-star"></i>' + 
-                    '</a>' +
-                    '<a type="button" class="btn btn-sm btn-warning" id="' + this.id + '-' + lt + '-layer-edit" ' + 
+                    '</button>' +
+                    '<button type="button" class="btn btn-sm btn-warning" id="' + this.id + '-' + lt + '-layer-edit" ' + 
                         'data-toggle="popover" data-trigger="manual" data-placement="bottom">' + 
                         '<i style="font-size:14px" data-toggle="tooltip" data-placement="top" data-trigger="hover" title="Edit selected layer data" class="fa fa-pencil"></i>' + 
-                    '</a>' +
-                    '<a type="button" class="btn btn-sm btn-danger" id="' + this.id + '-' + lt + '-layer-del">' +
+                    '</button>' +
+                    '<button type="button" class="btn btn-sm btn-danger" id="' + this.id + '-' + lt + '-layer-del">' +
                         '<i data-toggle="tooltip" data-placement="top" data-trigger="hover" title="Delete selected layer" class="fa fa-trash"></i>' + 
-                    '</a>' : '') + 
+                    '</button>' : '') + 
                 '</div>' + 
                 '<div class="btn-group dropdown" role="group">' + 
-                    '<a id="' + this.id + '-' + lt + '-layer-actions" type="button" class="btn btn-sm btn-default dropdown-toggle" ' + 
+                    '<button id="' + this.id + '-' + lt + '-layer-actions" type="button" class="btn btn-sm btn-default dropdown-toggle" ' + 
                         'data-toggle="dropdown" data-container="body">' + 
                         '<i data-toggle="tooltip" data-placement="top" data-trigger="hover" title="Further actions" class="fa fa-ellipsis-h"></i>&nbsp;&nbsp;<span class="caret"></span>' + 
-                    '</a>' + 
+                    '</button>' + 
                     '<ul class="dropdown-menu dropdown-menu-right" style="overflow:auto">' + 
                         '<li><a id="' + this.id + '-' + lt + '-layer-ztl" href="Javascript:void(0)">Zoom to layer extent</a></li>' + 
                         '<li role="separator" class="divider"></li>' + 

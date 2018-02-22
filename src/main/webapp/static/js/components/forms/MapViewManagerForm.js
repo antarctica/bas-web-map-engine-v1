@@ -111,10 +111,10 @@ magic.classes.MapViewManagerForm.prototype.markup = function() {
                     '</button>' +                     
                 '</div>' +  
                 '<div class="btn-group" role="group">' + 
-                    '<button id="' + this.id + '-map-bmk" class="btn  btn-sm btn-primary" type="button">' + 
+                    '<button id="' + this.id + '-map-bmk" class="btn btn-sm btn-primary" type="button">' + 
                         '<i data-toggle="tooltip" data-placement="top" title="Bookmarkable URL for selected map view" class="fa fa-bookmark"></i>' + 
                     '</button>' +
-                    '<button id="' + this.id + '-map-load" class="btn  btn-sm btn-primary" type="button">' + 
+                    '<button id="' + this.id + '-map-load" class="btn btn-sm btn-primary" type="button">' + 
                         '<i data-toggle="tooltip" data-placement="top" title="Load selected map view" class="fa fa-arrow-circle-right"></i>' + 
                     '</button>' +
                 '</div>' + 

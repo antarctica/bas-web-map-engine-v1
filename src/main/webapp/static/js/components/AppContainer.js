@@ -103,7 +103,7 @@ magic.classes.AppContainer = function () {
         }),
         "rothera_reports": this.allocateNavbarTool("rothera_reports", "RotheraReportSearch", {
             id: "rothera-reports-tool",
-            target: "rothera-reports-tool",
+            target: "rothera_reports",
             caption: "Search fieldwork reports",
             layername: "Rothera fieldwork reports",
             popoverClass: "reports-popover",

@@ -221,7 +221,11 @@ public class RotheraReportsController {
     @ResponseBody
     public void serveReport(HttpServletRequest request, HttpServletResponse response,
         @RequestParam(value="filename", required=true) String filename) throws Exception {
-        String reportFileName = REPORTS_DIRECTORY + "/" + filename;
+        String reportDir = env.getProperty("plugins.rothera_reports.reportDir");
+        if (reportDir == null || reportDir.isEmpty()) {
+            reportDir = REPORTS_DIRECTORY;
+        }
+        String reportFileName = reportDir + "/" + filename;
         File reportFile = new File(reportFileName);
         String extension = FilenameUtils.getExtension(reportFileName);
         String mimeType = "application/pdf";
