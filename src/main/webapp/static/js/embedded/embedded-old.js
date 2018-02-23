@@ -89,15 +89,15 @@ function getViewData(data) {
 /**
  * Create the OL layers necessary for the map
  * @param {Object} data
- * @param {Object} viewData
+ * @param {ol.view} view
  * @param {String} serviceUrl
  */
-function createLayers(data, viewData, serviceUrl) { 
+function createLayers(data, view, serviceUrl) { 
     var layers = [];
     var apexFilter = getUrlParameter("filter", serviceUrl);
     var dataLayers = JSON.parse(data.layers.value);
     if (jQuery.isArray(dataLayers)) {
-        var proj = viewData.projection;
+        var proj = view.getProjection();
         for (var i = 0; i < dataLayers.length; i++) {
             var layer;
             var nd = dataLayers[i];
@@ -142,7 +142,7 @@ function createLayers(data, viewData, serviceUrl) {
                         "TILED": true
                     }, cqlFilter),
                     tileGrid: new ol.tilegrid.TileGrid({
-                        resolutions: viewData.resolutions,
+                        resolutions: view.getResolutions(),
                         origin: proj.getExtent().slice(0, 2)
                     }),
                     projection: proj
@@ -330,55 +330,6 @@ ensureJQueryLoaded();
  */
 var embeddedMaps = {};
 
-/**
- * Create the OpenLayers map
- * @param {String} name
- * @param {Object} div
- * @param {Array} layers
- * @param {ol.View} view
- * @param {ol.extent} extent
- * @param {ol.size} mapsize
- */
-function createMap(name, div, layers, view, extent, mapsize) {                   
-    embeddedMaps[name] = new ol.Map({
-        renderer: "canvas",
-        loadTilesWhileAnimating: true,
-        loadTilesWhileInteracting: true,
-        layers: layers,
-        controls: [
-            new ol.control.Zoom(),
-            new ol.control.ScaleLine({minWidth: 100, className: "custom-scale-line-top", units: "metric"}),
-            new ol.control.ScaleLine({minWidth: 100, className: "custom-scale-line-bottom", units: "imperial"}),
-            new ol.control.MousePosition({
-                projection: "EPSG:4326",
-                className: "custom-mouse-position",
-                coordinateFormat: function (xy) {
-                    return("Lat : " + xy[1].toFixed(2) + ", lon : " + xy[0].toFixed(2));
-                }
-            })
-        ],
-        interactions: ol.interaction.defaults(),
-        target: div,
-        view: view
-    });
-    /* Set the name of the map */
-    embeddedMaps[name].set("name", name, true);
-    /* Show scale and enable mouseover of scale bar to show scale as map zooms */
-    var scale = getCurrentMapScale(embeddedMaps[name]);
-    jQuery("div.custom-scale-line-top").attr("title", scale);
-    jQuery("div.custom-scale-line-bottom").attr("title", scale);
-    embedView.on("change:resolution", function() {
-        /* Mouseover of the map scale bar to provide tooltip of the current map scale */
-        var scale = getCurrentMapScale(embeddedMaps[name]);
-        jQuery("div.custom-scale-line-top").attr("title", scale);
-        jQuery("div.custom-scale-line-bottom").attr("title", scale);
-    });
-    /* Add click handlers to display pop-ups */
-    addGetFeatureInfoHandlers(embeddedMaps[name]);
-    /* Set view zoom level from extent and size */
-    view.setResolution(view.getResolutionForExtent(extent, mapsize));
-}
-
 function init() {
     jQuery(document).ready(function() {
         /* Populate URLs in test bed HTML */
@@ -406,45 +357,91 @@ function init() {
                     showAlert("Attempting to have the same map multiple times on one page");
                     return;
                 }
-                /* Get view specification */
-                var embedViewData = getViewData(data);
-                var embedLayers = createLayers(data, embedViewData, serviceUrl);
-                if (embedLayers.length == 0) {
-                    showAlert("Map contains no data layers");
-                    return;
-                }
-                var embedView = new ol.View(embedViewData);
-                var embedMapSize = [jQuery(serviceDiv).width(), jQuery(serviceDiv).height()];
-                /* Get view default extent */
-                var defaultExtent = (typeof data.data_extent == "string" && data.data_extent != "") ? JSON.parse(data.data_extent) : data.data_extent;                        
-                if (!jQuery.isArray(defaultExtent) || defaultExtent.length != 4) {
-                    defaultExtent = embedViewData.projection.getExtent();
-                }   
-                /* See if we can be more precise by applying filter to the filterable data layer */
-                var filterFeats = jQuery.map(embedLayers, function(layer) {
-                    var md = layer.get("metadata");
-                    return(md.is_filterable ? md.feature_name : null);
-                });
-                if (filterFeats.length > 0) {
-                    /* Get the true data extent if possible */
-                    var filterFeat = filterFeats[0];    /* Note only use the first one */
-                    var serviceBase = serviceUrl.substring(0, serviceUrl.indexOf("embedded_maps/name"));
-                    var filter = getUrlParameter("filter", serviceUrl);
-                    var filterUrl = serviceBase + "gs/filtered_extent/" + encodeURIComponent(filterFeat);
-                    if (filter != null && filter !="") {
-                        filterUrl = filterUrl + "/" + encodeURIComponent(filter).replace(/'/g, "%27");
-                    }
-                    jQuery.getJSON(filterUrl, function(wfsData) {  
-                        if (jQuery.isArray(wfsData.extent) && wfsData.extent.length == 4) {
-                            createMap(data.name, serviceDiv, embedLayers, embedView, wfsData.extent, embedMapSize);
-                        } else {
-                            createMap(data.name, serviceDiv, embedLayers, embedView, defaultExtent, embedMapSize);                            
+                var embedView = new ol.View(getViewData(data));
+                var embedLayers = createLayers(data, embedView, serviceUrl);
+                if (embedLayers.length > 0) {
+                    /* Some data to display */
+                    embeddedMaps[data.name] = new ol.Map({
+                        renderer: "canvas",
+                        loadTilesWhileAnimating: true,
+                        loadTilesWhileInteracting: true,
+                        layers: embedLayers,
+                        controls: [
+                            new ol.control.Zoom(),
+                            new ol.control.ScaleLine({minWidth: 100, className: "custom-scale-line-top", units: "metric"}),
+                            new ol.control.ScaleLine({minWidth: 100, className: "custom-scale-line-bottom", units: "imperial"}),
+                            new ol.control.MousePosition({
+                                projection: "EPSG:4326",
+                                className: "custom-mouse-position",
+                                coordinateFormat: function (xy) {
+                                    return("Lat : " + xy[1].toFixed(2) + ", lon : " + xy[0].toFixed(2));
+                                }
+                            })
+                        ],
+                        interactions: ol.interaction.defaults(),
+                        target: serviceDiv,
+                        view: embedView
+                    });
+                    /* Set the name of the map */
+                    embeddedMaps[data.name].set("name", data.name, true);
+                    /* Show scale and enable mouseover of scale bar to show scale as map zooms */
+                    var scale = getCurrentMapScale(embeddedMaps[data.name]);
+                    jQuery("div.custom-scale-line-top").attr("title", scale);
+                    jQuery("div.custom-scale-line-bottom").attr("title", scale);
+                    embedView.on("change:resolution", function() {
+                        /* Mouseover of the map scale bar to provide tooltip of the current map scale */
+                        var scale = getCurrentMapScale(embeddedMaps[data.name]);
+                        jQuery("div.custom-scale-line-top").attr("title", scale);
+                        jQuery("div.custom-scale-line-bottom").attr("title", scale);
+                    });
+                    /* Add click handlers to display pop-ups */
+                    addGetFeatureInfoHandlers(embeddedMaps[data.name]);
+                    /* Set view to data extent if defined */
+                    var defaultExtent = (typeof data.data_extent == "string" && data.data_extent != "") ? JSON.parse(data.data_extent) : data.data_extent;                        
+                    if (!jQuery.isArray(defaultExtent) || defaultExtent.length != 4) {
+                        defaultExtent = embeddedMaps[data.name].getView().getProjection().getExtent();
+                    }   
+                    /* See if we can be more precise by applying filter to the filterable data layer */
+                    var filterFeat = null;
+                    embeddedMaps[data.name].getLayers().forEach(function(layer) {
+                        var md = layer.get("metadata");
+                        if (filterFeat == null && md && md.is_filterable) {
+                            filterFeat = md.feature_name;
                         }
                     });
+                    if (filterFeat) {
+                        var serviceBase = serviceUrl.substring(0, serviceUrl.indexOf("embedded_maps/name"));
+                        var filter = getUrlParameter("filter", serviceUrl);
+                        var filterUrl = serviceBase + "gs/filtered_extent/" + encodeURIComponent(filterFeat);
+                        if (filter != null && filter !="") {
+                            filterUrl = filterUrl + "/" + encodeURIComponent(filter).replace(/'/g, "%27");
+                        }
+                        jQuery.getJSON(filterUrl,
+                        function(wfsData) {  
+                            if (jQuery.isArray(wfsData.extent) && wfsData.extent.length == 4) {
+                                embeddedMaps[data.name].getView().fit(wfsData.extent, {
+                                    size: embeddedMaps[data.name].getSize(),
+                                    constrainResolution: false,
+                                    padding: [30, 30, 30, 30]
+                                });
+                            } else {
+                                embeddedMaps[data.name].getView().fit(defaultExtent, {
+                                    size: embeddedMaps[data.name].getSize(),
+                                    constrainResolution: false,
+                                    padding: [30, 30, 30, 30]
+                                });
+                            }
+                        });
+                    } else {                       
+                        embeddedMaps[data.name].getView().fit(defaultExtent, {
+                            size: embeddedMaps[data.name].getSize(),
+                            constrainResolution: false,
+                            padding: [30, 30, 30, 30]
+                        });
+                    }
                 } else {
-                    /* Use the default extent */
-                    createMap(data.name, serviceDiv, embedLayers, embedView, defaultExtent, embedMapSize); 
-                }                
+                    showAlert("Map contains no data layers");
+                }
             })
             .fail(function(xhr) {
                 showAlert("Failed to get map definition from " + serviceUrl);       
