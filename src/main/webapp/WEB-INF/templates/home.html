@@ -40,7 +40,7 @@
                 <button id="console-log-in-create" th:case="null" type="button" class="btn btn-primary"
                  data-toggle="tooltip" data-placement="right" title="Go to login page to create or edit maps">Log in</button>
                 <div th:case="*">
-                    <button id="console-create-new-map"  type="button" class="btn btn-primary"
+                    <button th:if="${issuperuser} == 'yes'" id="console-create-new-map"  type="button" class="btn btn-primary"
                      data-toggle="tooltip" data-placement="top" title="Open map creation interface (new tab)">Create a new map</button>
                     <button th:if="${isadmin} == 'yes'" id="console-manage-endpoints"  type="button" class="btn btn-primary"
                      data-toggle="tooltip" data-placement="top" title="Manage WMS endpoints known to this server (new tab)">WMS endpoint manager</button>

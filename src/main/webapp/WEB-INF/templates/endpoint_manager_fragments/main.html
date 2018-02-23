@@ -1,0 +1,44 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title></title>
+    </head>
+    <body th:fragment="layout">
+        <!-- Web maps panel -->        
+        <div class="panel-body">
+            <div th:switch="${#httpServletRequest.remoteUser}">
+                <div th:if="${#httpServletRequest.remoteUser == null}">
+                    <div class="alert alert-info">
+                        <strong>
+                            This page is restricted to authorised gazetteer editors only. Please log in with valid credentials below.
+                        </strong>
+                    </div>                        
+                    <button id="gaz-admin-login" type="button" class="btn btn-primary" data-toggle="tooltip" data-placement="bottom" title="Log in to access other services">Editor log in</button>
+                </div>
+                <div th:if="${#httpServletRequest.remoteUser} eq 'darb1' or ${#httpServletRequest.remoteUser} eq 'ajfo' or ${#httpServletRequest.remoteUser} eq 'eleeld'">
+                    <div class="alert alert-info">
+                        <strong>You are currently logged in as <span th:text="${#httpServletRequest.remoteUser}"></span></strong>
+                    </div>
+                    <div role="tabpanel">
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active">
+                                <a role="tab" data-toggle="tab" href="#gaz-admin-bat" aria-controls="gaz-admin-bat">Update BAT Gazetteer</a>
+                            </li>
+                            <li role="presentation">
+                                <a role="tab" data-toggle="tab" href="#gaz-admin-sgssi" aria-controls="gaz-admin-sgssi">Update SGSSI Gazetteer</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="tab-content">
+                        <div id="gaz-admin-bat" role="tabpanel" class="tab-pane active">
+                            <div class="panel panel-default" th:include="admin/console_fragments/bat :: layout"></div>
+                        </div>
+                        <div id="gaz-admin-sgssi" role="tabpanel" class="tab-pane">
+                            <div class="panel panel-default" th:include="admin/console_fragments/sgssi :: layout"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>                        
+        </div>
+    </body>
+</html>

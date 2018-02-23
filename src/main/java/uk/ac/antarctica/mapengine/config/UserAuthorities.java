@@ -60,7 +60,7 @@ public class UserAuthorities {
      * @return boolean
      */
     public boolean userIsSuperUser() {
-        return(userHasRole(userRoleMatrix.getRolesByProperties("yes", "superuser")));
+        return(userIsAdmin() || userHasRole(userRoleMatrix.getRolesByProperties("yes", "superuser")));
     }
     
     /**

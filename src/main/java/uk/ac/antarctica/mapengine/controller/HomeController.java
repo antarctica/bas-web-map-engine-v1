@@ -354,6 +354,7 @@ public class HomeController {
         model.addAttribute("username", username);
         model.addAttribute("profile", activeProfile);
         model.addAttribute("isadmin", ua.userIsAdmin() ? "yes" : "no");
+        model.addAttribute("issuperuser", ua.userIsSuperUser() ? "yes" : "no");
 
         /* Page parameters */
         String pageTitle = env.getProperty("default.title") != null ? env.getProperty("default.title") : "";

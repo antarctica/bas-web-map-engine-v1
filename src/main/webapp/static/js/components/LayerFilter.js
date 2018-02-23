@@ -325,7 +325,7 @@ magic.classes.LayerFilter.prototype.getUniqueValues = function(attrName, attrVal
             }            
             jQuery.ajax(url)
                 .done(jQuery.proxy(function(data) {
-                    var arr = data.split(/\n/);
+                    var arr = data.split(/\r?\n/);
                     if (arr.length > 0) {
                         /* Find the index of the desired attribute */
                         var attrPos = -1;
@@ -340,18 +340,15 @@ magic.classes.LayerFilter.prototype.getUniqueValues = function(attrName, attrVal
                         if (attrPos != -1) {
                             /* Remove first field name line */
                             arr.shift();
-                            var foundDict = {};
                             /* Extract the value of the desired attribute */
-                            var vals = jQuery.map(arr, function(elt, idx) {
-                                var eltAttrVal = elt.split(",")[attrPos];
-                                if (eltAttrVal) {
-                                    eltAttrVal = eltAttrVal.trim().replace(/\"/, "");                                
-                                    if (foundDict[eltAttrVal] !== true) {
-                                        foundDict[eltAttrVal] = true;
-                                        return(eltAttrVal);
+                            var vals = jQuery.map(arr, function(elt) {
+                                var eltAttrVals = magic.modules.Common.csvToArray(elt);
+                                if (jQuery.isArray(eltAttrVals) && eltAttrVals.length > 0) {
+                                    if (jQuery.isArray(eltAttrVals[0]) && eltAttrVals[0].length > attrPos) {
+                                        return(eltAttrVals[0][attrPos]);
                                     }
                                 }
-                                return(null);
+                                return(null);                                
                             });
                             this.populateUniqueValueSelection(vals, attrVal);
                         }
@@ -496,7 +493,7 @@ magic.classes.LayerFilter.prototype.applyFilter = function() {
         if (sourceMd.wms_source) {
             /* Straightforward WMS layer */
             if (comparisonType == "string") {
-                ecql = filterString;
+                ecql = filterString.replace("'", "''");
             } else {           
                 ecql = fattr + " " + fop + " " + fval1 + (fop == "between" ? " and " + fval2 : "");            
             }

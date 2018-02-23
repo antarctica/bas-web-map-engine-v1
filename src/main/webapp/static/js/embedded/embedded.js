@@ -418,7 +418,7 @@ function init() {
                         }
                         jQuery.getJSON(filterUrl,
                         function(wfsData) {  
-                            if (jQuery.isArray(wfsData.extent) && wfsData.length == 4) {
+                            if (jQuery.isArray(wfsData.extent) && wfsData.extent.length == 4) {
                                 embeddedMaps[data.name].getView().fit(wfsData.extent, {
                                     size: embeddedMaps[data.name].getSize(),
                                     constrainResolution: false,

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head th:include="admin/console_fragments/header :: ${debug} ? 'debug_layout' : 'layout'">       
+    </head>
+    <body>
+        <div id="wrapper">
+            <div th:include="admin/console_fragments/nav :: layout(strap='APC/SGSSI Gazetteer Administration')"></div>
+            <div class="container">                
+                <div class="panel panel-default" th:include="admin/console_fragments/main :: layout"></div>
+            </div>
+        </div>
+        <script type="text/javascript">
+
+            jQuery(document).ready(function () {
+
+                jQuery('[data-toggle="tooltip"]').tooltip({container: 'body'});
+
+                /* Logout behaviour */
+                jQuery("#log-out-user").click(function (evt) {
+                    evt.preventDefault();
+                    jQuery("#logout-form").submit();
+                });
+                
+                magic.config.paths.adminurl = magic.config.paths.baseurl + "/admin";
+                
+                magic.runtime.bat_form = new magic.classes.CrudFormset({
+                    form: "gaz-admin-bat-form", 
+                    searchForm: "gaz-admin-bat-searchform",
+                    searchField: "placename",
+                    lookupApi: "https://api.bas.ac.uk/locations/v1/gazetteer/bat/{query}/brief",
+                    formReadApi: "https://api.bas.ac.uk/locations/v1/placename/bat/{id}",
+                    formWriteApi: magic.config.paths.adminurl + "/{op}/bat",
+                    lookups: {}                    
+                });
+                magic.runtime.sgssi_form = new magic.classes.CrudFormset({
+                    form: "gaz-admin-sgssi-form", 
+                    searchForm: "gaz-admin-sgssi-searchform",
+                    searchField: "placename",
+                    lookupApi: "https://api.bas.ac.uk/locations/v1/gazetteer/sgssi/{query}/brief",
+                    formReadApi: "https://api.bas.ac.uk/locations/v1/placename/sgssi/{id}",
+                    formWriteApi: magic.config.paths.adminurl + "/{op}/sgssi",
+                    lookups: {                        
+                        "gaz-admin-sgssi-parent": {
+                            srcField: "gaz-admin-sgssi-parent_name",
+                            srcAttr: "placename",
+                            destField: "gaz-admin-sgssi-parent",
+                            destAttr: "id"
+                        }
+                    }
+                }); 
+                
+                /* Tab switcher - ensure the search box gets focus when switching tabs*/
+                jQuery("a[data-toggle='tab']").on("shown.bs.tab", function(evt) {
+                    var thisTab = jQuery(evt.target.hash);
+                    thisTab.find("input[id$='search-ta']").focus();                                        
+                });
+                                
+            });
+            
+        </script>  
+        <!-- /#wrapper -->        
+        <form id="logout-form" method="POST" th:action="@{/logout}"></form>
+    </body>
+</html>
