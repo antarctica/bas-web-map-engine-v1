@@ -300,7 +300,9 @@ magic.classes.creator.AttributeEditorPopup.prototype.markup = function() {
                 html += 
                 '<tr>' + 
                     '<td>' + 
-                        '<span data-toggle="tooltip" data-placement="top" title="Field type is : '+ entry.type.replace("xsd:", "") + '">' + (entry.name || "") + '</span>' +
+                        '<div style="max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' + 
+                            '<span data-toggle="tooltip" data-placement="top" title="Field type is : '+ entry.type.replace("xsd:", "") + '">' + (entry.name || "") + '</span>' +
+                        '</div>' + 
                     '</td>' +
                     '<td><input type="text" style="width:120px" id="_amap_alias_' + idx + '" value="' + (entry.alias || "") + '"></input></td>' + 
                     '<td><input type="number" style="width:40px" size="2" min="1" max="99" id="_amap_ordinal_' + idx + '" value="' + (entry.ordinal || "") + '"></input></td>' + 

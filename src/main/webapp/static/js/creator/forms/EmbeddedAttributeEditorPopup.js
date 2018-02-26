@@ -156,9 +156,9 @@ magic.classes.creator.EmbeddedAttributeEditorPopup.prototype.markup = function(a
                 /* This is not the geometry field */                
                 html += 
                 '<tr>' + 
-                    '<td>' + (entry.name || "") + '</td>' +
+                    '<td><div style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' + (entry.name || "") + '</div></td>' +
                     '<td>' + entry.type.replace("xsd:", "") + '</td>' + 
-                    '<td><input type="text" id="_amap_alias_' + idx + '" value="' + (entry.alias || "") + '"></input></td>' + 
+                    '<td><input type="text" style="width: 120px" id="_amap_alias_' + idx + '" value="' + (entry.alias || "") + '"></input></td>' + 
                     '<td><input type="number" size="2" style="width: 37px" min="1" max="99" id="_amap_ordinal_' + idx + '" value="' + (entry.ordinal || "") + '"></input></td>' +                              
                     '<td><input type="checkbox" id="_amap_displayed_' + idx + '" value="display"' + (entry.displayed === true ? ' checked="checked"' : '') + '></input></td>' +                
                 '</tr>';
