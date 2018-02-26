@@ -19,7 +19,7 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
             '<div class="panel panel-default hidden" style="margin-bottom:0px" id="wrapper-sty-' + this.nodeid + '">' + 
                 '<div class="panel-body" style="padding:5px">' + 
                     '<form class="form-inline">' + 
-                        '<div class="form-group form-group-sm col-sm-12" style="margin-bottom:0px">' + 
+                        '<div class="form-group form-group-sm" style="margin-bottom:0px">' + 
                             '<select class="form-control" id="sty-alts-' + this.nodeid +'"></select>' + 
                         '</div>' + 
                     '</form>' + 

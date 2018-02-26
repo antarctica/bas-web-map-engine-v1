@@ -95,6 +95,7 @@ function getViewData(data) {
 function createLayers(data, viewData, serviceUrl) { 
     var layers = [];
     var apexFilter = getUrlParameter("filter", serviceUrl);
+    console.log(apexFilter);
     var dataLayers = JSON.parse(data.layers.value);
     if (jQuery.isArray(dataLayers)) {
         var proj = viewData.projection;
@@ -289,9 +290,18 @@ function writePopupContent(div, data) {
                 return((orda < ordb) ? -1 : (orda > ordb) ? 1 : 0);
             });            
             /* Create the markup */
-            var markup = '<table cellspacing="5" style="table-layout:fixed; width: 200px">';
+            var markup = '<table cellspacing="5" style="table-layout:fixed; width: 200px">';            
             jQuery.each(displays, function(idx, elt) {
-                markup += '<tr><td width="60" style="overflow:hidden">' + elt.alias + '</td><td width="140" style="overflow:hidden">' + data[elt.name] + '</td></tr>';
+                /* Deal with massive numbers of decimal places in floats much beloved of Oracle */
+                var output = data[elt.name];
+                if (typeof output == "number" && !isNaN(parseFloat(output))) {
+                    /* This may be a float */
+                    if (parseInt(output) != output) {
+                        /* Not an integer => requires toFixed() treatment */
+                        output = output.toFixed(4);
+                    }
+                }
+                markup += '<tr><td width="60" style="overflow:hidden">' + elt.alias + '</td><td width="140" style="overflow:hidden">' + output + '</td></tr>';
             });
             markup += '</table>';
             div.html(markup);
@@ -367,7 +377,7 @@ function createMap(name, div, layers, view, extent, mapsize) {
     var scale = getCurrentMapScale(embeddedMaps[name]);
     jQuery("div.custom-scale-line-top").attr("title", scale);
     jQuery("div.custom-scale-line-bottom").attr("title", scale);
-    embedView.on("change:resolution", function() {
+    view.on("change:resolution", function() {
         /* Mouseover of the map scale bar to provide tooltip of the current map scale */
         var scale = getCurrentMapScale(embeddedMaps[name]);
         jQuery("div.custom-scale-line-top").attr("title", scale);
@@ -376,7 +386,9 @@ function createMap(name, div, layers, view, extent, mapsize) {
     /* Add click handlers to display pop-ups */
     addGetFeatureInfoHandlers(embeddedMaps[name]);
     /* Set view zoom level from extent and size */
-    view.setResolution(view.getResolutionForExtent(extent, mapsize));
+    var extRes = view.getResolutionForExtent(extent, mapsize);
+    var extZoom = view.getZoomForResolution(extRes);
+    view.setZoom(extZoom > 0 ? extZoom-1 : 0);
 }
 
 function init() {

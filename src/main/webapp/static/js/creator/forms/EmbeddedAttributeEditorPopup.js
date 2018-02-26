@@ -134,11 +134,11 @@ magic.classes.creator.EmbeddedAttributeEditorPopup.prototype.markup = function(a
         /* Show attribute table */
         html += 
             '<div class="alert alert-info">Geometry type is <strong>' + geomType + '</strong></div>' + 
-            '<table id="' + this.id + '-attr-table" class="table table-condensed table-striped table-hover table-responsive">' + 
+            '<table id="' + this.id + '-attr-table" class="table table-condensed table-striped table-hover table-responsive" style="width:100%">' + 
                 '<tr>' + 
-                    '<th>Name</th>' + 
-                    '<th>Type</th>' + 
-                    '<th>' + 
+                    '<th style="width:200px">Name</th>' + 
+                    '<th style="width:60px">Type</th>' + 
+                    '<th style="width:120px">' + 
                         '<span data-toggle="tooltip" data-placement="top" title="Human-friendly name for the attribute in pop-up">Alias<span>' + 
                     '</th>' +                     
                     '<th style="width:40px">' + 
