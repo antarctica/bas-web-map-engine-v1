@@ -218,7 +218,11 @@ magic.classes.creator.EmbeddedAppContainer.prototype.modifyMapExtentByDataLayers
                 '</div>'
             );
         });
-    }    
+    } else {
+        if (jQuery.isFunction(callback)) {
+            callback(context);
+        }
+    }  
 };
 
 /**

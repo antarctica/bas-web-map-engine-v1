@@ -87,6 +87,32 @@ function getViewData(data) {
 }
 
 /**
+ * Take out <key>=<numeric_value> terms in the given filter where the value is empty/null - CQL can't wildcard these
+ * @param {String} filter
+ * @return {String}
+ */
+function removeNullNumericTerms(filter) {
+    var filterOut = filter;
+    console.log("Remove non-null numeric terms from filter:");
+    console.log(filter);
+    if (filterOut != null && filterOut != "") {
+        /* Parse into individual terms */
+        var terms = filterOut.split(" AND ");
+        var nonNullTerms = jQuery.grep(terms, function(term) {
+            var kvp = term.split("=");
+            if (jQuery.isArray(kvp) && kvp.length == 2) {
+                return(kvp[1] != "");
+            }
+            return(true);
+        });
+        filterOut = nonNullTerms.join(" AND ");
+    }
+    console.log("Revised filter is:");
+    console.log(filterOut);
+    return(filterOut);
+}
+
+/**
  * Create the OL layers necessary for the map
  * @param {Object} data
  * @param {Object} viewData
@@ -94,8 +120,8 @@ function getViewData(data) {
  */
 function createLayers(data, viewData, serviceUrl) { 
     var layers = [];
-    var apexFilter = getUrlParameter("filter", serviceUrl);
-    console.log(apexFilter);
+    var apexFilter = getUrlParameter("filter", serviceUrl);    
+    apexFilter = removeNullNumericTerms(apexFilter);
     var dataLayers = JSON.parse(data.layers.value);
     if (jQuery.isArray(dataLayers)) {
         var proj = viewData.projection;
