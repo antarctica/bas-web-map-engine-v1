@@ -398,23 +398,33 @@ function createMap(name, div, layers, view, extent, mapsize) {
         view: view
     });
     /* Set the name of the map */
-    embeddedMaps[name].set("name", name, true);
-    /* Show scale and enable mouseover of scale bar to show scale as map zooms */
-    var scale = getCurrentMapScale(embeddedMaps[name]);
-    jQuery("div.custom-scale-line-top").attr("title", scale);
-    jQuery("div.custom-scale-line-bottom").attr("title", scale);
-    view.on("change:resolution", function() {
-        /* Mouseover of the map scale bar to provide tooltip of the current map scale */
-        var scale = getCurrentMapScale(embeddedMaps[name]);
-        jQuery("div.custom-scale-line-top").attr("title", scale);
-        jQuery("div.custom-scale-line-bottom").attr("title", scale);
-    });
+    embeddedMaps[name].set("name", name, true);    
     /* Add click handlers to display pop-ups */
     addGetFeatureInfoHandlers(embeddedMaps[name]);
+    /* Set view centre */
+    //view.setCenter([0.5*(extent[2]-extent[0]), 0.5*(extent[3]-extent[1])]);
     /* Set view zoom level from extent and size */
-    var extRes = view.getResolutionForExtent(extent, mapsize);
-    var extZoom = view.getZoomForResolution(extRes);
-    view.setZoom(extZoom > 0 ? extZoom-1 : 0);
+    //var extRes = view.getResolutionForExtent(extent, mapsize);
+    //var extZoom = view.getZoomForResolution(extRes);
+    //view.setZoom(extZoom > 0 ? extZoom-1 : 0); 
+    view.fit(extent, {
+        size: mapsize, 
+        nearest: true,
+        constrainResolution: false,
+        padding: [100, 100, 100, 100],
+        callback: function() {
+            /* Show scale and enable mouseover of scale bar to show scale as map zooms */
+            var scale = getCurrentMapScale(embeddedMaps[name]);
+            jQuery("div.custom-scale-line-top").attr("title", scale);
+            jQuery("div.custom-scale-line-bottom").attr("title", scale);
+            view.on("change:resolution", function() {
+                /* Mouseover of the map scale bar to provide tooltip of the current map scale */
+                var scale = getCurrentMapScale(embeddedMaps[name]);
+                jQuery("div.custom-scale-line-top").attr("title", scale);
+                jQuery("div.custom-scale-line-bottom").attr("title", scale);
+            });
+        }
+    });    
 }
 
 function init() {
