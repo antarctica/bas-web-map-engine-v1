@@ -401,12 +401,7 @@ function createMap(name, div, layers, view, extent, mapsize) {
     embeddedMaps[name].set("name", name, true);    
     /* Add click handlers to display pop-ups */
     addGetFeatureInfoHandlers(embeddedMaps[name]);
-    /* Set view centre */
-    //view.setCenter([0.5*(extent[2]-extent[0]), 0.5*(extent[3]-extent[1])]);
-    /* Set view zoom level from extent and size */
-    //var extRes = view.getResolutionForExtent(extent, mapsize);
-    //var extZoom = view.getZoomForResolution(extRes);
-    //view.setZoom(extZoom > 0 ? extZoom-1 : 0); 
+    /* Set view centre */    
     view.fit(extent, {
         size: mapsize, 
         nearest: true,
@@ -466,7 +461,20 @@ function init() {
                 /* Get view default extent */
                 var defaultExtent = (typeof data.data_extent == "string" && data.data_extent != "") ? JSON.parse(data.data_extent) : data.data_extent;                        
                 if (!jQuery.isArray(defaultExtent) || defaultExtent.length != 4) {
-                    defaultExtent = embedViewData.projection.getExtent();
+                    /* Get extent from centre and zoom values */
+                    try {
+                        var res = data.resolutions[parseInt(data.zoom)];
+                        var mapWidthX = res*embedMapSize[0];
+                        var mapWidthY = res*embedMapSize[1];
+                        defaultExtent = [
+                            data.center[0]-0.5*mapWidthX,
+                            data.center[1]-0.5*mapWidthY,
+                            data.center[0]+0.5*mapWidthX,
+                            data.center[1]+0.5*mapWidthY
+                        ];
+                    } catch(e) {
+                        defaultExtent = embedViewData.projection.getExtent();
+                    }
                 }   
                 /* See if we can be more precise by applying filter to the filterable data layer */
                 var filterFeats = jQuery.map(embedLayers, function(layer) {

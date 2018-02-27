@@ -220,6 +220,7 @@ magic.classes.creator.EmbeddedAppContainer.prototype.modifyMapExtentByDataLayers
         });
     } else {
         if (jQuery.isFunction(callback)) {
+            delete context.data_extent;
             callback(context);
         }
     }  

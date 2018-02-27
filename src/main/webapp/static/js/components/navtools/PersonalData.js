@@ -65,7 +65,7 @@ magic.classes.PersonalData.prototype.onActivateHandler = function() {
         var lastHref = jQuery(evt.relatedTarget).attr("href");
         var lastTab = lastHref.substring(lastHref.lastIndexOf("-")+1);
         if (jQuery.isFunction(this.tabForms[lastTab].tidyUp)) {
-            this.tabForms[lastTab].tidyUp();
+            this.tabForms[lastTab].tidyUp(false, false);
         }       
     }, this));
     if (!jQuery.isEmptyObject(this.savedState)) {
@@ -98,14 +98,14 @@ magic.classes.PersonalData.prototype.onDeactivateHandler = function() {
                         this.tabForms[openTab].saveForm();
                     }                
                 } else {
-                    this.tidyUp(true);
+                    this.tidyUp(true, true);
                     this.savedState = {};
                     this.target.popover("hide");
                 }                
             }, this)
         });
     } else {
-        this.tidyUp(true);
+        this.tidyUp(true, true);
         this.savedState = {};
         this.target.popover("hide");
     }    
@@ -115,7 +115,7 @@ magic.classes.PersonalData.prototype.onDeactivateHandler = function() {
  * Handler for minimisation of the tool
  */
 magic.classes.PersonalData.prototype.onMinimiseHandler = function() {
-    this.tidyUp(true);
+    this.tidyUp(true, false);
     this.saveState();
 };
 
@@ -178,11 +178,12 @@ magic.classes.PersonalData.prototype.restoreState = function() {
 /**
  * Remove all pop-ups from sub-forms/tabs
  * @param {boolean} quiet to suppress all warnings about unsaved edits
+ * @param {boolean} deactivate true if this is a hard deactivate, rather than a minimise
  */
-magic.classes.PersonalData.prototype.tidyUp = function(quiet) {
+magic.classes.PersonalData.prototype.tidyUp = function(quiet, deactivate) {
     jQuery.each(this.tabForms, function(key, frm) {
         if (jQuery.isFunction(frm.tidyUp)) {
-            frm.tidyUp(quiet);
+            frm.tidyUp(quiet, deactivate);
         }
     });    
 };

@@ -729,8 +729,11 @@ magic.classes.UserLayerManagerForm.prototype.getWmsStackTop = function(map) {
 /**
  * Zap any open pop-ups (used when changing tab)
  * @param {boolean} quiet suppress warnings about unsaved edits
+ * @param {boolean} deactivate true if deactivating rather than simply minimising
  */
-magic.classes.UserLayerManagerForm.prototype.tidyUp = function(quiet) {
+magic.classes.UserLayerManagerForm.prototype.tidyUp = function(quiet, deactivate) {
+    quiet = quiet || false;
+    deactivate = deactivate || false;
     if (this.editorPopups.edit && this.editorPopups.edit.isActive()) {
         this.editorPopups.edit.deactivate(quiet);
         this.editorPopups.edit = null;
@@ -738,5 +741,14 @@ magic.classes.UserLayerManagerForm.prototype.tidyUp = function(quiet) {
     if (this.editorPopups.add && this.editorPopups.add.isActive()) {
         this.editorPopups.add.deactivate(quiet);
         this.editorPopups.add = null;
+    }
+    if (deactivate) {
+        /* Turn off all layers and reset selections */
+        jQuery.each(this.userLayerData, function(layerId, layerData) {
+            if (layerData.olLayer) {
+                layerData.olLayer.setVisible(false);
+            }
+        });
+        this.setSelection();
     }
 };
