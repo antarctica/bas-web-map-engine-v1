@@ -21,7 +21,6 @@ js/bootstrap-tagsinput.min.js
 js/bootbox.min.js
 js/dropzone.min.js
 js/prettify.js
-js/vis-graph3d.min.js
 js/init.js
 js/modules
 js/base
