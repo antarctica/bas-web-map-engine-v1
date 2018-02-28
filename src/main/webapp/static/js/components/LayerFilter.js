@@ -493,7 +493,7 @@ magic.classes.LayerFilter.prototype.applyFilter = function() {
         if (sourceMd.wms_source) {
             /* Straightforward WMS layer */
             if (comparisonType == "string") {
-                ecql = filterString.replace("'", "''");
+                ecql = filterString;
             } else {           
                 ecql = fattr + " " + fop + " " + fval1 + (fop == "between" ? " and " + fval2 : "");            
             }

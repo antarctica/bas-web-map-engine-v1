@@ -576,8 +576,8 @@ magic.modules.Common = function () {
             }
             /* Sort by txtAttr */
             optArr.sort(function(a, b) {
-                var lca = a[txtAttr].toLowerCase();
-                var lcb = b[txtAttr].toLowerCase();
+                var lca = a[txtAttr] ? a[txtAttr].toLowerCase() : a[valAttr].toLowerCase();
+                var lcb = b[txtAttr] ? b[txtAttr].toLowerCase() : b[valAttr].toLowerCase();
                 return((lca < lcb ) ? -1 : (lca > lcb) ? 1 : 0);
             });
             jQuery.each(optArr, function(idx, optObj) {
@@ -656,7 +656,21 @@ magic.modules.Common = function () {
          */
         resetFormIndicators: function() {
             jQuery("div.form-group").removeClass("has-error");
-        },      
+        },
+        /**
+         * Get JavaScript dynamically and cache
+         * @param {String} url
+         * @param {Function} callback
+         */
+        getScript: function(url, callback) {
+            jQuery.ajax({
+                 type: "GET",
+                 url: url,
+                 success: callback,
+                 dataType: "script",
+                 cache: true
+             });    
+        },
         /**
          * Parse CSV string to an array of strings
          * https://stackoverflow.com/questions/8493195/how-can-i-parse-a-csv-string-with-javascript-which-contains-comma-in-data, answer by niry

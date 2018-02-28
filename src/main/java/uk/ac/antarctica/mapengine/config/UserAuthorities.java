@@ -256,7 +256,7 @@ public class UserAuthorities {
         
         ArrayList<SimpleGrantedAuthority> ga = new ArrayList();
         populateRoles(username, password);
-        JsonArray defaultRoles = getUserRoleMatrix().getRolesByProperties("internal", "superuser");
+        JsonArray defaultRoles = getUserRoleMatrix().getRolesByProperties("yes", "superuser");
         if (defaultRoles != null && getAuthorities().has("roles") && getAuthorities().getAsJsonArray("roles").size() == 0) {
             /* User who has logged in but has no roles gets a default role here */            
             getAuthorities().getAsJsonArray("roles").add(defaultRoles.get(0));

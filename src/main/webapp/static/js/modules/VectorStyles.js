@@ -176,7 +176,7 @@ magic.modules.VectorStyles = function () {
             return(function() {
                 var props = this.getProperties();
                 var fillColor = "rgba(255, 0, 0, 0.4)";
-                if (props["current_status"].toLowerCase() == "seasonal") {
+                if (!props["current_status"] || props["current_status"].toLowerCase() == "seasonal") {
                     fillColor = "rgba(255, 255, 255, 0.8)";
                 }
                 return([new ol.style.Style({

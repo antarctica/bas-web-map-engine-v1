@@ -69,17 +69,9 @@ magic.classes.HeightGraphPopup.prototype.activate = function(route) {
             })
             .on("shown.bs.popover", null, {"coords": outputCoords}, jQuery.proxy(function(evt) {            
                 var xyzData = evt.data.coords;
-                jQuery.getScript(magic.config.paths.baseurl + "/static/js/vis-graph3d.min.js")
-                    .done(jQuery.proxy(function() {
-                        this.renderGraph(xyzData);
-                    }, this))
-                    .fail(function() {
-                        bootbox.alert(
-                            '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                                '<p>Failed to load 3D rendering library</p>' + 
-                            '</div>'
-                        );
-                });                
+                magic.modules.Common.getScript(magic.config.paths.baseurl + "/static/js/vis-graph3d.min.js", jQuery.proxy(function() {
+                    this.renderGraph(xyzData);
+                }, this));                      
             }, this))
             .on("hidden.bs.popover", jQuery.proxy(function() {            
                 this.target.attr("data-original-title", this.inactiveTooltip).tooltip("fixTitle");

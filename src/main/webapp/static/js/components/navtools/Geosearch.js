@@ -181,7 +181,6 @@ magic.classes.Geosearch.prototype.historyMarkup = function() {
 magic.classes.Geosearch.prototype.populateSearchHistoryDropdown = function() {
     var insertAt = jQuery("#" + this.id + "-history").next("ul");
     insertAt.empty();
-    console.log(insertAt);
     /* Go through searched feature cache in reverse order */
     if (this.searchedFeatureCache.length == 0) {
         insertAt.append('<li class="dropdown-header">No search history</li>');
