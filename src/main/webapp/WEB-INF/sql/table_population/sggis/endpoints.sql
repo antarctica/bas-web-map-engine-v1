@@ -5,6 +5,9 @@ INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers
 VALUES('South Georgia Science', 'http://www.sggis.gov.gs/geoserver/sg_science/wms', 'cambridge', FALSE, NULL, NULL, NULL, 'EPSG:3762', TRUE, FALSE, NULL, 'http://www.sggis.gov.gs/geoserver');
 
 INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs, has_wfs, is_user_service, url_aliases, rest_endpoint) 
+VALUES('SG Vegetation Analysis', 'http://www.sggis.gov.gs/geoserver/sg_vegetation_analysis/wms', 'cambridge', FALSE, NULL, NULL, NULL, 'EPSG:3762', TRUE, FALSE, NULL, 'http://www.sggis.gov.gs/geoserver');
+
+INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs, has_wfs, is_user_service, url_aliases, rest_endpoint) 
 VALUES('Antarctic Digital Database', 'https://maps.bas.ac.uk/antarctic/wms', 'cambridge', FALSE, 'add:antarctic_coastline,add:sub_antarctic_coastline','add:antarctic_graticule', NULL, 'EPSG:3031,EPSG:3762', TRUE, FALSE, NULL, 'https://add.data.bas.ac.uk/geoserver');
 
 INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs, has_wfs, is_user_service, url_aliases, rest_endpoint) 
