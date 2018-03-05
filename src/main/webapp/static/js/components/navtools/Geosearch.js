@@ -12,6 +12,9 @@ magic.classes.Geosearch = function (options) {
     }, options);
     
     magic.classes.NavigationBarTool.call(this, options);
+    
+    /* Defined gazetteers for this search */
+    this.gazetteers = options.gazetteers;
 
     /* Get data about gazetteers, keyed by name */
     this.searchInput = new magic.classes.GazetteerSearchInput(this.id + "-placename", this.id, {
@@ -168,7 +171,7 @@ magic.classes.Geosearch.prototype.historyMarkup = function() {
                     'data-toggle="dropdown" data-container="body">' + 
                     '<i data-toggle="tooltip" data-placement="top" title="Searched location history" class="fa fa-history"></i>&nbsp;&nbsp;<span class="caret"></span>' + 
                 '</button>' + 
-                '<ul class="dropdown-menu dropdown-menu-right" style="overflow:auto">' + 
+                '<ul class="dropdown-menu dropdown-menu-left" style="overflow:auto">' + 
                 '</ul>' + 
             '</div>' + 
         '</div>'

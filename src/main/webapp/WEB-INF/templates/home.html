@@ -8,7 +8,7 @@
             <div th:include="fragments/nav :: layout"></div>
             <div th:if="${not #lists.isEmpty(accessible_maps)}" class="container" id="map-gallery">
                 <div th:each="index: ${#numbers.sequence(0, accessible_maps.size(), 4)}" th:with="rowsize = ${accessible_maps.size() - index >= 4} ? 4 : ${accessible_maps.size() - index}" class="row">
-                    <div th:each="item : ${#numbers.sequence(0, rowsize - 1)}" th:with="tdata = ${accessible_maps[index + item]}" th:remove="tag">
+                    <div th:if="${rowsize} > 0" th:each="item : ${#numbers.sequence(0, rowsize - 1)}" th:with="tdata = ${accessible_maps[index + item]}" th:remove="tag">
                         <div class="col-md-3 col-sm-4 col-xs-6" th:attr="data-name=${tdata.name}">
                             <a th:href="@{'/home/' + ${tdata.name}}">                                    
                                 <img th:id="'tn-' + ${tdata.name}" th:src="@{'/thumbnail/show/' + ${tdata.name}}" 

@@ -5,6 +5,9 @@ INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers
 VALUES('South Georgia Science', 'http://www.sggis.gov.gs/geoserver/sg_science/wms', 'cambridge', FALSE, NULL, NULL, NULL, 'EPSG:3762', TRUE, FALSE, NULL, 'http://www.sggis.gov.gs/geoserver');
 
 INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs, has_wfs, is_user_service, url_aliases, rest_endpoint) 
+VALUES('Oracle WMS', 'http://www.sggis.gov.gs/geoserver/oracle/wms', 'cambridge', FALSE, NULL, NULL, NULL, 'EPSG:3762', TRUE, FALSE, NULL, 'http://www.sggis.gov.gs/geoserver');
+
+INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs, has_wfs, is_user_service, url_aliases, rest_endpoint) 
 VALUES('SG Vegetation Analysis', 'http://www.sggis.gov.gs/geoserver/sg_vegetation_analysis/wms', 'cambridge', FALSE, NULL, NULL, NULL, 'EPSG:3762', TRUE, FALSE, NULL, 'http://www.sggis.gov.gs/geoserver');
 
 INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs, has_wfs, is_user_service, url_aliases, rest_endpoint) 

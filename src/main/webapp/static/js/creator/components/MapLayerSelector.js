@@ -50,7 +50,7 @@ magic.classes.creator.MapLayerSelector.prototype.loadContext = function(data) {
         }
         /* Enable sortable layers table */
         jQuery(".table-sortable tbody").sortable({
-            handle: "td.service-name",
+            handle: "td.layerdata-name",
             placeholderClass: "fa fa-caret-right"
         });
     } else {
@@ -105,13 +105,13 @@ magic.classes.creator.MapLayerSelector.prototype.layerMarkup = function(table, l
     this.layerEdits[layerData.id] = layerData;
     table.find("tbody").append( 
         '<tr data-id="' + layerData.id + '">' +             
-            '<td class="service-name">' + 
+            '<td class="layerdata-name">' + 
                 '<a style="margin-right:5px" href="Javascript:void(0)" data-toggle="tooltip" data-placement="top" title="Click and drag to re-order layer stack">' + 
                     '<span class="fa fa-arrows"></span>' + 
                 '</a>' + 
-                serviceName + 
+                layerData.name + 
             '</td>' + 
-            '<td>' + layerData.name + '</td>' +                     
+            '<td>' + serviceName + '</td>' +                     
             '<td>' + 
                 '<div class="btn-toolbar" role="toolbar">' + 
                     '<div class="btn-group" role="group">' + 
@@ -173,7 +173,7 @@ magic.classes.creator.MapLayerSelector.prototype.updateLayerData = function(laye
     this.layerEdits[layerData.id] = layerData;
     /* Enable sortable layers table - now includes the new layer */
     jQuery(".table-sortable tbody").sortable({
-        handle: "td.service-name",
+        handle: "td.layerdata-name",
         placeholderClass: "fa fa-caret-right"
     });
 };

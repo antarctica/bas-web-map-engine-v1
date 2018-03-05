@@ -99,7 +99,7 @@ magic.classes.Feedback.prototype.markup = function() {
                 '<div>' +
                     '<button id="' + this.id + '-go" class="btn btn-primary" type="button" ' + 
                         'data-toggle="tooltip" data-placement="right" title="Send feedback">' + 
-                        '<span class="glyphicon glyphicon-send"></span>' + 
+                        '<span class="fa fa-paper-plane"></span>' + 
                     '</button>' +                        
                 '</div>' +                     
             '</form>' +               
