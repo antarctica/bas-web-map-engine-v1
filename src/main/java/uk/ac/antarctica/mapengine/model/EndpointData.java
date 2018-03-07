@@ -6,10 +6,6 @@ package uk.ac.antarctica.mapengine.model;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
-import java.beans.PropertyDescriptor;
-import java.util.Date;
-import org.springframework.beans.BeanUtils;
 
 public class EndpointData extends JsonCrudApp {
     

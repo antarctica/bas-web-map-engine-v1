@@ -1,12 +1,121 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head th:include="admin/console_fragments/header :: ${debug} ? 'debug_layout' : 'layout'">       
+    <head th:include="endpoint_manager_fragments/header :: ${debug} ? 'debug_layout' : 'layout'">       
     </head>
     <body>
         <div id="wrapper">
-            <div th:include="admin/console_fragments/nav :: layout(strap='APC/SGSSI Gazetteer Administration')"></div>
+            <div th:include="fragments/nav :: layout"></div>
             <div class="container">                
-                <div class="panel panel-default" th:include="admin/console_fragments/main :: layout"></div>
+                <div class="panel panel-default">
+                    <div class="panel-heading" role="tab" style="padding-bottom:0px">
+                        <form class="form-horizontal" id="endpoint-manager-searchform">
+                            <div class="form-group">
+                                <label for="endpoint-search" class="col-md-2 control-label">Search existing endpoints</label>
+                                <div class="col-md-8" style="padding-right:2px">
+                                    <select class="form-control" id="endpoint-search" placeholder="Select endpoint"></select>
+                                </div>                                
+                            </div>                    
+                        </form>    
+                    </div>
+                    <div class="panel-body">                  
+                        <form id="endpoint-manager-update-form" class="form-horizontal">
+                            <input type="hidden" id="endpoint-id" value="-1"></input>
+                            <input type="hidden" id="endpoint-coast_layers" value=""></input>
+                            <input type="hidden" id="endpoint-graticule_layer" value=""></input>
+                            <input type="hidden" id="endpoint-low_bandwidth" value=""></input>
+                            <div class="form-group">
+                                <label for="endpoint-name" class="col-md-2 control-label">Name</label>
+                                <div class="col-md-10">
+                                    <input type="text" class="form-control" id="endpoint-name" placeholder="Endpoint name (required)" required="required"
+                                        data-toggle="tooltip" data-placement="left" title="Human-friendly name for this endpoint"></input>                        
+                                </div>                  
+                            </div>
+                            <div class="form-group">
+                                <label for="endpoint-url" class="col-md-2 control-label">URL</label>
+                                <div class="col-md-10">
+                                    <input type="url" class="form-control" id="endpoint-url" placeholder="Endpoint URL (required)" required="required"
+                                        data-toggle="tooltip" data-placement="left" title="Endpoint URL (may be load-balanced e.g. https://maps.bas.ac.uk/antarctic)"></input>
+                                </div>
+                            </div>     
+                            <div class="form-group">
+                                <label for="endpoint-proxied_url" class="col-md-2 control-label">Proxied URL</label>
+                                <div class="col-md-10">
+                                    <input type="url" class="form-control" id="endpoint-proxied_url" placeholder="URL for which above endpoint is a proxy"
+                                       data-toggle="tooltip" data-placement="left" title="If the above proxies/cascades another URL, enter it here so text-based queries will work"></input>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="endpoint-rest_endpoint" class="col-md-2 control-label">REST URL</label>
+                                <div class="col-md-10">
+                                    <input type="url" class="form-control" id="endpoint-rest_endpoint" placeholder="REST endpoint URL"
+                                       data-toggle="tooltip" data-placement="left" title="Geoserver REST endpoint, if appropriate"></input>
+                                </div>
+                            </div> 
+                            <div class="form-group">
+                                <label for="endpoint-url_aliases" class="col-md-2 control-label">Aliases</label>
+                                <div class="col-md-10">
+                                    <input type="text" class="form-control" id="endpoint-url_aliases"
+                                       data-toggle="tooltip" data-placement="left" title="URL(s) formerly used for this endpoint, for backwards compatibility"></input>
+                                </div>
+                            </div> 
+                            <div class="form-group">
+                                <label for="endpoint-location" class="col-md-2 control-label">Location</label>
+                                <div class="col-md-10">
+                                    <select type="url" class="form-control" id="endpoint-url" required="required"
+                                        data-toggle="tooltip" data-placement="left" title="Location of server, indicating bandwidth capabilities">
+                                        <option value="" selected="selected">Please select</option>
+                                        <option value="cambridge">Cambridge</option>
+                                        <option value="rothera">Rothera</option>
+                                        <option value="halley">Halley</option>
+                                        <option value="kep">KEP</option>
+                                        <option value="bi">Bird Island</option>
+                                        <option value="signy">Signy</option>
+                                        <option value="jcr">RRS James Clark Ross</option>
+                                        <option value="es">RRS Ernest Shackleton</option>
+                                    </select>
+                                </div>
+                            </div>                                         
+                            <div class="form-group">
+                                <label for="endpoint-srs" class="col-md-2 control-label">Valid SRS</label>
+                                <div class="col-md-10">
+                                    <select type="url" class="form-control selectpicker" id="endpoint-srs" required="required" multiple="multiple"
+                                        data-toggle="tooltip" data-placement="left" title="Supported projections">
+                                        <option value="EPSG:3031">Antarctic Polar Stereographic (EPSG:3031)</option>
+                                        <option value="EPSG:3995">Arctic Polar Stereographic (EPSG:3995)</option>
+                                        <option value="EPSG:3762">South Georgia Lambert (EPSG:3762)</option>
+                                        <option value="EPSG:102020">South Pole Lambert Azimuthal Equal Area (EPSG:102020)</option>
+                                        <option value="EPSG:3857">Google Maps Spherical Mercator (EPSG:3857)</option>
+                                        <option value="EPSG:4326">WGS84 lat/lon (EPSGL:4326)</option>                                        
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-md-offset-2 col-md-10">
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" id="endpoint-has_wfs" value="has_wfs"
+                                               data-toggle="tooltip" data-placement="left" title="Tick if endpoint exports a WFS service">                                
+                                            </input> Exports a WFS service
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-md-offset-2 col-md-10">
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" id="endpoint-is_user_service" value="is_user_service"
+                                               data-toggle="tooltip" data-placement="left" title="Tick if endpoint provides access to the Geoserver 'user' workspace for uploads etc">                                
+                                            </input> Exports the Geoserver 'user' workspace
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>                            
+                            <button id="endpoint-manager-update-form-submit" type="button" class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="Save your edits to the master gazetteer">Save</button>
+                            <button id="endpoint-manager-update-form-revert" type="button" class="btn btn-danger" data-toggle="tooltip" data-placement="top" title="Revert any changes to the saved version">Revert to saved</button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
         <script type="text/javascript">
@@ -19,41 +128,7 @@
                 jQuery("#log-out-user").click(function (evt) {
                     evt.preventDefault();
                     jQuery("#logout-form").submit();
-                });
-                
-                magic.config.paths.adminurl = magic.config.paths.baseurl + "/admin";
-                
-                magic.runtime.bat_form = new magic.classes.CrudFormset({
-                    form: "gaz-admin-bat-form", 
-                    searchForm: "gaz-admin-bat-searchform",
-                    searchField: "placename",
-                    lookupApi: "https://api.bas.ac.uk/locations/v1/gazetteer/bat/{query}/brief",
-                    formReadApi: "https://api.bas.ac.uk/locations/v1/placename/bat/{id}",
-                    formWriteApi: magic.config.paths.adminurl + "/{op}/bat",
-                    lookups: {}                    
-                });
-                magic.runtime.sgssi_form = new magic.classes.CrudFormset({
-                    form: "gaz-admin-sgssi-form", 
-                    searchForm: "gaz-admin-sgssi-searchform",
-                    searchField: "placename",
-                    lookupApi: "https://api.bas.ac.uk/locations/v1/gazetteer/sgssi/{query}/brief",
-                    formReadApi: "https://api.bas.ac.uk/locations/v1/placename/sgssi/{id}",
-                    formWriteApi: magic.config.paths.adminurl + "/{op}/sgssi",
-                    lookups: {                        
-                        "gaz-admin-sgssi-parent": {
-                            srcField: "gaz-admin-sgssi-parent_name",
-                            srcAttr: "placename",
-                            destField: "gaz-admin-sgssi-parent",
-                            destAttr: "id"
-                        }
-                    }
-                }); 
-                
-                /* Tab switcher - ensure the search box gets focus when switching tabs*/
-                jQuery("a[data-toggle='tab']").on("shown.bs.tab", function(evt) {
-                    var thisTab = jQuery(evt.target.hash);
-                    thisTab.find("input[id$='search-ta']").focus();                                        
-                });
+                });                                
                                 
             });
             
