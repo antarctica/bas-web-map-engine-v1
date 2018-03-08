@@ -1,57 +1,47 @@
-/* Custom input based on Bootstrap tagsinput class */
+/* Custom input based on Bootstrap multiple select class */
 
-magic.classes.TagsInput = function(options) {
+magic.classes.MultiSelectInput = function(options) {
 
     options = jQuery.extend({}, {
-        tipText: "Allows entry of multiple words/phrases - type <Enter> or , to advance",
+        tipText: "Allows multiple selections",
         tipPosition: "left",
-        required: false
+        required: false,
+        defaultValue: ""
     }, options);
     
-    magic.classes.magicmetadata.CustomFormInput.call(this, options);
+    magic.classes.CustomFormInput.call(this, options);
     
     this.element = jQuery("#" + this.id);
-    if (this.element.length > 0) {
-        this.element.tagsinput({
-            trimValue: true,
-            allowDuplicates: false,
-            cancelConfirmKeysOnEmpty: false
-        });
-        if (this.tipText) {
-            /* Locate the input added by the tagsInput plugin to attach tooltip */
-            var btInput = this.element.closest("div").find(".bootstrap-tagsinput :input");
-            if (btInput) {
-                btInput.attr("data-toggle", "tooltip");
-                btInput.attr("data-placement", this.tipPosition);
-                btInput.attr("title", this.tipText);
-            }
-        }
-    }
+        
+    this.element.attr("multiple", "multiple");
+    this.element.addClass("selectpicker");
+    this.element.selectpicker({
+        iconBase: "fa",
+        tickIcon: "fa-check"
+    });
 
 };
 
-magic.classes.TagsInput.prototype = Object.create(magic.classes.CustomFormInput.prototype);
-magic.classes.TagsInput.prototype.constructor = magic.classes.TagsInput;
+magic.classes.MultiSelectInput.prototype = Object.create(magic.classes.CustomFormInput.prototype);
+magic.classes.MultiSelectInput.prototype.constructor = magic.classes.MultiSelectInput;
 
 /**
  * Reset the input
  */
-magic.classes.TagsInput.prototype.reset = function() {
-    this.element.tagsinput("removeAll");
+magic.classes.MultiSelectInput.prototype.reset = function() {
+    this.element.selectpicker("deselectAll");
 };
 
 /**
  * Set tags input to the given input value (supplied as a comma-separated string or an array)
  * @param {String|Array} value
  */
-magic.classes.TagsInput.prototype.setValue = function(value) {
+magic.classes.MultiSelectInput.prototype.setValue = function(value) {
     if (!jQuery.isArray(value)) {
         value = value.split(",");
     }
     if (value.length > 0) {
-        jQuery.each(value, jQuery.proxy(function(idx, v) {
-            this.element.tagsinput("add", v);
-        }, this));
+        this.element.selectpicker("val", value);
     }
 };
 
@@ -60,10 +50,6 @@ magic.classes.TagsInput.prototype.setValue = function(value) {
  * @param {boolean} requireArray
  * @return {String|Array}
  */
-magic.classes.TagsInput.prototype.getValue = function(requireArray) {
-    if (requireArray === true) {
-        return(this.element.tagsinput("items"));
-    } else {
-        return(this.element.val());
-    }
+magic.classes.MultiSelectInput.prototype.getValue = function(requireArray) {    
+    return(this.element.val());
 };

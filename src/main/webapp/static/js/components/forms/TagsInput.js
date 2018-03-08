@@ -9,7 +9,7 @@ magic.classes.TagsInput = function(options) {
         defaultValue: ""
     }, options);
     
-    magic.classes.magicmetadata.CustomFormInput.call(this, options);
+    magic.classes.CustomFormInput.call(this, options);
     
     this.element = jQuery("#" + this.id);
     if (this.element.length > 0) {

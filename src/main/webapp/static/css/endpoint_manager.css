@@ -25,3 +25,7 @@ div[class$="-popover-content"] {
 .modal {
     z-index: 9000;
 }
+
+.bootstrap-tagsinput {
+    width: 100% !important;
+}

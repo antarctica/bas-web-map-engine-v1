@@ -78,8 +78,9 @@
                             <div class="form-group">
                                 <label for="endpoint-manager-srs" class="col-md-2 control-label">Valid SRS</label>
                                 <div class="col-md-10">
-                                    <select type="url" class="form-control selectpicker" id="endpoint-manager-srs" required="required" multiple="multiple"
+                                    <select type="url" class="form-control" id="endpoint-manager-srs" required="required" 
                                         data-toggle="tooltip" data-placement="left" title="Supported projections">
+                                        <option value="" disabled="disabled">Select all which apply</option>
                                         <option value="EPSG:3031">Antarctic Polar Stereographic (EPSG:3031)</option>
                                         <option value="EPSG:3995">Arctic Polar Stereographic (EPSG:3995)</option>
                                         <option value="EPSG:3762">South Georgia Lambert (EPSG:3762)</option>
@@ -119,13 +120,13 @@
                                 data-toggle="tooltip" data-placement="top" title="Successfully saved">Success</button>
                             <button id="endpoint-manager-btn-update-fail" type="button" class="btn btn-danger" style="display:none"
                                 data-toggle="tooltip" data-placement="top" title="Save failed">Failed</button>
-                            <button id="endpoint-manager-btn-delete" type="button" class="btn btn-primary" 
+                            <button id="endpoint-manager-btn-delete" type="button" class="btn btn-danger" 
                                 data-toggle="tooltip" data-placement="top" title="Delete this endpoint">Delete</button>
                              <button id="endpoint-manager-btn-delete-ok" type="button" class="btn btn-success" style="display:none" 
                                 data-toggle="tooltip" data-placement="top" title="Successfully saved">Success</button>
                             <button id="endpoint-manager-btn-delete-fail" type="button" class="btn btn-danger" style="display:none"
                                 data-toggle="tooltip" data-placement="top" title="Save failed">Failed</button>
-                            <button id="endpoint-manager-btn-cancel" type="button" class="btn btn-danger" 
+                            <button id="endpoint-manager-btn-cancel" type="button" class="btn btn-warning" 
                                 data-toggle="tooltip" data-placement="top" title="Discard any changes and revert to the saved version">Cancel</button>
                         </form>
                     </div>
@@ -142,7 +143,9 @@
                 jQuery("#log-out-user").click(function (evt) {
                     evt.preventDefault();
                     jQuery("#logout-form").submit();
-                });                                
+                }); 
+                
+                new magic.classes.endpoint_manager.EndpointManagerPanel();
                                 
             });
             

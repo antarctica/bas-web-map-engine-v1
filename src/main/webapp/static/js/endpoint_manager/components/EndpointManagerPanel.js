@@ -88,7 +88,7 @@ magic.classes.endpoint_manager.EndpointManagerPanel = function () {
  * Get data for endpoint by id
  * @param {int} id
  */
-magic.classes.endpoint_manager.prototype.getEndpointData = function(id) {
+magic.classes.endpoint_manager.EndpointManagerPanel.prototype.getEndpointData = function(id) {
     jQuery.getJSON(magic.config.paths.baseurl + "/endpoints/get/" + id, jQuery.proxy(function(data) {
         magic.modules.Common.jsonToForm(jQuery.grep(this.updateFormFields, function(elt) {
             return("plugin" in elt);
@@ -107,16 +107,31 @@ magic.classes.endpoint_manager.prototype.getEndpointData = function(id) {
 };
 
 /**
+ * Handle creation of endpoint data
+ */
+magic.classes.endpoint_manager.EndpointManagerPanel.prototype.createHandler = function() {
+    //TODO
+};
+
+/**
  * Handle update of endpoint data
  */
-magic.classes.endpoint_manager.prototype.updateHandler = function() {
-    
+magic.classes.endpoint_manager.EndpointManagerPanel.prototype.updateHandler = function() {
+    //TODO
 };
+
+/**
+ * Handle cancel
+ */
+magic.classes.endpoint_manager.EndpointManagerPanel.prototype.cancelHandler = function() {
+    this.resetForm();
+};
+
 
 /**
  * Handle deletion of an endpoint
  */
-magic.classes.endpoint_manager.prototype.deleteHandler = function() {
+magic.classes.endpoint_manager.EndpointManagerPanel.prototype.deleteHandler = function() {
     if (this.selectedEndpointId != null) {
         bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">Really delete this endpoint?</div>', jQuery.proxy(function (result) {
             if (result) {
@@ -146,7 +161,7 @@ magic.classes.endpoint_manager.prototype.deleteHandler = function() {
  * Load the endpoints into the search list
  * @param {Function} callback
  */
-magic.classes.endpoint_manager.prototype.loadEndpoints = function(callback) {
+magic.classes.endpoint_manager.EndpointManagerPanel.prototype.loadEndpoints = function(callback) {
     jQuery.getJSON(magic.config.paths.baseurl + "/endpoints/dropdown", jQuery.proxy(function (data) {
         if (jQuery.isArray(data)) {
             magic.modules.Common.populateSelect(this.searchSelect, data, "id", "name", "", true);            
@@ -174,7 +189,7 @@ magic.classes.endpoint_manager.prototype.loadEndpoints = function(callback) {
 /**
  * Reset the form and zero settings
  */
-magic.classes.endpoint_manager.prototype.resetForm = function() {
+magic.classes.endpoint_manager.EndpointManagerPanel.prototype.resetForm = function() {
     this.selectedEndpointId = null;
     this.searchForm.get(0).reset();
     magic.modules.Common.resetFormIndicators();
@@ -186,7 +201,7 @@ magic.classes.endpoint_manager.prototype.resetForm = function() {
  * Set the button disabled statuses
  * @param {Object} settings
  */
-magic.classes.endpoint_manager.prototype.setButtonStatuses = function(settings) {
+magic.classes.endpoint_manager.EndpointManagerPanel.prototype.setButtonStatuses = function(settings) {
     if (!settings || jQuery.isEmptyObject(settings)) {
         settings = {
             "create": true,
@@ -204,7 +219,7 @@ magic.classes.endpoint_manager.prototype.setButtonStatuses = function(settings) 
  * Assemble an alert message for an Ajax fail
  * @param {XmlHttpRequest} xhr
  */
-magic.classes.endpoint_manager.prototype.alertResponse = function(xhr) {
+magic.classes.endpoint_manager.EndpointManagerPanel.prototype.alertResponse = function(xhr) {
     var detail = xhr.responseText;
     try {
         detail = JSON.parse(xhr.responseText)["detail"];                    
@@ -219,9 +234,9 @@ magic.classes.endpoint_manager.prototype.alertResponse = function(xhr) {
  * @param {boolean} success
  * @param {String} msg
  */
-agic.classes.endpoint_manager.prototype.buttonClickFeedback = function(key, success, msg) {
+magic.classes.endpoint_manager.EndpointManagerPanel.prototype.buttonClickFeedback = function(key, success, msg) {
     var effect;
-    btn.hide();
+    this.buttons[key].hide();
     /* See https://api.jquery.com/promise/ for queuing up animations like this */
     var fbBtn = jQuery("#" + this.buttons[key].attr("id") + (success ? "-ok" : "-fail"));
     fbBtn.attr("data-original-title", msg).tooltip("fixTitle");
