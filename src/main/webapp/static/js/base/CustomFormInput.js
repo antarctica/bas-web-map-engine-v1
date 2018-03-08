@@ -7,5 +7,11 @@ magic.classes.CustomFormInput = function(options) {
     this.tipPosition = options.tipPosition;
     this.defaultValue = options.defaultValue;
 	this.required = options.required;
+    
+    this.element = jQuery("#" + this.id);
 
+};
+
+magic.classes.CustomFormInput.prototype.getElement = function() {
+    return(this.element);
 };

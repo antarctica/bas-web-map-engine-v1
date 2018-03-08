@@ -10,9 +10,7 @@ magic.classes.MultiSelectInput = function(options) {
     }, options);
     
     magic.classes.CustomFormInput.call(this, options);
-    
-    this.element = jQuery("#" + this.id);
-        
+            
     this.element.attr("multiple", "multiple");
     this.element.addClass("selectpicker");
     this.element.selectpicker({

@@ -10,8 +10,7 @@ magic.classes.TagsInput = function(options) {
     }, options);
     
     magic.classes.CustomFormInput.call(this, options);
-    
-    this.element = jQuery("#" + this.id);
+        
     if (this.element.length > 0) {
         this.element.tagsinput({
             trimValue: true,

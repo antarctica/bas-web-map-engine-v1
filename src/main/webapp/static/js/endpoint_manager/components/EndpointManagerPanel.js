@@ -93,7 +93,10 @@ magic.classes.endpoint_manager.EndpointManagerPanel.prototype.getEndpointData = 
         magic.modules.Common.jsonToForm(jQuery.grep(this.updateFormFields, function(elt) {
             return("plugin" in elt);
         }, true), data, this.prefix);
-        
+        /* Set plugin values */
+        jQuery.each(this.pluginFields, jQuery.proxy(function(key, pf) {
+            pf.setValue(data[key]);
+        }, this));
         this.selectedEndpointId = data.id;
     }, this))
     .fail(jQuery.proxy(function(xhr) {
@@ -192,6 +195,7 @@ magic.classes.endpoint_manager.EndpointManagerPanel.prototype.loadEndpoints = fu
 magic.classes.endpoint_manager.EndpointManagerPanel.prototype.resetForm = function() {
     this.selectedEndpointId = null;
     this.searchForm.get(0).reset();
+    this.updateForm.get(0).reset();
     magic.modules.Common.resetFormIndicators();
     this.setButtonStatuses();
     this.formDirty = false;
