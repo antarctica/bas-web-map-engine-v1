@@ -4,22 +4,22 @@
         <meta charset="utf-8"></meta>
         <meta http-equiv="X-UA-Compatible" content="IE=edge"></meta>
         <meta name="viewport" content="width=device-width, initial-scale=1"></meta>
-        <meta name="description" content="Gazetteer Administration Interface"></meta>
+        <meta name="description" content="WMS Endpoint Management Interface"></meta>
         <meta name="author" content="David Herbert, British Antarctic Survey"></meta>
         <meta name="_csrf" th:content="${_csrf.token}"/>
         <!-- default header name is X-CSRF-TOKEN -->
         <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
-        <link rel="icon" type="image/vnd.microsoft.icon" th:href="@{~/batgaz/apc.ico}"></link>
-        <link rel="shortcut icon" type="image/vnd.microsoft.icon" th:href="@{~/batgaz/apc.ico}"></link>
-        <title>APC/SGSSI Gazetteer Administration Interface</title>
-        <link th:href="@{~/batgaz/static/buildcss/allcss.css}" rel="stylesheet"></link>
+        <link rel="icon" type="image/vnd.microsoft.icon" th:href="@{~/bas.ico}"></link>
+        <link rel="shortcut icon" type="image/vnd.microsoft.icon" th:href="@{~/bas.ico}"></link>
+        <title>WMS Endpoint Management Interface</title>
+        <link th:href="@{~/static/buildcss/allcss_endpoint_manager.css}" rel="stylesheet"></link>
         <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
         <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
         <!--[if lt IE 9]>
             <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
             <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
         <![endif]-->       
-        <script th:src="@{~/batgaz/static/buildjs/alljs.js}"></script>
+        <script th:src="@{~/static/buildjs/alljs_endpoint_manager.js}"></script>
     </head>   
     <head th:fragment="debug_layout">
         <meta charset="utf-8"></meta>
@@ -30,14 +30,14 @@
         <meta name="_csrf" th:content="${_csrf.token}"/>
         <!-- default header name is X-CSRF-TOKEN -->
         <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
-        <link rel="icon" type="image/vnd.microsoft.icon" th:href="@{~/batgaz/apc.ico}"></link>
-        <link rel="shortcut icon" type="image/vnd.microsoft.icon" th:href="@{~/batgaz/apc.ico}"></link>
-        <title>APC/SGSSI Gazetteer Administration Interface</title>
+        <link rel="icon" type="image/vnd.microsoft.icon" th:href="@{~/bas.ico}"></link>
+        <link rel="shortcut icon" type="image/vnd.microsoft.icon" th:href="@{~/bas.ico}"></link>
+        <title>WMS Endpoint Management Interface</title>
 
-        <link th:href="@{~/batgaz/static/css/bootstrap.min.css}" rel="stylesheet"></link>
-        <link th:href="@{~/batgaz/static/css/nav.css}" rel="stylesheet"></link>
-        <link th:href="@{~/batgaz/static/css/admin.css}" rel="stylesheet"></link>
-        <link th:href="@{~/batgaz/static/css/font-awesome.min.css}" rel="stylesheet" type="text/css"></link>
+        <link th:href="@{~/static/css/bootstrap.min.css}" rel="stylesheet"></link>
+        <link th:href="@{~/static/css/nav.css}" rel="stylesheet"></link>
+        <link th:href="@{~/static/css/endpoint_manager.css}" rel="stylesheet"></link>
+        <link th:href="@{~/static/css/font-awesome.min.css}" rel="stylesheet" type="text/css"></link>
 
         <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
         <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -45,14 +45,11 @@
             <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
             <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
         <![endif]-->
-        <script th:src="@{~/batgaz/static/js/jquery.js}"></script>        
-        <script th:src="@{~/batgaz/static/js/bootstrap.min.js}"></script>
-        <script th:src="@{~/batgaz/static/js/bootbox.min.js}"></script>
-        <script th:src="@{~/batgaz/static/js/typeahead.bundle.min.js}"></script>
-        <script th:src="@{~/batgaz/static/js/init.js}"></script>
-        <script th:src="@{~/batgaz/static/js/modules/Common.js}"></script>
-        <script th:src="@{~/batgaz/static/js/modules/GeoUtils.js}"></script>
-        <script th:src="@{~/batgaz/static/js/admin/components/CrudTypeahead.js}"></script>
-        <script th:src="@{~/batgaz/static/js/admin/components/CrudFormset.js}"></script>
+        <script th:src="@{~/static/js/jquery.min.js}"></script>        
+        <script th:src="@{~/static/js/bootstrap.min.js}"></script>
+        <script th:src="@{~/static/js/bootbox.min.js}"></script>  
+        <script th:src="@{~/static/js/endpoint_manager/init.js}"></script>
+        <script th:src="@{~/static/js/modules/Common.js}"></script>        
+        <script th:src="@{~/static/js/endpoint_manager/EndpointManagerPanel.js}"></script>
     </head>
 </html>

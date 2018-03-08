@@ -334,6 +334,38 @@ public class HomeController {
     }
     
     /**
+     * Render the endpoint manager console     
+     * @param HttpServletRequest request
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/endpoint_manager", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
+    public String endpointManager(HttpServletRequest request, ModelMap model) throws ServletException, IOException {
+        UserAuthorities ua = userAuthoritiesProvider.getInstance();
+        if (ua.userIsAdmin() || ua.userIsSuperUser()) {
+            return(renderPage(request, model, "endpoint_manager", null, null, null, false));
+        } else {
+            throw new SuperUserOnlyException("You are not authorised to manage WMS endpoints for this server");
+        }
+    }
+    
+    /**
+     * Render the endpoint manager console (debug) 
+     * @param HttpServletRequest request
+     * @throws ServletException
+     * @throws IOException
+     */
+    @RequestMapping(value = "/endpoint_managerd", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
+    public String endpointManagerDebug(HttpServletRequest request, ModelMap model) throws ServletException, IOException {
+        UserAuthorities ua = userAuthoritiesProvider.getInstance();
+        if (ua.userIsAdmin() || ua.userIsSuperUser()) {
+            return(renderPage(request, model, "endpoint_manager", null, null, null, true));
+        } else {
+            throw new SuperUserOnlyException("You are not authorised to manage WMS endpoints for this server");
+        }
+    }
+    
+    /**
      * Page renderer
      * @param HttpServletRequest request
      * @param ModelMap model

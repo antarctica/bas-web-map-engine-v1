@@ -8,10 +8,10 @@
             <div class="container">                
                 <div class="panel panel-default">
                     <div class="panel-heading" role="tab" style="padding-bottom:0px">
-                        <form class="form-horizontal" id="endpoint-manager-searchform">
+                        <form class="form-horizontal" id="endpoint-searchform">
                             <div class="form-group">
-                                <label for="endpoint-search" class="col-md-2 control-label">Search existing endpoints</label>
-                                <div class="col-md-8" style="padding-right:2px">
+                                <label for="endpoint-search" class="col-md-2 control-label">Search endpoints</label>
+                                <div class="col-md-8">
                                     <select class="form-control" id="endpoint-search" placeholder="Select endpoint"></select>
                                 </div>                                
                             </div>                    
@@ -19,49 +19,49 @@
                     </div>
                     <div class="panel-body">                  
                         <form id="endpoint-manager-update-form" class="form-horizontal">
-                            <input type="hidden" id="endpoint-id" value="-1"></input>
-                            <input type="hidden" id="endpoint-coast_layers" value=""></input>
-                            <input type="hidden" id="endpoint-graticule_layer" value=""></input>
-                            <input type="hidden" id="endpoint-low_bandwidth" value=""></input>
+                            <input type="hidden" id="endpoint-manager-id" value="-1"></input>
+                            <input type="hidden" id="endpoint-manager-coast_layers" value=""></input>
+                            <input type="hidden" id="endpoint-manager-graticule_layer" value=""></input>
+                            <input type="hidden" id="endpoint-manager-low_bandwidth" value=""></input>
                             <div class="form-group">
-                                <label for="endpoint-name" class="col-md-2 control-label">Name</label>
+                                <label for="endpoint-manager-name" class="col-md-2 control-label">Name</label>
                                 <div class="col-md-10">
-                                    <input type="text" class="form-control" id="endpoint-name" placeholder="Endpoint name (required)" required="required"
+                                    <input type="text" class="form-control" id="endpoint-manager-name" placeholder="Endpoint name (required)" required="required"
                                         data-toggle="tooltip" data-placement="left" title="Human-friendly name for this endpoint"></input>                        
                                 </div>                  
                             </div>
                             <div class="form-group">
-                                <label for="endpoint-url" class="col-md-2 control-label">URL</label>
+                                <label for="endpoint-manager-url" class="col-md-2 control-label">URL</label>
                                 <div class="col-md-10">
-                                    <input type="url" class="form-control" id="endpoint-url" placeholder="Endpoint URL (required)" required="required"
+                                    <input type="url" class="form-control" id="endpoint-manager-url" placeholder="Endpoint URL (required)" required="required"
                                         data-toggle="tooltip" data-placement="left" title="Endpoint URL (may be load-balanced e.g. https://maps.bas.ac.uk/antarctic)"></input>
                                 </div>
                             </div>     
                             <div class="form-group">
-                                <label for="endpoint-proxied_url" class="col-md-2 control-label">Proxied URL</label>
+                                <label for="endpoint-manager-proxied_url" class="col-md-2 control-label">Proxied URL</label>
                                 <div class="col-md-10">
-                                    <input type="url" class="form-control" id="endpoint-proxied_url" placeholder="URL for which above endpoint is a proxy"
+                                    <input type="url" class="form-control" id="endpoint-manager-proxied_url" placeholder="URL for which above endpoint is a proxy"
                                        data-toggle="tooltip" data-placement="left" title="If the above proxies/cascades another URL, enter it here so text-based queries will work"></input>
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label for="endpoint-rest_endpoint" class="col-md-2 control-label">REST URL</label>
+                                <label for="endpoint-manager-rest_endpoint" class="col-md-2 control-label">REST URL</label>
                                 <div class="col-md-10">
-                                    <input type="url" class="form-control" id="endpoint-rest_endpoint" placeholder="REST endpoint URL"
+                                    <input type="url" class="form-control" id="endpoint-manager-rest_endpoint" placeholder="REST endpoint URL"
                                        data-toggle="tooltip" data-placement="left" title="Geoserver REST endpoint, if appropriate"></input>
                                 </div>
                             </div> 
                             <div class="form-group">
-                                <label for="endpoint-url_aliases" class="col-md-2 control-label">Aliases</label>
+                                <label for="endpoint-manager-url_aliases" class="col-md-2 control-label">Aliases</label>
                                 <div class="col-md-10">
-                                    <input type="text" class="form-control" id="endpoint-url_aliases"
+                                    <input type="text" class="form-control" id="endpoint-manager-url_aliases"
                                        data-toggle="tooltip" data-placement="left" title="URL(s) formerly used for this endpoint, for backwards compatibility"></input>
                                 </div>
                             </div> 
                             <div class="form-group">
-                                <label for="endpoint-location" class="col-md-2 control-label">Location</label>
+                                <label for="endpoint-manager-location" class="col-md-2 control-label">Location</label>
                                 <div class="col-md-10">
-                                    <select type="url" class="form-control" id="endpoint-url" required="required"
+                                    <select type="url" class="form-control" id="endpoint-manager-location" required="required"
                                         data-toggle="tooltip" data-placement="left" title="Location of server, indicating bandwidth capabilities">
                                         <option value="" selected="selected">Please select</option>
                                         <option value="cambridge">Cambridge</option>
@@ -76,9 +76,9 @@
                                 </div>
                             </div>                                         
                             <div class="form-group">
-                                <label for="endpoint-srs" class="col-md-2 control-label">Valid SRS</label>
+                                <label for="endpoint-manager-srs" class="col-md-2 control-label">Valid SRS</label>
                                 <div class="col-md-10">
-                                    <select type="url" class="form-control selectpicker" id="endpoint-srs" required="required" multiple="multiple"
+                                    <select type="url" class="form-control selectpicker" id="endpoint-manager-srs" required="required" multiple="multiple"
                                         data-toggle="tooltip" data-placement="left" title="Supported projections">
                                         <option value="EPSG:3031">Antarctic Polar Stereographic (EPSG:3031)</option>
                                         <option value="EPSG:3995">Arctic Polar Stereographic (EPSG:3995)</option>
@@ -93,7 +93,7 @@
                                 <div class="col-md-offset-2 col-md-10">
                                     <div class="checkbox">
                                         <label>
-                                            <input type="checkbox" id="endpoint-has_wfs" value="has_wfs"
+                                            <input type="checkbox" id="endpoint-manager-has_wfs" value="has_wfs"
                                                data-toggle="tooltip" data-placement="left" title="Tick if endpoint exports a WFS service">                                
                                             </input> Exports a WFS service
                                         </label>
@@ -104,15 +104,21 @@
                                 <div class="col-md-offset-2 col-md-10">
                                     <div class="checkbox">
                                         <label>
-                                            <input type="checkbox" id="endpoint-is_user_service" value="is_user_service"
+                                            <input type="checkbox" id="endpoint-manager-is_user_service" value="is_user_service"
                                                data-toggle="tooltip" data-placement="left" title="Tick if endpoint provides access to the Geoserver 'user' workspace for uploads etc">                                
                                             </input> Exports the Geoserver 'user' workspace
                                         </label>
                                     </div>
                                 </div>
-                            </div>                            
-                            <button id="endpoint-manager-update-form-submit" type="button" class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="Save your edits to the master gazetteer">Save</button>
-                            <button id="endpoint-manager-update-form-revert" type="button" class="btn btn-danger" data-toggle="tooltip" data-placement="top" title="Revert any changes to the saved version">Revert to saved</button>
+                            </div>  
+                            <button id="endpoint-manager-btn-create" type="button" class="btn btn-primary" 
+                                data-toggle="tooltip" data-placement="top" title="create a new endpoint">New endpoint</button>
+                            <button id="endpoint-manager-btn-update" type="button" class="btn btn-primary" 
+                                data-toggle="tooltip" data-placement="top" title="Save endpoint data">Update</button>
+                            <button id="endpoint-manager-btn-delete" type="button" class="btn btn-primary" 
+                                data-toggle="tooltip" data-placement="top" title="Delete this endpoint">Delete</button>
+                            <button id="endpoint-manager-btn-cancel" type="button" class="btn btn-danger" 
+                                data-toggle="tooltip" data-placement="top" title="Discard any changes and revert to the saved version">Cancel</button>
                         </form>
                     </div>
                 </div>
