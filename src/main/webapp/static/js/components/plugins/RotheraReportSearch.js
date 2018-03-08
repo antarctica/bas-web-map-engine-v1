@@ -7,12 +7,16 @@ magic.classes.RotheraReportSearch = function (options) {
     /* Set style function */
     this.layer.setStyle(this.styleFunction);
     
+    this.tagsInputs = {};
+    
     /* Control callbacks */
     this.setCallbacks({
         onActivate: jQuery.proxy(function() {
-                this.addTagsInput("locations");
-                this.addTagsInput("people");
-                this.addTagsInput("keywords");
+                this.tagsInputs = {
+                    "locations": new magic.classes.TagsInput({id: this.id + "-locations"}),
+                    "people": new magic.classes.TagsInput({id: this.id + "-people"}),
+                    "keywords": new magic.classes.TagsInput({id: this.id + "-keywords"})
+                };               
                 this.seasonSelect = new magic.classes.SeasonSelect(this.id + "-season-select-div");
                 this.layer.set("fetcher", jQuery.proxy(this.fullFeatureDataFetch, this), true);
                 this.setHoverHandlers();
@@ -65,9 +69,9 @@ magic.classes.RotheraReportSearch = function (options) {
         /* Add reset button clickhandler */
         jQuery("#" + this.id + "-reset").click(jQuery.proxy(function(evt) {
             this.savedSearch = {};
-            this.resetTagsInput("locations");
-            this.resetTagsInput("people");
-            this.resetTagsInput("keywords");
+            this.tagsInputs["locations"].reset();
+            this.tagsInputs["people"].reset();
+            this.tagsInputs["keywords"].reset();            
             this.seasonSelect.reset();
             this.layer.getSource().clear();
             jQuery("#" + this.id + "-results").addClass("hidden").html("");            
@@ -184,9 +188,9 @@ magic.classes.RotheraReportSearch.prototype.saveSearchState = function () {
  * Restore saved search on re-show of the form pop-up
  */
 magic.classes.RotheraReportSearch.prototype.restoreSearchState = function () {
-    this.populateTagsInput("locations", this.savedSearch['locations']);
-    this.populateTagsInput("people", this.savedSearch['people']);
-    this.populateTagsInput("keywords", this.savedSearch['keywords']);   
+    this.tagsInputs["locations"].setValue(this.savedSearch['locations']);
+    this.tagsInputs["people"].setValue(this.savedSearch['people']);
+    this.tagsInputs["keywords"].setValue(this.savedSearch['keywords']);   
     this.seasonSelect.restoreState(this.savedSearch['season']);
     var resultsBadge = jQuery("#" + this.id + "-results");
     resultsBadge.html(this.savedSearch["nresults"]);

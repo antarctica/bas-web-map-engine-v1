@@ -9,6 +9,42 @@ magic.classes.endpoint_manager.EndpointManagerPanel = function () {
     
     this.updateForm = jQuery("#" + this.prefix + "-update-form");
     
+    /* Update form fields */
+    this.updateFormFields = [
+        {"field": "id", "default": ""}, 
+        {"field": "coast_layers", "default": ""},
+        {"field": "graticule_layer", "default": ""}, 
+        {"field": "low_bandwidth", "default": false}, 
+        {"field": "name", "default": ""},
+        {"field": "url", "default": ""},
+        {"field": "proxied_url", "default": ""},
+        {"field": "rest_endpoint", "default": ""},
+        {"field": "url_aliases", "default": "", "plugin": "tagsinput"},
+        {"field": "location", "default": ""}, 
+        {"field": "srs", "default": "", "plugin": "multiselect"}, 
+        {"field": "has_wfs", "default": true}, 
+        {"field": "is_user_service", "default": false}
+    ];
+    
+    this.pluginFields = {};
+    jQuery.each(
+        jQuery.grep(this.updateFormFields, function(elt) {
+            return("plugin" in elt);
+        }, false), 
+        jQuery.proxy(function(idx, fdef) {
+            switch(fdef.plugin) {
+                case "tagsinput":
+                    this.pluginFields[fdef.field] = new magic.classes.TagsInput({id: this.prefix + "-" + fdef.field});
+                    break;
+                case "multiselect":
+                    this.pluginFields[fdef.field] = new magic.classes.MultiSelectInput({id: this.prefix + "-" + fdef.field});
+                    break;
+                default:
+                    break;
+            }
+        }, this)
+    );
+    
     this.buttons = {
         "create": jQuery("#" + this.prefix + "-btn-create"),
         "update": jQuery("#" + this.prefix + "-btn-update"),
@@ -28,37 +64,82 @@ magic.classes.endpoint_manager.EndpointManagerPanel = function () {
         this.formDirty = true;
     }, this)); 
     
-    this.buttons["create"].on("click", this.createHandler);
-    this.buttons["update"].on("click", this.updateHandler);
-    this.buttons["delete"].on("click", this.deleteHandler);
-    this.buttons["cancel"].on("click", this.cancelHandler);
+    /* Search selection handler */
+    this.searchSelect.on("change", jQuery.proxy(function(evt) {
+        if (this.formDirty) {
+            bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">You have unsaved changes - proceed?</div>', jQuery.proxy(function (result) {
+                this.getEndpointData(this.searchSelect.val());
+            }, this));
+        } else {
+            this.getEndpointData(this.searchSelect.val());
+        }
+    }, this));
+    
+    this.buttons["create"].on("click", jQuery.proxy(this.createHandler, this));
+    this.buttons["update"].on("click", jQuery.proxy(this.updateHandler, this));
+    this.buttons["delete"].on("click", jQuery.proxy(this.deleteHandler, this));
+    this.buttons["cancel"].on("click", jQuery.proxy(this.cancelHandler, this));
     
     this.loadEndpoints(jQuery.proxy(this.resetForm, this));
     
 };
 
-magic.classes.endpoint_manager.prototype.deleteHandler = function(evt) {
-    bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">Really delete this endpoint?</div>', jQuery.proxy(function (result) {
-        if (result) {
-            /* Do the thumbnail removal */
-            jQuery.ajax({
-                url: magic.config.paths.baseurl + "/endpoints/delete/",
-                method: "DELETE",
-                beforeSend: function (xhr) {
-                    var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content");
-                    var csrfHeader = jQuery("meta[name='_csrf_header']").attr("content");
-                    xhr.setRequestHeader(csrfHeader, csrfHeaderVal);
-                }
-            })
-            .done(jQuery.proxy(function() {
-                this.resetForm();
-            }, this))
-            .fail(this.showAlert);
-            bootbox.hideAll();
-        } else {
-            bootbox.hideAll();
-        }
+/**
+ * Get data for endpoint by id
+ * @param {int} id
+ */
+magic.classes.endpoint_manager.prototype.getEndpointData = function(id) {
+    jQuery.getJSON(magic.config.paths.baseurl + "/endpoints/get/" + id, jQuery.proxy(function(data) {
+        magic.modules.Common.jsonToForm(jQuery.grep(this.updateFormFields, function(elt) {
+            return("plugin" in elt);
+        }, true), data, this.prefix);
+        
+        this.selectedEndpointId = data.id;
+    }, this))
+    .fail(jQuery.proxy(function(xhr) {
+        bootbox.alert(
+            '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                '<p>Failed to load endpoint with id ' + id + ':</p>' + 
+                '<p>' + this.alertResponse(xhr) + '</p>' + 
+            '</div>'
+        );
     }, this));
+};
+
+/**
+ * Handle update of endpoint data
+ */
+magic.classes.endpoint_manager.prototype.updateHandler = function() {
+    
+};
+
+/**
+ * Handle deletion of an endpoint
+ */
+magic.classes.endpoint_manager.prototype.deleteHandler = function() {
+    if (this.selectedEndpointId != null) {
+        bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">Really delete this endpoint?</div>', jQuery.proxy(function (result) {
+            if (result) {
+                /* Do the thumbnail removal */
+                jQuery.ajax({
+                    url: magic.config.paths.baseurl + "/endpoints/delete/" + this.selectedEndpointId,
+                    method: "DELETE",
+                    beforeSend: function (xhr) {
+                        var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content");
+                        var csrfHeader = jQuery("meta[name='_csrf_header']").attr("content");
+                        xhr.setRequestHeader(csrfHeader, csrfHeaderVal);
+                    }
+                })
+                .done(jQuery.proxy(function() {
+                    this.buttonClickFeedback("delete", true, "Successfully deleted endpoint");
+                    this.loadEndpoints(jQuery.proxy(this.resetForm, this));
+                }, this))
+                .fail(jQuery.proxy(function(xhr) {
+                    this.buttonClickFeedback("delete", true, this.alertResponse(xhr));
+                }, this));
+            }
+        }, this));
+    }
 };
 
 /**
@@ -80,7 +161,14 @@ magic.classes.endpoint_manager.prototype.loadEndpoints = function(callback) {
             callback();
         }
     }, this))
-    .fail(this.showAlert);
+    .fail(jQuery.proxy(function(xhr) {
+        bootbox.alert(
+            '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                '<p>Error loading endpoints:</p>' + 
+                '<p>' + this.alertResponse(xhr) + '</p>' + 
+            '</div>'
+        );
+    }, this));
 };
 
 /**
@@ -91,6 +179,7 @@ magic.classes.endpoint_manager.prototype.resetForm = function() {
     this.searchForm.get(0).reset();
     magic.modules.Common.resetFormIndicators();
     this.setButtonStatuses();
+    this.formDirty = false;
 };
 
 /**
@@ -112,19 +201,32 @@ magic.classes.endpoint_manager.prototype.setButtonStatuses = function(settings) 
 };
 
 /**
- * Show an alert for an Ajax fail
+ * Assemble an alert message for an Ajax fail
  * @param {XmlHttpRequest} xhr
  */
-magic.classes.endpoint_manager.prototype.showAlert = function(xhr) {
+magic.classes.endpoint_manager.prototype.alertResponse = function(xhr) {
     var detail = xhr.responseText;
     try {
         detail = JSON.parse(xhr.responseText)["detail"];                    
     } catch(e) {                    
     }
-    bootbox.alert(
-        '<div class="alert alert-warning" style="margin-bottom:0">' + 
-            '<p>An error occurred while performing this operation - details below:</p>' + 
-            '<p>' + detail + '</p>' + 
-        '</div>'
-    );
+    return(detail);
+};
+
+/**
+ * Give feedback about success or otherwise of a CRUD operation
+ * @param {String} key
+ * @param {boolean} success
+ * @param {String} msg
+ */
+agic.classes.endpoint_manager.prototype.buttonClickFeedback = function(key, success, msg) {
+    var effect;
+    btn.hide();
+    /* See https://api.jquery.com/promise/ for queuing up animations like this */
+    var fbBtn = jQuery("#" + this.buttons[key].attr("id") + (success ? "-ok" : "-fail"));
+    fbBtn.attr("data-original-title", msg).tooltip("fixTitle");
+    effect = function(){return(fbBtn.fadeIn(300).delay(1200).fadeOut(300))};                                                          
+    jQuery.when(effect()).done(function() {
+        this.buttons[key].show();                            
+    });                        
 };
