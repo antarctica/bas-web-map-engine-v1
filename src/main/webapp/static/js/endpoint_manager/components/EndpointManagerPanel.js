@@ -211,7 +211,7 @@ magic.classes.endpoint_manager.EndpointManagerPanel.prototype.setButtonStatuses 
         };
     }
     jQuery.each(this.buttons, jQuery.proxy(function(btnKey, btn) {
-        this.buttons[btnKey].prop("disabled", settings[btnKey] === true);
+        this.buttons[btnKey].prop("disabled", settings[btnKey] !== true);
     }, this));
 };
 

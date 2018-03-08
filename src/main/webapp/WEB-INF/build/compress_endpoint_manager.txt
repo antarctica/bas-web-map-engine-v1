@@ -1,4 +1,6 @@
 css/nav.css
+css/bootstrap-select.min.css
+css/bootstrap-tagsinput.min.css
 css/endpoint_manager.css
 css/font-awesome.min.css
 js/jquery.min.js

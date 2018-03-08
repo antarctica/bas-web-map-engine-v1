@@ -19,6 +19,12 @@ magic.classes.MultiSelectInput = function(options) {
         iconBase: "fa",
         tickIcon: "fa-check"
     });
+    
+    if (this.defaultValue == "") {
+        this.reset();
+    } else {
+        this.setValue(this.defaultValue);
+    }
 
 };
 
