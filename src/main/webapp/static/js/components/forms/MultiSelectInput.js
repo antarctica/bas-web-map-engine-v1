@@ -10,12 +10,21 @@ magic.classes.MultiSelectInput = function(options) {
     }, options);
     
     magic.classes.CustomFormInput.call(this, options);
+    
+    /* Capture tooltip specification from original element */
+    this.tipText = this.tipText || this.element.attr("title");
             
     this.element.attr("multiple", "multiple");
     this.element.addClass("selectpicker");
     this.element.selectpicker({
         iconBase: "fa",
         tickIcon: "fa-check"
+    });
+    
+    this.element.closest("div.bootstrap-select").tooltip({
+        title: this.tipText,
+        placement: this.tipPosition,
+        container: "body"
     });
     
     if (this.defaultValue == "") {
@@ -41,11 +50,15 @@ magic.classes.MultiSelectInput.prototype.reset = function() {
  * @param {String|Array} value
  */
 magic.classes.MultiSelectInput.prototype.setValue = function(value) {
-    if (!jQuery.isArray(value)) {
-        value = value.split(",");
-    }
-    if (value.length > 0) {
-        this.element.selectpicker("val", value);
+    if (!value) {
+        this.reset();
+    } else {
+        if (!jQuery.isArray(value)) {
+            value = value.split(",");
+        }
+        if (value.length > 0) {
+            this.element.selectpicker("val", value);
+        }
     }
 };
 

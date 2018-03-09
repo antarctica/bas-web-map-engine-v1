@@ -3,20 +3,22 @@
 magic.classes.TagsInput = function(options) {
 
     options = jQuery.extend({}, {
-        tipText: "Allows entry of multiple words/phrases - type <Enter> or , to advance",
+        tipText: "",
         tipPosition: "left",
         required: false,
         defaultValue: ""
     }, options);
     
     magic.classes.CustomFormInput.call(this, options);
+    
+    this.tipText = this.tipText || this.element.attr("title");
         
     if (this.element.length > 0) {
         this.element.tagsinput({
             trimValue: true,
             allowDuplicates: false,
             cancelConfirmKeysOnEmpty: false
-        });
+        });        
         if (this.tipText) {
             /* Locate the input added by the tagsInput plugin to attach tooltip */
             var btInput = this.element.closest("div").find(".bootstrap-tagsinput :input");
@@ -47,13 +49,17 @@ magic.classes.TagsInput.prototype.reset = function() {
  * @param {String|Array} value
  */
 magic.classes.TagsInput.prototype.setValue = function(value) {
-    if (!jQuery.isArray(value)) {
-        value = value.split(",");
-    }
-    if (value.length > 0) {
-        jQuery.each(value, jQuery.proxy(function(idx, v) {
-            this.element.tagsinput("add", v);
-        }, this));
+    if (!value) {
+        this.reset();
+    } else {
+        if (!jQuery.isArray(value)) {
+            value = value.split(",");
+        }
+        if (value.length > 0) {
+            jQuery.each(value, jQuery.proxy(function(idx, v) {
+                this.element.tagsinput("add", v);
+            }, this));
+        }
     }
 };
 

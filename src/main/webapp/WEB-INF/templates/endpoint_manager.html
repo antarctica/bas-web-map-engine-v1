@@ -8,13 +8,13 @@
             <div class="container">                
                 <div class="panel panel-default">
                     <div class="panel-heading" role="tab" style="padding-bottom:0px">
-                        <form class="form-horizontal" id="endpoint-searchform">
+                        <form class="form-inline" id="endpoint-manager-searchform">
                             <div class="form-group">
-                                <label for="endpoint-search" class="col-md-2 control-label">Search endpoints</label>
-                                <div class="col-md-8">
-                                    <select class="form-control" id="endpoint-search" placeholder="Select endpoint"></select>
-                                </div>                                
-                            </div>                    
+                                <label for="endpoint-manager-search" class="control-label">Search endpoints</label>
+                                <select class="form-control" id="endpoint-manager-search" placeholder="Select endpoint"></select>
+                            </div>
+                            <button id="endpoint-manager-btn-create" type="button" class="btn btn-primary" 
+                                data-toggle="tooltip" data-placement="top" title="create a new endpoint">New endpoint</button>
                         </form>    
                     </div>
                     <div class="panel-body">                  
@@ -61,9 +61,9 @@
                             <div class="form-group">
                                 <label for="endpoint-manager-location" class="col-md-2 control-label">Location</label>
                                 <div class="col-md-10">
-                                    <select type="url" class="form-control" id="endpoint-manager-location" required="required"
+                                    <select class="form-control" id="endpoint-manager-location" required="required"
                                         data-toggle="tooltip" data-placement="left" title="Location of server, indicating bandwidth capabilities">
-                                        <option value="" selected="selected">Please select</option>
+                                        <option value="" disabled="disabled">Please select</option>
                                         <option value="cambridge">Cambridge</option>
                                         <option value="rothera">Rothera</option>
                                         <option value="halley">Halley</option>
@@ -78,7 +78,7 @@
                             <div class="form-group">
                                 <label for="endpoint-manager-srs" class="col-md-2 control-label">Valid SRS</label>
                                 <div class="col-md-10">
-                                    <select type="url" class="form-control" id="endpoint-manager-srs" required="required" 
+                                    <select class="form-control" id="endpoint-manager-srs" required="required" 
                                         data-toggle="tooltip" data-placement="left" title="Supported projections">
                                         <option value="" disabled="disabled">Select all which apply</option>
                                         <option value="EPSG:3031">Antarctic Polar Stereographic (EPSG:3031)</option>
@@ -111,11 +111,9 @@
                                         </label>
                                     </div>
                                 </div>
-                            </div>  
-                            <button id="endpoint-manager-btn-create" type="button" class="btn btn-primary" 
-                                data-toggle="tooltip" data-placement="top" title="create a new endpoint">New endpoint</button>
+                            </div>                              
                             <button id="endpoint-manager-btn-update" type="button" class="btn btn-primary" 
-                                data-toggle="tooltip" data-placement="top" title="Save endpoint data">Update</button>
+                                data-toggle="tooltip" data-placement="top" title="Save endpoint data">Save</button>
                             <button id="endpoint-manager-btn-update-ok" type="button" class="btn btn-success" style="display:none" 
                                 data-toggle="tooltip" data-placement="top" title="Successfully saved">Success</button>
                             <button id="endpoint-manager-btn-update-fail" type="button" class="btn btn-danger" style="display:none"

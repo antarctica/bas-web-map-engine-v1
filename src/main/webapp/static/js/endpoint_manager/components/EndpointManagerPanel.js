@@ -4,8 +4,8 @@ magic.classes.endpoint_manager.EndpointManagerPanel = function () {
     
     this.prefix = "endpoint-manager";
        
-    this.searchForm = jQuery("#endpoint-searchform");
-    this.searchSelect = jQuery("#endpoint-search");
+    this.searchForm = jQuery("#" + this.prefix + "-searchform");
+    this.searchSelect = jQuery("#" + this.prefix + "-search");
     
     this.updateForm = jQuery("#" + this.prefix + "-update-form");
     
@@ -59,7 +59,7 @@ magic.classes.endpoint_manager.EndpointManagerPanel = function () {
     this.formDirty = false;
     
     /* Determine when there has been a form change */
-    jQuery("[id^='" + this.prefix + "']").filter(":input").on("change keyup", jQuery.proxy(function() {
+    this.updateForm.filter(":input").on("change keyup", jQuery.proxy(function() {
         this.buttons["update"].prop("disabled", false);
         this.formDirty = true;
     }, this)); 
@@ -90,13 +90,7 @@ magic.classes.endpoint_manager.EndpointManagerPanel = function () {
  */
 magic.classes.endpoint_manager.EndpointManagerPanel.prototype.getEndpointData = function(id) {
     jQuery.getJSON(magic.config.paths.baseurl + "/endpoints/get/" + id, jQuery.proxy(function(data) {
-        magic.modules.Common.jsonToForm(jQuery.grep(this.updateFormFields, function(elt) {
-            return("plugin" in elt);
-        }, true), data, this.prefix);
-        /* Set plugin values */
-        jQuery.each(this.pluginFields, jQuery.proxy(function(key, pf) {
-            pf.setValue(data[key]);
-        }, this));
+        this.payloadToForm(data);
         this.selectedEndpointId = data.id;
     }, this))
     .fail(jQuery.proxy(function(xhr) {
@@ -110,17 +104,27 @@ magic.classes.endpoint_manager.EndpointManagerPanel.prototype.getEndpointData = 
 };
 
 /**
- * Handle creation of endpoint data
- */
-magic.classes.endpoint_manager.EndpointManagerPanel.prototype.createHandler = function() {
-    //TODO
-};
-
-/**
- * Handle update of endpoint data
+ * Handle create/update of endpoint data
  */
 magic.classes.endpoint_manager.EndpointManagerPanel.prototype.updateHandler = function() {
-    //TODO
+    var saveUrl = magic.config.paths.baseurl + "/endpoints/" + (this.selectedEndpointId == null ? "save" : "update/" + this.selectedEndpointId);
+    console.log(JSON.stringify(this.formToPayload()));
+//    jQuery.ajax({
+//        url: saveUrl, 
+//        data: JSON.stringify(this.formToPayload()), 
+//        method: "POST",
+//        dataType: "json",
+//        contentType: "application/json",
+//        headers: {
+//            "X-CSRF-TOKEN": jQuery("meta[name='_csrf']").attr("content")
+//        },
+//        success: jQuery.proxy(function(data) {
+//            //TODO           
+//        }, this),
+//        fail: jQuery.proxy(function(xhr) {
+//            this.buttonClickFeedback("delete", true, this.alertResponse(xhr));  
+//        }, this)
+//    });
 };
 
 /**
@@ -196,10 +200,46 @@ magic.classes.endpoint_manager.EndpointManagerPanel.prototype.resetForm = functi
     this.selectedEndpointId = null;
     this.searchForm.get(0).reset();
     this.updateForm.get(0).reset();
+    /* Set plugin values */
+    jQuery.each(this.pluginFields, jQuery.proxy(function(key, pf) {
+        pf.reset();
+    }, this));
     magic.modules.Common.resetFormIndicators();
     this.setButtonStatuses();
     this.formDirty = false;
 };
+
+/**
+ * JSON payload to form
+ * @param {Object} payload
+ */
+magic.classes.endpoint_manager.EndpointManagerPanel.prototype.payloadToForm = function(payload) {
+    magic.modules.Common.jsonToForm(jQuery.grep(this.updateFormFields, function(elt) {
+        return("plugin" in elt);
+    }, true), payload, this.prefix);
+    /* Set plugin values */
+    jQuery.each(this.pluginFields, jQuery.proxy(function(key, pf) {
+        pf.setValue(payload[key]);
+    }, this));
+};
+
+/**
+ * Form to JSON payload
+ * @return {Object}
+ */
+magic.classes.endpoint_manager.EndpointManagerPanel.prototype.payloadToForm = function(payload) {
+    var payload = magic.modules.Common.formToJson(jQuery.grep(this.updateFormFields, function(elt) {
+        return("plugin" in elt);
+    }, true), this.prefix);
+    /* Set plugin values */
+    jQuery.each(this.pluginFields, jQuery.proxy(function(key, pf) {
+        payload[key] = pf.getValue();
+    }, this));
+    /* Low bandwidth option */
+    payload["low_bandwidth"] = payload["location"] != "cambridge";
+    return(payload);
+};
+
 
 /**
  * Set the button disabled statuses
