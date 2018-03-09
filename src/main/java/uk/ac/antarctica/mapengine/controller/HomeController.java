@@ -440,7 +440,11 @@ public class HomeController {
                 message = "Map creator";
                 pageTitle += " - Map Creation Wizard";
                 model.addAttribute("roles", userRoleMatrix.assignableRoles(userAuthoritiesProvider.getInstance().getUserType()));
-                break;            
+                break;   
+            case "endpoint_manager":
+                message = "WMS Endpoint Manager";
+                pageTitle = "WMS Endpoint Manager";
+                break;
             default:
                 message = "Unknown page " + tplName;
                 break;

@@ -278,10 +278,10 @@ magic.classes.endpoint_manager.EndpointManagerPanel.prototype.validate = functio
         var fldValid = false;
         if ("plugin" in fld) {
             /* Plugin field => specific validator */
-            fldValid = this.pluginFields[fld.name].validate();
+            fldValid = this.pluginFields[fld.field].validate();
         } else {
             /* Use native checkValidity() */
-            var inputEl = jQuery("#" + this.prefix + "-" + fld.name);
+            var inputEl = jQuery("#" + this.prefix + "-" + fld.field);
             fldValid = inputEl.get(0).checkValidity();
             if (!fldValid) {
                 magic.modules.Common.flagInputError(inputEl);
