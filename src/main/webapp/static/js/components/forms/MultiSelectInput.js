@@ -3,7 +3,7 @@
 magic.classes.MultiSelectInput = function(options) {
 
     options = jQuery.extend({}, {
-        tipText: "Allows multiple selections",
+        tipText: "",
         tipPosition: "left",
         required: false,
         defaultValue: ""
@@ -12,7 +12,7 @@ magic.classes.MultiSelectInput = function(options) {
     magic.classes.CustomFormInput.call(this, options);
     
     /* Capture tooltip specification from original element */
-    this.tipText = this.tipText || this.element.attr("title");
+    this.tipText = this.tipText || this.element.data("original-title");
             
     this.element.attr("multiple", "multiple");
     this.element.addClass("selectpicker");

@@ -7,15 +7,20 @@
             <div th:include="fragments/nav :: layout"></div>
             <div class="container">                
                 <div class="panel panel-default">
-                    <div class="panel-heading" role="tab" style="padding-bottom:0px">
-                        <form class="form-inline" id="endpoint-manager-searchform">
-                            <div class="form-group">
-                                <label for="endpoint-manager-search" class="control-label">Search endpoints</label>
-                                <select class="form-control" id="endpoint-manager-search" placeholder="Select endpoint"></select>
+                    <div class="panel-heading">
+                        <form id="endpoint-manager-searchform">
+                            <div class="content row">
+                                <label for="endpoint-manager-search" class="col-md-2 control-label searchform-label">Search endpoints</label>
+                                <div class="col-md-8 searchform-box">
+                                    <select class="form-control" id="endpoint-manager-search" placeholder="Select endpoint"></select>
+                                </div>
+                                <div class="col-md-2 searchform-newbtn">
+                                    <button id="endpoint-manager-btn-create" type="button" class="btn btn-primary" 
+                                        data-toggle="tooltip" data-placement="top" title="create a new endpoint">New endpoint
+                                    </button>
+                                </div>                            
                             </div>
-                            <button id="endpoint-manager-btn-create" type="button" class="btn btn-primary" 
-                                data-toggle="tooltip" data-placement="top" title="create a new endpoint">New endpoint</button>
-                        </form>    
+                        </form>
                     </div>
                     <div class="panel-body">                  
                         <form id="endpoint-manager-update-form" class="form-horizontal">

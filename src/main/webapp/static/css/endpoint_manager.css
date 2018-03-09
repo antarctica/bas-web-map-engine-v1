@@ -5,17 +5,6 @@ img.applogo {
     margin-left: 5px
 }
 
-/* Allow pretty much arbitrary width popovers - could be dodgy! */
-.popover {
-	max-width: 1000px;
-    z-index: 4000;
-	width: auto;
-}
-
-div[class$="-popover-content"] {
-    width: 400px;
-}
-
 /* Make bootbox dialogs appear above other Bootstrap modals */
 /* http://stackoverflow.com/questions/31187708/show-bootbox-over-modal-dialog */
 .bootbox.modal {
@@ -28,4 +17,20 @@ div[class$="-popover-content"] {
 
 .bootstrap-tagsinput {
     width: 100% !important;
+}
+
+/* Search form styles */
+@media (min-width: 992px) {
+    .searchform-label {
+        padding-left: 60px;
+        padding-right: 0px;
+        margin-bottom: 0px;
+        margin-top: 5px; 
+    }
+    .searchform-box {
+        padding-right: 0px; 
+    }
+    .searchform-newbtn {
+        padding-left: 0px;
+    }
 }

@@ -11,7 +11,7 @@ magic.classes.TagsInput = function(options) {
     
     magic.classes.CustomFormInput.call(this, options);
     
-    this.tipText = this.tipText || this.element.attr("title");
+    this.tipText = this.tipText || this.element.data("original-title");
         
     if (this.element.length > 0) {
         this.element.tagsinput({

@@ -59,7 +59,7 @@ magic.classes.endpoint_manager.EndpointManagerPanel = function () {
     this.formDirty = false;
     
     /* Determine when there has been a form change */
-    this.updateForm.filter(":input").on("change keyup", jQuery.proxy(function() {
+    this.updateForm.find(":input:not(:button)").on("change keyup", jQuery.proxy(function() {
         this.buttons["update"].prop("disabled", false);
         this.formDirty = true;
     }, this)); 
@@ -91,6 +91,12 @@ magic.classes.endpoint_manager.EndpointManagerPanel = function () {
 magic.classes.endpoint_manager.EndpointManagerPanel.prototype.getEndpointData = function(id) {
     jQuery.getJSON(magic.config.paths.baseurl + "/endpoints/get/" + id, jQuery.proxy(function(data) {
         this.payloadToForm(data);
+        this.setButtonStatuses({
+            "create": true,
+            "update": false,
+            "delete": true,
+            "cancel": true
+        });
         this.selectedEndpointId = data.id;
     }, this))
     .fail(jQuery.proxy(function(xhr) {
@@ -101,6 +107,13 @@ magic.classes.endpoint_manager.EndpointManagerPanel.prototype.getEndpointData = 
             '</div>'
         );
     }, this));
+};
+
+/**
+ * Handle create
+ */
+magic.classes.endpoint_manager.EndpointManagerPanel.prototype.createHandler = function() {
+    this.resetForm();
 };
 
 /**
@@ -133,7 +146,6 @@ magic.classes.endpoint_manager.EndpointManagerPanel.prototype.updateHandler = fu
 magic.classes.endpoint_manager.EndpointManagerPanel.prototype.cancelHandler = function() {
     this.resetForm();
 };
-
 
 /**
  * Handle deletion of an endpoint
@@ -200,6 +212,8 @@ magic.classes.endpoint_manager.EndpointManagerPanel.prototype.resetForm = functi
     this.selectedEndpointId = null;
     this.searchForm.get(0).reset();
     this.updateForm.get(0).reset();
+    /* Reset above doesn't zero this one for some reason */
+    jQuery("#" + this.prefix + "-location").val("");
     /* Set plugin values */
     jQuery.each(this.pluginFields, jQuery.proxy(function(key, pf) {
         pf.reset();
@@ -227,7 +241,7 @@ magic.classes.endpoint_manager.EndpointManagerPanel.prototype.payloadToForm = fu
  * Form to JSON payload
  * @return {Object}
  */
-magic.classes.endpoint_manager.EndpointManagerPanel.prototype.payloadToForm = function(payload) {
+magic.classes.endpoint_manager.EndpointManagerPanel.prototype.formToPayload = function() {
     var payload = magic.modules.Common.formToJson(jQuery.grep(this.updateFormFields, function(elt) {
         return("plugin" in elt);
     }, true), this.prefix);
