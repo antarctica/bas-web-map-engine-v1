@@ -682,16 +682,32 @@ magic.modules.Common = function () {
             for (l in text) {
                 l = text[l];
                 if ('"' === l) {
-                    if (s && l === p) row[i] += l;
+                    if (s && l === p) {
+                        row[i] += l;
+                    }
                     s = !s;
-                } else if (',' === l && s) l = row[++i] = '';
-                else if ('\n' === l && s) {
-                    if ('\r' === p) row[i] = row[i].slice(0, -1);
+                } else if (',' === l && s) {
+                    l = row[++i] = '';
+                } else if ('\n' === l && s) {
+                    if ('\r' === p) {
+                        row[i] = row[i].slice(0, -1);
+                    }
                     row = ret[++r] = [l = '']; i = 0;
-                } else row[i] += l;
+                } else {
+                    row[i] += l;
+                }
                 p = l;
             }
-            return ret;
+            return(ret);
+        },
+        /**
+         * Is given string a valid URL - from https://stackoverflow.com/questions/19108749/validate-url-entered-by-user/19108825
+         * @param {String} str
+         * @return {boolean}
+         */
+        isUrl: function(str) {
+            var regexp = /((https?\:\/\/)|(www\.))(\S+)(\w{2,4})(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/g;
+            return(str.match(regexp));
         },
         /**
          * Does the given key name look name-like?

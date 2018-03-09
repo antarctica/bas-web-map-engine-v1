@@ -34,7 +34,12 @@ magic.classes.endpoint_manager.EndpointManagerPanel = function () {
         jQuery.proxy(function(idx, fdef) {
             switch(fdef.plugin) {
                 case "tagsinput":
-                    this.pluginFields[fdef.field] = new magic.classes.TagsInput({id: this.prefix + "-" + fdef.field});
+                    this.pluginFields[fdef.field] = new magic.classes.TagsInput({
+                        id: this.prefix + "-" + fdef.field,
+                        tagValidator: function(value) {
+                            return(magic.modules.Common.isUrl(value));
+                        }
+                    });
                     break;
                 case "multiselect":
                     this.pluginFields[fdef.field] = new magic.classes.MultiSelectInput({id: this.prefix + "-" + fdef.field});
@@ -113,7 +118,13 @@ magic.classes.endpoint_manager.EndpointManagerPanel.prototype.getEndpointData = 
  * Handle create
  */
 magic.classes.endpoint_manager.EndpointManagerPanel.prototype.createHandler = function() {
-    this.resetForm();
+    if (this.formDirty) {
+        bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">You have unsaved changes - proceed?</div>', jQuery.proxy(function (result) {
+            this.resetForm();
+        }, this));
+    } else {
+        this.resetForm();
+    }
 };
 
 /**
@@ -121,23 +132,25 @@ magic.classes.endpoint_manager.EndpointManagerPanel.prototype.createHandler = fu
  */
 magic.classes.endpoint_manager.EndpointManagerPanel.prototype.updateHandler = function() {
     var saveUrl = magic.config.paths.baseurl + "/endpoints/" + (this.selectedEndpointId == null ? "save" : "update/" + this.selectedEndpointId);
-    console.log(JSON.stringify(this.formToPayload()));
-//    jQuery.ajax({
-//        url: saveUrl, 
-//        data: JSON.stringify(this.formToPayload()), 
-//        method: "POST",
-//        dataType: "json",
-//        contentType: "application/json",
-//        headers: {
-//            "X-CSRF-TOKEN": jQuery("meta[name='_csrf']").attr("content")
-//        },
-//        success: jQuery.proxy(function(data) {
-//            //TODO           
-//        }, this),
-//        fail: jQuery.proxy(function(xhr) {
-//            this.buttonClickFeedback("delete", true, this.alertResponse(xhr));  
-//        }, this)
-//    });
+    if (this.validate()) {
+        console.log(JSON.stringify(this.formToPayload()));
+    //    jQuery.ajax({
+    //        url: saveUrl, 
+    //        data: JSON.stringify(this.formToPayload()), 
+    //        method: "POST",
+    //        dataType: "json",
+    //        contentType: "application/json",
+    //        headers: {
+    //            "X-CSRF-TOKEN": jQuery("meta[name='_csrf']").attr("content")
+    //        },
+    //        success: jQuery.proxy(function(data) {
+    //            //TODO           
+    //        }, this),
+    //        fail: jQuery.proxy(function(xhr) {
+    //            this.buttonClickFeedback("delete", true, this.alertResponse(xhr));  
+    //        }, this)
+    //    });
+    }
 };
 
 /**
@@ -247,13 +260,32 @@ magic.classes.endpoint_manager.EndpointManagerPanel.prototype.formToPayload = fu
     }, true), this.prefix);
     /* Set plugin values */
     jQuery.each(this.pluginFields, jQuery.proxy(function(key, pf) {
-        payload[key] = pf.getValue();
+        payload[key] = pf.getValue(false);
     }, this));
     /* Low bandwidth option */
     payload["low_bandwidth"] = payload["location"] != "cambridge";
     return(payload);
 };
 
+/**
+ * Validate the form
+ * @return {boolean}
+ */
+magic.classes.endpoint_manager.EndpointManagerPanel.prototype.validate = function() {
+    var nonPluginFields = jQuery.grep(this.updateFormFields, function(elt) {
+        return("plugin" in elt);
+    }, true);
+    var validFields = jQuery.grep(this.updateFormFields, jQuery.proxy(function(elt) {
+        return(jQuery("#" + this.prefix + "-" + elt.name).get(0).checkValidity());
+    }, this), false);
+    var valid = validFields.length == nonPluginFields.length;
+    if (valid) {
+        jQuery.each(this.pluginFields, jQuery.proxy(function(key, pf) {
+            valid == valid && pf.validate();
+        }, this));
+    }    
+    return(valid);
+};
 
 /**
  * Set the button disabled statuses
@@ -298,7 +330,9 @@ magic.classes.endpoint_manager.EndpointManagerPanel.prototype.buttonClickFeedbac
     /* See https://api.jquery.com/promise/ for queuing up animations like this */
     var fbBtn = jQuery("#" + this.buttons[key].attr("id") + (success ? "-ok" : "-fail"));
     fbBtn.attr("data-original-title", msg).tooltip("fixTitle");
-    effect = function(){return(fbBtn.fadeIn(300).delay(1200).fadeOut(300))};                                                          
+    effect = function() {
+        return(fbBtn.fadeIn(300).delay(1200).fadeOut(300));
+    };                                                          
     jQuery.when(effect()).done(function() {
         this.buttons[key].show();                            
     });                        

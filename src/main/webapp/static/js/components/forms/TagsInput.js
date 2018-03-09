@@ -6,7 +6,10 @@ magic.classes.TagsInput = function(options) {
         tipText: "",
         tipPosition: "left",
         required: false,
-        defaultValue: ""
+        defaultValue: "",
+        tagValidator: function(value) {
+            return(true);
+        }
     }, options);
     
     magic.classes.CustomFormInput.call(this, options);
@@ -74,4 +77,22 @@ magic.classes.TagsInput.prototype.getValue = function(requireArray) {
     } else {
         return(this.element.val());
     }
+};
+
+/**
+ * Validate the input
+ * @return {boolean}
+ */
+magic.classes.TagsInput.prototype.validate = function() {
+    var valid = this.required ? this.getValue(false) != "" : true;
+    if (valid) {
+        var tagArr = this.getValue(true);
+        if (tagArr.length > 0) {
+            var validArr = jQuery.grep(tagArr, jQuery.proxy(function(idx, tag) {
+                return(this.tagValidator(tag));
+            }, this));
+            valid = validArr.length == tagArr.length;
+        }
+    }
+    return(valid);
 };

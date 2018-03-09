@@ -67,6 +67,19 @@ magic.classes.MultiSelectInput.prototype.setValue = function(value) {
  * @param {boolean} requireArray
  * @return {String|Array}
  */
-magic.classes.MultiSelectInput.prototype.getValue = function(requireArray) {    
-    return(this.element.val());
+magic.classes.MultiSelectInput.prototype.getValue = function(requireArray) {
+    if (requireArray) {
+        return(this.element.val());
+    } else {
+        return(this.element.val().join(","));
+    }
 };
+
+/**
+ * Validate the input
+ * @return {boolean}
+ */
+magic.classes.MultiSelectInput.prototype.validate = function() {
+    return(this.required ? this.getValue(false) != "" : true);
+};
+
