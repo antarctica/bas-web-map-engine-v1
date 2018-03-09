@@ -676,8 +676,11 @@ magic.modules.Common = function () {
          * @return {boolean}
          */
         isUrl: function(str) {
-            var regexp = /((https?\:\/\/)|(www\.))(\S+)(\w{2,4})(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/g;
-            return(str.match(regexp));
+            if (typeof str == "string") {
+                var regexp = /((https?\:\/\/)|(www\.))(\S+)(\w{2,4})(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/g;
+                return(str.match(regexp));
+            }
+            return(false);            
         },
         /**
          * Does the given key name look name-like?

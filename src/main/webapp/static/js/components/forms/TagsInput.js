@@ -14,6 +14,8 @@ magic.classes.TagsInput = function(options) {
     
     magic.classes.CustomFormInput.call(this, options);
     
+    this.tagValidator = options.tagValidator;
+    
     this.tipText = this.tipText || this.element.data("original-title");
         
     if (this.element.length > 0) {
@@ -89,11 +91,13 @@ magic.classes.TagsInput.prototype.validate = function() {
     if (valid) {
         var tagArr = this.getValue(true);
         if (tagArr.length > 0) {
-            var validArr = jQuery.grep(tagArr, jQuery.proxy(function(idx, tag) {
+            var validArr = jQuery.grep(tagArr, jQuery.proxy(function(tag) {
                 return(this.tagValidator(tag));
             }, this));
             valid = validArr.length == tagArr.length;
-        }
+        }        
+    }
+    if (valid) {
         outerDiv.removeClass("has-error");
     } else {
         outerDiv.addClass("has-error");
