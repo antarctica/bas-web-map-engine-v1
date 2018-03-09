@@ -85,6 +85,7 @@ magic.classes.TagsInput.prototype.getValue = function(requireArray) {
  */
 magic.classes.TagsInput.prototype.validate = function() {
     var valid = this.required ? this.getValue(false) != "" : true;
+    var outerDiv = this.element.closest("div.form-group");
     if (valid) {
         var tagArr = this.getValue(true);
         if (tagArr.length > 0) {
@@ -93,6 +94,9 @@ magic.classes.TagsInput.prototype.validate = function() {
             }, this));
             valid = validArr.length == tagArr.length;
         }
+        outerDiv.removeClass("has-error");
+    } else {
+        outerDiv.addClass("has-error");
     }
     return(valid);
 };

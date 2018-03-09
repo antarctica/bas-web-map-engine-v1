@@ -287,6 +287,41 @@ magic.modules.GeoUtils = function() {
         },
         
         /**
+         * Get an approximate asset heading from a COMNAP track
+         * @param {ol.geom.LineString} track
+         * @returns {double}
+         */
+        headingFromTrackGeometry: function(track) {
+            var heading = 0;
+            var coords = track.getCoordinates();
+            if (jQuery.isArray(coords) && coords.length >= 2) {
+                /* This is a simple linestring with enough points to do the calculation */
+                var c0 = coords[coords.length-2];
+                var c1 = coords[coords.length-1];
+                var v01 = new Vector(c1[0]-c0[0], c1[1]-c0[1]);
+                var v0n = new Vector(0, 1);
+                heading = Math.acos(v01.unit().dot(v0n));
+            }
+            return(heading);
+        },
+        /**
+         * Get geometry type
+         * @param {ol.Geometry} geom
+         * @returns {String point|line|polygon|collection}
+         */
+        getGeometryType: function(geom) {
+            var geomType = "point";
+            if (geom instanceof ol.geom.LineString || geom instanceof ol.geom.MultiLineString) {
+                geomType = "line";
+            } else if (geom instanceof ol.geom.Polygon || geom instanceof ol.geom.MultiPolygon) {
+                geomType = "polygon";
+            } else if (geom instanceof ol.geom.GeometryCollection) {
+                geomType = "collection";
+            }  
+            return(geomType);
+        },
+        
+        /**
          * Format a lon/lat coordinate according to global preference
          * @param {float} coordinate
          * @param {string} destFormat (dms|ddm|dd)

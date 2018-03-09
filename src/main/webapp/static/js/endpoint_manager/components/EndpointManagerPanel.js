@@ -272,18 +272,25 @@ magic.classes.endpoint_manager.EndpointManagerPanel.prototype.formToPayload = fu
  * @return {boolean}
  */
 magic.classes.endpoint_manager.EndpointManagerPanel.prototype.validate = function() {
-    var nonPluginFields = jQuery.grep(this.updateFormFields, function(elt) {
-        return("plugin" in elt);
-    }, true);
-    var validFields = jQuery.grep(this.updateFormFields, jQuery.proxy(function(elt) {
-        return(jQuery("#" + this.prefix + "-" + elt.name).get(0).checkValidity());
-    }, this), false);
-    var valid = validFields.length == nonPluginFields.length;
-    if (valid) {
-        jQuery.each(this.pluginFields, jQuery.proxy(function(key, pf) {
-            valid == valid && pf.validate();
-        }, this));
-    }    
+    var valid = true;
+    magic.modules.Common.resetFormIndicators();
+    jQuery.each(this.updateFormFields, jQuery.proxy(function(idx, fld) {
+        var fldValid = false;
+        if ("plugin" in fld) {
+            /* Plugin field => specific validator */
+            fldValid = this.pluginFields[fld.name].validate();
+        } else {
+            /* Use native checkValidity() */
+            var inputEl = jQuery("#" + this.prefix + "-" + fld.name);
+            fldValid = inputEl.get(0).checkValidity();
+            if (!fldValid) {
+                magic.modules.Common.flagInputError(inputEl);
+            }
+        }
+        if (!fldValid) {         
+            valid = false;
+        }
+    }, this));    
     return(valid);
 };
 

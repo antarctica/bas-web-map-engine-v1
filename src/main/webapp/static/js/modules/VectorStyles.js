@@ -124,9 +124,9 @@ magic.modules.VectorStyles = function () {
                 var rotation = 0;
                 var geoms = this.getGeometry().getGeometries();
                 for (var i = 0; i < geoms.length; i++) {
-                    var gtype = magic.modules.Common.getGeometryType(geoms[i]);
+                    var gtype = magic.modules.GeoUtils.getGeometryType(geoms[i]);
                     if (gtype == "line") {
-                        rotation = magic.modules.Common.headingFromTrackGeometry(geoms[i]);
+                        rotation = magic.modules.GeoUtils.headingFromTrackGeometry(geoms[i]);
                     }
                 }
                 var type = "unknown";
@@ -141,7 +141,7 @@ magic.modules.VectorStyles = function () {
                 }
                 var roundel = magic.config.paths.baseurl + "/static/images/" + type + "_" + colour + "_roundel.png";
                 for (var i = 0; i < geoms.length; i++) {
-                    var gtype = magic.modules.Common.getGeometryType(geoms[i]);
+                    var gtype = magic.modules.GeoUtils.getGeometryType(geoms[i]);
                     if (gtype == "point") {
                         styles.push(new ol.style.Style({
                             geometry: geoms[i],

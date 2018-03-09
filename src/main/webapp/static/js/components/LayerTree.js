@@ -1015,7 +1015,7 @@ magic.classes.LayerTree.prototype.getVectorStyle = function(styleDef, labelField
     return(function(feature, resolution) {
         var returnedStyles = [];
         /* Determine feature type */
-        var geomType = magic.modules.Common.getGeometryType(feature.getGeometry());
+        var geomType = magic.modules.GeoUtils.getGeometryType(feature.getGeometry());
         var defaultFill =  {color: "rgba(255, 0, 0, 0.6)"};
         var defaultStroke = {color: "rgba(255, 0, 0, 1.0)", width: 1};   
         var fill = null, stroke = null, graphic = null, text = null;
@@ -1130,7 +1130,7 @@ magic.classes.LayerTree.prototype.getVectorStyle = function(styleDef, labelField
             case "collection":
                 var geoms = feature.getGeometry().getGeometries();
                 for (var i = 0; i < geoms.length; i++) {
-                    var gtype = magic.modules.Common.getGeometryType(geoms[i]);
+                    var gtype = magic.modules.GeoUtils.getGeometryType(geoms[i]);
                     if (gtype == "point") {
                         returnedStyles.push(new ol.style.Style({
                             geometry: geoms[i],

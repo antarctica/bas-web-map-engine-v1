@@ -80,6 +80,13 @@ magic.classes.MultiSelectInput.prototype.getValue = function(requireArray) {
  * @return {boolean}
  */
 magic.classes.MultiSelectInput.prototype.validate = function() {
-    return(this.required ? this.getValue(false) != "" : true);
+    var outerDiv = this.element.closest("div.form-group");
+    var valid = this.required ? this.getValue(false) != "" : true;
+    if (!valid) {
+        outerDiv.addClass("has-error");
+    } else {
+        outerDiv.removeClass("has-error");
+    }
+    return(valid);
 };
 
