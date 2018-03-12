@@ -42,7 +42,10 @@ magic.classes.endpoint_manager.EndpointManagerPanel = function () {
                     });
                     break;
                 case "multiselect":
-                    this.pluginFields[fdef.field] = new magic.classes.MultiSelectInput({id: this.prefix + "-" + fdef.field});
+                    this.pluginFields[fdef.field] = new magic.classes.MultiSelectInput({
+                        id: this.prefix + "-" + fdef.field,
+                        required: true
+                    });
                     break;
                 default:
                     break;
@@ -95,6 +98,7 @@ magic.classes.endpoint_manager.EndpointManagerPanel = function () {
  */
 magic.classes.endpoint_manager.EndpointManagerPanel.prototype.getEndpointData = function(id) {
     jQuery.getJSON(magic.config.paths.baseurl + "/endpoints/get/" + id, jQuery.proxy(function(data) {
+        this.resetForm();
         this.payloadToForm(data);
         this.setButtonStatuses({
             "create": true,
@@ -134,22 +138,23 @@ magic.classes.endpoint_manager.EndpointManagerPanel.prototype.updateHandler = fu
     var saveUrl = magic.config.paths.baseurl + "/endpoints/" + (this.selectedEndpointId == null ? "save" : "update/" + this.selectedEndpointId);
     if (this.validate()) {
         console.log(JSON.stringify(this.formToPayload()));
-    //    jQuery.ajax({
-    //        url: saveUrl, 
-    //        data: JSON.stringify(this.formToPayload()), 
-    //        method: "POST",
-    //        dataType: "json",
-    //        contentType: "application/json",
-    //        headers: {
-    //            "X-CSRF-TOKEN": jQuery("meta[name='_csrf']").attr("content")
-    //        },
-    //        success: jQuery.proxy(function(data) {
-    //            //TODO           
-    //        }, this),
-    //        fail: jQuery.proxy(function(xhr) {
-    //            this.buttonClickFeedback("delete", true, this.alertResponse(xhr));  
-    //        }, this)
-    //    });
+        jQuery.ajax({
+            url: saveUrl, 
+            data: JSON.stringify(this.formToPayload()), 
+            method: "PUT",
+            dataType: "json",
+            contentType: "application/json",
+            headers: {
+                "X-CSRF-TOKEN": jQuery("meta[name='_csrf']").attr("content")
+            },
+            success: jQuery.proxy(function(data) {
+                this.buttonClickFeedback("update", true, "ok");
+                this.resetForm();
+            }, this),
+            fail: jQuery.proxy(function(xhr) {
+                this.buttonClickFeedback("delete", false, this.alertResponse(xhr));  
+            }, this)
+        });
     }
 };
 
@@ -182,7 +187,7 @@ magic.classes.endpoint_manager.EndpointManagerPanel.prototype.deleteHandler = fu
                     this.loadEndpoints(jQuery.proxy(this.resetForm, this));
                 }, this))
                 .fail(jQuery.proxy(function(xhr) {
-                    this.buttonClickFeedback("delete", true, this.alertResponse(xhr));
+                    this.buttonClickFeedback("delete", false, this.alertResponse(xhr));
                 }, this));
             }
         }, this));

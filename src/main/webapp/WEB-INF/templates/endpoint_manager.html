@@ -36,7 +36,7 @@
                                 </div>                  
                             </div>
                             <div class="form-group">
-                                <label for="endpoint-manager-url" class="col-md-2 control-label">URL</label>
+                                <label for="endpoint-manager-url" class="col-md-2 control-label">WMS URL</label>
                                 <div class="col-md-10">
                                     <input type="url" class="form-control" id="endpoint-manager-url" placeholder="Endpoint URL (required)" required="required"
                                         data-toggle="tooltip" data-placement="left" title="Endpoint URL (may be load-balanced e.g. https://maps.bas.ac.uk/antarctic)"></input>
@@ -45,22 +45,22 @@
                             <div class="form-group">
                                 <label for="endpoint-manager-proxied_url" class="col-md-2 control-label">Proxied URL</label>
                                 <div class="col-md-10">
-                                    <input type="url" class="form-control" id="endpoint-manager-proxied_url" placeholder="URL for which above endpoint is a proxy"
-                                       data-toggle="tooltip" data-placement="left" title="If the above proxies/cascades another URL, enter it here so text-based queries will work"></input>
+                                    <input type="url" class="form-control" id="endpoint-manager-proxied_url" placeholder="WMS URL for which above endpoint is a proxy"
+                                       data-toggle="tooltip" data-placement="left" title="If the above URL proxies or cascades another WMS URL, enter it here so text-based queries will work"></input>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label for="endpoint-manager-rest_endpoint" class="col-md-2 control-label">REST URL</label>
                                 <div class="col-md-10">
                                     <input type="url" class="form-control" id="endpoint-manager-rest_endpoint" placeholder="REST endpoint URL"
-                                       data-toggle="tooltip" data-placement="left" title="Geoserver REST endpoint, if appropriate"></input>
+                                       data-toggle="tooltip" data-placement="left" title="Geoserver REST endpoint, if appropriate, e.g. https://add.data.bas.ac.uk/geoserver"></input>
                                 </div>
                             </div> 
                             <div class="form-group">
                                 <label for="endpoint-manager-url_aliases" class="col-md-2 control-label">Aliases</label>
                                 <div class="col-md-10">
                                     <input type="text" class="form-control" id="endpoint-manager-url_aliases"
-                                       data-toggle="tooltip" data-placement="left" title="URL(s) formerly used for this endpoint, for backwards compatibility"></input>
+                                           data-toggle="tooltip" data-placement="left" title="URL(s) formerly used for this endpoint (<protocol>://<host>:<port> only), for backwards compatibility"></input>
                                 </div>
                             </div> 
                             <div class="form-group">
@@ -100,7 +100,7 @@
                                     <div class="checkbox">
                                         <label>
                                             <input type="checkbox" id="endpoint-manager-has_wfs" value="has_wfs"
-                                               data-toggle="tooltip" data-placement="left" title="Tick if endpoint exports a WFS service">                                
+                                               data-toggle="tooltip" data-placement="left" title="Tick if WMS endpoint also provides a WFS service">                                
                                             </input> Exports a WFS service
                                         </label>
                                     </div>
