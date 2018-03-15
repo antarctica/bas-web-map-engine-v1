@@ -17,6 +17,8 @@
     "ol.tilegrid.TileGrid",    
     "ol.format.GeoJSON",
     "ol.format.GeoJSON#*",
+    "ol.format.EsriJSON",
+    "ol.format.EsriJSON#*",
     "ol.format.GML",
     "ol.format.GPX",
     "ol.format.GPX#*",

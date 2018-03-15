@@ -448,6 +448,24 @@
                                                 "required": ["geojson_source"]
                                             },
                                             {
+                                                "id": "esrijson",
+                                                "description": "ESRI JSON source",
+                                                "type": "object",
+                                                "properties": {
+                                                    "esrijson_source": {
+                                                        "description": "ArcGIS Online JSON feed serving layer",
+                                                        "type": "string",
+                                                        "format": "uri"
+                                                    },
+                                                    "style_definition": {
+                                                        "description": "Definition of a vector style to use",
+                                                        "type": "string",
+                                                        "$ref": "#/definitions/vector_style"
+                                                    }
+                                                },
+                                                "required": ["esrijson_source"]
+                                            },
+                                            {
                                                 "id": "gpx",
                                                 "description": "GPX file source held in local respository",
                                                 "type": "object",

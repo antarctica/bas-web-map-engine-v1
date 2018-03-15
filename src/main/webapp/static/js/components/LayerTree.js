@@ -33,6 +33,7 @@ magic.classes.LayerTree = function (target, container) {
         "base": [],
         "wms": [],
         "geojson": [],
+        "esrijson": [],
         "gpx": [],
         "kml": []
     };
@@ -527,7 +528,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
             this.layersBySource["wms"].push(layer); 
         }           
     } else if (nd.source.geojson_source) {
-        /* GeosJSON layer */
+        /* GeoJSON layer */
         var vectorSource;
         var labelRotation = nd.source.feature_name ? 0.0 : -magic.runtime.map_context.data.rotation;
         var format = new ol.format.GeoJSON();
@@ -589,6 +590,40 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
         });        
         layer.setZIndex(200);
         this.layersBySource["geojson"].push(layer);
+    } else if (nd.source.esrijson_source) {
+        /* ESRI JSON layer */
+        var vectorSource;
+        var labelRotation = nd.source.feature_name ? 0.0 : -magic.runtime.map_context.data.rotation;
+        var format = new ol.format.EsriJSON();
+        vectorSource = new ol.source.Vector({
+            format: format,
+            loader: function(extent, resolution, projection) {
+                jQuery.ajax({
+                    url: nd.source.esrijson_source,
+                    method: "GET"                   
+                })
+                .done(function(data) {
+                    vectorSource.addFeatures(format.readFeatures(data, {
+                        featureProjection: projection
+                    }));
+                })
+                .fail(function(xhr) {
+                    var msg;                    
+                    try {
+                        msg = JSON.parse(xhr.responseText)["detail"];
+                    } catch(e) {
+                        msg = xhr.responseText;
+                    }
+                    bootbox.alert(
+                        '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                            '<p>' + msg + '</p>' + 
+                        '</div>'
+                    );
+                });
+            }
+        });        
+        layer.setZIndex(200);
+        this.layersBySource["esrijson"].push(layer);
     } else if (nd.source.gpx_source) {
         /* GPX layer */
         var labelRotation = -magic.runtime.map_context.data.rotation;
