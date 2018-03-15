@@ -228,6 +228,7 @@ magic.classes.creator.LayerEditor.prototype.sourceMarkup = function(type, contex
     };    
     switch(type) {
         case "geojson": this.sourceEditor = new magic.classes.creator.GeoJsonSourceEditor(payload); break;
+        case "esrijson": this.sourceEditor = new magic.classes.creator.EsriJsonSourceEditor(payload); break;
         case "gpx": this.sourceEditor = new magic.classes.creator.GpxSourceEditor(payload); break;
         case "kml": this.sourceEditor = new magic.classes.creator.KmlSourceEditor(payload); break;
         default: this.sourceEditor = new magic.classes.creator.WmsSourceEditor(payload); break;
@@ -244,7 +245,7 @@ magic.classes.creator.LayerEditor.prototype.sourceMarkup = function(type, contex
 magic.classes.creator.LayerEditor.prototype.typeFromContext = function(context) {
     var type = "wms";            
     if (context && context.source) {
-        var sourceTypes = ["geojson", "gpx", "kml", "wms"];
+        var sourceTypes = ["geojson", "esrijson", "gpx", "kml", "wms"];
         for (var i = 0; i < sourceTypes.length; i++) {
             if (context.source[sourceTypes[i] + "_source"]) {
                 type = sourceTypes[i];

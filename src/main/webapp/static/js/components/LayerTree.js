@@ -156,7 +156,8 @@ magic.classes.LayerTree.prototype.getLayers = function () {
     return(
         this.layersBySource["base"].concat(
             this.layersBySource["wms"],
-            this.layersBySource["geojson"],            
+            this.layersBySource["geojson"],
+            this.layersBySource["esrijson"],
             this.layersBySource["gpx"],
             this.layersBySource["kml"]                                        
     ));        
@@ -593,8 +594,8 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
     } else if (nd.source.esrijson_source) {
         /* ESRI JSON layer */
         var vectorSource;
-        var labelRotation = nd.source.feature_name ? 0.0 : -magic.runtime.map_context.data.rotation;
         var format = new ol.format.EsriJSON();
+        var labelRotation = -magic.runtime.map_context.data.rotation;
         vectorSource = new ol.source.Vector({
             format: format,
             loader: function(extent, resolution, projection) {
@@ -603,7 +604,12 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                     method: "GET"                   
                 })
                 .done(function(data) {
-                    vectorSource.addFeatures(format.readFeatures(data, {
+                    if (typeof data == "string") {
+                        data = JSON.parse(data);
+                    }
+                    )
+                    vectorSource.addFeatures(format.readFeatures(
+                        data.operationalLayers[0].featureCollection.layers[0].featureSet, {
                         featureProjection: projection
                     }));
                 })
@@ -621,6 +627,15 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                     );
                 });
             }
+        });        
+        layer = new ol.layer.Vector({
+            name: nd.name,
+            visible: isVisible,
+            source: vectorSource,
+            style: this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map), labelRotation),
+            metadata: nd,
+            minResolution: minRes,
+            maxResolution: maxRes
         });        
         layer.setZIndex(200);
         this.layersBySource["esrijson"].push(layer);
