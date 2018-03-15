@@ -8,7 +8,8 @@ magic.classes.creator.GeoJsonSourceEditor = function(options) {
         formSchema: [
             {"field": "geojson_source", "default": ""},
             {"field": "feature_name", "default": ""},
-            {"field": "srs", "default": ""}
+            {"field": "srs", "default": ""},
+            {"field": "style_definition", "default": "{\"mode\": \"default\"}"}
         ]
     }, options);
     
@@ -103,7 +104,9 @@ magic.classes.creator.GeoJsonSourceEditor.prototype.init = function(context) {
     });
     
     /* Change handler for style mode */
-    jQuery("#" + this.prefix + "-style-mode").off("change").on("change", jQuery.proxy(function(evt) {
+    var ddStyleMode = jQuery("#" + this.prefix + "-style-mode");
+    var btnStyleEdit = jQuery("#" + this.prefix + "-style-edit");
+    ddStyleMode.off("change").on("change", jQuery.proxy(function(evt) {
         var changedTo = jQuery(evt.currentTarget).val();
         jQuery("#" + this.prefix + "-style_definition").val("{\"mode\":\"" + changedTo + "\"}");
         if (changedTo == "predefined") {
@@ -111,14 +114,14 @@ magic.classes.creator.GeoJsonSourceEditor.prototype.init = function(context) {
         } else {
             jQuery("div.predefined-style-input").addClass("hidden");
         }
-        jQuery("#" + this.prefix + "-style-edit").prop("disabled", (changedTo == "predefined" || changedTo == "default"));
+        btnStyleEdit.prop("disabled", (changedTo == "predefined" || changedTo == "default"));
     }, this));
     
     /* Style edit button */
-    jQuery("#" + this.prefix + "-style-edit").off("click").on("click", jQuery.proxy(function(evt) {
+    btnStyleEdit.off("click").on("click", jQuery.proxy(function(evt) {
         var styledef = jQuery("#" + this.prefix + "-style_definition").val();
         if (!styledef) {
-            styledef = {"mode": (jQuery("#" + this.prefix + "-style-mode").val() || "default")};
+            styledef = {"mode": (ddStyleMode.val() || "default")};
         } else if (typeof styledef == "string") {
             styledef = JSON.parse(styledef);
         }
@@ -128,6 +131,18 @@ magic.classes.creator.GeoJsonSourceEditor.prototype.init = function(context) {
     this.populateCannedStylesDropdown();
     
     magic.modules.Common.jsonToForm(this.formSchema, context, this.prefix);
+    
+    /* Set the style mode appropriately */
+    ddStyleMode.val("default");
+    btnStyleEdit.prop("disabled", true);
+    var sd = context.style_definition;
+    if (typeof sd == "string") {
+        sd = JSON.parse(sd);
+    }
+    if (sd.mode) {
+        ddStyleMode.val(sd.mode);
+        btnStyleEdit.prop("disabled", sd.mode == "predefined" || sd.mode == "default");
+    }
 };
 
 /**
@@ -171,7 +186,7 @@ magic.classes.creator.GeoJsonSourceEditor.prototype.sourceSpecified = function()
     var sourceUrl = jQuery("#" + this.prefix + "-geojson_source").val();
     var featureName = jQuery("#" + this.prefix + "-feature_name").val();
     var isWfs = sourceUrl.indexOf("/wfs") > 0;
-    return((isWfs && sourceUrl && featureName) || (!isWfs && sourceUrl));
+    return((isWfs && magic.modules.Common.isUrl(sourceUrl) && featureName) || (!isWfs && magic.modules.Common.isUrl(sourceUrl)));
 };
 
 magic.classes.creator.GeoJsonSourceEditor.prototype.validate = function() {
@@ -181,7 +196,7 @@ magic.classes.creator.GeoJsonSourceEditor.prototype.validate = function() {
     var featureNameInput = jQuery("#" + this.prefix + "-feature_name");
     var featureName = featureNameInput.val();
     var isWfs = sourceUrl.indexOf("/wfs") > 0;
-    if ((isWfs && sourceUrl && featureName) || (!isWfs && sourceUrl)) {
+    if ((isWfs && magic.modules.Common.isUrl(sourceUrl) && featureName) || (!isWfs && magic.modules.Common.isUrl(sourceUrl))) {
         /* Ok - remove all errors */        
         return(true);
     }

@@ -598,28 +598,17 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
         var labelRotation = -magic.runtime.map_context.data.rotation;
         vectorSource = new ol.source.Vector({
             format: format,
-            loader: function(extent, resolution, projection) {
-                jQuery.ajax({
-                    url: nd.source.esrijson_source,
-                    method: "GET"                   
-                })
-                .done(function(data) {
-                    if (typeof data == "string") {
-                        data = JSON.parse(data);
-                    }
-                    )
-                    vectorSource.addFeatures(format.readFeatures(
-                        data.operationalLayers[0].featureCollection.layers[0].featureSet, {
-                        featureProjection: projection
-                    }));
+            loader: function() {
+                jQuery.getJSON(nd.source.esrijson_source, function(data) {
+                    var features = format.readFeatures(data.operationalLayers[0].featureCollection.layers[0].featureSet, {
+                        dataProjection: "EPSG:3857",
+                        featureProjection: magic.runtime.map_context.data.projection
+                    });
+                    vectorSource.addFeatures(features);
                 })
                 .fail(function(xhr) {
                     var msg;                    
-                    try {
-                        msg = JSON.parse(xhr.responseText)["detail"];
-                    } catch(e) {
-                        msg = xhr.responseText;
-                    }
+                    try {msg = JSON.parse(xhr.responseText)["detail"];} catch(e) {msg = xhr.responseText;}
                     bootbox.alert(
                         '<div class="alert alert-warning" style="margin-bottom:0">' + 
                             '<p>' + msg + '</p>' + 

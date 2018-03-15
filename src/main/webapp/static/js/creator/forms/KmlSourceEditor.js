@@ -6,7 +6,8 @@ magic.classes.creator.KmlSourceEditor = function(options) {
         prefix: "kml-source-editor",
         sourceContext: null,
         formSchema: [
-            {"field": "kml_source", "default": ""}
+            {"field": "kml_source", "default": ""},
+            {"field": "style_definition", "default": "{\"mode\": \"default\"}"}
         ]
     }, options);
     
@@ -54,7 +55,7 @@ magic.classes.creator.KmlSourceEditor.prototype.markup = function() {
     );
 };
 
-magic.classes.creator.KmlSourceEditor.prototype.init = function() {
+magic.classes.creator.KmlSourceEditor.prototype.init = function(context) {
     
     /* Create the styler popup dialog */
     this.styler = new magic.classes.StylerPopup({
@@ -63,24 +64,38 @@ magic.classes.creator.KmlSourceEditor.prototype.init = function() {
     });
     
     /* Change handler for style mode */
-    jQuery("#" + this.prefix + "-style-mode").off("change").on("change", jQuery.proxy(function(evt) {
+    var ddStyleMode = jQuery("#" + this.prefix + "-style-mode");
+    var btnStyleEdit = jQuery("#" + this.prefix + "-style-edit");
+    ddStyleMode.off("change").on("change", jQuery.proxy(function(evt) {
         var changedTo = jQuery(evt.currentTarget).val();
         jQuery("#" + this.prefix + "-style_definition").val("{\"mode\":\"" + changedTo + "\"}");        
-        jQuery("#" + this.prefix + "-style-edit").prop("disabled", changedTo == "default" || changedTo == "file");
+        btnStyleEdit.prop("disabled", (changedTo == "default" || changedTo == "file"));
     }, this));
     
     /* Style edit button */
-    jQuery("#" + this.prefix + "-style-edit").off("click").on("click", jQuery.proxy(function(evt) {
+    btnStyleEdit.off("click").on("click", jQuery.proxy(function(evt) {
         var styledef = jQuery("#" + this.prefix + "-style_definition").val();
         if (!styledef) {
-            styledef = {"mode": (jQuery("#" + this.prefix + "-style-mode").val() || "default")};
+            styledef = {"mode": (ddStyleMode.val() || "default")};
         } else if (typeof styledef == "string") {
             styledef = JSON.parse(styledef);
         }
         this.styler.activate(styledef);
     }, this));
-    
+        
     magic.modules.Common.jsonToForm(this.formSchema, context, this.prefix);
+    
+    /* Set the style mode appropriately */
+    ddStyleMode.val("default");
+    btnStyleEdit.prop("disabled", true);
+    var sd = context.style_definition;
+    if (typeof sd == "string") {
+        sd = JSON.parse(sd);
+    }
+    if (sd.mode) {
+        ddStyleMode.val(sd.mode);
+        btnStyleEdit.prop("disabled", sd.mode == "file" || sd.mode == "default");
+    }
 };
 
 /**
