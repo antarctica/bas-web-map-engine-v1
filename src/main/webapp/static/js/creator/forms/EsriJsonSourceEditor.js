@@ -16,9 +16,7 @@ magic.classes.creator.EsriJsonSourceEditor = function(options) {
     this.setCallbacks(jQuery.extend(this.controlCallbacks, {
         onLoadContext: jQuery.proxy(this.init, this)
     }));   
-    
-    this.styler = null;
-                
+                    
 };
 
 magic.classes.creator.EsriJsonSourceEditor.prototype = Object.create(magic.classes.creator.DataSourceForm.prototype);
@@ -67,53 +65,9 @@ magic.classes.creator.EsriJsonSourceEditor.prototype.markup = function() {
 };
 
 magic.classes.creator.EsriJsonSourceEditor.prototype.init = function(context) {
-        
-    /* Create the styler popup dialog */
-    this.styler = new magic.classes.StylerPopup({
-        target: this.prefix + "-style-edit",
-        onSave: jQuery.proxy(this.writeStyle, this)                    
-    });
-    
-    /* Change handler for style mode */
-    var ddStyleMode = jQuery("#" + this.prefix + "-style-mode");
-    var btnStyleEdit = jQuery("#" + this.prefix + "-style-edit");
-    ddStyleMode.off("change").on("change", jQuery.proxy(function(evt) {
-        var changedTo = jQuery(evt.currentTarget).val();
-        jQuery("#" + this.prefix + "-style_definition").val("{\"mode\":\"" + changedTo + "\"}");
-        if (changedTo == "predefined") {
-            jQuery("div.predefined-style-input").removeClass("hidden");
-        } else {
-            jQuery("div.predefined-style-input").addClass("hidden");
-        }
-        btnStyleEdit.prop("disabled", (changedTo == "predefined" || changedTo == "default"));
-    }, this));
-    
-    /* Style edit button */
-    btnStyleEdit.off("click").on("click", jQuery.proxy(function(evt) {
-        var styledef = jQuery("#" + this.prefix + "-style_definition").val();
-        if (!styledef) {
-            styledef = {"mode": (ddStyleMode.val() || "default")};
-        } else if (typeof styledef == "string") {
-            styledef = JSON.parse(styledef);
-        }
-        this.styler.activate(styledef);
-    }, this));
-    
-    this.populateCannedStylesDropdown();
-    
+    this.setStyleHandlers(context);    
+    this.populateCannedStylesDropdown();    
     magic.modules.Common.jsonToForm(this.formSchema, context, this.prefix);
-    
-    /* Set the style mode appropriately */
-    ddStyleMode.val("default");
-    btnStyleEdit.prop("disabled", true);
-    var sd = context.style_definition;
-    if (typeof sd == "string") {
-        sd = JSON.parse(sd);
-    }
-    if (sd.mode) {
-        ddStyleMode.val(sd.mode);
-        btnStyleEdit.prop("disabled", sd.mode == "default");
-    }
 };
 
 /**

@@ -40,7 +40,7 @@ magic.classes.LayerEditorPopup = function(options) {
         });
         
         this.payloadToForm(this.prePopulator);
-        this.assignHandlers();
+        this.assignHandlers(this.prePopulator);
         this.restoreState();
         this.initDropzone();
     }, this));
@@ -118,7 +118,10 @@ magic.classes.LayerEditorPopup.prototype.markup = function() {
     );
 };
 
-magic.classes.LayerEditorPopup.prototype.assignHandlers = function() {
+magic.classes.LayerEditorPopup.prototype.assignHandlers = function(context) {
+    
+    var ddStyleMode = jQuery("#" + this.id + "-layer-style-mode");
+    var btnStyleEdit = jQuery("#" + this.id + "-layer-style-edit");
     
     /* Detect changes to the form */
     this.formEdited = false;
@@ -127,17 +130,17 @@ magic.classes.LayerEditorPopup.prototype.assignHandlers = function() {
     }, this));
     
     /* Change handler for style mode */
-    jQuery("#" + this.id + "-layer-style-mode").change(jQuery.proxy(function(evt) {
+    ddStyleMode.change(jQuery.proxy(function(evt) {
         var mode = jQuery(evt.currentTarget).val();
         jQuery("#" + this.id + "-layer-styledef").val("{\"mode\":\"" + mode + "\"}");
-        jQuery("#" + this.id + "-layer-style-edit").prop("disabled", (mode == "file" || mode == "default"));
+        btnStyleEdit.prop("disabled", (mode == "file" || mode == "default"));
     }, this));
     
     /* Style edit button */
-    jQuery("#" + this.id + "-layer-style-edit").click(jQuery.proxy(function(evt) {
+    btnStyleEdit.click(jQuery.proxy(function(evt) {
         var styledef = jQuery("#" + this.id + "-layer-styledef").val();
         if (!styledef) {
-            styledef = {"mode": (jQuery("#" + this.id + "-layer-style-mode").val() || "default")};
+            styledef = {"mode": (ddStyleMode.val() || "default")};
         } else if (typeof styledef == "string") {
             styledef = JSON.parse(styledef);
         }
@@ -149,6 +152,14 @@ magic.classes.LayerEditorPopup.prototype.assignHandlers = function() {
         this.cleanForm();
         this.deactivate();
     }, this));
+    
+    /* Set the style mode appropriately */
+    ddStyleMode.val("default");
+    btnStyleEdit.prop("disabled", true);        
+    context.styledef = this.styler.convertLegacyFormats(context.styledef);
+    var mode = context.styledef.mode;
+    ddStyleMode.val(mode);
+    btnStyleEdit.prop("disabled", mode == "predefined" || mode == "default" || mode == "file");
 };
 
 /**
@@ -201,10 +212,7 @@ magic.classes.LayerEditorPopup.prototype.payloadToForm = function(populator) {
     jQuery.each(this.inputs, jQuery.proxy(function(idx, ip) {
         jQuery("#" + this.id + "-layer-" + ip).val(populator[ip] || "");
     }, this));
-    var styledef = populator["styledef"] || {"mode": "default"};
-    if (typeof styledef === "string") {
-        styledef = JSON.parse(styledef);
-    }
+    var styledef = this.subForms.styler.convertLegacyFormats(populator["styledef"]);    
     /* Last modified */
     var lastMod = jQuery("#" + this.id + "-layer-last-mod");
     if (populator.modified_date) {

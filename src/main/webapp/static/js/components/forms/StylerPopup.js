@@ -16,18 +16,25 @@ magic.classes.StylerPopup = function(options) {
         onSave: options.onSave
     }));
     
-    this.styleInputs = ["mode", "marker", "radius", "stroke_width", "stroke_color", "stroke_opacity", "stroke_linestyle", "fill_color", "fill_opacity"];
+    this.styleInputs = ["mode", "graphic_marker", "graphic_radius", "stroke_width", "stroke_color", "stroke_opacity", "stroke_linestyle", "fill_color", "fill_opacity"];
     
+    /* This follows the JSON schema for stored styles defined in json/web_map_schema.json */
     this.inputDefaults = {
         "mode": "point",    /* Allowed values: default|file|predefined|point|line|polygon */
-        "marker": "circle", 
-        "radius": 5, 
-        "stroke_width": 1, 
-        "stroke_color": "#000000", 
-        "stroke_opacity": 1.0, 
-        "stroke_linestyle": "solid", 
-        "fill_color": "#ffffff", 
-        "fill_opacity": 1.0
+        "graphic": {
+            "marker": "circle", 
+            "radius": 5
+        },
+        "stroke": {
+            "width": 1, 
+            "color": "#000000", 
+            "opacity": 1.0, 
+            "style": "solid" 
+        }
+        "fill": {
+            "color": "#ffffff", 
+            "opacity": 1.0
+        }        
     };    
     
     this.target.popover({
@@ -81,7 +88,7 @@ magic.classes.StylerPopup.prototype.markup = function() {
             '<input type="hidden" id="' + this.id + '-mode"></input>' + 
             '<div id="' + this.id + '-point-fs">' + 
                 '<div class="form-group form-group-sm col-sm-12">' + 
-                    '<label class="col-sm-4 control-label" for="' + this.id + '-marker">Marker</label>' + 
+                    '<label class="col-sm-4 control-label" for="' + this.id + '-graphic_marker">Marker</label>' + 
                     '<div class="col-sm-8">' + 
                         '<select class="form-control" id="' + this.id + '-marker" ' +                                         
                                 'data-toggle="tooltip" data-placement="right" title="Choose a marker type">' + 
@@ -95,7 +102,7 @@ magic.classes.StylerPopup.prototype.markup = function() {
                     '</div>' + 
                 '</div>' +
                 '<div class="form-group form-group-sm col-sm-12">' + 
-                    '<label class="col-sm-4 control-label" for="' + this.id + '-radius">Size</label>' + 
+                    '<label class="col-sm-4 control-label" for="' + this.id + '-graphic_radius">Size</label>' + 
                     '<div class="col-sm-8">' +
                         '<input type="number" class="form-control" id="' + this.id + '-radius" ' + 
                                 'placeholder="Radius of graphic marker in pixels" ' +
@@ -184,9 +191,15 @@ magic.classes.StylerPopup.prototype.restoreState = function() {
 };
 
 magic.classes.StylerPopup.prototype.formToPayload = function() {
-    var styleDef = {};
+    var styleDef = jQuery.extend(true, {}, this.inputDefaults);
     jQuery.each(this.styleInputs, jQuery.proxy(function(idx, sip) {
-        styleDef[sip] = jQuery("#" + this.id + "-" + sip).val();
+        var keys = sip.split("_");
+        var styleInputValue = jQuery("#" + this.id + "-" + sip).val();
+        if (keys.length == 2) {
+            styleDef[keys[0]][keys[1]] = styleInputValue;
+        } else {
+            styleDef[sip] = styleInputValue;
+        }
     }, this));
     return(styleDef);
 };
@@ -196,18 +209,14 @@ magic.classes.StylerPopup.prototype.formToPayload = function() {
  * @param {Object} payload
  */
 magic.classes.StylerPopup.prototype.payloadToForm = function(payload) {
-    if (!payload) {
-        payload = {};
-    }
-    payload = jQuery.extend({}, this.inputDefaults, payload);
-    var mode = payload.mode || "point";   
+    payload = this.convertLegacyFormats(payload);
     var fieldsets = {
         "point" : {"point": 1, "line": 1, "polygon": 1}, 
         "line": {"point": 0, "line": 1, "polygon": 0}, 
         "polygon": {"point": 0, "line": 1, "polygon": 1}
     };
-    if (fieldsets[mode]) {             
-        jQuery.each(fieldsets[mode], jQuery.proxy(function(fsname, fsconf) {
+    if (fieldsets[payload.mode]) {             
+        jQuery.each(fieldsets[payload.mode], jQuery.proxy(function(fsname, fsconf) {
             var fsid = this.id + "-" + fsname + "-fs";
             if (fsconf === 1) {
                 jQuery("#" + fsid).removeClass("hidden");
@@ -219,7 +228,71 @@ magic.classes.StylerPopup.prototype.payloadToForm = function(payload) {
         }, this)); 
         /* Set values of fields from payload object */
         jQuery.each(this.styleInputs, jQuery.proxy(function(idx, sip) {
-            jQuery("#" + this.id + "-" + sip).val(payload[sip]);
+            var keys = sip.split("_");
+            var styleInput = jQuery("#" + this.id + "-" + sip);
+            if (keys.length == 2) {
+                if (payload[keys[0]] && payload[keys[0]][keys[1]]) {
+                    styleInput.val(payload[keys[0]][keys[1]]);
+                } else {
+                    styleInput.val(this.defaultInputs[keys[0]][keys[1]]);
+                }
+            } else {
+                styleInput.val(payload[sip]);
+            }
         }, this));   
     }
+};
+
+/**
+ * Convert a populator payload from legacy formats to the JSON schema version
+ * Chief format used was:
+ * {
+ *     "mode": <default|file|predefined|point|line|polygon>,
+ *     "predefined": <canned_style_name>,
+ *     "marker": <circle|triangle|square|pentagon|hexagon|star>,
+ *     "radius": <marker_radius>,
+ *     "stroke_width": <outline_width>,
+ *     "stroke_opacity": <outline_opacity>,
+ *     "stroke_color": <outline_colour>,
+ *     "stroke_linestyle": <solid|dotted|dashed|dotted-dashed>,
+ *     "fill_color": <interior_colour>,
+ *     "fill_opacity": <interior_opacity>
+ * }
+ * @param {Object} payload
+ * @return {Object}
+ */
+magic.classes.StylerPopup.prototype.convertLegacyFormats = function(payload) {
+    if (!payload || jQuery.isEmptyObject(payload) || !payload.mode) {
+        /* Null or empty, so use the defaults */
+        return(jQuery.extend(true, {}, this.inputDefaults));
+    }
+    if (typeof payload == "string") {
+        try {
+            payload = JSON.parse(payload);
+        } catch(e) {
+            return(jQuery.extend(true, {}, this.inputDefaults));
+        }
+    }
+    if (payload.graphic || payload.stroke || payload.fill) {
+        /* Deemed to be in the up-to-date format, so leave it alone */
+        return(payload);
+    }
+    /* Must be the legacy format */
+   return({
+        "mode": payload.mode,
+        "graphic": {
+            "marker": payload.marker || this.inputDefaults.graphic.marker,
+            "radius": payload.radius || this.inputDefaults.graphic.radius
+        },
+        "stroke": {
+            "width": payload.stroke_width || this.inputDefaults.stroke.width,
+            "color": payload.stroke_color || this.inputDefaults.stroke.color,
+            "style": payload.stroke_linestyle || this.inputDefaults.stroke.style,
+            "opacity": payload.stroke_opacity || this.inputDefaults.stroke.opacity
+        },
+        "fill": {
+            "color": payload.fill_color || this.inputDefaults.fill.color,
+            "opacity": payload.fill_opacity || this.inputDefaults.fill.opacity
+        }        
+    });
 };

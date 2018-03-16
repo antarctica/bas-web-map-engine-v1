@@ -178,7 +178,7 @@ magic.modules.Common = function () {
          * @returns {Array<ol.Style>}
          */
         fetchStyle: function(geomType, paletteEntry, label) {
-            var style = magic.modules.Common.default_styles[geomType];
+            var style = this.default_styles[geomType];
             if (style) {
                 var styling = {};
                 if (geomType.toLowerCase().indexOf("point") >= 0) {
@@ -196,7 +196,7 @@ magic.modules.Common = function () {
                     styling.stroke = new ol.style.Stroke({
                         color: this.rgbToDec(this.color_palette[paletteEntry]),
                         width: style.width || 1
-                    })                    
+                    });                  
                 } 
                 if (label) {
                     styling.text = new ol.style.Text({
