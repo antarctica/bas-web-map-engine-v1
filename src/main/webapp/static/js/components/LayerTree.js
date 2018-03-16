@@ -1059,9 +1059,9 @@ magic.classes.LayerTree.prototype.getVectorStyle = function(styleDef, labelField
         var defaultStroke = {color: "rgba(255, 0, 0, 1.0)", width: 1};   
         var fill = null, stroke = null, graphic = null, text = null;
         if (styleDef) {
-            if (!jQuery.isEmptyObject(styleDef.predefined) && styleDef.predefined.key) {
+            if (!jQuery.isEmptyObject(styleDef.predefined) && styleDef.predefined) {
                 /* Canned vector style */
-                return(jQuery.proxy(magic.modules.VectorStyles[styleDef.predefined.key](), feature)());
+                return(jQuery.proxy(magic.modules.VectorStyles[styleDef.predefined](), feature)());
             } else {
                 /* Unpack symbology */
                 if (styleDef.fill) {
