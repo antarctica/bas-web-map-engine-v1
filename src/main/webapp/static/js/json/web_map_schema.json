@@ -69,7 +69,7 @@
                                     "type": "string",
                                     "pattern": "#[0-9A-Fa-f]{6}"
                                 },
-                                "style": {
+                                "linestyle": {
                                     "description": "Outline style",
                                     "type": "string",
                                     "enum": ["dotted", "dashed", "solid"]

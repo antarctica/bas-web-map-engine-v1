@@ -16,7 +16,7 @@ magic.classes.creator.KmlSourceEditor = function(options) {
     
     this.setCallbacks(jQuery.extend(this.controlCallbacks, {
         onLoadContext: jQuery.proxy(this.init, this),
-        onSaveContext: jQuery.proxy(this.onSaveContext, this)
+        onSaveContext: options.onSaveContext
     }));   
                    
 };
@@ -70,6 +70,10 @@ magic.classes.creator.KmlSourceEditor.prototype.writeStyle = function(styledef) 
     }
     jQuery("#" + this.prefix + "-style_definition").val(JSON.stringify(styledef));
     jQuery("#" + this.prefix + "-style-edit").prop("disabled", styledef.mode == "default" || styledef.mode == "file");
+    
+    if (jQuery.isFunction(this.controlCallbacks.onSaveContext)) {
+        this.controlCallbacks.onSaveContext();
+    }
 };
 
 magic.classes.creator.KmlSourceEditor.prototype.sourceSpecified = function() {

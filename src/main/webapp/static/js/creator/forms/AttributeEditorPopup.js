@@ -61,7 +61,14 @@ magic.classes.creator.AttributeEditorPopup.prototype.getVectorFeatureAttributes 
     } else {
         /* Need to read a sample feature to get attribute schema */
         var format = null, feedUrl = this.serviceUrl;
-        if (this.serviceType == "geojson") {            
+        if (this.serviceType == "esrijson") {
+            /* ESRI JSON service doesn't export a describe feature type request */
+            bootbox.alert(
+                '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                    'ESRI JSON feeds do not export a means of getting the attribute schema for data - will try and deduce useful fields on the fly' +  
+                '</div>'
+            );
+        } else if (this.serviceType == "geojson") {            
             if (this.serviceUrl) {
                 if (this.serviceUrl.indexOf("/wfs") > 0) {
                     /* WFS - fetch a feature rather than using DescribeFeatureType - reason (28/09/2016) is that 

@@ -18,7 +18,7 @@ magic.classes.creator.GeoJsonSourceEditor = function(options) {
     
     this.setCallbacks(jQuery.extend(this.controlCallbacks, {
         onLoadContext: jQuery.proxy(this.init, this),
-        onSaveContext: jQuery.proxy(this.onSaveContext, this)
+        onSaveContext: options.onSaveContext
     }));   
                     
 };
@@ -121,6 +121,10 @@ magic.classes.creator.GeoJsonSourceEditor.prototype.writeStyle = function(styled
     }
     jQuery("#" + this.prefix + "-style_definition").val(JSON.stringify(styledef));
     jQuery("#" + this.prefix + "-style-edit").prop("disabled", (mode == "predefined" || mode == "default"));
+    
+    if (jQuery.isFunction(this.controlCallbacks.onSaveContext)) {
+        this.controlCallbacks.onSaveContext();
+    }
 };
 
 /**

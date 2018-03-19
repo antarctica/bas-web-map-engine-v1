@@ -16,7 +16,7 @@ magic.classes.creator.EsriJsonSourceEditor = function(options) {
     
     this.setCallbacks(jQuery.extend(this.controlCallbacks, {
         onLoadContext: jQuery.proxy(this.init, this),
-        onSaveContext: jQuery.proxy(this.onSaveContext, this)
+        onSaveContext: options.onSaveContext
     }));   
                     
 };
@@ -91,6 +91,10 @@ magic.classes.creator.EsriJsonSourceEditor.prototype.writeStyle = function(style
     }
     jQuery("#" + this.prefix + "-style_definition").val(JSON.stringify(styledef));
     jQuery("#" + this.prefix + "-style-edit").prop("disabled", (mode == "predefined" || mode == "default"));
+    
+    if (jQuery.isFunction(this.controlCallbacks.onSaveContext)) {
+        this.controlCallbacks.onSaveContext();
+    }
 };
 
 /**
