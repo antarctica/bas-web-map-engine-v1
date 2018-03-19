@@ -14,6 +14,8 @@
     "ol.source.TileWMS#*",
     "ol.source.OSM",
     "ol.source.OSM#*",
+    "ol.source.TileArcGISRest",
+    "ol.source.TileArcGISRest#*",
     "ol.tilegrid.TileGrid",    
     "ol.format.GeoJSON",
     "ol.format.GeoJSON#*",

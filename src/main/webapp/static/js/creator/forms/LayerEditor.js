@@ -225,6 +225,7 @@ magic.classes.creator.LayerEditor.prototype.sourceMarkup = function(type, contex
         onSaveContext: jQuery.proxy(this.setFormDirty, this)
     };    
     switch(type) {
+        case "esritile": this.sourceEditor = new magic.classes.creator.EsriTileSourceEditor(payload); break;
         case "geojson": this.sourceEditor = new magic.classes.creator.GeoJsonSourceEditor(payload); break;
         case "esrijson": this.sourceEditor = new magic.classes.creator.EsriJsonSourceEditor(payload); break;
         case "gpx": this.sourceEditor = new magic.classes.creator.GpxSourceEditor(payload); break;

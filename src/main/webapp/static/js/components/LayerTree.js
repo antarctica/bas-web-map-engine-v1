@@ -31,7 +31,7 @@ magic.classes.LayerTree = function (target, container) {
     /* Dictionary of layers by source type, for stacking purposes on map */
     this.layersBySource = {
         "base": [],
-        "wms": [],
+        "wms": [],        
         "geojson": [],
         "esrijson": [],
         "gpx": [],
@@ -385,8 +385,9 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
 magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
     var cb;
     var isWms = "wms_source" in nd.source;
+    var isEsriTile = "esritile_source" in nd.source;
     var isSingleTile = isWms ? nd.source.is_singletile === true : false;
-    var isBase = isWms ? nd.source.is_base === true : false;
+    var isBase = (isWms || isEsriTile) ? nd.source.is_base === true : false;
     var isInteractive = nd.is_interactive === true || (nd.source.geojson_source && nd.source.feature_name);
     var isTimeDependent = nd.source.is_time_dependent;
     var refreshRate = nd.refresh_rate || 0;
@@ -528,6 +529,22 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
             this.zIndexWmsStack++;
             this.layersBySource["wms"].push(layer); 
         }           
+    } else if (nd.source.esritile_source) {
+        /* ArcGIS Online tiled source */
+        layer = new ol.layer.Tile({
+            extent: proj.getExtent(),
+            source: new ol.source.TileArcGISRest({
+                url: nd.source.esritile_source
+            })
+        });
+        if (isBase) {
+            layer.setZIndex(0);
+            this.layersBySource["base"].push(layer);
+        } else {
+            layer.setZIndex(this.zIndexWmsStack);
+            this.zIndexWmsStack++;
+            this.layersBySource["wms"].push(layer); 
+        }           
     } else if (nd.source.geojson_source) {
         /* GeoJSON layer */
         var vectorSource;
@@ -600,11 +617,19 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
             format: format,
             loader: function() {
                 jQuery.getJSON(nd.source.esrijson_source, function(data) {
-                    var features = format.readFeatures(data.operationalLayers[0].featureCollection.layers[0].featureSet, {
-                        dataProjection: "EPSG:3857",
-                        featureProjection: magic.runtime.map_context.data.projection
-                    });
-                    vectorSource.addFeatures(features);
+                    try {
+                        var features = format.readFeatures(data.operationalLayers[0].featureCollection.layers[0].featureSet, {
+                            dataProjection: "EPSG:3857",
+                            featureProjection: magic.runtime.map_context.data.projection
+                        });
+                        vectorSource.addFeatures(features);
+                    } catch(e) {
+                        bootbox.alert(
+                            '<div class="alert alert-warning" style="margin-bottom:0">' + 
+                                '<p>Failed to parse the output from ESRI JSON service at ' + nd.source.esrijson_source + '</p>' + 
+                            '</div>'
+                        );
+                    }
                 })
                 .fail(function(xhr) {
                     var msg;                    

@@ -31,7 +31,7 @@ magic.classes.creator.EsriJsonSourceEditor.prototype.markup = function() {
             '<label for="' + this.prefix + '-esrijson_source" class="col-md-3 control-label">Feed URL</label>' + 
             '<div class="col-md-9">' + 
                 '<input type="url" class="form-control" id="' + this.prefix + '-esrijson_source" name="' + this.prefix + '-esrijson_source" ' +  
-                       'placeholder="URL of ESRI  source" required="required" ' + 
+                       'placeholder="URL of ESRI source" required="required" ' + 
                        'data-toggle="tooltip" data-placement="left" title="Source URL for ArcGIS Online JSON feed">' +                                    
                 '</input>' + 
             '</div>' + 

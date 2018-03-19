@@ -453,6 +453,23 @@
                                                 "required": ["wms_source", "feature_name"]
                                             },
                                             {
+                                                "id": "esritile_source",
+                                                "description": "ESRI ArcGIS Online Tile layer",
+                                                "type": "object",
+                                                "properties": {
+                                                    "esritile_source": {
+                                                        "description": "ESRI ArcGIS Online Tile layer",
+                                                        "type": "string",
+                                                        "format": "uri"
+                                                    },
+                                                    "is_base": {
+                                                        "description": "Is this a base (i.e. backdrop) layer?",
+                                                        "type": "boolean"
+                                                    }
+                                                },
+                                                "required": ["esritile_source"]
+                                            },
+                                            {
                                                 "id": "geojson",
                                                 "description": "GeoJSON source",
                                                 "type": "object",

@@ -151,7 +151,7 @@ magic.classes.creator.AttributeEditorPopup.prototype.getVectorFeatureAttributes 
                     } else {
                         bootbox.alert(
                             '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                                'Error :  Failed to parse test feature from ' + feedUrl + ' from server while reading attributes' + 
+                                'Error : Failed to parse test feature from ' + feedUrl + ' from server while reading attributes' + 
                             '</div>'
                         );
                     }
@@ -394,6 +394,9 @@ magic.classes.creator.AttributeEditorPopup.prototype.extractSourceInfo = functio
             this.serviceType = "geojson";
             this.serviceUrl = source.geojson_source || null;
             this.serviceSrs = source.srs || null;
+        } else if (source.esrijson_source) {
+            this.serviceType = "esrijson";
+            this.serviceUrl = source.esrijson_source || null;
         } else if (source.gpx_source) {
             this.serviceType = "gpx";
             this.serviceUrl = source.gpx_source || null;
