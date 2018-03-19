@@ -589,8 +589,8 @@ magic.classes.LayerFilter.prototype.filterVectorSource = function(source, reset)
  * @param {String} selectedVal
  */
 magic.classes.LayerFilter.prototype.populateUniqueValueSelection = function(attrVals, selectedVal) {            
-    /* Sort attribute values into alphabetical order */
-    attrVals.sort();
+    /* Sort attribute values into alphabetical order and ensure no duplicate values */
+    attrVals = magic.modules.Common.sortedUniqueArray(attrVals);
     /* Populate select list */
     var selOpt = null;
     var uniqueSelect = jQuery("#ftr-val-str-unique-" + this.nodeid);

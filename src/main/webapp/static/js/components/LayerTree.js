@@ -1072,7 +1072,7 @@ magic.classes.LayerTree.prototype.getVectorStyle = function(styleDef, labelField
                     fill = jQuery.extend({}, defaultFill);
                 }
                 if (styleDef.stroke) {
-                    var lineStyle = styleDef.stroke.style == "dashed" ? [3, 3] : (styleDef.stroke.style == "dotted" ? [1, 1] : undefined);
+                    var lineStyle = styleDef.stroke.linestyle == "dashed" ? [3, 3] : (styleDef.stroke.linestyle == "dotted" ? [1, 1] : undefined);
                     stroke = new ol.style.Stroke({
                         color: magic.modules.Common.rgbToDec(styleDef.stroke.color, styleDef.stroke.opacity),
                         lineDash: lineStyle,

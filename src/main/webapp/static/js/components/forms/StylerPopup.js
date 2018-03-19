@@ -29,8 +29,8 @@ magic.classes.StylerPopup = function(options) {
             "width": 1, 
             "color": "#000000", 
             "opacity": 1.0, 
-            "style": "solid" 
-        }
+            "linestyle": "solid" 
+        },
         "fill": {
             "color": "#ffffff", 
             "opacity": 1.0
@@ -234,7 +234,7 @@ magic.classes.StylerPopup.prototype.payloadToForm = function(payload) {
                 if (payload[keys[0]] && payload[keys[0]][keys[1]]) {
                     styleInput.val(payload[keys[0]][keys[1]]);
                 } else {
-                    styleInput.val(this.defaultInputs[keys[0]][keys[1]]);
+                    styleInput.val(this.inputDefaults[keys[0]][keys[1]]);
                 }
             } else {
                 styleInput.val(payload[sip]);
@@ -278,7 +278,12 @@ magic.classes.StylerPopup.prototype.convertLegacyFormats = function(payload) {
         return(payload);
     }
     /* Must be the legacy format */
-   return({
+    if (payload.stroke.style) {
+        /* 'linestyle' was erroneously called 'style' for a while */
+        payload.stroke.linestyle = payload.stroke.style;
+        delete payload.stroke.style;
+    }
+    return({
         "mode": payload.mode,
         "graphic": {
             "marker": payload.marker || this.inputDefaults.graphic.marker,
@@ -287,7 +292,7 @@ magic.classes.StylerPopup.prototype.convertLegacyFormats = function(payload) {
         "stroke": {
             "width": payload.stroke_width || this.inputDefaults.stroke.width,
             "color": payload.stroke_color || this.inputDefaults.stroke.color,
-            "style": payload.stroke_linestyle || this.inputDefaults.stroke.style,
+            "linestyle": payload.stroke_linestyle || this.inputDefaults.stroke.linestyle,
             "opacity": payload.stroke_opacity || this.inputDefaults.stroke.opacity
         },
         "fill": {

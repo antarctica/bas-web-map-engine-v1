@@ -8,13 +8,15 @@ magic.classes.creator.GpxSourceEditor = function(options) {
         formSchema: [
             {"field": "gpx_source", "default": ""},
             {"field": "style_definition", "default": "{\"mode\": \"default\"}"}
-        ]
+        ],
+        onSaveContext: function() {}
     }, options);
     
     magic.classes.creator.DataSourceForm.call(this, options);
     
     this.setCallbacks(jQuery.extend(this.controlCallbacks, {
-        onLoadContext: jQuery.proxy(this.init, this)
+        onLoadContext: jQuery.proxy(this.init, this),
+        onSaveContext: jQuery.proxy(this.onSaveContext, this)
     }));   
                     
 };

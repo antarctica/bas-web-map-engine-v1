@@ -13,10 +13,15 @@ magic.classes.creator.WmsSourceEditor = function (options) {
             {"field": "is_singletile", "default": false},
             {"field": "is_dem", "default": false},
             {"field": "is_time_dependent", "default": false}
-        ]
+        ],
+        onSaveContext: function() {}
     }, options);
     
     magic.classes.creator.DataSourceForm.call(this, options);
+    
+    this.setCallbacks(jQuery.extend(this.controlCallbacks, {
+        onSaveContext: jQuery.proxy(this.onSaveContext, this)
+    }));  
     
     /* Linked WMS source menus */
     this.wmsMenus = new magic.classes.creator.WmsFeatureLinkedMenus({

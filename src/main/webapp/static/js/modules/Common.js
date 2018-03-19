@@ -564,16 +564,17 @@ magic.modules.Common = function () {
             jQuery.each(fields, function(idx, fo) {
                 var name = fo["field"];
                 var defval = fo["default"];
-                var input = jQuery("#" + prefix + "-" + name);                
+                var input = jQuery("#" + prefix + "-" + name);
+                var value = typeof data[name] == "object" ? JSON.stringify(data[name]) : data[name];
                 if (input.attr("type") == "checkbox" || input.attr("type") == "radio") {
                     /* Set the "checked" property */
-                    input.prop("checked", !data ? defval : (name in data ? (data[name] === true ? true : false) : defval));
+                    input.prop("checked", !data ? defval : (name in data ? (value === true ? true : false) : defval));
                 } else if (input.attr("type") == "url") {
                     /* Fiddly case of URLs - use an empty default */
-                    input.val(!data ? defval : (name in data ? data[name] : ""));
+                    input.val(!data ? defval : (name in data ? value : ""));
                 } else {
                     /* Simple case */
-                    input.val(!data ? defval : (name in data ? data[name] : defval));
+                    input.val(!data ? defval : (name in data ? value : defval));
                 }
             });            
         },
@@ -669,6 +670,23 @@ magic.modules.Common = function () {
                 p = l;
             }
             return(ret);
+        },
+        sortedUniqueArray: function(arr) {
+            var suArr = [];
+            if (!arr || arr.length == 0) {
+                return(suArr);
+            }            
+            var dupHash = {};
+            suArr = jQuery.map(arr, function(elt) {
+                if (elt in dupHash) { 
+                    return(null);
+                } else {
+                    dupHash[elt] = 1;
+                    return(elt);
+                }
+            });
+            suArr.sort();
+            return(suArr);
         },
         /**
          * Is given string a valid URL - from https://stackoverflow.com/questions/19108749/validate-url-entered-by-user/19108825

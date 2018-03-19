@@ -90,10 +90,7 @@ magic.classes.creator.LayerEditor.prototype.loadContext = function(context) {
     this.sourceMarkup(null, context);
     
     /* Determine when there has been a form change */
-    jQuery("[id^='" + this.prefix + "']").filter(":input").on("change keyup", jQuery.proxy(function() {
-        this.saveBtn.prop("disabled", false);
-        this.formDirty = true;
-    }, this)); 
+    jQuery("[id^='" + this.prefix + "']").filter(":input").on("change keyup", jQuery.proxy(this.setFormDirty, this));
     
     /* Interactivity triggers */
     var chkInteractivity = jQuery("#" + this.prefix + "-is_interactive");
@@ -224,7 +221,8 @@ magic.classes.creator.LayerEditor.prototype.sourceMarkup = function(type, contex
     jQuery("#" + this.prefix + "-source_type").val(type);
     var payload = {
         prefix: this.prefix,
-        sourceContext: context ? (context.source || null) : null
+        sourceContext: context ? (context.source || null) : null,
+        onSaveContext: jQuery.proxy(this.setFormDirty, this)
     };    
     switch(type) {
         case "geojson": this.sourceEditor = new magic.classes.creator.GeoJsonSourceEditor(payload); break;
@@ -255,3 +253,12 @@ magic.classes.creator.LayerEditor.prototype.typeFromContext = function(context) 
     }
     return(type);
 };
+
+/**
+ * Handler to ensure form is in 'dirty' state reflecting user changes at a lower level
+ */
+magic.classes.creator.LayerEditor.prototype.setFormDirty = function() {
+    this.saveBtn.prop("disabled", false);
+    this.formDirty = true;
+};
+
