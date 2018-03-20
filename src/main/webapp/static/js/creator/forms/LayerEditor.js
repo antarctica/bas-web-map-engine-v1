@@ -244,7 +244,7 @@ magic.classes.creator.LayerEditor.prototype.sourceMarkup = function(type, contex
 magic.classes.creator.LayerEditor.prototype.typeFromContext = function(context) {
     var type = "wms";            
     if (context && context.source) {
-        var sourceTypes = ["geojson", "esrijson", "gpx", "kml", "wms"];
+        var sourceTypes = ["esritile", "geojson", "esrijson", "gpx", "kml", "wms"];
         for (var i = 0; i < sourceTypes.length; i++) {
             if (context.source[sourceTypes[i] + "_source"]) {
                 type = sourceTypes[i];

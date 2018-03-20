@@ -3,6 +3,41 @@
 magic.modules.Endpoints = function () {
 
     return({
+        /** 
+         * Parse a URI into components 
+         * Downloaded from http://stevenlevithan.com/demo/parseuri/js/assets/parseuri.js
+         * parseUri 1.2.2
+         * (c) Steven Levithan <stevenlevithan.com>
+         * MIT License
+         * @param {String} str
+         * @return {Object}
+         */       
+        parseUri: function(str) {
+            var	o = 
+                {
+                    strictMode: false,
+                    key: ["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],
+                    q:   {
+                        name:   "queryKey",
+                        parser: /(?:^|&)([^&=]*)=?([^&]*)/g
+                    },
+                    parser: {
+                        strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
+                        loose:  /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
+                    }
+                },
+                m   = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
+                uri = {},
+                i   = 14;
+
+            while (i--) uri[o.key[i]] = m[i] || "";
+
+            uri[o.q.name] = {};
+            uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
+                if ($1) uri[o.q.name][$1] = $2;
+            });
+            return uri;
+        },
         /**
          * Get the virtual endpoint (workspace) for the given WMS
          * NOTE: Geoserver-specific
@@ -86,17 +121,22 @@ magic.modules.Endpoints = function () {
          * @returns {Array}
          */
         getEndpointsBy: function(filterName, filterValue) {
-            if (!magic.runtime.endpoints) {
+            if (!magic.runtime.endpoints || !filterName || ! filterValue) {
                 return(null);
             }
-            return(jQuery.grep(magic.runtime.endpoints, function(ep) {
+            var parsedUrlFilter = null;
+            if (filterName == "url") {
+                parsedUrlFilter = this.parseUri(filterValue); 
+            }
+            return(jQuery.grep(magic.runtime.endpoints, jQuery.proxy(function(ep) {
                 if (filterName == "id") {
                     return(ep[filterName] == filterValue);
                 } else if (filterName == "url") {
                     /* Remove wms/wfs from the end of the URL - the endpoints are the same */
-                    filterValue = filterValue.replace(/(wms|wfs)$/, "");
-                    var containsUrl = ep[filterName].toLowerCase().indexOf(filterValue.toLowerCase()) == 0;
-                    if (!containsUrl) {
+                    var parsedEpUrl = this.parseUri(ep[filterName]);
+                    var foundUrl = parsedUrlFilter.protocol == parsedEpUrl.protocol && parsedUrlFilter.host == parsedEpUrl.host && parsedUrlFilter.port == parsedEpUrl.port;  
+                    // YOU ARE HERE!
+                    if (!foundUrl) {
                         /* Check any of the aliases match */
                         if (ep["url_aliases"]) {
                             var aliases = ep["url_aliases"].split(",");
@@ -105,7 +145,7 @@ magic.modules.Endpoints = function () {
                             }
                         }
                     }
-                    return(containsUrl);
+                    return(foundUrl);
                 } else if (filterName == "srs") {
                     /* Projections can be a comma-separated list */
                     var srsList = ep[filterName].toLowerCase().split(",");
@@ -113,7 +153,7 @@ magic.modules.Endpoints = function () {
                 } else {
                     return(ep[filterName].toLowerCase().indexOf(filterValue.toLowerCase()) == 0);
                 }
-            }));
+            }, this)));
         },         
         /**
          * Get a suitable mid-latitudes coast layer (OSM, except if in a low bandwidth location, in which case default to Natural Earth)

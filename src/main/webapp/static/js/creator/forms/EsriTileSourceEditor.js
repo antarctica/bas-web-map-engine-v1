@@ -24,11 +24,8 @@ magic.classes.creator.EsriTileSourceEditor = function (options) {
     });
     
     this.setCallbacks(jQuery.extend(this.controlCallbacks, {
-        onLoadContext: jQuery.proxy(function(context) {
-            var cbOnly = jQuery.grep(this.formSchema, function(elt) {
-                return(elt.field.indexOf("is_") == 0);
-            });
-            magic.modules.Common.jsonToForm(cbOnly, context, this.prefix);
+        onLoadContext: jQuery.proxy(function(context) {           
+            magic.modules.Common.jsonToForm(this.formSchema, context, this.prefix);
         }, this)
     }));
     

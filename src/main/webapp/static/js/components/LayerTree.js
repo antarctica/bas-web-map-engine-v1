@@ -532,6 +532,12 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
     } else if (nd.source.esritile_source) {
         /* ArcGIS Online tiled source */
         layer = new ol.layer.Tile({
+            name: name,
+            visible: isVisible,
+            opacity: layerOpacity || 1.0,
+            metadata: nd,
+            minResolution: minRes,
+            maxResolution: maxRes,
             extent: proj.getExtent(),
             source: new ol.source.TileArcGISRest({
                 url: nd.source.esritile_source
