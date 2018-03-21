@@ -132,16 +132,22 @@ magic.modules.Endpoints = function () {
                 if (filterName == "id") {
                     return(ep[filterName] == filterValue);
                 } else if (filterName == "url") {
-                    /* Remove wms/wfs from the end of the URL - the endpoints are the same */
+                    /* Check endpoint URL against filter - protocol, host and port must be identical */
                     var parsedEpUrl = this.parseUri(ep[filterName]);
-                    var foundUrl = parsedUrlFilter.protocol == parsedEpUrl.protocol && parsedUrlFilter.host == parsedEpUrl.host && parsedUrlFilter.port == parsedEpUrl.port;  
-                    // YOU ARE HERE!
+                    var foundUrl = 
+                        parsedUrlFilter.protocol == parsedEpUrl.protocol && 
+                        parsedUrlFilter.host == parsedEpUrl.host && 
+                        parsedUrlFilter.port == parsedEpUrl.port;  
                     if (!foundUrl) {
-                        /* Check any of the aliases match */
+                        /* Check any of the aliases match in protocol, host and port */
                         if (ep["url_aliases"]) {
                             var aliases = ep["url_aliases"].split(",");
-                            for (var i = 0; !containsUrl && i < aliases.length; i++) {
-                                containsUrl = aliases[i].toLowerCase().indexOf(filterValue.toLowerCase()) == 0;                               
+                            for (var i = 0; !foundUrl && i < aliases.length; i++) {
+                                var parsedAliasUrl = this.parseUri(aliases[i]);
+                                foundUrl = 
+                                    parsedUrlFilter.protocol == parsedAliasUrl.protocol && 
+                                    parsedUrlFilter.host == parsedAliasUrl.host &&
+                                    parsedUrlFilter.port == parsedAliasUrl.port;                               
                             }
                         }
                     }
