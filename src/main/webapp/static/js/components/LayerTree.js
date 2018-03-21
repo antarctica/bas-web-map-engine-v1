@@ -623,8 +623,17 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
             format: format,
             loader: function() {
                 jQuery.getJSON(nd.source.esrijson_source, function(data) {
+                    var layerTitle = nd.source.layer_title;
+                    var opLayers;
                     try {
-                        var features = format.readFeatures(data.operationalLayers[0].featureCollection.layers[0].featureSet, {
+                        if (layerTitle) {
+                            opLayers = jQuery.grep(data.operationalLayers, function(oplayer) {
+                                return(oplayer.title == layerTitle);
+                            });
+                        } else {
+                            opLayers = [data.operationalLayers[0]];
+                        }
+                        var features = format.readFeatures(opLayers[0].featureCollection.layers[0].featureSet, {
                             dataProjection: "EPSG:3857",
                             featureProjection: magic.runtime.map_context.data.projection
                         });

@@ -507,6 +507,10 @@
                                                         "type": "string",
                                                         "format": "uri"
                                                     },
+                                                    "layer_title": {
+                                                        "description": "Title of ESRI data layer, leave blank to use first available",
+                                                        "type": "string"
+                                                    },
                                                     "style_definition": {
                                                         "description": "Definition of a vector style to use",
                                                         "type": "string",

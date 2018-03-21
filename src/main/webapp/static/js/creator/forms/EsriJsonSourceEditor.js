@@ -7,6 +7,7 @@ magic.classes.creator.EsriJsonSourceEditor = function(options) {
         sourceContext: null,
         formSchema: [
             {"field": "esrijson_source", "default": ""},
+            {"field": "layer_title", "default": ""},
             {"field": "style_definition", "default": "{\"mode\": \"default\"}"}
         ],
         onSaveContext: function() {}
@@ -35,7 +36,16 @@ magic.classes.creator.EsriJsonSourceEditor.prototype.markup = function() {
                        'data-toggle="tooltip" data-placement="left" title="Source URL for ArcGIS Online JSON feed">' +                                    
                 '</input>' + 
             '</div>' + 
-        '</div>' +                 
+        '</div>' +   
+        '<div class="form-group">' + 
+            '<label for="' + this.prefix + '-layer_title" class="col-md-3 control-label">Layer title</label>' + 
+            '<div class="col-md-9">' + 
+                '<input type="text" class="form-control" id="' + this.prefix + '-layer_title" name="' + this.prefix + '-layer_title" ' +  
+                       'placeholder="Title of operational data layer" ' + 
+                       'data-toggle="tooltip" data-placement="left" title="Title of operational layer containing the data - leave blank to use the first available">' +                                    
+                '</input>' + 
+            '</div>' + 
+        '</div>' +   
         '<div class="form-group form-group-md col-md-12">' +
             '<label class="col-md-3 control-label" for="' + this.prefix + '-style-mode">Style</label>' +                 
             '<div class="form-inline col-md-9">' + 
