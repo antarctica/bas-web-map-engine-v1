@@ -56,12 +56,21 @@ magic.classes.creator.AttributeEditorPopup.prototype.constructor = magic.classes
 magic.classes.creator.AttributeEditorPopup.prototype.getVectorFeatureAttributes = function() {
     if (this.serviceType == "esrijson") {
         /* ESRI JSON service - allow user to specify attributes as we cannot extract them automatically */
-        jQuery(".attr-editor-popover-content").html(this.esriJsonMarkup());
+        this.esriJsonMarkup();
         this.assignHandlers();
         /* Add the "add new row" handler */
-        /* Save button handler */
         jQuery("#" + this.id + "-new-row").off("click").on("click", jQuery.proxy(function() {           
-                 
+            var contentDiv = jQuery(".attr-editor-popover-content");
+            var attrTable = jQuery("#" + this.id + "-attr-table");
+            if (attrTable.length == 0) {
+                /* First attribute => have to create the table markup first */
+                contentDiv.append(this.esriTableMarkup());
+                attrTable = jQuery("#" + this.id + "-attr-table");
+            }
+            if (attrTable.length > 0) {
+                var idx = attrTable.find("tr").length-1;
+                attrTable.append(this.esriRowMarkup(idx, {}));
+            }
         }, this));
     } else if (this.attributeMap.length > 0) {
         /* Restore form and contents from stored attributes */
@@ -273,55 +282,67 @@ magic.classes.creator.AttributeEditorPopup.prototype.assignHandlers = function()
 
 /**
  * Create form HTML for the attribute map in the case of an ESRI JSON feed
- * @returns {String}
  */
-magic.classes.creator.AttributeEditorPopup.prototype.esriJsonMarkup = function() {    
-    var html = 
+magic.classes.creator.AttributeEditorPopup.prototype.esriJsonMarkup = function() {
+    var content = jQuery(".attr-editor-popover-content");
+    content.append( 
         '<div class="alert alert-info form-group col-md-12">' + 
             '<label for="' + this.id + '-geomtype" class="col-md-3 control-label">Source type</label>' + 
             '<div class="col-md-9">' + 
                 '<select class="form-control" id="' + this.id + '-geomtype" ' + 
                     'data-toggle="tooltip" data-placement="left" title="Type of data geometry">' + 
-                    '<option value="point">Point</option>' + 
-                    '<option value="line">Line</option>' + 
-                    '<option value="polygon">Polygon</option>' +                         
+                    '<option value="point"' + (this.geomType == "point" ? ' selected="selected"' : '') + '>Point</option>' + 
+                    '<option value="line"' + (this.geomType == "line" ? ' selected="selected"' : '') + '>Line</option>' + 
+                    '<option value="polygon"' + (this.geomType == "polygon" ? ' selected="selected"' : '') + '>Polygon</option>' +                         
                 '</select>' + 
             '</div>' + 
-        '</div>';
+        '</div>'
+    );
     if (this.attributeMap.length > 0) {        
         /* Show attribute table */
-        html +=             
-            '<table id="' + this.id + '-attr-table" class="table table-condensed table-striped table-hover table-responsive" style="width:100%">' + 
-                '<tr>' + 
-                    '<th style="width:140px">Name</th>' + 
-                    '<th style="width:120px">' + 
-                        '<span data-toggle="tooltip" data-placement="top" title="Human-friendly name for the attribute in pop-up">Alias<span>' + 
-                    '</th>' + 
-                    '<th style="width:80px">' + 
-                        '<span data-toggle="tooltip" data-placement="top" title="Data type of attribute"></span>' + 
-                    '</th>' +
-                    '<th style="width:40px">' + 
-                        '<i class="fa fa-list-ol" data-toggle="tooltip" data-placement="top" title="Ordering of attribute in pop-up"><i>' + 
-                    '</th>' + 
-                    '<th style="width:40px">' + 
-                        '<i class="fa fa-tag" data-toggle="tooltip" data-placement="top" title="Use attribute as a feature label"><i>' + 
-                    '</th>' + 
-                    '<th style="width:40px">' + 
-                        '<i class="fa fa-eye" data-toggle="tooltip" data-placement="top" title="Attribute is visible in pop-ups"><i>' + 
-                    '</th>' +                     
-                '</tr>';
-        jQuery.each(this.attributeMap, jQuery.proxy(function(idx, entry) {
-            html += this.esriRowMarkup(entry, idx);
-        }, this));
-        html += 
-            '</table>' + 
-            magic.modules.Common.buttonFeedbackSet(this.id, "Save attributes", "md", "Save", true);            
+        content.append(this.esriTableMarkup());
+        var attrTable = jQuery("#" + this.id + "-attr-table");
+        if (attrTable.length > 0) {
+            jQuery.each(this.attributeMap, jQuery.proxy(function(idx, entry) {
+                attrTable.append(this.esriRowMarkup(idx, entry));
+            }, this));
+        }           
     }  
-    html += 
+    content.append(
         '<div class="alert alert-info form-group col-md-12">' + 
             '<button id="' + this.id + '-new-row" type="button" class="btn btn-primary"><span class="fa fa-star"></span> Add attribute</button>' + 
-        '</div>';
-    return(html);
+        '</div>'
+    );
+};
+
+/**
+ * Table header row for the ESRI case
+ * @return {String}
+ */
+magic.classes.creator.AttributeEditorPopup.prototype.esriTableMarkup = function() {
+    return(
+        '<table id="' + this.id + '-attr-table" class="table table-condensed table-striped table-hover table-responsive" style="width:100%">' + 
+            '<tr>' + 
+                '<th style="width:140px">Name</th>' + 
+                '<th style="width:120px">' + 
+                    '<span data-toggle="tooltip" data-placement="top" title="Human-friendly name for the attribute in pop-up">Alias<span>' + 
+                '</th>' + 
+                '<th style="width:80px">' + 
+                    '<span data-toggle="tooltip" data-placement="top" title="Data type of attribute"></span>' + 
+                '</th>' +
+                '<th style="width:40px">' + 
+                    '<i class="fa fa-list-ol" data-toggle="tooltip" data-placement="top" title="Ordering of attribute in pop-up"><i>' + 
+                '</th>' + 
+                '<th style="width:40px">' + 
+                    '<i class="fa fa-tag" data-toggle="tooltip" data-placement="top" title="Use attribute as a feature label"><i>' + 
+                '</th>' + 
+                '<th style="width:40px">' + 
+                    '<i class="fa fa-eye" data-toggle="tooltip" data-placement="top" title="Attribute is visible in pop-ups"><i>' + 
+                '</th>' +                     
+            '</tr>' + 
+        '</table>' + 
+        magic.modules.Common.buttonFeedbackSet(this.id, "Save attributes", "md", "Save", true);    
+    );
 };
 
 /**
