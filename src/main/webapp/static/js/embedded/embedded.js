@@ -434,7 +434,9 @@ function init() {
         }
         var embeds = jQuery("div[data-service]");
         if (embeds.length == 0) {
-            showAlert("No suitable map containers found");
+            /* David 2018-03-22 - no longer to be considered an error, as Apex does not create div when Helen's "see map" radio button is not checked */
+            console.log("No suitable map containers found");
+            //showAlert("No suitable map containers found");
             return;
         }
         embeds.each(function(idx, serviceDiv) {
