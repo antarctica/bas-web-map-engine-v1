@@ -262,7 +262,7 @@ magic.classes.StylerPopup.prototype.payloadToForm = function(payload) {
  * @return {Object}
  */
 magic.classes.StylerPopup.prototype.convertLegacyFormats = function(payload) {
-    if (!payload || jQuery.isEmptyObject(payload) || !payload.mode) {
+    if (!payload || jQuery.isEmptyObject(payload)) {
         /* Null or empty, so use the defaults */
         return(jQuery.extend(true, {}, this.inputDefaults));
     }

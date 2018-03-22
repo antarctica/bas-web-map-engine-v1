@@ -61,15 +61,16 @@ magic.classes.creator.AttributeEditorPopup.prototype.getVectorFeatureAttributes 
         /* Add the "add new row" handler */
         jQuery("#" + this.id + "-new-row").off("click").on("click", jQuery.proxy(function() {           
             var contentDiv = jQuery(".attr-editor-popover-content");
-            var attrTable = jQuery("#" + this.id + "-attr-table");
+            var attrTable = contentDiv.find("table");
             if (attrTable.length == 0) {
                 /* First attribute => have to create the table markup first */
                 contentDiv.append(this.esriTableMarkup());
                 attrTable = jQuery("#" + this.id + "-attr-table");
+                this.assignHandlers();
             }
             if (attrTable.length > 0) {
                 var idx = attrTable.find("tr").length-1;
-                attrTable.append(this.esriRowMarkup(idx, {}));
+                attrTable.find("tr").last().after(this.esriRowMarkup(idx, {}));
             }
         }, this));
     } else if (this.attributeMap.length > 0) {
@@ -285,8 +286,9 @@ magic.classes.creator.AttributeEditorPopup.prototype.assignHandlers = function()
  */
 magic.classes.creator.AttributeEditorPopup.prototype.esriJsonMarkup = function() {
     var content = jQuery(".attr-editor-popover-content");
+    content.empty();
     content.append( 
-        '<div class="alert alert-info form-group col-md-12">' + 
+        '<div class="form-group col-md-12">' + 
             '<label for="' + this.id + '-geomtype" class="col-md-3 control-label">Source type</label>' + 
             '<div class="col-md-9">' + 
                 '<select class="form-control" id="' + this.id + '-geomtype" ' + 
@@ -304,12 +306,12 @@ magic.classes.creator.AttributeEditorPopup.prototype.esriJsonMarkup = function()
         var attrTable = jQuery("#" + this.id + "-attr-table");
         if (attrTable.length > 0) {
             jQuery.each(this.attributeMap, jQuery.proxy(function(idx, entry) {
-                attrTable.append(this.esriRowMarkup(idx, entry));
+                attrTable.find("tr").last().after(this.esriRowMarkup(idx, entry));
             }, this));
         }           
     }  
     content.append(
-        '<div class="alert alert-info form-group col-md-12">' + 
+        '<div class="form-group col-md-12">' + 
             '<button id="' + this.id + '-new-row" type="button" class="btn btn-primary"><span class="fa fa-star"></span> Add attribute</button>' + 
         '</div>'
     );
@@ -328,7 +330,7 @@ magic.classes.creator.AttributeEditorPopup.prototype.esriTableMarkup = function(
                     '<span data-toggle="tooltip" data-placement="top" title="Human-friendly name for the attribute in pop-up">Alias<span>' + 
                 '</th>' + 
                 '<th style="width:80px">' + 
-                    '<span data-toggle="tooltip" data-placement="top" title="Data type of attribute"></span>' + 
+                    '<span data-toggle="tooltip" data-placement="top" title="Data type of attribute">Type</span>' + 
                 '</th>' +
                 '<th style="width:40px">' + 
                     '<i class="fa fa-list-ol" data-toggle="tooltip" data-placement="top" title="Ordering of attribute in pop-up"><i>' + 
@@ -341,7 +343,7 @@ magic.classes.creator.AttributeEditorPopup.prototype.esriTableMarkup = function(
                 '</th>' +                     
             '</tr>' + 
         '</table>' + 
-        magic.modules.Common.buttonFeedbackSet(this.id, "Save attributes", "md", "Save", true);    
+        magic.modules.Common.buttonFeedbackSet(this.id, "Save attributes", "md", "Save", true)  
     );
 };
 
@@ -362,18 +364,15 @@ magic.classes.creator.AttributeEditorPopup.prototype.esriRowMarkup = function(id
             displayed: true
         };
     }
-    return(
-        '<input type="hidden" id="_amap_name_' + idx + '" value="' + (entry.name || "") + '"></input>' +             
-        '<input type="hidden" id="_amap_nillable_' + idx + '" value="true"></input>' + 
-        '<tr>' + 
-            '<td>' + 
-                '<div style="max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' + 
-                    entry.name + 
-                '</div>' + 
+    return(        
+        '<tr>' +          
+            '<td>' +
+                '<input type="hidden" id="_amap_nillable_' + idx + '" value="true"></input>' +
+                '<input type="text" style="width:140px" id="_amap_name_' + idx + '" value="' + (entry.name || "") + '"></input>' +                   
             '</td>' +
             '<td><input type="text" style="width:120px" id="_amap_alias_' + idx + '" value="' + (entry.alias || "") + '"></input></td>' + 
             '<td>' + 
-                '<select id="_amap_type_' + idx + '">' + 
+                '<select id="_amap_type_' + idx + '" style="height:26px">' + 
                     '<option value="string"' + (entry.type == "string" ? ' selected="selected"' : '') + '>String</option>' + 
                     '<option value="decimal"' + (entry.type == "decimal" ? ' selected="selected"' : '') + '>Float</option>' + 
                     '<option value="integer"' + (entry.type == "integer" ? ' selected="selected"' : '') + '>Integer</option>' + 
@@ -446,7 +445,7 @@ magic.classes.creator.AttributeEditorPopup.prototype.markup = function() {
         }, this));
         html += 
             '</table>' + 
-            magic.modules.Common.buttonFeedbackSet(this.id, "Save attributes", "md", "Save", true)                                                       
+            magic.modules.Common.buttonFeedbackSet(this.id, "Save attributes", "md", "Save", true);                                                       
     }    
     return(html);
 };
