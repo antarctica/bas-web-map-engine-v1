@@ -124,7 +124,7 @@ magic.classes.creator.EsriJsonSourceEditor.prototype.populateCannedStylesDropdow
 };
 
 magic.classes.creator.EsriJsonSourceEditor.prototype.sourceSpecified = function() {
-    return(jQuery("#" + this.prefix + "-esrijson_source").val());    
+    return(magic.modules.Common.isUrl(jQuery("#" + this.prefix + "-esrijson_source").val()));    
 };
 
 magic.classes.creator.EsriJsonSourceEditor.prototype.validate = function() {
