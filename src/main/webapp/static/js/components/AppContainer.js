@@ -371,7 +371,7 @@ magic.classes.AppContainer.prototype.displayAnnouncement = function() {
         var cookieName = "announcement_seen_" + magic.runtime.map_context.name;
         if (announceModal.length > 0 && getCookie(cookieName) == "") {
             if (announceContent.indexOf(magic.config.paths.baseurl) != 0) {
-                announceContent = magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(announceContent);
+                announceContent = magic.modules.Commmon.proxyUrl(announceContent);
             }
             var modalBody = announceModal.find(".modal-body");
             var contentDiv = modalBody.find("#announcement-content");
