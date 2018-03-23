@@ -76,7 +76,7 @@ magic.classes.creator.GpxSourceEditor.prototype.writeStyle = function(styledef) 
 };
 
 magic.classes.creator.GpxSourceEditor.prototype.sourceSpecified = function() {
-    return(jQuery("#" + this.prefix + "-gpx_source").val() ? true : false);    
+    return(magic.modules.Common.isUrl(jQuery("#" + this.prefix + "-gpx_source").val()));    
 };
 
 magic.classes.creator.GpxSourceEditor.prototype.validate = function() {

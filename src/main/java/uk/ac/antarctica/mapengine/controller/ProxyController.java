@@ -86,7 +86,7 @@ public class ProxyController {
         boolean proxied = false;
         String errorMessage = "";
         
-        System.out.println("Entering proxy...");
+        System.out.println("Proxying " + url + "...");
                 
         /* test for alias substitution */
         for (String a : ALIASES.keySet()) {

@@ -233,20 +233,24 @@ magic.classes.AttributionModal.prototype.populateRecordWms = function(getCaps, f
             }
             /* Read WMS feed */
             var wmsSource = this.layer.get("metadata")["source"]["wms_source"];
-            rec["wmsfeed"] = magic.modules.Endpoints.getOgcEndpoint(wmsSource, "wms") + "?" + 
-                "SERVICE=WMS&" + 
-                "VERSION=1.3.0&" + 
-                "REQUEST=GetMap&" + 
-                "FORMAT=image/png&" + 
-                "TRANSPARENT=true&" + 
-                "LAYERS=" + featureName + "&" + 
-                "CRS=" + proj + "&" + 
-                "SRS=" + proj + "&" + 
-                "TILED=true&" + 
-                "WIDTH=1000&" + 
-                "HEIGHT=1000&" + 
-                "STYLES=&" + 
-                "BBOX=" + magic.runtime.map.getView().getProjection().getExtent().join(",");
+            if (wmsSource) {
+                rec["wmsfeed"] = magic.modules.Endpoints.getOgcEndpoint(wmsSource, "wms") + "?" + 
+                    "SERVICE=WMS&" + 
+                    "VERSION=1.3.0&" + 
+                    "REQUEST=GetMap&" + 
+                    "FORMAT=image/png&" + 
+                    "TRANSPARENT=true&" + 
+                    "LAYERS=" + featureName + "&" + 
+                    "CRS=" + proj + "&" + 
+                    "SRS=" + proj + "&" + 
+                    "TILED=true&" + 
+                    "WIDTH=1000&" + 
+                    "HEIGHT=1000&" + 
+                    "STYLES=&" + 
+                    "BBOX=" + magic.runtime.map.getView().getProjection().getExtent().join(",");
+            } else {
+                rec["wmsfeed"] = "Not available";
+            }
             /* Read keywords */
             rec["keywords"] = caps["KeywordList"] ? caps["KeywordList"].join("<br>") : "";
             /* Read SRS bounding box */

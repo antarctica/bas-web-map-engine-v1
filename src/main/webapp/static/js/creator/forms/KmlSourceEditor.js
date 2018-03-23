@@ -77,7 +77,7 @@ magic.classes.creator.KmlSourceEditor.prototype.writeStyle = function(styledef) 
 };
 
 magic.classes.creator.KmlSourceEditor.prototype.sourceSpecified = function() {
-    return(jQuery("#" + this.prefix + "-kml_source").val() ? true : false);    
+    return(magic.modules.Common.isUrl(jQuery("#" + this.prefix + "-kml_source").val()));    
 };
 
 magic.classes.creator.KmlSourceEditor.prototype.validate = function() {

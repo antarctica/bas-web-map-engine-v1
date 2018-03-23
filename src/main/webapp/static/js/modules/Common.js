@@ -356,7 +356,7 @@ magic.modules.Common = function () {
         proxyUrl: function(url) {
             var proxyUrl = url;
             if (url.indexOf(window.location.protocol + "//" + window.location.hostname) != 0) {
-                proxyUrl = magic.config.paths.baseurl + "/proxy?url=" + encodeURI(url);
+                proxyUrl = magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(url);
             }
             return(proxyUrl);
         },

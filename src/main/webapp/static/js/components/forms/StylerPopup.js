@@ -90,7 +90,7 @@ magic.classes.StylerPopup.prototype.markup = function() {
                 '<div class="form-group form-group-sm col-sm-12">' + 
                     '<label class="col-sm-4 control-label" for="' + this.id + '-graphic_marker">Marker</label>' + 
                     '<div class="col-sm-8">' + 
-                        '<select class="form-control" id="' + this.id + '-marker" ' +                                         
+                        '<select class="form-control" id="' + this.id + '-graphic_marker" ' +                                         
                                 'data-toggle="tooltip" data-placement="right" title="Choose a marker type">' + 
                             '<option value="circle">Circle</option>' + 
                             '<option value="triangle">Triangle</option>' + 
@@ -104,7 +104,7 @@ magic.classes.StylerPopup.prototype.markup = function() {
                 '<div class="form-group form-group-sm col-sm-12">' + 
                     '<label class="col-sm-4 control-label" for="' + this.id + '-graphic_radius">Size</label>' + 
                     '<div class="col-sm-8">' +
-                        '<input type="number" class="form-control" id="' + this.id + '-radius" ' + 
+                        '<input type="number" class="form-control" id="' + this.id + '-graphic_radius" ' + 
                                 'placeholder="Radius of graphic marker in pixels" ' +
                                 'min="3" max="20" step="0.2" value="5" ' + 
                                 'data-toggle="tooltip" data-placement="right" title="Radius of graphic marker in pixels, default 5">' + 

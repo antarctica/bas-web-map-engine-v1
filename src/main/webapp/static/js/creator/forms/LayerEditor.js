@@ -130,7 +130,7 @@ magic.classes.creator.LayerEditor.prototype.loadContext = function(context) {
             });
         }
         if (this.sourceEditor.sourceSpecified()) {
-            this.attributeEditor.activate(jQuery.extend(context, this.sourceEditor.formToPayload()));
+            this.attributeEditor.activate(jQuery.extend(context, this.sourceEditor.formToPayload(), this.attrEditorUpdates));
         } else {
             bootbox.alert(
                 '<div class="alert alert-warning" style="margin-bottom:0">' + 

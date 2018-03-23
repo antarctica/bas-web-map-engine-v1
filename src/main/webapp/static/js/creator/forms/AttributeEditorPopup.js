@@ -139,7 +139,7 @@ magic.classes.creator.AttributeEditorPopup.prototype.getVectorFeatureAttributes 
                         var attrKeys = testFeat.getKeys();
                         if (jQuery.isArray(attrKeys) && attrKeys.length > 0) {
                             var allowedKeys = jQuery.grep(attrKeys, function(elt) {
-                                return(elt.indexOf("geom") == 0 || elt.indexOf("extension") == 0);
+                                return(elt.indexOf("geom") == 0 || elt == "bbox" || elt.indexOf("extension") == 0);
                             }, true);
                             this.attributeMap = [];
                             this.geomType = "unknown";
@@ -151,12 +151,12 @@ magic.classes.creator.AttributeEditorPopup.prototype.getVectorFeatureAttributes 
                                     "nillable": true,
                                     "alias": "",
                                     "ordinal": "",
-                                    "displayed": true,
+                                    "displayed": false,
                                     "filterable": false,
                                     "unique_values": false
                                 });                        
                             }, this));
-                            this.geomType = this.computeOgcGeomType(this.attributeMap);
+                            this.geomType = testFeat.getGeometry().getType().toLowerCase();
                             jQuery(".attr-editor-popover-content").html(this.markup());
                             this.assignHandlers();
                         }
@@ -361,17 +361,17 @@ magic.classes.creator.AttributeEditorPopup.prototype.esriRowMarkup = function(id
         '<tr>' +          
             '<td>' +
                 '<input type="hidden" id="_amap_nillable_' + idx + '" value="true"></input>' +
-                '<input type="text" style="width:140px" id="_amap_name_' + idx + '" value="' + (entry.name || "") + '"></input>' +                   
+                '<input class="attr-editor-input" type="text" style="width:140px" id="_amap_name_' + idx + '" value="' + (entry.name || "") + '"></input>' +                   
             '</td>' +
-            '<td><input type="text" style="width:120px" id="_amap_alias_' + idx + '" value="' + (entry.alias || "") + '"></input></td>' + 
+            '<td><input class="attr-editor-input" type="text" style="width:120px" id="_amap_alias_' + idx + '" value="' + (entry.alias || "") + '"></input></td>' + 
             '<td>' + 
-                '<select id="_amap_type_' + idx + '" style="height:26px">' + 
+                '<select class="attr-editor-select" id="_amap_type_' + idx + '">' + 
                     '<option value="string"' + (entry.type == "string" ? ' selected="selected"' : '') + '>String</option>' + 
                     '<option value="decimal"' + (entry.type == "decimal" ? ' selected="selected"' : '') + '>Float</option>' + 
                     '<option value="integer"' + (entry.type == "integer" ? ' selected="selected"' : '') + '>Integer</option>' + 
                 '</select>' + 
             '</td>' + 
-            '<td><input type="number" style="width:40px" size="2" min="1" max="99" id="_amap_ordinal_' + idx + '" value="' + (entry.ordinal || "") + '"></input></td>' +                     
+            '<td><input class="attr-editor-input" type="number" style="width:40px" size="2" min="1" max="99" id="_amap_ordinal_' + idx + '" value="' + (entry.ordinal || "") + '"></input></td>' +                     
             '<td><input type="checkbox" id="_amap_label_' + idx + '" value="label"' + (entry.label === true ? ' checked="checked"' : '') + '></input></td>' +
             '<td><input type="checkbox" id="_amap_displayed_' + idx + '" value="display"' + (entry.displayed === true ? ' checked="checked"' : '') + '></input></td>' +
         '</tr>'
@@ -427,8 +427,8 @@ magic.classes.creator.AttributeEditorPopup.prototype.markup = function() {
                             '<span data-toggle="tooltip" data-placement="top" title="Field type is : '+ entry.type.replace("xsd:", "") + '">' + (entry.name || "") + '</span>' +
                         '</div>' + 
                     '</td>' +
-                    '<td><input type="text" style="width:120px" id="_amap_alias_' + idx + '" value="' + (entry.alias || "") + '"></input></td>' + 
-                    '<td><input type="number" style="width:40px" size="2" min="1" max="99" id="_amap_ordinal_' + idx + '" value="' + (entry.ordinal || "") + '"></input></td>' + 
+                    '<td><input class="attr-editor-input" type="text" style="width:120px" id="_amap_alias_' + idx + '" value="' + (entry.alias || "") + '"></input></td>' + 
+                    '<td><input class="attr-editor-input" type="number" style="width:40px" size="2" min="1" max="99" id="_amap_ordinal_' + idx + '" value="' + (entry.ordinal || "") + '"></input></td>' + 
                     '<td><input type="checkbox" id="_amap_label_' + idx + '" value="label"' + (entry.label === true ? ' checked="checked"' : '') + wmsDisabled + '></input></td>' +
                     '<td><input type="checkbox" id="_amap_displayed_' + idx + '" value="display"' + (entry.displayed === true ? ' checked="checked"' : '') + '></input></td>' +
                     '<td><input type="checkbox" id="_amap_filterable_' + idx + '" value="filter"' + (entry.filterable === true ? ' checked="checked"' : '') + '></input></td>' +
@@ -471,6 +471,10 @@ magic.classes.creator.AttributeEditorPopup.prototype.formToPayload = function() 
     if (this.serviceType == "esrijson") {
         this.geomType = jQuery("#" + this.id + "-geomtype").val();
     }
+    console.log("AttributeEditorPopup.formToPayload()");
+    console.log("=> Returning payload");
+    console.log(payload);
+    console.log("=> Geometry type is " + this.geomType);
     return({
         "attribute_map": payload,
         "geom_type": this.geomType

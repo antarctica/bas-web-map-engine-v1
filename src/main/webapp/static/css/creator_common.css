@@ -103,3 +103,16 @@ div[class$="-popover-content"] {
 div[class$="attr-editor-popover-content"] {
     width: 500px;
 }
+
+input.attr-editor-input {
+    padding-left: 4px;
+    padding-right: 4px;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+}
+
+select.attr-editor-input {
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    height: 26px;
+}
