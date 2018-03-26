@@ -315,7 +315,7 @@ public abstract class DataPublisher {
                         graphicMarker = graphic.get("marker").getAsString();
                     }
                     if (graphic.has("radius")) {
-                        graphicMarker = graphic.get("radius").getAsString();
+                        graphicRadius = graphic.get("radius").getAsString();
                     }
                 } else {
                     /* Legacy format for styles */
@@ -332,13 +332,13 @@ public abstract class DataPublisher {
                         strokeWidth = stroke.get("width").getAsString();
                     }
                     if (stroke.has("color")) {
-                        strokeWidth = stroke.get("color").getAsString();
+                        strokeColor = stroke.get("color").getAsString();
                     }
                     if (stroke.has("opacity")) {
-                        strokeWidth = stroke.get("opacity").getAsString();
+                        strokeOpacity = stroke.get("opacity").getAsString();
                     }
                     if (stroke.has("linestyle")) {
-                        strokeWidth = stroke.get("linestyle").getAsString();
+                        strokeLinestyle = getDashArray(stroke.get("linestyle").getAsString());
                     }
                 } else {
                     /* Legacy format for styles */
@@ -352,16 +352,16 @@ public abstract class DataPublisher {
                         strokeOpacity = josd.get("stroke_opacity").getAsString();
                     }
                     if (josd.has("stroke_linestyle")) {
-                        strokeLinestyle = josd.get("stroke_linestyle").getAsString();
+                        strokeLinestyle = getDashArray(josd.get("stroke_linestyle").getAsString());
                     }
                 }
                 if (josd.has("fill")) {
                     JsonObject fill = josd.get("fill").getAsJsonObject();
                     if (fill.has("color")) {
-                        graphicMarker = fill.get("color").getAsString();
+                        fillColor = fill.get("color").getAsString();
                     }
                     if (fill.has("opacity")) {
-                        graphicMarker = fill.get("opacity").getAsString();
+                        fillOpacity = fill.get("opacity").getAsString();
                     }
                 } else {
                     /* Legacy format for styles */
@@ -376,7 +376,10 @@ public abstract class DataPublisher {
                     FileUtils.readFileToString(new File(getServletContext().getRealPath("/WEB-INF/sld/" + geomType + ".xml"))),
                     new String[]{"{marker}", "{radius}", "{fill_color}", "{fill_opacity}", "{stroke_width}", "{stroke_color}", "{stroke_opacity}", "{stroke_linestyle}"}, 
                     new String[]{graphicMarker, graphicRadius, fillColor, fillOpacity, strokeWidth, strokeColor, strokeOpacity, strokeLinestyle}
-                );                
+                ); 
+                System.out.println("Writing SLD...");
+                System.out.println(sldOut);
+                System.out.println("End of SLD");
                 if (getGrm().getReader().existsStyle(getEnv().getProperty("geoserver.internal.userWorkspace"), tableName)) {
                     System.out.println("Style " + tableName + " exists");
                     stylePublished = getGrm().getPublisher().updateStyleInWorkspace(getEnv().getProperty("geoserver.internal.userWorkspace"), sldOut, tableName);

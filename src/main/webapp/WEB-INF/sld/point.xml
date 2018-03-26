@@ -26,6 +26,7 @@
                                     <CssParameter name="stroke">{stroke_color}</CssParameter>
                                     <CssParameter name="stroke-width">{stroke_width}</CssParameter>
                                     <CssParameter name="stroke-opacity">{stroke_opacity}</CssParameter>
+                                    {stroke_linestyle}
                                 </Stroke>
                             </Mark>
                             <Size>{radius}</Size>
