@@ -317,6 +317,14 @@ public abstract class DataPublisher {
                     if (graphic.has("radius")) {
                         graphicMarker = graphic.get("radius").getAsString();
                     }
+                } else {
+                    /* Legacy format for styles */
+                    if (josd.has("marker")) {
+                        graphicMarker = josd.get("marker").getAsString();
+                    }
+                    if (josd.has("radius")) {
+                        graphicRadius = josd.get("radius").getAsString();
+                    }
                 }
                 if (josd.has("stroke")) {
                     JsonObject stroke = josd.get("stroke").getAsJsonObject();
@@ -332,6 +340,20 @@ public abstract class DataPublisher {
                     if (stroke.has("linestyle")) {
                         strokeWidth = stroke.get("linestyle").getAsString();
                     }
+                } else {
+                    /* Legacy format for styles */
+                    if (josd.has("stroke_width")) {
+                        strokeWidth = josd.get("stroke_width").getAsString();
+                    }
+                    if (josd.has("stroke_color")) {
+                        strokeColor = josd.get("stroke_color").getAsString();
+                    }
+                    if (josd.has("stroke_opacity")) {
+                        strokeOpacity = josd.get("stroke_opacity").getAsString();
+                    }
+                    if (josd.has("stroke_linestyle")) {
+                        strokeLinestyle = josd.get("stroke_linestyle").getAsString();
+                    }
                 }
                 if (josd.has("fill")) {
                     JsonObject fill = josd.get("fill").getAsJsonObject();
@@ -340,6 +362,14 @@ public abstract class DataPublisher {
                     }
                     if (fill.has("opacity")) {
                         graphicMarker = fill.get("opacity").getAsString();
+                    }
+                } else {
+                    /* Legacy format for styles */
+                    if (josd.has("fill_color")) {
+                        fillColor = josd.get("fill_color").getAsString();
+                    }
+                    if (josd.has("fill_opacity")) {
+                        fillOpacity = josd.get("fill_opacity").getAsString();
                     }
                 }
                 String sldOut = StringUtils.replaceEachRepeatedly(
