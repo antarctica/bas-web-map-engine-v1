@@ -18,8 +18,9 @@ js/bootbox.min.js
 js/jquery.bootstrap.wizard.min.js
 js/jquery-sortable-lists.min.js
 js/prettify.js
-js/init.js
+js/creator/init.js
 js/base/PopupForm.js
+js/components/forms/StylerPopup.js
 js/creator/base
 js/creator/forms
 js/creator/components

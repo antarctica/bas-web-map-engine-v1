@@ -16,7 +16,8 @@
     "ol.source.OSM#*",
     "ol.source.TileArcGISRest",
     "ol.source.TileArcGISRest#*",
-    "ol.tilegrid.TileGrid",    
+    "ol.tilegrid.TileGrid",  
+    "ol.tilegrid.TileGrid#*",  
     "ol.format.GeoJSON",
     "ol.format.GeoJSON#*",
     "ol.format.EsriJSON",
@@ -123,6 +124,7 @@
       "externs/olx.js",
       "externs/proj4js.js",
       "externs/tilejson.js",
+      "externs/esrijson.js",
       "externs/topojson.js"
     ],
     "define": [

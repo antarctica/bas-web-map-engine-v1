@@ -178,7 +178,7 @@ magic.classes.FeaturePopup.prototype.markup = function() {
  */
 magic.classes.FeaturePopup.prototype.featureAttributeTableMarkup = function(feat, i) {
     var content = '<table class="table table-striped table-condensed feature-popup-table">';
-    var nDisplayed = 0, nAttrs = -1, isVectorFeat = false;
+    var nDisplayed = 0, nAttrs = -1, isVectorFeat = false, isEsriFeat = false;
     if (feat.layer) {            
         var md = feat.layer.get("metadata");
         if (md) {
@@ -193,7 +193,11 @@ magic.classes.FeaturePopup.prototype.featureAttributeTableMarkup = function(feat
             } else {
                 /* Create suitable attribute map from name/lat/lon */
                 attrMap = this.minimumPopupAttrs(feat);
-                isVectorFeat = true;
+                isVectorFeat = true;               
+            }
+            if (md.source && magic.modules.Common.isUrl(md.source.esrijson_source)) {
+                /* Record ESRI JSON feature type - ensure 'Full Attribute Set' button is always displayed regardless */
+                isEsriFeat = true;
             }
             nAttrs = attrMap.length;
             jQuery.each(attrMap, jQuery.proxy(function(idx, attrdata) {
@@ -240,7 +244,7 @@ magic.classes.FeaturePopup.prototype.featureAttributeTableMarkup = function(feat
             }, this));
         }
     }
-    if (nAttrs == -1 || nAttrs > nDisplayed || isVectorFeat) {
+    if (nAttrs == -1 || nAttrs > nDisplayed || isVectorFeat || isEsriFeat) {
         content += '<tr><td colspan="2" align="center"><button type="button" id="' + this.popupId + '-full-attr-set-' + i + '" class="btn btn-primary btn-xs">Full attribute set</button></td></tr>';
     }
     content += '</table>';
