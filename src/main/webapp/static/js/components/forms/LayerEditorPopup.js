@@ -139,10 +139,10 @@ magic.classes.LayerEditorPopup.prototype.assignHandlers = function(context) {
     /* Style edit button */
     btnStyleEdit.click(jQuery.proxy(function(evt) {
         var styledef = jQuery("#" + this.id + "-layer-styledef").val();
-        if (!styledef) {
-            styledef = {"mode": (ddStyleMode.val() || "default")};
-        } else if (typeof styledef == "string") {
+        if (typeof styledef == "string") {
             styledef = JSON.parse(styledef);
+        } else if (!styledef) {
+            styledef = {"mode": (ddStyleMode.val() || "default")};
         }
         this.subForms.styler.activate(styledef);
     }, this));
@@ -156,7 +156,7 @@ magic.classes.LayerEditorPopup.prototype.assignHandlers = function(context) {
     /* Set the style mode appropriately */
     ddStyleMode.val("default");
     btnStyleEdit.prop("disabled", true);        
-    context.styledef = this.styler.convertLegacyFormats(context.styledef);
+    context.styledef = this.subForms.styler.convertLegacyFormats(context.styledef);
     var mode = context.styledef.mode;
     ddStyleMode.val(mode);
     btnStyleEdit.prop("disabled", mode == "predefined" || mode == "default" || mode == "file");
@@ -209,10 +209,14 @@ magic.classes.LayerEditorPopup.prototype.formToPayload = function() {
  */
 magic.classes.LayerEditorPopup.prototype.payloadToForm = function(populator) {
     populator = populator || {};
+    var styledef = this.subForms.styler.convertLegacyFormats(populator["styledef"]);
     jQuery.each(this.inputs, jQuery.proxy(function(idx, ip) {
-        jQuery("#" + this.id + "-layer-" + ip).val(populator[ip] || "");
-    }, this));
-    var styledef = this.subForms.styler.convertLegacyFormats(populator["styledef"]);    
+        if (ip == "styledef") {
+            jQuery("#" + this.id + "-layer-" + ip).val(JSON.stringify(styledef));
+        } else {
+            jQuery("#" + this.id + "-layer-" + ip).val(populator[ip] || "");
+        }
+    }, this));        
     /* Last modified */
     var lastMod = jQuery("#" + this.id + "-layer-last-mod");
     if (populator.modified_date) {

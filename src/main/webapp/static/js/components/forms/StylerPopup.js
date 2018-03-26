@@ -278,7 +278,7 @@ magic.classes.StylerPopup.prototype.convertLegacyFormats = function(payload) {
         return(payload);
     }
     /* Must be the legacy format */
-    if (payload.stroke.style) {
+    if (payload.stroke && payload.stroke.style) {
         /* 'linestyle' was erroneously called 'style' for a while */
         payload.stroke.linestyle = payload.stroke.style;
         delete payload.stroke.style;

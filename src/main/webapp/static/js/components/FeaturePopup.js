@@ -367,20 +367,20 @@ magic.classes.FeaturePopup.prototype.selectFeature = function() {
                         break;
                 }
                 if (this.featurePointer == 0) {
-                    jQuery("#" + this.popupId + "-pager-first").prop("disabled", true);
-                    jQuery("#" + this.popupId + "-pager-prev").prop("disabled", true);
-                    jQuery("#" + this.popupId + "-pager-next").prop("disabled", false);
-                    jQuery("#" + this.popupId + "-pager-last").prop("disabled", false);
+                    jQuery("#" + this.popupId + "-pager-first").prop("disabled", true).addClass("disabled");
+                    jQuery("#" + this.popupId + "-pager-prev").prop("disabled", true).addClass("disabled");
+                    jQuery("#" + this.popupId + "-pager-next").prop("disabled", false).removeClass("disabled");
+                    jQuery("#" + this.popupId + "-pager-last").prop("disabled", false).removeClass("disabled");
                 } else if (this.featurePointer == this.featureCollection.length-1) {
-                    jQuery("#" + this.popupId + "-pager-first").prop("disabled", false);
-                    jQuery("#" + this.popupId + "-pager-prev").prop("disabled", false);
-                    jQuery("#" + this.popupId + "-pager-next").prop("disabled", true);
-                    jQuery("#" + this.popupId + "-pager-last").prop("disabled", true);
+                    jQuery("#" + this.popupId + "-pager-first").prop("disabled", false).removeClass("disabled");
+                    jQuery("#" + this.popupId + "-pager-prev").prop("disabled", false).removeClass("disabled");
+                    jQuery("#" + this.popupId + "-pager-next").prop("disabled", true).addClass("disabled");
+                    jQuery("#" + this.popupId + "-pager-last").prop("disabled", true).addClass("disabled");
                 } else {
-                    jQuery("#" + this.popupId + "-pager-first").prop("disabled", false);
-                    jQuery("#" + this.popupId + "-pager-prev").prop("disabled", false);
-                    jQuery("#" + this.popupId + "-pager-next").prop("disabled", false);
-                    jQuery("#" + this.popupId + "-pager-last").prop("disabled", false);
+                    jQuery("#" + this.popupId + "-pager-first").prop("disabled", false).removeClass("disabled");
+                    jQuery("#" + this.popupId + "-pager-prev").prop("disabled", false).removeClass("disabled");
+                    jQuery("#" + this.popupId + "-pager-next").prop("disabled", false).removeClass("disabled");
+                    jQuery("#" + this.popupId + "-pager-last").prop("disabled", false).removeClass("disabled");
                 }
                 this.selectFeature();
                 this.fixPopoverPosition();
