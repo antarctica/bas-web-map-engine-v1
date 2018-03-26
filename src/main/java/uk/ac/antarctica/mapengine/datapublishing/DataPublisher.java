@@ -305,20 +305,48 @@ public abstract class DataPublisher {
                 break;
             case "point":
             case "line":
-            case "polygon":                
+            case "polygon":
+                String graphicMarker = "circle", graphicRadius = "5";
+                String strokeWidth = "1", strokeColor = "#000000", strokeOpacity = "1.0", strokeLinestyle = "solid";
+                String fillColor = "#ffffff", fillOpacity = "1.0";
+                if (josd.has("graphic")) {
+                    JsonObject graphic = josd.get("graphic").getAsJsonObject();
+                    if (graphic.has("marker")) {
+                        graphicMarker = graphic.get("marker").getAsString();
+                    }
+                    if (graphic.has("radius")) {
+                        graphicMarker = graphic.get("radius").getAsString();
+                    }
+                }
+                if (josd.has("stroke")) {
+                    JsonObject stroke = josd.get("stroke").getAsJsonObject();
+                    if (stroke.has("width")) {
+                        strokeWidth = stroke.get("width").getAsString();
+                    }
+                    if (stroke.has("color")) {
+                        strokeWidth = stroke.get("color").getAsString();
+                    }
+                    if (stroke.has("opacity")) {
+                        strokeWidth = stroke.get("opacity").getAsString();
+                    }
+                    if (stroke.has("linestyle")) {
+                        strokeWidth = stroke.get("linestyle").getAsString();
+                    }
+                }
+                if (josd.has("fill")) {
+                    JsonObject fill = josd.get("fill").getAsJsonObject();
+                    if (fill.has("color")) {
+                        graphicMarker = fill.get("color").getAsString();
+                    }
+                    if (fill.has("opacity")) {
+                        graphicMarker = fill.get("opacity").getAsString();
+                    }
+                }
                 String sldOut = StringUtils.replaceEachRepeatedly(
-                    FileUtils.readFileToString(new File(getServletContext().getRealPath("/WEB-INF/sld/" + geomType + ".xml"))), 
+                    FileUtils.readFileToString(new File(getServletContext().getRealPath("/WEB-INF/sld/" + geomType + ".xml"))),
                     new String[]{"{marker}", "{radius}", "{fill_color}", "{fill_opacity}", "{stroke_width}", "{stroke_color}", "{stroke_opacity}", "{stroke_linestyle}"}, 
-                    new String[]{
-                        josd.has("marker") ? josd.get("marker").getAsString() : "circle",
-                        josd.has("radius") ? josd.get("radius").getAsString() : "5",
-                        josd.has("fill_color") ? josd.get("fill_color").getAsString() : "#ffffff",
-                        josd.has("fill_opacity") ? josd.get("fill_opacity").getAsString() : "1.0",
-                        josd.has("stroke_width") ? josd.get("stroke_width").getAsString() : "1",
-                        josd.has("stroke_color") ? josd.get("stroke_color").getAsString() : "#000000",
-                        josd.has("stroke_opacity") ? josd.get("stroke_opacity").getAsString() : "1.0",
-                        josd.has("stroke_linestyle") ? getDashArray(josd.get("stroke_linestyle").getAsString()) : ""
-                    });                
+                    new String[]{graphicMarker, graphicRadius, fillColor, fillOpacity, strokeWidth, strokeColor, strokeOpacity, strokeLinestyle}
+                );                
                 if (getGrm().getReader().existsStyle(getEnv().getProperty("geoserver.internal.userWorkspace"), tableName)) {
                     System.out.println("Style " + tableName + " exists");
                     stylePublished = getGrm().getPublisher().updateStyleInWorkspace(getEnv().getProperty("geoserver.internal.userWorkspace"), sldOut, tableName);
