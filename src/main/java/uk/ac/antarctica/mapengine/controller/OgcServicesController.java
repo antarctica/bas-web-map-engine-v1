@@ -471,7 +471,7 @@ public class OgcServicesController {
         
         try {
             guc = new GenericUrlConnector(url.startsWith("https"));
-            int status = guc.get(url, username, password);
+            int status = guc.get(url, username, password, null);
             if (status < 400) {
                 /* Pipe the output to servlet response stream */
                 response.setContentType(mimeType);

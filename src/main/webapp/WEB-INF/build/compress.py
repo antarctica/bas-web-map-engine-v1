@@ -13,37 +13,32 @@ print "Write bundled js to " + buildjs
 buildcss = os.path.abspath("../../static/buildcss")
 print "Write bundled css to " + buildcss
 
-# Files to completely ignore i.e. no minify or concatenate
-ignorejs = ["ol.debug.js", "jquery-sortable-lists.min.js", "jquery.bootstrap.wizard.min.js", "tv4.min.js"]
-ignorecss = []
 # Files to add to the js bundle but don't do any further minification (anything .min.js will automatically be skipped)
-skipminjs = ["jquery.js", "prettify.js", "proj4.js"]
+skipminjs = ["prettify.js", "proj4.js"]
 # As above for css
 skipmincss = []
 
 def fconcat(root, file, concjs, conccss):
-    if (file not in ignorejs and file not in ignorecss):
-        if (root):
-            fpath = os.path.join(root, file)
-        else:
-            fpath = file
-        if (file.endswith(".css")):
-            outfile = conccss
-            skipmin = (".min." in file) or (os.path.basename(file) in skipmincss)                                                
-        elif (file.endswith(".js")):
-            outfile = concjs
-            skipmin = (".min." in file) or (os.path.basename(file) in skipminjs)
-        if (not skipmin): 
-            print "Minifying " + fpath
-            proc = subprocess.Popen(["java", "-jar", yuicompressor, fpath], stdout=subprocess.PIPE)
-            outfile.write(proc.communicate()[0])
-        else:
-            print "Skip minify for " + fpath
-            infile = open(fpath, "r")
-            filestr = infile.read()
-            outfile.write(filestr)
+    if (root):
+        fpath = os.path.join(root, file)
     else:
-        print "Ignore " + file
+        fpath = file
+    if (file.endswith(".css")):
+        outfile = conccss
+        skipmin = (".min." in file) or (os.path.basename(file) in skipmincss)                                                
+    elif (file.endswith(".js")):
+        outfile = concjs
+        skipmin = (".min." in file) or (os.path.basename(file) in skipminjs)
+    if (not skipmin): 
+        print "Minifying " + fpath
+        proc = subprocess.Popen(["java", "-jar", yuicompressor, fpath], stdout=subprocess.PIPE)
+        outfile.write(proc.communicate()[0])        
+    else:
+        print "Skip minify for " + fpath
+        infile = open(fpath, "r")
+        filestr = infile.read()
+        outfile.write(filestr)
+    outfile.write('\n')
 
 def main():
     print "*** Starting"    

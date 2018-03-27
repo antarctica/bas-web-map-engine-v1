@@ -6,39 +6,18 @@ package uk.ac.antarctica.mapengine.controller;
 
 import it.geosolutions.geoserver.rest.HTTPUtils;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.security.KeyManagementException;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.cert.X509Certificate;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpHost;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.AuthCache;
-import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.fluent.Executor;
-import org.apache.http.client.fluent.Request;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.impl.auth.DigestScheme;
-import org.apache.http.impl.client.BasicAuthCache;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.geotools.ows.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -48,27 +27,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import uk.ac.antarctica.mapengine.util.GenericUrlConnector;
 
 @Controller
 public class ProxyController {        
     
     @Autowired
     Environment env;
-    
-    private static final String[] ALLOWED_HOSTS = new String[]{
-        "ccamlr.org", "polarview.aq", "marine-geo.org", "bluehabitats.org", "gov.gs", "aad.gov.au", "ac.uk", "scar.org", "localhost"
-    };
-    
-    private static final HashMap<String, String> CREDENTIALS = new HashMap();
-    static {        
-        CREDENTIALS.put("http://tracker.aad.gov.au/geojson.py", "comnap:Koma5vudri:Tracker");
-    }
-    
-    /* Cope with haproxy reverse proxying mess where some https:// URLs give Java "unrecognized_name" errors due to broken SSL implementation - David 2017-03-30 */
-    private static final HashMap<String, String> ALIASES = new HashMap();
-    static {
-        ALIASES.put("https://polarcode.data.bas.ac.uk", "http://bslmagl.nerc-bas.ac.uk");
-    }
     
    /**
      * Proxy for an authorised URL
@@ -82,139 +47,73 @@ public class ProxyController {
     @RequestMapping(value="/proxy", method=RequestMethod.GET)	
     public void proxy(HttpServletRequest request, HttpServletResponse response, @RequestParam(value="url", required=true) String url) 
         throws ServletException, IOException {
-        
-        boolean proxied = false;
-        String errorMessage = "";
-        
-        System.out.println("Proxying " + url + "...");
                 
-        /* test for alias substitution */
-        for (String a : ALIASES.keySet()) {
-            if (url.startsWith(a)) {
-                url = url.replace(a, ALIASES.get(a));
-            }
-        }        
+        System.out.println("=== Proxying " + url + "...");
         
-        URL u = new URL(url);      
-        
-        for (String key : ALLOWED_HOSTS) {
-            if (u.getHost().endsWith(key)) {
-                /* Allowed to call this URL from here */
-                switch(u.getProtocol()) {
-                    case "http":
-                        /* Non-SSL */
-                        if (CREDENTIALS.containsKey(url)) {
-                            /* Attempt authentication (basic/digest) */
-                            String[] credParts = CREDENTIALS.get(url).split(":");
-                            if (credParts.length == 2) {
-                                /* Apply HTTP Basic Auth */
-                                Executor executor = Executor.newInstance()                        
-                                    .auth(new HttpHost(key), credParts[0], credParts[1]);                        
-                                IOUtils.copy(executor.execute(Request.Get(url)
-                                    .connectTimeout(60000)
-                                    .socketTimeout(60000))
-                                    .returnResponse().getEntity().getContent(), response.getOutputStream());
-                                proxied = true;
-                            } else if (credParts.length == 3) {
-                                /* Apply HTTP Digest Auth */
-                                System.out.println("Apply Digest Auth...");
-                                URL obj = new URL(url);
-                                URLConnection conn = obj.openConnection();
-                                Map<String, List<String>> map = conn.getHeaderFields();
-                                String wwwAuth = getNamedHeader("www-authenticate", map); 
-                                if (!wwwAuth.isEmpty()) {
-                                    /* Server returned a plausible header giving information on how to authenticate */
-                                    System.out.println("Got WWW-Authenticate header : " + wwwAuth);
-                                    HttpHost targetHost = new HttpHost(obj.getHost(), obj.getPort(), obj.getProtocol());
-                                    CloseableHttpClient httpClient = HttpClients.createDefault();
-                                    HttpClientContext context = HttpClientContext.create();
-                                    CredentialsProvider credsProvider = new BasicCredentialsProvider();
-                                    credsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(credParts[0], credParts[1]));
-                                    AuthCache authCache = new BasicAuthCache();
-                                    DigestScheme digestScheme = new DigestScheme();
-                                    /* Extract the digest parameters */
-                                    String[] kvps = wwwAuth.split(",\\s?");
-                                    for (String kvp : kvps) {
-                                        String[] kvArr = kvp.split("=");
-                                        if (kvArr.length == 2) {
-                                            String k = kvArr[0].replace("\\\\\"", "");
-                                            String v = kvArr[1].replace("\\\\\"", "");
-                                            if (k.toLowerCase().equals("digest realm")) {
-                                                k = "realm";
-                                            }
-                                            System.out.println("Set digest override parameter " + k + " to " + v);
-                                            digestScheme.overrideParamter(k, v);
-                                        }
-                                    }
-                                    authCache.put(new HttpHost(key), digestScheme);
-                                    context.setCredentialsProvider(credsProvider);
-                                    context.setAuthCache(authCache);
-                                    HttpGet httpget = new HttpGet(url);
-                                    CloseableHttpResponse httpResp = httpClient.execute(targetHost, httpget, context);
-                                    IOUtils.copy(httpResp.getEntity().getContent(), response.getOutputStream());
-                                    proxied = true;
-                                }
-                            }
-                        } else {
-                            /* No authentication required */
-                            IOUtils.copy(Request.Get(url)                    
-                                .connectTimeout(60000)
-                                .socketTimeout(60000)
-                                .execute()
-                                .returnResponse().getEntity().getContent(), response.getOutputStream());
-                            proxied = true;
-                        }
+        try {
+            URL u = new URL(url);
+            String wwwAuth = getWwwAuthHeader(u);
+            
+            /* Get the list of allowed URLs from the application properties */
+            String allowedUrls = env.getProperty("proxy.allowed_urls");
+            System.out.println("=== This server allows >" + allowedUrls + "< to be proxied");
+            if (allowedUrls != null && !allowedUrls.isEmpty()) {
+                /* Proxy is allowed for some URLs */
+                boolean allowed = false;
+                for (String fragment : allowedUrls.split(",")) {
+                    if (u.getHost().endsWith(fragment)) {
+                        allowed = true;
                         break;
-                    case "https":
-                        /* Note: authentication not implemented */
-                        //System.out.println("Proxy via https");
-                        HttpsURLConnection conn = null;
-                        try {                            
-                            /* Override SSL checking
-                             * See http://stackoverflow.com/questions/13626965/how-to-ignore-pkix-path-building-failed-sun-security-provider-certpath-suncertp */
-                            System.setProperty ("jsse.enableSNIExtension", "false");
-                            TrustManager[] trustAllCerts = new TrustManager[] {new X509TrustManager() {
-                                public java.security.cert.X509Certificate[] getAcceptedIssuers() {return null;}
-                                public void checkClientTrusted(X509Certificate[] certs, String authType) {}
-                                public void checkServerTrusted(X509Certificate[] certs, String authType) {}
-                            }};
-
-                            SSLContext sc = SSLContext.getInstance("SSL");
-                            sc.init(null, trustAllCerts, new java.security.SecureRandom());
-                            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-
-                            /* Create all-trusting host name verifier */
-                            HostnameVerifier allHostsValid = new HostnameVerifier() {
-                                public boolean verify(String hostname, SSLSession session) {return true;}
-                            };
-                            /* Install the all-trusting host verifier */
-                            HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
-                            conn = (HttpsURLConnection)u.openConnection();
-                            conn.setConnectTimeout(5000);
-                            conn.setReadTimeout(10000);
-                            IOUtils.copy(conn.getInputStream(), response.getOutputStream());
-                            proxied = true;
-                        } catch(IOException | KeyManagementException | NoSuchAlgorithmException ex) {
-                            errorMessage = "Exception : " + ex.getMessage();
-                        } finally {
-                            if (conn != null) {
-                                conn.disconnect();
-                            }
-                        }
-                        break;
-                    default:
-                        errorMessage = "Unsupported URL protocol : " + u.getProtocol();
-                }                                
-                if (proxied) {                
-                    break;
+                    }
                 }
-            }     
-        }
-        if (!proxied) {
-            if (errorMessage.isEmpty()) {
-                errorMessage = "Not allowed to proxy : " + url;
-            }
-            throw new ServletException(errorMessage);
+                if (allowed) {
+                    /* URL can be proxied, check if credentials are required */
+                    System.out.println("=== " + url + " passes checks, examine whether authentication required");
+                    String[] creds = null;
+                    String username = null, password = null;
+                    String credsProp = env.getProperty("proxy.credentials");   
+                    if (credsProp != null && !credsProp.isEmpty()) {
+                        creds = credsProp.split(",");
+                    }
+                    if (creds != null) {
+                        /* Check whether credentials are required */
+                        for (String credDataStr : creds) {
+                            if (credDataStr.startsWith(url)) {
+                                /* Credentials data looks like <url>:<username>:<password>:<realm> - not sure what to do if password contains ':'... */
+                                System.out.println("=== " + url + " needs " + (wwwAuth != null ? "digest" : "basic") + " authentication");
+                                String[] credData = credDataStr.split(":");
+                                if (credData.length < 3) {
+                                    /* Abort now => not enough data supplied */
+                                    throw new ServletException("URL " + url + " requires " + (wwwAuth != null ? "digest" : "basic") + " authentication and not enough data was supplied");
+                                } else {
+                                    username = credData[1];
+                                    password = credData[2];
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    try {
+                        GenericUrlConnector guc = new GenericUrlConnector(url.startsWith("https"));
+                        int status = guc.get(url, username, password, wwwAuth);
+                        if (status < 400) {
+                            /* Ok response => pipe output servlet response */
+                            IOUtils.copy(guc.getContent(), response.getOutputStream());
+                        } else if (status == 401) { 
+                            /* Unauthorized => raise exception */
+                            throw new ServletException("Not allowed to proxy " + url + ", server returns 401 response");
+                        }
+                    } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException ex) {
+                        throw new ServletException("Unable to set up proxy connection to " + url + ", error was " + ex.getMessage());
+                    }
+                } else {
+                    throw new ServletException("Not allowed to proxy " + url);
+                }
+            } else {
+                throw new ServletException("No URLs allowed to be proxied on this server - specify these in application-<profile>.properties");
+            }                            
+        } catch(MalformedURLException mue) {
+            throw new ServletException("Not able to proxy " + url + " as the URL is invalid");
         }
     }
     
@@ -239,6 +138,8 @@ public class ProxyController {
         IOUtils.copy(IOUtils.toInputStream(content), response.getOutputStream());         
     }
     
+    
+    
     /**
      * Look for the named header, case insensitive
      * @param String headerName
@@ -246,8 +147,8 @@ public class ProxyController {
      * @return String 
      */
     private String getNamedHeader(String headerName, Map<String, List<String>> headers) {
-        String namedHeaderStr = "";
-        System.out.println("Find header " + headerName);
+        String namedHeaderStr = null;
+        System.out.println("=== getNamedHeader(): find header " + headerName);
         String lcName = headerName.toLowerCase();
         for (String hn : headers.keySet()) {
             if (hn != null) {
@@ -256,12 +157,23 @@ public class ProxyController {
                 if (lcName.equals(lcHn)) {
                     /* Found it - case insensitive */                
                     namedHeaderStr = headers.get(hn).get(0);
-                    System.out.println("Found header - value is " + namedHeaderStr);
                     break;
                 }
             }
         }
+        System.out.println("=== getNamedHeader(): found " + namedHeaderStr);
         return(namedHeaderStr);
+    }
+
+    /**
+     * Get a www-authenticate header
+     * @param URL u
+     * @return String
+     * @throws IOException 
+     */
+    private String getWwwAuthHeader(URL u) throws IOException {
+        URLConnection conn = u.openConnection();
+        return(getNamedHeader("www-authenticate", conn.getHeaderFields())); 
     }
     
 }

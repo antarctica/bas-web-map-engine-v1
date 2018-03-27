@@ -5,6 +5,8 @@ package uk.ac.antarctica.mapengine.util;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -12,10 +14,19 @@ import java.util.Base64;
 import javax.net.ssl.SSLContext;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.HttpHeaders;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.AuthCache;
+import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.impl.auth.DigestScheme;
+import org.apache.http.impl.client.BasicAuthCache;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
@@ -69,27 +80,76 @@ public class GenericUrlConnector {
      * @param String url
      * @param String username
      * @param String password
+     * @param String wwwAuth
      * @return int status code
      * @throws IOException
      */
-    public int get(String url, String username, String password)  {
+    public int get(String url, String username, String password, String wwwAuth) throws MalformedURLException {
         
-        int status;
+        int status = HttpStatus.SC_OK;
         
         HttpGet request = new HttpGet(url);
-        if (username != null && password != null) {
+        HttpResponse response = null;
+        
+        if (wwwAuth != null) {
+            /* Set up for digest authentication */
+            URL u = new URL(url);
+            HttpHost targetHost = new HttpHost(u.getHost(), u.getPort(), u.getProtocol());
+            HttpClientContext context = HttpClientContext.create();
+            CredentialsProvider credsProvider = new BasicCredentialsProvider();
+            credsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password));
+            AuthCache authCache = new BasicAuthCache();
+            DigestScheme digestScheme = new DigestScheme();
+            /* Extract the digest parameters */
+            String[] kvps = wwwAuth.split(",\\s?");
+            for (String kvp : kvps) {
+                String[] kvArr = kvp.split("=");
+                if (kvArr.length == 2) {
+                    String k = kvArr[0].replace("\\\\\"", "");
+                    String v = kvArr[1].replace("\\\\\"", "");
+                    if (k.toLowerCase().equals("digest realm")) {
+                        k = "realm";
+                    }
+                    System.out.println("Set digest override parameter " + k + " to " + v);
+                    digestScheme.overrideParamter(k, v);
+                }
+            }
+            authCache.put(new HttpHost(u.getHost()), digestScheme);
+            context.setCredentialsProvider(credsProvider);
+            context.setAuthCache(authCache);
+            try {
+                response = getClient().execute(targetHost, request, context);
+            } catch(IOException ioe) {
+                System.out.println("Failed to get response from " + url + " (digest authentication), error was : " + ioe.getMessage());
+                status = HttpStatus.SC_INTERNAL_SERVER_ERROR;
+            }
+        } else if (username != null && password != null) {
             /* Create Basic Authentication header */
             String authHeader = "Basic " + new String(Base64.getEncoder().encode((username + ":" + password).getBytes()));
-            request.setHeader(HttpHeaders.AUTHORIZATION, authHeader);            
+            request.setHeader(HttpHeaders.AUTHORIZATION, authHeader);
+            try {
+                response = getClient().execute(request);
+            } catch(IOException ioe) {
+                System.out.println("Failed to get response from " + url + " (basic authentication), error was : " + ioe.getMessage());
+                status = HttpStatus.SC_INTERNAL_SERVER_ERROR;
+            }            
+        } else {
+            try {
+                response = getClient().execute(request);
+            } catch(IOException ioe) {
+                System.out.println("Failed to get response from " + url + " (no authentication), error was : " + ioe.getMessage());
+                status = HttpStatus.SC_INTERNAL_SERVER_ERROR;
+            } 
         }
-        try {
-            HttpResponse response = getClient().execute(request);
+        if (response != null && status == HttpStatus.SC_OK) {
             status = response.getStatusLine().getStatusCode();
-            setContent(response.getEntity().getContent());
-        } catch (IOException ioe) {
-            System.out.println("Failed to get response from " + url + ", error was : " + ioe.getMessage());
-            status = HttpStatus.SC_INTERNAL_SERVER_ERROR;
-        }
+            try {
+                setContent(response.getEntity().getContent());
+            } catch(IOException ioe) {
+                System.out.println("Failed to get content from " + url + ", error was : " + ioe.getMessage());
+                status = HttpStatus.SC_INTERNAL_SERVER_ERROR;
+            }
+        }               
         return(status);
     }
     
