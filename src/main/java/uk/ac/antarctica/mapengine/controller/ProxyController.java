@@ -60,11 +60,15 @@ public class ProxyController {
             if (allowedUrls != null && !allowedUrls.isEmpty()) {
                 /* Proxy is allowed for some URLs */
                 boolean allowed = false;
+                System.out.println("=== Testing " + u.getHost() + "...");
                 for (String fragment : allowedUrls.split(",")) {
+                    System.out.println("---> Against " + fragment);
                     if (u.getHost().endsWith(fragment)) {
+                        System.out.println("---> Yes");
                         allowed = true;
                         break;
                     }
+                    System.out.println("---> No");
                 }
                 if (allowed) {
                     /* URL can be proxied, check if credentials are required */
@@ -96,23 +100,28 @@ public class ProxyController {
                     try {
                         GenericUrlConnector guc = new GenericUrlConnector(url.startsWith("https"));
                         int status = guc.get(url, username, password, wwwAuth);
-                        if (status < 400) {
+                        //if (status < 400) {
                             /* Ok response => pipe output servlet response */
+                            response.setStatus(HttpServletResponse.SC_OK);
                             IOUtils.copy(guc.getContent(), response.getOutputStream());
-                        } else if (status == 401) { 
+                        //} else if (status == 401) { 
                             /* Unauthorized => raise exception */
-                            throw new ServletException("Not allowed to proxy " + url + ", server returns 401 response");
-                        }
+                        //    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        //    throw new ServletException("Not allowed to proxy " + url + ", server returns 401 response");
+                        //}
                     } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException ex) {
                         throw new ServletException("Unable to set up proxy connection to " + url + ", error was " + ex.getMessage());
                     }
                 } else {
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                     throw new ServletException("Not allowed to proxy " + url);
                 }
             } else {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 throw new ServletException("No URLs allowed to be proxied on this server - specify these in application-<profile>.properties");
             }                            
         } catch(MalformedURLException mue) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             throw new ServletException("Not able to proxy " + url + " as the URL is invalid");
         }
     }
