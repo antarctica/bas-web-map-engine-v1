@@ -46,7 +46,7 @@ public class GeoserverAuthenticationProvider implements AuthenticationProvider {
              */
             String securedUrl = env.getProperty("geoserver.internal.url") + "/wfs?request=listStoredQueries";
             guc = new GenericUrlConnector(securedUrl.startsWith("https"));
-            int status = guc.get(securedUrl, name, password);
+            int status = guc.get(securedUrl, name, password, null);
             if (status < 400) {
                 /* Record the Geoserver credentials so they are recoverable by the security context holder */
                 System.out.println("Geoserver authentication successful for user " + name);
