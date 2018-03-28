@@ -706,25 +706,32 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
         this.layersBySource["gpx"].push(layer);
     } else if (nd.source.kml_source) {
         /* KML source */
+        var kmlStyle = null;
         var labelRotation = -magic.runtime.map_context.data.rotation;
-        var kmlStyle = this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map), labelRotation);
-        layer = new ol.layer.Image({
+        if (typeof nd.source.style_definition == "string") {
+            var sd = JSON.parse(nd.source.style_definition);
+            if (sd.mode != "default") {
+                kmlStyle = this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map), labelRotation);
+            }
+        }
+        layer = new ol.layer.Vector({
             name: nd.name,
             visible: isVisible,
             metadata: nd,
-            source: new ol.source.ImageVector({
-                source: new ol.source.Vector({
-                    format: new ol.format.KML({
-                        extractStyles: false,
-                        showPointNames: false
-                    }),
-                    url: magic.modules.Common.proxyUrl(nd.source.kml_source)
+            source: new ol.source.Vector({
+                format: new ol.format.KML({
+                    extractStyles: kmlStyle == null,
+                    showPointNames: false
                 }),
-                style: kmlStyle
+                url: magic.modules.Common.proxyUrl(nd.source.kml_source)
             }),
+            renderMode: "image",
             minResolution: minRes,
             maxResolution: maxRes
         });
+        if (kmlStyle != null) {
+            layer.setStyle(kmlStyle);
+        }
         layer.setZIndex(400);
         this.layersBySource["kml"].push(layer);
     }
