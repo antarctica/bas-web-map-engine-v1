@@ -89,9 +89,7 @@ public class GenericUrlConnector {
     public int get(String url, String username, String password, String wwwAuth) throws MalformedURLException, IOException {
         
         int status = HttpStatus.SC_OK;
-        
-        System.out.println("Args: URL = " + url + ", username = " + username + ", password = " + password);
-        
+                
         HttpGet request = new HttpGet(url);
         HttpResponse response = null;
         
@@ -99,12 +97,13 @@ public class GenericUrlConnector {
             /* Set up for digest authentication */
             URL u = new URL(url);
             HttpHost targetHost = new HttpHost(u.getHost(), u.getPort(), u.getProtocol());
-            CloseableHttpClient httpClient = HttpClients.createDefault();
             HttpClientContext context = HttpClientContext.create();
             CredentialsProvider credsProvider = new BasicCredentialsProvider();
-            credsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password));
+            credsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password));            
             AuthCache authCache = new BasicAuthCache();
             DigestScheme digestScheme = new DigestScheme();
+            /* Extract the digest parameters (careful that the nonce may contain an '=' sign!!) */
+            System.out.println("=== GenericUrlConnector.get(): extracting key/value pairs from www-authenticate header "+ wwwAuth);            
             String[] kvps = wwwAuth.split(",\\s?");
             for (String kvp : kvps) {
                 System.out.println("Processing: " + kvp + "...");
@@ -120,63 +119,27 @@ public class GenericUrlConnector {
                     digestScheme.overrideParamter(k, v);
                 }                
             }
-            authCache.put(new HttpHost("aad.gov.au"), digestScheme);
+            authCache.put(targetHost, digestScheme);
             context.setCredentialsProvider(credsProvider);
             context.setAuthCache(authCache);
-            HttpGet httpget = new HttpGet(url);
-            CloseableHttpResponse httpResp = httpClient.execute(targetHost, httpget, context);
-            setContent(httpResp.getEntity().getContent());
-            return(HttpStatus.SC_OK);
-//            HttpHost targetHost = new HttpHost(u.getHost(), u.getPort(), u.getProtocol());
-//            CloseableHttpClient digestClient = HttpClients.createDefault();
-//            HttpClientContext context = HttpClientContext.create();
-//            CredentialsProvider credsProvider = new BasicCredentialsProvider();
-//            credsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password));            
-//            AuthCache authCache = new BasicAuthCache();
-//            DigestScheme digestScheme = new DigestScheme();
-//            /* Extract the digest parameters (careful that the nonce may contain an '=' sign!!) */
-//            System.out.println("=== GenericUrlConnector.get(): extracting key/value pairs from www-authenticate header "+ wwwAuth);            
-//            String[] kvps = wwwAuth.split(",\\s?");
-//            for (String kvp : kvps) {
-//                System.out.println("Processing: " + kvp + "...");
-//                /* Find the first '=' */
-//                int eq1 = kvp.indexOf("=");
-//                if (eq1 >= 0) {
-//                    String k = StringUtils.strip(kvp.substring(0, eq1), "\"");
-//                    String v = StringUtils.strip(kvp.substring(eq1+1), "\"");
-//                    if (k.toLowerCase().equals("digest realm")) {
-//                        k = "realm";
-//                    }
-//                    System.out.println("Set digest override parameter " + k + " to " + v);
-//                    digestScheme.overrideParamter(k, v);
-//                }                
-//            }
-//            authCache.put(targetHost, digestScheme);
-//            context.setCredentialsProvider(credsProvider);
-//            context.setAuthCache(authCache);
-//            try {
-//                response = digestClient.execute(targetHost, request, context);
-//            } catch(IOException ioe) {
-//                System.out.println("Failed to get response from " + url + " (digest authentication), error was : " + ioe.getMessage());
-//                status = HttpStatus.SC_INTERNAL_SERVER_ERROR;
-//            }
-        } else if (username != null && password != null) {
-            /* Create Basic Authentication header */
-            String authHeader = "Basic " + new String(Base64.getEncoder().encode((username + ":" + password).getBytes()));
-            request.setHeader(HttpHeaders.AUTHORIZATION, authHeader);
+            try {
+                response = getClient().execute(targetHost, request, context);
+            } catch(IOException ioe) {
+                System.out.println("Failed to get response from " + url + " (digest authentication), error was : " + ioe.getMessage());
+                status = HttpStatus.SC_BAD_REQUEST;
+            }
+        } else {
+            if (username != null && password != null) {
+                /* Create Basic Authentication header */
+                String authHeader = "Basic " + new String(Base64.getEncoder().encode((username + ":" + password).getBytes()));
+                request.setHeader(HttpHeaders.AUTHORIZATION, authHeader);
+            }
             try {
                 response = getClient().execute(request);
             } catch(IOException ioe) {
                 System.out.println("Failed to get response from " + url + " (basic authentication), error was : " + ioe.getMessage());
-                status = HttpStatus.SC_INTERNAL_SERVER_ERROR;
+                status = HttpStatus.SC_BAD_REQUEST;
             }            
-        } else {
-            try {
-                response = getClient().execute(request);
-            } catch(IOException ioe) {
-                System.out.println("Failed to get response from " + url + " (no authentication), error was : " + ioe.getMessage());
-                status = HttpStatus.SC_INTERNAL_SERVER_ERROR;
-            } 
         }
         if (response != null && status == HttpStatus.SC_OK) {
             status = response.getStatusLine().getStatusCode();

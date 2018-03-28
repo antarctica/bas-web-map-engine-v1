@@ -106,7 +106,7 @@ magic.classes.creator.EmbeddedAppContainer.prototype.saveContext = function() {
                 } else {
                     /* Schema validation was ok */
                     var existingId = postData.id; 
-                    console.log(postData);
+                    //console.log(postData);
                     var postDataStr = JSON.stringify(postData);
                     jQuery.ajax({
                         url: magic.config.paths.baseurl + "/embedded_maps/" + (existingId != "" ? "update/" + existingId : "save"),                        

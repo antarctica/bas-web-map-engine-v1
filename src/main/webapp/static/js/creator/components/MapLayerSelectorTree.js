@@ -196,15 +196,15 @@ magic.classes.creator.MapLayerSelectorTree.prototype.deleteHandler = function(ev
                         parent.find("button.layer-group-delete").prop("disabled", false);
                     }
                 }
-                console.log("===== Deleting list element with id " + itemId);
+                //console.log("===== Deleting list element with id " + itemId);
                 jQuery("#" + itemId).remove();   
-                console.log("--> Layer dictionary before...");
-                console.log(this.layerDictionary);
-                console.log("--> End");
+                //console.log("--> Layer dictionary before...");
+                //console.log(this.layerDictionary);
+                //console.log("--> End");
                 this.layerDictionary.del(itemId);
-                console.log("--> Layer dictionary after...");
-                console.log(this.layerDictionary);
-                console.log("--> End");
+                //console.log("--> Layer dictionary after...");
+                //console.log(this.layerDictionary);
+                //console.log("--> End");
                 jQuery("#" + this.prefix + "-update-panel").fadeOut("slow");
                 bootbox.hideAll();
             } else {
@@ -245,13 +245,13 @@ magic.classes.creator.MapLayerSelectorTree.prototype.getContext = function(embed
     if (!embedded) {
         var layerArr = [];
         var layerHierarchy = this.layerTreeUl.sortableListsToHierarchy();
-        console.log("===== MapLayerSelectorTree.getContext =====");
-        console.log(layerHierarchy);
-        console.log(this.layerDictionary);
-        console.log("===== Sorting... =====");
-        console.log(layerArr);
+        //console.log("===== MapLayerSelectorTree.getContext =====");
+        //console.log(layerHierarchy);
+        //console.log(this.layerDictionary);
+        //console.log("===== Sorting... =====");
+        //console.log(layerArr);
         this.sortLayers(layerArr, layerHierarchy);
-        console.log("===== End =====");
+        //console.log("===== End =====");
         return({
             data: {
                 layers: layerArr

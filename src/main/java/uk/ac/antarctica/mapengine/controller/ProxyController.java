@@ -83,9 +83,9 @@ public class ProxyController {
                         /* Check whether credentials are required */
                         for (String credDataStr : creds) {
                             if (credDataStr.startsWith(url)) {
-                                /* Credentials data looks like <url>:<username>:<password>:<realm> - not sure what to do if password contains ':'... */
+                                /* Credentials data looks like <url>,<username>,<password>,<realm> - not sure what to do if password contains ','... */
                                 System.out.println("=== " + url + " needs " + (wwwAuth != null ? "digest" : "basic") + " authentication");
-                                String[] credData = credDataStr.split(":");
+                                String[] credData = credDataStr.split(",");
                                 if (credData.length < 3) {
                                     /* Abort now => not enough data supplied */
                                     throw new ServletException("URL " + url + " requires " + (wwwAuth != null ? "digest" : "basic") + " authentication and not enough data was supplied");
@@ -100,15 +100,15 @@ public class ProxyController {
                     try {
                         GenericUrlConnector guc = new GenericUrlConnector(url.startsWith("https"));
                         int status = guc.get(url, username, password, wwwAuth);
-                        //if (status < 400) {
+                        if (status < 400) {
                             /* Ok response => pipe output servlet response */
                             response.setStatus(HttpServletResponse.SC_OK);
                             IOUtils.copy(guc.getContent(), response.getOutputStream());
-                        //} else if (status == 401) { 
+                        } else if (status == 401) { 
                             /* Unauthorized => raise exception */
-                        //    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                        //    throw new ServletException("Not allowed to proxy " + url + ", server returns 401 response");
-                        //}
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            throw new ServletException("Not allowed to proxy " + url + ", server returns 401 response");
+                        }
                     } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException ex) {
                         throw new ServletException("Unable to set up proxy connection to " + url + ", error was " + ex.getMessage());
                     }

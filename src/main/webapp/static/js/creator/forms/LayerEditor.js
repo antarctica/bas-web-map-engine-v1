@@ -151,18 +151,18 @@ magic.classes.creator.LayerEditor.prototype.saveContext = function() {
     
     if (jQuery.isFunction(this.onSave)) {
         /* Populate form from data */
-        console.log("===== LayerEditor.saveContext() called");
-        console.trace();
+        //console.log("===== LayerEditor.saveContext() called");
+        //console.trace();
         var totalPayload = jQuery.extend(true, {},
             magic.modules.Common.formToJson(this.formSchema, this.prefix),
             this.sourceEditor.formToPayload(),
             this.attrEditorUpdates
         );
-        console.log("Payload to write follows...");
-        console.log(totalPayload);
-        console.log("===== LayerEditor.saveContext() calling onSave...");
+        //console.log("Payload to write follows...");
+        //console.log(totalPayload);
+        //console.log("===== LayerEditor.saveContext() calling onSave...");
         this.onSave(totalPayload);
-        console.log("===== LayerEditor.saveContext() Done");
+        //console.log("===== LayerEditor.saveContext() Done");
     }
     
     /* Clean the form */

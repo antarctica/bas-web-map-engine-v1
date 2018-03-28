@@ -89,7 +89,7 @@ magic.classes.creator.LayerGroupEditor.prototype.loadContext = function(context)
 
 magic.classes.creator.LayerGroupEditor.prototype.saveContext = function() {
     
-    console.log("===== LayerGroupEditor.saveContext() called");
+    //console.log("===== LayerGroupEditor.saveContext() called");
     
     if (jQuery.isFunction(this.onSave)) {
         /* Populate form from data */
@@ -106,7 +106,7 @@ magic.classes.creator.LayerGroupEditor.prototype.saveContext = function() {
     /* Deactivate */
     this.active = false;
     
-    console.log("===== LayerGroupEditor.saveContext() end");
+    //console.log("===== LayerGroupEditor.saveContext() end");
 };
 
 magic.classes.creator.LayerGroupEditor.prototype.cancelEdit = function() {

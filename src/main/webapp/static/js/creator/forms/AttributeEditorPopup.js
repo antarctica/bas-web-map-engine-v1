@@ -471,10 +471,10 @@ magic.classes.creator.AttributeEditorPopup.prototype.formToPayload = function() 
     if (this.serviceType == "esrijson") {
         this.geomType = jQuery("#" + this.id + "-geomtype").val();
     }
-    console.log("AttributeEditorPopup.formToPayload()");
-    console.log("=> Returning payload");
-    console.log(payload);
-    console.log("=> Geometry type is " + this.geomType);
+    //console.log("AttributeEditorPopup.formToPayload()");
+    //console.log("=> Returning payload");
+    //console.log(payload);
+    //console.log("=> Geometry type is " + this.geomType);
     return({
         "attribute_map": payload,
         "geom_type": this.geomType

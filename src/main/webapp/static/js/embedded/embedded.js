@@ -93,8 +93,8 @@ function getViewData(data) {
  */
 function removeNullNumericTerms(filter) {
     var filterOut = filter;
-    console.log("Remove non-null numeric terms from filter:");
-    console.log(filter);
+    //console.log("Remove non-null numeric terms from filter:");
+    //console.log(filter);
     if (filterOut != null && filterOut != "") {
         /* Parse into individual terms */
         var terms = filterOut.split(" AND ");
@@ -107,8 +107,8 @@ function removeNullNumericTerms(filter) {
         });
         filterOut = nonNullTerms.join(" AND ");
     }
-    console.log("Revised filter is:");
-    console.log(filterOut);
+    //console.log("Revised filter is:");
+    //console.log(filterOut);
     return(filterOut);
 }
 
