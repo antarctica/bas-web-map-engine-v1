@@ -29,11 +29,10 @@ magic.classes.DragDropGpxKml = function(options) {
         jQuery.each(evt.features, jQuery.proxy(function(idx, feat) {
             feat.setStyle(this.constructStyle(feat));
         }, this));        
-        var layer = new ol.layer.Image({
+        var layer = new ol.layer.Vector({
             name: (evt.file && evt.file.name) ? evt.file.name : "_user_layer_" + this.userlayers.length,
-            source: new ol.source.ImageVector({
-                source: vectorSource
-            }),
+            source: vectorSource,
+            renderMode: "image",
             metadata: {                
                 is_interactive: true
             }

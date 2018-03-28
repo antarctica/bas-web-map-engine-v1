@@ -329,7 +329,7 @@ magic.modules.Common = function () {
             if (style && style.getText()) {            
                 var sclone = style.clone();
                 var label = sclone.getText();
-                if (label) {
+                if (label && label.getText()) {
                     /* Found a feature whose label needs to be hovered => make text opaque */
                     var text = label.getText();
                     if (vis) {
@@ -338,11 +338,25 @@ magic.modules.Common = function () {
                         label.setText(text.replace(/\s+\(\+\d+\)$/, ""));
                     }
                     var stroke = label.getStroke();
-                    var scolor = stroke.getColor(); /* Will be of form rgba(255, 255, 255, 0.0) */                   
-                    stroke.setColor(scolor.substring(0, scolor.lastIndexOf(",")+1) + (vis ? "1.0" : "0.0") + ")");
+                    var scolor = stroke.getColor(); 
+                    if (!jQuery.isArray(scolor)) {
+                        /* Will be of form rgba(255, 255, 255, 0.0) */
+                        stroke.setColor(scolor.substring(0, scolor.lastIndexOf(",")+1) + (vis ? "1.0" : "0.0") + ")");
+                    } else {
+                        /* [R, G, B, OP] */
+                        scolor[3] = (vis ? "1.0" : "0.0");
+                        stroke.setColor(scolor);
+                    }                   
                     var fill = label.getFill();
                     var fcolor = fill.getColor();
-                    fill.setColor(fcolor.substring(0, fcolor.lastIndexOf(",")+1) + (vis ? "1.0" : "0.0") + ")");                    
+                    if (!jQuery.isArray(fcolor)) {
+                        /* Will be of form rgba(255, 255, 255, 0.0) */
+                        fill.setColor(fcolor.substring(0, fcolor.lastIndexOf(",")+1) + (vis ? "1.0" : "0.0") + ")"); 
+                    } else {
+                        /* [R, G, B, OP] */
+                        fcolor[3] = (vis ? "1.0" : "0.0");
+                        fill.setColor(fcolor);
+                    }                                    
                     feat.setStyle(sclone);
                     feat.changed();           
                 }                

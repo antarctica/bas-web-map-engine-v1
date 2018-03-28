@@ -65,6 +65,13 @@ magic.classes.creator.LayerEditor.prototype.loadContext = function(context) {
         return;
     }   
     
+    /* Reset the editor */
+    if (this.attributeEditor) {
+        this.attributeEditor.deactivate(true);
+    }
+    if (this.sourceEditor) {
+        this.sourceEditor.deactivateStyler(true);
+    }
     this.attrEditorUpdates = {};
     
     /* Disable save button until form is changed */

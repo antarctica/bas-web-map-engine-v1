@@ -94,4 +94,10 @@ magic.classes.creator.DataSourceForm.prototype.setCallbacks = function(callbacks
     this.controlCallbacks = callbacksObj;
 };
 
+magic.classes.creator.DataSourceForm.prototype.deactivateStyler = function(callbacksObj) {
+    if (this.styler) {
+        this.styler.deactivate(true);
+    }
+};
+
 

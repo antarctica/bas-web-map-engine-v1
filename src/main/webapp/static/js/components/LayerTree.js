@@ -671,34 +671,33 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
     } else if (nd.source.gpx_source) {
         /* GPX layer */
         var labelRotation = -magic.runtime.map_context.data.rotation;
-        layer = new ol.layer.Image({
+        layer = new ol.layer.Vector({
             name: nd.name,
             visible: isVisible,
             metadata: nd,    
-            source: new ol.source.ImageVector({
-                source: new ol.source.Vector({
-                    format: new ol.format.GPX({readExtensions: function(f, enode){                       
-                        try {
-                            var json = xmlToJSON.parseString(enode.outerHTML.trim());
-                            if ("extensions" in json && jQuery.isArray(json.extensions) && json.extensions.length == 1) {
-                                var eo = json.extensions[0];
-                                for (var eok in eo) {
-                                    if (eok.indexOf("_") != 0) {
-                                        if (jQuery.isArray(eo[eok]) && eo[eok].length == 1) {
-                                            var value = eo[eok][0]["_text"];
-                                            f.set(eok, value, true);
-                                        }
+            source: new ol.source.Vector({
+                format: new ol.format.GPX({readExtensions: function(f, enode){                       
+                    try {
+                        var json = xmlToJSON.parseString(enode.outerHTML.trim());
+                        if ("extensions" in json && jQuery.isArray(json.extensions) && json.extensions.length == 1) {
+                            var eo = json.extensions[0];
+                            for (var eok in eo) {
+                                if (eok.indexOf("_") != 0) {
+                                    if (jQuery.isArray(eo[eok]) && eo[eok].length == 1) {
+                                        var value = eo[eok][0]["_text"];
+                                        f.set(eok, value, true);
                                     }
                                 }
                             }
-                        } catch (e) {
                         }
-                        return(f);
-                    }}),
-                    url: magic.modules.Common.proxyUrl(nd.source.gpx_source)
-                }),
-                style: this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map), labelRotation)
+                    } catch (e) {
+                    }
+                    return(f);
+                }}),
+                url: magic.modules.Common.proxyUrl(nd.source.gpx_source)
             }),
+            style: this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map), labelRotation),
+            renderMode: "image",
             minResolution: minRes,
             maxResolution: maxRes
         });
