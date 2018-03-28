@@ -11,6 +11,7 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.HashMap;
 import javax.net.ssl.SSLContext;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.lang3.StringUtils;
@@ -22,7 +23,6 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
@@ -93,8 +93,14 @@ public class GenericUrlConnector {
         HttpGet request = new HttpGet(url);
         HttpResponse response = null;
         
-        if (wwwAuth != null) {
+        HashMap<String, String> digestParms = new HashMap();
+        
+        if (digestAuthRequired(digestParms, wwwAuth)) {
             /* Set up for digest authentication */
+            if (username == null || password == null) {
+                System.out.println("Service at " + url + " requires digest authentication) but credentials were null");
+                return(HttpStatus.SC_BAD_REQUEST);                
+            }
             URL u = new URL(url);
             HttpHost targetHost = new HttpHost(u.getHost(), u.getPort(), u.getProtocol());
             HttpClientContext context = HttpClientContext.create();
@@ -102,23 +108,9 @@ public class GenericUrlConnector {
             credsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password));            
             AuthCache authCache = new BasicAuthCache();
             DigestScheme digestScheme = new DigestScheme();
-            /* Extract the digest parameters (careful that the nonce may contain an '=' sign!!) */
-            System.out.println("=== GenericUrlConnector.get(): extracting key/value pairs from www-authenticate header "+ wwwAuth);            
-            String[] kvps = wwwAuth.split(",\\s?");
-            for (String kvp : kvps) {
-                System.out.println("Processing: " + kvp + "...");
-                /* Find the first '=' */
-                int eq1 = kvp.indexOf("=");
-                if (eq1 >= 0) {
-                    String k = StringUtils.strip(kvp.substring(0, eq1), "\"");
-                    String v = StringUtils.strip(kvp.substring(eq1+1), "\"");
-                    if (k.toLowerCase().equals("digest realm")) {
-                        k = "realm";
-                    }
-                    System.out.println("Set digest override parameter " + k + " to " + v);
-                    digestScheme.overrideParamter(k, v);
-                }                
-            }
+            digestParms.keySet().forEach((key) -> {
+                digestScheme.overrideParamter(key, digestParms.get(key));
+            });
             authCache.put(targetHost, digestScheme);
             context.setCredentialsProvider(credsProvider);
             context.setAuthCache(authCache);
@@ -159,6 +151,38 @@ public class GenericUrlConnector {
         } catch (IOException ioe) {
             System.out.println("Failed to close URL connection - exception was : " + ioe.getMessage());
         }
+    }
+    
+    /**
+     * Extract the digest parameters (careful that the nonce may contain an '=' sign!!)
+     * @param {HashMap<String,String>} digestParms
+     * @param {String} wwwAuth
+     * @return {boolean}
+     */
+    private boolean digestAuthRequired(HashMap<String, String> digestParms, String wwwAuth) {
+        
+        boolean isDigest = false;
+        
+        if (wwwAuth != null && !wwwAuth.isEmpty()) {
+            System.out.println("=== GenericUrlConnector.digestAuthRequired(): check key/value pairs from www-authenticate header "+ wwwAuth);            
+            String[] kvps = wwwAuth.split(",\\s?");
+            for (String kvp : kvps) {
+                System.out.println("Processing: " + kvp + "...");
+                /* Find the first '=' */
+                int eq1 = kvp.indexOf("=");
+                if (eq1 >= 0) {
+                    String k = StringUtils.strip(kvp.substring(0, eq1), "\"");
+                    String v = StringUtils.strip(kvp.substring(eq1+1), "\"");
+                    if (k.toLowerCase().equals("digest realm")) {
+                        k = "realm";
+                    }
+                    digestParms.put(k, v);
+                    System.out.println("Set parameter " + k + " to " + v);
+                }                
+            }
+            isDigest = digestParms.containsKey("nonce");
+        }
+        return(isDigest);
     }
 
     public CloseableHttpClient getClient() {
