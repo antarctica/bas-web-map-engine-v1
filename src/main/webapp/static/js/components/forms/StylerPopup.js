@@ -273,6 +273,9 @@ magic.classes.StylerPopup.prototype.convertLegacyFormats = function(payload) {
             return(jQuery.extend(true, {}, this.inputDefaults));
         }
     }
+    if (payload.mode == "predefined" || payload.mode == "default") {
+        return(payload);
+    }
     if (payload.graphic || payload.stroke || payload.fill) {
         /* Deemed to be in the up-to-date format, so leave it alone */
         return(payload);
