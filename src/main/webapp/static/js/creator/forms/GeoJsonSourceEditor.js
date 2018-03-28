@@ -97,9 +97,36 @@ magic.classes.creator.GeoJsonSourceEditor.prototype.init = function(context) {
         '<option value="' + magic.runtime.projection + '">' + magic.runtime.projection + '</option>'
     );
     
-    this.setStyleHandlers(context);    
-    this.populateCannedStylesDropdown();    
-    magic.modules.Common.jsonToForm(this.formSchema, context, this.prefix);        
+    this.populateCannedStylesDropdown(context.style_definition.predefined || "");
+    this.setStyleHandlers(context);               
+    
+    /* Show canned styles input if appropriate */
+    var predefinedStyleDiv = jQuery("div.predefined-style-input");
+    if (predefinedStyleDiv.length > 0) {
+        if (context.style_definition && context.style_definition.mode == "predefined" && context.style_definition.predefined) {              
+            predefinedStyleDiv.removeClass("hidden");
+        } else {
+            predefinedStyleDiv.addClass("hidden");
+        }
+    }
+    magic.modules.Common.jsonToForm(this.formSchema, context, this.prefix); 
+};
+
+/**
+ * Overridden here as need to cope with the use of canned styles for GeoJSON layers
+ */
+magic.classes.creator.GeoJsonSourceEditor.prototype.formToPayload = function() {
+    /* Check for canned styles */
+    var styleMode = jQuery("#" + this.prefix + "-style-mode").val();
+    if (styleMode == "predefined") {
+        jQuery("#" + this.prefix + "-style_definition").val(JSON.stringify({
+            "mode": "predefined",
+            "predefined": jQuery("#" + this.prefix + "-style-predefined").val()
+        }));
+    }
+    return({
+        "source": magic.modules.Common.formToJson(this.formSchema, this.prefix)
+    });
 };
 
 /**
@@ -107,20 +134,11 @@ magic.classes.creator.GeoJsonSourceEditor.prototype.init = function(context) {
  * @param {Object} styledef
  */
 magic.classes.creator.GeoJsonSourceEditor.prototype.writeStyle = function(styledef) {
-    if (!styledef) {
-        /* Bit more work to determine style - not come straight from an edit */
-        var mode = jQuery("#" + this.prefix + "-style-mode").val();
-        if (mode == "predefined") {
-            styledef = {
-                "mode": "predefined", 
-                "predefined": jQuery("#" + this.prefix + "-style-predefined").val()
-            };
-        } else {
-            styledef = {"mode": "default"};
-        }
+    if (!styledef) {        
+        styledef = {"mode": "default"};
     }
     jQuery("#" + this.prefix + "-style_definition").val(JSON.stringify(styledef));
-    jQuery("#" + this.prefix + "-style-edit").prop("disabled", (mode == "predefined" || mode == "default"));
+    jQuery("#" + this.prefix + "-style-edit").prop("disabled", (styledef.mode == "predefined" || styledef.mode == "default"));
     
     if (jQuery.isFunction(this.controlCallbacks.onSaveContext)) {
         this.controlCallbacks.onSaveContext();
@@ -128,9 +146,11 @@ magic.classes.creator.GeoJsonSourceEditor.prototype.writeStyle = function(styled
 };
 
 /**
- * Load the values of any predefined vector styles 
+ * Load the values of any predefined vector styles
+ * @param {String} defaultVal
  */
-magic.classes.creator.GeoJsonSourceEditor.prototype.populateCannedStylesDropdown = function() {    
+magic.classes.creator.GeoJsonSourceEditor.prototype.populateCannedStylesDropdown = function(defaultVal) {
+    defaultVal = defaultVal || "";
     var predefKeys = [];
     for(var key in magic.modules.VectorStyles) {
         predefKeys.push(key);
@@ -140,7 +160,7 @@ magic.classes.creator.GeoJsonSourceEditor.prototype.populateCannedStylesDropdown
     jQuery.each(predefKeys, function(idx, key) {
         populator.push({key: key, value: key});
     });    
-    magic.modules.Common.populateSelect(jQuery("#" + this.prefix + "-style-predefined"), populator, "key", "value", "", false);
+    magic.modules.Common.populateSelect(jQuery("#" + this.prefix + "-style-predefined"), populator, "key", "value", defaultVal, false);
 };
 
 magic.classes.creator.GeoJsonSourceEditor.prototype.sourceSpecified = function() {

@@ -190,7 +190,7 @@ magic.classes.creator.MapLayerSelectorTree.prototype.deleteHandler = function(ev
                 var parent = jQuery("#" + itemId).parents("li.list-group-item-heading").first();
                 if (parent != null) {
                     /* Enable delete button on original parent if there are no more children */
-                    console.log("Number of children of parent " + parent.find("ul").children("li").length);
+                    //console.log("Number of children of parent " + parent.find("ul").children("li").length);
                     if (parent.find("ul").children("li").length == 1) {
                         /* What we are about to delete is the last child */
                         parent.find("button.layer-group-delete").prop("disabled", false);
@@ -455,12 +455,12 @@ magic.classes.creator.MapLayerSelectorTree.prototype.layerMarkup = function(id, 
  * @param {Object} data
  */
 magic.classes.creator.MapLayerSelectorTree.prototype.writeGroupData = function(data) {
-    console.log("===== MapLayerSelectorTree.writeGroupData() called =====");
-    console.log(data);
+    //console.log("===== MapLayerSelectorTree.writeGroupData() called =====");
+    //console.log(data);
     this.layerDictionary.put(data);
     jQuery("#" + data.id).find("button.name-area").first().text(data.name);
     jQuery("#" + this.prefix + "-update-panel").fadeOut("slow");
-    console.log("===== MapLayerSelectorTree.writeGroupData() Complete =====");
+    //console.log("===== MapLayerSelectorTree.writeGroupData() Complete =====");
 };
 
 /**
@@ -468,12 +468,12 @@ magic.classes.creator.MapLayerSelectorTree.prototype.writeGroupData = function(d
  * @param {Object} data
  */
 magic.classes.creator.MapLayerSelectorTree.prototype.writeLayerData = function(data) {  
-    console.log("===== MapLayerSelectorTree.writeLayerData() called =====");
-    console.log(data);
+    //console.log("===== MapLayerSelectorTree.writeLayerData() called =====");
+    //console.log(data);
     this.layerDictionary.put(data);
     jQuery("#" + data.id).find("button.name-area").first().text(data.name);
     jQuery("#" + this.prefix + "-update-panel").fadeOut("slow");
-    console.log("===== MapLayerSelectorTree.writeLayerData() Complete =====");
+    //console.log("===== MapLayerSelectorTree.writeLayerData() Complete =====");
 };
 
 /**

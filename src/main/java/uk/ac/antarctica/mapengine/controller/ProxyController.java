@@ -77,7 +77,7 @@ public class ProxyController {
                     String username = null, password = null;
                     String credsProp = env.getProperty("proxy.credentials");   
                     if (credsProp != null && !credsProp.isEmpty()) {
-                        creds = credsProp.split(",");
+                        creds = credsProp.split("\\|");
                     }
                     if (creds != null) {
                         /* Check whether credentials are required */

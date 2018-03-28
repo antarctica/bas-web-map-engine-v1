@@ -41,8 +41,7 @@ magic.classes.creator.KmlSourceEditor.prototype.markup = function() {
             '<div class="form-inline col-md-9">' + 
                 '<select id="' + this.prefix + '-style-mode" class="form-control" ' + 
                     'data-toggle="tooltip" data-placement="left" title="Layer styling">' +
-                    '<option value="default" selected="selected">Default</option>' + 
-                    '<option value="file">Use style in the file</option>' + 
+                    '<option value="default" selected="selected">Use style in the file</option>' + 
                     '<option value="point">Point style</option>' +
                     '<option value="line">Line style</option>' +
                     '<option value="polygon">Polygon style</option>' +

@@ -52,7 +52,6 @@ magic.classes.creator.EsriJsonSourceEditor.prototype.markup = function() {
                 '<select id="' + this.prefix + '-style-mode" class="form-control" ' + 
                     'data-toggle="tooltip" data-placement="left" title="Layer styling">' +
                     '<option value="default" selected="selected">Default</option>' + 
-                    '<option value="predefined">Use pre-defined style</option>' +
                     '<option value="point">Point style</option>' +
                     '<option value="line">Line style</option>' +
                     '<option value="polygon">Polygon style</option>' +
@@ -61,24 +60,12 @@ magic.classes.creator.EsriJsonSourceEditor.prototype.markup = function() {
                     ' type="button" role="button"class="btn btn-md btn-primary" disabled="disabled"><span class="fa fa-pencil"></span>' + 
                 '</button>' +
             '</div>' + 
-        '</div>' + 
-        '<div class="form-group hidden predefined-style-input">' + 
-            '<label class="col-md-3 control-label" for="' + this.prefix + '-style-predefined">' + 
-                'Style name' + 
-            '</label>' + 
-            '<div class="col-md-9">' + 
-                '<select class="form-control" id="' + this.prefix + '-style-predefined" name="' + this.prefix + '-style-predefined" ' + 
-                        'data-toggle="tooltip" data-placement="left" ' + 
-                        'title="Select a canned style for a vector layer">' + 
-                '</select>' + 
-            '</div>' + 
         '</div>'
     );
 };
 
 magic.classes.creator.EsriJsonSourceEditor.prototype.init = function(context) {
     this.setStyleHandlers(context);    
-    this.populateCannedStylesDropdown();    
     magic.modules.Common.jsonToForm(this.formSchema, context, this.prefix);
 };
 
@@ -88,39 +75,13 @@ magic.classes.creator.EsriJsonSourceEditor.prototype.init = function(context) {
  */
 magic.classes.creator.EsriJsonSourceEditor.prototype.writeStyle = function(styledef) {
     if (!styledef) {
-        /* Bit more work to determine style - not come straight from an edit */
-        var mode = jQuery("#" + this.prefix + "-style-mode").val();
-        if (mode == "predefined") {
-            styledef = {
-                "mode": "predefined", 
-                "predefined": jQuery("#" + this.prefix + "-style-predefined").val()
-            };
-        } else {
-            styledef = {"mode": "default"};
-        }
+        styledef = {"mode": "default"};
     }
     jQuery("#" + this.prefix + "-style_definition").val(JSON.stringify(styledef));
-    jQuery("#" + this.prefix + "-style-edit").prop("disabled", (mode == "predefined" || mode == "default"));
-    
+    jQuery("#" + this.prefix + "-style-edit").prop("disabled", (mode == "predefined" || mode == "default"));    
     if (jQuery.isFunction(this.controlCallbacks.onSaveContext)) {
         this.controlCallbacks.onSaveContext();
     }
-};
-
-/**
- * Load the values of any predefined vector styles 
- */
-magic.classes.creator.EsriJsonSourceEditor.prototype.populateCannedStylesDropdown = function() {    
-    var predefKeys = [];
-    for(var key in magic.modules.VectorStyles) {
-        predefKeys.push(key);
-    }
-    predefKeys.sort();
-    var populator = [];
-    jQuery.each(predefKeys, function(idx, key) {
-        populator.push({key: key, value: key});
-    });    
-    magic.modules.Common.populateSelect(jQuery("#" + this.prefix + "-style-predefined"), populator, "key", "value", "", false);
 };
 
 magic.classes.creator.EsriJsonSourceEditor.prototype.sourceSpecified = function() {
