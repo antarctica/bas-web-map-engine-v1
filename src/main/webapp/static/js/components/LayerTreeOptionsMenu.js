@@ -190,7 +190,7 @@ magic.classes.LayerTreeOptionsMenu.prototype.zoomToExtent = function() {
                 extent = this.layer.getSource().getExtent();
             } else {
                 /* Check a further level of source wrapping for ImageVector layers */
-                if (Query.isFunction(this.layer.getSource().getSource) && jQuery.isFunction(this.layer.getSource().getSource().getExtent)) {
+                if (jQuery.isFunction(this.layer.getSource().getSource) && jQuery.isFunction(this.layer.getSource().getSource().getExtent)) {
                     extent = this.layer.getSource().getSource().getExtent();
                 } 
             }

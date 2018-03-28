@@ -63,7 +63,9 @@ magic.classes.creator.LayerEditor.prototype.loadContext = function(context) {
     
     if (!context) {
         return;
-    }    
+    }   
+    
+    this.attrEditorUpdates = {};
     
     /* Disable save button until form is changed */
     this.saveBtn.prop("disabled", true);
