@@ -14,8 +14,8 @@ ALTER TABLE webmap.usermaps ALTER COLUMN allowed_edit TYPE character varying(255
 ALTER TABLE webmap.userlayers ALTER COLUMN allowed_usage TYPE character varying(255);
 
 /* Credentials for remote servers are not used - stored in profile files instead */
-ALTER TABLE webmap.endpoints DROP COLUMN admin_user;
-ALTER TABLE webmap.endpoints DROP COLUMN admin_pass;
+ALTER TABLE webmap.endpoints DROP COLUMN IF EXISTS admin_user;
+ALTER TABLE webmap.endpoints DROP COLUMN IF EXISTS admin_pass;
 ALTER TABLE webmap.endpoints ADD COLUMN rest_endpoint character varying(255);
 COMMENT ON COLUMN webmap.endpoints.rest_endpoint IS 'Access to Geoserver REST services which may not be accessible via the main URL (e.g. load balanced services)';
 

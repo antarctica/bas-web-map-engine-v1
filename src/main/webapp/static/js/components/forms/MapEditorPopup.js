@@ -187,7 +187,7 @@ magic.classes.MapEditorPopup.prototype.payloadToForm = function(populator) {
  */
 magic.classes.MapEditorPopup.prototype.validate = function() {
     var ok = true;
-    var nameInput = jQuery("#" + this.id + "-name");
+    var nameInput = jQuery("#" + this.id + "-map-name");
     if (nameInput[0].checkValidity() === false) {
         nameInput.closest("div.form-group").addClass("has-error");
         ok = false;

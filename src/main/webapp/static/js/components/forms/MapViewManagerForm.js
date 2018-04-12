@@ -72,7 +72,8 @@ magic.classes.MapViewManagerForm.prototype.init = function() {
             /* Restore saved state */
             this.restoreState();   
         } else {
-            /* Set the default button states */
+            /* Set the default button states and select the first base map */
+            this.setSelection(this.baseMapOrder[0]);
             this.setButtonStates(null);      
         }
     }, this));
@@ -233,7 +234,12 @@ magic.classes.MapViewManagerForm.prototype.assignHandlers = function() {
         if (this.editorPopups.edit) {
             this.editorPopups.edit.deactivate();
         }        
-        this.editorPopups.add.activate({});            
+        var selMap = this.mapData[this.getSelection()];
+        this.editorPopups.add.activate({
+            id: "",
+            basemap: selMap.basemap || selMap,
+            data: this.mapPayload()
+        });            
     }, this));
     
     /* Edit map button */
@@ -311,7 +317,7 @@ magic.classes.MapViewManagerForm.prototype.selectMap = function(evt) {
         this.setSelection(selId);
         /* Finally reflect selection in button statuses */ 
         if (!this.mapData[selId].basemap) {
-            /* Base maps should not offer exit/delete! */
+            /* Base maps should not offer edit/delete! */
             this.setButtonStates({
                 "load": false, "bmk": false, "add": false, "edit": true, "del": true
             });
