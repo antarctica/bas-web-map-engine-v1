@@ -237,7 +237,7 @@ magic.classes.MapViewManagerForm.prototype.assignHandlers = function() {
         var selMap = this.mapData[this.getSelection()];
         this.editorPopups.add.activate({
             id: "",
-            basemap: selMap.basemap || selMap,
+            basemap: selMap.basemap || this.getSelection(),
             data: this.mapPayload()
         });            
     }, this));
