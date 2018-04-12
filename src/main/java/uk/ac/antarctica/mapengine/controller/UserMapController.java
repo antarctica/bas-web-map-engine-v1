@@ -131,7 +131,7 @@ public class UserMapController extends AbstractMapController {
         args.add(basemap);
         int nbase = magicDataTpl.queryForObject(
             "SELECT count(id) FROM " +  env.getProperty("postgres.local.mapsTable") + " WHERE name=? AND " + 
-            userAuthoritiesProvider.getInstance().sqlRoleClause("allowed_usage", "owner", args, "read"), 
+            userAuthoritiesProvider.getInstance().sqlRoleClause("allowed_usage", "owner_name", args, "read"), 
             Integer.class, 
             args.toArray()
         );

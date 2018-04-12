@@ -113,11 +113,18 @@
         },
         "resolutions": {
             "description": "Array of resolutions allowed for the map (total possible zoom levels)",
-            "type": "array",
-            "items": {
-                "type": "number"
-            },
-            "minItems": 0
+            "anyOf": [
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    },
+                    "minItems": 0
+                },
+                {
+                    "type": "null"
+                }
+            ]    
         },
         "allowed_usage": {
             "description": "Who is allowed to use this map",

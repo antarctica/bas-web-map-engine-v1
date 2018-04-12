@@ -181,6 +181,9 @@ public class UserAuthorities {
                 break;
         }
         System.out.println("--> Clause : " + joiner.toString());
+        //args.forEach((o) -> {
+        //    System.out.println("--> Arg : " + (String)o);
+        //});
         System.out.println("======== UserAuthorities.sqlRoleClause() complete");
         
         return(joiner.length() == 0 ? null : "(" + joiner.toString() + ")");     

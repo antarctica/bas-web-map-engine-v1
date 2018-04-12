@@ -107,7 +107,9 @@ magic.classes.MapEditorPopup.prototype.assignHandlers = function() {
                 this.cleanForm();
                 magic.modules.Common.buttonClickFeedback(this.id, jQuery.isNumeric(response) || response.status < 400, response.detail);                
                 this.delayedDeactivate(2000);
-                this.init();
+                if (jQuery.isFunction(this.controlCallbacks["onSave"])) {
+                    this.controlCallbacks["onSave"]();
+                }
             }, this))
             .fail(function (xhr) {
                 var msg;

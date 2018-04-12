@@ -137,7 +137,7 @@ public class AbstractMapController {
                         bmkArgs.add(usermapid);
                         Map<String, Object> bookmarkData = magicDataTpl.queryForMap(
                             "SELECT * FROM " + userTableName + " WHERE id=? AND " + 
-                            ua.sqlRoleClause("allowed_usage", "owner_name", args, "read"), 
+                            ua.sqlRoleClause("allowed_usage", "owner_name", bmkArgs, "read"), 
                             bmkArgs.toArray()
                         );                                              
                         userMapData.put("userdata", bookmarkData);                                                

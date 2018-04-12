@@ -289,11 +289,18 @@
                 },
                 "resolutions": {
                     "description": "Array of resolutions allowed for the map (total possible zoom levels - fixed for v1)",
-                    "type": "array",
-                    "items": {
-                        "type": "number"
-                    },
-                    "minItems": 0
+                    "anyOf": [
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "number"
+                            },
+                            "minItems": 0
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]                    
                 },
                 "controls": {
                     "description": "Array of names of controls for the map",
@@ -665,7 +672,7 @@
                 }
             },
             "required": [
-                "projection", "center", "zoom", "resolutions"
+                "projection", "center", "zoom"
             ]
         },
         "allowed_usage": {
