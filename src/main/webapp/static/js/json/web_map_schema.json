@@ -356,7 +356,7 @@
                                     },
                                     "name": {
                                         "description": "Display name for layer group",
-                                        "pattern": "^[A-Za-z0-9_ ]+$",
+                                        "pattern": "^[-A-Za-z0-9_ ]+$",
                                         "required": "true"
                                     },
                                     "expanded": {
@@ -405,7 +405,7 @@
                                     "name": {
                                         "description": "Display name for layer",
                                         "type": "string",
-                                        "pattern": "^[A-Za-z0-9_\\- ]+$",
+                                        "pattern": "^[-A-Za-z0-9_ ]+$",
                                         "required": "true"
                                     },
                                     "source": {

@@ -189,7 +189,9 @@ magic.modules.Endpoints = function () {
                 });
             } else {
                 /* Use OpenStreetMap */
-                layer = new ol.layer.Tile({source: new ol.source.OSM()});
+                layer = new ol.layer.Tile({source: new ol.source.OSM({
+                    wrapX: false    /* Very important - all OSM maps are total nonsense (gratuitously wrapped all over the place) without it! Looks like something's broken in OL4 - David 2018-04-13*/
+                })});
             }
             return(layer);            
         },

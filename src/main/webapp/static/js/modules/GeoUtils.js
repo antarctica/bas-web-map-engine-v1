@@ -175,7 +175,14 @@ magic.modules.GeoUtils = function() {
                     }
                 ]);
             } else if (region == "midlatitudes") {
-                return(this.getBaseLayers("midlatitudes", false));
+                return([
+                    {
+                        "id": null,
+                        "name": "OpenStreetMap",
+                        "expanded": true,
+                        "layers": this.getBaseLayers("midlatitudes", false)
+                    }
+                ]);
             } else {
                 return([]);
             }            

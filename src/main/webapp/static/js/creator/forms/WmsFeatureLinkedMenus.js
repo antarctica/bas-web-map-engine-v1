@@ -126,27 +126,38 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.init = function(data) {
  */
 magic.classes.creator.WmsFeatureLinkedMenus.prototype.loadFeaturesFromService = function(serviceUrl, selectedFeat) {
     
-    this.dropdowns.feature_name.prop("disabled", false);
+    if (serviceUrl != "osm") {
     
-    /* Strip namespace if present - removed 2018-02-16 David - caused confusion as things failed through lack of the <namespace>: at the beginning */
-    //var selectedFeatNoNs = selectedFeat.split(":").pop();
-    
-    /* Examine GetCapabilities list of features */
-    var fopts = magic.runtime.creator.catalogues[serviceUrl];    
-    if (fopts && fopts.length > 0) {
-        /* Have previously read the GetCapabilities document - read stored feature data into select list */
-        magic.modules.Common.populateSelect(this.dropdowns.feature_name, fopts, "value", "name", selectedFeat, true);
-        this.loadStylesForFeature(selectedFeat, "");
-    } else {
-        /* Read available layer data from the service GetCapabilities document */
-        jQuery.get(magic.modules.Common.getWxsRequestUrl(serviceUrl, "GetCapabilities"), jQuery.proxy(function(response) {
-            try {
-                var capsJson = jQuery.parseJSON(JSON.stringify(new ol.format.WMSCapabilities().read(response)));
-                if (capsJson) {
-                    magic.runtime.creator.catalogues[serviceUrl] = this.extractFeatureTypes(capsJson);
-                    magic.modules.Common.populateSelect(this.dropdowns.feature_name, magic.runtime.creator.catalogues[serviceUrl], "value", "name", selectedFeat, true);
-                    this.loadStylesForFeature(selectedFeat, "");
-                } else {
+        this.dropdowns.feature_name.prop("disabled", false);
+
+        /* Strip namespace if present - removed 2018-02-16 David - caused confusion as things failed through lack of the <namespace>: at the beginning */
+        //var selectedFeatNoNs = selectedFeat.split(":").pop();
+
+        /* Examine GetCapabilities list of features */
+        var fopts = magic.runtime.creator.catalogues[serviceUrl];    
+        if (fopts && fopts.length > 0) {
+            /* Have previously read the GetCapabilities document - read stored feature data into select list */
+            magic.modules.Common.populateSelect(this.dropdowns.feature_name, fopts, "value", "name", selectedFeat, true);
+            this.loadStylesForFeature(selectedFeat, "");
+        } else {
+            /* Read available layer data from the service GetCapabilities document */
+            jQuery.get(magic.modules.Common.getWxsRequestUrl(serviceUrl, "GetCapabilities"), jQuery.proxy(function(response) {
+                try {
+                    var capsJson = jQuery.parseJSON(JSON.stringify(new ol.format.WMSCapabilities().read(response)));
+                    if (capsJson) {
+                        magic.runtime.creator.catalogues[serviceUrl] = this.extractFeatureTypes(capsJson);
+                        magic.modules.Common.populateSelect(this.dropdowns.feature_name, magic.runtime.creator.catalogues[serviceUrl], "value", "name", selectedFeat, true);
+                        this.loadStylesForFeature(selectedFeat, "");
+                    } else {
+                        bootbox.alert(
+                            '<div class="alert alert-danger" style="margin-top:10px">' + 
+                                'Failed to parse capabilities for WMS ' + serviceUrl + 
+                            '</div>'
+                        );
+                        this.dropdowns.feature_name.prop("disabled", true).empty();
+                        this.dropdowns.style_name.prop("disabled", true).empty();
+                    }
+                } catch(e) {
                     bootbox.alert(
                         '<div class="alert alert-danger" style="margin-top:10px">' + 
                             'Failed to parse capabilities for WMS ' + serviceUrl + 
@@ -155,24 +166,16 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.loadFeaturesFromService = 
                     this.dropdowns.feature_name.prop("disabled", true).empty();
                     this.dropdowns.style_name.prop("disabled", true).empty();
                 }
-            } catch(e) {
+            }, this)).fail(jQuery.proxy(function() {                
                 bootbox.alert(
                     '<div class="alert alert-danger" style="margin-top:10px">' + 
-                        'Failed to parse capabilities for WMS ' + serviceUrl + 
+                        'Failed to read capabilities for WMS ' + serviceUrl + 
                     '</div>'
                 );
                 this.dropdowns.feature_name.prop("disabled", true).empty();
                 this.dropdowns.style_name.prop("disabled", true).empty();
-            }
-        }, this)).fail(jQuery.proxy(function() {                
-            bootbox.alert(
-                '<div class="alert alert-danger" style="margin-top:10px">' + 
-                    'Failed to read capabilities for WMS ' + serviceUrl + 
-                '</div>'
-            );
-            this.dropdowns.feature_name.prop("disabled", true).empty();
-            this.dropdowns.style_name.prop("disabled", true).empty();
-        }, this));
+            }, this));
+        }
     }
 };
 
