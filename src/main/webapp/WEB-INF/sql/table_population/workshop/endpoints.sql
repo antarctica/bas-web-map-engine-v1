@@ -17,7 +17,7 @@ INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers
 VALUES('South Georgia GIS', 'https://maps.bas.ac.uk/southgeorgia/wms', 'cambridge', FALSE, 'sggis:sg_coastline','ol', NULL, 'EPSG:3762', TRUE, FALSE, NULL, 'http://www.sggis.gov.gs/geoserver');
 
 INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs, has_wfs, is_user_service, url_aliases, rest_endpoint) 
-VALUES('Workshop GeoServer', 'http://localhost:8080/geoserver/workshop/wms', 'cambridge', FALSE, NULL, NULL, NULL, 'EPSG:3031', TRUE, TRUE, NULL, 'http://localhost:8080/geoserver');
+VALUES('Workshop GeoServer', 'http://localhost:8080/geoserver/workshop/wms', 'cambridge', FALSE, NULL, NULL, NULL, 'EPSG:3031', TRUE, FALSE, NULL, 'http://localhost:8080/geoserver');
 
 INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs, has_wfs, is_user_service, url_aliases, rest_endpoint) 
 VALUES('Temporary uploaded data store', 'http://localhost:8080/geoserver/user/wms', 'cambridge', FALSE, NULL, NULL, NULL, 'EPSG:3031', TRUE, TRUE, NULL, 'http://localhost:8080/geoserver');

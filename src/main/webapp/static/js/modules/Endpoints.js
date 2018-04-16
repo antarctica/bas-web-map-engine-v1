@@ -137,7 +137,14 @@ magic.modules.Endpoints = function () {
                     var foundUrl = 
                         parsedUrlFilter.protocol == parsedEpUrl.protocol && 
                         parsedUrlFilter.host == parsedEpUrl.host && 
-                        parsedUrlFilter.port == parsedEpUrl.port;  
+                        parsedUrlFilter.port == parsedEpUrl.port;
+                    /* Bugfix 2018-04-16 David - too risky to introduce this for web mapping workshop */
+                    if (foundUrl) {
+                       /* Protocol, host and port identical - check path starts with endpoint's path */
+                        if (parsedUrlFilter.path != "" && parsedEpUrl.path != "") {
+                            foundUrl = parsedUrlFilter.path.indexOf(parsedEpUrl.path) == 0;
+                        }
+                    }
                     if (!foundUrl) {
                         /* Check any of the aliases match in protocol, host and port */
                         if (ep["url_aliases"]) {
@@ -147,8 +154,14 @@ magic.modules.Endpoints = function () {
                                 foundUrl = 
                                     parsedUrlFilter.protocol == parsedAliasUrl.protocol && 
                                     parsedUrlFilter.host == parsedAliasUrl.host &&
-                                    parsedUrlFilter.port == parsedAliasUrl.port;                               
-                            }
+                                    parsedUrlFilter.port == parsedAliasUrl.port;
+                                if (foundUrl) {
+                                    /* Protocol, host and port identical - check path starts with endpoint's path */
+                                    if (parsedUrlFilter.path != "" && parsedAliasUrl.path != "") {
+                                        foundUrl = parsedUrlFilter.path.indexOf(parsedAliasUrl.path) == 0;
+                                    }
+                                }
+                            }                            
                         }
                     }
                     return(foundUrl);
