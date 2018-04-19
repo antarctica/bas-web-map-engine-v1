@@ -57,7 +57,7 @@
                     new magic.classes.creator.EmbeddedAppContainer();
                 })
                 .fail(function () {
-                    bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to get WMS endpoints for this mapping profile</div>');
+                    magic.modules.Common.showAlertModal("Failed to get WMS endpoints for this mapping profile", "error");
                 });
                 
                 /* Background colour */

@@ -139,6 +139,7 @@ function createLayers(data, viewData, serviceUrl) {
                 /* Render point layers with a single tile for labelling free of tile boundary effects */                
                 var wmsSource = new ol.source.ImageWMS(({
                     url: nd.wms_source,
+                    attributions: nd.attribution,
                     crossOrigin: "anonymous",
                     params: jQuery.extend({
                         "LAYERS": nd.feature_name,
@@ -158,6 +159,7 @@ function createLayers(data, viewData, serviceUrl) {
                 var wmsVersion = "1.3.0";                
                 var wmsSource = new ol.source.TileWMS({
                     url: nd.wms_source,
+                    attributions: nd.attribution,
                     crossOrigin: "anonymous",
                     params: jQuery.extend({
                         "LAYERS": nd.feature_name,
@@ -391,6 +393,10 @@ function createMap(name, div, layers, view, extent, mapsize) {
                 coordinateFormat: function (xy) {
                     return("Lat : " + xy[1].toFixed(2) + ", lon : " + xy[0].toFixed(2));
                 }
+            }),
+            new ol.control.Attribution({
+                collapsible: true,
+                collapsed: false
             })
         ],
         interactions: ol.interaction.defaults(),

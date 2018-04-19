@@ -18,6 +18,7 @@ magic.classes.creator.EmbeddedLayerEditorPopup = function(options) {
     this.formSchema = [
         {"field": "id", "default": ""},
         {"field": "name","default": ""},
+        {"field": "attribution", "default": ""},
         {"field": "opacity", "default": 1.0},
         {"field": "is_base", "default": false},            
         {"field": "is_singletile", "default": false},                
@@ -76,6 +77,16 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.markup = function() {
                 '</div>' + 
             '</div>' +
             this.wmsSelectors.markup() + 
+            '<div class="form-group form-group-md col-md-12">' +                     
+                '<label class="col-md-3 control-label" for="' + this.id + '-attribution">Attribution</label>' + 
+                '<div class="col-md-9">' + 
+                    '<input type="text" id="' + this.id + '-attribution" class="form-control" ' + 
+                        'placeholder="Data attribution" maxlength="255" ' + 
+                        'data-toggle="tooltip" data-placement="left" ' + 
+                        'title="Data attribution">' +
+                    '</input>' + 
+                '</div>' + 
+            '</div>' +
             '<div class="form-group form-group-md col-md-12">' + 
                 '<label for="' + this.id + '-opacity" class="col-md-3 control-label">Opacity</label>' + 
                 '<div class="col-md-9">' + 

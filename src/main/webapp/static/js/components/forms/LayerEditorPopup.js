@@ -327,12 +327,7 @@ magic.classes.LayerEditorPopup.prototype.initDropzone = function() {
                     this.lep.delayedDeactivate(2000);
                 } else {
                     /* Failed to save */
-                    bootbox.alert(
-                        '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                            '<p>Failed to save user layer data - details below:</p>' + 
-                            '<p>' + response.detail + '</p>' + 
-                        '</div>'
-                    );     
+                    magic.modules.Common.showAlertModal("Failed to save user layer data - details : " + response.detail, "warning");                    
                 }
                 this.pfdz.removeAllFiles();
             }, {pfdz: this, lep: lep})); 
@@ -380,19 +375,10 @@ magic.classes.LayerEditorPopup.prototype.initDropzone = function() {
                                 } catch(e) {
                                     msg = xhr.responseText;
                                 }
-                                bootbox.alert(
-                                    '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                                        '<p>Failed to save user layer data - details below:</p>' + 
-                                        '<p>' + msg + '</p>' + 
-                                    '</div>'
-                                );
+                                magic.modules.Common.showAlertModal("Failed to save user layer data - details : " + msg, "warning");                                 
                             });    
                         } else {
-                            bootbox.alert(
-                                '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                                    '<p>No uploaded file found - please specify the data to upload</p>' + 
-                                '</div>'
-                            );
+                            magic.modules.Common.showAlertModal("No uploaded file found - please specify the data to upload", "warning");                            
                         }
                     } else {
                         /* Uploaded file present, so process via DropZone */
@@ -405,7 +391,7 @@ magic.classes.LayerEditorPopup.prototype.initDropzone = function() {
                         this.pfdz.processQueue();
                     }
                 } else {
-                    bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Please correct the marked errors in your input and try again</div>');
+                    magic.modules.Common.showAlertModal("Please correct the marked errors in your input and try again", "error");
                 }            
             }, {pfdz: this, lep: lep}));
         },

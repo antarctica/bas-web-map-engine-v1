@@ -141,11 +141,7 @@ magic.classes.creator.LayerEditor.prototype.loadContext = function(context) {
         if (this.sourceEditor.sourceSpecified()) {
             this.attributeEditor.activate(jQuery.extend(context, this.sourceEditor.formToPayload(), this.attrEditorUpdates));
         } else {
-            bootbox.alert(
-                '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                    'Please specify at least a source URL (and a feature name for WFS feeds)' + 
-                '</div>'
-            );
+            magic.modules.Common.showAlertModal("Please specify at least a source URL (and a feature name for WFS feeds)", "warning");           
         }
     }, this));    
     

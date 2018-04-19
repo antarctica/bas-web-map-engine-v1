@@ -120,7 +120,7 @@ magic.classes.creator.AppContainer.prototype.loadContext = function(mapContext, 
                 mapContext = jQuery.extend(true, mapContext, dialog.defaultData(region));
             }, this));            
         } else {
-            bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">No map context or region data supplied - aborting</div>');
+            magic.modules.Common.showAlertModal("No map context or region data supplied - aborting", "error");
             return;
         }
     } 
@@ -133,7 +133,7 @@ magic.classes.creator.AppContainer.prototype.loadContext = function(mapContext, 
     try {
         magic.runtime.projection = mapContext.data.projection;
     } catch(e) {
-        bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to determine projection - aborting</div>');
+        magic.modules.Common.showAlertModal("Failed to determine projection - aborting", "error");
         return;
     }
    
@@ -165,12 +165,9 @@ magic.classes.creator.AppContainer.prototype.saveContext = function() {
             if (!validated) {
                  /* Failed to validate the data against the schema - complain */
                 var validationErrors = JSON.stringify(tv4.error, null, 4);
-                bootbox.alert(
-                    '<div class="alert alert-danger" style="margin-top:10px">' + 
-                        '<p>Failed to validate your map data against the web map schema</p>' + 
-                        '<p>Detailed explanation of the failure below:</p>' + 
-                        '<p>' + validationErrors + '</p>' + 
-                    '</div>'
+                magic.modules.Common.showAlertModal(
+                    "Failed to validate your map data against the web map schema<br/><br/>" + 
+                    "Detailed explanation of the failure below:<br/><br/>" + validationErrors, "error"
                 );
             } else {
                 /* Schema validation was ok */
@@ -209,12 +206,7 @@ magic.classes.creator.AppContainer.prototype.saveContext = function() {
                     } catch(e) {
                         msg = xhr.responseText;
                     }
-                    bootbox.alert(
-                        '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                            '<p>Failed to save your map - details below:</p>' + 
-                            '<p>' + msg + '</p>' + 
-                        '</div>'
-                    );
+                    magic.modules.Common.showAlertModal("Failed to save your map - details : " + msg, "warning");                   
                 });
             }
         }, this))
@@ -225,19 +217,10 @@ magic.classes.creator.AppContainer.prototype.saveContext = function() {
             } catch(e) {
                 msg = xhr.responseText;
             }
-            bootbox.alert(
-                '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                    '<p>Failed to retrieve JSON schema for map - details below:</p>' + 
-                    '<p>' + msg + '</p>' + 
-                '</div>'
-            );
+            magic.modules.Common.showAlertModal("Failed to retrieve JSON schema for map - details : " + msg, "warning");            
         });  
     } else {
         /* Validation errors */
-        bootbox.alert(
-            '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                '<p>Please correct the marked fields before resubmitting</p>' + 
-            '</div>'
-        );
+        magic.modules.Common.showAlertModal("Please correct the marked fields before resubmitting", "warning");        
     }
 };

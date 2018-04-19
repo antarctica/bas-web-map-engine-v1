@@ -27,10 +27,13 @@
     "ol.control.ScaleLine",
     "ol.control.MousePosition",
     "ol.control.Zoom",
+    "ol.control.Attribution",
     "ol.Collection#*",    
     "ol.interaction.defaults",
     "ol.proj.METERS_PER_UNIT",
-    "ol.coordinate.*"
+    "ol.coordinate.*",
+    "ol.Attribution",
+    "ol.Attribution#*"
   ],
   "compile": {
     "externs": [

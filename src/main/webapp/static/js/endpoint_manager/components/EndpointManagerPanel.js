@@ -109,12 +109,7 @@ magic.classes.endpoint_manager.EndpointManagerPanel.prototype.getEndpointData = 
         this.selectedEndpointId = data.id;
     }, this))
     .fail(jQuery.proxy(function(xhr) {
-        bootbox.alert(
-            '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                '<p>Failed to load endpoint with id ' + id + ':</p>' + 
-                '<p>' + this.alertResponse(xhr) + '</p>' + 
-            '</div>'
-        );
+        magic.modules.Common.showAlertModal("Failed to load endpoint with id " + id + " : " + this.alertResponse(xhr), "warning");        
     }, this));
 };
 
@@ -203,23 +198,14 @@ magic.classes.endpoint_manager.EndpointManagerPanel.prototype.loadEndpoints = fu
         if (jQuery.isArray(data)) {
             magic.modules.Common.populateSelect(this.searchSelect, data, "id", "name", "", true);            
         } else {
-            bootbox.alert(
-                '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                    '<p>Malformed data received while loading endpoints - server may be down?</p>' + 
-                '</div>'
-            );
+            magic.modules.Common.showAlertModal("Malformed data received while loading endpoints - server may be down?", "warning");            
         }        
         if (jQuery.isFunction(callback)) {
             callback();
         }
     }, this))
     .fail(jQuery.proxy(function(xhr) {
-        bootbox.alert(
-            '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                '<p>Error loading endpoints:</p>' + 
-                '<p>' + this.alertResponse(xhr) + '</p>' + 
-            '</div>'
-        );
+        magic.modules.Common.showAlertModal("Error loading endpoints : " + this.alertResponse(xhr), "warning");        
     }, this));
 };
 

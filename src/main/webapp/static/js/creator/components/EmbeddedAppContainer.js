@@ -49,7 +49,7 @@ magic.classes.creator.EmbeddedAppContainer.prototype.loadContext = function(mapC
                 mapContext = jQuery.extend(true, mapContext, dialog.defaultData(region));
             }, this));
         } else {
-            bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">No map context or region data supplied - aborting</div>');
+            magic.modules.Common.showAlertModal("No map context or region data supplied - aborting", "error");
             return;
         }
     }
@@ -96,12 +96,10 @@ magic.classes.creator.EmbeddedAppContainer.prototype.saveContext = function() {
                 if (!validated) {
                     /* Failed to validate the data against the schema - complain */
                     var validationErrors = JSON.stringify(tv4.error, null, 4);
-                    bootbox.alert(
-                        '<div class="alert alert-danger" style="margin-top:10px">' + 
-                            '<p>Failed to validate your map data against the web map schema</p>' + 
-                            '<p>Detailed explanation of the failure below:</p>' + 
-                            '<p>' + validationErrors + '</p>' + 
-                        '</div>'
+                    magic.modules.Common.showAlertModal(
+                        "Failed to validate your map data against the web map schema<br/><br/>" + 
+                        "Detailed explanation of the failure below:<br/><br/>" +  
+                         validationErrors, "error"
                     );
                 } else {
                     /* Schema validation was ok */
@@ -135,12 +133,7 @@ magic.classes.creator.EmbeddedAppContainer.prototype.saveContext = function() {
                         } catch(e) {
                             msg = xhr.responseText;
                         }
-                        bootbox.alert(
-                            '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                                '<p>Failed to save your map - details below:</p>' + 
-                                '<p>' + msg + '</p>' + 
-                            '</div>'
-                        );
+                        magic.modules.Common.showAlertModal("Failed to save your map - details : " + msg, "warning");                        
                     });
                 }
             }, this))
@@ -151,21 +144,12 @@ magic.classes.creator.EmbeddedAppContainer.prototype.saveContext = function() {
                 } catch(e) {
                     msg = xhr.responseText;
                 }
-                bootbox.alert(
-                    '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                        '<p>Failed to retrieve JSON schema for embedded map - details below:</p>' + 
-                        '<p>' + msg + '</p>' + 
-                    '</div>'
-                );
+                magic.modules.Common.showAlertModal("Failed to retrieve JSON schema for embedded map - details : " + msg, "warning");                
             });  
         }, this));        
     } else {
         /* Validation errors */
-        bootbox.alert(
-            '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                '<p>Please correct the marked fields before resubmitting</p>' + 
-            '</div>'
-        );
+        magic.modules.Common.showAlertModal("Please correct the marked fields before resubmitting", "warning");        
     }
 };
 
@@ -211,12 +195,7 @@ magic.classes.creator.EmbeddedAppContainer.prototype.modifyMapExtentByDataLayers
             } catch(e) {
                 msg = xhr.responseText;
             }
-            bootbox.alert(
-                '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                    '<p>Failed to calculate embedded map extent from data layers:</p>' + 
-                    '<p>' + msg + '</p>' + 
-                '</div>'
-            );
+            magic.modules.Common.showAlertModal("Failed to calculate embedded map extent from data layers - details : " + msg, "warning");            
         });
     } else {
         if (jQuery.isFunction(callback)) {
@@ -254,12 +233,7 @@ magic.classes.creator.EmbeddedAppContainer.prototype.deleteMap = function(id) {
                 } catch(e) {
                     msg = xhr.responseText;
                 }
-                bootbox.alert(
-                    '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                        '<p>Failed to delete user map view - details below:</p>' + 
-                        '<p>' + msg + '</p>' + 
-                    '</div>'
-                );
+                magic.modules.Common.showAlertModal("Failed to delete user map view - details : " + msg, "warning");                
             });                   
             bootbox.hideAll();
         } else {

@@ -34,7 +34,7 @@ magic.classes.creator.MapParameterSelector.prototype.defaultData = function(regi
 magic.classes.creator.MapParameterSelector.prototype.loadContext = function(context) {     
     jQuery("#" + this.prefix + "-selector").closest("div.row").removeClass("hidden");    
     if (!context) {
-        bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">No default map parameters supplied</div>');
+        magic.modules.Common.showAlertModal("No default map parameters supplied", "error");
         return;
     }
     this.renderMap(this.embedded ? context : context.data);
@@ -89,11 +89,7 @@ magic.classes.creator.MapParameterSelector.prototype.renderMap = function(data) 
             }
         }
         if (!projEp) {
-            bootbox.alert(
-                '<div class="alert alert-danger" style="margin-top:10px">' + 
-                    'No endpoint service defined for projection ' + data.projection + 
-                '</div>'
-            );
+            magic.modules.Common.showAlertModal("No endpoint service defined for projection " + data.projection, "error");             
             return;
         }
         if (projEp.url == "osm") {

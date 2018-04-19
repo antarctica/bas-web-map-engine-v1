@@ -85,12 +85,7 @@ magic.classes.HeightGraphPopup.prototype.activate = function(route) {
             } catch(e) {
                 msg = xhr.responseText;
             }
-            bootbox.alert(
-                '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                    '<p>Failed to generate data for height graph - details below:</p>' + 
-                    '<p>' + msg + '</p>' + 
-                '</div>'
-            );
+            magic.modules.Common.showAlertModal("Failed to generate data for height graph - details : " + msg, "warning");            
         }, this));        
     }
 };

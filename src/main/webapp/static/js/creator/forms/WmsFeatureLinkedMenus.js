@@ -149,29 +149,17 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.loadFeaturesFromService = 
                         magic.modules.Common.populateSelect(this.dropdowns.feature_name, magic.runtime.creator.catalogues[serviceUrl], "value", "name", selectedFeat, true);
                         this.loadStylesForFeature(selectedFeat, "");
                     } else {
-                        bootbox.alert(
-                            '<div class="alert alert-danger" style="margin-top:10px">' + 
-                                'Failed to parse capabilities for WMS ' + serviceUrl + 
-                            '</div>'
-                        );
+                        magic.modules.Common.showAlertModal("ailed to parse capabilities for WMS " + serviceUrl, "error");                       
                         this.dropdowns.feature_name.prop("disabled", true).empty();
                         this.dropdowns.style_name.prop("disabled", true).empty();
                     }
                 } catch(e) {
-                    bootbox.alert(
-                        '<div class="alert alert-danger" style="margin-top:10px">' + 
-                            'Failed to parse capabilities for WMS ' + serviceUrl + 
-                        '</div>'
-                    );
+                    magic.modules.Common.showAlertModal("Failed to parse capabilities for WMS " + serviceUrl, "error");                   
                     this.dropdowns.feature_name.prop("disabled", true).empty();
                     this.dropdowns.style_name.prop("disabled", true).empty();
                 }
             }, this)).fail(jQuery.proxy(function() {                
-                bootbox.alert(
-                    '<div class="alert alert-danger" style="margin-top:10px">' + 
-                        'Failed to read capabilities for WMS ' + serviceUrl + 
-                    '</div>'
-                );
+                magic.modules.Common.showAlertModal("Failed to read capabilities for WMS " + serviceUrl, "error");                 
                 this.dropdowns.feature_name.prop("disabled", true).empty();
                 this.dropdowns.style_name.prop("disabled", true).empty();
             }, this));
@@ -217,7 +205,7 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.extractFeatureTypes = func
         var layers = getCaps.Capability.Layer.Layer;
         this.getFeatures(ftypes, layers);        
     } else {
-        bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Malformed GetCapabilities response received from remote WMS</div>');
+        magic.modules.Common.showAlertModal("Malformed GetCapabilities response received from remote WMS", "error");
     }
     return(ftypes);
 };

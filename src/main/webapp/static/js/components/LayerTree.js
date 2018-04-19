@@ -587,11 +587,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                                 msg = xhr.responseText;
                             }
                         }
-                        bootbox.alert(
-                            '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                                '<p>' + msg + '</p>' + 
-                            '</div>'
-                        );
+                        magic.modules.Common.showAlertModal(msg, "warning");                        
                     });
                 }
             });  
@@ -639,21 +635,13 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                         });
                         vectorSource.addFeatures(features);
                     } catch(e) {
-                        bootbox.alert(
-                            '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                                '<p>Failed to parse the output from ESRI JSON service at ' + nd.source.esrijson_source + '</p>' + 
-                            '</div>'
-                        );
+                        magic.modules.Common.showAlertModal("Failed to parse the output from ESRI JSON service at " + nd.source.esrijson_source, "warning");                          
                     }
                 })
                 .fail(function(xhr) {
                     var msg;                    
                     try {msg = JSON.parse(xhr.responseText)["detail"];} catch(e) {msg = xhr.responseText;}
-                    bootbox.alert(
-                        '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                            '<p>' + msg + '</p>' + 
-                        '</div>'
-                    );
+                    magic.modules.Common.showAlertModal(msg, "warning");                    
                 });
             }
         });        
@@ -811,11 +799,7 @@ magic.classes.LayerTree.prototype.populateAutoloadGroup = function(map, grpid, g
                 }                        
             }                   
         }, this)).fail(function(xhr) {
-            bootbox.alert(
-                '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                    '<p>' + JSON.parse(xhr.responseText)["detail"] + '</p>' + 
-                '</div>'
-            );
+            magic.modules.Common.showAlertModal(JSON.parse(xhr.responseText)["detail"], "warning");            
         });                                
     }
 };

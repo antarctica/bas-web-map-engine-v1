@@ -79,17 +79,9 @@ magic.classes.creator.EmbeddedAttributeEditorPopup.prototype.getFeatureAttribute
         }, this))
         .fail(jQuery.proxy(function(xhr, status, message) {
             if (status == 401) {
-                bootbox.alert(
-                    '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                        'Not authorised to read data' + 
-                    '</div>'
-                );
+                magic.modules.Common.showAlertModal("Not authorised to read data", "warning");                
             } else {
-                bootbox.alert(
-                    '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                        'Error : ' + message + " from server while reading attributes" + 
-                    '</div>'
-                );
+                magic.modules.Common.showAlertModal("Error : " + message + " from server while reading attributes", "warning");                
             }
         }, this));
     }    

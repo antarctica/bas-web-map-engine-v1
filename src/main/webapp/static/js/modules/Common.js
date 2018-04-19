@@ -637,6 +637,27 @@ magic.modules.Common = function () {
              }
         },
         /**
+         * Show a bootbox alert
+         * @param {String} message
+         * @param {String} type info|warning|error
+         */
+        showAlertModal(message, type) {
+            message = message || "An unspecified error occurred";
+            type = type || "error";
+            var alertClass = type, divStyle = "margin-bottom:0";
+            if (type == "error") {
+                alertClass = "danger";
+                divStyle = "margin-top:10px";
+            }
+            bootbox.hideAll();
+            magic.modules.Common.showAlertModal(
+                '<div class="alert alert-' + alertClass + '" style="' + divStyle + '">' + 
+                    '<p>Failed to delete user map view - details below:</p>' + 
+                    '<p>' + message + '</p>' + 
+                '</div>'
+            );
+        },
+        /**
          * Remove all success/error indications on all form inputs on a page
          */
         resetFormIndicators: function() {

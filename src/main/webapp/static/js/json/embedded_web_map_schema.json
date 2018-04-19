@@ -158,6 +158,10 @@
                         "pattern": "^[-A-Za-z0-9_ ]+$",
                         "required": "true"
                     },
+                    "attribution": {
+                        "description": "Attribution string for layer data",
+                        "type": "string"
+                    },
                     "wms_source": {
                         "description": "WMS feed serving layer",
                         "type": "string",

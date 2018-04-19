@@ -78,7 +78,7 @@ magic.classes.MapViewManagerForm.prototype.init = function() {
         }
     }, this));
     userRequest.fail(function() {
-        bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to load available map views</div>');
+        magic.modules.Common.showAlertModal("Failed to load available map views", "error");
     });          
 };
 
@@ -280,12 +280,7 @@ magic.classes.MapViewManagerForm.prototype.assignHandlers = function() {
                     } catch(e) {
                         msg = xhr.responseText;
                     }
-                    bootbox.alert(
-                        '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                            '<p>Failed to delete user map view - details below:</p>' + 
-                            '<p>' + msg + '</p>' + 
-                        '</div>'
-                    );
+                    magic.modules.Common.showAlertModal("Failed to delete user map view - details : " + msg, "warning");                   
                 });                   
                 bootbox.hideAll();
             } else {

@@ -49,19 +49,11 @@ magic.classes.creator.MapRegionSelector = function(options) {
                             if (alloweds.length > 0) {
                                 this.loadContext(action, mapName);
                             } else {
-                                bootbox.alert(
-                                    '<div class="alert alert-danger" style="margin-top:10px">' + 
-                                        'You are not allowed to edit the map ' + mapName + 
-                                    '</div>'
-                                );
+                                magic.modules.Common.showAlertModal("You are not allowed to edit the map " + mapName, "error");                                
                             }
                         }
                     }, this)).fail(function(xhr, status, message) {
-                        bootbox.alert(
-                            '<div class="alert alert-danger" style="margin-top:10px">' + 
-                                'Failed to get map titles - error was : ' +  message + 
-                            '</div>'
-                        );
+                        magic.modules.Common.showAlertModal("Failed to get map titles - error was : " + message, "error");                        
                     });
                 }                  
             } else {
@@ -108,11 +100,7 @@ magic.classes.creator.MapRegionSelector.prototype.loadContext = function(action,
             this.currentMapId = action == "edit" ? data.id : "";
             this.loadContextCb(data, null);
         }, this)).fail(function(xhr, status, message) {
-            bootbox.alert(
-                '<div class="alert alert-danger" style="margin-top:10px">' + 
-                    'Failed to get map data for ' + name + ' - error was : ' +  message + 
-                '</div>'
-            );
+            magic.modules.Common.showAlertModal("Failed to get map data for " + name + " - details : " + message, "error");            
         });
     }    
 };

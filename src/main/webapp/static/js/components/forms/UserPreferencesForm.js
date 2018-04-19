@@ -52,12 +52,7 @@ magic.classes.UserPreferencesForm.prototype.init = function() {
                 } catch(e) {
                     msg = xhr.responseText;
                 }
-                bootbox.alert(
-                    '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                        '<p>Failed to save preferences - details below:</p>' + 
-                        '<p>' + msg + '</p>' + 
-                    '</div>'
-                );                
+                magic.modules.Common.showAlertModal("Failed to save preferences - details : " + msg, "warning");                       
             }, this)
         });
     }, this));

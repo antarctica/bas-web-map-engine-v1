@@ -276,12 +276,7 @@ magic.classes.UserLayerManagerForm.prototype.assignHandlers = function() {
                     } catch(e) {
                         msg = xhr.responseText;
                     }
-                    bootbox.alert(
-                        '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                            '<p>Failed to delete user layer - details below:</p>' + 
-                            '<p>' + msg + '</p>' + 
-                        '</div>'
-                    );
+                    magic.modules.Common.showAlertModal("Failed to delete user layer - details : " + msg, "warning");                    
                 });                   
                 bootbox.hideAll();
             } else {
@@ -565,7 +560,7 @@ magic.classes.UserLayerManagerForm.prototype.fetchLayers = function(cb) {
         });
         cb(uldata);
     }, this)).fail(function() {
-        bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Failed to load available user layers</div>');
+        magic.modules.Common.showAlertModal("Failed to load available user layers", "error");
     });
 };
 

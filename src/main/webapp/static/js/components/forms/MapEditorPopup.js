@@ -118,15 +118,10 @@ magic.classes.MapEditorPopup.prototype.assignHandlers = function() {
                 } catch(e) {
                     msg = xhr.responseText;
                 }
-                bootbox.alert(
-                    '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                        '<p>Failed to save user map - details below:</p>' + 
-                        '<p>' + msg + '</p>' + 
-                    '</div>'
-                );
+                magic.modules.Common.showAlertModal("Failed to save user map - details : " + msg, "warning");                
             });    
         } else {
-            bootbox.alert('<div class="alert alert-danger" style="margin-top:10px">Please correct the marked errors in your input and try again</div>');
+            magic.modules.Common.showAlertModal("Please correct the marked errors in your input and try again", "error");
         }               
     }, this));
     

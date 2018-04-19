@@ -161,33 +161,17 @@ magic.classes.creator.AttributeEditorPopup.prototype.getVectorFeatureAttributes 
                             this.assignHandlers();
                         }
                     } else {
-                        bootbox.alert(
-                            '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                                'Error : Failed to parse test feature from ' + feedUrl + ' from server while reading attributes' + 
-                            '</div>'
-                        );
+                        magic.modules.Common.showAlertModal("Error : Failed to parse test feature from " + feedUrl + " from server while reading attributes", "warning");                        
                     }
                 } else {
-                    bootbox.alert(
-                        '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                            'Error :  Failed to parse test feature from ' + feedUrl + 
-                        '</div>'
-                    );
+                    magic.modules.Common.showAlertModal("Error :  Failed to parse test feature from " + feedUrl, "warning");                   
                 }
             }, this))
             .fail(jQuery.proxy(function(xhr, status, message) {
                 if (status == 401) {
-                    bootbox.alert(
-                        '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                            'Not authorised to read data' + 
-                        '</div>'
-                    );
+                    magic.modules.Common.showAlertModal("Not authorised to read data", "warning");                    
                 } else {
-                    bootbox.alert(
-                        '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                            'Error : ' + message + ' from server while reading attributes' + 
-                        '</div>'
-                    );
+                    magic.modules.Common.showAlertModal("Error : " + message + " from server while reading attributes", "warning");                     
                 }
             }, this));
         }
@@ -234,17 +218,9 @@ magic.classes.creator.AttributeEditorPopup.prototype.getWmsFeatureAttributes = f
         }, this))
         .fail(jQuery.proxy(function(xhr, status, message) {
             if (status == 401) {
-                bootbox.alert(
-                    '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                        'Not authorised to read data' + 
-                    '</div>'
-                );
+                magic.modules.Common.showAlertModal("Not authorised to read data", "warning");                
             } else {
-                bootbox.alert(
-                    '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                        'Error : ' + message + " from server while reading attributes" + 
-                    '</div>'
-                );
+                magic.modules.Common.showAlertModal("Error : " + message + " from server while reading attributes", "warning");               
             }
         }, this));
     }    

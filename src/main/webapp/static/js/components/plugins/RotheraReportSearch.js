@@ -134,24 +134,14 @@ magic.classes.RotheraReportSearch = function (options) {
                     } catch(e) {
                         msg = xhr.responseText;
                     }
-                    bootbox.alert(
-                        '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                            '<p>Failed to execute your search - reason detailed below:</p>' + 
-                            '<p>' + msg + '</p>' + 
-                        '</div>'
-                    );
+                    magic.modules.Common.showAlertModal("Failed to execute your search - details : " + msg, "warning");                    
                 });
                 bootbox.dialog({
                     title: "Please wait",
                     message: '<p><i class="fa fa-spin fa-spinner"></i> Searching for reports...</p>'
                 });                
             } else {
-                bootbox.alert(
-                    '<div class="alert alert-danger" style="margin-bottom:0">' + 
-                        '<p>Please correct the problems indicated below:</p>' + 
-                        this.formatErrors(errors) + 
-                    '</div>'
-                );
+                magic.modules.Common.showAlertModal("Please correct the problems indicated below:<br/><br/>" + this.formatErrors(errors), "error");                
             }
         }, this));
     }, this));    
@@ -416,12 +406,7 @@ magic.classes.RotheraReportSearch.prototype.fullFeatureDataFetch = function(call
         } catch(e) {
             msg = xhr.responseText;
         }
-        bootbox.alert(
-            '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                '<p>Failed to get full attribute data for this report - reason detailed below:</p>' + 
-                '<p>' + msg + '</p>' + 
-            '</div>'
-        );
+        magic.modules.Common.showAlertModal("Failed to get full attribute data for this report - details : " + msg, "warning");        
     });   
 };
 

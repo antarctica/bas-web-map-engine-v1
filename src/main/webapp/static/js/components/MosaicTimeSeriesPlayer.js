@@ -140,11 +140,7 @@ magic.classes.MosaicTimeSeriesPlayer.prototype.loadGranules = function(data) {
         this.granules = feats;
         this.showInitialState();
     } else {
-        bootbox.alert(
-            '<div class="alert alert-warning" style="margin-bottom:0">' + 
-                '<p>No time series granule data received</p>' + 
-            '</div>'
-        );
+        magic.modules.Common.showAlertModal("No time series granule data received", "warning");       
     }
 };
 
