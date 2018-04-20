@@ -641,7 +641,7 @@ magic.modules.Common = function () {
          * @param {String} message
          * @param {String} type info|warning|error
          */
-        showAlertModal(message, type) {
+        showAlertModal: function(message, type) {
             message = message || "An unspecified error occurred";
             type = type || "error";
             var alertClass = type, divStyle = "margin-bottom:0";
@@ -650,7 +650,7 @@ magic.modules.Common = function () {
                 divStyle = "margin-top:10px";
             }
             bootbox.hideAll();
-            magic.modules.Common.showAlertModal(
+            bootbox.alert(
                 '<div class="alert alert-' + alertClass + '" style="' + divStyle + '">' + 
                     '<p>Failed to delete user map view - details below:</p>' + 
                     '<p>' + message + '</p>' + 
