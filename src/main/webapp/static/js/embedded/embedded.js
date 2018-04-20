@@ -139,7 +139,7 @@ function createLayers(data, viewData, serviceUrl) {
                 /* Render point layers with a single tile for labelling free of tile boundary effects */                
                 var wmsSource = new ol.source.ImageWMS(({
                     url: nd.wms_source,
-                    attributions: nd.attribution,
+                    attributions: getAttribution(nd),
                     crossOrigin: "anonymous",
                     params: jQuery.extend({
                         "LAYERS": nd.feature_name,
@@ -159,7 +159,7 @@ function createLayers(data, viewData, serviceUrl) {
                 var wmsVersion = "1.3.0";                
                 var wmsSource = new ol.source.TileWMS({
                     url: nd.wms_source,
-                    attributions: nd.attribution,
+                    attributions: getAttribution(nd),
                     crossOrigin: "anonymous",
                     params: jQuery.extend({
                         "LAYERS": nd.feature_name,
@@ -188,6 +188,21 @@ function createLayers(data, viewData, serviceUrl) {
         }
     }
     return(layers);
+}
+
+function getAttribution(nd) {
+    if (nd.attribution) {
+        var cacheBuster = "&buster=" + new Date().getTime();
+        var legendUrl = nd.wms_source + 
+            "?service=WMS&request=GetLegendGraphic&format=image/png&width=15&height=15&styles=&layer=" + nd.feature_name + 
+            "&legend_options=fontName:Bitstream Vera Sans Mono;fontAntiAliasing:true;fontColor:0xffffff;fontSize:6;bgColor:0x272b30;dpi:180" + cacheBuster;
+        return(
+            '<strong>Layer ' + nd.name + '</strong><br/>' + 
+            'Source attribution : ' + nd.attribution + '<br/>' + 
+            '<img src="' + legendUrl + '" alt="Legend"></img>'
+        );
+    } 
+    return("");
 }
 
 function addGetFeatureInfoHandlers(map) {
@@ -396,7 +411,7 @@ function createMap(name, div, layers, view, extent, mapsize) {
             }),
             new ol.control.Attribution({
                 collapsible: true,
-                collapsed: false
+                collapsed: true /* Note TODO: this needs to be false if the base layer is OSM */
             })
         ],
         interactions: ol.interaction.defaults(),

@@ -1,7 +1,7 @@
 /* OL control custom styles */
 .custom-mouse-position {
     right: 8px;
-    bottom: 8px;
+    top: 8px;
     font-size: 10px;
     font-family: "Arial";
     font-weight: bold;
@@ -103,4 +103,8 @@ div.ol-popup-feature-data {
     font-size: 12px;
     width: 150px;
     margin-top: 5px;
+}
+
+.ol-attribution img {
+    max-height: 10em;
 }

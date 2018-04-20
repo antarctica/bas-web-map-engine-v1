@@ -1,4 +1,5 @@
 css/ol.css
+css/embedded_map.css
 js/embedded/ol_embedded.min.js
 js/embedded/jquery.min.js
 js/embedded/proj4.js
