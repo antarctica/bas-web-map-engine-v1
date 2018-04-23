@@ -16,3 +16,7 @@ img.applogo {
 a:hover {
     text-decoration: none;
 }
+
+span.label {
+    font-size: 100% !important;
+}

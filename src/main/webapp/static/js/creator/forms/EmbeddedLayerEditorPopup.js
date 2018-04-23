@@ -66,7 +66,7 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.markup = function() {
         '<div id="' + this.id + '-edit-view-fs" class="col-md-12">' +
             '<input type="hidden" id="' + this.id + '-id"></input>' + 
             '<div class="form-group form-group-md col-md-12">' +                     
-                '<label class="col-md-3 control-label" for="' + this.id + '-name">Name</label>' + 
+                '<label class="col-md-3 control-label" for="' + this.id + '-name"><span class="label label-danger">Name</span></label>' + 
                 '<div class="col-md-9">' + 
                     '<input type="text" id="' + this.id + '-name" class="form-control" ' + 
                         'placeholder="Layer name" maxlength="100" ' + 

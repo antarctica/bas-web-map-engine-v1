@@ -376,6 +376,10 @@ magic.classes.creator.MapLayerSelectorTree.prototype.processLayers = function(la
 magic.classes.creator.MapLayerSelectorTree.prototype.allowedDragHandler = function (elt, hint, target) {
     /* Allowed drag iff target is a group or the top level */    
     var allowed = false;
+    if (target == null || jQuery.isEmptyObject(target) || (jQuery.isArray(target) && target.length == 0)) {
+        /* Defensive stuff to try and disallow the occasional random allocation of an element to document body (i.e. at the top of the page) */
+        return(allowed);
+    }
     this.setHintStyle(hint, true);
     var dropZone = hint.parents("li").first();
     if (dropZone) {                            

@@ -37,7 +37,7 @@ magic.classes.creator.EsriTileSourceEditor.prototype.constructor = magic.classes
 magic.classes.creator.EsriTileSourceEditor.prototype.markup = function () {
     return(
         '<div class="form-group">' + 
-            '<label for="' + this.prefix + '-esritile_source" class="col-md-3 control-label">Feed URL</label>' + 
+            '<label for="' + this.prefix + '-esritile_source" class="col-md-3 control-label"><span class="label label-danger">Feed URL</span></label>' + 
             '<div class="col-md-9">' + 
                 '<input type="url" class="form-control" id="' + this.prefix + '-esritile_source" name="' + this.prefix + '-esritile_source" ' +  
                        'placeholder="URL of ESRI Tile source" required="required" ' + 

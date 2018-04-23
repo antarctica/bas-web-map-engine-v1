@@ -23,3 +23,7 @@ form {
 .post-error {
     color: #a94442;
 }
+
+span.label {
+    font-size: 100% !important;
+}

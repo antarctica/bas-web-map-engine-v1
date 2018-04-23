@@ -156,7 +156,7 @@ public class UserAuthorities {
         StringJoiner joiner = new StringJoiner(" OR ");        
         
         /* Check for admin role, allow any operation - internal admins can do anything but delete objects */        
-        if (userHasRole(getUserRoleMatrix().getRolesByProperties("internal", "admin"))) {
+        if (userHasRole(getUserRoleMatrix().getRolesByProperties("yes", "admin"))) {
             return("True");
         }
         populateRoles();

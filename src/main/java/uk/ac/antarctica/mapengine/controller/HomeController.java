@@ -57,8 +57,14 @@ public class HomeController {
     @RequestMapping(value = "/", method = RequestMethod.GET)
     public String topLevel(HttpServletRequest request, ModelMap model) throws ServletException, IOException {
         System.out.println("***** Been redirected to fetch page / - will render default map from here!");
-        return(renderPage(request, model, "map", env.getProperty("default.map"), null, null, false));        
-    }        
+        String mapName = env.getProperty("default.map");
+        if (mapName.startsWith("/restricted/")) {
+            /* Ensure that a top-level restricted map always shows the login page when redirected - Polarcode bug 23/04/2018 */
+            return("redirect:" + mapName); 
+        } else {
+            return(renderPage(request, model, "map", env.getProperty("default.map"), null, null, false));
+        }                
+    }          
     
     /**
      * Render home page    

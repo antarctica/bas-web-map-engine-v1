@@ -28,7 +28,7 @@ magic.classes.creator.GpxSourceEditor.prototype.markup = function() {
     return(
         '<input type="hidden" name="' + this.prefix + '-style_definition" id="' + this.prefix + '-style_definition"></input>' + 
         '<div class="form-group">' + 
-            '<label for="' + this.prefix + '-gpx_source" class="col-md-3 control-label">Feed URL</label>' + 
+            '<label for="' + this.prefix + '-gpx_source" class="col-md-3 control-label"><span class="label label-danger">Feed URL</span></label>' + 
             '<div class="col-md-9">' + 
                 '<input type="url" class="form-control" id="' + this.prefix + '-gpx_source" name="' + this.prefix + '-gpx_source" ' +  
                        'placeholder="URL of GPX source" required="required" ' + 

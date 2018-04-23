@@ -56,7 +56,7 @@ magic.classes.LayerEditorPopup.prototype.markup = function() {
             '<input type="hidden" id="' + this.id + '-layer-id"></input>' + 
             '<input type="hidden" id="' + this.id + '-layer-styledef"></input>' +
             '<div class="form-group form-group-sm col-sm-12">' +                     
-                '<label class="col-sm-4 control-label" for="' + this.id + '-layer-caption">Name</label>' + 
+                '<label class="col-sm-4 control-label" for="' + this.id + '-layer-caption"><span class="label label-danger">Name</span></label>' + 
                 '<div class="col-sm-8">' + 
                     '<input type="text" id="' + this.id + '-layer-caption" class="form-control" ' + 
                         'placeholder="Layer caption" maxlength="100" ' + 

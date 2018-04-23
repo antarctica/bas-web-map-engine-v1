@@ -48,7 +48,7 @@ magic.classes.MapEditorPopup.prototype.markup = function() {
             '<input type="hidden" id="' + this.id + '-map-basemap"></input>' +
             '<input type="hidden" id="' + this.id + '-map-data"></input>' +
             '<div class="form-group form-group-sm col-sm-12">' +                     
-                '<label class="col-sm-3" for="' + this.id + '-map-name">Name</label>' + 
+                '<label class="col-sm-3 control-label" for="' + this.id + '-map-name"><span class="label label-danger">Name</span></label>' + 
                 '<div class="col-sm-9">' + 
                     '<input type="text" id="' + this.id + '-map-name" class="form-control" ' + 
                         'placeholder="Map name" maxlength="100" ' + 

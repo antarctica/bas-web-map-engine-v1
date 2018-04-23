@@ -38,6 +38,10 @@ body {
     line-height: normal;
 }
 
+span.label {
+    font-size: 100% !important;
+}
+
 @media(min-width:768px) {
     #wrapper {
         padding-left: 225px;
