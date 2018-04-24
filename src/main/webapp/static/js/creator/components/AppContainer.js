@@ -70,7 +70,8 @@ magic.classes.creator.AppContainer = function() {
         }, this),
         onNext: jQuery.proxy(function (tab, navigation, index) {
             var total = navigation.find("li").length;
-            if (this.dialogs[index-1].validate()) {                 
+            var regionSelected = (index == 1 ? this.regionSelector.validate() : true);
+            if (this.dialogs[index-1].validate() && regionSelected) {                 
                 if (index >= total-1) {                        
                     jQuery("ul.pager li.finish").removeClass("hidden");
                 } else {

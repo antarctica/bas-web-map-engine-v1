@@ -80,13 +80,14 @@ magic.modules.Endpoints = function () {
         getOgcEndpoint: function(url, service) {
             var proxEp = url;           
             var matches = this.getEndpointsBy("url", url);            
-            if (matches.length > 0) {
+            if (jQuery.isArray(matches) && matches.length > 0) {
                 if (matches[0]["is_user_service"] === true) {
                     proxEp = magic.config.paths.baseurl + "/ogc/user/" + service;
                 } else {
                     proxEp = magic.config.paths.baseurl + "/ogc/" + matches[0]["id"] + "/" + service;
                 }
             } else {
+                console.log(url + " does not correspond to a known endpoint - need to proxy");
                 proxEp = magic.modules.Common.proxyUrl(url);
             }            
             return(proxEp);

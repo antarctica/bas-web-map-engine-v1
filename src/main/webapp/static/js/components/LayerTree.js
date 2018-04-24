@@ -383,6 +383,9 @@ magic.classes.LayerTree.prototype.initTree = function (nodes, element, depth) {
  * @param {jQuery.Object} element
  */
 magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
+    if (!nd || !nd.source) {
+        return;
+    }
     var cb;
     var isWms = "wms_source" in nd.source;
     var isEsriTile = "esritile_source" in nd.source;

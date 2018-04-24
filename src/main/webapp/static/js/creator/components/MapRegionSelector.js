@@ -111,7 +111,8 @@ magic.classes.creator.MapRegionSelector.prototype.validate = function(action, na
     if (!checkRb) {
         return(false);
     }
-    if (jQuery("#" + this.prefix + "-" + checkRb.val()) == "") {
+    var selector = jQuery("#" + this.prefix + "-" + checkRb.val());
+    if (selector.length == 0 || (selector.length > 0 && selector.val() == "")) {
         return(false);
     }
     return(true);

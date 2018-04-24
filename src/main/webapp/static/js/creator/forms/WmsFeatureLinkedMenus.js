@@ -27,7 +27,7 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.formToPayload = function()
 magic.classes.creator.WmsFeatureLinkedMenus.prototype.markup = function() {
     return(
         '<div class="form-group form-group-md col-md-12">' +
-            '<label class="col-md-3 control-label" for="' + this.id + '-wms_source"><span class="label label-danger">WMS source</span></label>' +
+            '<label class="col-md-3 control-label" for="' + this.id + '-wms_source"><span class="label label-danger">WMS</span></label>' +
             '<div class="col-md-9">' +
                 '<select class="form-control" id="' + this.id + '-wms_source" ' + 
                     'data-toggle="tooltip" data-placement="left" title="Choose a WMS service from which to fetch data" required="required">' +

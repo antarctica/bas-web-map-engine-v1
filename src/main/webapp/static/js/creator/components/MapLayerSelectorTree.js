@@ -312,25 +312,48 @@ magic.classes.creator.MapLayerSelectorTree.prototype.initSortableList = function
         },
         ignoreClass: "ignore-drag-item",
         onDragStart: jQuery.proxy(function(evt, elt) {
+            console.log("=== onDragStart handler entered ===");
+            console.log("--> Dragged element");
+            console.log(elt);
             var parentLi = jQuery(elt).parents("li.list-group-item-heading").first();
+            console.log("--> First parent li with class list-group-item-heading");
+            console.log(parentLi);
             this.originalParent = parentLi.length > 0 ? parentLi : null;
+            console.log("--> Original parent set");
+            console.log(this.originalParent);
+            console.log("=== onDragStart handler exited ===");
         }, this),
         onChange: jQuery.proxy(function(elt) {
             /* Check the opener is in the right place and swap it if not */
+            console.log("=== onChange handler entered ===");
+            console.log("--> Dragged element according to onChange");
+            console.log(elt);
             var dropped = jQuery(elt);            
             var parentLi = dropped.parents("li.list-group-item-heading").first();
+            console.log("--> First parent li with class list-group-item-heading according to onChange");
+            console.log(parentLi);
             if (parentLi.length > 0) {
                 /* Disable delete button on new parent */
+                console.log("--> Disabling group delete button...");
                 parentLi.find("button.layer-group-delete").prop("disabled", true);
+                console.log("--> Done");
                 /* Ensure opener is first element in div */
-                var tb = parentLi.find("div.btn-toolbar").first();
+                var tb = parentLi.find("div.btn-toolbar").first();                
                 if (tb.length > 0) {
                     /* Found toolbar, so look if <span> for list opener is next and swap if so - looks like a sortableLists bug/infelicity */
+                    console.log("--> Button toolbar");
+                    console.log(tb);
                     var op = tb.next();
+                    console.log("--> Opener");
+                    console.log(op);
                     if (op.length > 0 && op.hasClass("sortableListsOpener")) {
+                        console.log("-->SortableListsOpener found, swapping positions");
                         var opClone = op.clone(true);
+                        console.log("--> Cloned");
                         op.remove();
+                        console.log("--> Removed from DOM");
                         opClone.insertBefore(tb);
+                        console.log("--> Clone now inserted");
                     }
                 }
             }
@@ -341,6 +364,7 @@ magic.classes.creator.MapLayerSelectorTree.prototype.initSortableList = function
                 }
                 this.originalParent = null;
             }
+            console.log("=== onChange handler exited ===");
         }, this)
     });
 };
@@ -374,26 +398,41 @@ magic.classes.creator.MapLayerSelectorTree.prototype.processLayers = function(la
  * @returns {Boolean}
  */
 magic.classes.creator.MapLayerSelectorTree.prototype.allowedDragHandler = function (elt, hint, target) {
-    /* Allowed drag iff target is a group or the top level */    
+    /* Allowed drag iff target is a group or the top level */
+    console.log("=== allowedDragHandler entered");
+    console.log("--> Currently dragging");
+    console.log(elt);
+    console.log("--> Hint");
+    console.log(hint);
+    console.log("--> Target");
+    console.log(target);
     var allowed = false;
     if (target == null || jQuery.isEmptyObject(target) || (jQuery.isArray(target) && target.length == 0)) {
         /* Defensive stuff to try and disallow the occasional random allocation of an element to document body (i.e. at the top of the page) */
-        return(allowed);
+        return(false);
     }
+    console.log("--> Set hint style green");
     this.setHintStyle(hint, true);
-    var dropZone = hint.parents("li").first();
-    if (dropZone) {                            
+    console.log("--> Done");
+    var dropZone = hint.parents("li").first();    
+    if (dropZone) {   
+        console.log("--> Found drop zone");
+        console.log(dropZone);
         if (dropZone.length > 0 && dropZone[0].id) {
             /* Only allowed to be dropped within a group */
-            allowed = this.layerDictionary.get(dropZone[0].id).layers;
+            console.log("--> Dropzone id is " + dropZone[0].id + " and is a layer group");
+            allowed = !jQuery.isEmptyObject(this.layerDictionary.get(dropZone[0].id)) && jQuery.isArray(this.layerDictionary.get(dropZone[0].id).layers);
         } else if (dropZone.length == 0 && !elt.hasClass("list-group-item-info")) {
             /* Dropped at the top level, and not a leaf */
+            console.log("--> This is a group dropped at the top level");
             allowed = true;
         }
     }
     if (!allowed) {
+        console.log("--> Disallowing, so set hint style to red");
         this.setHintStyle(hint, false);        
     }
+    console.log("=== allowedDragHandler exited, returning " + allowed);
     return(allowed);
 };
 
