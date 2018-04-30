@@ -149,9 +149,9 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.loadFeaturesFromService = 
                     if (capsJson) {
                         magic.runtime.creator.catalogues[serviceUrl] = this.extractFeatureTypes(capsJson);
                         magic.modules.Common.populateSelect(this.dropdowns.feature_name, magic.runtime.creator.catalogues[serviceUrl], "value", "name", selectedFeat, true);
-                        this.loadStylesForFeature(serviceUrl, selectedFeat, "");
+                        this.loadStylesForFeature(serviceUrl, selectedFeat, selectedStyle);
                     } else {
-                        magic.modules.Common.showAlertModal("ailed to parse capabilities for WMS " + serviceUrl, "error");                       
+                        magic.modules.Common.showAlertModal("Failed to parse capabilities for WMS " + serviceUrl, "error");                       
                         this.dropdowns.feature_name.prop("disabled", true).empty();
                         this.dropdowns.style_name.prop("disabled", true).empty();
                     }
