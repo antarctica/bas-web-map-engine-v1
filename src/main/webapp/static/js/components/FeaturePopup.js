@@ -267,7 +267,8 @@ magic.classes.FeaturePopup.prototype.minimumPopupAttrs = function(feat) {
             if (!nameAttr && magic.modules.Common.isNameLike(key) && feat[key]) {
                 nameAttr = key;
             }
-            if (feat[key] && !jQuery.isNumeric(feat[key])) {
+            /* Bug fix 25/04/2018 David - don't include any attribute that is an object e.g. 'layer' */
+            if (feat[key] && typeof feat[key] === "string" && !jQuery.isNumeric(feat[key])) {
                 nonNullStringAttr = key; 
             }           
             if (!lonAttr && magic.modules.Common.isLongitudeLike(key) && jQuery.isNumeric(feat[key])) {

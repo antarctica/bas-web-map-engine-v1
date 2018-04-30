@@ -587,7 +587,9 @@ public class GeoserverRestController {
             } else {
                 String restUrl = getEndpointUrl(endpointid);
                 if (restUrl != null) {
+                    System.out.println("Create reader for " + restUrl);
                     if (restUrl.equals(env.getProperty("geoserver.internal.url"))) {
+                        System.out.println("Local Geoserver");
                         gs = new GeoServerRESTReader(
                             env.getProperty("geoserver.internal.url"), 
                             env.getProperty("geoserver.internal.username"), 
@@ -597,11 +599,16 @@ public class GeoserverRestController {
                         if (restUrl.endsWith("/")) {
                             restUrl = restUrl.substring(0, restUrl.length()-1);
                         }
+                        System.out.println("About to assign reader for " + restUrl);
                         gs = new GeoServerRESTReader(restUrl);
+                        System.out.println("Done");
                         if (!gs.existGeoserver()) {
                             /* No Geoserver at this endpoint */
+                            System.out.println("No Geoserver here");
                             gs = null;
                         }
+                        System.out.println("Assign reader complete");
+                        System.out.println(gs);
                     }                    
                 }
             }        

@@ -691,10 +691,6 @@ button.mosaic-player {
     margin-top: 2px;
 }
 
-div.movieplayer-popover-content {
-    width: 280px;
-}
-
 /* Drag-zoom box */
 .ol-dragzoom {
   border: 3px dashed rgba(255,0,0,1.0);
@@ -763,6 +759,10 @@ div.geosearch-popover-content {
 
 div.overview-map-popover-content {
     width: auto !important;
+}
+
+div.movieplayer-popover-content {
+    width: 280px;
 }
 
 div.reports-popover-content .bootstrap-tagsinput {

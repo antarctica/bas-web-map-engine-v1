@@ -136,11 +136,6 @@
         </dependency>
         <!-- https://mvnrepository.com/artifact/it.geosolutions/geoserver-manager -->
         <dependency>
-            <groupId>it.geosolutions</groupId>
-            <artifactId>geoserver-manager</artifactId>
-            <version>1.7.0</version>
-        </dependency>
-        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-csv</artifactId>
             <version>1.4</version>
@@ -150,7 +145,12 @@
             <groupId>org.codehaus.plexus</groupId>
             <artifactId>plexus-utils</artifactId>
             <version>3.0.24</version>
-        </dependency>-->        
+        </dependency>-->
+        <dependency>
+            <groupId>it.geosolutions</groupId>
+            <artifactId>geoserver-manager</artifactId>
+            <version>1.8.0</version>
+        </dependency>
     </dependencies>
 
     <properties>
