@@ -85,7 +85,7 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.init = function(data) {
         "url", "name", data.wms_source, true
     );
     if (data.feature_name) {
-        this.loadFeaturesFromService(data.wms_source, data.feature_name);
+        this.loadFeaturesFromService(data.wms_source, data.feature_name, data.style_name);
     }
     
     /* Assign handler for endpoint selection */    
@@ -98,7 +98,7 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.init = function(data) {
         } else {
             /* Selected a new WMS */
             this.dropdowns.feature_name.prop("disabled", false);
-            this.loadFeaturesFromService(wms, "");
+            this.loadFeaturesFromService(wms, "", "");
             this.dropdowns.style_name.prop("disabled", true).empty();
         }        
     }, this));
@@ -123,11 +123,13 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.init = function(data) {
  * Load WMS features from a service endpoint whose URL is given
  * @param {String} serviceUrl
  * @param {Object} selectedFeat
+ * @param {String} selectedStyle
  */
-magic.classes.creator.WmsFeatureLinkedMenus.prototype.loadFeaturesFromService = function(serviceUrl, selectedFeat) {
+magic.classes.creator.WmsFeatureLinkedMenus.prototype.loadFeaturesFromService = function(serviceUrl, selectedFeat, selectedStyle) {
     
     if (serviceUrl != "osm") {
-    
+        
+        selectedStyle = selectedStyle || "";    
         this.dropdowns.feature_name.prop("disabled", false);
 
         /* Strip namespace if present - removed 2018-02-16 David - caused confusion as things failed through lack of the <namespace>: at the beginning */
@@ -138,7 +140,7 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.loadFeaturesFromService = 
         if (fopts && fopts.length > 0) {
             /* Have previously read the GetCapabilities document - read stored feature data into select list */
             magic.modules.Common.populateSelect(this.dropdowns.feature_name, fopts, "value", "name", selectedFeat, true);
-            this.loadStylesForFeature(selectedFeat, "");
+            this.loadStylesForFeature(serviceUrl, selectedFeat, selectedStyle);
         } else {
             /* Read available layer data from the service GetCapabilities document */
             jQuery.get(magic.modules.Common.getWxsRequestUrl(serviceUrl, "GetCapabilities"), jQuery.proxy(function(response) {
@@ -147,7 +149,7 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.loadFeaturesFromService = 
                     if (capsJson) {
                         magic.runtime.creator.catalogues[serviceUrl] = this.extractFeatureTypes(capsJson);
                         magic.modules.Common.populateSelect(this.dropdowns.feature_name, magic.runtime.creator.catalogues[serviceUrl], "value", "name", selectedFeat, true);
-                        this.loadStylesForFeature(selectedFeat, "");
+                        this.loadStylesForFeature(serviceUrl, selectedFeat, "");
                     } else {
                         magic.modules.Common.showAlertModal("ailed to parse capabilities for WMS " + serviceUrl, "error");                       
                         this.dropdowns.feature_name.prop("disabled", true).empty();
