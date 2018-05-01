@@ -107,7 +107,7 @@ magic.classes.AttributionModal.prototype.legendMarkup = function() {
             var geoserverOpts = "&legend_options=fontName:Bitstream Vera Sans Mono;fontAntiAliasing:true;fontColor:0xffffff;fontSize:6;bgColor:0x272b30;dpi:180";
             legendUrl = magic.modules.Endpoints.getOgcEndpoint(wmsUrl, "wms") + 
                 "?service=WMS&request=GetLegendGraphic&format=image/png&width=20&height=20" + 
-                "&styles=" + styles + 
+                "&style=" + styles + 
                 "&layer=" + md.source.feature_name + 
                 geoserverOpts + 
                 cacheBuster;            
