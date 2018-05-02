@@ -14,6 +14,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Map;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -39,6 +40,7 @@ import org.springframework.web.context.ServletContextAware;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import uk.ac.antarctica.mapengine.config.SessionConfig;
+import uk.ac.antarctica.mapengine.config.UserAuthorities;
 import uk.ac.antarctica.mapengine.util.PackagingUtils;
 
 @RestController
@@ -118,10 +120,15 @@ public class MapThumbnailController implements ServletContextAware {
     public ResponseEntity<String> saveThumbnailData(MultipartHttpServletRequest request, @PathVariable("mapname") String mapname) throws Exception {
         ResponseEntity<String> ret = null;
         Connection conn = magicDataTpl.getDataSource().getConnection();
-        String username = userAuthoritiesProvider.getInstance().currentUserName();
+        UserAuthorities ua = userAuthoritiesProvider.getInstance();
         try {
-            Integer count = magicDataTpl.queryForObject("SELECT count(id) FROM " + env.getProperty("postgres.local.mapsTable") + " WHERE \"name\"=? AND (owner_name=? OR allowed_edit='login')", 
-                Integer.class, mapname, username
+            ArrayList args = new ArrayList();
+            args.add(mapname);
+            Integer count = magicDataTpl.queryForObject(
+                "SELECT count(id) FROM " + env.getProperty("postgres.local.mapsTable") + " WHERE " + 
+                "\"name\"=? AND " + ua.sqlRoleClause("allowed_usage", "owner_name", args, "update"), 
+                Integer.class, 
+                args.toArray()
             );
             String contentType = "image/jpg";
             InputStream img = null;
@@ -139,8 +146,12 @@ public class MapThumbnailController implements ServletContextAware {
                 PreparedStatement ps;
                 try {
                     /* Current user is the owner and is therefore allowed to add a thumbnail */
-                    Integer existingId = magicDataTpl.queryForObject("SELECT id FROM " + env.getProperty("postgres.local.thumbnailsTable") + " " + 
-                        "WHERE \"name\"=?", Integer.class, mapname);                    
+                    Integer existingId = magicDataTpl.queryForObject(
+                        "SELECT id FROM " + env.getProperty("postgres.local.thumbnailsTable") + " " + 
+                        "WHERE \"name\"=?", 
+                        Integer.class, 
+                        mapname
+                    );                    
                     ps = conn.prepareStatement("UPDATE " + env.getProperty("postgres.local.thumbnailsTable") + " " + 
                         "SET mime_type=?, thumbnail=? WHERE id=?"
                     );
@@ -164,10 +175,10 @@ public class MapThumbnailController implements ServletContextAware {
                 }  
                 ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Successfully uploaded thumbnail");
             } else {
-                ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "No file was uploaded");
+                ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Upload should be a single image file only");
             }                
         } catch (IncorrectResultSizeDataAccessException irsdae) {
-            ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "Only the map owner can add thumbnails");
+            ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "You are not authorised to add thumbnails to this map");
         } finally {
             conn.close();
         }                                                
@@ -185,11 +196,16 @@ public class MapThumbnailController implements ServletContextAware {
     @RequestMapping(value = "/thumbnail/delete/{mapname}", method = RequestMethod.DELETE, produces = {"application/json"})
     public ResponseEntity<String> saveThumbnailData(HttpServletRequest request, @PathVariable("mapname") String mapname) throws Exception {
         ResponseEntity<String> ret;
-        String username = userAuthoritiesProvider.getInstance().currentUserName();        
+        UserAuthorities ua = userAuthoritiesProvider.getInstance();   
         try {
             /* Check logged in user is the owner of the map */
-            Integer count = magicDataTpl.queryForObject("SELECT count(id) FROM " + env.getProperty("postgres.local.mapsTable") + " WHERE \"name\"=? AND owner_name=?", 
-                Integer.class, mapname, username
+            ArrayList args = new ArrayList();
+            args.add(mapname);
+            Integer count = magicDataTpl.queryForObject(
+                "SELECT count(id) FROM " + env.getProperty("postgres.local.mapsTable") + " WHERE " + 
+                "\"name\"=? AND " + ua.sqlRoleClause("allowed_usage", "owner_name", args, "update"), 
+                Integer.class,
+                args.toArray()
             );               
             /* Do deletion as we have the owner */                
             magicDataTpl.update("DELETE FROM " + env.getProperty("postgres.local.thumbnailsTable") + " WHERE \"name\"=?", mapname);                        

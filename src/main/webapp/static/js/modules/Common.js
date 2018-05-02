@@ -652,7 +652,7 @@ magic.modules.Common = function () {
             bootbox.hideAll();
             bootbox.alert(
                 '<div class="alert alert-' + alertClass + '" style="' + divStyle + '">' + 
-                    '<p>Failed to delete user map view - details below:</p>' + 
+                    '<p>A problem occurred - more details below:</p>' + 
                     '<p>' + message + '</p>' + 
                 '</div>'
             );

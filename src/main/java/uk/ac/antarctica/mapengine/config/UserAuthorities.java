@@ -156,7 +156,7 @@ public class UserAuthorities {
         StringJoiner joiner = new StringJoiner(" OR ");        
         
         /* Check for admin role, allow any operation - internal admins can do anything but delete objects */        
-        if (userHasRole(getUserRoleMatrix().getRolesByProperties("yes", "admin"))) {
+        if (userIsAdmin()) {
             return("True");
         }
         populateRoles();
@@ -181,12 +181,12 @@ public class UserAuthorities {
                 break;
         }
         System.out.println("--> Clause : " + joiner.toString());
-        //args.forEach((o) -> {
-        //    System.out.println("--> Arg : " + (String)o);
-        //});
+        args.forEach((o) -> {
+            System.out.println("--> Arg : " + o.toString());
+        });
         System.out.println("======== UserAuthorities.sqlRoleClause() complete");
         
-        return(joiner.length() == 0 ? null : "(" + joiner.toString() + ")");     
+        return(joiner.length() == 0 ? "FALSE" : "(" + joiner.toString() + ")");     
     }
     
     private void addPublicClause(String fieldName, StringJoiner joiner, ArrayList args) {
