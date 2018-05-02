@@ -206,17 +206,16 @@ public class AbstractMapController {
         
         if (attr.equals("id") || attr.equals("name")) {
             /* Querying on a sensible attribute */
-            String id = attr.equals("name") ? idFromName(webmapData.getTableName(), value) : value;
             ArrayList args = new ArrayList();
-            args.add(id);
+            args.add(value);
             try {
-                magicDataTpl.queryForObject(
+                String id = magicDataTpl.queryForObject(
                     "SELECT id FROM " + webmapData.getTableName() + " " + 
-                    "WHERE id=? AND " + ua.sqlRoleClause("allowed_usage", "owner_name", args, "delete"), 
+                    "WHERE " + attr + "=? AND " + ua.sqlRoleClause("allowed_usage", "owner_name", args, "delete"), 
                     String.class, 
                     args.toArray()
                 );
-                magicDataTpl.update(webmapData.updateSql(), webmapData.updateArgs(id));
+                magicDataTpl.update(webmapData.deleteSql(), webmapData.deleteArgs(id));
                 ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Successfully saved updated map data");
             } catch(IncorrectResultSizeDataAccessException irsdae) {
                 ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "You are not authorised to delete this map");
@@ -225,20 +224,6 @@ public class AbstractMapController {
             ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Attribute to query should be 'id' or 'name', not'" + attr + "'");
         }        
         return (ret);
-    }    
-    
-    /**
-     * @param String tableName
-     * @param String mapName
-     * @return String
-     */
-    protected String idFromName(String tableName, String mapName) {
-        String id = null;
-        try {
-            id = magicDataTpl.queryForObject("SELECT id FROM " + tableName + " WHERE name=?", new Object[]{mapName}, String.class);              
-        } catch(DataAccessException dae) {                
-        }
-        return(id);
     }
    
     /**
