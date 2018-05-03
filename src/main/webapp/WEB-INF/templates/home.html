@@ -42,7 +42,7 @@
                 <div th:case="*">
                     <button th:if="${issuperuser} == 'yes'" id="console-create-new-map"  type="button" class="btn btn-primary"
                      data-toggle="tooltip" data-placement="top" title="Open map creation interface (new tab)">Create a new map</button>
-                    <button th:if="${isadmin} == 'yes'" id="console-manage-endpoints"  type="button" class="btn btn-primary hidden"
+                    <button th:if="${isadmin} == 'yes'" id="console-manage-endpoints"  type="button" class="btn btn-primary"
                      data-toggle="tooltip" data-placement="top" title="Manage WMS endpoints known to this server (new tab)">WMS endpoint manager</button>
                 </div>
             </div>
@@ -84,7 +84,7 @@
                 /* Manage endpoints */
                 jQuery("#console-manage-endpoints").click(function(evt) {
                     magic.modules.Common.showAlertModal("Not yet implemented!", "error");
-                    //window.open(magic.config.paths.baseurl + "/endpoint_manager" + (debug ? "d" : ""), "_blank");
+                    window.open(magic.config.paths.baseurl + "/endpoint_manager" + (debug ? "d" : ""), "_blank");
                 });
                 
                 /* Background colour */

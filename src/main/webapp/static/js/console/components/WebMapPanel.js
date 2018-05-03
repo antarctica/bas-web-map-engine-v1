@@ -18,7 +18,7 @@ magic.classes.console.WebMapPanel = function () {
         return(false);
     };
     
-    jQuery("div[data-name").each(jQuery.proxy(function(idx, elt) {
+    jQuery("div[data-name]").each(jQuery.proxy(function(idx, elt) {
         
         var name = jQuery(elt).data("name");
         

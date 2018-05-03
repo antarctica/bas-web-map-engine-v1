@@ -34,3 +34,7 @@ img.applogo {
         padding-left: 0px;
     }
 }
+
+span.label {
+    font-size: 100% !important;
+}

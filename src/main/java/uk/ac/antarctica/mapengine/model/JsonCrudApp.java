@@ -51,10 +51,16 @@ public abstract class JsonCrudApp {
             } else if (je.isJsonPrimitive()) {
                 JsonPrimitive jp = je.getAsJsonPrimitive();
                 if (jp.isString()) {
-                    if (jp.getAsString().equals("") && !allowEmpty && defaultValue != null) {
-                        elt = defaultValue;
+                    if (clazz == Integer.class) {
+                        elt = jp.getAsInt();
+                    } else if (clazz == Double.class) {
+                        elt = jp.getAsDouble();
                     } else {
-                        elt = jp.getAsString();
+                        if (jp.getAsString().equals("") && !allowEmpty && defaultValue != null) {
+                            elt = defaultValue;
+                        } else {
+                            elt = jp.getAsString();
+                        }
                     }
                 } else if (jp.isNumber()) {
                     if (clazz == Integer.class) {

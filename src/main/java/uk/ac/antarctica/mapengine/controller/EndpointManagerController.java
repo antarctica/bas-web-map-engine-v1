@@ -144,7 +144,7 @@ public class EndpointManagerController {
     protected ResponseEntity<String> executeOp(HttpServletRequest request, EndpointData epd, Integer id) throws SuperUserOnlyException {
         ResponseEntity<String> ret;
         UserAuthorities ua = userAuthoritiesProvider.getInstance();
-        if (ua.userIsAdmin() || ua.userIsSuperUser()) {
+        if (ua.userIsAdmin()) {
             try {
                 String msg = "Successfully saved";
                 switch(request.getMethod()) {

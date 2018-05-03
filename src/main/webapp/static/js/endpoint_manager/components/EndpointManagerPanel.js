@@ -331,7 +331,7 @@ magic.classes.endpoint_manager.EndpointManagerPanel.prototype.buttonClickFeedbac
     effect = function() {
         return(fbBtn.fadeIn(300).delay(1200).fadeOut(300));
     };                                                          
-    jQuery.when(effect()).done(function() {
+    jQuery.when(effect()).done(jQuery.proxy(function() {
         this.buttons[key].show();                            
-    });                        
+    }, this));                        
 };
