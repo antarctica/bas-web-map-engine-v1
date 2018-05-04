@@ -369,7 +369,7 @@ magic.classes.AppContainer.prototype.displayAnnouncement = function() {
         /* Show the announcement unless cookie has been set */
         var announceModal = jQuery("#announcement-modal");
         var cookieName = "announcement_seen_" + magic.runtime.map_context.name;
-        if (announceModal.length > 0 && getCookie(cookieName) == "") {
+        if (announceModal.length > 0 && Cookies.get(cookieName) == "") {
             if (announceContent.indexOf(magic.config.paths.baseurl) != 0) {
                 announceContent = magic.modules.Commmon.proxyUrl(announceContent);
             }
@@ -386,7 +386,7 @@ magic.classes.AppContainer.prototype.displayAnnouncement = function() {
                         });
                         jQuery("#announcement-close").on("click", function(evt) {
                             if (jQuery("#announcement-dismiss").prop("checked")) {
-                                setCookie(cookieName, "yes", 1000);
+                                Cookies.set(cookieName, "yes", {expires: 1000});
                             }
                             announceModal.modal("hide");
                         });

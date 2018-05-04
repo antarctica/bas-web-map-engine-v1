@@ -10,6 +10,7 @@ public class MapPlugin {
     private String caption;
     private String tooltip;
     private String iconclass;
+    private String js_filename;
 
     public String getName() {
         return name;
@@ -50,7 +51,13 @@ public class MapPlugin {
     public void setIconclass(String iconclass) {
         this.iconclass = iconclass;
     }
-    
-    
+
+    public String getJs_filename() {
+        return js_filename;
+    }
+
+    public void setJs_filename(String js_filename) {
+        this.js_filename = js_filename;
+    }
     
 }

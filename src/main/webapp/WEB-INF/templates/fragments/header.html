@@ -13,7 +13,7 @@
         <link rel="icon" type="image/vnd.microsoft.icon" th:href="@{'/' + ${favicon}}"></link>
         <link rel="shortcut icon" type="image/vnd.microsoft.icon" th:href="@{'/' + ${favicon}}"></link>
         <title></title>
-        <link th:href="${theme} == '' ? @{'/static/css/bootstrap.min.css'} : @{'/static/css/bootstrap.min.' + ${theme} + '.css'}" rel="stylesheet"></link>
+        <link th:href="${theme} == '' ? @{'https://cdn.web.bas.ac.uk/webmap-engine/1.0.0/css/bootstrap/3.3.7/bootstrap.min.css'} : @{'https://cdn.web.bas.ac.uk/webmap-engine/1.0.0/css/bootstrap/3.3.7/bootstrap.min.' + ${theme} + '.css'}" rel="stylesheet"></link>
         <link th:href="@{'/static/buildcss/allcss.map.' + ${profile} + '.css'}" rel="stylesheet"></link>            
         <script th:src="@{'/static/buildjs/alljs.map.' + ${profile} + '.js'}"></script>
         <script th:inline="javascript">
@@ -42,33 +42,31 @@
         <link rel="shortcut icon" type="image/vnd.microsoft.icon" th:href="@{'/' + ${favicon}}"></link>
         <title></title>
 
-        <link href="/static/css/ol.css" rel="stylesheet"></link>
-        <link th:href="${theme} == '' ? @{'/static/css/bootstrap.min.css'} : @{'/static/css/bootstrap.min.' + ${theme} + '.css'}" rel="stylesheet"></link>
-        <link href="/static/css/bootstrap-slider.min.css" rel="stylesheet"></link>
-        <link href="/static/css/bootstrap-tagsinput.min.css" rel="stylesheet"></link>
-        <link href="/static/css/dropzone.min.css" rel="stylesheet"></link>
-        <link href="/static/css/prettify.css" rel="stylesheet"></link>
+        <link href="https://cdn.web.bas.ac.uk/webmap-engine/1.0.0/css/openlayers/4.2.0/ol.css" rel="stylesheet"></link>
+        <link th:href="${theme} == '' ? @{'https://cdn.web.bas.ac.uk/webmap-engine/1.0.0/css/bootstrap/3.3.7/bootstrap.min.css'} : @{'https://cdn.web.bas.ac.uk/webmap-engine/1.0.0/css/bootstrap/3.3.7/bootstrap.min.' + ${theme} + '.css'}" rel="stylesheet"></link>
+        <link href="https://cdn.web.bas.ac.uk/webmap-engine/1.0.0/css/bootstrap-slider/10.0.0/bootstrap-slider.min.css" rel="stylesheet"></link>
+        <link href="https://cdn.web.bas.ac.uk/webmap-engine/1.0.0/css/bootstrap-tagsinput/0.6.1/bootstrap-tagsinput.min.css" rel="stylesheet"></link>
+        <link href="https://cdn.web.bas.ac.uk/webmap-engine/1.0.0/css/dropzone/4.3.0/dropzone.min.css" rel="stylesheet"></link>
+        <link href="https://cdn.web.bas.ac.uk/webmap-engine/webmap-engine/1.0.0/css/font-awesome/4.4.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"></link>
+        <link href="https://cdn.web.bas.ac.uk/webmap-engine/webmap-engine/1.0.0/css/webhosting-glyphs/1.0.0/css/whhg-reduced.min.css" rel="stylesheet" type="text/css"></link>
         <link href="/static/css/nav.css" rel="stylesheet"></link>
-        <link href="/static/css/map.css" rel="stylesheet"></link>
-        <link href="/static/css/font-awesome.min.css" rel="stylesheet" type="text/css"></link>
-        <link href="/static/css/whhg-reduced.min.css" rel="stylesheet" type="text/css"></link>
-        <script src="/static/js/xmlToJSON.min.js"></script>
-        <script src="/static/js/cookie.min.js"></script>
-        <script src="/static/js/ol.min.js"></script>
-        <script src="/static/js/jquery.min.js"></script>
-        <script src="/static/js/vector.js"></script>
-        <script src="/static/js/proj4.js"></script>
-        <script src="/static/js/proj4defs/3031.js"></script>
-        <script src="/static/js/proj4defs/3762.js"></script>
-        <script src="/static/js/proj4defs/3995.js"></script>
-        <script src="/static/js/proj4defs/102020.js"></script>
-        <script src="/static/js/bootstrap.min.js"></script>
-        <script src="/static/js/typeahead.bundle.min.js"></script>
-        <script src="/static/js/bootstrap-slider.min.js"></script>
-        <script src="/static/js/bootstrap-tagsinput.min.js"></script>
-        <script src="/static/js/bootbox.min.js"></script>
-        <script src="/static/js/dropzone.min.js"></script>
-        <script src="/static/js/prettify.js"></script>
+        <link href="/static/css/map.css" rel="stylesheet"></link>        
+        <script src="https://cdn.web.bas.ac.uk/webmap-engine/1.0.0/js/xml-to-json/1.3.0/xmlToJSON.min.js"></script>
+        <script src="https://cdn.web.bas.ac.uk/libs/js-cookie/2.1.3/js.cookie-2.1.3.min.js"></script>
+        <script src="https://cdn.web.bas.ac.uk/webmap-engine/1.0.0/js/openlayers/4.2.0/ol.min.js"></script>
+        <script src="https://cdn.web.bas.ac.uk/libs/jquery/3.3.1/jquery-3.3.1.min.js"></script>
+        <script src="https://cdn.web.bas.ac.uk/webmap-engine/1.0.0/js/vector/1.0.0/vector.js"></script>
+        <script src="https://cdn.web.bas.ac.uk/libs/proj4js/2.4.3/proj4.js"></script>
+        <script src="https://cdn.web.bas.ac.uk/libs/proj4js/projections/3031/2005-04-14/3031.js"></script>
+        <script src="https://cdn.web.bas.ac.uk/libs/proj4js/projections/3762/2007-07-06/3762.js"></script>
+        <script src="https://cdn.web.bas.ac.uk/libs/proj4js/projections/3995/2008-09-19/3995.js"></script>
+        <script src="https://cdn.web.bas.ac.uk/libs/proj4js/projections/102020/2000-01-01/102020.js"></script>
+        <script src="https://cdn.web.bas.ac.uk/libs/bootstrap/3.3.7/js/bootstrap-3.3.7.min.js"></script>
+        <script src="https://cdn.web.bas.ac.uk/webmap-engine/1.0.0/js/typeahead/0.11.1/typeahead.bundle.min.js"></script>
+        <script src="https://cdn.web.bas.ac.uk/webmap-engine/1.0.0/js/bootstrap-slider/10.0.0/bootstrap-slider.min.js"></script>
+        <script src="https://cdn.web.bas.ac.uk/webmap-engine/1.0.0/js/bootstrap-tagsinput/0.6.1/bootstrap-tagsinput.min.js"></script>
+        <script src="https://cdn.web.bas.ac.uk/webmap-engine/1.0.0/js/bootbox/4.4.0/bootbox.min.js"></script>
+        <script src="https://cdn.web.bas.ac.uk/webmap-engine/1.0.0/js/dropzone/4.3.0/dropzone.min.js"></script>
         <script src="/static/js/init.js"></script>
         <script src="/static/js/modules/Endpoints.js"></script>
         <script src="/static/js/modules/Common.js"></script>
@@ -101,11 +99,14 @@
         <script src="/static/js/components/navtools/Measurement.js"></script>
         <script src="/static/js/components/navtools/OverviewMap.js"></script>
         <script src="/static/js/components/navtools/InfoModal.js"></script>        
-        <script src="/static/js/components/navtools/DownloadRepo.js"></script>       
-        <script src="/static/js/components/plugins/AircraftPositionButton.js"></script>
-        <script src="/static/js/components/plugins/ShipPositionButton.js"></script>
+        <script src="/static/js/components/navtools/DownloadRepo.js"></script>
+        <th:block th:each="mplug : ${mapplugins}">
+            <script th:src="@{'/static/js/components/plugins/' + ${mplug}}"></script>
+        </th:block>
+        <th:block th:each="nplug : ${navplugins}">
+            <script th:src="@{'/static/js/components/plugins/' + ${nplug}}"></script>
+        </th:block>        
         <script src="/static/js/components/plugins/IssueInformation.js"></script>
-        <script src="/static/js/components/plugins/RotheraReportSearch.js"></script>
         <script src="/static/js/components/plugins/ElevationPopup.js"></script>
         <script src="/static/js/components/plugins/HeightGraphPopup.js"></script>
         <script src="/static/js/components/InsetMap.js"></script>        

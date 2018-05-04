@@ -569,18 +569,20 @@ public class HomeController {
         if (plugins != null) {
             /* Unpick the value: <name>,<caption>,<tooltip> */
             String[] pluginArr = plugins.split(",");
-            if (pluginArr.length % 5 == 0) {
+            if (pluginArr.length % 6 == 0) {
                 /* Plausible */ 
                 System.out.println("Properties file record is of plausible length");
-                for (int i = 0; i < pluginArr.length; i += 5) {
+                for (int i = 0; i < pluginArr.length; i += 6) {
                     MapPlugin mp = new MapPlugin();
                     mp.setName(pluginArr[i]);
                     mp.setAllowed_usage(pluginArr[i+1]);
                     mp.setCaption(pluginArr[i+2]);
                     mp.setTooltip(pluginArr[i+3]);
                     mp.setIconclass(pluginArr[i+4]);
+                    mp.setJs_filename(pluginArr[i+5]);
                     System.out.println("--> Name : " + mp.getName());
                     System.out.println("--> Icon class : " + mp.getIconclass());
+                    System.out.println("--> JS file : " + mp.getJs_filename());
                     pluginList.add(mp);
                 }                
             }
