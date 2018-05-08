@@ -12,9 +12,10 @@
         <link rel="icon" type="image/vnd.microsoft.icon" th:href="@{'/' + ${favicon}}"></link>
         <link rel="shortcut icon" type="image/vnd.microsoft.icon" th:href="@{'/' + ${favicon}}"></link>
         <title th:text="${pagetitle}"></title>
-        <link th:href="${theme} == '' ? @{'https://cdn.web.bas.ac.uk/webmap-engine/1.0.0/css/bootstrap/3.3.7/bootstrap.min.css'} : @{'https://cdn.web.bas.ac.uk/webmap-engine/1.0.0/css/bootstrap/3.3.7/bootstrap.min.' + ${theme} + '.css'}" rel="stylesheet"></link>
-        <link th:href="@{'/static/buildcss/allcss.console.' + ${profile} + '.css'}" rel="stylesheet"></link>                   
-        <script th:src="@{'/static/buildjs/alljs.console.' + ${profile} + '.js'}"></script>
+        <div th:replace="console_fragments/cdncss :: assets"></div>
+        <link th:href="@{'/static/dist/console.' + ${profile} + '.css'}" rel="stylesheet"></link>     
+        <div th:replace="console_fragments/cdnjs :: assets"></div>
+        <script th:src="@{'/static/dist/console.' + ${profile} + '.js'}"></script>
         <style type="text/css">
             body: {
                 background-color: ${background}
@@ -33,18 +34,10 @@
         <link rel="icon" type="image/vnd.microsoft.icon" th:href="@{'/' + ${favicon}}"></link>
         <link rel="shortcut icon" type="image/vnd.microsoft.icon" th:href="@{'/' + ${favicon}}"></link>
         <title th:text="${pagetitle}"></title>
-
-        <link th:href="@{https://cdn.web.bas.ac.uk/webmap-engine/1.0.0/css/openlayers/4.2.0/ol.css}" rel="stylesheet"></link>        
-        <link th:href="${theme} == '' ? @{'https://cdn.web.bas.ac.uk/webmap-engine/1.0.0/css/bootstrap/3.3.7/bootstrap.min.css'} : @{'https://cdn.web.bas.ac.uk/webmap-engine/1.0.0/css/bootstrap/3.3.7/bootstrap.min.' + ${theme} + '.css'}" rel="stylesheet"></link>
-        <link href="https://cdn.web.bas.ac.uk/webmap-engine/1.0.0/css/dropzone/4.3.0/dropzone.min.css" rel="stylesheet" type="text/css"></link>
-        <link href="https://cdn.web.bas.ac.uk/webmap-engine/webmap-engine/1.0.0/css/font-awesome/4.4.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"></link>
+        <div th:replace="console_fragments/cdncss :: assets"></div>
         <link href="/static/css/nav.css" rel="stylesheet"></link>        
         <link href="/static/css/console.css" rel="stylesheet" type="text/css"></link>
-        <script src="https://cdn.web.bas.ac.uk/libs/jquery/3.3.1/jquery-3.3.1.min.js"></script>        
-        <script src="https://cdn.web.bas.ac.uk/libs/bootstrap/3.3.7/js/bootstrap-3.3.7.min.js"></script>
-        <script src="https://cdn.web.bas.ac.uk/webmap-engine/1.0.0/js/dropzone/4.3.0/dropzone.min.js"></script>
-        <script src="https://cdn.web.bas.ac.uk/webmap-engine/1.0.0/js/bootbox/4.4.0/bootbox.min.js"></script>
-        <script src="https://cdn.web.bas.ac.uk/webmap-engine/1.0.0/js/openlayers/4.2.0/ol.min.js"></script>
+        <div th:replace="console_fragments/cdnjs :: assets"></div>
         <script src="/static/js/init.js"></script>
         <script src="/static/js/modules/Endpoints.js"></script>
         <script src="/static/js/modules/Common.js"></script>
