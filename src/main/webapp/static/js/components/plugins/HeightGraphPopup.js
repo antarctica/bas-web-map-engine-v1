@@ -69,7 +69,7 @@ magic.classes.HeightGraphPopup.prototype.activate = function(route) {
             })
             .on("shown.bs.popover", null, {"coords": outputCoords}, jQuery.proxy(function(evt) {            
                 var xyzData = evt.data.coords;
-                magic.modules.Common.getScript(magic.config.paths.baseurl + "/static/js/vis-graph3d.min.js", jQuery.proxy(function() {
+                magic.modules.Common.getScript("https://cdn.web.bas.ac.uk/webmap-engine/1.0.0/js/vis-graph3d/4.21.0/vis-graph3d.min.js", jQuery.proxy(function() {
                     this.renderGraph(xyzData);
                 }, this));                      
             }, this))
