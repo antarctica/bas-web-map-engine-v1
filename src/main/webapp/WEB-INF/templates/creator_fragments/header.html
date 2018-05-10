@@ -13,9 +13,9 @@
         <link rel="shortcut icon" type="image/vnd.microsoft.icon" th:href="@{'/' + ${favicon}}"></link>
         <title th:text="${pagetitle}"></title>
         <div th:replace="creator_fragments/cdncss :: assets"></div>
-        <link th:href="@{'/static/dist/creator.' + ${profile} + '.css'}" rel="stylesheet"></link>  
+        <link th:href="@{'/static/dist/creator.min.css'}" rel="stylesheet"></link>  
         <div th:replace="creator_fragments/cdnjs :: assets"></div>
-        <script th:src="@{'/static/dist/creator.' + ${profile} + '.js'}"></script>
+        <script th:src="@{'/static/dist/creator.min.js'}"></script>
     </head>
     <head th:fragment="debug_layout">
         <meta charset="utf-8"></meta>

@@ -13,9 +13,9 @@
         <link rel="shortcut icon" type="image/vnd.microsoft.icon" th:href="@{~/bas.ico}"></link>
         <title>WMS Endpoint Management Interface</title>
         <div th:replace="endpoint_manager_fragments/cdncss :: assets"></div>
-        <link th:href="@{'/static/dist/endpoint_manager.' + ${profile} + '.css'}" rel="stylesheet"></link>  
+        <link th:href="@{'/static/dist/endpoint_manager.min.css'}" rel="stylesheet"></link>  
         <div th:replace="endpoint_manager_fragments/cdnjs :: assets"></div>
-        <script th:src="@{'/static/dist/endpoint_manager.' + ${profile} + '.js'}"></script>       
+        <script th:src="@{'/static/dist/endpoint_manager.min.js'}"></script>       
     </head>   
     <head th:fragment="debug_layout">
         <meta charset="utf-8"></meta>

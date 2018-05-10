@@ -13,9 +13,9 @@
         <link rel="shortcut icon" type="image/vnd.microsoft.icon" th:href="@{'/' + ${favicon}}"></link>
         <title th:text="${pagetitle}"></title>
         <div th:replace="console_fragments/cdncss :: assets"></div>
-        <link th:href="@{'/static/dist/console.' + ${profile} + '.css'}" rel="stylesheet"></link>     
+        <link th:href="@{'/static/dist/console.min.css'}" rel="stylesheet"></link>     
         <div th:replace="console_fragments/cdnjs :: assets"></div>
-        <script th:src="@{'/static/dist/console.' + ${profile} + '.js'}"></script>
+        <script th:src="@{'/static/dist/console.min.js'}"></script>
         <style type="text/css">
             body: {
                 background-color: ${background}
