@@ -1,5 +1,8 @@
 # Provisioning tool directories
 provisioning/site-development-local/.vagrant
 
+# node_modules
+node_modules/
+
 # Build output directories
 target/
