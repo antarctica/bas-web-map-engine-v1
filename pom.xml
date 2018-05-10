@@ -149,7 +149,7 @@
         <dependency>
             <groupId>it.geosolutions</groupId>
             <artifactId>geoserver-manager</artifactId>
-            <version>1.8.0</version>
+            <version>1.8</version>
         </dependency>
     </dependencies>
 
@@ -188,10 +188,10 @@
             <name>Open Source Geospatial Foundation Repository</name>
             <url>http://download.osgeo.org/webdav/geotools/</url>
         </repository>
-        <repository>
+        <!--<repository>
             <id>GeoSolutions</id>
             <url>http://maven.geo-solutions.it/</url>
-        </repository>
+        </repository>-->
     </repositories>
     <pluginRepositories>
         <pluginRepository>
@@ -200,4 +200,36 @@
         </pluginRepository>
     </pluginRepositories>
     <name>mapengine</name>
+    
+    <!-- Added 2018-05-10 David -->
+    <!--<profiles>
+        <profile>
+            <id>dev</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>               
+                <build.profile.id>dev</build.profile.id>
+            </properties>
+        </profile>
+        <profile>
+            <id>sggis</id>
+            <properties>                
+                <build.profile.id>sggis</build.profile.id>
+            </properties>
+        </profile>
+        <profile>
+            <id>add</id>
+            <properties>                
+                <build.profile.id>add</build.profile.id>
+            </properties>
+        </profile>
+    </profiles>
+    
+    <build>
+        <filters>            
+            <filter>application-${build.profile.id}.properties</filter>
+        </filters>
+    </build>-->
+    
 </project>
