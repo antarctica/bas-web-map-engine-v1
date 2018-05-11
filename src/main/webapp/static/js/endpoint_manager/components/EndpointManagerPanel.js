@@ -76,7 +76,9 @@ magic.classes.endpoint_manager.EndpointManagerPanel = function () {
     this.searchSelect.on("change", jQuery.proxy(function(evt) {
         if (this.formDirty) {
             bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">You have unsaved changes - proceed?</div>', jQuery.proxy(function (result) {
-                this.getEndpointData(this.searchSelect.val());
+                if (result) {
+                    this.getEndpointData(this.searchSelect.val());
+                }
             }, this));
         } else {
             this.getEndpointData(this.searchSelect.val());
@@ -120,10 +122,12 @@ magic.classes.endpoint_manager.EndpointManagerPanel.prototype.createHandler = fu
     jQuery(evt.currentTarget).tooltip("hide");
     if (this.formDirty) {
         bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">You have unsaved changes - proceed?</div>', jQuery.proxy(function (result) {
-            this.resetForm();
+            if (result) {
+                this.resetForm(true);
+            }
         }, this));
     } else {
-        this.resetForm();
+        this.resetForm(true);
     }
 };
 
@@ -215,10 +219,14 @@ magic.classes.endpoint_manager.EndpointManagerPanel.prototype.loadEndpoints = fu
 
 /**
  * Reset the form and zero settings
+ * @param {boolean} resetSearch
  */
-magic.classes.endpoint_manager.EndpointManagerPanel.prototype.resetForm = function() {
+magic.classes.endpoint_manager.EndpointManagerPanel.prototype.resetForm = function(resetSearch) {
+    resetSearch = resetSearch || false;
     this.selectedEndpointId = null;
-    this.searchForm.get(0).reset();
+    if (resetSearch) {
+        this.searchForm.get(0).reset();
+    }
     this.updateForm.get(0).reset();
     /* Reset above doesn't zero this one for some reason */
     jQuery("#" + this.prefix + "-location").val("");
@@ -243,6 +251,7 @@ magic.classes.endpoint_manager.EndpointManagerPanel.prototype.payloadToForm = fu
     jQuery.each(this.pluginFields, jQuery.proxy(function(key, pf) {
         pf.setValue(payload[key]);
     }, this));
+    this.formDirty = false;
 };
 
 /**
