@@ -509,6 +509,7 @@ public class HomeController {
         if (profiles != null && profiles.length > 0) {
             activeProfile = profiles[0];
         }
+        System.out.println("===== The active profile is " + activeProfile + " =====");
         return(activeProfile);
     }
     
