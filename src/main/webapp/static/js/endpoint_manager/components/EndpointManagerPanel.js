@@ -150,7 +150,7 @@ magic.classes.endpoint_manager.EndpointManagerPanel.prototype.updateHandler = fu
             },
             success: jQuery.proxy(function(data) {
                 this.buttonClickFeedback("update", true, "ok");
-                this.resetForm();
+                this.resetForm(true);
             }, this),
             fail: jQuery.proxy(function(xhr) {
                 this.buttonClickFeedback("delete", false, this.alertResponse(xhr));  
