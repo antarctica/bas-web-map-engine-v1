@@ -35,7 +35,7 @@ INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers
 VALUES('Arctic Open Data', 'https://maps.bas.ac.uk/arctic/wms', 'cambridge', FALSE, 'arctic:arctic_coastline','arctic:arctic_graticule', NULL, 'EPSG:3995', TRUE, FALSE, 'https://add.data.bas.ac.uk', 'https://add.data.bas.ac.uk/geoserver');
 
 INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs, has_wfs, is_user_service, url_aliases, rest_endpoint) 
-VALUES('South Georgia GIS', 'https://maps.bas.ac.uk/southgeorgia/wms', 'cambridge', FALSE, 'sggis:sg_coastline','ol', NULL, 'EPSG:3762', TRUE, FALSE, NULL, 'http://www.sggis.gov.gs/geoserver');
+VALUES('South Georgia GIS', 'https://maps.bas.ac.uk/southgeorgia/wms', 'cambridge', FALSE, 'sggis:sg_coastline','ol', NULL, 'EPSG:3762', TRUE, FALSE, NULL, 'https://www.sggis.gov.gs/geoserver');
 
 INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs, has_wfs, is_user_service, url_aliases, rest_endpoint) 
 VALUES('Oracle test WMS', 'http://mapengine-dev.nerc-bas.ac.uk:8080/geoserver/oracle/wms', 'cambridge', FALSE, NULL, NULL, NULL, 'EPSG:3762', TRUE, FALSE, NULL, 'http://mapengine-dev.nerc-bas.ac.uk:8080/geoserver');

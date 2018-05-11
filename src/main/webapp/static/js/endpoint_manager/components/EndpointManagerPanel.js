@@ -116,7 +116,8 @@ magic.classes.endpoint_manager.EndpointManagerPanel.prototype.getEndpointData = 
 /**
  * Handle create
  */
-magic.classes.endpoint_manager.EndpointManagerPanel.prototype.createHandler = function() {
+magic.classes.endpoint_manager.EndpointManagerPanel.prototype.createHandler = function(evt) {
+    jQuery(evt.currentTarget).tooltip("hide");
     if (this.formDirty) {
         bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">You have unsaved changes - proceed?</div>', jQuery.proxy(function (result) {
             this.resetForm();
@@ -129,7 +130,8 @@ magic.classes.endpoint_manager.EndpointManagerPanel.prototype.createHandler = fu
 /**
  * Handle create/update of endpoint data
  */
-magic.classes.endpoint_manager.EndpointManagerPanel.prototype.updateHandler = function() {
+magic.classes.endpoint_manager.EndpointManagerPanel.prototype.updateHandler = function(evt) {
+    jQuery(evt.currentTarget).tooltip("hide");  /* Seems to get stuck on the page otherwise */
     var saveUrl = magic.config.paths.baseurl + "/endpoints/" + (this.selectedEndpointId == null ? "save" : "update/" + this.selectedEndpointId);
     if (this.validate()) {
         console.log(JSON.stringify(this.formToPayload()));
@@ -156,14 +158,16 @@ magic.classes.endpoint_manager.EndpointManagerPanel.prototype.updateHandler = fu
 /**
  * Handle cancel
  */
-magic.classes.endpoint_manager.EndpointManagerPanel.prototype.cancelHandler = function() {
+magic.classes.endpoint_manager.EndpointManagerPanel.prototype.cancelHandler = function(evt) {
+    jQuery(evt.currentTarget).tooltip("hide");
     this.resetForm();
 };
 
 /**
  * Handle deletion of an endpoint
  */
-magic.classes.endpoint_manager.EndpointManagerPanel.prototype.deleteHandler = function() {
+magic.classes.endpoint_manager.EndpointManagerPanel.prototype.deleteHandler = function(evt) {
+    jQuery(evt.currentTarget).tooltip("hide");
     if (this.selectedEndpointId != null) {
         bootbox.confirm('<div class="alert alert-danger" style="margin-top:10px">Really delete this endpoint?</div>', jQuery.proxy(function (result) {
             if (result) {

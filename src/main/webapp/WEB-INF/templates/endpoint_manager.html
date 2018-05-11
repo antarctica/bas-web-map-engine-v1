@@ -140,9 +140,9 @@
 
             jQuery(document).ready(function () {
 
-                jQuery('[data-toggle="tooltip"]').tooltip({container: 'body'});
+                jQuery('[data-toggle="tooltip"]').tooltip({container: 'body', trigger: "hover"});
                 /* For dynamic tooltips - http://stackoverflow.com/questions/9958825/how-do-i-bind-twitter-bootstrap-tooltips-to-dynamically-created-elements */
-                jQuery("body").tooltip({selector: '[data-toggle="tooltip"]'});
+                jQuery("body").tooltip({selector: '[data-toggle="tooltip"]', trigger: "hover"});
 
                 /* Logout behaviour */
                 jQuery("#log-out-user").click(function (evt) {

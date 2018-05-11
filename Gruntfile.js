@@ -37,8 +37,10 @@ module.exports = function (grunt) {
                             'src/main/webapp/static/js/base/PopupForm.js', 
                             'src/main/webapp/static/js/modules/*.js', 
                             'src/main/webapp/static/js/creator/base/DataSourceForm.js', 
-                            'src/main/webapp/static/js/components/forms/StylerPopup.js', 
+                            'src/main/webapp/static/js/components/forms/StylerPopup.js',
+                            'src/main/webapp/static/js/creator/forms/*.js',
                             '!src/main/webapp/static/js/creator/forms/Embedded*.js', 
+                            'src/main/webapp/static/js/creator/components/*.js',
                             '!src/main/webapp/static/js/creator/components/Embedded*.js'
                         ],
                         dest: 'src/main/webapp/static/buildjs/creator.js'
@@ -118,7 +120,15 @@ module.exports = function (grunt) {
                         dest: 'src/main/webapp/static/buildjs/endpoint_manager.js'
                     }
                 ]
-            }
+            },
+            endpoint_managercss: {
+                files: [
+                    {
+                        src: ['src/main/webapp/static/css/nav.css', 'src/main/webapp/static/css/endpoint_manager.css'],
+                        dest: 'src/main/webapp/static/buildcss/endpoint_manager.css'
+                    }
+                ]
+            },
         },
         uglify: {
             map: {
@@ -198,7 +208,7 @@ module.exports = function (grunt) {
             endpoint_manager: {
                 files: [
                     {        
-                        src: 'src/main/webapp/static/css/endpoint_manager.css',
+                        src: 'src/main/webapp/static/buildcss/endpoint_manager.css',
                         dest: 'src/main/webapp/static/dist/endpoint_manager.min.css'
                     }
                 ]
