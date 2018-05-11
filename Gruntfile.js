@@ -11,7 +11,8 @@ module.exports = function (grunt) {
                             'src/main/webapp/static/js/init.js', 
                             'src/main/webapp/static/js/modules/*.js', 
                             'src/main/webapp/static/js/base/*.js', 
-                            'src/main/webapp/static/js/components/forms/*.js', 
+                            'src/main/webapp/static/js/components/controlbuttons/*.js',
+                            'src/main/webapp/static/js/components/forms/*.js',                             
                             'src/main/webapp/static/js/components/navtools/*.js', 
                             'src/main/webapp/static/js/components/plugins/*.js', 
                             'src/main/webapp/static/js/components/*.js'
@@ -60,12 +61,20 @@ module.exports = function (grunt) {
                             'src/main/webapp/static/js/modules/Endpoints.js', 
                             'src/main/webapp/static/js/modules/Common.js', 
                             'src/main/webapp/static/js/modules/GeoUtils.js',                             
-                            'src/main/webapp/static/js/components/WebMapPanel.js'
+                            'src/main/webapp/static/js/console/components/WebMapPanel.js'
                         ],
                         dest: 'src/main/webapp/static/buildjs/console.js'
                     }
                 ]
-            },            
+            },
+            consolecss: {
+                files: [
+                    {
+                        src: ['src/main/webapp/static/css/nav.css', 'src/main/webapp/static/css/console.css'],
+                        dest: 'src/main/webapp/static/buildcss/console.css'
+                    }
+                ]
+            },
             embedded_creatorjs: {
                 files: [
                     {        
@@ -173,8 +182,8 @@ module.exports = function (grunt) {
             console: {
                 files: [
                     {        
-                        src: 'src/main/webapp/static/css/console.css',
-                        dest: 'src/main/webapp/static/dist/creator.min.css'
+                        src: 'src/main/webapp/static/buildcss/console.css',
+                        dest: 'src/main/webapp/static/dist/console.min.css'
                     }
                 ]
             },
