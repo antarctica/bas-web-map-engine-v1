@@ -292,10 +292,6 @@ magic.classes.RotheraReportSearch.prototype.styleFunction = function (f) {
     return(style);
 };
 
-getIconStyle: function(opacity, icon, anchor) {
-            return();
-        },
-
 /**
  * Mouseover handler for a report feature 
  * @param {ol.Feature} feat

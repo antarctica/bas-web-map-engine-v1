@@ -68,6 +68,7 @@
         <script src="/static/js/components/forms/MapEditorPopup.js"></script>
         <script src="/static/js/components/ControlButtonRibbon.js"></script>
         <script src="/static/js/components/controlbuttons/DragZoomButton.js"></script>
+        <script src="/static/js/components/controlbuttons/FullScreenButton.js"></script>
         <script src="/static/js/components/controlbuttons/ResetRotationButton.js"></script>
         <script src="/static/js/components/controlbuttons/GraticuleButton.js"></script>
         <script src="/static/js/components/controlbuttons/GeolocationButton.js"></script>                                        
@@ -79,10 +80,10 @@
         <script src="/static/js/components/navtools/InfoModal.js"></script>        
         <script src="/static/js/components/navtools/DownloadRepo.js"></script>
         <th:block th:each="mplug : ${mapplugins}">
-            <script th:src="@{'/static/js/components/plugins/' + ${mplug}}"></script>
+            <script th:src="@{'/static/js/components/plugins/' + ${mplug.js_filename}}"></script>
         </th:block>
         <th:block th:each="nplug : ${navplugins}">
-            <script th:src="@{'/static/js/components/plugins/' + ${nplug}}"></script>
+            <script th:src="@{'/static/js/components/plugins/' + ${nplug.js_filename}}"></script>
         </th:block>        
         <script src="/static/js/components/plugins/IssueInformation.js"></script>
         <script src="/static/js/components/plugins/ElevationPopup.js"></script>

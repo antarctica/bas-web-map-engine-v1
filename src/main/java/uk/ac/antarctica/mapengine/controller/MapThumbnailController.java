@@ -5,8 +5,6 @@ package uk.ac.antarctica.mapengine.controller;
 
 import com.google.gson.Gson;
 import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -36,7 +34,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.context.ServletContextAware;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import uk.ac.antarctica.mapengine.config.SessionConfig;
@@ -44,7 +41,7 @@ import uk.ac.antarctica.mapengine.config.UserAuthorities;
 import uk.ac.antarctica.mapengine.util.PackagingUtils;
 
 @RestController
-public class MapThumbnailController implements ServletContextAware {
+public class MapThumbnailController {
     
     /* Default thumbnail location */
     private static final String DEFAULT_THUMBNAIL = "https://cdn.web.bas.ac.uk/webmap-engine/1.0.0/images/thumbnails/bas.jpg";
@@ -101,7 +98,7 @@ public class MapThumbnailController implements ServletContextAware {
             if (thumbUrl != null && !thumbUrl.isEmpty()) {
                 thumbStream = new URL(thumbUrl).openStream();
             } else {
-                thumbStream = new FileInputStream(new File(getContext().getRealPath(DEFAULT_THUMBNAIL)));
+                thumbStream = new URL(DEFAULT_THUMBNAIL).openStream();
             }      
         }
         response.setContentType(contentType);
@@ -218,19 +215,6 @@ public class MapThumbnailController implements ServletContextAware {
             ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Error deleting data, message was: " + dae.getMessage());
         }       
         return (ret);
-    }
-
-    @Override
-    public void setServletContext(ServletContext sc) {
-        this.setContext(sc);
-    }
-
-    public ServletContext getContext() {
-        return context;
-    }
-
-    public void setContext(ServletContext context) {
-        this.context = context;
     }
 
     public Gson getMapper() {
