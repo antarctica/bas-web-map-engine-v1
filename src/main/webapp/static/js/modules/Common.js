@@ -218,25 +218,7 @@ magic.modules.Common = function () {
             } else {
                 return(null);
             }            
-        },
-        /**
-         * Create a style with the given opacity
-         * @param {float} opacity
-         * @param {String} icon
-         * @param {Array} anchor
-         * @returns {ol.style.Style}
-         */
-        getIconStyle: function(opacity, icon, anchor) {
-            return(new ol.style.Style({
-                image: new ol.style.Icon({
-                    anchor: anchor || [0.5, 1],
-                    anchorXUnits: "fraction",
-                    anchorYUnits: "fraction",
-                    opacity: opacity,
-                    src: magic.config.paths.baseurl + "/static/images/" + icon + ".png"
-                })
-            }));
-        },
+        },        
         /**
          * Make some different choices for icon style for points to allow more distinction between layers on the map
          * Supports:

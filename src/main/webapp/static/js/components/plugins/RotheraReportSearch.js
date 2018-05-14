@@ -279,10 +279,22 @@ magic.classes.RotheraReportSearch.prototype.styleFunction = function (f) {
             })
         });
     } else {
-        style = magic.modules.Common.getIconStyle(1.0, "field_report", [0.5, 0.5]);
+        style = new ol.style.Style({
+            image: new ol.style.Icon({
+                anchor: [0.5, 0.5],
+                anchorXUnits: "fraction",
+                anchorYUnits: "fraction",
+                opacity: 1.0,
+                src: magic.config.paths.cdn + "/images/asset-symbols/field_report.png"
+            })
+        });
     }    
     return(style);
 };
+
+getIconStyle: function(opacity, icon, anchor) {
+            return();
+        },
 
 /**
  * Mouseover handler for a report feature 

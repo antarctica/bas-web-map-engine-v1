@@ -38,7 +38,7 @@ magic.modules.VectorStyles = function () {
                 image: new ol.style.Icon({
                     scale: 0.8,
                     anchor: [0.5, 1.0],
-                    src: magic.config.paths.baseurl + "/static/images/marker_" + col + ".png"
+                    src: magic.config.paths.cdn + "/images/map-markers/marker_" + col + ".png"
                 })
             });
             if (name != null) {
@@ -75,7 +75,7 @@ magic.modules.VectorStyles = function () {
                     image: new ol.style.Icon({
                         rotateWithView: rotateWithView,
                         rotation: magic.modules.Common.toRadians(rotation),
-                        src: magic.config.paths.baseurl + "/static/images/airplane_" + colour + "_roundel.png"
+                        src: magic.config.paths.cdn + "/images/asset-symbols/airplane_" + colour + "_roundel.png"
                     }),
                     text: new ol.style.Text({
                         font: "Arial",
@@ -100,7 +100,7 @@ magic.modules.VectorStyles = function () {
                     image: new ol.style.Icon({
                         rotateWithView: true,
                         rotation: heading,
-                        src: magic.config.paths.baseurl + "/static/images/ship_" + colour + "_roundel.png"
+                        src: magic.config.paths.cdn + "/images/asset-symbols/ship_" + colour + "_roundel.png"
                     }),
                     text: new ol.style.Text({
                         font: "Arial",
@@ -139,7 +139,7 @@ magic.modules.VectorStyles = function () {
                 if (name != "unknown asset" && props["description"]) {
                     name = props["description"] + " (" + name + ")";
                 }
-                var roundel = magic.config.paths.baseurl + "/static/images/" + type + "_" + colour + "_roundel.png";
+                var roundel = magic.config.paths.cdn + "/images/asset-symbols/" + type + "_" + colour + "_roundel.png";
                 for (var i = 0; i < geoms.length; i++) {
                     var gtype = magic.modules.GeoUtils.getGeometryType(geoms[i]);
                     if (gtype == "point") {

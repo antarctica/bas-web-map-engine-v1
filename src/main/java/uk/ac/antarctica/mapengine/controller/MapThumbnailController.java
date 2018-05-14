@@ -47,7 +47,7 @@ import uk.ac.antarctica.mapengine.util.PackagingUtils;
 public class MapThumbnailController implements ServletContextAware {
     
     /* Default thumbnail location */
-    private static final String DEFAULT_THUMBNAIL = "/static/images/thumbnail_cache/bas.jpg";
+    private static final String DEFAULT_THUMBNAIL = "https://cdn.web.bas.ac.uk/webmap-engine/1.0.0/images/thumbnails/bas.jpg";
     
     @Autowired
     private Environment env;

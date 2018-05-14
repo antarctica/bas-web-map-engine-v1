@@ -40,9 +40,9 @@ magic.classes.Geosearch = function (options) {
         onMinimise: jQuery.proxy(this.saveState, this)
     });
 
-    this.suggestionStyle = magic.modules.Common.getIconStyle(0.6, "marker_orange"); /* "Ghost" style for mouseovers of suggestions */
-    this.invisibleStyle = magic.modules.Common.getIconStyle(0.0, "marker_orange");  /* Removed style */
-    this.resultStyle = magic.modules.Common.getIconStyle(0.8, "marker_green");      /* Actual search result style */
+    this.suggestionStyle = this.getIconStyle(0.6, "marker_orange"); /* "Ghost" style for mouseovers of suggestions */
+    this.invisibleStyle = this.getIconStyle(0.0, "marker_orange");  /* Removed style */
+    this.resultStyle = this.getIconStyle(0.8, "marker_green");      /* Actual search result style */
 
     /* Corresponding layer */
     this.layer.setStyle(this.resultStyle);
@@ -493,6 +493,18 @@ magic.classes.Geosearch.prototype.featurePositionInHistory = function(fid) {
         }
     }, this));
     return(exIdx);
+};
+
+magic.classes.Geosearch.prototype.getIconStyle = function(opacity, icon, anchor) {
+    return(new ol.style.Style({
+        image: new ol.style.Icon({
+            anchor: anchor || [0.5, 1],
+            anchorXUnits: "fraction",
+            anchorYUnits: "fraction",
+            opacity: opacity,
+            src: magic.config.paths.cdn + "/images/map-markers/" + icon + ".png"
+        })
+    }));
 };
 
 

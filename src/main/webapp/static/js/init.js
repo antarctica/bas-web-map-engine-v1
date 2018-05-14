@@ -5,7 +5,8 @@ var magic = {
     /* Layer and view configuration */
     config: {
         paths: {
-            baseurl: (window.location.origin || (window.location.protocol + "//" + window.location.hostname + (window.location.port ? ":" + window.location.port: "")))
+            baseurl: (window.location.origin || (window.location.protocol + "//" + window.location.hostname + (window.location.port ? ":" + window.location.port: ""))),
+            cdn: "https://cdn.web.bas.ac.uk/webmap-engine/1.0.0"
         }
     },        
     

@@ -12,7 +12,7 @@
                         <div class="col-md-3 col-sm-4 col-xs-6" th:attr="data-name=${tdata.name}">
                             <a th:href="@{'/home/' + ${tdata.name}}">                                    
                                 <img th:id="'tn-' + ${tdata.name}" th:src="@{'/thumbnail/show/' + ${tdata.name}}" 
-                                th:onerror="'this.src=\'' + @{'/static/images/thumbnail_cache/bas.jpg'} + '\''"
+                                th:onerror="'this.src=\'' + @{'https://cdn.web.bas.ac.uk/webmap-engine/1.0.0/images/thumbnails/bas.jpg'} + '\''"
                                 data-toggle="tooltip" data-placement="bottom" th:title="${tdata.description}" 
                                 width="200" height="150"></img>
                             </a>

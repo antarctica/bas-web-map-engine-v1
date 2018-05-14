@@ -59,7 +59,7 @@ public class CustomErrorController implements ErrorController {
             } else {
                 /* Everything else => custom error page */   
                 String favicon = env.getProperty("default.favicon") != null ? env.getProperty("default.favicon") : "bas.ico";
-                String logo = env.getProperty("default.logo") != null ? env.getProperty("default.logo") : "/static/images/1x1.png";
+                String logo = env.getProperty("default.logo") != null ? env.getProperty("default.logo") : "1x1.png";
                 String theme = env.getProperty("default.theme") != null ? env.getProperty("default.theme") : "";
                 String navbarClass = env.getProperty("default.navbarclass") != null ? env.getProperty("default.navbarclass") : "navbar-inverse";
                 String pageTitle = "An error occurred";
