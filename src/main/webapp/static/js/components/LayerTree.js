@@ -778,7 +778,7 @@ magic.classes.LayerTree.prototype.populateAutoloadGroup = function(map, grpid, g
                         attribute_map: data[i].attribute_map
                     }, this.defaultNodeAttrs);
                     nd.source = jQuery.extend({}, {
-                        wms_source: magic.modules.Endpoints.getOgcEndpoint(data[i].wms_source, "wms"), 
+                        wms_source: data[i].wms_source, 
                         feature_name: data[i].feature_name
                     }, this.defaultSourceAttrs);
                     nd.is_interactive = grpo.popups === true;
