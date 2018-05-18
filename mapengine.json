@@ -29,6 +29,8 @@
     "ol.format.KML#*",    
     "ol.format.WMSCapabilities",
     "ol.format.WMSCapabilities#*",
+	"ol.format.WKT",
+	"ol.format.WKT#*",
     "ol.layer.Vector",
     "ol.layer.Vector#*",
     "ol.source.Vector",

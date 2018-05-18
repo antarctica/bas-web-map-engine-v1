@@ -571,7 +571,7 @@ magic.modules.GeoUtils = function() {
             var formattedValue = "";
             var code = proj.split(":").pop();
             if (!isNaN(parseInt(code)) && (code < 32768 || code == 102020)) {
-                formattedValue = '<a href="http://epsg.io/?q=' + code + '" target="_blank">' + proj + '</a>';
+                formattedValue = '<a href="https://epsg.io/?q=' + code + '" target="_blank">' + proj + '</a>';
             } else {
                 formattedValue = proj;
             } 
