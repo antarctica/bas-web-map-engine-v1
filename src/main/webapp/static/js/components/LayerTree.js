@@ -286,25 +286,22 @@ magic.classes.LayerTree.prototype.assignLayerHandlers = function(belowElt) {
  * @param {jQuery.object} belowElt 
  */
 magic.classes.LayerTree.prototype.assignOneOnlyLayerGroupHandlers = function(belowElt) {
-    var layerRbs;
     if (belowElt) {
-        layerRbs = belowElt.find("a[id^='group-rb-off-']");
-    } else {
-        layerRbs = jQuery("button[id^='layer-info-']");
-    }    
-    layerRbs.each(jQuery.proxy(function(idx, elt) {
-        var allOff = jQuery(elt);
-        allOff.click(jQuery.proxy(function(evt) {
-            var groupsDone = {};
-            allOff.closest("div.layer-group").find("input[type='radio']").each(jQuery.proxy(function(idx2, rbElt) {
-                if (!groupsDone[rbElt.name]) {
-                    jQuery("input[name='" + rbElt.name + "']").prop("checked", false);                    
-                    groupsDone[rbElt.name] = true;
-                }
-                this.setLayerVisibility(jQuery(rbElt), true);
-            }, this));
-        }, this));                
-    }, this));  
+        var layerRbs = belowElt.find("a[id^='group-rb-off-']");   
+        layerRbs.each(jQuery.proxy(function(idx, elt) {
+            var allOff = jQuery(elt);
+            allOff.click(jQuery.proxy(function(evt) {
+                var groupsDone = {};
+                allOff.closest("div.layer-group").find("input[type='radio']").each(jQuery.proxy(function(idx2, rbElt) {
+                    if (!groupsDone[rbElt.name]) {
+                        jQuery("input[name='" + rbElt.name + "']").prop("checked", false);                    
+                        groupsDone[rbElt.name] = true;
+                    }
+                    this.setLayerVisibility(jQuery(rbElt), true);
+                }, this));
+            }, this));                
+        }, this));  
+    }
 };
 
 /**
@@ -313,8 +310,8 @@ magic.classes.LayerTree.prototype.assignOneOnlyLayerGroupHandlers = function(bel
  */
 magic.classes.LayerTree.prototype.initHandlers = function(belowElt) {
     this.assignLayerGroupHandlers(belowElt);
-    this.assignLayerHandlers(belowElt);  
-    this.assignOneOnlyLayerGroupHandlers(belowElt);        
+    this.assignLayerHandlers(belowElt); 
+    this.assignOneOnlyLayerGroupHandlers(belowElt); 
 };
 
 /**
@@ -411,25 +408,25 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
     /* Determine opacity */
     var layerOpacity = this.userLayerAttribute(nd.id, "opacity", nd.opacity);   
     if (isBase) {
-        cb = '<input class="layer-vis-selector" name="base-layers-rb" id="base-layer-rb-' + nd.id + '" type="radio" ' + (isVisible ? 'checked="checked"' : '') + '></input>';
+        cb = '<input class="layer-vis-selector" name="base-layers-rb" id="base-layer-rb-' + nd.id + '" type="radio"' + (isVisible ? ' checked="checked"' : '') + '></input>';
     } else if (element.hasClass("one-only")) {
         var eltId = element.attr("id");
-        cb = '<input class="layer-vis-selector" name="layer-rb-' + eltId + '" id="layer-rb-' + nd.id + '" type="radio" ' + (isVisible ? 'checked="checked"' : '') + '></input>';
+        cb = '<input class="layer-vis-selector" name="layer-rb-' + eltId + '" id="layer-rb-' + nd.id + '" type="radio"' + (isVisible ? ' checked="checked"' : '') + '></input>';
     } else {
-        cb = '<input class="layer-vis-selector" id="layer-cb-' + nd.id + '" type="checkbox" ' + (isVisible ? 'checked="checked"' : '') + '></input>';
+        cb = '<input class="layer-vis-selector" id="layer-cb-' + nd.id + '" type="checkbox"' + (isVisible ? ' checked="checked"' : '') + '></input>';
     }           
     element.append(
             '<li class="list-group-item layer-list-group-item" id="layer-item-' + nd.id + '">' +
                 '<table style="table-layout:fixed; width:100%">' + 
                     '<tr>' + 
                         '<td style="width:5%">' + 
-                            '<button id="layer-info-' + nd.id + '" class="btn btn-default layer-info" data-toggle="tooltip" data-placement="right" data-html="true" ' +
+                            '<button id="layer-info-' + nd.id + '" class="btn btn-default layer-info" data-toggle="tooltip" data-placement="top" data-html="true" ' +
                                 'title="' + (isInteractive ? infoTitle + "<br>Click on map features for info" : infoTitle) + '">' +
                                 '<span class="fa fa-info-circle' + (isInteractive ? ' clickable' : ' non-clickable') + '"></span>' +                                
                             '</button>' +
                         '</td>' +
                         '<td style="width:5%">' +
-                            '<div id="vis-wrapper-' + nd.id + '" style="cursor:pointer" tabindex="0"' + 
+                            '<div id="vis-wrapper-' + nd.id + '" style="cursor:pointer" ' + 
                             (isTimeDependent ? ' data-trigger="manual" data-toggle="popover" data-placement="bottom"' : '') + '>' + 
                             cb + 
                             '</div>' + 
