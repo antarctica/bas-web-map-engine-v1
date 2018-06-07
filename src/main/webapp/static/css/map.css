@@ -297,6 +297,12 @@ span.checked-indicator-badge {
     margin-right: 5px;
 }
 
+button.layer-info {
+    border: none; 
+    padding: 0px;
+    cursor: pointer;
+}
+
 /* Button ribbon styles */
 div.button-ribbon {    
     margin-left: 5px !important;

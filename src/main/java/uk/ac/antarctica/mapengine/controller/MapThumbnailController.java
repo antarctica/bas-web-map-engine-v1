@@ -44,7 +44,7 @@ import uk.ac.antarctica.mapengine.util.PackagingUtils;
 public class MapThumbnailController {
     
     /* Default thumbnail location */
-    private static final String DEFAULT_THUMBNAIL = "https://cdn.web.bas.ac.uk/webmap-engine/1.0.0/images/thumbnails/bas.jpg";
+    private static final String DEFAULT_THUMBNAIL = "https://cdn.web.bas.ac.uk/magic/images/thumbnails/bas.jpg";
     
     @Autowired
     private Environment env;

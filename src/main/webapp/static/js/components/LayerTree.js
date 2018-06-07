@@ -243,9 +243,9 @@ magic.classes.LayerTree.prototype.assignLayerHandlers = function(belowElt) {
     /* The get layer info buttons */
     var layerInfo = null;
     if (belowElt) {
-        layerInfo = belowElt.find("a[id^='layer-info-']");
+        layerInfo = belowElt.find("button[id^='layer-info-']");
     } else {
-        layerInfo = jQuery("a[id^='layer-info-']");
+        layerInfo = jQuery("button[id^='layer-info-']");
     }    
     layerInfo.on("click", jQuery.proxy(function (evt) {
         var id = evt.currentTarget.id;
@@ -290,7 +290,7 @@ magic.classes.LayerTree.prototype.assignOneOnlyLayerGroupHandlers = function(bel
     if (belowElt) {
         layerRbs = belowElt.find("a[id^='group-rb-off-']");
     } else {
-        layerRbs = jQuery("a[id^='layer-info-']");
+        layerRbs = jQuery("button[id^='layer-info-']");
     }    
     layerRbs.each(jQuery.proxy(function(idx, elt) {
         var allOff = jQuery(elt);
@@ -411,22 +411,22 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
     /* Determine opacity */
     var layerOpacity = this.userLayerAttribute(nd.id, "opacity", nd.opacity);   
     if (isBase) {
-        cb = '<input class="layer-vis-selector" name="base-layers-rb" id="base-layer-rb-' + nd.id + '" type="radio" ' + (isVisible ? "checked" : "") + '></input>';
+        cb = '<input class="layer-vis-selector" name="base-layers-rb" id="base-layer-rb-' + nd.id + '" type="radio" ' + (isVisible ? 'checked="checked"' : '') + '></input>';
     } else if (element.hasClass("one-only")) {
         var eltId = element.attr("id");
-        cb = '<input class="layer-vis-selector" name="layer-rb-' + eltId + '" id="layer-rb-' + nd.id + '" type="radio" ' + (isVisible ? "checked" : "") + '></input>';
+        cb = '<input class="layer-vis-selector" name="layer-rb-' + eltId + '" id="layer-rb-' + nd.id + '" type="radio" ' + (isVisible ? 'checked="checked"' : '') + '></input>';
     } else {
-        cb = '<input class="layer-vis-selector" id="layer-cb-' + nd.id + '" type="checkbox" ' + (isVisible ? "checked" : "") + '></input>';
+        cb = '<input class="layer-vis-selector" id="layer-cb-' + nd.id + '" type="checkbox" ' + (isVisible ? 'checked="checked"' : '') + '></input>';
     }           
     element.append(
             '<li class="list-group-item layer-list-group-item" id="layer-item-' + nd.id + '">' +
                 '<table style="table-layout:fixed; width:100%">' + 
                     '<tr>' + 
                         '<td style="width:5%">' + 
-                            '<a id="layer-info-' + nd.id + '" style="cursor:pointer" data-toggle="tooltip" data-placement="right" data-html="true" ' +
+                            '<button id="layer-info-' + nd.id + '" class="btn btn-default layer-info" data-toggle="tooltip" data-placement="right" data-html="true" ' +
                                 'title="' + (isInteractive ? infoTitle + "<br>Click on map features for info" : infoTitle) + '">' +
                                 '<span class="fa fa-info-circle' + (isInteractive ? ' clickable' : ' non-clickable') + '"></span>' +                                
-                            '</a>' +
+                            '</button>' +
                         '</td>' +
                         '<td style="width:5%">' +
                             '<div id="vis-wrapper-' + nd.id + '" style="cursor:pointer" tabindex="0"' + 
