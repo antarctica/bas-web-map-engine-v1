@@ -133,37 +133,13 @@ magic.modules.Endpoints = function () {
                 if (filterName == "id") {
                     return(ep[filterName] == filterValue);
                 } else if (filterName == "url") {
-                    /* Check endpoint URL against filter - protocol, host and port must be identical */
-                    var parsedEpUrl = this.parseUri(ep[filterName]);
-                    var foundUrl = 
-                        parsedUrlFilter.protocol == parsedEpUrl.protocol && 
-                        parsedUrlFilter.host == parsedEpUrl.host && 
-                        parsedUrlFilter.port == parsedEpUrl.port;
-                    /* Bugfix 2018-04-16 David - too risky to introduce this for web mapping workshop */
-                    if (foundUrl) {
-                       /* Protocol, host and port identical - check path starts with endpoint's path */
-                        if (parsedUrlFilter.path != "" && parsedEpUrl.path != "") {
-                            foundUrl = parsedUrlFilter.path.indexOf(parsedEpUrl.path) == 0;
-                        }
-                    }
-                    if (!foundUrl) {
+                    var foundUrl = this.compareEndpoints(parsedUrlFilter, this.parseUri(ep[filterName]));                    
+                    if (!foundUrl && ep["url_aliases"]) {
                         /* Check any of the aliases match in protocol, host and port */
-                        if (ep["url_aliases"]) {
-                            var aliases = ep["url_aliases"].split(",");
-                            for (var i = 0; !foundUrl && i < aliases.length; i++) {
-                                var parsedAliasUrl = this.parseUri(aliases[i]);
-                                foundUrl = 
-                                    parsedUrlFilter.protocol == parsedAliasUrl.protocol && 
-                                    parsedUrlFilter.host == parsedAliasUrl.host &&
-                                    parsedUrlFilter.port == parsedAliasUrl.port;
-                                if (foundUrl) {
-                                    /* Protocol, host and port identical - check path starts with endpoint's path */
-                                    if (parsedUrlFilter.path != "" && parsedAliasUrl.path != "") {
-                                        foundUrl = parsedUrlFilter.path.indexOf(parsedAliasUrl.path) == 0;
-                                    }
-                                }
-                            }                            
-                        }
+                        var aliases = ep["url_aliases"].split(",");
+                        for (var i = 0; !foundUrl && i < aliases.length; i++) {
+                            foundUrl = this.compareEndpoints(parsedUrlFilter, this.parseUri(aliases[i]));                               
+                        }                            
                     }
                     return(foundUrl);
                 } else if (filterName == "srs") {
@@ -174,7 +150,36 @@ magic.modules.Endpoints = function () {
                     return(ep[filterName].toLowerCase().indexOf(filterValue.toLowerCase()) == 0);
                 }
             }, this)));
-        },         
+        }, 
+        /**
+         * Check endpoint URL against filter - protocol, host, port and first path item must be identical 
+         * @param {Object} url1 parsed URL  
+         * @param {Object} url2 parsed URL 
+         * @return {boolean}
+         */
+        compareEndpoints: function(url1, url2) {            
+            var foundUrl = 
+                url1.protocol == url2.protocol && 
+                url1.host == url2.host && 
+                url1.port == url1.port;
+            /* Bugfix 2018-04-16 David - too risky to introduce this for web mapping workshop */
+            if (foundUrl) {
+               /* Protocol, host and port identical - check path starts with endpoint's path */
+                if (url1.path != "" && url2.path != "") {
+                    /* Extract and compare first path element */
+                    var p1 = url1.path;
+                    if (p1.indexOf("/") >= 0) {
+                        p1 = p1.substring(0, p1.indexOf("/"));
+                    }
+                    var p2 = url2.path;
+                    if (p2.indexOf("/") >= 0) {
+                        p2 = p2.substring(0, p2.indexOf("/"));
+                    }
+                    foundUrl = p1 == p2;
+                }
+            }
+            return(foundUrl);
+        },
         /**
          * Get a suitable mid-latitudes coast layer (OSM, except if in a low bandwidth location, in which case default to Natural Earth)
          * @returns {ol.layer}

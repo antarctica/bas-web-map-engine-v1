@@ -1156,7 +1156,7 @@ magic.classes.LayerTree.prototype.getVectorStyle = function(styleDef, labelField
                 text = undefined;
                 if (labelField) {
                     /* Transparent text, made opaque on mouseover */
-                    var textColor = magic.modules.Common.rgbToDec(styleDef.stroke.color, 0.0)
+                    var textColor = magic.modules.Common.rgbToDec(styleDef.stroke.color, 0.0);
                     text = new ol.style.Text({
                         font: "Arial",
                         scale: 1.2,
