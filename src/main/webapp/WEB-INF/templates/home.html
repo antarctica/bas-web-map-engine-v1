@@ -60,6 +60,12 @@
                 jQuery('[data-toggle="tooltip"]').tooltip({container: 'body', trigger: "hover"});
                 /* For dynamic tooltips - http://stackoverflow.com/questions/9958825/how-do-i-bind-twitter-bootstrap-tooltips-to-dynamically-created-elements */
                 jQuery("body").tooltip({selector: '[data-toggle="tooltip"]', trigger: "hover"});
+                
+                /* Long standing issue in Bootstrap, introduced in BAS CDN version - https://github.com/twbs/bootstrap/issues/16732
+                 * See answer by julesongithub, commented on 16 Dec 2015 */
+                jQuery("body").on("hidden.bs.popover", function (e) {
+                    jQuery(e.target).data("bs.popover").inState.click = false;
+                });
                
                 /* Login behaviour */
                 jQuery("#log-in-user").click(function (evt) {
