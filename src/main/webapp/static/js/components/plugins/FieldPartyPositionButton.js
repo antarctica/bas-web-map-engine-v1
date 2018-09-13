@@ -19,12 +19,6 @@ magic.classes.FieldPartyPositionButton = function (options) {
     /* Data fetch */
     this.WFS_FETCH = "http://mapengine-dev.nerc-bas.ac.uk:8080/geoserver/opsgis2/wfs?service=wfs&request=getfeature&version=2.0.0&" + 
             "typeNames=opsgis2:ops_field_deployments&outputFormat=json&sortBy=fix_date+D&cql_filter=season=1819";
-    
-    /* Format for JSON feature reading */
-    this.geoJson = null;
-    
-    /* Vector layer to which features are added */
-    this.layer = null;
    
     /**
      * Classified feature map, so that heatmap styling can be applied
@@ -68,13 +62,10 @@ magic.classes.FieldPartyPositionButton = function (options) {
         title: this.titleMarkup(),
         container: "body",
         html: true,
-        content: this.markup()
+        content: "Loading field party data..."
     })
     .on("shown.bs.popover", jQuery.proxy(function() {        
-        this.activate();
-        //if (this.isActive() && !jQuery.isEmptyObject(this.savedSearch)) {
-        //    this.restoreState();
-        //}               
+        this.activate();               
     }, this));                
     
 };
@@ -83,19 +74,42 @@ magic.classes.FieldPartyPositionButton.prototype = Object.create(magic.classes.N
 magic.classes.FieldPartyPositionButton.prototype.constructor = magic.classes.FieldPartyPositionButton;
 
 magic.classes.FieldPartyPositionButton.prototype.markup = function() {
-    return('<div>TO DO</div>');
-    //TODO
-//    var markup = "";
-//    var nRows = Math.ceil(this.PHONETIC_ALHPABET.length/this.BUTTONS_PER_ROW);
-//    for (var i = 0; i < nRows; i++) {
-//        markup = markup + '<ul class="nav nav-pills">';
-//        var btnIndex = i*this.BUTTONS_PER_ROW;
-//        for (var j = 0; btnIndex+j < this.PHONETIC_ALPHABET.length && j < this.BUTTONS_PER_ROW; j++) {
-//            markup = markup + '<li role="presentation"><a href="#" role="button" class="btn btn-default">' + this.PHONETIC_ALHPABET[btnIndex+j] + '</a></li>';
-//        }
-//        markup = markup + '</ul>';
-//    }
-//    return(markup);
+    var markup = "";
+    /* Get the active sledges */
+    var activeSledges = Object.keys(this.featureMap);
+    activeSledges.sort();
+    /* Create the "app style" buttons for active sledges */
+    markup = markup + '<div id="active-sledge-button-pane">';
+    if (activeSledges.length > 0) {
+        var nRows = Math.ceil(activeSledges.length/this.BUTTONS_PER_ROW);
+        for (var i = 0; i < nRows; i++) {
+            markup = markup + '<ul class="nav nav-pills">';
+            var btnIndex = i*this.BUTTONS_PER_ROW;
+            for (var j = 0; btnIndex+j < activeSledges.length && j < this.BUTTONS_PER_ROW; j++) {
+                markup = markup + '<li role="presentation"><a href="#" role="button" class="btn btn-success">' + activeSledges[btnIndex+j] + '</a></li>';
+            }
+            markup = markup + '</ul>';
+        }
+    } else {
+        markup = markup + "There are currently no active sledges this season"; 
+    }
+    markup = markup + '</div>';    
+    /* Create a dropdown of inactive ones that may be activated */
+    var inactiveSledges = jQuery.grep(this.PHONETIC_ALPHABET, function(elt) {
+        return(!(elt in activeSledges));
+    });
+    markup = markup + 
+        '<div class="form-group form-group-sm" id="inactive-sledges-dropdown-pane">' + 
+            '<select class="form-control" id="sel-activate-sledge">' + 
+                '<option value="">Select a sledge to activate</option>';
+    for (var i = 0; i < inactiveSledges.length; i++) {
+        markup = markup + '<option value="' + inactiveSledges[i] + '">' + inactiveSledges[i] + '</option>';
+    }
+    markup = markup + 
+            '</select>' + 
+            '<button type="button" class="btn btn-primary">Activate</button>' + 
+         '</div>';    
+    return(markup);    
 };
 
 magic.classes.FieldPartyPositionButton.prototype.interactsMap = function () {
@@ -110,20 +124,15 @@ magic.classes.FieldPartyPositionButton.prototype.restoreState = function() {
     //TODO
 };
 
-magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {    
-    if (!this.geoJson) {
-        this.geoJson = new ol.format.GeoJSON({
-            geometryName: "geometry"
-        });
-    }    
+magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {       
     jQuery.ajax({
         url: this.WFS_FETCH,
         method: "GET",
         success: jQuery.proxy(function(data) {
-            if (!this.geoJson) {
-                return;
-            }            
-            var feats = this.geoJson.readFeatures(data);
+            var fmtGeoJson = new ol.format.GeoJSON({
+                geometryName: "geometry"
+            });          
+            var feats = fmtGeoJson.readFeatures(data);
             /* Now classify the features by name and fix date */
             jQuery.each(feats, jQuery.proxy(function(idx, f) {
                 var attrs = f.getProperties();
@@ -149,6 +158,8 @@ magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {
             }, this));
             this.layer.getSource().clear();
             this.layer.getSource().addFeatures(feats);
+            /* Update the popover content with fix information */
+            jQuery("." + this.popoverContentClass).html(this.markup());
         }, this),
         error: function() {
             console.log("Failed to get field party positional data - potential network outage?");
