@@ -108,6 +108,14 @@ magic.classes.AppContainer = function () {
             layername: "Rothera fieldwork reports",
             popoverClass: "reports-popover",
             popoverContentClass: "reports-popover-content"
+        }),
+        "field_party_position": this.allocateNavbarTool("field_party_position", "FieldPartyPositionButton", {
+            id: "field-party-position-tool",
+            target: "field_party_position",
+            caption: "Current Field Party positions",
+            layername: "Current Field Party positions",
+            popoverClass: "field-party-popover",
+            popoverContentClass: "field-party-popover-content"
         })
     };  
     /* End of navigation bar toolset */

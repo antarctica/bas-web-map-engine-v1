@@ -17,24 +17,50 @@ magic.classes.FieldPartyPositionButton = function (options) {
     this.BUTTONS_PER_ROW = 4;
     
     /* Data fetch */
-    this.WFS_FETCH = "https://mapengine-dev.nerc-bas.ac.uk/geoserver/opsgis2/wfs?service=wfs&request=getfeature&version=2.0.0&" + 
+    this.WFS_FETCH = "http://mapengine-dev.nerc-bas.ac.uk:8080/geoserver/opsgis2/wfs?service=wfs&request=getfeature&version=2.0.0&" + 
             "typeNames=opsgis2:ops_field_deployments&outputFormat=json&sortBy=fix_date+D&cql_filter=season=1819";
     
-    this.geoJson = new ol.format.GeoJSON({
-        geometryName: "geometry"
-    });
+    /* Format for JSON feature reading */
+    this.geoJson = null;
+    
+    /* Vector layer to which features are added */
+    this.layer = null;
+   
+    /**
+     * Classified feature map, so that heatmap styling can be applied
+     * {
+     *     <sledge_name> : {
+     *         <fix1> : <feature1>,
+     *         <fix2> : <feature2>,
+     *         ...
+     *         <fixn> : <featuren>
+     *     }
+     * }
+     */
+    this.featureMap = {};
    
     magic.classes.NavigationBarTool.call(this, options);    
     
     /* Control callbacks */
     this.setCallbacks({
-        onActivate: jQuery.proxy(function() {
-            //TODO
-            }, this),
-        onDeactivate: jQuery.proxy(function() {
-            //TODO
-            }, this), 
+        onActivate: jQuery.proxy(this.onActivate, this),
+        onDeactivate: jQuery.proxy(this.onDeactivate, this), 
         onMinimise: jQuery.proxy(this.saveState, this)
+    });
+    
+    this.layer.set("metadata", {
+        is_interactive: true,
+        attribute_map: [
+            {name: "sledge", alias: "Sledge", displayed: true},
+            {name: "season", alias: "Season", displayed: false},
+            {name: "fix_date", alias: "Fix at", displayed: true},
+            {name: "updated", alias: "Updated", displayed: false},
+            {name: "updater", alias: "By", displayed: true},
+            {name: "lat", alias: "Lat", displayed: true},
+            {name: "lon", alias: "Lon", displayed: true},
+            {name: "height", alias: "Altitude", displayed: false},
+            {name: "notes", alias: "Notes", displayed: true}
+        ]                    
     });
     
     this.target.popover({
@@ -46,9 +72,9 @@ magic.classes.FieldPartyPositionButton = function (options) {
     })
     .on("shown.bs.popover", jQuery.proxy(function() {        
         this.activate();
-        if (this.isActive() && !jQuery.isEmptyObject(this.savedSearch)) {
-            this.restoreState();
-        }               
+        //if (this.isActive() && !jQuery.isEmptyObject(this.savedSearch)) {
+        //    this.restoreState();
+        //}               
     }, this));                
     
 };
@@ -57,6 +83,7 @@ magic.classes.FieldPartyPositionButton.prototype = Object.create(magic.classes.N
 magic.classes.FieldPartyPositionButton.prototype.constructor = magic.classes.FieldPartyPositionButton;
 
 magic.classes.FieldPartyPositionButton.prototype.markup = function() {
+    return('<div>TO DO</div>');
     //TODO
 //    var markup = "";
 //    var nRows = Math.ceil(this.PHONETIC_ALHPABET.length/this.BUTTONS_PER_ROW);
@@ -71,6 +98,10 @@ magic.classes.FieldPartyPositionButton.prototype.markup = function() {
 //    return(markup);
 };
 
+magic.classes.FieldPartyPositionButton.prototype.interactsMap = function () {
+    return(true);
+};
+
 magic.classes.FieldPartyPositionButton.prototype.saveState = function() {
     //TODO
 };
@@ -79,30 +110,12 @@ magic.classes.FieldPartyPositionButton.prototype.restoreState = function() {
     //TODO
 };
 
-magic.classes.FieldPartyPositionButton.prototype.activate = function() {
-    
+magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {    
     if (!this.geoJson) {
         this.geoJson = new ol.format.GeoJSON({
             geometryName: "geometry"
         });
-    }
-    if (!this.layer) {
-        this.layer = new ol.layer.Vector({
-            name: this.title,
-            visible: true,
-            source: new ol.source.Vector({
-                features: []
-            }),
-            metadata: {
-                is_interactive: true
-            }
-        });
-        this.layer.setZIndex(500);
-        magic.runtime.map.addLayer(this.layer);
-    } else {
-        this.layer.setVisible(true);
-    }
-    
+    }    
     jQuery.ajax({
         url: this.WFS_FETCH,
         method: "GET",
@@ -111,40 +124,38 @@ magic.classes.FieldPartyPositionButton.prototype.activate = function() {
                 return;
             }            
             var feats = this.geoJson.readFeatures(data);
-//            var projExtent = magic.modules.GeoUtils.projectionLatLonExtent(magic.runtime.map.getView().getProjection().getCode());
-//            jQuery.each(feats, jQuery.proxy(function(idx, f) {
-//                var props = jQuery.extend({}, f.getProperties());
-//                var fclone = f.clone();
-//                fclone.setProperties(props);
-//                if (f.getGeometry().intersectsExtent(projExtent)) {                            
-//                    fclone.getGeometry().transform("EPSG:4326", magic.runtime.map.getView().getProjection().getCode());
-//                    fclone.setStyle(magic.modules.VectorStyles["bas_aircraft"](magic.runtime.map.getView().getProjection().getCode()));
-//                    this.data.inside.push(fclone);
-//                } else {
-//                    fclone.getGeometry().transform("EPSG:4326", "EPSG:3857");
-//                    fclone.setStyle(magic.modules.VectorStyles["bas_aircraft"]("EPSG:3857"));
-//                    this.data.outside.push(fclone);
-//                }                        
-//            }, this));
-//            this.layer.getSource().clear();
-//            if (this.data.inside.length > 0) {
-//                this.layer.getSource().addFeatures(this.data.inside);
-//            }
-//            if (this.data.outside.length > 0) {
-//                if (this.insetLayer) {
-//                    this.insetLayer.getSource().clear();
-//                    var osClones = jQuery.map(this.data.outside, function(f) {
-//                        return(f.clone());
-//                    });      
-//                    this.insetLayer.getSource().addFeatures(osClones); 
-//                }
-//                if (magic.runtime.inset) {
-//                    magic.runtime.inset.activate();
-//                }
-//            }                  
+            /* Now classify the features by name and fix date */
+            jQuery.each(feats, jQuery.proxy(function(idx, f) {
+                var attrs = f.getProperties();
+                var fname = attrs.sledge;
+                var fdate = attrs.fix_date;
+                if (!this.featureMap[fname]) {
+                    this.featureMap[fname] = {};
+                }
+                this.featureMap[fname][fdate] = f;                  
+            }, this));
+            /* Now write styling hints into the feature attributes */
+            jQuery.each(this.featureMap, jQuery.proxy(function(k, v) {               
+                var fixes = Object.keys(v);
+                fixes.sort();
+                fixes.reverse();
+                /* Now have descending order array of fixes */
+                var colourStep = 255/fixes.length;
+                for (var i = 0; i < fixes.length; i++) {
+                    var rgba = "rgba(" + parseInt(255 - i*colourStep) + ",0," + parseInt(i*colourStep) + ",1.0)";
+                    v[fixes[i]].setProperties({"rgba": rgba}, true);
+                    v[fixes[i]].setStyle(magic.modules.VectorStyles["bas_field_party"]());
+                }
+            }, this));
+            this.layer.getSource().clear();
+            this.layer.getSource().addFeatures(feats);
         }, this),
-        error: function(jqXhr, status, msg) {
-            console.log("Failed to get aircraft positional data - potential network outage?");
+        error: function() {
+            console.log("Failed to get field party positional data - potential network outage?");
         }
-    });
+    });   
+};
+
+magic.classes.FieldPartyPositionButton.prototype.onDeactivate = function() {    
+    this.target.popover("hide");
 };
