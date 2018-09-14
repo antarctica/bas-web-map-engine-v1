@@ -90,14 +90,14 @@ magic.classes.FieldPartyPositionButton.prototype.markup = function() {
             for (var j = 0; btnIndex+j < activeSledges.length && j < this.BUTTONS_PER_ROW; j++) {
                 markup = markup + 
                     '<td>' + 
-                        '<button type="button" class="btn btn-success btn-sm sledge-fix-button" ' + 
-                            'data-toggle="popover" data-placement="bottom" title="Fix history" ' + 
-                            'data-content="Loading ' + activeSledges[btnIndex+j] + ' position fixes..." style="width:60px">' + 
+                        '<button type="button" class="btn btn-success btn-sm sledge-fix-button" style="width:80px">' + 
                             activeSledges[btnIndex+j] + 
                         '</button>' + 
                     '</td>';
             }
             markup = markup + '</tr>';
+            /* Add the fix history display row, hidden until button in row clicked */
+            markup = markup + '<tr class="hidden"><td colspan="' + this.BUTTONS_PER_ROW + '"></td></tr>';
         }
     } else {
         markup = markup + "<tr><td>There are currently no active sledges this season</td></tr>"; 
@@ -120,7 +120,7 @@ magic.classes.FieldPartyPositionButton.prototype.markup = function() {
     markup = markup + 
                 '</select>' +                 
             '</div>' + 
-            '<button id="btn-activate-sledge" type="button" class="btn btn-primary">Activate</button>' + 
+            '<button id="btn-activate-sledge" type="button" class="btn btn-primary btn-sm">Activate</button>' + 
         '</div>';    
     return(markup);    
 };
@@ -196,16 +196,37 @@ magic.classes.FieldPartyPositionButton.prototype.assignHandlers = function() {
         }
     }, this));
     /* Assign sledge fix popovers */
-    jQuery(".sledge-fix-button").popover({
-        container: "body",
-        content: function() {
-            "Loading " + jQuery(this).text() + " position fixes...";
-        },
-        placement: "bottom"        
-    })
-    .on("shown.bs.popover", jQuery.proxy(function() {        
-        //TODO - display table of fixes               
-    }, this));   
+    jQuery(".sledge-fix-button").click(jQuery.proxy(function(idx, elt) {
+        /* Show the fix history in a table below the button */
+        var clickedSledge = jQuery(elt).text();
+        var historyRow = jQuery(elt).closest("tr").next("tr");
+        var fixes = Object.keys(this.featureMap[clickedSledge]);
+        fixes.sort();
+        if (historyRow.length > 0) {
+            var historyTd = historyRow.children().first();
+            var fixMarkup = 
+                '<table class="table" style="max-height:200px">' + 
+                    '<tr><th>Date</th><th>No ppl</th><th>Updater</th><th>Lat</th><th>Lon</th><th>Ht</th><th>Notes</th></tr>' + 
+                    '<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>';
+            for (var i = fixes.length-1; i >= 0; i--) {
+                fixMarkup = fixMarkup + '<tr>';
+                var feat = this.featureMap[clickedSledge][fixes[i]];
+                var props = feat.getProperties();
+                fixMarkup = fixMarkup + 
+                    '<td align="right">' + magic.modules.Common.dateFormat(props.fix_date, "dmy") + '</td>' + 
+                    '<td align="right">' + (isNaN(props.people_count) ? "" : props.people_count) + '</td>' + 
+                    '<td align="right">' + (props.updater || "") + '</td>' + 
+                    '<td align="right">' + magic.modules.GeoUtils.applyPref("coordinates", props.lat, "lat") + '</td>' + 
+                    '<td align="right">' + magic.modules.GeoUtils.applyPref("coordinates", props.lon, "lon") + '</td>' + 
+                    '<td align="right">' + (isNaN(props.height) ? "" : props.height) + '</td>' + 
+                    '<td>' + props.notes + '</td>';                            
+                fixMarkup = fixMarkup + '</tr>';
+            }
+            fixMarkup = fixMarkup + '</table>';
+            historyTd.removeClass("hidden");
+            historyTd.html(fixMarkup);
+        }        
+    }, this));
 };
 
 

@@ -779,6 +779,10 @@ div.field-party-popover-content {
     width: auto !important;
 }
 
+div.sledge-fix-popover-content {
+    width: auto !important;
+}
+
 /* Issue information div */
 div.issue-info {
     position: absolute;
