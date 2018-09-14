@@ -775,6 +775,10 @@ div.reports-popover-content .bootstrap-tagsinput {
     width: 100% !important;
 }
 
+div.field-party-popover-content {
+    width: auto !important;
+}
+
 /* Issue information div */
 div.issue-info {
     position: absolute;

@@ -79,36 +79,49 @@ magic.classes.FieldPartyPositionButton.prototype.markup = function() {
     var activeSledges = Object.keys(this.featureMap);
     activeSledges.sort();
     /* Create the "app style" buttons for active sledges */
-    markup = markup + '<div id="active-sledge-button-pane">';
+    markup = markup + 
+        '<div id="active-sledge-button-pane">' + 
+            '<table class="table">';
     if (activeSledges.length > 0) {
         var nRows = Math.ceil(activeSledges.length/this.BUTTONS_PER_ROW);
         for (var i = 0; i < nRows; i++) {
-            markup = markup + '<ul class="nav nav-pills">';
+            markup = markup + '<tr>';
             var btnIndex = i*this.BUTTONS_PER_ROW;
             for (var j = 0; btnIndex+j < activeSledges.length && j < this.BUTTONS_PER_ROW; j++) {
-                markup = markup + '<li role="presentation"><a href="#" role="button" class="btn btn-success">' + activeSledges[btnIndex+j] + '</a></li>';
+                markup = markup + 
+                    '<td>' + 
+                        '<button type="button" class="btn btn-success btn-sm sledge-fix-button" ' + 
+                            'data-toggle="popover" data-placement="bottom" title="Fix history" ' + 
+                            'data-content="Loading ' + activeSledges[btnIndex+j] + ' position fixes..." style="width:60px">' + 
+                            activeSledges[btnIndex+j] + 
+                        '</button>' + 
+                    '</td>';
             }
-            markup = markup + '</ul>';
+            markup = markup + '</tr>';
         }
     } else {
-        markup = markup + "There are currently no active sledges this season"; 
+        markup = markup + "<tr><td>There are currently no active sledges this season</td></tr>"; 
     }
-    markup = markup + '</div>';    
-    /* Create a dropdown of inactive ones that may be activated */
-    var inactiveSledges = jQuery.grep(this.PHONETIC_ALPHABET, function(elt) {
-        return(!(elt in activeSledges));
-    });
     markup = markup + 
-        '<div class="form-group form-group-sm" id="inactive-sledges-dropdown-pane">' + 
-            '<select class="form-control" id="sel-activate-sledge">' + 
-                '<option value="">Select a sledge to activate</option>';
+            '</table>' + 
+        '</div>';    
+    /* Create a dropdown of inactive ones that may be activated */
+    var inactiveSledges = jQuery.grep(this.PHONETIC_ALPHABET, jQuery.proxy(function(elt) {
+        return(!(elt in this.featureMap));
+    }, this));
+    markup = markup + 
+        '<div class="form-inline">' + 
+            '<div class="form-group form-group-sm">' + 
+                '<select class="form-control" id="sel-activate-sledge">' + 
+                    '<option value="">Select a sledge to activate</option>';
     for (var i = 0; i < inactiveSledges.length; i++) {
         markup = markup + '<option value="' + inactiveSledges[i] + '">' + inactiveSledges[i] + '</option>';
     }
     markup = markup + 
-            '</select>' + 
-            '<button type="button" class="btn btn-primary">Activate</button>' + 
-         '</div>';    
+                '</select>' +                 
+            '</div>' + 
+            '<button id="btn-activate-sledge" type="button" class="btn btn-primary">Activate</button>' + 
+        '</div>';    
     return(markup);    
 };
 
@@ -160,6 +173,7 @@ magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {
             this.layer.getSource().addFeatures(feats);
             /* Update the popover content with fix information */
             jQuery("." + this.popoverContentClass).html(this.markup());
+            this.assignHandlers();
         }, this),
         error: function() {
             console.log("Failed to get field party positional data - potential network outage?");
@@ -170,3 +184,28 @@ magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {
 magic.classes.FieldPartyPositionButton.prototype.onDeactivate = function() {    
     this.target.popover("hide");
 };
+
+magic.classes.FieldPartyPositionButton.prototype.assignHandlers = function() {    
+    /* Assign handler to activate new sledge */
+    jQuery("#btn-activate-sledge").click(jQuery.proxy(function(evt) {
+        var selection = jQuery("#sel-activate-sledge").val();
+        if (selection != "") {
+            this.featureMap[selection] = {};
+            jQuery("." + this.popoverContentClass).html(this.markup());
+            this.assignHandlers();
+        }
+    }, this));
+    /* Assign sledge fix popovers */
+    jQuery(".sledge-fix-button").popover({
+        container: "body",
+        content: function() {
+            "Loading " + jQuery(this).text() + " position fixes...";
+        },
+        placement: "bottom"        
+    })
+    .on("shown.bs.popover", jQuery.proxy(function() {        
+        //TODO - display table of fixes               
+    }, this));   
+};
+
+

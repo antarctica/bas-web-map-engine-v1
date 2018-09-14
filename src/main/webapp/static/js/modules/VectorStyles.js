@@ -207,7 +207,7 @@ magic.modules.VectorStyles = function () {
                         rotateWithView: true,
                         rotation: 0,
                         points: 3,
-                        radius: 10,
+                        radius: 6,
                         fill: new ol.style.Fill({color: rgba}),
                         stroke: new ol.style.Stroke({color: rgba})
                     }),
