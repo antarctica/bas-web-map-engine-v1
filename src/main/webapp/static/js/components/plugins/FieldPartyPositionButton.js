@@ -97,7 +97,7 @@ magic.classes.FieldPartyPositionButton.prototype.markup = function() {
             }
             markup = markup + '</tr>';
             /* Add the fix history display row, hidden until button in row clicked */
-            markup = markup + '<tr class="hidden"><td colspan="' + this.BUTTONS_PER_ROW + '"></td></tr>';
+            markup = markup + '<tr class="sledge-fix-display-row hidden"><td colspan="' + this.BUTTONS_PER_ROW + '"></td></tr>';
         }
     } else {
         markup = markup + "<tr><td>There are currently no active sledges this season</td></tr>"; 
@@ -196,37 +196,50 @@ magic.classes.FieldPartyPositionButton.prototype.assignHandlers = function() {
         }
     }, this));
     /* Assign sledge fix popovers */
-    jQuery(".sledge-fix-button").click(jQuery.proxy(function(idx, elt) {
+    jQuery(".sledge-fix-button").click(jQuery.proxy(function(evt) {
         /* Show the fix history in a table below the button */
-        var clickedSledge = jQuery(elt).text();
-        var historyRow = jQuery(elt).closest("tr").next("tr");
-        var fixes = Object.keys(this.featureMap[clickedSledge]);
-        fixes.sort();
-        if (historyRow.length > 0) {
-            var historyTd = historyRow.children().first();
-            var fixMarkup = 
-                '<table class="table" style="max-height:200px">' + 
-                    '<tr><th>Date</th><th>No ppl</th><th>Updater</th><th>Lat</th><th>Lon</th><th>Ht</th><th>Notes</th></tr>' + 
-                    '<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>';
-            for (var i = fixes.length-1; i >= 0; i--) {
-                fixMarkup = fixMarkup + '<tr>';
-                var feat = this.featureMap[clickedSledge][fixes[i]];
-                var props = feat.getProperties();
-                fixMarkup = fixMarkup + 
-                    '<td align="right">' + magic.modules.Common.dateFormat(props.fix_date, "dmy") + '</td>' + 
-                    '<td align="right">' + (isNaN(props.people_count) ? "" : props.people_count) + '</td>' + 
-                    '<td align="right">' + (props.updater || "") + '</td>' + 
-                    '<td align="right">' + magic.modules.GeoUtils.applyPref("coordinates", props.lat, "lat") + '</td>' + 
-                    '<td align="right">' + magic.modules.GeoUtils.applyPref("coordinates", props.lon, "lon") + '</td>' + 
-                    '<td align="right">' + (isNaN(props.height) ? "" : props.height) + '</td>' + 
-                    '<td>' + props.notes + '</td>';                            
-                fixMarkup = fixMarkup + '</tr>';
-            }
-            fixMarkup = fixMarkup + '</table>';
-            historyTd.removeClass("hidden");
-            historyTd.html(fixMarkup);
+        var btn = jQuery(evt.currentTarget);
+        var clickedSledge = btn.text();
+        var displayFixRow = btn.closest("tr").next("tr");
+        if (displayFixRow.length > 0) {
+            jQuery(".sledge-fix-display-row").not(displayFixRow).addClass("hidden");
+            displayFixRow.removeClass("hidden");
+            this.displayFix(clickedSledge, displayFixRow, -1);
         }        
     }, this));
 };
 
+magic.classes.FieldPartyPositionButton.prototype.displayFix = function(sledge, row, fixno) {
+    var fixes = Object.keys(this.featureMap[sledge]);
+    fixes.sort();
+    var displayFixTd = row.children().first();
+    var fixMarkup = 
+        '<table class="table table-striped table-condensed" style="width:100%">' + 
+            '<tr>' + 
+                '<th width="80">Date</th>' + 
+                '<th width="30">Ppl</th>' + 
+                '<th width="60">Updater</th>' + 
+                '<th width="60">Lat</th>' + 
+                '<th width="60">Lon</th>' + 
+                '<th width="40">Ht</th>' + 
+                '<th width="120">Notes</th>' + 
+            '</tr>' + 
+            '<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>';
+    for (var i = fixes.length-1; i >= 0; i--) {
+        fixMarkup = fixMarkup + '<tr>';
+        var feat = this.featureMap[sledge][fixes[i]];
+        var props = feat.getProperties();
+        fixMarkup = fixMarkup + 
+            '<td align="right">' + magic.modules.Common.dateFormat(props.fix_date, "dmy") + '</td>' + 
+            '<td align="right">' + (isNaN(props.people_count) ? "" : props.people_count) + '</td>' + 
+            '<td align="right">' + (props.updater || "") + '</td>' + 
+            '<td align="right">' + magic.modules.GeoUtils.applyPref("coordinates", props.lat, "lat") + '</td>' + 
+            '<td align="right">' + magic.modules.GeoUtils.applyPref("coordinates", props.lon, "lon") + '</td>' + 
+            '<td align="right">' + (isNaN(props.height) ? "" : props.height) + '</td>' + 
+            '<td>' + props.notes + '</td>';                            
+        fixMarkup = fixMarkup + '</tr>';
+    }
+    fixMarkup = fixMarkup + '</table>';
+    displayFixTd.html(fixMarkup);
+};
 

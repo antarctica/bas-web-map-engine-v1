@@ -780,6 +780,7 @@ div.field-party-popover-content {
 }
 
 div.sledge-fix-popover-content {
+    min-width: 300px;
     width: auto !important;
 }
 
