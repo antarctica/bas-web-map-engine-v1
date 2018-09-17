@@ -32,6 +32,8 @@ magic.classes.FieldPartyPositionButton = function (options) {
      * }
      */
     this.featureMap = {};
+    
+    this.clickedSledge = null;
    
     magic.classes.NavigationBarTool.call(this, options);    
     
@@ -121,7 +123,46 @@ magic.classes.FieldPartyPositionButton.prototype.markup = function() {
             '<button id="btn-activate-sledge" type="button" class="btn btn-primary btn-sm">Activate</button>' + 
         '</div>';    
     /* Create the sledge fix display pane */
-    markup = markup + '<div id="sledge-fix-display-pane" class="hidden"></div>';
+    markup = markup + 
+        '<div id="sledge-fix-display-pane" class="hidden">' + 
+            '<table class="table table-striped table-condensed" style="width:100%">' + 
+                '<tr><th width="20%">Date</th><td id="fix-td-fix_date" width="80%" align="right"></td></tr>' + 
+                '<tr><th>Ppl</th><td id="fix-td-people_count" align="right"></td></tr>' + 
+                '<tr><th>Updater</th><td id="fix-td-updater" align="right"></td></tr>' + 
+                '<tr><th>Lat</th><td id="fix-td-lat" align="right"></td></tr>' + 
+                '<tr><th>Lon</th><td id="fix-td-lon" align="right"></td></tr>' + 
+                '<tr><th>Ht</th><td id="fix-td-height" align="right"></td></tr>' + 
+                '<tr><th>Notes</th><td id="fix-td-notes"></td></tr>' + 
+            '</table>' + 
+            '<div class="btn-toolbar" role="toolbar">' + 
+                '<div class="btn-group" role="group">' + 
+                    '<button id="sledge-fix-pager-first" type="button" class="btn btn-default btn-sm">' + 
+                        '<span class="fa fa-angle-double-left" data-toggle="tooltip" data-placement="top" title="First fix"></span>' + 
+                    '</button>' + 
+                    '<button id="sledge-fix-pager-prev" type="button" class="btn btn-default btn-sm">' + 
+                        '<span class="fa fa-angle-left" data-toggle="tooltip" data-placement="top" title="Previous fix"></span>' + 
+                    '</button>' + 
+                    '<button type="button" class="btn btn-default btn-sm sledge-fix-display-xofy">No fixes</button>' + 
+                    '<button id="sledge-fix-pager-next" type="button" class="btn btn-default btn-sm">' + 
+                        '<span class="fa fa-angle-right" data-toggle="tooltip" data-placement="top" title="Next fix"></span>' + 
+                    '</button>' + 
+                    '<button id="sledge-fix-pager-last" type="button" class="btn btn-default btn-sm">' + 
+                        '<span class="fa fa-angle-double-right" data-toggle="tooltip" data-placement="top" title="Last fix"></span>' + 
+                    '</button>' + 
+                '</div>' + 
+                '<div class="btn-group" role="group">' + 
+                    '<button id="sledge-fix-pager-new" type="button" class="btn btn-primary btn-sm">' + 
+                        '<span class="fa fa-star" data-toggle="tooltip" data-placement="top" title="Add a new fix"></span>' + 
+                    '</button>' + 
+                    '<button id="sledge-fix-pager-save" type="button" class="btn btn-primary btn-sm">' + 
+                        '<span class="fa fa-floppy-o" data-toggle="tooltip" data-placement="top" title="Save fix"></span>' + 
+                    '</button>' + 
+                    '<button id="sledge-fix-pager-del" type="button" class="btn btn-danger btn-sm">' + 
+                        '<span class="fa fa-times" data-toggle="tooltip" data-placement="top" title="Delete fix"></span>' + 
+                    '</button>' +                
+                '</div>' + 
+            '</div>' +  
+        '</div>';
     return(markup);    
 };
 
@@ -173,6 +214,17 @@ magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {
             this.layer.getSource().addFeatures(feats);
             /* Update the popover content with fix information */
             jQuery("." + this.popoverContentClass).html(this.markup());
+            /* Assign handler to activate new sledge */
+            jQuery("#btn-activate-sledge").click(jQuery.proxy(function(evt) {
+                var selection = jQuery("#sel-activate-sledge").val();
+                if (selection != "") {
+                    this.featureMap[selection] = {};
+                    var popoverDiv = jQuery("." + this.popoverContentClass);
+                    popoverDiv.empty();
+                    popoverDiv.html(this.markup());
+                    this.assignHandlers();
+                }
+            }, this));
             this.assignHandlers();
         }, this),
         error: function() {
@@ -185,134 +237,80 @@ magic.classes.FieldPartyPositionButton.prototype.onDeactivate = function() {
     this.target.popover("hide");
 };
 
-magic.classes.FieldPartyPositionButton.prototype.assignHandlers = function() {    
-    /* Assign handler to activate new sledge */
-    jQuery("#btn-activate-sledge").click(jQuery.proxy(function(evt) {
-        var selection = jQuery("#sel-activate-sledge").val();
-        if (selection != "") {
-            this.featureMap[selection] = {};
-            jQuery("." + this.popoverContentClass).html(this.markup());
-            this.assignHandlers();
-        }
-    }, this));
-    /* Assign sledge fix popovers to show fix history */
-    jQuery(".sledge-fix-button").click(jQuery.proxy(function(evt) {
-        this.paginatedFixWidget(jQuery(evt.currentTarget).text(), jQuery("#sledge-fix-display-pane"));
-    }, this));
-};
-
 /**
- * Display fix history
- * @param {String} sledge
- * @param {jQuery.Element} container
+ * Assign button click handlers to show fix history
  */
-magic.classes.FieldPartyPositionButton.prototype.paginatedFixWidget = function(sledge, container) {
-    var fixes = Object.keys(this.featureMap[sledge]);
-    fixes.sort();
-    var exTable = container.find("table");
-    if (exTable.length == 0) {
-        container.append(
-            '<table class="table table-striped table-condensed" style="width:100%">' + 
-                '<tr><th width="20%">Date</th><td id="fix-td-fix_date" width="80%" align="right"></td></tr>' + 
-                '<tr><th>Ppl</th><td id="fix-td-people_count" align="right"></td></tr>' + 
-                '<tr><th>Updater</th><td id="fix-td-updater" align="right"></td></tr>' + 
-                '<tr><th>Lat</th><td id="fix-td-lat" align="right"></td></tr>' + 
-                '<tr><th>Lon</th><td id="fix-td-lon" align="right"></td></tr>' + 
-                '<tr><th>Ht</th><td id="fix-td-height" align="right"></td></tr>' + 
-                '<tr><th>Notes</th><td id="fix-td-notes"></td></tr>' + 
-            '</table>'
-        );
-    }
-    this.populateFixTable({});
-    this.buttonControls(fixes, paginatedFixWidgetTd);
-};
-
-/**
- * Markup and handlers for the pagination ans edit/save/delete fix buttons
- * @param {Array} fixes
- * @param {jQuery.Element} container
- */
-magic.classes.FieldPartyPositionButton.prototype.buttonControls = function(fixes, container) {
-    var nameStem = "sledge-fix-pager-";
-    var markup = 
-        '<div class="btn-toolbar" role="toolbar">' + 
-            '<div class="btn-group" role="group">' + 
-                '<button id="' + nameStem + '-first" type="button" class="btn btn-default btn-sm">' + 
-                    '<span class="fa fa-angle-double-left" data-toggle="tooltip" data-placement="top" title="First fix"></span>' + 
-                '</button>' + 
-                '<button id="' + nameStem + '-prev" type="button" class="btn btn-default btn-sm">' + 
-                    '<span class="fa fa-angle-left" data-toggle="tooltip" data-placement="top" title="Previous fix"></span>' + 
-                '</button>' + 
-                '<button type="button" class="btn btn-default btn-sm fix-display-xofy">' + (fixes.length == 0 ? "No fixes" : "Fix 1 of " + fixes.length) + '</button>' + 
-                '<button id="' + nameStem + '-next" type="button" class="btn btn-default btn-sm">' + 
-                    '<span class="fa fa-angle-right" data-toggle="tooltip" data-placement="top" title="Next fix"></span>' + 
-                '</button>' + 
-                '<button id="' + nameStem + '-last" type="button" class="btn btn-default btn-sm">' + 
-                    '<span class="fa fa-angle-double-right" data-toggle="tooltip" data-placement="top" title="Last fix"></span>' + 
-                '</button>' + 
-            '</div>' + 
-            '<div class="btn-group" role="group">' + 
-                '<button id="' + nameStem + '-new" type="button" class="btn btn-primary btn-sm">' + 
-                    '<span class="fa fa-star" data-toggle="tooltip" data-placement="top" title="New fix"></span>' + 
-                '</button>' + 
-                '<button id="' + nameStem + '-del" type="button" class="btn btn-danger btn-sm">' + 
-                    '<span class="fa fa-times" data-toggle="tooltip" data-placement="top" title="Delete fix"></span>' + 
-                '</button>' +                
-            '</div>' + 
-        '</div>';
-    container.append(markup);
-    this.buttonStatuses(fixes, -1);
-    /* Assign handlers */
-    jQuery("[id^='" + nameStem + "-']").click(jQuery.proxy(function(evt) {
-        var btnId = evt.currentTarget.id.replace(nameStem + "-", "");
-        switch(btnId) {
-            case "first":
-                break;
-            case "prev":
-                break;
-            case "next":
-                break;
-            case "last":
-                break;
-            case "new":
-                break;
-            case "del":
-                break;
-            default:
-                break;
-        }
+magic.classes.FieldPartyPositionButton.prototype.assignHandlers = function() {            
+    jQuery(".sledge-fix-button").off("click").on("click", jQuery.proxy(function(evt) {
+        jQuery("#sledge-fix-display-pane").removeClass("hidden");
+        this.clickedSledge = jQuery(evt.currentTarget).text();
+        this.fixes = Object.keys(this.featureMap[this.clickedSledge]);
+        this.fixes.sort();   /* By date ascending */
+        this.displayedFixIndex = this.fixes.length-1;
+        this.displayFix();
+        this.buttonStatuses();
+        /* Assign handlers */
+        jQuery("[id^='sledge-fix-pager-']").off("click").on("click", jQuery.proxy(function(evt) {
+            var btnId = evt.currentTarget.id.replace("sledge-fix-pager-", "");
+            switch(btnId) {
+                case "first":
+                    this.displayedFixIndex = 0;
+                    break;
+                case "prev":
+                    if (this.displayedFixIndex > 0) {
+                        this.displayedFixIndex--;
+                    }                    
+                    break;
+                case "next":
+                    if (this.displayedFixIndex < this.fixes.length-1) {
+                        this.displayedFixIndex++;
+                    }    
+                    break;
+                case "last":
+                    this.displayedFixIndex = this.fixes.length-1;
+                    break;
+                case "new":
+                    break;
+                case "save":
+                    break;
+                case "del":
+                    break;
+                default:
+                    break;
+            }
+            this.displayFix();
+        }, this));
     }, this));
 };
 
-magic.classes.FieldPartyPositionButton.prototype.buttonStatuses = function(fixes, idx) {
+magic.classes.FieldPartyPositionButton.prototype.buttonStatuses = function() {
     var nameStem = "sledge-fix-pager-";    
     jQuery("[id^='" + nameStem + "']").addClass("disabled");
-    if (idx != -1 && fixes.length > 0) {
+    if (this.displayedFixIndex != -1 && this.fixes.length > 0) {
         var btnFirst = jQuery("#" + nameStem + "-first");
         var btnPrev = jQuery("#" + nameStem + "-prev");
         var btnNext = jQuery("#" + nameStem + "-next");
         var btnLast = jQuery("#" + nameStem + "-last");
-        if (idx > 0) {
+        if (this.displayedFixIndex > 0) {
             btnFirst.removeClass("disabled");
             btnPrev.removeClass("disabled");
         }
-        if (idx < fixes.length-1) {
+        if (this.displayedFixIndex < this.fixes.length-1) {
             btnNext.removeClass("disabled");
             btnLast.removeClass("disabled");
         }
-        jQuery("#" + nameStem + "-new").removeClass("disabled");
-        jQuery("#" + nameStem + "-del").removeClass("disabled");
+        //jQuery("#" + nameStem + "-new").removeClass("disabled");
+        //jQuery("#" + nameStem + "-del").removeClass("disabled");
     }
 };
 
 /**
  * Display markup for a positional fix
- * @paran {Array} fixes sorted in reverse date order
- * @param {int} idx index of fix, or -1 for a new one
  */
-magic.classes.FieldPartyPositionButton.prototype.populateFixTable = function(fix) {
+magic.classes.FieldPartyPositionButton.prototype.displayFix = function() {
     jQuery("#sledge-fix-display-pane").find("td").empty();
-    if (!jQuery.isEmptyObject(fix)) {
+    if (this.displayedFixIndex != -1) {
+        var fix = this.featureMap[this.clickedSledge][this.fixes[this.displayedFixIndex]];
         var nameStem = "fix-td-";
         jQuery("#" + nameStem + "fix_date").html(magic.modules.Common.dateFormat(fix.fix_date, "dmy"));
         jQuery("#" + nameStem + "people_count").html((isNaN(parseInt(fix.people_count)) ? "" : fix.people_count));
