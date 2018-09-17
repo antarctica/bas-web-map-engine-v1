@@ -788,6 +788,9 @@ magic.modules.Common = function () {
          * @returns {string} the date formatted accordingly
          */
         dateFormat: function (value, format) {
+            if (!value) {
+                return("");
+            }
             var formattedValue = value;
             var d = new Date(value);
             if (value.toLowerCase().indexOf("invalid") == -1) {

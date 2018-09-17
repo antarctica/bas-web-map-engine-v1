@@ -589,6 +589,9 @@ magic.modules.GeoUtils = function() {
          */
         applyPref: function(name, value, coord, setting, sourceFormat) {
             var out = value;
+            if (value == null || value == undefined) {
+                return("");
+            }
             if (!coord && name == "coordinates") {
                 coord = "lon";
             }
