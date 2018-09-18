@@ -38,7 +38,7 @@ body {
     line-height: normal;
 }
 
-span.label {
+.label {
     font-size: 100% !important;
 }
 
