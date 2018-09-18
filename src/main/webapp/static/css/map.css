@@ -748,6 +748,11 @@ div.personal-data-tool-popover-content {
     max-height: 500px;
 }
 
+/* Tooltip hovers fix (prevents blinking - see https://github.com/twbs/bootstrap/issues/11113) */
+.tooltip { 
+    pointer-events: none; 
+}
+
 #publish-files-dz {
     min-height: 100px; 
     height: auto !important; 
@@ -776,12 +781,7 @@ div.reports-popover-content .bootstrap-tagsinput {
 }
 
 div.field-party-popover-content {
-    width: auto !important;
-}
-
-div.sledge-fix-popover-content {
-    min-width: 300px;
-    width: auto !important;
+    width: 300px;
 }
 
 /* Issue information div */
