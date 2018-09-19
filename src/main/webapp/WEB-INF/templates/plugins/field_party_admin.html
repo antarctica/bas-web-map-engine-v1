@@ -1,4 +1,4 @@
-<script type="text-javascript">
+<script type="text/javascript">
     
     /* Stylesheets */
     jQuery("head").append(
@@ -25,27 +25,24 @@
 <script src="https://cdn.web.bas.ac.uk/magic/js/moment/2.22.1/moment.min.js"></script>
 <script src="https://cdn.web.bas.ac.uk/magic/js/bootstrap-combobox/1.1.6-font-awesome/bootstrap-combobox.min.js" defer="defer"></script>
 <script src="https://cdn.web.bas.ac.uk/magic/js/bootstrap-datetimepicker/4.17.47/bootstrap-datetimepicker.min.js" defer="defer"></script>
-<div class="alert alert-info">
-    <p>
-        You can add, edit and remove positional fixes.  All red labelled fields are required. Edit an existing fix by clicking on the relevant icon on the map
-    </p>
-</div>
 <form class="form-horizontal">
     <input type="hidden" id="fix-input-season"></input>
     <div class="form-group">
-        <label for="fix-input-sledge" class="col-sm-3 control-label"><span class="label label-danger">Sledge</span></label>
-        <div class="col-sm-9">
+        <label for="fix-input-sledge" class="col-xs-3 control-label"><span class="label label-danger">Sledge</span></label>
+        <div class="col-xs-9">
             <select class="form-control" id="fix-input-sledge" required="required"
-                   data-toggle="tooltip" data-placement="left" title="Sledge designator - choose a standard one, or enter a custom name (required)">                           
+                   data-toggle="tooltip" data-placement="left" data-container="body"
+                   title="Sledge designator - choose a standard one, or enter a custom name (required)">                           
             </select>
         </div>
     </div>
     <div class="form-group">
-        <label for="fix-input-date" class="col-sm-3 control-label"><span class="label label-danger">Date</span></label>
-        <div class="col-sm-9">
+        <label for="fix-input-date" class="col-xs-3 control-label"><span class="label label-danger">Date</span></label>
+        <div class="col-xs-9">
             <div class="input-group">
                 <input type="text" class="form-control" id="fix-input-date" placeholder="Date/time of positional fix" required="required"
-                       data-toggle="tooltip" data-placement="left" title="Date/time of positional fix (required)">                           
+                       data-toggle="tooltip" data-placement="left" data-container="body"
+                       title="Date/time of positional fix (required)">                           
                 </input>
                 <span class="input-group-addon">
                     <span class="fa fa-calendar"></span>
@@ -54,57 +51,63 @@
         </div>
     </div>        
     <div class="form-group">
-        <label for="fix-input-people_count" class="col-sm-3 control-label"><span class="label label-danger">Ppl</span></label>
-        <div class="col-sm-9">
+        <label for="fix-input-people_count" class="col-xs-3 control-label"><span class="label label-danger">Ppl</span></label>
+        <div class="col-xs-9">
             <input type="number" class="form-control" id="fix-input-people_count" placeholder="Number of people at this location" required="required"
                    min="0" max="100" step="1"
-                   data-toggle="tooltip" data-placement="left" title="Number of people currently at this location (required)">                           
+                   data-toggle="tooltip" data-placement="left" data-container="body"
+                   title="Number of people currently at this location (required)">                           
             </input>
         </div>
     </div>
     <div class="form-group">
-        <label for="fix-input-updater" class="col-sm-3 control-label"><span class="label label-danger">Updater</span></label>
-        <div class="col-sm-9">
+        <label for="fix-input-updater" class="col-xs-3 control-label"><span class="label label-danger">Updater</span></label>
+        <div class="col-xs-9">
             <input type="text" class="form-control" id="fix-input-updater" placeholder="Name/initials of updating person" maxlength="20" required="required"
-                   data-toggle="tooltip" data-placement="left" title="Name/initials of updating person (required)">                           
+                   data-toggle="tooltip" data-placement="left" data-container="body"
+                   title="Name/initials of updating person (required)">                           
             </input>
         </div>
     </div>
     <div class="form-group">
-        <label for="fix-input-lat" class="col-sm-3 control-label"><span class="label label-danger">Lat</span></label>
-        <div class="col-sm-9">
+        <label for="fix-input-lat" class="col-xs-3 control-label"><span class="label label-danger">Lat</span></label>
+        <div class="col-xs-9">
             <input type="text" class="form-control" id="fix-input-lat" placeholder="Dec degrees, DMS or DDM" required="required"
-                   data-toggle="tooltip" data-placement="left" title="Examples: -60.25, 60 15 00S (dms), S60 15.00 (ddm) - required">                           
+                   data-toggle="tooltip" data-placement="left" data-container="body" 
+                   title="Examples: -60.25, 60 15 00S (dms), S60 15.00 (ddm) - required">                           
             </input>
         </div>
     </div>
     <div class="form-group">
-        <label for="fix-input-lon" class="col-sm-3 control-label"><span class="label label-danger">Lon</span></label>
-        <div class="col-sm-9">
+        <label for="fix-input-lon" class="col-xs-3 control-label"><span class="label label-danger">Lon</span></label>
+        <div class="col-xs-9">
             <input type="text" class="form-control" id="fix-input-lon" placeholder="Dec degrees, DMS or DDM" required="required"
-                   data-toggle="tooltip" data-placement="left" title="Examples: -65.5, 65 30 00W (dms), W65 30.00 (ddm) - required">                           
+                   data-toggle="tooltip" data-placement="left" data-container="body" 
+                   title="Examples: -65.5, 65 30 00W (dms), W65 30.00 (ddm) - required">                           
             </input>
         </div>
     </div>
     <div class="form-group">
-        <label for="fix-input-height" class="col-sm-3 control-label"><span class="label label-danger">Height</span></label>
-        <div class="col-sm-9">
+        <label for="fix-input-height" class="col-xs-3 control-label"><span class="label label-danger">Height</span></label>
+        <div class="col-xs-9">
             <input type="number" class="form-control" id="fix-input-height" placeholder="Altitude of party, in feet" 
                    min="0" max="20000" step="100"
-                   data-toggle="tooltip" data-placement="left" title="Altitude of party location, in feet (optional)">                           
+                   data-toggle="tooltip" data-placement="left" data-container="body" 
+                   title="Altitude of party location, in feet (optional)">                           
             </input>
         </div>
     </div>
     <div class="form-group">
-        <label for="fix-input-notes" class="col-sm-3 control-label"><span class="label label-danger">Notes</span></label>
-        <div class="col-sm-9">
-            <textarea id="fix-input-notes" class="form-control" rows="5"
-                  data-toggle="tooltip" data-placement="left" title="Other relevant notes (optional)">                
+        <label for="fix-input-notes" class="col-xs-3 control-label"><span class="label label-danger">Notes</span></label>
+        <div class="col-xs-9">
+            <textarea id="fix-input-notes" class="form-control" rows="3"
+                  data-toggle="tooltip" data-placement="left" data-container="body"
+                  title="Other relevant notes (optional)">                
             </textarea>
         </div>
     </div>
 </form>   
-<div class="btn-toolbar col-sm-12" role="toolbar" style="margin-bottom:10px">       
+<div class="btn-toolbar col-xs-12" role="toolbar" style="margin-bottom:10px">       
     <div class="btn-group btn-group-sm"> 
         <button id="fix-save-go" class="btn btn-primary btn-sm" type="button"  
             data-toggle="tooltip" data-trigger="hover" data-placement="top" title="Save the current data"> 
@@ -129,4 +132,11 @@
             <span class="fa fa-times-circle"></span> Cancel 
         </button>      
     </div>
+</div>
+<div style="display:inline-block;float:right">
+    <a href="JavaScript:void(0)" class="fa fa-info-circle"
+       data-toggle="popover" data-placement="top" 
+       data-content="You can add, edit and remove positional fixes.  All red labelled fields are required. Edit an existing fix by clicking on the relevant icon on the map">&nbsp;
+        <span class="fa fa-caret-down"></span>
+    </a>
 </div>

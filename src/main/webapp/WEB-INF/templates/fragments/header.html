@@ -14,8 +14,10 @@
         <link rel="shortcut icon" type="image/vnd.microsoft.icon" th:href="@{'https://cdn.web.bas.ac.uk/magic/favicons/' + ${favicon}}"></link>
         <title></title>
         <div th:replace="fragments/cdncss :: assets"></div>
+        <div th:text="${plugincss}" th:remove="tag"></div>
         <link th:href="@{'/static/dist/map.min.css'}" rel="stylesheet"></link>  
         <div th:replace="fragments/cdnjs :: assets"></div>
+        <div th:text="${pluginjs}" th:remove="tag"></div>
         <script th:src="@{'/static/dist/map.min.js'}"></script>
         <script th:inline="javascript">
             /*<![CDATA[*/

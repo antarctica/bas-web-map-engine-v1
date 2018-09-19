@@ -412,10 +412,16 @@ public class HomeController {
         model.addAttribute("contacttext", env.getProperty("default.contactText"));
         
         /* Assemble plugin information for the map control button ribbon */
-        model.addAttribute("mapplugins", listPlugins("map"));        
+        ArrayList<MapPlugin> mapTools = listPlugins("map");
+        model.addAttribute("mapplugins", mapTools);        
         
         /* Assemble plugin information for the navbar */
-        model.addAttribute("navplugins", listPlugins("nav"));
+        ArrayList<MapPlugin> navTools = listPlugins("nav");
+        model.addAttribute("navplugins", navTools);
+        
+        /* Add in any extra resources (JS/CSS) required by plugins */
+        model.addAttribute("plugincss", listExtCss(mapTools, navTools));
+        model.addAttribute("pluginjs", listExtJs(mapTools, navTools));
         
         switch (tplName) {
             case "home":                
@@ -590,6 +596,50 @@ public class HomeController {
         }
         System.out.println("===== HomeController.listPlugins() complete");
         return(pluginList.isEmpty() ? null : pluginList);
+    }
+    
+    /**
+     * Get <link> markup for any external CSS required by plugins
+     * @param ArrayList mapTools
+     * @param ArrayList navTools
+     * @return String
+     */
+    private String listExtCss(ArrayList<MapPlugin> mapTools, ArrayList<MapPlugin> navTools) {
+        StringBuilder resources = new StringBuilder();
+        resources
+            .append(scanForResources(mapTools, "css"))
+            .append(scanForResources(navTools, "css"));        
+        return(resources.toString());
+    }
+
+    /**
+     * Get <script> markup for any external JS required by plugins
+     * @param ArrayList mapTools
+     * @param ArrayList navTools
+     * @return String
+     */
+    private String listExtJs(ArrayList<MapPlugin> mapTools, ArrayList<MapPlugin> navTools) {
+        StringBuilder resources = new StringBuilder();
+        resources
+            .append(scanForResources(mapTools, "js"))
+            .append(scanForResources(navTools, "js"));        
+        return(resources.toString());
+    }
+    
+    private String scanForResources(ArrayList<MapPlugin> tools, String resourceType) {
+        StringBuilder resources = new StringBuilder();
+        for (int i = 0; i < tools.size()-1; i++) {
+            String pluginName = tools.get(i).getName();
+            String url = env.getProperty("plugins." + pluginName + ".ext_" + resourceType);
+            if (url != null && !url.isEmpty()) {
+                if (resourceType.equals("css")) {
+                    resources.append("<link rel=\"stylesheet\" href=\"").append(url).append("\"></link>");
+                } else if (resourceType.equals("js")) {
+                    resources.append("<script type=\"text/javascript\" src=\"").append(url).append("\"></script>");
+                }                
+            }
+        }
+        return(resources.toString());
     }
 
 }
