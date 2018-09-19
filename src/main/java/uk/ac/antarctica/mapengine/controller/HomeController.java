@@ -412,16 +412,10 @@ public class HomeController {
         model.addAttribute("contacttext", env.getProperty("default.contactText"));
         
         /* Assemble plugin information for the map control button ribbon */
-        ArrayList<MapPlugin> mapTools = listPlugins("map");
-        model.addAttribute("mapplugins", mapTools);        
+        model.addAttribute("mapplugins", listPlugins("map"));        
         
         /* Assemble plugin information for the navbar */
-        ArrayList<MapPlugin> navTools = listPlugins("nav");
-        model.addAttribute("navplugins", navTools);
-        
-        /* Add in any extra resources (JS/CSS) required by plugins */
-        model.addAttribute("plugincss", listExtCss(mapTools, navTools));
-        model.addAttribute("pluginjs", listExtJs(mapTools, navTools));
+        model.addAttribute("navplugins", listPlugins("nav"));
         
         switch (tplName) {
             case "home":                
@@ -574,12 +568,12 @@ public class HomeController {
         ArrayList<MapPlugin> pluginList = new ArrayList();
         String plugins = env.getProperty("plugins." + type);
         if (plugins != null) {
-            /* Unpick the value: <name>,<caption>,<tooltip> */
+            /* Unpick the value: <control_name>,<login|public>,<caption>,<tooltip>,<icon_class>,<js_filename>,<ext_css>,<ext_js> */
             String[] pluginArr = plugins.split(",");
-            if (pluginArr.length % 6 == 0) {
+            if (pluginArr.length % 8 == 0) {
                 /* Plausible */ 
                 System.out.println("Properties file record is of plausible length");
-                for (int i = 0; i < pluginArr.length; i += 6) {
+                for (int i = 0; i < pluginArr.length; i += 8) {
                     MapPlugin mp = new MapPlugin();
                     mp.setName(pluginArr[i]);
                     mp.setAllowed_usage(pluginArr[i+1]);
@@ -587,59 +581,19 @@ public class HomeController {
                     mp.setTooltip(pluginArr[i+3]);
                     mp.setIconclass(pluginArr[i+4]);
                     mp.setJs_filename(pluginArr[i+5]);
+                    mp.setExt_css(pluginArr[i+6]);
+                    mp.setExt_js(pluginArr[i+7]);
                     System.out.println("--> Name : " + mp.getName());
                     System.out.println("--> Icon class : " + mp.getIconclass());
                     System.out.println("--> JS file : " + mp.getJs_filename());
+                    System.out.println("--> External CSS resources : " + mp.getExt_css());
+                    System.out.println("--> External JS resources : " + mp.getExt_js());
                     pluginList.add(mp);
                 }                
             }
         }
         System.out.println("===== HomeController.listPlugins() complete");
         return(pluginList.isEmpty() ? null : pluginList);
-    }
-    
-    /**
-     * Get <link> markup for any external CSS required by plugins
-     * @param ArrayList mapTools
-     * @param ArrayList navTools
-     * @return String
-     */
-    private String listExtCss(ArrayList<MapPlugin> mapTools, ArrayList<MapPlugin> navTools) {
-        StringBuilder resources = new StringBuilder();
-        resources
-            .append(scanForResources(mapTools, "css"))
-            .append(scanForResources(navTools, "css"));        
-        return(resources.toString());
-    }
-
-    /**
-     * Get <script> markup for any external JS required by plugins
-     * @param ArrayList mapTools
-     * @param ArrayList navTools
-     * @return String
-     */
-    private String listExtJs(ArrayList<MapPlugin> mapTools, ArrayList<MapPlugin> navTools) {
-        StringBuilder resources = new StringBuilder();
-        resources
-            .append(scanForResources(mapTools, "js"))
-            .append(scanForResources(navTools, "js"));        
-        return(resources.toString());
-    }
-    
-    private String scanForResources(ArrayList<MapPlugin> tools, String resourceType) {
-        StringBuilder resources = new StringBuilder();
-        for (int i = 0; i < tools.size()-1; i++) {
-            String pluginName = tools.get(i).getName();
-            String url = env.getProperty("plugins." + pluginName + ".ext_" + resourceType);
-            if (url != null && !url.isEmpty()) {
-                if (resourceType.equals("css")) {
-                    resources.append("<link rel=\"stylesheet\" href=\"").append(url).append("\"></link>");
-                } else if (resourceType.equals("js")) {
-                    resources.append("<script type=\"text/javascript\" src=\"").append(url).append("\"></script>");
-                }                
-            }
-        }
-        return(resources.toString());
     }
 
 }

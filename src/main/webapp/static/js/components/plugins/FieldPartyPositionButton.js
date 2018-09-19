@@ -71,6 +71,18 @@ magic.classes.FieldPartyPositionButton = function (options) {
             url: magic.config.paths.baseurl + "/fpp/layout",
             dataType: "html",
             success: jQuery.proxy(function(markup) {
+                /* Icons for the date picker widget */ 
+                jQuery.fn.datetimepicker.defaults.icons = {
+                    clear: "fa fa-trash",
+                    close: "fa fa-times",
+                    date: "fa fa-calendar",
+                    down: "fa fa-chevron-down",
+                    next: "fa fa-chevron-right",
+                    previous: "fa fa-chevron-left",
+                    time: "fa fa-time",
+                    today: "fa fa-asterisk",
+                    up: "fa fa-chevron-up"
+                };
                 var popoverDiv = jQuery(".field-party-popover-content");
                 popoverDiv.html(markup);            
                 this.activate();
@@ -131,6 +143,12 @@ magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {
             }, this));
             this.layer.getSource().clear();
             this.layer.getSource().addFeatures(feats);
+            /* Activate the help button */
+            jQuery(".fix-editing-help").popover({
+                placement: "right",
+                trigger: "focus",
+                content: "You can add, edit and remove positional fixes.  All red labelled fields are required. Edit an existing fix by clicking on the relevant icon on the map"
+            });
             /* Convert the sledge input field to combobox */
             this.initCombobox("fix-input-sledge", Object.keys(this.featureMap).sort());
             /* Convert the date input field to a datepicker */
@@ -150,6 +168,10 @@ magic.classes.FieldPartyPositionButton.prototype.initCombobox = function(id, opt
     var cbSelect = jQuery("#" + id);
     if (cbSelect.length > 0) {
         /* The input exists (we must therefore be admin) */
+        cbSelect.empty();
+        for (var j = 0; j < opts.length; j++) {           
+            cbSelect.append(jQuery('<option>', {value: opts[j], text: opts[j]}));
+        }
         if (!cbSelect.hasClass("combobox")) {
             /* The input has not been converted */
             cbSelect.addClass("combobox");
@@ -159,18 +181,14 @@ magic.classes.FieldPartyPositionButton.prototype.initCombobox = function(id, opt
             var cbInput = jQuery("#" + id + "-input");
             cbInput.attr("required", cbSelect.attr("required"));
             cbInput.attr("data-toggle", "tooltip");
-            cbInput.attr("data-placement", "left");
+            cbInput.attr("data-placement", "right");
             cbInput.attr("title", cbSelect.attr("title"));
-        }
-        cbSelect.empty();
-        for (var j = 0; j < opts.length; j++) {           
-            cbSelect.append(jQuery('<option>', {value: opts[j], text: opts[j]}));
-        }
+        }        
     }    
 };
 
 magic.classes.FieldPartyPositionButton.prototype.initDatepicker = function(id) {
-    var dtInput = jQuery("#" + id);
+    var dtInput = jQuery("#" + id).closest(".input-group");
     if (dtInput.length > 0) {
         dtInput.addClass("date");
         dtInput.datetimepicker({

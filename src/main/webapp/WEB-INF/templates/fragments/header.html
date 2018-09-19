@@ -13,11 +13,31 @@
         <link rel="icon" type="image/vnd.microsoft.icon" th:href="@{'https://cdn.web.bas.ac.uk/magic/favicons/' + ${favicon}}"></link>
         <link rel="shortcut icon" type="image/vnd.microsoft.icon" th:href="@{'https://cdn.web.bas.ac.uk/magic/favicons/' + ${favicon}}"></link>
         <title></title>
+        
         <div th:replace="fragments/cdncss :: assets"></div>
-        <div th:text="${plugincss}" th:remove="tag"></div>
+        <th:block th:each="mplug : ${mapplugins}">
+            <th:block th:if="${mplug.ext_css == 'yes'}">
+                <div th:replace="'plugins/' + ${mplug.name} + '_css' :: assets"></div>
+            </th:block>
+        </th:block>
+        <th:block th:each="nplug : ${navplugins}">
+            <th:block th:if="${nplug.ext_css == 'yes'}">
+                <div th:replace="'plugins/' + ${nplug.name} + '_css' :: assets"></div>
+            </th:block>
+        </th:block>  
         <link th:href="@{'/static/dist/map.min.css'}" rel="stylesheet"></link>  
+        
         <div th:replace="fragments/cdnjs :: assets"></div>
-        <div th:text="${pluginjs}" th:remove="tag"></div>
+        <th:block th:each="mplug : ${mapplugins}">
+            <th:block th:if="${mplug.ext_js == 'yes'}">
+                <div th:replace="'plugins/' + ${mplug.name} + '_js' :: assets"></div>
+            </th:block>
+        </th:block>
+        <th:block th:each="nplug : ${navplugins}">
+            <th:block th:if="${nplug.ext_js == 'yes'}">
+                <div th:replace="'plugins/' + ${nplug.name} + '_js' :: assets"></div>
+            </th:block>
+        </th:block>  
         <script th:src="@{'/static/dist/map.min.js'}"></script>
         <script th:inline="javascript">
             /*<![CDATA[*/
@@ -45,9 +65,29 @@
         <link rel="shortcut icon" type="image/vnd.microsoft.icon" th:href="@{'https://cdn.web.bas.ac.uk/magic/favicons/' + ${favicon}}"></link>
         <title></title>
         <div th:replace="fragments/cdncss :: assets"></div>
+        <th:block th:each="mplug : ${mapplugins}">
+            <th:block th:if="${mplug.ext_css == 'yes'}">
+                <div th:replace="'plugins/' + ${mplug.name} + '_css' :: assets"></div>
+            </th:block>
+        </th:block>
+        <th:block th:each="nplug : ${navplugins}">
+            <th:block th:if="${nplug.ext_css == 'yes'}">
+                <div th:replace="'plugins/' + ${nplug.name} + '_css' :: assets"></div>
+            </th:block>
+        </th:block>  
         <link href="/static/css/nav.css" rel="stylesheet"></link>
         <link href="/static/css/map.css" rel="stylesheet"></link>        
         <div th:replace="fragments/cdnjs :: assets"></div>
+        <th:block th:each="mplug : ${mapplugins}">
+            <th:block th:if="${mplug.ext_js == 'yes'}">
+                <div th:replace="'plugins/' + ${mplug.name} + '_js' :: assets"></div>
+            </th:block>
+        </th:block>
+        <th:block th:each="nplug : ${navplugins}">
+            <th:block th:if="${nplug.ext_js == 'yes'}">
+                <div th:replace="'plugins/' + ${nplug.name} + '_js' :: assets"></div>
+            </th:block>    
+        </th:block>  
         <script src="/static/js/init.js"></script>
         <script src="/static/js/modules/Endpoints.js"></script>
         <script src="/static/js/modules/Common.js"></script>

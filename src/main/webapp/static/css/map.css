@@ -659,6 +659,7 @@ a.layer-group-tool:hover {
 }
 
 div.tooltip-inner {
+    min-width: 100px;
     max-width: 350px;
 }
 
@@ -782,6 +783,10 @@ div.reports-popover-content .bootstrap-tagsinput {
 
 div.field-party-popover-content {
     width: 300px;
+}
+
+.popover-content {
+    min-width: 200px;
 }
 
 /* Issue information div */

@@ -27,9 +27,9 @@ public class FieldPartyController {
     public String positionalFixLayout()
         throws ServletException, IOException {
         if (userAuthoritiesProvider.getInstance().userHasRole("magic")) {
-            return("plugins/field_party_admin");
+            return("plugins/field_party_position_admin");
         } else {
-            return("plugins/field_party_ordinary");
+            return("plugins/field_party_position_ordinary");
         }
     }
     
