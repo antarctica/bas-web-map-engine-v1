@@ -36,8 +36,8 @@ import org.apache.http.ssl.SSLContextBuilder;
 
 public class GenericUrlConnector {
 
-    private static final int CONNECT_TIMEOUT_MILLIS = 10000;
-    private static final int REQUEST_TIMEOUT_MILLIS = 10000;
+    private static final int CONNECT_TIMEOUT_MILLIS = 30000;
+    private static final int REQUEST_TIMEOUT_MILLIS = 60000;
     
     private CloseableHttpClient client = null;
     

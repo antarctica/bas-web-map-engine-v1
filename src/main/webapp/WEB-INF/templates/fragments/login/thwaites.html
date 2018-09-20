@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="utf-8"></meta>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge"></meta>
+        <meta name="viewport" content="width=device-width, initial-scale=1"></meta>
+        <meta name="description" content="Thwaites GIS - Login"></meta>
+        <meta name="author" content="David Herbert, British Antarctic Survey"></meta>
+        <title>Thwaites GIS - Login</title>
+        <link rel="icon" type="image/vnd.microsoft.icon" th:href="@{'https://cdn.web.bas.ac.uk/magic/favicons/' + ${favicon}}"></link>
+        <link rel="shortcut icon" type="image/vnd.microsoft.icon" th:href="@{'https://cdn.web.bas.ac.uk/magic/favicons/' + ${favicon}}"></link>    
+        <link href="https://cdn.web.bas.ac.uk/magic/css/bootstrap/3.3.7/bootstrap.min.css" rel="stylesheet"></link>
+        <link href="static/css/login.css" rel="stylesheet"></link>
+        <script src="https://cdn.web.bas.ac.uk/libs/jquery/3.3.1/jquery-3.3.1.min.js"></script>
+        <script src="https://cdn.web.bas.ac.uk/libs/bootstrap/3.3.7/js/bootstrap-3.3.7.min.js"></script>
+        <script th:inline="javascript" defer="defer">
+            /*<![CDATA[*/            
+            var error = [[${param.error}]];
+            var logout = [[${param.logout}]];
+            
+            jQuery(document).ready(function() {
+                var msg = jQuery.isArray(error) ? error.join("<br>") : error;
+                if (msg != null) {
+                    /* Report error */
+                    jQuery("div.logged-out-ok").addClass("hidden");
+                    if (msg.toLowerCase().indexOf("forbidden") != -1) {
+                        /* Unauthorised access */
+                        jQuery("div.restricted-data").removeClass("hidden");
+                        jQuery("div.general-error").addClass("hidden");
+                    } else {
+                        /* General fail */
+                        jQuery("div.restricted-data").addClass("hidden");
+                        jQuery("div.general-error").removeClass("hidden");
+                    }
+                    jQuery("#login-username").closest("div.form-group").addClass("has-error");
+                    jQuery("#login-password").closest("div.form-group").addClass("has-error");
+                } else {
+                    /* No errors to report */
+                    jQuery("div.restricted-data").addClass("hidden");
+                    jQuery("div.general-error").addClass("hidden");
+                    jQuery("#login-username").closest("div.form-group").removeClass("has-error");
+                    jQuery("#login-password").closest("div.form-group").removeClass("has-error");
+                }
+                if (logout) {
+                    /* Logged out */
+                    jQuery("div.logged-out-ok").removeClass("hidden");
+                }
+            });
+            
+            /*]]>*/
+        </script>
+    </head>
+    <body>
+        <div class="container login-form-container">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 style="margin-top:10px;text-align:center">Welcome to Thwaites GIS</h3>
+                </div>                
+                <div class="panel-body">
+                    <div class="alert alert-info">Please log in using your credentials below</div>
+                    <form th:action="@{/login}" method="post" class="form-horizontal col-sm-12">               
+                        <div class="alert alert-success logged-out-ok hidden" style="margin-bottom:20px"> 
+                            You have been logged out
+                        </div>
+                        <div class="alert alert-danger restricted-data hidden" style="margin-bottom:20px"> 
+                            You tried to access a restricted resource - please log in
+                        </div>
+                        <div class="alert alert-danger general-error hidden" style="margin-bottom:20px"> 
+                            Unable to log you in - please try again
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label" for="login-username">Username</label>
+                            <div class="col-sm-10">
+                                <input type="text" class="form-control" name="username" id="login-username" placeholder="Your Thwaites GIS username" 
+                                required="required" autofocus="autofocus"></input>                                
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label" for="login-password">Password</label>
+                            <div class="col-sm-10">
+                                <input type="password" class="form-control" name="password" id="login-password" placeholder="Your Thwaites GIS password" 
+                                required="required"></input>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-12">
+                            <input type="submit" value="Log in" class="btn btn-primary"></input>
+                        </div>   			
+                    </form>
+                </div>
+            </div>
+        </div>
+    </body>    
+</html>
