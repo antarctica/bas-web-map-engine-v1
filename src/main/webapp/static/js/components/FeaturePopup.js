@@ -204,7 +204,7 @@ magic.classes.FeaturePopup.prototype.featureAttributeTableMarkup = function(feat
                 var extension = false;
                 if (attrdata.displayed === true) {
                     var nameStr = attrdata.alias || attrdata.name;
-                    if (attrdata.type == "xsd:string") {
+                    if (attrdata.type && attrdata.type.indexOf("string") != -1) {
                         var finalValue = "";
                         if (feat[attrdata.name]) {
                             /* Attribute has a value, so worth displaying */
