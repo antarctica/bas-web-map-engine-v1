@@ -25,14 +25,18 @@ import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.auth.DigestScheme;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 
 public class GenericUrlConnector {
 
@@ -58,23 +62,37 @@ public class GenericUrlConnector {
             .setConnectionRequestTimeout(CONNECT_TIMEOUT_MILLIS)
             .setSocketTimeout(REQUEST_TIMEOUT_MILLIS).build();
 
-        if (secure) {
-            /* Secure URL */
-            SSLContext sslContext = new SSLContextBuilder()
-                .loadTrustMaterial(null, (certificate, authType) -> true).build();
-
-            client = HttpClients.custom()
-                .setDefaultRequestConfig(config)
-                .setSslcontext(sslContext)
-                .setSSLHostnameVerifier(new NoopHostnameVerifier())
-                .build();
-        } else {
-            /* Non-secure */
-            client = HttpClientBuilder
-                .create()
-                .setDefaultRequestConfig(config)
-                .build();
-        }
+        /* https://stackoverflow.com/questions/34655031/javax-net-ssl-sslpeerunverifiedexception-host-name-does-not-match-the-certifica - answer by antonpp */
+        SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(SSLContext.getDefault(), NoopHostnameVerifier.INSTANCE);
+        
+        Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
+            .register("http", new PlainConnectionSocketFactory())
+            .register("https", sslsf)
+            .build();
+        PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(registry);
+        cm.setMaxTotal(100);
+        
+        client = HttpClients.custom()
+            .setSSLSocketFactory(sslsf)
+            .setConnectionManager(cm)
+            .build();
+//        if (secure) {
+//            /* Secure URL */
+//            SSLContext sslContext = new SSLContextBuilder()
+//                .loadTrustMaterial(null, (certificate, authType) -> true).build();
+//
+//            client = HttpClients.custom()
+//                .setDefaultRequestConfig(config)
+//                .setSslcontext(sslContext)
+//                .setSSLHostnameVerifier(new NoopHostnameVerifier())
+//                .build();
+//        } else {
+//            /* Non-secure */
+//            client = HttpClientBuilder
+//                .create()
+//                .setDefaultRequestConfig(config)
+//                .build();
+//        }
     }
 
     /**

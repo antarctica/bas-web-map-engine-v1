@@ -33,7 +33,7 @@ magic.classes.FieldPartyPositionButton = function (options) {
      */
     this.featureMap = {};
     
-    this.clickedSledge = null;//DELETE
+    this.formEdited = false;
    
     magic.classes.NavigationBarTool.call(this, options);    
     
@@ -153,6 +153,17 @@ magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {
             this.initCombobox("fix-input-sledge", Object.keys(this.featureMap).sort());
             /* Convert the date input field to a datepicker */
             this.initDatepicker("fix-input-date");
+            /* Assign the button handlers */
+            jQuery("#fix-save-go").off("click").on("click", jQuery.proxy(function(evt) {
+                var payload = this.getPayload();
+                if (this.validate(payload)) {
+                    console.log(payload);
+                    magic.modules.Common.buttonClickFeedback("fix-save", true, "Ok");
+                } else {
+                    magic.modules.Common.buttonClickFeedback("fix-save", false, "Errors found");
+                }
+            }, this));
+            jQuery("#fix-save-cancel").off("click").on("click", jQuery.proxy(this.resetForm, this));
         }, this),
         error: function() {
             console.log("Failed to get field party positional data - potential network outage?");
@@ -162,6 +173,60 @@ magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {
 
 magic.classes.FieldPartyPositionButton.prototype.onDeactivate = function() {    
     this.target.popover("hide");
+};
+
+magic.classes.FieldPartyPositionButton.prototype.resetForm = function() {
+    if (this.formEdited) {
+        /* Ask for user confirmation when form has been edited */
+        //TODO
+    }
+};
+
+magic.classes.FieldPartyPositionButton.prototype.getPayload = function() {    
+    return({
+        "season": jQuery("#fix-input-season").val(),
+        "sledge": this.getComboboxValue("fix-input-sledge"),
+        "date": this.getDatepickerValue("fix-input-date"),
+        "people_count": jQuery("#fix-input-people_count").val(),
+        "updater": jQuery("#fix-input-updater").val(),
+        "lat": magic.modules.GeoUtils.toDecDegrees(jQuery("#fix-input-lat").val()),
+        "lon": magic.modules.GeoUtils.toDecDegrees(jQuery("#fix-input-lon").val()),
+        "height": jQuery("#fix-input-height").val(),
+        "notes": jQuery("#fix-input-notes").val()
+    });
+};
+
+magic.classes.FieldPartyPositionButton.prototype.validate = function(payload) { 
+    var valid = false;
+    magic.modules.Common.resetFormIndicators();
+    if (payload) {
+        valid = true;
+        if (payload.sledge == null || payload.sledge == "") {
+            magic.modules.Common.flagInputError(jQuery("#fix-input-sledge"));
+            valid = false;
+        }
+        if (payload.date == null || payload.date == "") {
+            magic.modules.Common.flagInputError(jQuery("#fix-input-date"));
+            valid = false;
+        }
+        if (payload.people_count == null || payload.people_count == "") {
+            magic.modules.Common.flagInputError(jQuery("#fix-input-people_count"));
+            valid = false;
+        }
+        if (payload.updater == null || payload.updater == "") {
+            magic.modules.Common.flagInputError(jQuery("#fix-input-updater"));
+            valid = false;
+        }
+        if (payload.lat == null || payload.lat == "" || isNaN(payload.lat)) {
+            magic.modules.Common.flagInputError(jQuery("#fix-input-lat"));
+            valid = false;
+        }
+        if (payload.lon == null || payload.lon == "" || isNaN(payload.lon)) {
+            magic.modules.Common.flagInputError(jQuery("#fix-input-lon"));
+            valid = false;
+        }
+    }
+    return(valid);
 };
 
 magic.classes.FieldPartyPositionButton.prototype.initCombobox = function(id, opts) {
@@ -215,7 +280,7 @@ magic.classes.FieldPartyPositionButton.prototype.setComboboxValue = function(id,
 };
 
 magic.classes.FieldPartyPositionButton.prototype.setDatepickerValue = function(id, value) {
-    jQuery("#" + id + " :input").val(value);
+    jQuery("#" + id).val(value);
 };
 
 magic.classes.FieldPartyPositionButton.prototype.getComboboxValue = function(id) {
@@ -225,7 +290,7 @@ magic.classes.FieldPartyPositionButton.prototype.getComboboxValue = function(id)
 };
 
 magic.classes.FieldPartyPositionButton.prototype.getDatepickerValue = function(id) {
-    var field = jQuery("#" + id + " :input");
+    var field = jQuery("#" + id);
     return(field.val() ? moment(field.val(), "DD/MM/YYYY").format("YYYY-MM-DD") : "");
 };
 
