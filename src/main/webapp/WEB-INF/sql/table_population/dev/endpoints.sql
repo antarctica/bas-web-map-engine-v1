@@ -39,6 +39,14 @@ VALUES('Polar View', 'https://geos.polarview.aq/geoserver/wms', 'cambridge', FAL
     NULL, 'EPSG:3031', TRUE, FALSE, 'http://geos.polarview.aq/geoserver/wms', 'http://bslmagq.nerc-bas.ac.uk/geoserver');
 
 INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs, has_wfs, is_user_service, url_aliases, rest_endpoint) 
+VALUES('Polar Code', 'https://polarcode.data.bas.ac.uk/geoserver/polarcode/wms', 'cambridge', FALSE, NULL, NULL, 
+    NULL, 'EPSG:3031', TRUE, FALSE, NULL, 'http://bslmagl.nerc-bas.ac.uk/geoserver');
+
+INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs, has_wfs, is_user_service, url_aliases, rest_endpoint) 
+VALUES('Thwaites GIS', 'https://thwaitesgis.data.bas.ac.uk/geoserver/gis/wms', 'cambridge', FALSE, NULL, NULL, 
+    NULL, 'EPSG:3031', TRUE, FALSE, NULL, 'http://bslmagr.nerc-bas.ac.uk/geoserver');
+
+INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs, has_wfs, is_user_service, url_aliases, rest_endpoint) 
 VALUES('CCAMLR GIS', 'https://geo.web.bas.ac.uk/geoserver/ccamlr_gis/wms', 'cambridge', FALSE, NULL, NULL, 
     'https://gis.ccamlr.org/geoserver/wms', 'EPSG:3031', TRUE, FALSE, 'http://geo.antarctica.ac.uk/geoserver/ccamlr_gis/wms', 'http://bslmaga.nerc-bas.ac.uk/geoserver');
 

@@ -471,15 +471,31 @@ public class OgcServicesController {
         
         try {
             guc = new GenericUrlConnector(url.startsWith("https"));
+            
+            /* Tracking down certificate problem 2018/09/21 David */
+            boolean isPvan = url.contains("polarview.aq");
+            
             int status = guc.get(url, username, password, null);
             if (status < 400) {
                 /* Pipe the output to servlet response stream */
                 response.setContentType(mimeType);
                 IOUtils.copy(guc.getContent(), response.getOutputStream());
+                if (isPvan) {
+                    System.out.println("===== Written out content");
+                }
             } else if (status == 401) {
                 /* User unauthorised */
+                if (isPvan) {
+                    System.out.println("===== Unauthorised 401");
+                }
                 throw new RestrictedDataException("You are not authorised to access this resource");
             } else {
+                if (isPvan) {
+                    System.out.println("===== Status " + status);
+                    System.out.println("===== Content follows:");
+                    System.out.println(IOUtils.toString(guc.getContent()));
+                    System.out.println("===== Content follows:");
+                }
                 throw new RestrictedDataException("Error:" + status);
             }
         } catch(IOException ioe) {

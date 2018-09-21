@@ -14,6 +14,7 @@ import java.util.Base64;
 import java.util.HashMap;
 import javax.net.ssl.SSLContext;
 import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpHost;
@@ -107,6 +108,13 @@ public class GenericUrlConnector {
     public int get(String url, String username, String password, String wwwAuth) throws MalformedURLException, IOException {
         
         int status = HttpStatus.SC_OK;
+        
+        /* Tracking down certificate problem 2018/09/21 David */
+        boolean isPvan = url.contains("polarview.aq");
+        
+        if (isPvan) {
+            System.out.println("===== GET " + url);
+        }
                 
         HttpGet request = new HttpGet(url);
         HttpResponse response = null;
@@ -153,8 +161,14 @@ public class GenericUrlConnector {
         }
         if (response != null && status == HttpStatus.SC_OK) {
             status = response.getStatusLine().getStatusCode();
+            if (isPvan) {
+                System.out.println("===== Status code was : " + status);
+            }
             try {
                 setContent(response.getEntity().getContent());
+                if (isPvan) {
+                    System.out.println("===== Got some content");
+                }
             } catch(IOException ioe) {
                 System.out.println("Failed to get content from " + url + ", error was : " + ioe.getMessage());
                 status = HttpStatus.SC_INTERNAL_SERVER_ERROR;
