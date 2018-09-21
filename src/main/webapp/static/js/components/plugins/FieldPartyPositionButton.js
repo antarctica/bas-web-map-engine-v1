@@ -144,7 +144,7 @@ magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {
                 var colourStep = 255/fixes.length;
                 for (var i = 0; i < fixes.length; i++) {
                     var rgba = "rgba(" + parseInt(255 - i*colourStep) + ",0," + parseInt(i*colourStep) + ",1.0)";
-                    v[fixes[i]].setProperties({"rgba": rgba}, true);
+                    v[fixes[i]].setProperties({"rgba": rgba, "__layer": this.layer}, true);
                     v[fixes[i]].setStyle(magic.modules.VectorStyles["bas_field_party"]());
                 }
             }, this));
@@ -160,7 +160,7 @@ magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {
             this.initCombobox("fix-input-sledge", Object.keys(this.featureMap).sort());
             /* Convert the date input field to a datepicker */
             this.initDatepicker("fix-input-date");
-            /* Assign the button handlers */
+            /* Assign the save button handler */
             jQuery("#fix-save-go").off("click").on("click", jQuery.proxy(function(evt) {
                 var payload = this.getPayload();
                 if (this.validate(payload)) {
@@ -170,7 +170,10 @@ magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {
                     magic.modules.Common.buttonClickFeedback("fix-save", false, "Errors found");
                 }
             }, this));
+            /* Assign the cancel button handler */
             jQuery("#fix-save-cancel").off("click").on("click", jQuery.proxy(this.resetForm, this));
+            /* Assign the feature click-to-edit handler */
+            magic.runtime.map.un("singleclick", this.clickToEditHandler, this).on("singleclick", this.clickToEditHandler, this);
         }, this),
         error: function() {
             console.log("Failed to get field party positional data - potential network outage?");
@@ -180,6 +183,7 @@ magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {
 
 magic.classes.FieldPartyPositionButton.prototype.onDeactivate = function() {    
     this.target.popover("hide");
+    magic.runtime.map.un("singleclick", this.clickToEditHandler, this);
 };
 
 magic.classes.FieldPartyPositionButton.prototype.resetForm = function() {
@@ -228,6 +232,10 @@ magic.classes.FieldPartyPositionButton.prototype.getPayload = function() {
         "height": jQuery("#fix-input-height").val(),
         "notes": jQuery("#fix-input-notes").val()
     });
+};
+
+magic.classes.FieldPartyPositionButton.prototype.setPayload = function(payload) {    
+    //TODO
 };
 
 magic.classes.FieldPartyPositionButton.prototype.validate = function(payload) { 
@@ -327,6 +335,14 @@ magic.classes.FieldPartyPositionButton.prototype.getComboboxValue = function(id)
 magic.classes.FieldPartyPositionButton.prototype.getDatepickerValue = function(id) {
     var field = jQuery("#" + id);
     return(field.val() ? moment(field.val(), "DD/MM/YYYY").format("YYYY-MM-DD") : "");
+};
+
+magic.classes.FieldPartyPositionButton.prototype.clickToEditHandler = function(evt) {
+    magic.runtime.map.forEachFeatureAtPixel(evt.pixel, jQuery.proxy(function(feat, layer) {
+        if (layer == this.layer) {
+            //TODO
+        }
+    }, this));
 };
 
 magic.classes.FieldPartyPositionButton.prototype.computeSeason = function(currentDateStr) {
