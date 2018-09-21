@@ -109,7 +109,14 @@ magic.classes.FieldPartyPositionButton.prototype.restoreState = function() {
     //TODO
 };
 
-magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {       
+magic.classes.FieldPartyPositionButton.prototype.onActivate = function() { 
+    
+    /* Detect changes to the form */
+    this.formEdited = false;
+    jQuery(".field-party-popover-content").find("form :input").change(jQuery.proxy(function() {
+        this.formEdited = true;
+    }, this));
+    
     jQuery.ajax({
         url: this.WFS_FETCH,
         method: "GET",
@@ -157,7 +164,7 @@ magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {
             jQuery("#fix-save-go").off("click").on("click", jQuery.proxy(function(evt) {
                 var payload = this.getPayload();
                 if (this.validate(payload)) {
-                    console.log(payload);
+                    this.saveForm();
                     magic.modules.Common.buttonClickFeedback("fix-save", true, "Ok");
                 } else {
                     magic.modules.Common.buttonClickFeedback("fix-save", false, "Errors found");
@@ -176,15 +183,42 @@ magic.classes.FieldPartyPositionButton.prototype.onDeactivate = function() {
 };
 
 magic.classes.FieldPartyPositionButton.prototype.resetForm = function() {
+    var form = jQuery(".field-party-popover-content").find("form");
     if (this.formEdited) {
         /* Ask for user confirmation when form has been edited */
-        //TODO
+        bootbox.confirm({
+            message: "Unsaved edits - save before clearing form?",
+            buttons: {
+                confirm: {
+                    label: "Yes",
+                    className: "btn-success"
+                },
+                cancel: {
+                    label: "No",
+                    className: "btn-danger"
+                }
+            },
+            callback: jQuery.proxy(function (result) {
+                if (result) {                
+                    this.saveForm();                    
+                }      
+                form[0].reset();
+                this.formEdited = false;
+            }, this)
+        });
+    } else {
+        form[0].reset();
+        this.formEdited = false;
     }
+};
+
+magic.classes.FieldPartyPositionButton.prototype.saveForm = function() {
+    console.log(this.getPayload());
 };
 
 magic.classes.FieldPartyPositionButton.prototype.getPayload = function() {    
     return({
-        "season": jQuery("#fix-input-season").val(),
+        "season": this.computeSeason(),
         "sledge": this.getComboboxValue("fix-input-sledge"),
         "date": this.getDatepickerValue("fix-input-date"),
         "people_count": jQuery("#fix-input-people_count").val(),
@@ -202,7 +236,7 @@ magic.classes.FieldPartyPositionButton.prototype.validate = function(payload) {
     if (payload) {
         valid = true;
         if (payload.sledge == null || payload.sledge == "") {
-            magic.modules.Common.flagInputError(jQuery("#fix-input-sledge"));
+            magic.modules.Common.flagInputError(jQuery("#fix-input-sledge-input"));
             valid = false;
         }
         if (payload.date == null || payload.date == "") {
@@ -234,6 +268,7 @@ magic.classes.FieldPartyPositionButton.prototype.initCombobox = function(id, opt
     if (cbSelect.length > 0) {
         /* The input exists (we must therefore be admin) */
         cbSelect.empty();
+        cbSelect.append(jQuery('<option>', {value: "", text: ""}));
         for (var j = 0; j < opts.length; j++) {           
             cbSelect.append(jQuery('<option>', {value: opts[j], text: opts[j]}));
         }
@@ -294,6 +329,24 @@ magic.classes.FieldPartyPositionButton.prototype.getDatepickerValue = function(i
     return(field.val() ? moment(field.val(), "DD/MM/YYYY").format("YYYY-MM-DD") : "");
 };
 
+magic.classes.FieldPartyPositionButton.prototype.computeSeason = function(currentDateStr) {
+    var currentDate, thisYear;
+    if (!currentDateStr) {
+        currentDate = Date.now();
+        thisYear = new Date().getFullYear();
+    } else {
+        currentDate = Date.parse(currentDateStr);
+        thisYear = new Date(currentDateStr).getFullYear();
+    }
+    if (!isNaN(currentDate)) {
+        if (currentDate < Date.parse(thisYear + "-10-01 00:00:00")) {
+            return((thisYear-1).toString().substring(2) + thisYear.toString().substring(2));
+        } else {
+            return(thisYear.toString().substring(2) + (thisYear+1).toString().substring(2));
+        }
+    } 
+    return("");
+};
 
 /**
  * Display markup for a positional fix

@@ -132,7 +132,7 @@ magic.modules.Common = function () {
                     '<div class="btn-group btn-group-' + size + '">' +
                         '<button id="' + btnBaseId + '-fb-error" class="btn btn-' + size + ' btn-danger" style="display:none" type="button" ' + 
                             'data-toggle="tooltip" data-trigger="hover" data-placement="top" title="Error">' + 
-                            '<span class="fa fa-times post-error"></span> Error' + 
+                            '<span class="fa fa-times-circle post-error"></span> Error' + 
                         '</button>' + 
                     '</div>' + 
                     (cancel === true ?
