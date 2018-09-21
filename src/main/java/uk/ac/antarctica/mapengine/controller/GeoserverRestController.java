@@ -146,7 +146,7 @@ public class GeoserverRestController {
     }
     
     /**
-     * Proxy Geoserver REST API call to gdefault endpoint to get all defined styles for a layer
+     * Proxy Geoserver REST API call to default endpoint to get all defined styles for a layer
      * @param HttpServletRequest request
      * @param HttpServletResponse response
      * @param String layer

@@ -124,21 +124,19 @@ magic.modules.Endpoints = function () {
         getEndpointsBy: function(filterName, filterValue) {
             if (!magic.runtime.endpoints || !filterName || ! filterValue) {
                 return(null);
-            }
-            var parsedUrlFilter = null;
-            if (filterName == "url") {
-                parsedUrlFilter = this.parseUri(filterValue); 
-            }
+            }            
             return(jQuery.grep(magic.runtime.endpoints, jQuery.proxy(function(ep) {
                 if (filterName == "id") {
                     return(ep[filterName] == filterValue);
                 } else if (filterName == "url") {
-                    var foundUrl = this.compareEndpoints(parsedUrlFilter, this.parseUri(ep[filterName]));                    
+                    /* Note that stored endpoints should be WMS ones, so remove wms|wfs|wcs from end of filter */
+                    var serviceNeutralFilter = filterValue.replace(/\/w[cfm]s$/, "");
+                    var foundUrl = ep[filterName].indexOf(serviceNeutralFilter) == 0;                   
                     if (!foundUrl && ep["url_aliases"]) {
                         /* Check any of the aliases match in protocol, host and port */
                         var aliases = ep["url_aliases"].split(",");
                         for (var i = 0; !foundUrl && i < aliases.length; i++) {
-                            foundUrl = this.compareEndpoints(parsedUrlFilter, this.parseUri(aliases[i]));                               
+                            foundUrl = aliases[i].indexOf(serviceNeutralFilter) == 0;
                         }                            
                     }
                     return(foundUrl);
@@ -151,35 +149,6 @@ magic.modules.Endpoints = function () {
                 }
             }, this)));
         }, 
-        /**
-         * Check endpoint URL against filter - protocol, host, port and first path item must be identical 
-         * @param {Object} url1 parsed URL  
-         * @param {Object} url2 parsed URL 
-         * @return {boolean}
-         */
-        compareEndpoints: function(url1, url2) {            
-            var foundUrl = 
-                url1.protocol == url2.protocol && 
-                url1.host == url2.host && 
-                url1.port == url1.port;
-            /* Bugfix 2018-04-16 David - too risky to introduce this for web mapping workshop */
-            if (foundUrl) {
-               /* Protocol, host and port identical - check path starts with endpoint's path */
-                if (url1.path != "" && url2.path != "") {
-                    /* Extract and compare first path element */
-                    var p1 = url1.path;
-                    if (p1.indexOf("/") >= 0) {
-                        p1 = p1.substring(0, p1.indexOf("/"));
-                    }
-                    var p2 = url2.path;
-                    if (p2.indexOf("/") >= 0) {
-                        p2 = p2.substring(0, p2.indexOf("/"));
-                    }
-                    foundUrl = p1 == p2;
-                }
-            }
-            return(foundUrl);
-        },
         /**
          * Get a suitable mid-latitudes coast layer (OSM, except if in a low bandwidth location, in which case default to Natural Earth)
          * @returns {ol.layer}
