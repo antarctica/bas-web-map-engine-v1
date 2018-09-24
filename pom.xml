@@ -165,16 +165,16 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>-->
-            <!--            <plugin>
+            <plugin>
                 <groupId>org.apache.tomcat.maven</groupId>
                 <artifactId>tomcat7-maven-plugin</artifactId>
                 <version>2.2</version>
                 <configuration>
-                    <url>http://localhost:8080/manager</url>
+                    <url>http://localhost:8080/manager/text</url>
                     <server>Tomcat</server>
-                    <path>/locations-api-1.0.0</path>
+                    <path>/</path>
                 </configuration>
-            </plugin>-->
+            </plugin>            
         </plugins>
     </build>
 
