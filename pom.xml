@@ -171,7 +171,7 @@
                 <version>2.2</version>
                 <configuration>
                     <url>http://localhost:8080/manager/text</url>
-                    <server>Tomcat</server>
+                    <server>tomcat</server>
                     <path>/</path>
                 </configuration>
             </plugin>            
