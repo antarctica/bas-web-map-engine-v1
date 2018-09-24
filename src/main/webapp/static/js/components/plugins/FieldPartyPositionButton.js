@@ -211,7 +211,7 @@ magic.classes.FieldPartyPositionButton.prototype.saveForm = function() {
  * @param {Function} callbackEdited
  * @param {Function} callbackNotEdited
  */
-magic.classes.FieldPartyPositionButton.confirmOperation = function(callbackEdited, callbackNotEdited) {
+magic.classes.FieldPartyPositionButton.prototype.confirmOperation = function(callbackEdited, callbackNotEdited) {
     if (this.formEdited) {
         /* Ask for user confirmation when form has been edited */
         if (!jQuery.isFunction(callbackEdited)) {
