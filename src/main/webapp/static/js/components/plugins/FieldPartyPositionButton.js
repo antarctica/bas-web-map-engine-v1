@@ -173,7 +173,8 @@ magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {
             /* Assign the cancel button handler */
             jQuery("#fix-save-cancel").off("click").on("click", jQuery.proxy(this.resetForm, this));
             /* Assign the feature click-to-edit handler */
-            magic.runtime.map.un("singleclick", this.clickToEditHandler, this).on("singleclick", this.clickToEditHandler, this);
+            magic.runtime.map.un("singleclick", this.clickToEditHandler, this);
+            magic.runtime.map.on("singleclick", this.clickToEditHandler, this);
         }, this),
         error: function() {
             console.log("Failed to get field party positional data - potential network outage?");
@@ -227,8 +228,8 @@ magic.classes.FieldPartyPositionButton.confirmOperation = function(callbackEdite
                     label: "No",
                     className: "btn-danger"
                 }
-            }, callbackEdited            
-        });
+            }          
+        }, callbackEdited);
     } else {
         if (jQuery.isFunction(callbackNotEdited)) {
             callbackNotEdited();
@@ -409,8 +410,19 @@ magic.classes.FieldPartyPositionButton.prototype.getDatepickerValue = function(i
 magic.classes.FieldPartyPositionButton.prototype.clickToEditHandler = function(evt) {
     magic.runtime.map.forEachFeatureAtPixel(evt.pixel, jQuery.proxy(function(feat, layer) {
         if (layer == this.layer) {
-            //TODO
+            this.confirmOperation(
+                jQuery.proxy(function(result) {
+                    if (result) {
+                        this.setPayload(feat.getProperties());
+                    }
+                }, this), 
+                jQuery.proxy(function() {
+                    this.setPayload(feat.getProperties());
+                }, this)
+            );            
+            return(true);
         }
+        return(false);
     }, this));
 };
 
