@@ -259,7 +259,14 @@ magic.classes.FieldPartyPositionButton.prototype.getPayload = function() {
  * @param {Object} payload
  */
 magic.classes.FieldPartyPositionButton.prototype.setPayload = function(payload) {    
-    //TODO
+    this.setComboboxValue("fix-input-sledge", payload.sledge);
+    this.setDatepickerValue("fix-input-date", payload.date);
+    jQuery("#fix-input-people_count").val(payload.people_count);
+    jQuery("#fix-input-updater").val(payload.updater || "");
+    jQuery("#fix-input-lat").val(magic.modules.GeoUtils.applyPref("coordinates", payload.lat, "lat"));
+    jQuery("#fix-input-lon").val(magic.modules.GeoUtils.applyPref("coordinates", payload.lon, "lon"));
+    jQuery("#fix-input-height").val(payload.height || 0.0);
+    jQuery("#fix-input-notes").val(payload.notes || "");
 };
 
 /**
@@ -300,6 +307,11 @@ magic.classes.FieldPartyPositionButton.prototype.validate = function(payload) {
     return(valid);
 };
 
+/**
+ * Set up a combobox style of dropdown field (standard in the formwidgets library)
+ * @param {String} id
+ * @param {Object} opts
+ */
 magic.classes.FieldPartyPositionButton.prototype.initCombobox = function(id, opts) {
     var cbSelect = jQuery("#" + id);
     if (cbSelect.length > 0) {
@@ -324,6 +336,10 @@ magic.classes.FieldPartyPositionButton.prototype.initCombobox = function(id, opt
     }    
 };
 
+/**
+ * Set up a datepicker field (standard in the formwidgets library)
+ * @param {String} id
+ */
 magic.classes.FieldPartyPositionButton.prototype.initDatepicker = function(id) {
     var dtInput = jQuery("#" + id).closest(".input-group");
     if (dtInput.length > 0) {
@@ -335,6 +351,11 @@ magic.classes.FieldPartyPositionButton.prototype.initDatepicker = function(id) {
     }
 };
 
+/**
+ * Set the value of a combobox field
+ * @param {String} id
+ * @param {String} value
+ */
 magic.classes.FieldPartyPositionButton.prototype.setComboboxValue = function(id, value) {
     var cbSelect = jQuery("#" + id);
     if (cbSelect.length > 0) {
@@ -351,21 +372,40 @@ magic.classes.FieldPartyPositionButton.prototype.setComboboxValue = function(id,
     }
 };
 
+/**
+ * Set the value of a datepicker field
+ * @param {String} id
+ * @param {String} value
+ */
 magic.classes.FieldPartyPositionButton.prototype.setDatepickerValue = function(id, value) {
     jQuery("#" + id).val(value);
 };
 
+/**
+ * Get the current value of a combobox field
+ * @param {String} id
+ * @return {String}
+ */
 magic.classes.FieldPartyPositionButton.prototype.getComboboxValue = function(id) {
     var cbInput = jQuery("#" + id + "-input");
     var cbHidden = cbInput.closest("div.combobox-container").find("input[type='hidden']");
     return(cbHidden.val());
 };
 
+/**
+ * Get the current value of a datepicker field
+ * @param {String} id
+ * @return {String}
+ */
 magic.classes.FieldPartyPositionButton.prototype.getDatepickerValue = function(id) {
     var field = jQuery("#" + id);
     return(field.val() ? moment(field.val(), "DD/MM/YYYY").format("YYYY-MM-DD") : "");
 };
 
+/**
+ * Handle a feature click by moving the attributes to the edit form
+ * @param {jQuery.Event} evt
+ */
 magic.classes.FieldPartyPositionButton.prototype.clickToEditHandler = function(evt) {
     magic.runtime.map.forEachFeatureAtPixel(evt.pixel, jQuery.proxy(function(feat, layer) {
         if (layer == this.layer) {
@@ -374,6 +414,11 @@ magic.classes.FieldPartyPositionButton.prototype.clickToEditHandler = function(e
     }, this));
 };
 
+/**
+ * Get the current season in the form "1819" based on the given date, or the current date if not supplied
+ * @param {String} currentDateStr
+ * @return {String}
+ */
 magic.classes.FieldPartyPositionButton.prototype.computeSeason = function(currentDateStr) {
     var currentDate, thisYear;
     if (!currentDateStr) {
