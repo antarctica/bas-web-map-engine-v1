@@ -186,10 +186,36 @@ magic.classes.FieldPartyPositionButton.prototype.onDeactivate = function() {
     magic.runtime.map.un("singleclick", this.clickToEditHandler, this);
 };
 
-magic.classes.FieldPartyPositionButton.prototype.resetForm = function() {
-    var form = jQuery(".field-party-popover-content").find("form");
+/**
+ * Reset the form, taking account of whether or not it has been edited
+ */
+magic.classes.FieldPartyPositionButton.prototype.resetForm = function() {    
+    this.confirmOperation(jQuery.proxy(function (result) {
+        if (result) {                
+            this.saveForm();                    
+        }      
+        jQuery(".field-party-popover-content").find("form")[0].reset();
+        this.formEdited = false;
+    }, this), function() {
+        jQuery(".field-party-popover-content").find("form")[0].reset();
+    });    
+};
+
+magic.classes.FieldPartyPositionButton.prototype.saveForm = function() {
+    console.log(this.getPayload());
+};
+
+/**
+ * Confirm an operation on a potentially edited form, and execute a callback accordingly
+ * @param {Function} callbackEdited
+ * @param {Function} callbackNotEdited
+ */
+magic.classes.FieldPartyPositionButton.confirmOperation = function(callbackEdited, callbackNotEdited) {
     if (this.formEdited) {
         /* Ask for user confirmation when form has been edited */
+        if (!jQuery.isFunction(callbackEdited)) {
+            callbackEdited = function(){};
+        }
         bootbox.confirm({
             message: "Unsaved edits - save before clearing form?",
             buttons: {
@@ -201,25 +227,19 @@ magic.classes.FieldPartyPositionButton.prototype.resetForm = function() {
                     label: "No",
                     className: "btn-danger"
                 }
-            },
-            callback: jQuery.proxy(function (result) {
-                if (result) {                
-                    this.saveForm();                    
-                }      
-                form[0].reset();
-                this.formEdited = false;
-            }, this)
+            }, callbackEdited            
         });
     } else {
-        form[0].reset();
-        this.formEdited = false;
+        if (jQuery.isFunction(callbackNotEdited)) {
+            callbackNotEdited();
+        }
     }
 };
 
-magic.classes.FieldPartyPositionButton.prototype.saveForm = function() {
-    console.log(this.getPayload());
-};
-
+/**
+ * Retrieve the form's value as a JSON object
+ * @returns {Object}
+ */
 magic.classes.FieldPartyPositionButton.prototype.getPayload = function() {    
     return({
         "season": this.computeSeason(),
@@ -234,10 +254,19 @@ magic.classes.FieldPartyPositionButton.prototype.getPayload = function() {
     });
 };
 
+/**
+ * Set the form's value to the given JSON object
+ * @param {Object} payload
+ */
 magic.classes.FieldPartyPositionButton.prototype.setPayload = function(payload) {    
     //TODO
 };
 
+/**
+ * Validate the form inputs
+ * @param {Object} payload
+ * @returns {boolean}
+ */
 magic.classes.FieldPartyPositionButton.prototype.validate = function(payload) { 
     var valid = false;
     magic.modules.Common.resetFormIndicators();
