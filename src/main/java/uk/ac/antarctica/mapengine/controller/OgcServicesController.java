@@ -4,7 +4,6 @@
 
 package uk.ac.antarctica.mapengine.controller;
 
-import it.geosolutions.geoserver.rest.HTTPUtils;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -352,13 +351,16 @@ public class OgcServicesController {
         /* Note: Extents for dynamic layers like BLIP etc may be out if fetched from GetCapabilities see:
          * https://gis.stackexchange.com/questions/124527/how-to-make-geoserver-dynamically-calculate-the-bounding-box-of-a-postgis-backed */
                
+        GenericUrlConnector guc = null;
         try {
             /* Find the layers this user can access */
             HashMap<String,Boolean> userlayerDict = determineAccessibleLayers();
             
             /* Now get the Capabilities document and parse for the layers, removing those that don't have dictionary entries */
-            String caps = HTTPUtils.get(url);
-            if (caps != null) {
+            guc = new GenericUrlConnector(url.startsWith("https"));
+            int status = guc.get(url);            
+            if (status < 400) {
+                String caps = IOUtils.toString(guc.getContent());
                 DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
                 dbf.setValidating(false);
                 DocumentBuilder db = dbf.newDocumentBuilder();
@@ -408,7 +410,13 @@ public class OgcServicesController {
             writeErrorResponse(response, 500, "application/json", "Error parsing GetCapabilities document from " + url + ": " + ioe.getMessage());
         } catch (TransformerException tre) {
             writeErrorResponse(response, 500, "application/json", "Error parsing GetCapabilities document from " + url + ": " + tre.getMessage());
-        } 
+        } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException ex) {
+            System.out.println("SSL error getting content from " + url + ", exception was: " + ex.getMessage());
+        } finally {
+            if (guc != null) {
+                guc.close();
+            }
+        }  
     }
     
     /**
@@ -472,7 +480,7 @@ public class OgcServicesController {
         try {
             guc = new GenericUrlConnector(url.startsWith("https"));
             
-            /* Tracking down certificate problem 2018/09/21 David */
+            /* Tracking down Polar View certificate problem without overwhelming amounts of logs 2018/09/21 David */
             boolean isPvan = url.contains("polarview.aq");
             
             int status = guc.get(url, username, password, null);

@@ -95,6 +95,14 @@ public class GenericUrlConnector {
 //                .build();
 //        }
     }
+    
+    public int get(String url) throws MalformedURLException, IOException {
+        return(get(url, null, null, null));
+    }
+    
+    public int get(String url, String username, String password) throws MalformedURLException, IOException {
+        return(get(url, username, password, null));
+    }
 
     /**
      * GET from given URL, with optional basic authentication     

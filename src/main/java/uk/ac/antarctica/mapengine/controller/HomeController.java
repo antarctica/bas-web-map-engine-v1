@@ -4,7 +4,6 @@
 package uk.ac.antarctica.mapengine.controller;
 
 import com.google.gson.Gson;
-import it.geosolutions.geoserver.rest.HTTPUtils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -478,16 +477,8 @@ public class HomeController {
     private String getIssueData(Integer issue) {
         String data = "{}";
         if (issue != null) {
-            String redmine = env.getProperty("redmine.local.url");
             String issuesTable = env.getProperty("postgres.local.issuesTable");
-            if (redmine != null && !redmine.isEmpty()) {
-                /* BAS systems use MAGIC Redmine */
-                data = HTTPUtils.get(
-                        env.getProperty("redmine.local.url") + "/issues/" + issue + ".json",
-                        env.getProperty("redmine.local.username"), 
-                        env.getProperty("redmine.local.password")
-                );                    
-            } else if (issuesTable != null && !issuesTable.isEmpty()) {
+            if (issuesTable != null && !issuesTable.isEmpty()) {
                 /* Other systems will use the issues Postgres table */
                 Map<String, Object> issueRec = magicDataTpl.queryForMap("SELECT * FROM " + env.getProperty("postgres.local.issuesTable") + " WHERE id=?", issue);
                 data = mapper.toJsonTree(issueRec).toString();

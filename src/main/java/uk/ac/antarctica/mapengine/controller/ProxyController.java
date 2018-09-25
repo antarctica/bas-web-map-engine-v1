@@ -4,7 +4,6 @@
 
 package uk.ac.antarctica.mapengine.controller;
 
-import it.geosolutions.geoserver.rest.HTTPUtils;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -18,15 +17,12 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
-import org.geotools.ows.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import uk.ac.antarctica.mapengine.util.GenericUrlConnector;
 
 @Controller
@@ -125,29 +121,6 @@ public class ProxyController {
             throw new ServletException("Not able to proxy " + url + " as the URL is invalid");
         }
     }
-    
-    /**
-     * Get JSON data on issue <id> from Redmine
-     * @param HttpServletRequest request,
-     * @param HttpServletResponse response,
-     * @param Integer id
-     * @return
-     * @throws ServletException
-     * @throws IOException
-     */
-    @RequestMapping(value = "/redmine/{id}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
-    @ResponseBody
-    public void redmineIssue(HttpServletRequest request, HttpServletResponse response, @PathVariable("id") Integer id)
-        throws ServletException, IOException, ServiceException {
-        String content = HTTPUtils.get(
-            env.getProperty("redmine.local.url") + "/issues/" + id + ".json", 
-            env.getProperty("redmine.local.username"), 
-            env.getProperty("redmine.local.password")
-        );
-        IOUtils.copy(IOUtils.toInputStream(content), response.getOutputStream());         
-    }
-    
-    
     
     /**
      * Look for the named header, case insensitive

@@ -9,13 +9,12 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
-import it.geosolutions.geoserver.rest.GeoServerRESTManager;
-import it.geosolutions.geoserver.rest.decoder.RESTLayer;
-import it.geosolutions.geoserver.rest.decoder.RESTResource;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
@@ -56,6 +55,7 @@ import uk.ac.antarctica.mapengine.datapublishing.KmlPublisher;
 import uk.ac.antarctica.mapengine.datapublishing.NoUploadPublisher;
 import uk.ac.antarctica.mapengine.datapublishing.ShpZipPublisher;
 import uk.ac.antarctica.mapengine.model.UploadedData;
+import uk.ac.antarctica.mapengine.util.GenericUrlConnector;
 import uk.ac.antarctica.mapengine.util.PackagingUtils;
 
 @Controller
@@ -138,30 +138,41 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
                     args.toArray()
                 );
                 if (layer != null && !layer.isEmpty()) {
-                    boolean foundIt = false;
-                    GeoServerRESTManager grm = new GeoServerRESTManager(
-                        new URL(env.getProperty("geoserver.internal.url")), 
-                        env.getProperty("geoserver.internal.username"), 
-                        env.getProperty("geoserver.internal.password")
-                    );
-                    if (grm.getReader().existsLayer(env.getProperty("geoserver.internal.userWorkspace"), layer, true)) {
-                        RESTLayer gsLayer = grm.getReader().getLayer(env.getProperty("geoserver.internal.userWorkspace"), layer);
-                        if (gsLayer != null) {
-                            RESTResource gsFt = grm.getReader().getResource(gsLayer);
-                            if (gsFt != null) {
-                                foundIt = true;
-                                JsonArray ja = new JsonArray();
-                                ja.add(new JsonPrimitive(gsFt.getMinX()));
-                                ja.add(new JsonPrimitive(gsFt.getMinY()));
-                                ja.add(new JsonPrimitive(gsFt.getMaxX()));
-                                ja.add(new JsonPrimitive(gsFt.getMaxY()));
-                                writeOut(response, 200, "application/json; charset=utf-8", ja.toString(), null);
+                    GenericUrlConnector guc = null;
+                    String gsUrl = env.getProperty("geoserver.internal.url");
+                    String gsUserWs = env.getProperty("geoserver.internal.userWorkspace");
+                    String restFeatureType = gsUrl + "/rest/workspaces/" + gsUserWs + "/featuretypes/" + layer + ".json";
+                    try {
+                        guc = new GenericUrlConnector(gsUrl.startsWith("https"));
+                        int status = guc.get(restFeatureType);
+                        if (status >= 400) {
+                            writeOut(response, 400, "application/json; charset=utf-8", "Status " + status + " returned for layer " + layer, null);
+                        } else {
+                            String restOut = IOUtils.toString(guc.getContent());
+                            if (restOut.toLowerCase().startsWith("no such feature type")) {
+                                writeOut(response, 400, "application/json; charset=utf-8", "Layer " + layer + " not found", null); 
+                            } else {
+                                JsonElement je = new JsonParser().parse(restOut);
+                                try {
+                                    JsonObject bbox = je.getAsJsonObject().getAsJsonObject("featureType").getAsJsonObject("latLonBoundingBox");
+                                    JsonArray ja = new JsonArray();
+                                    ja.add(new JsonPrimitive(bbox.getAsJsonPrimitive("minx").getAsDouble()));
+                                    ja.add(new JsonPrimitive(bbox.getAsJsonPrimitive("miny").getAsDouble()));
+                                    ja.add(new JsonPrimitive(bbox.getAsJsonPrimitive("maxx").getAsDouble()));
+                                    ja.add(new JsonPrimitive(bbox.getAsJsonPrimitive("maxy").getAsDouble()));                                    
+                                    writeOut(response, 200, "application/json; charset=utf-8", ja.toString(), null);
+                                } catch(Exception ex) {
+                                    writeOut(response, 400, "application/json; charset=utf-8", "Malformed JSON response for Layer " + layer, null);
+                                }                                
                             }
                         }
-                    } 
-                    if (!foundIt) {
-                        writeOut(response, 400, "application/json; charset=utf-8", "Layer with id " + id + " not found", null);                        
-                    }
+                    } catch(IOException | KeyManagementException | KeyStoreException | NoSuchAlgorithmException ex) {
+                        writeOut(response, 400, "application/json; charset=utf-8", "Exception : " + ex.getMessage() + " returned for layer " + layer, null);
+                    } finally {
+                        if (guc != null) {
+                            guc.close();
+                        }
+                    }                    
                 } else {
                     writeOut(response, 400, "application/json; charset=utf-8", "Failed to find readable layer record with id " + id, null);                    
                 }
