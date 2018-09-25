@@ -1,5 +1,5 @@
 /*
- * Models a feedback report
+ * Models a user feedback issue report
  */
 package uk.ac.antarctica.mapengine.model;
 
@@ -8,73 +8,58 @@ import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotEmpty;
 
 public class Feedback {
-    
+
     @NotEmpty
-    private String subject;
-	private int projectId = 121;    /* Goes into ADD project by default */
-	private String section = "MAGIC";
-	private int trackerId = 1;      /* 1 = bug */
-	private int assignedId = 6;
+    private String issuetype;
     @NotEmpty
-	private String description;     /* Structured description for easy replay of issue */
-    @Email @NotEmpty
-	private String reporter = "";	/* Reporter email address for feedback */
+    private String subject;    
+    @NotEmpty
+    private String description;    
+    @Email
+    @NotEmpty
+    private String reporter;
+    @NotEmpty
+    private String payload;
 
-	public String getSubject() {
-		return subject;
-	}
+    public String getIssuetype() {
+        return issuetype;
+    }
 
-	public void setSubject(String subject) {
-		this.subject = subject;
-	}
+    public void setIssuetype(String issuetype) {
+        this.issuetype = issuetype;
+    }
 
-	public int getProjectId() {
-		return projectId;
-	}
+    public String getSubject() {
+        return subject;
+    }
 
-	public void setProjectId(int projectId) {
-		this.projectId = projectId;
-	}
+    public void setSubject(String subject) {
+        this.subject = subject;
+    }
 
-	public String getSection() {
-		return section;
-	}
+    public String getDescription() {
+        return description;
+    }
 
-	public void setSection(String section) {
-		this.section = section;
-	}
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-	public int getTrackerId() {
-		return trackerId;
-	}
+    public String getReporter() {
+        return reporter;
+    }
 
-	public void setTrackerId(int trackerId) {
-		this.trackerId = trackerId;
-	}
+    public void setReporter(String reporter) {
+        this.reporter = reporter;
+    }
 
-	public int getAssignedId() {
-		return assignedId;
-	}
+    public String getPayload() {
+        return payload;
+    }
 
-	public void setAssignedId(int assignedId) {
-		this.assignedId = assignedId;
-	}
-
-	public String getDescription() {
-		return description;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
-	}
-
-	public String getReporter() {
-		return reporter;
-	}
-
-	public void setReporter(String reporter) {
-		this.reporter = reporter;
-	}
+    public void setPayload(String payload) {
+        this.payload = payload;
+    }
     
     @Override
     public String toString() {
@@ -85,6 +70,9 @@ public class Feedback {
         sb.append("Reported : ");
         sb.append(new Date().toString());
         sb.append("\n");
+        sb.append("Type of issue : ");
+        sb.append(getIssuetype());
+        sb.append("\n");
         sb.append("Subject : ");
         sb.append(getSubject());
         sb.append("\n");
@@ -94,10 +82,13 @@ public class Feedback {
         sb.append("Reporter : ");
         sb.append(getReporter());
         sb.append("\n");
+        sb.append("Replay JSON : ");
+        sb.append(getPayload());
+        sb.append("\n");
         sb.append("------------------------\n");
         sb.append("End of feedback payload\n");
         sb.append("------------------------\n");
-        return(sb.toString());
+        return (sb.toString());
     }
-    
+
 }

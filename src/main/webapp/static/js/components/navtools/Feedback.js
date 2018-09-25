@@ -60,12 +60,12 @@ magic.classes.Feedback.prototype.markup = function() {
                     '</div>' + 
                 '</div>' +
                 '<div class="form-group">' +
-                    '<label for="' + this.id + '-trackerId">This is an issue with</label>' + 
-                    '<select name="trackerId" id="' + this.id + '-trackerId" class="form-control" ' +
+                    '<label for="' + this.id + '-issuetype">This is an issue with</label>' + 
+                    '<select name="issuetype" id="' + this.id + '-issuetype" class="form-control" required="required" ' +
                         'data-toggle="tooltip" data-placement="right" ' + 
                         'title="What type of problem is this?">' + 
-                        '<option value="4">Data</option>' + 
-                        '<option value="1">Interface</option>' + 
+                        '<option value="data">Data</option>' + 
+                        '<option value="interface">Interface</option>' + 
                     '</select>' +                            
                 '</div>' +
                 '<div class="form-group">' +
