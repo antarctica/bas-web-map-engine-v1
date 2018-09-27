@@ -6,7 +6,6 @@ package uk.ac.antarctica.mapengine.model;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
 
 public class UserMapData extends AbstractMapData {
     

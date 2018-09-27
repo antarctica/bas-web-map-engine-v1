@@ -26,6 +26,8 @@ public class UserAuthorities {
     
     private Environment env;
     
+    private JsonParser jsonParser;
+    
     private UserRoleMatrix userRoleMatrix;
     
     /**
@@ -292,7 +294,7 @@ public class UserAuthorities {
                 setAuthorities(new JsonObject());
             } else {
                 System.out.println("Registered user found");
-                setAuthorities((JsonObject)(new JsonParser().parse(ga.getAuthority())));
+                setAuthorities((JsonObject)(jsonParser.parse(ga.getAuthority())));
             }
         }
         System.out.println("======== UserAuthorities.populateRoles() complete");
@@ -311,6 +313,7 @@ public class UserAuthorities {
         System.out.println("Injected beans start:");
         System.out.println(getEnv());
         System.out.println(getMagicDataTpl());
+        System.out.println(getJsonParser());
         System.out.println("Injected beans end");
         
         setAuthorities(new JsonObject());
@@ -371,6 +374,14 @@ public class UserAuthorities {
 
     public void setEnv(Environment env) {
         this.env = env;
+    }
+
+    public JsonParser getJsonParser() {
+        return jsonParser;
+    }
+
+    public void setJsonParser(JsonParser jsonParser) {
+        this.jsonParser = jsonParser;
     }
 
     public UserRoleMatrix getUserRoleMatrix() {

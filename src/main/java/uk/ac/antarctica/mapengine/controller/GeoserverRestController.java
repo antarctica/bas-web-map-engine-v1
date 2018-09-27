@@ -13,7 +13,6 @@ import it.geosolutions.geoserver.rest.HTTPUtils;
 import it.geosolutions.geoserver.rest.decoder.RESTCoverage;
 import it.geosolutions.geoserver.rest.decoder.RESTFeatureType;
 import it.geosolutions.geoserver.rest.decoder.RESTLayer;
-import it.geosolutions.geoserver.rest.decoder.RESTLayerList;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -115,7 +114,7 @@ public class GeoserverRestController {
         
         String content = "[]";
         
-        JsonElement layerData = grec.getJson("layers");
+        JsonElement layerData = grec.getJson("layers", "layers/layer");
         if (layerData != null) {
             try {
                 /* Replace pseudo-wildcards in the filter string */
@@ -124,7 +123,7 @@ public class GeoserverRestController {
                 filter = filter.replaceAll("\\+", ".+");
                 Pattern reFilter = Pattern.compile("^" + filter + "$", Pattern.CASE_INSENSITIVE);
                 JsonArray filteredList = new JsonArray();
-                JsonArray layerNames = layerData.getAsJsonObject().get("layers").getAsJsonObject().get("layer").getAsJsonArray();
+                JsonArray layerNames = layerData.getAsJsonArray();
                 if (layerNames.size() > 0) {                                    
                     for (int i = 0; i < layerNames.size(); i++) {
                         String layerName = layerNames.get(i).getAsJsonObject().get("name").getAsString();
@@ -519,8 +518,8 @@ public class GeoserverRestController {
     
     /**
      * Retrieve layer attributes from optionally specified endpoint, feature name/workspace and geometry type
+     * @param GeoserverRestEndpointConnector grec
      * @param String layer
-     * @param Integer endpointid
      * @return JsonObject
      * @throws MalformedURLException 
      */
@@ -528,63 +527,60 @@ public class GeoserverRestController {
         
         JsonObject jo = new JsonObject(); 
         
-        JsonElement layerData = grec.getJson("layers/" + layer);
+        JsonElement layerData = grec.getJson("layers/" + layer, "layer/resource/href");
         if (layerData != null) {
             /* Get the "href" member of the "resource" member object within the "layer" JSON object => gives the URL to get attributes directly */
             try {
-                String attrHref = layerData.getAsJsonObject().get("layer").getAsJsonObject().get("resource").getAsJsonObject().get("href").getAsString();
+                String attrHref = layerData.getAsString();
                 if (attrHref != null && !attrHref.isEmpty()) {
                     attrHref = attrHref.replaceAll("\\\\", "");
                     String restPath = attrHref.substring(attrHref.indexOf("rest/")+5);
-                    JsonElement attrData = grec.getJson(restPath);
+                    if (restPath.contains("/coverages/")) {
+                        /* Raster coverage data */
+                        JsonObject coverageData = grec.getJson(restPath, "coverage").getAsJsonObject();
+                        if (coverageData != null && !coverageData.isJsonNull()) {
+                            /* Add top level attributes */
+                            String namespace = coverageData.getAsJsonObject("namespace").getAsJsonPrimitive("name").getAsString();
+                            jo.addProperty("feature_name", namespace + ":" + coverageData.getAsJsonPrimitive("nativeName").getAsString());
+                            jo.addProperty("name", coverageData.getAsJsonPrimitive("title").getAsString());
+                            jo.addProperty("wms_source", grec.getUrl() + "/" + namespace + "/wms");
+                        }
+                    } else {
+                        /* Vector data */
+                        JsonObject featureData = grec.getJson(restPath, "featureType").getAsJsonObject();
+                        if (featureData != null && !featureData.isJsonNull()) {
+                            /* Add top level attributes */
+                            String namespace = featureData.getAsJsonObject("namespace").getAsJsonPrimitive("name").getAsString();
+                            jo.addProperty("feature_name", namespace + ":" + featureData.getAsJsonPrimitive("nativeName").getAsString());
+                            jo.addProperty("name", featureData.getAsJsonPrimitive("title").getAsString());
+                            jo.addProperty("wms_source", grec.getUrl() + "/" + namespace + "/wms");
+                            JsonArray attrs = featureData.getAsJsonObject("attributes").getAsJsonArray("attribute");
+                            JsonArray simpleAttrs = new JsonArray();
+                            if (attrs != null && !attrs.isJsonNull()) {
+                                for (int i = 0; i < attrs.size(); i++) {
+                                    JsonObject attrData = attrs.get(i).getAsJsonObject();
+                                    String binding = attrData.getAsJsonPrimitive("binding").getAsString();
+                                    if (binding.contains("geom")) {
+                                        /* Geometry field - extract type */
+                                        jo.addProperty("geom_type", decodeGeomType(binding));
+                                    } else {
+                                        /* Ordinary attribute */
+                                        JsonObject simplAttrObj = new JsonObject();
+                                        attrData.addProperty("name", attrData.getAsJsonPrimitive("name").getAsString());                    
+                                        attrData.addProperty("type", binding.endsWith("String") ? "string" : "decimal");                        
+                                        simpleAttrs.add(simplAttrObj);
+                                    }
+                                }
+                                jo.add("attribute_map", simpleAttrs);
+                            }
+                        }
+                    }                                        
                 }
             } catch(Exception ex)  {
-
+                System.out.println("Failed to parse attribute data for layer " + layer + ", " + ex.getMessage());
             }
         }
-        return(jo);
-        
-        JsonObject jo = new JsonObject(); 
-        GeoServerRESTReader gs = getReader(endpointid);
-        
-        if (gs != null) {        
-            RESTLayer gsl = gs.getLayer(layer);
-            if (gsl != null) {
-                try {
-                    /* Test for a vector layer */
-                    RESTFeatureType gsf = gs.getFeatureType(gsl);
-                    if (gsf != null) {
-                        /* Translate longhand to JSON (Gson has trouble with circular refs) */                                        
-                        jo.addProperty("feature_name", gsf.getNameSpace() + ":" + gsf.getNativeName());
-                        jo.addProperty("name", gsf.getTitle());
-                        jo.addProperty("wms_source", env.getProperty("geoserver.internal.url") + "/" + gsf.getNameSpace() + "/wms");
-                        JsonArray attrs = new JsonArray();
-                        for (RESTFeatureType.Attribute attr : gsf.getAttributes()) {                    
-                            String binding = attr.getBinding();
-                            if (binding.contains("geom")) {
-                                /* Geometry field - extract type */
-                                jo.addProperty("geom_type", decodeGeomType(binding));
-                            } else {
-                                /* Ordinary attribute */
-                                JsonObject attrData = new JsonObject();
-                                attrData.addProperty("name", attr.getName());                    
-                                attrData.addProperty("type", binding.endsWith("String") ? "string" : "decimal");                        
-                                attrs.add(attrData);
-                            }                                        
-                        }
-                        jo.add("attribute_map", attrs);
-                    }
-                } catch(RuntimeException rte) {
-                    /* Must be a coverage */
-                    RESTCoverage gsc = gs.getCoverage(gsl);
-                    jo.addProperty("feature_name", gsc.getNameSpace() + ":" + gsc.getNativeName());
-                    jo.addProperty("wms_source", env.getProperty("geoserver.internal.url") + "/" + gsc.getNameSpace() + "/wms");
-                    jo.addProperty("name", gsc.getTitle());
-                    jo.addProperty("geom_type", "raster");
-                }
-            }
-        }
-        return(jo);
+        return(jo);        
     }
     
     /**

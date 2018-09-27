@@ -4,6 +4,7 @@
 package uk.ac.antarctica.mapengine.util;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import java.io.IOException;
@@ -70,11 +71,34 @@ public class GeoserverRestEndpointConnector {
         String data = getContent(restPath + ".json");
         if (data != null) {
             try {
-                content = jsonParser.parse(data);
+                content = jsonParser.parse(data);                
             } catch(JsonSyntaxException ex) {
                 System.out.println("Failed to parse retrieved JSON from " + url + restPath + ".json, exception was : " + ex.getMessage());
             }
         }
+        System.out.println("Done");
+        return(content);
+    }
+    
+    public JsonElement getJson(String restPath, String xpath) {
+        System.out.println("Get JSON from " + url + restPath + " and apply xpath " + xpath);
+        JsonElement content = getJson(restPath);
+        if (content != null && xpath != null && !xpath.isEmpty()) {
+            /* Apply the xpath rules */
+            try {
+                String[] members = xpath.split("/");
+                JsonObject jo = content.getAsJsonObject();
+                for (int i = 0; i < members.length; i++) {
+                    if (i < members.length-1) {
+                        jo = jo.getAsJsonObject(members[i]);
+                    } else {
+                        content = jo.get(members[i]);
+                    }
+                }
+            } catch(Exception ex) {
+                System.out.println("Failed to apply " + xpath + ", exception was : " + ex.getMessage());
+            }
+        }        
         System.out.println("Done");
         return(content);
     }
@@ -95,6 +119,12 @@ public class GeoserverRestEndpointConnector {
             }
         }
         return(content);
+    }
+    
+    public void close() {
+        if (guc != null) {
+            guc.close();
+        }
     }
     
     /**

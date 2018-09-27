@@ -46,6 +46,9 @@ public class RotheraReportsController {
     @Autowired
     private JdbcTemplate magicDataTpl;
     
+    @Autowired
+    private JsonParser jsonParser;
+    
     /* JSON mapper */
     private final Gson mapper = new Gson();
     
@@ -84,7 +87,7 @@ public class RotheraReportsController {
             ") b " +
             "ON a.id = b.id " + 
             "WHERE TRUE AND ";
-        JsonElement je = new JsonParser().parse(payload);
+        JsonElement je = jsonParser.parse(payload);
         JsonObject jo = je.getAsJsonObject();
         ArrayList<String> sqlArgs = new ArrayList();
         boolean whereAdded = false;

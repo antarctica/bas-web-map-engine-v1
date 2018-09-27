@@ -74,6 +74,9 @@ public abstract class DataPublisher {
     @Autowired
     private JdbcTemplate magicDataTpl;
     
+    @Autowired
+    private JsonParser jsonParser;
+    
     private ServletContext servletContext;
     
     /* Single endpoint for all Geoserver Manager functionality */
@@ -281,7 +284,7 @@ public abstract class DataPublisher {
      * @return String style name
      */
     protected String createLayerStyling(String schemaName, String tableName, String styledef, File exStyleFile) throws IOException, FileNotFoundException{        
-        JsonElement jesd = new JsonParser().parse(styledef);
+        JsonElement jesd = jsonParser.parse(styledef);
         JsonObject josd = jesd.getAsJsonObject();
         String mode = !josd.has("mode") ? "default" : josd.get("mode").getAsString();
         String geomType = getGeometryType(schemaName + "." + tableName);
