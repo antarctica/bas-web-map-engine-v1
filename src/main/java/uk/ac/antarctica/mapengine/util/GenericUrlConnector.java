@@ -14,7 +14,6 @@ import java.util.Base64;
 import java.util.HashMap;
 import javax.net.ssl.SSLContext;
 import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpHost;
@@ -77,6 +76,7 @@ public class GenericUrlConnector {
             .setSSLSocketFactory(sslsf)
             .setConnectionManager(cm)
             .build();
+// Commented out September 2018 David - seems to lead to problems with e.g. PVAN server certificates
 //        if (secure) {
 //            /* Secure URL */
 //            SSLContext sslContext = new SSLContextBuilder()
@@ -94,6 +94,7 @@ public class GenericUrlConnector {
 //                .setDefaultRequestConfig(config)
 //                .build();
 //        }
+// End of September 2018 commenting out
     }
     
     public int get(String url) throws MalformedURLException, IOException {

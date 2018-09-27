@@ -5,6 +5,7 @@
 package uk.ac.antarctica.mapengine.controller;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import it.geosolutions.geoserver.rest.GeoServerRESTReader;
@@ -31,7 +32,6 @@ import org.apache.commons.io.IOUtils;
 import org.geotools.ows.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -42,6 +42,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
+import uk.ac.antarctica.mapengine.util.GeoserverRestEndpointConnector;
 
 @Controller
 public class GeoserverRestController {   
@@ -65,7 +66,6 @@ public class GeoserverRestController {
     /**
      * Proxy Geoserver REST API call to default endpoint to get filtered list of layers with attributes
      * http://stackoverflow.com/questions/16332092/spring-mvc-pathvariable-with-dot-is-getting-truncated explains the :.+ in the path variable 'filter'
-     * @param HttpServletRequest request
      * @param HttpServletResponse response
      * @param String filter
      * @return
@@ -75,18 +75,17 @@ public class GeoserverRestController {
     @RequestMapping(value = "/gs/layers/filter/{filter:.+}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
     @ResponseBody
     public void geoserverFilteredLayerList(
-        HttpServletRequest request, 
         HttpServletResponse response, 
         @PathVariable("filter") String filter)
         throws ServletException, IOException, ServiceException {
+        GeoserverRestEndpointConnector grec = new GeoserverRestEndpointConnector(null);
         response.setContentType("application/json");
-        IOUtils.copy(IOUtils.toInputStream(listFilteredLayers(getReader(null), filter, null)), response.getOutputStream());   
+        IOUtils.copy(IOUtils.toInputStream(listFilteredLayers(grec, filter)), response.getOutputStream());   
     }
     
     /**
      * Proxy Geoserver REST API call to endpoint with specified id to get filtered list of layers with attributes
      * http://stackoverflow.com/questions/16332092/spring-mvc-pathvariable-with-dot-is-getting-truncated explains the :.+ in the path variable 'filter'
-     * @param HttpServletRequest request
      * @param HttpServletResponse response
      * @param String filter
      * @param int endpointid
@@ -97,52 +96,55 @@ public class GeoserverRestController {
     @RequestMapping(value = "/gs/layers/filter/{filter:.+}/{endpointid}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
     @ResponseBody
     public void geoserverFilteredLayerListFromEndpoint(
-        HttpServletRequest request, 
         HttpServletResponse response, 
         @PathVariable("filter") String filter,
         @PathVariable("endpointid") Integer endpointid)
         throws ServletException, IOException, ServiceException {   
+        GeoserverRestEndpointConnector grec = new GeoserverRestEndpointConnector(endpointid);
         response.setContentType("application/json");
-        IOUtils.copy(IOUtils.toInputStream(listFilteredLayers(getReader(endpointid), filter, endpointid)), response.getOutputStream());           
+        IOUtils.copy(IOUtils.toInputStream(listFilteredLayers(grec, filter)), response.getOutputStream());           
     }
     
     /**
      * Filter a layer list fetched from a REST endpoint
-     * @param GeoServerRESTReader gs
+     * @param GeoserverRestEndpointConnector grec
      * @param String filter
-     * @param Integer endpointid
      * @return String 
      */
-    private String listFilteredLayers(GeoServerRESTReader gs, String filter, Integer endpointid) {
+    private String listFilteredLayers(GeoserverRestEndpointConnector grec, String filter) {
         
         String content = "[]";
         
-        if (gs != null) {
-            RESTLayerList layers = gs.getLayers();
-            if (layers != null) {
+        JsonElement layerData = grec.getJson("layers");
+        if (layerData != null) {
+            try {
                 /* Replace pseudo-wildcards in the filter string */
                 filter = filter.replaceAll("\\?", ".?");
                 filter = filter.replaceAll("\\*", ".*");            
                 filter = filter.replaceAll("\\+", ".+");
                 Pattern reFilter = Pattern.compile("^" + filter + "$", Pattern.CASE_INSENSITIVE);
                 JsonArray filteredList = new JsonArray();
-                layers.getNames().stream().filter((name) -> (name != null)).forEachOrdered((name) -> {
-                    Matcher m = reFilter.matcher(name);
-                    if (m.matches()) {
-                        JsonObject attrData;
-                        try {
-                            attrData = getLayerAttributes(name, endpointid);
+                JsonArray layerNames = layerData.getAsJsonObject().get("layers").getAsJsonObject().get("layer").getAsJsonArray();
+                if (layerNames.size() > 0) {                                    
+                    for (int i = 0; i < layerNames.size(); i++) {
+                        String layerName = layerNames.get(i).getAsJsonObject().get("name").getAsString();
+                        Matcher m = reFilter.matcher(layerName);
+                        if (m.matches()) {
+                            JsonObject attrData = getLayerAttributes(grec, layerName);
                             if (attrData.has("feature_name")) {
                                 filteredList.add(attrData);
                             }   
-                        } catch (MalformedURLException ex) {
-                        }                                           
+                        }
                     }
-                });
-                content = filteredList.toString();
-            } 
+                    content = filteredList.toString();
+                } else {
+                    System.out.println("No layers in returned JSON");
+                }
+            } catch(Exception ex) {
+                System.out.println("Failed to parse layer data JSON - exception was : " + ex.getMessage());
+            }
         }
-        return(content);
+        return(content);        
     }
     
     /**
@@ -314,7 +316,7 @@ public class GeoserverRestController {
         @PathVariable("layer") String layer)
         throws ServletException, IOException, ServiceException {   
         response.setContentType("application/json");
-        IOUtils.copy(IOUtils.toInputStream(getLayerAttributes(layer, null).toString()), response.getOutputStream());       
+        IOUtils.copy(IOUtils.toInputStream(getLayerAttributes(grec, layer).toString()), response.getOutputStream());       
     }
     
     /**
@@ -336,7 +338,7 @@ public class GeoserverRestController {
         @PathVariable("endpointid") Integer endpointid)
         throws ServletException, IOException, ServiceException { 
         response.setContentType("application/json");
-        IOUtils.copy(IOUtils.toInputStream(getLayerAttributes(layer, endpointid).toString()), response.getOutputStream());       
+        IOUtils.copy(IOUtils.toInputStream(getLayerAttributes(grec, layer).toString()), response.getOutputStream());       
     }
     
     /**
@@ -522,7 +524,25 @@ public class GeoserverRestController {
      * @return JsonObject
      * @throws MalformedURLException 
      */
-    private JsonObject getLayerAttributes(String layer, Integer endpointid) throws MalformedURLException {
+    private JsonObject getLayerAttributes(GeoserverRestEndpointConnector grec, String layer) throws MalformedURLException {
+        
+        JsonObject jo = new JsonObject(); 
+        
+        JsonElement layerData = grec.getJson("layers/" + layer);
+        if (layerData != null) {
+            /* Get the "href" member of the "resource" member object within the "layer" JSON object => gives the URL to get attributes directly */
+            try {
+                String attrHref = layerData.getAsJsonObject().get("layer").getAsJsonObject().get("resource").getAsJsonObject().get("href").getAsString();
+                if (attrHref != null && !attrHref.isEmpty()) {
+                    attrHref = attrHref.replaceAll("\\\\", "");
+                    String restPath = attrHref.substring(attrHref.indexOf("rest/")+5);
+                    JsonElement attrData = grec.getJson(restPath);
+                }
+            } catch(Exception ex)  {
+
+            }
+        }
+        return(jo);
         
         JsonObject jo = new JsonObject(); 
         GeoServerRESTReader gs = getReader(endpointid);
@@ -567,81 +587,6 @@ public class GeoserverRestController {
         return(jo);
     }
     
-    /**
-     * Allocate a Geoserver REST reader for the given endpoint
-     * @param Integer endpointid
-     * @return GeoserverRESTReader
-     */
-    private GeoServerRESTReader getReader(Integer endpointid) throws MalformedURLException {
-        
-        GeoServerRESTReader gs = null;
-         
-        try {
-            if (endpointid == null) {
-                /* Local Geoserver */
-                gs = new GeoServerRESTReader(
-                    env.getProperty("geoserver.internal.url"), 
-                    env.getProperty("geoserver.internal.username"), 
-                    env.getProperty("geoserver.internal.password")
-                );
-            } else {
-                String restUrl = getEndpointUrl(endpointid);
-                if (restUrl != null) {
-                    System.out.println("Create reader for " + restUrl);
-                    if (restUrl.equals(env.getProperty("geoserver.internal.url"))) {
-                        System.out.println("Local Geoserver");
-                        gs = new GeoServerRESTReader(
-                            env.getProperty("geoserver.internal.url"), 
-                            env.getProperty("geoserver.internal.username"), 
-                            env.getProperty("geoserver.internal.password")
-                        );
-                    } else {
-                        if (restUrl.endsWith("/")) {
-                            restUrl = restUrl.substring(0, restUrl.length()-1);
-                        }
-                        System.out.println("About to assign reader for " + restUrl);
-                        gs = new GeoServerRESTReader(restUrl);
-                        System.out.println("Done");
-                        if (!gs.existGeoserver()) {
-                            /* No Geoserver at this endpoint */
-                            System.out.println("No Geoserver here");
-                            gs = null;
-                        }
-                        System.out.println("Assign reader complete");
-                        System.out.println(gs);
-                    }                    
-                }
-            }        
-        } catch(IllegalArgumentException iae) {
-            System.out.println("Failed to find endpoint URL for id " + endpointid + " - error was : " + iae.getMessage());
-        }
-        return(gs);
-    }
-    
-    /**
-     * Translate endpoint id to a URL with REST services
-     * @param Integer endpointid
-     * @return String 
-     */
-    private String getEndpointUrl(Integer endpointid) {
-        
-        String restUrl = null;
-        
-        try {
-            System.out.println("GeoserverRestController.getEndpointUrl() entered");
-            restUrl = magicDataTpl.queryForObject(
-                "SELECT COALESCE(rest_endpoint, url) FROM " + env.getProperty("postgres.local.endpointsTable") + " WHERE id=?", 
-                String.class, 
-                endpointid
-            );
-            System.out.println("--> Found REST URL : " + restUrl);
-        } catch(DataAccessException dae) {
-            System.out.println("--> Database error : " + dae.getMessage());
-        }   
-        System.out.println("GeoserverRestController.getEndpointUrl() complete");
-        return(restUrl);
-    }
-
     /**
      * Take a binding string like 'com.vividsolutions.jts.geom.Point' and deduce the geometry type
      * @param String binding
