@@ -37,14 +37,14 @@ public class HomeController {
     private JdbcTemplate magicDataTpl;
     
     @Autowired
+    private Gson jsonMapper;
+    
+    @Autowired
     private UserRoleMatrix userRoleMatrix;
     
     @Autowired
     private SessionConfig.UserAuthoritiesProvider userAuthoritiesProvider;
 
-    /* JSON mapper */
-    private final Gson mapper = new Gson();    
-    
     /**
      * Render top level page (this may need to be changed for different servers)   
      * @param HttpServletRequest request,
@@ -481,7 +481,7 @@ public class HomeController {
             if (issuesTable != null && !issuesTable.isEmpty()) {
                 /* Other systems will use the issues Postgres table */
                 Map<String, Object> issueRec = magicDataTpl.queryForMap("SELECT * FROM " + env.getProperty("postgres.local.issuesTable") + " WHERE id=?", issue);
-                data = mapper.toJsonTree(issueRec).toString();
+                data = jsonMapper.toJsonTree(issueRec).toString();
             }
             if (data == null || data.isEmpty()) {
                 data = "{}";

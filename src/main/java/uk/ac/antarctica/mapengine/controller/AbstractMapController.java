@@ -29,11 +29,11 @@ public class AbstractMapController {
     protected JdbcTemplate magicDataTpl;  
     
     @Autowired
+    protected Gson jsonMapper;  
+    
+    @Autowired
     protected UserAuthoritiesProvider userAuthoritiesProvider;
 
-    /* JSON mapper */
-    private Gson mapper = new Gson();
-       
     /**
      * Get {id: <uuid>, name: <name>} dropdown populator for a particular action
      * @param AbstractMapData webmapData
@@ -73,7 +73,7 @@ public class AbstractMapController {
             /* Retrieve the map data */
             List<Map<String, Object>> userMapData = magicDataTpl.queryForList(selectClause + accessClause + orderByClause, args.toArray());
             if (userMapData != null && !userMapData.isEmpty()) {
-                JsonArray views = getMapper().toJsonTree(userMapData).getAsJsonArray();
+                JsonArray views = jsonMapper.toJsonTree(userMapData).getAsJsonArray();
                 ret = PackagingUtils.packageResults(HttpStatus.OK, views.toString(), null);
             } else if (ret == null) {
                 /* No data is fine - simply return empty results array */
@@ -134,7 +134,7 @@ public class AbstractMapController {
                         }
                     }
                 }
-                ret = PackagingUtils.packageResults(HttpStatus.OK, getMapper().toJsonTree(userMapData).toString(), null);
+                ret = PackagingUtils.packageResults(HttpStatus.OK, jsonMapper.toJsonTree(userMapData).toString(), null);
             } catch (IncorrectResultSizeDataAccessException irsdae) {
                 ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "No maps found that you are allowed to access");
             } catch (DataAccessException dae) {
@@ -250,13 +250,5 @@ public class AbstractMapController {
         }
         return(activeProfile);
     }
-
-    public Gson getMapper() {
-        return mapper;
-    }
-
-    public void setMapper(Gson mapper) {
-        this.mapper = mapper;
-    }
-    
+   
 }

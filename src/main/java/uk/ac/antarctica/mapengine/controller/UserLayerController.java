@@ -68,15 +68,15 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
     private JsonParser jsonParser;
     
     @Autowired
+    private Gson jsonMapper;
+    
+    @Autowired
     protected SessionConfig.UserAuthoritiesProvider userAuthoritiesProvider;
     
     private ApplicationContext applicationContext;
     
     private ServletContext servletContext;
-    
-    /* JSON mapper */
-    private Gson mapper = new Gson();
-    
+            
     /**
      * Get all user layers the logged in user can view
      * @param HttpServletRequest request,    
@@ -100,7 +100,7 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
                 args.toArray()
             );
             if (userLayerData != null && !userLayerData.isEmpty()) {
-                JsonArray views = getMapper().toJsonTree(userLayerData).getAsJsonArray();
+                JsonArray views = jsonMapper.toJsonTree(userLayerData).getAsJsonArray();
                 ret = PackagingUtils.packageResults(HttpStatus.OK, views.toString(), null);
             } else {
                 /* No data is fine - simply return empty results array */
@@ -408,13 +408,5 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
             Integer.class
         ) == 1);
     }
-
-    public Gson getMapper() {
-        return mapper;
-    }
-
-    public void setMapper(Gson mapper) {
-        this.mapper = mapper;
-    }    
 
 }

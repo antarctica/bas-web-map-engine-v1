@@ -53,7 +53,7 @@ public class UserMapController extends AbstractMapController {
                 userAuthoritiesProvider.getInstance().currentUserName()
             );
             if (userMapData != null && !userMapData.isEmpty()) {
-                JsonArray views = getMapper().toJsonTree(userMapData).getAsJsonArray();
+                JsonArray views = jsonMapper.toJsonTree(userMapData).getAsJsonArray();
                 ret = PackagingUtils.packageResults(HttpStatus.OK, views.toString(), null);
             } else {
                 /* No data is fine - simply return empty results array */

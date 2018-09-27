@@ -39,10 +39,11 @@ public class EndpointManagerController {
     private JdbcTemplate magicDataTpl;
     
     @Autowired
+    private Gson jsonMapper;
+    
+    @Autowired
     private SessionConfig.UserAuthoritiesProvider userAuthoritiesProvider;
-    
-    private Gson mapper = new Gson();
-    
+        
     /*---------------------------------------------------------------- Dropdown populators ----------------------------------------------------------------*/
     
     /**
@@ -59,7 +60,7 @@ public class EndpointManagerController {
         ResponseEntity<String> ret;
         try {
             List<Map<String,Object>> epdata = magicDataTpl.queryForList("SELECT id, name FROM " + env.getProperty("postgres.local.endpointsTable") + " ORDER BY name");
-            JsonArray views = mapper.toJsonTree(epdata).getAsJsonArray();
+            JsonArray views = jsonMapper.toJsonTree(epdata).getAsJsonArray();
             ret = PackagingUtils.packageResults(HttpStatus.OK, views.toString(), null);
         } catch(DataAccessException dae) {
             ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Database error : message was " + dae.getMessage());
@@ -83,7 +84,7 @@ public class EndpointManagerController {
         try {
             Map<String,Object> epdata = magicDataTpl.queryForMap("SELECT * FROM " + env.getProperty("postgres.local.endpointsTable") + " WHERE id=?", id);
             if (epdata != null) {
-                JsonObject epj = mapper.toJsonTree(epdata).getAsJsonObject();
+                JsonObject epj = jsonMapper.toJsonTree(epdata).getAsJsonObject();
                 ret = PackagingUtils.packageResults(HttpStatus.OK, epj.toString(), null);
             } else {
                 ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "No records found with id " + id);

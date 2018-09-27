@@ -32,10 +32,11 @@ public class UserPreferencesController {
     private JdbcTemplate magicDataTpl;
     
     @Autowired
-    private SessionConfig.UserAuthoritiesProvider userAuthoritiesProvider;
+    private Gson jsonMapper;
     
-    /* JSON mapper */
-    private final Gson mapper = new Gson();
+    @Autowired
+    private SessionConfig.UserAuthoritiesProvider userAuthoritiesProvider;
+  
     
     /**
      * Get preferences for currently logged-in user     
@@ -114,7 +115,7 @@ public class UserPreferencesController {
     }
     
     private String defaultPreferenceSet() {
-        return(mapper.toJsonTree(new PreferenceSet("km", "km", "m", "dd", "dmy"), PreferenceSet.class).getAsJsonObject().toString());        
+        return(jsonMapper.toJsonTree(new PreferenceSet("km", "km", "m", "dd", "dmy"), PreferenceSet.class).getAsJsonObject().toString());        
     }
     
     public static class PreferenceSet {

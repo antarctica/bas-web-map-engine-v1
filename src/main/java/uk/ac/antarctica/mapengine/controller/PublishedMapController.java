@@ -132,7 +132,7 @@ public class PublishedMapController extends AbstractMapController {
         List<Map<String, Object>> endpointData = getDataEndpoints();
         if (endpointData != null && endpointData.size() > 0) {
             /* Some endpoints retrieved */
-            ret = PackagingUtils.packageResults(HttpStatus.OK, getMapper().toJsonTree(endpointData).toString(), null);
+            ret = PackagingUtils.packageResults(HttpStatus.OK, jsonMapper.toJsonTree(endpointData).toString(), null);
         } else {
             ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "No data endpoints found - check endpoints table has been populated for server");
         }

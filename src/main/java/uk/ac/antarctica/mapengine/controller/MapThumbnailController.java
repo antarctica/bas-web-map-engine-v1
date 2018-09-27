@@ -3,7 +3,6 @@
  */
 package uk.ac.antarctica.mapengine.controller;
 
-import com.google.gson.Gson;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,7 +13,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Map;
-import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -54,12 +52,6 @@ public class MapThumbnailController {
     
     @Autowired
     private SessionConfig.UserAuthoritiesProvider userAuthoritiesProvider;
-    
-    /* JSON mapper */
-    private Gson mapper = new Gson();
-    
-    /* Servlet context */
-    private ServletContext context;   
   
     @InitBinder
     protected void initBinder(WebDataBinder binder) {        
@@ -217,12 +209,4 @@ public class MapThumbnailController {
         return (ret);
     }
 
-    public Gson getMapper() {
-        return mapper;
-    }
-
-    public void setMapper(Gson mapper) {
-        this.mapper = mapper;
-    }
-   
 }

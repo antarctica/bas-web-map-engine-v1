@@ -35,11 +35,10 @@ public class FeedbackController {
 
     @Autowired
     private JdbcTemplate magicDataTpl;
-
-    /*
-     * JSON mapper
-     */
-    private final Gson mapper = new Gson();
+    
+    @Autowired
+    private Gson jsonMapper;
+    
 
     /**
      * Record user feedback either as a Redmine issue (BAS) or in the issues table (other systems)
@@ -109,7 +108,7 @@ public class FeedbackController {
              */
             try {
                 List<Map<String, Object>> issues = magicDataTpl.queryForList("SELECT * FROM " + issuesTable + " ORDER by updated_on DESC");
-                ret = PackagingUtils.packageResults(HttpStatus.OK, mapper.toJsonTree(issues).toString(), null);
+                ret = PackagingUtils.packageResults(HttpStatus.OK, jsonMapper.toJsonTree(issues).toString(), null);
             } catch (DataAccessException dae) {
                 ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Database error : " + dae.getMessage() + " fetching issue records");
             }

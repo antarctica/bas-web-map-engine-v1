@@ -49,8 +49,8 @@ public class RotheraReportsController {
     @Autowired
     private JsonParser jsonParser;
     
-    /* JSON mapper */
-    private final Gson mapper = new Gson();
+    @Autowired
+    private Gson jsonMapper;      
     
     private static final String ROTHERA_REPORTS_TABLE = "opsgis2.rothera_reports";
     private static final String ROTHERA_REPORTS_PLACES_TABLE = "opsgis2.rothera_report_places";
@@ -178,7 +178,7 @@ public class RotheraReportsController {
         try {            
             String [] sqlArgsArr = sqlArgs.toArray(new String[sqlArgs.size()]);
             List<Map<String, Object>> records = magicDataTpl.queryForList(sqlQuery, (Object[])sqlArgsArr);
-            ret = PackagingUtils.packageResults(HttpStatus.OK, mapper.toJsonTree(records).toString(), null);
+            ret = PackagingUtils.packageResults(HttpStatus.OK, jsonMapper.toJsonTree(records).toString(), null);
         } catch(DataAccessException dae) {
             ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Error occurred, message was: " + dae.getMessage());
         }
@@ -204,8 +204,8 @@ public class RotheraReportsController {
                 "SELECT id, title, description, startdate, enddate, filename, array_to_string(people, '~') as people FROM " + ROTHERA_REPORTS_TABLE + " WHERE id=?", 
                 id
             );
-            System.out.println(mapper.toJsonTree(record).toString());
-            ret = PackagingUtils.packageResults(HttpStatus.OK, mapper.toJsonTree(record).toString(), null);
+            System.out.println(jsonMapper.toJsonTree(record).toString());
+            ret = PackagingUtils.packageResults(HttpStatus.OK, jsonMapper.toJsonTree(record).toString(), null);
         } catch(DataAccessException dae) {
             ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Error occurred, message was: " + dae.getMessage());
         }        

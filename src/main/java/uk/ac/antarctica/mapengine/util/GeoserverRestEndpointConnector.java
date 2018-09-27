@@ -1,4 +1,4 @@
-/*
+/**
  * Generalised Geoserver URL connector
  */
 package uk.ac.antarctica.mapengine.util;
@@ -36,6 +36,10 @@ public class GeoserverRestEndpointConnector {
 
     private GenericUrlConnector guc = null;
 
+    /**
+     * Construct a REST connector for the endpoint with given id
+     * @param endpointid
+     */
     public GeoserverRestEndpointConnector(Integer endpointid) {
         System.out.println("===== Create Geoserver REST connector for endpoint " + endpointid);
         String localGsUrl = env.getProperty("geoserver.internal.url");
@@ -65,6 +69,11 @@ public class GeoserverRestEndpointConnector {
         System.out.println("===== Returning URL : " + url + ", username : " + username + ", password : " + (password != null ? "<non_null_value>" : password));
     }
     
+    /**
+     * Get a JSON response from the URL, appending a relative path (the part after /rest/)    
+     * @param restPath
+     * @return 
+     */
     public JsonElement getJson(String restPath) {
         JsonElement content = null;
         System.out.println("Get JSON from " + url + restPath);
@@ -80,6 +89,13 @@ public class GeoserverRestEndpointConnector {
         return(content);
     }
     
+    /**
+     * Get a JSON response from the URL, appending a relative path (the part after /rest/) and applying an xpath rule set to 
+     * extract the required data - this should be supplied as member1/member2/.../membern
+     * @param restPath
+     * @param xpath
+     * @return 
+     */
     public JsonElement getJson(String restPath, String xpath) {
         System.out.println("Get JSON from " + url + restPath + " and apply xpath " + xpath);
         JsonElement content = getJson(restPath);
@@ -103,6 +119,11 @@ public class GeoserverRestEndpointConnector {
         return(content);
     }
     
+    /**
+     * Get raw content response from URL, appending a elative path (the part after /rest/)
+     * @param restPath
+     * @return 
+     */
     public String getContent(String restPath) {
         String content = null;
         if (url != null) {
@@ -121,6 +142,9 @@ public class GeoserverRestEndpointConnector {
         return(content);
     }
     
+    /**
+     * Close the underlying connection
+     */
     public void close() {
         if (guc != null) {
             guc.close();
