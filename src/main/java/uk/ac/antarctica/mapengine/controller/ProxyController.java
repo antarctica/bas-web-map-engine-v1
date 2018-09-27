@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import uk.ac.antarctica.mapengine.util.GenericUrlConnector;
+import uk.ac.antarctica.mapengine.util.GenericUrlConnector.GenericUrlConnectorResponse;
 
 @Controller
 public class ProxyController {        
@@ -95,12 +96,12 @@ public class ProxyController {
                     }
                     try {
                         GenericUrlConnector guc = new GenericUrlConnector(url.startsWith("https"));
-                        int status = guc.get(url, username, password, wwwAuth);
-                        if (status < 400) {
+                        GenericUrlConnectorResponse gucOut = guc.get(url, username, password, wwwAuth);
+                        if (gucOut.getStatus() < 400) {
                             /* Ok response => pipe output servlet response */
                             response.setStatus(HttpServletResponse.SC_OK);
-                            IOUtils.copy(guc.getContent(), response.getOutputStream());
-                        } else if (status == 401) { 
+                            IOUtils.copy(gucOut.getContent(), response.getOutputStream());
+                        } else if (gucOut.getStatus() == 401) { 
                             /* Unauthorized => raise exception */
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             throw new ServletException("Not allowed to proxy " + url + ", server returns 401 response");

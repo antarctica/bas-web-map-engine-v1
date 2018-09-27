@@ -39,6 +39,7 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 import uk.ac.antarctica.mapengine.util.GenericUrlConnector;
+import uk.ac.antarctica.mapengine.util.GenericUrlConnector.GenericUrlConnectorResponse;
 import uk.ac.antarctica.mapengine.util.GeoserverRestEndpointConnector;
 
 @Controller
@@ -445,9 +446,9 @@ public class GeoserverRestController {
             }            
             System.out.println("Retrieve WFS URL : >" + wfs + "<");
             guc = new GenericUrlConnector(wfs.startsWith("https"));
-            int status = guc.get(wfs);
-            if (status < 400) {
-                String wfsXml = IOUtils.toString(guc.getContent());
+            GenericUrlConnectorResponse  gucOut= guc.get(wfs);
+            if (gucOut.getStatus() < 400) {
+                String wfsXml = IOUtils.toString(gucOut.getContent());
                 if (wfsXml != null) {
                     /* Something plausible at least */
                     try {

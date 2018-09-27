@@ -17,6 +17,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import uk.ac.antarctica.mapengine.util.GenericUrlConnector.GenericUrlConnectorResponse;
 
 @Component
 public class GeoserverRestEndpointConnector {
@@ -129,11 +130,11 @@ public class GeoserverRestEndpointConnector {
         if (url != null) {
             try {
                 guc = new GenericUrlConnector(url.startsWith("https"));
-                int status = guc.get(url + restPath, username, password);
-                if (status < 400) {
-                    content = IOUtils.toString(guc.getContent());
+                GenericUrlConnectorResponse gucOut = guc.get(url + restPath, username, password);
+                if (gucOut.getStatus() < 400) {
+                    content = IOUtils.toString(gucOut.getContent());
                 } else {
-                    System.out.println("Status code " + status + " returned retrieving content from " + url + restPath);
+                    System.out.println("Status code " + gucOut.getStatus() + " returned retrieving content from " + url + restPath);
                 }
             } catch (IOException | NoSuchAlgorithmException | KeyStoreException | KeyManagementException ex) {
                 System.out.println("Exception encountered retrieving content from URL " + url + restPath + " : " + ex.getMessage());

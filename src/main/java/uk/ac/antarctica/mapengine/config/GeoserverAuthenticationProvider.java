@@ -9,12 +9,14 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import static org.springframework.http.ResponseEntity.status;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 import uk.ac.antarctica.mapengine.exception.GeoserverAuthenticationException;
 import uk.ac.antarctica.mapengine.util.GenericUrlConnector;
+import uk.ac.antarctica.mapengine.util.GenericUrlConnector.GenericUrlConnectorResponse;
 
 @Component
 public class GeoserverAuthenticationProvider implements AuthenticationProvider {
@@ -46,15 +48,15 @@ public class GeoserverAuthenticationProvider implements AuthenticationProvider {
              */
             String securedUrl = env.getProperty("geoserver.internal.url") + "/wfs?request=listStoredQueries";
             guc = new GenericUrlConnector(securedUrl.startsWith("https"));
-            int status = guc.get(securedUrl, name, password, null);
-            if (status < 400) {
+            GenericUrlConnectorResponse gucOut = guc.get(securedUrl, name, password, null);
+            if (gucOut.getStatus() < 400) {
                 /* Record the Geoserver credentials so they are recoverable by the security context holder */
                 System.out.println("Geoserver authentication successful for user " + name);
                 return(new UsernamePasswordAuthenticationToken(name, password, userAuthoritiesProvider.getInstance().toGrantedAuthorities(name, password)));
-            } else if (status == 401) {
+            } else if (gucOut.getStatus() == 401) {
                 throw new GeoserverAuthenticationException("Invalid credentials");
             } else {
-                throw new GeoserverAuthenticationException("Unexpected status code " + status + " attempting to authenticate");
+                throw new GeoserverAuthenticationException("Unexpected status code " + gucOut.getStatus() + " attempting to authenticate");
             }
         } catch(IOException ioe) {
             throw new GeoserverAuthenticationException("Unable to authenticate against local Geoserver - IOException was: " + ioe.getMessage());

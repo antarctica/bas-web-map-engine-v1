@@ -55,6 +55,7 @@ import org.xml.sax.SAXException;
 import uk.ac.antarctica.mapengine.config.SessionConfig;
 import uk.ac.antarctica.mapengine.config.UserAuthorities;
 import uk.ac.antarctica.mapengine.util.GenericUrlConnector;
+import uk.ac.antarctica.mapengine.util.GenericUrlConnector.GenericUrlConnectorResponse;
 
 @Controller
 public class OgcServicesController {        
@@ -358,9 +359,9 @@ public class OgcServicesController {
             
             /* Now get the Capabilities document and parse for the layers, removing those that don't have dictionary entries */
             guc = new GenericUrlConnector(url.startsWith("https"));
-            int status = guc.get(url);            
-            if (status < 400) {
-                String caps = IOUtils.toString(guc.getContent());
+            GenericUrlConnectorResponse gucOut = guc.get(url);            
+            if (gucOut.getStatus() < 400) {
+                String caps = IOUtils.toString(gucOut.getContent());
                 DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
                 dbf.setValidating(false);
                 DocumentBuilder db = dbf.newDocumentBuilder();
@@ -478,33 +479,17 @@ public class OgcServicesController {
         }        
         
         try {
-            guc = new GenericUrlConnector(url.startsWith("https"));
-            
-            /* Tracking down Polar View certificate problem without overwhelming amounts of logs 2018/09/21 David */
-            boolean isPvan = url.contains("polarview.aq");
-            
-            int status = guc.get(url, username, password, null);
-            if (status < 400) {
+            guc = new GenericUrlConnector(url.startsWith("https"));                     
+            GenericUrlConnectorResponse gucOut = guc.get(url, username, password, null);
+            if (gucOut.getStatus() < 400) {
                 /* Pipe the output to servlet response stream */
                 response.setContentType(mimeType);
-                IOUtils.copy(guc.getContent(), response.getOutputStream());
-                if (isPvan) {
-                    System.out.println("===== Written out content");
-                }
-            } else if (status == 401) {
-                /* User unauthorised */
-                if (isPvan) {
-                    System.out.println("===== Unauthorised 401");
-                }
+                IOUtils.copy(gucOut.getContent(), response.getOutputStream());                
+            } else if (gucOut.getStatus() == 401) {
+                /* User unauthorised */                
                 throw new RestrictedDataException("You are not authorised to access this resource");
-            } else {
-                if (isPvan) {
-                    System.out.println("===== Status " + status);
-                    System.out.println("===== Content follows:");
-                    System.out.println(IOUtils.toString(guc.getContent()));
-                    System.out.println("===== Content follows:");
-                }
-                throw new RestrictedDataException("Error:" + status);
+            } else {               
+                throw new RestrictedDataException("Error:" + gucOut.getStatus());
             }
         } catch(IOException ioe) {
             System.out.println("Failed to get content from " + url + ", exception was: " + ioe.getMessage());

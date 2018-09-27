@@ -46,9 +46,7 @@ public class GenericUrlConnector {
     private static final int REQUEST_TIMEOUT_MILLIS = 60000;
     
     private CloseableHttpClient client = null;
-    
-    private InputStream content = null;
-    
+       
     /**
      * Create a new HTTP client
      * @param boolean secure
@@ -179,7 +177,7 @@ public class GenericUrlConnector {
         if (response != null && gucOut.getStatus() == HttpStatus.SC_OK) {
             gucOut.setStatus(response.getStatusLine().getStatusCode());           
             try {
-                gucOut.setContent(IOUtils.toString(response.getEntity().getContent()));                
+                gucOut.setContent(response.getEntity().getContent());                
             } catch(IOException ioe) {
                 System.out.println("Failed to get content from " + url + ", error was : " + ioe.getMessage());
                 gucOut.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
@@ -242,7 +240,7 @@ public class GenericUrlConnector {
     public class GenericUrlConnectorResponse {
         
         private int status;
-        private String content;
+        private InputStream content;
 
         public int getStatus() {
             return status;
@@ -252,23 +250,14 @@ public class GenericUrlConnector {
             this.status = status;
         }
 
-        public String getContent() {
+        public InputStream getContent() {
             return content;
         }
 
-        public void setContent(String content) {
+        public void setContent(InputStream content) {
             this.content = content;
-        }
-        
+        }        
         
     }
-
-    public InputStream getContent() {
-        return content;
-    }
-
-    public void setContent(InputStream content) {
-        this.content = content;
-    }        
 
 }
