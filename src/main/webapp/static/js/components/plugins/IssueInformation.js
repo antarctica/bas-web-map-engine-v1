@@ -1,4 +1,4 @@
-/* Issue information from Redmine */
+/* Issue information from database table */
 
 magic.classes.IssueInformation = function(options) {
         
@@ -7,7 +7,7 @@ magic.classes.IssueInformation = function(options) {
     /* id of menu link that activates profile change form */
     this.target = jQuery(".issue-info");
     
-    /* Issue data (in Redmine JSON format) - probably very BAS-specific */
+    /* Issue data (in JSON format) */
     this.issueData = magic.runtime.map_context.issuedata;
   
     /* Display issue information (if any) in top right corner of map */  

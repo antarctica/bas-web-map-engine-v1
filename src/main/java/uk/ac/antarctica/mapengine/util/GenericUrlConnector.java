@@ -14,6 +14,7 @@ import java.util.Base64;
 import java.util.HashMap;
 import javax.net.ssl.SSLContext;
 import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpHost;
@@ -24,6 +25,7 @@ import org.apache.http.client.AuthCache;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
@@ -73,6 +75,7 @@ public class GenericUrlConnector {
         cm.setMaxTotal(100);
         
         client = HttpClients.custom()
+            .setDefaultRequestConfig(config)
             .setSSLSocketFactory(sslsf)
             .setConnectionManager(cm)
             .build();
@@ -97,11 +100,13 @@ public class GenericUrlConnector {
 // End of September 2018 commenting out
     }
     
-    public int get(String url) throws MalformedURLException, IOException {
+    public GenericUrlConnectorResponse get(String url) 
+            throws MalformedURLException, IOException {
         return(get(url, null, null, null));
     }
     
-    public int get(String url, String username, String password) throws MalformedURLException, IOException {
+    public GenericUrlConnectorResponse get(String url, String username, String password) 
+            throws MalformedURLException, IOException {
         return(get(url, username, password, null));
     }
 
@@ -111,21 +116,24 @@ public class GenericUrlConnector {
      * @param String username
      * @param String password
      * @param String wwwAuth
-     * @return int status code
+     * @return GenericUrlConnectorResponse status and content information
      * @throws IOException
      */
-    public int get(String url, String username, String password, String wwwAuth) throws MalformedURLException, IOException {
+    public GenericUrlConnectorResponse get(String url, String username, String password, String wwwAuth) 
+            throws MalformedURLException, IOException {
+        return(execute(new HttpGet(url), username, password, wwwAuth));        
+    }
+    
+    private GenericUrlConnectorResponse execute(HttpUriRequest request, String username, String password, String wwwAuth) 
+            throws MalformedURLException, IOException {
         
-        int status = HttpStatus.SC_OK;
+        GenericUrlConnectorResponse gucOut = new GenericUrlConnectorResponse();
         
-        /* Tracking down certificate problem 2018/09/21 David */
-        boolean isPvan = url.contains("polarview.aq");
+        gucOut.setStatus(HttpStatus.SC_OK);
+        gucOut.setContent(null);
         
-        if (isPvan) {
-            System.out.println("===== GET " + url);
-        }
-                
-        HttpGet request = new HttpGet(url);
+        String url = request.getURI().toURL().toString();
+        
         HttpResponse response = null;
         
         HashMap<String, String> digestParms = new HashMap();
@@ -134,7 +142,7 @@ public class GenericUrlConnector {
             /* Set up for digest authentication */
             if (username == null || password == null) {
                 System.out.println("Service at " + url + " requires digest authentication) but credentials were null");
-                return(HttpStatus.SC_BAD_REQUEST);                
+                gucOut.setStatus(HttpStatus.SC_BAD_REQUEST);                
             }
             URL u = new URL(url);
             HttpHost targetHost = new HttpHost(u.getHost(), u.getPort(), u.getProtocol());
@@ -153,7 +161,7 @@ public class GenericUrlConnector {
                 response = getClient().execute(targetHost, request, context);
             } catch(IOException ioe) {
                 System.out.println("Failed to get response from " + url + " (digest authentication), error was : " + ioe.getMessage());
-                status = HttpStatus.SC_BAD_REQUEST;
+                gucOut.setStatus(HttpStatus.SC_BAD_REQUEST);
             }
         } else {
             if (username != null && password != null) {
@@ -165,27 +173,24 @@ public class GenericUrlConnector {
                 response = getClient().execute(request);
             } catch(IOException ioe) {
                 System.out.println("Failed to get response from " + url + " (basic authentication), error was : " + ioe.getMessage());
-                status = HttpStatus.SC_BAD_REQUEST;
+                gucOut.setStatus(HttpStatus.SC_BAD_REQUEST);
             }            
         }
-        if (response != null && status == HttpStatus.SC_OK) {
-            status = response.getStatusLine().getStatusCode();
-            if (isPvan) {
-                System.out.println("===== Status code was : " + status);
-            }
+        if (response != null && gucOut.getStatus() == HttpStatus.SC_OK) {
+            gucOut.setStatus(response.getStatusLine().getStatusCode());           
             try {
-                setContent(response.getEntity().getContent());
-                if (isPvan) {
-                    System.out.println("===== Got some content");
-                }
+                gucOut.setContent(IOUtils.toString(response.getEntity().getContent()));                
             } catch(IOException ioe) {
                 System.out.println("Failed to get content from " + url + ", error was : " + ioe.getMessage());
-                status = HttpStatus.SC_INTERNAL_SERVER_ERROR;
+                gucOut.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
             }
         }               
-        return(status);
+        return(gucOut);
     }
     
+    /**
+     * Close the client connection
+     */
     public void close() {        
         try {
             client.close();
@@ -232,6 +237,30 @@ public class GenericUrlConnector {
 
     public void setClient(CloseableHttpClient client) {
         this.client = client;
+    }
+    
+    public class GenericUrlConnectorResponse {
+        
+        private int status;
+        private String content;
+
+        public int getStatus() {
+            return status;
+        }
+
+        public void setStatus(int status) {
+            this.status = status;
+        }
+
+        public String getContent() {
+            return content;
+        }
+
+        public void setContent(String content) {
+            this.content = content;
+        }
+        
+        
     }
 
     public InputStream getContent() {

@@ -18,7 +18,7 @@ magic.classes.AppContainer = function () {
     /* Set container sizes */
     this.fitMapToViewport(); 
     
-    /* Redmine issue to replay */
+    /* Issue to replay */
     magic.runtime.issue = new magic.classes.IssueInformation();
     
     /* User unit preferences */

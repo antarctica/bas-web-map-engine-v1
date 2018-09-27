@@ -436,7 +436,7 @@ magic.classes.FeaturePopup.prototype.assignFullSetHandler = function(elt) {
                     /* Changed 2016-11-02 David - should show zero values in e.g. speed attributes */
                     content += '<tr><td>' + magic.modules.Common.initCap(key) + '</td><td align="right">' + value + '</td></tr>';
                 } else if (value && key.toLowerCase().indexOf("geom") == -1) {
-                    /* Test for Redmine markup-style link with alias of form "<alias>":<url> which should be translated */
+                    /* Test for markup-style link with alias of form "<alias>":<url> which should be translated */
                     /* NOTE: David 2016-11-02 - suppress null non-numeric values in the pop-up */
                     var finalValue = "";
                     if (value) {

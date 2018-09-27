@@ -41,7 +41,7 @@ public class FeedbackController {
     
 
     /**
-     * Record user feedback either as a Redmine issue (BAS) or in the issues table (other systems)
+     * Record user feedback in the issues table
      *
      * @param HttpServletRequest  request
      * @param HttpServletResponse response

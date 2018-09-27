@@ -470,7 +470,7 @@ public class HomeController {
     }
   
     /**
-     * Retrieve data for Redmine issue <issue>
+     * Retrieve data for issue whose id is supplied
      * @param Integer issue
      * @return String
      */
