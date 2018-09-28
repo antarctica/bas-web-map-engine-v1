@@ -7,6 +7,7 @@ import java.io.IOException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
 import uk.ac.antarctica.mapengine.model.UploadedData;
+import uk.ac.antarctica.mapengine.util.GeoserverRestEndpointConnector;
 
 @Component
 public class NoUploadPublisher extends DataPublisher {
@@ -18,6 +19,9 @@ public class NoUploadPublisher extends DataPublisher {
      */
     @Override
     public void publish(UploadedData ud) throws GeoserverPublishException, IOException, DataAccessException {
+        
+        GeoserverRestEndpointConnector grec = new GeoserverRestEndpointConnector(null);
+        
         /* Save the record data */
         getMagicDataTpl().update("UPDATE " + getEnv().getProperty("postgres.local.userlayersTable") + " " + 
             "SET caption=?,description=?,modified_date=current_timestamp,allowed_usage=?,styledef=? WHERE id=?", 
@@ -35,15 +39,18 @@ public class NoUploadPublisher extends DataPublisher {
             ud.getUfmd().getUuid()
         );
         if (exLayerTable != null && !exLayerTable.isEmpty()) {
-            String styleName = createLayerStyling(ud.getUfue().getUserPgSchema(), exLayerTable, ud.getUfmd().getStyledef(), null);
-            if (!getGrm().getPublisher().configureLayer(getEnv().getProperty("geoserver.internal.userWorkspace"), exLayerTable, configureLayerData(styleName))) {
-                throw new GeoserverPublishException("Failed to publish new style for layer " + exLayerTable);
-            }
+            String styleName = createLayerStyling(grec, ud.getUfue().getUserPgSchema(), exLayerTable, ud.getUfmd().getStyledef(), null);
+            /* Now publish to Geoserver */        
+            if (!updatePgLayer(grec, exLayerTable, styleName)) {
+                throw new GeoserverPublishException("Updating PostGIS layer " + exLayerTable + " in Geoserver failed");
+            }            
         }
         /* Kill any stored cache */
-        clearCache(exLayerTable); 
+        clearCache(grec, exLayerTable); 
         /* Reload Geoserver catalogue */
-        getGrm().getPublisher().reload();
+        System.out.println("Reloading catalogue " + (grec.getContent("reload") != null ? "successful" : "failed"));
+        
+        grec.close();
     }       
     
 }

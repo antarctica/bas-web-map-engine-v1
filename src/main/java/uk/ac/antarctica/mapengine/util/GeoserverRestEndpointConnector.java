@@ -208,8 +208,8 @@ public class GeoserverRestEndpointConnector {
                 guc = new GenericUrlConnector(url.startsWith("https"));
                 GenericUrlConnectorResponse gucOut = null;
                 switch(requestType) {
-                    case "POST":   gucOut = guc.post(url, body, contentType, username, password); break;
-                    case "PUT":    gucOut = guc.put(url, body, contentType, username, password);  break;
+                    case "POST":   gucOut = guc.post(url, body, contentType, username, password, null); break;
+                    case "PUT":    gucOut = guc.put(url, body, contentType, username, password, null);  break;
                     case "DELETE": gucOut = guc.delete(url, username, password);     break;
                     default:       gucOut = guc.get(url, username, password);     break;
                 }

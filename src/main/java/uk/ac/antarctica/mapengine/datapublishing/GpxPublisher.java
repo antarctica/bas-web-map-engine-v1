@@ -10,6 +10,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
 import uk.ac.antarctica.mapengine.model.UploadedData;
+import uk.ac.antarctica.mapengine.util.GeoserverRestEndpointConnector;
 
 @Component
 public class GpxPublisher extends DataPublisher {
@@ -21,6 +22,8 @@ public class GpxPublisher extends DataPublisher {
      */
     @Override
     public void publish(UploadedData ud) throws GeoserverPublishException, IOException, DataAccessException {
+        
+        GeoserverRestEndpointConnector grec = new GeoserverRestEndpointConnector(null);
                 
         String pgTempSchema;
         String uploadedExtension = FilenameUtils.getExtension(ud.getUfmd().getUploaded().getName());
@@ -66,24 +69,21 @@ public class GpxPublisher extends DataPublisher {
                 int nRecs = getMagicDataTpl().queryForObject("SELECT count(*) FROM " + srcTableName, Integer.class);
                 if (nRecs > 0) {
                     /* Copy records from non-empty table into user uploads schema with a user-friendly name */ 
-                    removeExistingData(ud.getUfmd().getUuid(), ud.getUfue().getUserDatastore(), pgUserSchema, pgTable); 
+                    removeExistingData(grec, ud.getUfmd().getUuid(), ud.getUfue().getUserDatastore(), pgUserSchema, pgTable); 
                     getMagicDataTpl().execute("CREATE TABLE " + destTableName + " AS TABLE " + srcTableName);
                     /* Publish style to Geoserver */
-                    String styleName = createLayerStyling(pgUserSchema, pgTable, ud.getUfmd().getStyledef(), null);
-                    /* Now publish to Geoserver */                                                      
-                    if (!getGrm().getPublisher().publishDBLayer(
-                        getEnv().getProperty("geoserver.internal.userWorkspace"), 
-                        ud.getUfue().getUserDatastore(), 
-                        configureFeatureType(ud.getUfmd(), destTableName), 
-                        configureLayerData(styleName)
-                    )) {
+                    String styleName = createLayerStyling(grec, pgUserSchema, pgTable, ud.getUfmd().getStyledef(), null);
+                    /* Now publish to Geoserver */        
+                    if (!publishPgLayer(grec, ud.getUfue().getUserDatastore(), ud.getUfmd(), destTableName, styleName)) {
                         deletePgSchema(pgTempSchema);
                         throw new GeoserverPublishException("Publishing PostGIS table " + destTableName + " to Geoserver failed");
-                    }
+                    }                    
                     /* Finally insert/update the userlayers table record */
                     updateUserlayersRecord(ud);
                     /* Kill any stored cache */
-                    clearCache(pgTable);                    
+                    clearCache(grec, pgTable);                    
+                    
+                    grec.close();
                 }                        
             }
         }   

@@ -92,8 +92,8 @@ public abstract class DataPublisher {
      * Create the working environment to process a data file upload
      * @param ServletContext sc
      * @param MultipartFile mpf
-     * @param Map<String, String[]> parms
-     * @param String userName
+     * @param parms
+     * @param userName
      * @return UploadedFileMetadata
      * @throws IOException 
      */
@@ -166,7 +166,7 @@ public abstract class DataPublisher {
     
     /**
      * Tear down the working environment
-     * @param File uploaded 
+     * @param uploaded 
      */
     public void cleanUp(File uploaded) {
         FileUtils.deleteQuietly(uploaded.getParentFile());        
@@ -174,7 +174,7 @@ public abstract class DataPublisher {
         
     /**
      * Clear the GeowebCache cache for the given layer (needed when a style has been updated)
-     * @param String layerName 
+     * @param layerName 
      */
     public void clearCache(GeoserverRestEndpointConnector grec, String layerName) {
         System.out.println("Cache clear for layer " + layerName + " " + 
@@ -186,10 +186,10 @@ public abstract class DataPublisher {
     
     /**
      * Recover the passed-in parameter, assigning a suitable default
-     * @param String name
-     * @param Map<String, String[]> parms
-     * @param String defaultVal
-     * @return String 
+     * @param name
+     * @param parms
+     * @param defaultVal
+     * @return 
      */
     protected String getParameter(String name, Map<String, String[]> parms, String defaultVal) {
         String parmVal;
@@ -204,8 +204,8 @@ public abstract class DataPublisher {
     
     /**
      * Create the named schema (a temporary UUID-named one if the input is null)
-     * @param String fromName 
-     * @return String the name of the created schema
+     * @param fromName 
+     * @return the name of the created schema
      */
     protected String createPgSchema(String fromName) throws DataAccessException {
         if (fromName == null || fromName.isEmpty()) {
@@ -219,7 +219,7 @@ public abstract class DataPublisher {
     
     /**
      * Drop a database schema
-     * @param String schemaName
+     * @param schemaName
      */
     protected void deletePgSchema(String schemaName) throws DataAccessException {
         if (schemaName != null && !schemaName.isEmpty()) {
@@ -229,8 +229,8 @@ public abstract class DataPublisher {
     
     /**
      * Create a Geoserver PostGIS datastore of the given name in the global user workspace
-     * @param String schemaName 
-     * @return String the datastore name
+     * @param schemaName 
+     * @return the datastore name
      */
     protected String createPgSchemaDatastore(GeoserverRestEndpointConnector grec, String schemaName) throws GeoserverPublishException {
         JsonObject joDs = new JsonObject();
@@ -255,7 +255,7 @@ public abstract class DataPublisher {
         joDs.add("connectionParameters", joConn);
         JsonObject data = new JsonObject();
         data.add("dataStore", joDs);
-        if (grec.postContent("workspaces/" + getEnv().getProperty("geoserver.internal.userWorkspace") + "/datastores", data.toString()) == null) {
+        if (grec.postJson("workspaces/" + getEnv().getProperty("geoserver.internal.userWorkspace") + "/datastores", data.toString()) == null) {
             throw new GeoserverPublishException("Failed to create PostGIS user store " + schemaName + " for service at " + grec.getUrl());
         }
         return(schemaName);
@@ -276,12 +276,12 @@ public abstract class DataPublisher {
     
     /**
      * Create a style based on the user's requirements
-     * @param GeoserverRestEndpointConnector grec
-     * @param String schemaName
-     * @param String tableName
-     * @param String styledef
-     * @param File exStyleFile
-     * @return String style name
+     * @param grec
+     * @param schemaName
+     * @param tableName
+     * @param styledef
+     * @param exStyleFile
+     * @return style name
      */
     protected String createLayerStyling(GeoserverRestEndpointConnector grec, String schemaName, String tableName, String styledef, File exStyleFile) throws IOException, FileNotFoundException{        
         JsonElement jesd = jsonParser.parse(styledef);
@@ -300,7 +300,7 @@ public abstract class DataPublisher {
                     if (exInfo.toLowerCase().startsWith("no such style")) {
                         /* Style does not currently exist */
                         System.out.println("Style " + tableName + " not present");
-                        String publishRes = grec.postContent("workspaces/" + userWs + "/styles", packageStyle(tableName, exStyleFile));
+                        String publishRes = grec.postJson("workspaces/" + userWs + "/styles", packageStyle(tableName, exStyleFile));
                         System.out.println("Created ok " + (publishRes != null ? "yes" : "no"));
                     } else {
                         /* Existing style */
@@ -392,23 +392,14 @@ public abstract class DataPublisher {
                 if (exInfo.toLowerCase().startsWith("no such style")) {
                     /* Style does not currently exist */
                     System.out.println("Style " + tableName + " not present");
-                    String publishRes = grec.postContent("workspaces/" + userWs + "/styles", packageStyle(tableName, exStyleFile));
+                    String publishRes = grec.postContent("workspaces/" + userWs + "/styles?name=" + tableName, sldOut, "application/vnd.ogc.sld+xml");
                     System.out.println("Created ok " + (publishRes != null ? "yes" : "no"));
                 } else {
                     /* Existing style */
                     System.out.println("Style " + tableName + " exists");
-                    String publishRes = grec.putContent("workspaces/" + userWs + "/styles/" + tableName, packageStyle(tableName, exStyleFile));
+                    String publishRes = grec.putContent("workspaces/" + userWs + "/styles/" + tableName, sldOut, "application/vnd.ogc.sld+xml");
                     System.out.println("Modified ok " + (publishRes != null ? "yes" : "no"));
-                }                    
-                if (getGrm().getReader().existsStyle(getEnv().getProperty("geoserver.internal.userWorkspace"), tableName)) {
-                    System.out.println("Style " + tableName + " exists");
-                    stylePublished = getGrm().getPublisher().updateStyleInWorkspace(getEnv().getProperty("geoserver.internal.userWorkspace"), sldOut, tableName);
-                    System.out.println("Updated " + stylePublished);
-                } else {
-                    System.out.println("Style " + tableName + " not present");
-                    stylePublished = getGrm().getPublisher().publishStyleInWorkspace(getEnv().getProperty("geoserver.internal.userWorkspace"), sldOut, tableName);
-                    System.out.println("Created " + stylePublished);
-                }                
+                }                                      
                 break;            
             default:
                 break;
@@ -434,8 +425,8 @@ public abstract class DataPublisher {
     
     /**
      * Style translation for human-friendly line symbology
-     * @param Sting lineStyle solid|dotted|dashed|dotted-dashed
-     * @return String
+     * @param lineStyle solid|dotted|dashed|dotted-dashed
+     * @return
      */
     protected String getDashArray(String lineStyle) {
         String dashArray = "";
@@ -456,7 +447,7 @@ public abstract class DataPublisher {
     
     /**
      * Unzip the given file into the same directory
-     * @param File zip 
+     * @param zip 
      */
     protected void unzipFile(File zip) throws FileNotFoundException, IOException {
         String workDir = zip.getParent();
@@ -479,8 +470,8 @@ public abstract class DataPublisher {
     
     /**
      * Get geometry type (point|line|polygon) for the given table
-     * @param String tableName
-     * @return String
+     * @param tableName
+     * @return
      */
     protected String getGeometryType(String tableName) throws DataAccessException {
         String type = "point";
@@ -496,9 +487,9 @@ public abstract class DataPublisher {
     /**
      * Import the given file data into a single PostGIS table via a commandline call to ogr2ogr
      * Note: if the ogr2ogr call will result in multiple tables of defined name, tableName can be null and a containing schema name supplied instead
-     * @param File toConvert  
-     * @param String tableName
-     * @param String tableSchema
+     * @param toConvert  
+     * @param tableName
+     * @param tableSchema
      * @throws ExecuteException 
      */
     protected void executeOgr2ogr(File toConvert, String tableName, String tableSchema) throws ExecuteException {
@@ -549,48 +540,44 @@ public abstract class DataPublisher {
         
     /**
      * Unpublish an existing dataset by deleting it from PostGIS, unpublishing from Geoserver and deleting it from userlayers
-     * @param String uuid
-     * @param String dataStore
-     * @param String tableSchema
-     * @param String tableName 
+     * @param grec
+     * @param uuid
+     * @param dataStore
+     * @param tableSchema
+     * @param tableName 
      */
-    protected void removeExistingData(String uuid, String dataStore, String tableSchema, String tableName) throws DataAccessException, GeoserverPublishException {
+    protected void removeExistingData(GeoserverRestEndpointConnector grec, String uuid, String dataStore, String tableSchema, String tableName) throws DataAccessException, GeoserverPublishException {
         
         System.out.println("Entered removeExistingData()");
         
         /* Drop any Geoserver feature corresponding to this table */
-        boolean unpubOk = false;
-        if (getGrm().getReader().existsLayer(getEnv().getProperty("geoserver.internal.userWorkspace"), tableName, true)) {
+        String userWs = getEnv().getProperty("geoserver.internal.userWorkspace");
+        String exInfo = grec.getContent("workspaces/" + userWs + "/datastores/" + dataStore + "/featuretypes/" + tableName);
+        if (!exInfo.toLowerCase().startsWith("no such feature")) {
             System.out.println("Unpublishing existing feature " + tableName + "...");
-            unpubOk = getGrm().getPublisher().unpublishFeatureType(
-                getEnv().getProperty("geoserver.internal.userWorkspace"),
-                dataStore,
-                tableName
-            );
-        }
-        System.out.println("Unpublish feature type status " + unpubOk);
+            System.out.println((grec.deleteContent("workspaces/" + userWs + "/datastores/" + dataStore + "/featuretypes/" + tableName) == null) ? "Failed" : "Success");
+        }       
         /* Drop any Geoserver style relating to the table */
-        unpubOk = false;
-        if (getGrm().getReader().existsStyle(getEnv().getProperty("geoserver.internal.userWorkspace"), tableName)) {
-            System.out.println("Remove existing style with name " + tableName + "...");
-            unpubOk = getGrm().getPublisher().removeStyleInWorkspace(getEnv().getProperty("geoserver.internal.userWorkspace"), tableName, true);
-        }            
-        System.out.println("Removal of style status " + unpubOk);
+        String exStyleInfo = grec.getContent("workspaces/" + userWs + "/styles/" + tableName);
+        if (!exStyleInfo.toLowerCase().startsWith("no such style")) {
+            /* Style does not currently exist */
+            System.out.println("Deleting associated style " + tableName + "...");
+            System.out.println((grec.deleteContent("workspaces/" + userWs + "/styles/" + tableName) == null) ? "Failed" : "Success");
+        }       
         /* Drop the existing table, including any sequence and index previously created by ogr2ogr */
         System.out.println("Drop underlying PostGIS table " + tableSchema + "." + tableName + "...");
         getMagicDataTpl().execute("DROP TABLE IF EXISTS " + tableSchema + "." + tableName + " CASCADE");
         System.out.println("Done");
         /* Drop any record of this feature in the user features table */
-        //System.out.println("Delete layer from userlayers table...");
-        //getMagicDataTpl().update("DELETE FROM " + getEnv().getProperty("postgres.local.userlayersTable") + " WHERE id=?", uuid);
-        //System.out.println("Done");
-        
+        System.out.println("Delete layer from userlayers table...");
+        getMagicDataTpl().update("DELETE FROM " + getEnv().getProperty("postgres.local.userlayersTable") + " WHERE id=?", uuid);
+        System.out.println("Done");        
         System.out.println("Exited removeExistingData()");
     }
     
     /**
      * Insert/update record into the userlayers table
-     * @param UploadedData ud 
+     * @param ud 
      */
     protected void updateUserlayersRecord(UploadedData ud) throws DataAccessException, FileNotFoundException, IOException {
         String uuid = ud.getUfmd().getUuid();
@@ -641,10 +628,48 @@ public abstract class DataPublisher {
     }
     
     /**
+     * Publish a PostGIS table as a Geoserver layer using the REST API
+     * @param grec
+     * @param dataStore
+     * @param md
+     * @param tableName
+     * @param defaultStyle
+     * @return 
+     */
+    protected boolean publishPgLayer(GeoserverRestEndpointConnector grec, String dataStore, UploadedFileMetadata md, String tableName, String defaultStyle) {
+        boolean ret = false;
+        
+        String tsch = tableName.substring(0, tableName.indexOf("."));
+        String tname = tableName.substring(tableName.indexOf(".") + 1);
+        
+        JsonObject layerData = new JsonObject();
+        layerData.addProperty("name", tname);
+        layerData.addProperty("title", md.getTitle());
+        layerData.addProperty("abstract", md.getDescription());
+        layerData.addProperty("nativeCRS", md.getSrs());
+        layerData.addProperty("srs", md.getSrs());
+        
+        return(ret);
+    }
+    
+    /**
+     * Update a published Geoserver layer using the REST API
+     * @param grec
+     * @param layerName
+     * @param defaultStyle
+     * @return 
+     */
+    protected boolean updatePgLayer(GeoserverRestEndpointConnector grec, String layerName, String defaultStyle) {
+        boolean ret = false;
+        
+        return(ret);
+    }
+    
+    /**
      * Construct the attribute map for Geoserver Manager for <schema>.<table>
-     * @param UploadedFileMetadata md
-     * @param String destTableName
-     * @return GSFeatureTypeEncoder
+     * @param  md
+     * @param destTableName
+     * @return
      */
     protected GSFeatureTypeEncoder configureFeatureType(UploadedFileMetadata md, String destTableName) throws DataAccessException {
 
@@ -659,7 +684,10 @@ public abstract class DataPublisher {
         gsfte.setTitle(md.getTitle());
         gsfte.setAbstract(md.getDescription());
 
-        List<Map<String, Object>> recs = getMagicDataTpl().queryForList("SELECT column_name, is_nullable, data_type FROM information_schema.columns WHERE table_schema=? AND table_name=?", tsch, tname);
+        List<Map<String, Object>> recs = getMagicDataTpl().queryForList(
+                "SELECT column_name, is_nullable, data_type FROM information_schema.columns WHERE table_schema=? AND table_name=?", 
+                tsch, tname
+        );
         if (!recs.isEmpty()) {
             for (Map<String, Object> rec : recs) {
                 /* Create Geoserver Manager's configuration */
@@ -680,8 +708,8 @@ public abstract class DataPublisher {
 
     /**
      * Construct layer configurator for Geoserver Manager
-     * @param String defaultStyle
-     * @return GSLayerEncoder
+     * @param defaultStyle
+     * @return
      */
     protected GSLayerEncoder configureLayerData(String defaultStyle) {
         GSLayerEncoder gsle = new GSLayerEncoder();
@@ -696,8 +724,8 @@ public abstract class DataPublisher {
     /**
      * Translate a PostgreSQL data type into a Java class binding (very simple,
      * may need to be extended if lots of other types come up)
-     * @param String pgType
-     * @return String
+     * @param pgType
+     * @return
      */
     protected String getDataTypeBinding(String pgType) {
         String jType;
@@ -729,10 +757,10 @@ public abstract class DataPublisher {
     /**
      * Create a standardised name for a file/table/schema - done by lowercasing,
      * converting all non-alphanumerics to _ and sequences of _ to single _
-     * @param String name
-     * @param boolean allowDot - allow a single period to delimit the suffix in a filename
-     * @param int lengthLimit - maximum string length, -1 to allow any
-     * @return String
+     * @param name
+     * @param allowDot - allow a single period to delimit the suffix in a filename
+     * @param lengthLimit - maximum string length, -1 to allow any
+     * @return
      */
     protected String standardiseName(String name, boolean allowDot, int lengthLimit) {
         String stdName = "";
@@ -755,8 +783,8 @@ public abstract class DataPublisher {
 
     /**
      * Human-friendly file size
-     * @param long filesize
-     * @return String
+     * @param filesize
+     * @return
      */
     protected String sizeFormatter(long filesize) {
         if (filesize >= 1073741824) {

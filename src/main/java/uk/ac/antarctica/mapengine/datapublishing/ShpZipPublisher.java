@@ -13,6 +13,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
 import uk.ac.antarctica.mapengine.model.UploadedData;
+import uk.ac.antarctica.mapengine.util.GeoserverRestEndpointConnector;
 
 @Component
 public class ShpZipPublisher extends DataPublisher {
@@ -24,6 +25,8 @@ public class ShpZipPublisher extends DataPublisher {
      */
     @Override
     public void publish(UploadedData ud) throws GeoserverPublishException, IOException, DataAccessException {
+        
+        GeoserverRestEndpointConnector grec = new GeoserverRestEndpointConnector(null);
         
         String pgUserSchema = ud.getUfue().getUserPgSchema();
 
@@ -56,25 +59,21 @@ public class ShpZipPublisher extends DataPublisher {
                     String newTableName = pgUserSchema + "." + pgTable;
                     /* Record the feature type name */
                     ud.getUfue().setUserPgLayer(pgTable);
-                    removeExistingData(ud.getUfmd().getUuid(), ud.getUfue().getUserDatastore(), pgUserSchema, pgTable);                        
+                    removeExistingData(grec, ud.getUfmd().getUuid(), ud.getUfue().getUserDatastore(), pgUserSchema, pgTable);                        
                     /* Convert shapefile to PostGIS table via ogr2ogr */
                     executeOgr2ogr(shp, newTableName, pgUserSchema);
                     /* Publish style to Geoserver */
-                    String styleName = createLayerStyling(pgUserSchema, pgTable, ud.getUfmd().getStyledef(), sld);                
-                    /* Publish feature to Geoserver */                    
-                    if (!getGrm().getPublisher().publishDBLayer(
-                            getEnv().getProperty("geoserver.internal.userWorkspace"), 
-                            ud.getUfue().getUserDatastore(), 
-                            configureFeatureType(ud.getUfmd(), newTableName), 
-                            configureLayerData(styleName)
-                    )) {
+                    String styleName = createLayerStyling(grec, pgUserSchema, pgTable, ud.getUfmd().getStyledef(), sld);                
+                    /* Publish feature to Geoserver */       
+                    if (!publishPgLayer(grec, ud.getUfue().getUserDatastore(), ud.getUfmd(), newTableName, styleName)) {
                         throw new GeoserverPublishException("Publishing PostGIS table " + newTableName + " to Geoserver failed");
-                    }
+                    }                    
                     /* Insert/update the userlayers table record */
                     updateUserlayersRecord(ud);
                     /* Kill any stored cache */
-                    clearCache(pgTable);                     
+                    clearCache(grec, pgTable);                     
                 } else {
+                    grec.close();
                     throw new GeoserverPublishException("Failed to find .shp file in the uploaded zip");
                 }
             }  
@@ -82,7 +81,9 @@ public class ShpZipPublisher extends DataPublisher {
             throw new GeoserverPublishException("Failed to convert the input file to PostGIS table(s), error was : " + ee.getMessage());
         } catch(FileNotFoundException fnfe) {
             throw new GeoserverPublishException("Unexpected error during publish : " + fnfe.getMessage());
-        } 
+        } finally {
+            grec.close();
+        }
     }       
     
 }

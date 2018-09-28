@@ -40,7 +40,7 @@ public class CsvPublisher extends DataPublisher {
 
         /* Deduce table column types from CSV values and create the table */
         LinkedHashMap<String, String> columnTypes = getColumnTypeDictionary(ud.getUfmd().getUploaded());
-        removeExistingData(ud.getUfmd().getUuid(), ud.getUfue().getUserDatastore(), pgUserSchema, pgTable);
+        removeExistingData(grec, ud.getUfmd().getUuid(), ud.getUfue().getUserDatastore(), pgUserSchema, pgTable);
         StringBuilder ctSql = new StringBuilder("CREATE TABLE " + destTableName + " (\n");
         ctSql.append("pgid serial,\n");
         for (String key : columnTypes.keySet()) {
@@ -59,20 +59,17 @@ public class CsvPublisher extends DataPublisher {
         populateTable(ud.getUfmd().getUploaded(), columnTypes, destTableName);
         
         /* Publish style to Geoserver */
-        String styleName = createLayerStyling(pgUserSchema, pgTable, ud.getUfmd().getStyledef(), null);
-        /* Now publish to Geoserver */
-        if (!getGrm().getPublisher().publishDBLayer(
-                getEnv().getProperty("geoserver.internal.userWorkspace"),
-                ud.getUfue().getUserDatastore(),
-                configureFeatureType(ud.getUfmd(), destTableName),
-                configureLayerData(styleName)
-        )) {
+        String styleName = createLayerStyling(grec, pgUserSchema, pgTable, ud.getUfmd().getStyledef(), null);
+        /* Now publish to Geoserver */        
+        if (!publishPgLayer(grec, ud.getUfue().getUserDatastore(), ud.getUfmd(), destTableName, styleName)) {
             throw new GeoserverPublishException("Publishing PostGIS table " + destTableName + " to Geoserver failed");
         }
         /* Insert/update the userlayers table record */
         updateUserlayersRecord(ud);
         /* Kill any stored cache */
-        clearCache(pgTable);          
+        clearCache(grec, pgTable);
+        
+        grec.close();
     }
     
     /**
