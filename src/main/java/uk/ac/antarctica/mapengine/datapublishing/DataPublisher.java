@@ -149,7 +149,7 @@ public abstract class DataPublisher {
             /* uploaded data */
             File wd = new File(WDBASE + Calendar.getInstance().getTimeInMillis());
             if (wd.mkdir()) {
-                /* Created the tempotary working directory, move the uploaded file there for conversion */
+                /* Created the temporary working directory, move the uploaded file there for conversion */
                 File uploaded = new File(wd.getAbsolutePath() + SEP + standardiseName(mpf.getOriginalFilename(), true, -1));
                 mpf.transferTo(uploaded);
                 System.out.println("File transferred to : " + uploaded.getAbsolutePath());

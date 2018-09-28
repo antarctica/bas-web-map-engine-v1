@@ -14,7 +14,6 @@ import java.util.Base64;
 import java.util.HashMap;
 import javax.net.ssl.SSLContext;
 import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpHost;
@@ -24,7 +23,10 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.config.Registry;
@@ -33,12 +35,14 @@ import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.auth.DigestScheme;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.springframework.security.access.AccessDeniedException;
 
 public class GenericUrlConnector {
 
@@ -98,17 +102,7 @@ public class GenericUrlConnector {
 // End of September 2018 commenting out
     }
     
-    public GenericUrlConnectorResponse get(String url) 
-            throws MalformedURLException, IOException {
-        return(get(url, null, null, null));
-    }
-    
-    public GenericUrlConnectorResponse get(String url, String username, String password) 
-            throws MalformedURLException, IOException {
-        return(get(url, username, password, null));
-    }
-
-    /**
+    /***************************************************************************************************************************************
      * GET from given URL, with optional basic authentication     
      * @param String url
      * @param String username
@@ -120,8 +114,97 @@ public class GenericUrlConnector {
     public GenericUrlConnectorResponse get(String url, String username, String password, String wwwAuth) 
             throws MalformedURLException, IOException {
         return(execute(new HttpGet(url), username, password, wwwAuth));        
+    }        
+    
+    public GenericUrlConnectorResponse get(String url, String username, String password) 
+            throws MalformedURLException, IOException {
+        return(get(url, username, password, null));
     }
     
+    public GenericUrlConnectorResponse get(String url) 
+            throws MalformedURLException, IOException {
+        return(get(url, null, null, null));
+    }
+    
+    /***************************************************************************************************************************************
+     * POST to given URL, with optional basic authentication
+     * @param String url
+     * @param String username
+     * @param String password
+     * @param String wwwAuth
+     * @return GenericUrlConnectorResponse status and content information
+     * @throws IOException
+     */
+    public GenericUrlConnectorResponse post(String url, String postBody, String username, String password, String wwwAuth) 
+            throws MalformedURLException, IOException, AccessDeniedException {
+        if (username == null || username.isEmpty() || password == null || password.isEmpty()) {
+            throw new AccessDeniedException("Must supply valid credentials to do this");
+        }
+        HttpPost httpPost = new HttpPost(url);
+        httpPost.setEntity(new StringEntity(postBody));
+        return(execute(httpPost, username, password, wwwAuth));        
+    }        
+    
+    public GenericUrlConnectorResponse post(String url, String postBody, String username, String password) 
+            throws MalformedURLException, IOException, AccessDeniedException {
+        return(post(url, postBody, username, password, null));
+    }    
+    
+    /***************************************************************************************************************************************
+     * PUT to given URL, with optional basic authentication
+     * @param String url
+     * @param String username
+     * @param String password
+     * @param String wwwAuth
+     * @return GenericUrlConnectorResponse status and content information
+     * @throws IOException
+     */
+    public GenericUrlConnectorResponse put(String url, String putBody, String username, String password, String wwwAuth) 
+            throws MalformedURLException, IOException, AccessDeniedException {
+        if (username == null || username.isEmpty() || password == null || password.isEmpty()) {
+            throw new AccessDeniedException("Must supply valid credentials to do this");
+        }
+        HttpPut httpPut = new HttpPut(url);
+        httpPut.setEntity(new StringEntity(putBody));
+        return(execute(httpPut, username, password, wwwAuth));        
+    }        
+    
+    public GenericUrlConnectorResponse put(String url, String putBody, String username, String password) 
+            throws MalformedURLException, IOException, AccessDeniedException {
+        return(put(url, putBody, username, password, null));
+    }    
+    
+    /***************************************************************************************************************************************
+     * DELETE to given URL, with optional basic authentication
+     * @param String url
+     * @param String username
+     * @param String password
+     * @param String wwwAuth
+     * @return GenericUrlConnectorResponse status and content information
+     * @throws IOException
+     */
+    public GenericUrlConnectorResponse delete(String url, String username, String password, String wwwAuth) 
+            throws MalformedURLException, IOException, AccessDeniedException {
+        if (username == null || username.isEmpty() || password == null || password.isEmpty()) {
+            throw new AccessDeniedException("Must supply valid credentials to do this");
+        }
+        return(execute(new HttpDelete(url), username, password, wwwAuth));        
+    }        
+    
+    public GenericUrlConnectorResponse delete(String url, String username, String password) 
+            throws MalformedURLException, IOException, AccessDeniedException {
+        return(delete(url, username, password, null));
+    }    
+    
+    /***************************************************************************************************************************************
+     * Generic HTTP client request execution, with optional basic authentication/wwAuth digest
+     * @param String url
+     * @param String username
+     * @param String password
+     * @param String wwwAuth
+     * @return GenericUrlConnectorResponse status and content information
+     * @throws IOException
+     */
     private GenericUrlConnectorResponse execute(HttpUriRequest request, String username, String password, String wwwAuth) 
             throws MalformedURLException, IOException {
         
