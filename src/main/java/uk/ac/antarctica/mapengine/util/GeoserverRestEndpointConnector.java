@@ -176,7 +176,7 @@ public class GeoserverRestEndpointConnector {
      * @param putBody
      * @return 
      */
-    public String putContent(String restPath, String putBody) {
+    public String putJson(String restPath, String putBody) {
         return(executeRequest("PUT", url + restPath, putBody, "application/json")); 
     }
     

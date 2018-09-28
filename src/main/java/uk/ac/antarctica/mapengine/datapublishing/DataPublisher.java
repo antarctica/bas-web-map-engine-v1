@@ -7,10 +7,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import it.geosolutions.geoserver.rest.encoder.GSLayerEncoder;
-import it.geosolutions.geoserver.rest.encoder.feature.FeatureTypeAttribute;
-import it.geosolutions.geoserver.rest.encoder.feature.GSAttributeEncoder;
-import it.geosolutions.geoserver.rest.encoder.feature.GSFeatureTypeEncoder;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -305,7 +301,7 @@ public abstract class DataPublisher {
                     } else {
                         /* Existing style */
                         System.out.println("Style " + tableName + " exists");
-                        String publishRes = grec.putContent("workspaces/" + userWs + "/styles/" + tableName, packageStyle(tableName, exStyleFile));
+                        String publishRes = grec.putJson("workspaces/" + userWs + "/styles/" + tableName, packageStyle(tableName, exStyleFile));
                         System.out.println("Modified ok " + (publishRes != null ? "yes" : "no"));
                     }                    
                 }      
@@ -637,7 +633,10 @@ public abstract class DataPublisher {
      * @return 
      */
     protected boolean publishPgLayer(GeoserverRestEndpointConnector grec, String dataStore, UploadedFileMetadata md, String tableName, String defaultStyle) {
-        boolean ret = false;
+        
+        boolean ret;
+        
+        String userWs = getEnv().getProperty("geoserver.internal.userWorkspace");
         
         String tsch = tableName.substring(0, tableName.indexOf("."));
         String tname = tableName.substring(tableName.indexOf(".") + 1);
@@ -649,7 +648,54 @@ public abstract class DataPublisher {
         layerData.addProperty("nativeCRS", md.getSrs());
         layerData.addProperty("srs", md.getSrs());
         
+        JsonObject joAttr = new JsonObject();
+        joAttr.add("attribute", packageAttributes(tsch, tname));
+        layerData.add("attributes", joAttr);
+        
+        /* Publish */
+        ret = ((grec.postJson("workspaces/" + userWs + "/datastores/" + dataStore + "/featuretypes", layerData.toString())) != null);
+        if (ret) {
+            /* Configure default style, queryability etc */
+            if (updatePgLayer(grec, tableName, defaultStyle)) {
+                System.out.println("Successfully published table " + tableName + " to Geoserver");
+            } else {
+                System.out.println("Failed to configure newly published table " + tableName + " to Geoserver - will have default style");
+            }
+        } else {
+            System.out.println("Failed to publish table " + tableName + " to Geoserver");
+        }
         return(ret);
+    }
+    
+    /**
+     * Package table attributes in the approved form for Geoserver REST API
+     * @param schema
+     * @param table
+     * @return 
+     */
+    protected JsonArray packageAttributes(String schema, String table) {
+        
+        JsonArray jarr = new JsonArray();
+        
+        try {
+            List<Map<String, Object>> recs = getMagicDataTpl().queryForList(
+                "SELECT column_name, is_nullable, data_type FROM information_schema.columns WHERE table_schema=? AND table_name=?", 
+                schema, table
+            );
+            for (Map<String, Object> rec : recs) {
+                /* Create Geoserver Manager's configuration */               
+                JsonObject jo = new JsonObject();
+                jo.addProperty("name", (String) rec.get("column_name"));
+                jo.addProperty("nillable", String.valueOf(((String)rec.get("is_nullable")).equalsIgnoreCase("yes")));
+                jo.addProperty("binding", getDataTypeBinding((String) rec.get("data_type")));
+                jo.addProperty("minOccurs", String.valueOf(0));
+                jo.addProperty("maxOccurs", String.valueOf(1));
+                jarr.add(jo);
+            }
+        } catch(DataAccessException dae) {
+            System.out.println("Failed to get attributes for table " + table + " in schema " + schema);
+        }
+        return(jarr);
     }
     
     /**
@@ -660,67 +706,25 @@ public abstract class DataPublisher {
      * @return 
      */
     protected boolean updatePgLayer(GeoserverRestEndpointConnector grec, String layerName, String defaultStyle) {
-        boolean ret = false;
         
+        boolean ret;
+        
+        JsonObject layerConf = new JsonObject();
+        layerConf.addProperty("enabled", true);
+        layerConf.addProperty("queryable", true);
+        JsonObject defStyle = new JsonObject();
+        defStyle.addProperty("name", defaultStyle);
+        layerConf.add("defaultStyle", defStyle);
+        
+        ret = (grec.putJson("workspaces/" + getEnv().getProperty("geoserver.internal.userWorkspace") + "/layers/" + layerName, layerConf.toString()) != null);
+        if (ret) {
+            System.out.println("Successfully configured new layer " + layerName + " in Geoserver");
+        } else {
+            System.out.println("Failed to configure new layer " + layerName + " in Geoserver");
+        }
         return(ret);
     }
     
-    /**
-     * Construct the attribute map for Geoserver Manager for <schema>.<table>
-     * @param  md
-     * @param destTableName
-     * @return
-     */
-    protected GSFeatureTypeEncoder configureFeatureType(UploadedFileMetadata md, String destTableName) throws DataAccessException {
-
-        GSFeatureTypeEncoder gsfte = new GSFeatureTypeEncoder();
-        String tsch = destTableName.substring(0, destTableName.indexOf("."));
-        String tname = destTableName.substring(destTableName.indexOf(".") + 1);
-        
-        /* Now set feature metadata */
-        gsfte.setNativeCRS(md.getSrs());
-        gsfte.setSRS(md.getSrs());
-        gsfte.setName(tname);
-        gsfte.setTitle(md.getTitle());
-        gsfte.setAbstract(md.getDescription());
-
-        List<Map<String, Object>> recs = getMagicDataTpl().queryForList(
-                "SELECT column_name, is_nullable, data_type FROM information_schema.columns WHERE table_schema=? AND table_name=?", 
-                tsch, tname
-        );
-        if (!recs.isEmpty()) {
-            for (Map<String, Object> rec : recs) {
-                /* Create Geoserver Manager's configuration */
-                String colName = (String) rec.get("column_name");
-                String isNillable = (String) rec.get("is_nullable");
-                String dataType = getDataTypeBinding((String) rec.get("data_type"));
-                GSAttributeEncoder attribute = new GSAttributeEncoder();
-                attribute.setAttribute(FeatureTypeAttribute.name, colName);
-                attribute.setAttribute(FeatureTypeAttribute.minOccurs, String.valueOf(0));
-                attribute.setAttribute(FeatureTypeAttribute.maxOccurs, String.valueOf(1));
-                attribute.setAttribute(FeatureTypeAttribute.nillable, String.valueOf(isNillable.toLowerCase().equals("yes")));
-                attribute.setAttribute(FeatureTypeAttribute.binding, dataType);
-                gsfte.setAttribute(attribute);                              
-            }
-        }        
-        return (gsfte);
-    }
-
-    /**
-     * Construct layer configurator for Geoserver Manager
-     * @param defaultStyle
-     * @return
-     */
-    protected GSLayerEncoder configureLayerData(String defaultStyle) {
-        GSLayerEncoder gsle = new GSLayerEncoder();
-        if (defaultStyle != null) {
-            gsle.setDefaultStyle(defaultStyle);
-        }
-        gsle.setEnabled(true);
-        gsle.setQueryable(true);
-        return (gsle);
-    }
-
     /**
      * Translate a PostgreSQL data type into a Java class binding (very simple,
      * may need to be extended if lots of other types come up)
