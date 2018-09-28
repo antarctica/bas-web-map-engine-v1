@@ -379,7 +379,7 @@ magic.classes.FieldPartyPositionButton.prototype.setComboboxValue = function(id,
  * @param {String} value
  */
 magic.classes.FieldPartyPositionButton.prototype.setDatepickerValue = function(id, value) {
-    jQuery("#" + id).val(value);
+    jQuery("#" + id).val(moment(value, "DD/MM/YYYY"));
 };
 
 /**
