@@ -3,6 +3,7 @@
  */
 package uk.ac.antarctica.mapengine.config;
 
+import com.google.gson.JsonParser;
 import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
 import org.springframework.beans.BeansException;
@@ -38,6 +39,7 @@ public class SessionConfig {
             ua.setEnv(context.getEnvironment());
             ua.setUserRoleMatrix((UserRoleMatrix)context.getBean("userRoleMatrix"));
             ua.setMagicDataTpl((JdbcTemplate)context.getBean("magicDataTpl"));
+            ua.setJsonParser((JsonParser)context.getBean("jsonParser"));
             return(ua);
         }
 

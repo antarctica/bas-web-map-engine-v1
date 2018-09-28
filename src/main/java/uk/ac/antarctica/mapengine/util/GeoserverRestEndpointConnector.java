@@ -16,10 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Component;
 import uk.ac.antarctica.mapengine.util.GenericUrlConnector.GenericUrlConnectorResponse;
 
-@Component
 public class GeoserverRestEndpointConnector {
     
     @Autowired
