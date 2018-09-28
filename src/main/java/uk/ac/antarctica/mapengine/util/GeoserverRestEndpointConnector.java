@@ -70,8 +70,12 @@ public class GeoserverRestEndpointConnector {
         System.out.println("===== Returning URL : " + url + ", username : " + username + ", password : " + (password != null ? "<non_null_value>" : password));
     }
     
+    /***************************************************************************************************************************************
+     * GET requests
+     ***************************************************************************************************************************************/
+    
     /**
-     * Get a JSON response from the URL, appending a relative path (the part after /rest/)    
+     * GET a JSON response from Geoserver REST API, appending a relative path (the part after /rest/)    
      * @param restPath
      * @return 
      */
@@ -91,7 +95,7 @@ public class GeoserverRestEndpointConnector {
     }
     
     /**
-     * Get a JSON response from the URL, appending a relative path (the part after /rest/) and applying an xpath rule set to 
+     * GET a JSON response from Geoserver REST API, appending a relative path (the part after /rest/) and applying an xpath rule set to 
      * extract the required data - this should be supplied as member1/member2/.../membern
      * @param restPath
      * @param xpath
@@ -105,13 +109,10 @@ public class GeoserverRestEndpointConnector {
             try {
                 String[] members = xpath.split("/");
                 JsonObject jo = content.getAsJsonObject();
-                for (int i = 0; i < members.length; i++) {
-                    if (i < members.length-1) {
-                        jo = jo.getAsJsonObject(members[i]);
-                    } else {
-                        content = jo.get(members[i]);
-                    }
+                for (int i = 0; i < members.length-1; i++) {
+                    jo = jo.getAsJsonObject(members[i]);
                 }
+                content = jo.get(members[members.length-1]);
             } catch(Exception ex) {
                 System.out.println("Failed to apply " + xpath + ", exception was : " + ex.getMessage());
             }
@@ -121,27 +122,85 @@ public class GeoserverRestEndpointConnector {
     }
     
     /**
-     * Get raw content response from URL, appending a elative path (the part after /rest/)
+     * GET raw content response from Geoserver REST API, appending a relative path (the part after /rest/)
      * @param restPath
      * @return 
      */
     public String getContent(String restPath) {
+        return(executeRequest("GET", url + restPath, null));        
+    }
+    
+    /***************************************************************************************************************************************
+     * POST requests
+     ***************************************************************************************************************************************/
+    
+    /**
+     * POST content to Geoserver REST API, appending a relative path (the part after /rest/)
+     * @param restPath
+     * @param postBody
+     * @return 
+     */
+    public String postContent(String restPath, String postBody) {
+        return(executeRequest("POST", url + restPath, postBody));        
+    }
+    
+    /***************************************************************************************************************************************
+     * PUT requests
+     ***************************************************************************************************************************************/
+    
+    /**
+     * PUT content to Geoserver REST API, appending a relative path (the part after /rest/)
+     * @param restPath
+     * @param putBody
+     * @return 
+     */
+    public String putContent(String restPath, String putBody) {
+        return(executeRequest("PUT", url + restPath, putBody)); 
+    }
+    
+    /***************************************************************************************************************************************
+     * DELETE requests
+     ***************************************************************************************************************************************/
+    
+    /**
+     * DELETE content from Geoserver REST service, appending a relative path (the part after /rest/)
+     * @param restPath
+     * @return 
+     */
+    public String deleteContent(String restPath) {
+        return(executeRequest("DELETE", url + restPath, null));        
+    }
+    
+    /**
+     * Get raw content response from URL, appending a relative path (the part after /rest/) and submitting body string if relevant
+     * @param requestType
+     * @param url
+     * @param body
+     * @return 
+     */
+    public String executeRequest(String requestType, String url, String body) {
         String content = null;
         if (url != null) {
             try {
                 guc = new GenericUrlConnector(url.startsWith("https"));
-                GenericUrlConnectorResponse gucOut = guc.get(url + restPath, username, password);
+                GenericUrlConnectorResponse gucOut = null;
+                switch(requestType) {
+                    case "POST":   gucOut = guc.post(url, body, username, password); break;
+                    case "PUT":    gucOut = guc.put(url, body, username, password);  break;
+                    case "DELETE": gucOut = guc.delete(url, username, password);     break;
+                    default:       gucOut = guc.get(url, username, password);     break;
+                }
                 if (gucOut.getStatus() < 400) {
                     content = IOUtils.toString(gucOut.getContent());
                 } else {
-                    System.out.println("Status code " + gucOut.getStatus() + " returned retrieving content from " + url + restPath);
+                    System.out.println("Status code " + gucOut.getStatus() + " executing " + requestType + " at " + url + ", request body " + body);                   
                 }
             } catch (IOException | NoSuchAlgorithmException | KeyStoreException | KeyManagementException ex) {
-                System.out.println("Exception encountered retrieving content from URL " + url + restPath + " : " + ex.getMessage());
+                System.out.println("Exception encountered performing " + requestType + " at URL " + url + " : " + ex.getMessage());
             }
         }
         return(content);
-    }
+    }    
     
     /**
      * Close the underlying connection

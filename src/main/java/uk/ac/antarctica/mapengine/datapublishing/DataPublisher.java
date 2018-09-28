@@ -6,7 +6,6 @@ package uk.ac.antarctica.mapengine.datapublishing;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import it.geosolutions.geoserver.rest.GeoServerRESTManager;
 import it.geosolutions.geoserver.rest.HTTPUtils;
 import it.geosolutions.geoserver.rest.decoder.RESTDataStore;
 import it.geosolutions.geoserver.rest.encoder.GSLayerEncoder;
@@ -21,7 +20,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
@@ -77,10 +75,7 @@ public abstract class DataPublisher {
     @Autowired
     private JsonParser jsonParser;
     
-    private ServletContext servletContext;
-    
-    /* Single endpoint for all Geoserver Manager functionality */
-    private GeoServerRESTManager grm = null;
+    private ServletContext servletContext;   
     
     /* Map of PostgreSQL schema/credentials */
     private HashMap<String, String> pgMap = new HashMap();
@@ -106,16 +101,7 @@ public abstract class DataPublisher {
     public UploadedData initWorkingEnvironment(ServletContext sc, MultipartFile mpf, Map<String, String[]> parms, String userName) 
         throws IOException, DataAccessException, MalformedURLException, GeoserverPublishException {   
         
-        setServletContext(sc);
-        
-        if (getGrm() == null) {
-            /* Create Geoserver store manager */
-            setGrm(new GeoServerRESTManager(
-                new URL(getEnv().getProperty("geoserver.internal.url")), 
-                getEnv().getProperty("geoserver.internal.username"), 
-                getEnv().getProperty("geoserver.internal.password")
-            ));
-        }
+        setServletContext(sc);                
                 
         if (getPgMap().isEmpty()) {
             /* PostgreSQL credentials */
@@ -782,14 +768,6 @@ public abstract class DataPublisher {
 
     public void setAppRuntime(Runtime appRuntime) {
         this.appRuntime = appRuntime;
-    }
-
-    public GeoServerRESTManager getGrm() {
-        return grm;
-    }
-
-    public void setGrm(GeoServerRESTManager grm) {
-        this.grm = grm;
     }
     
     public class GeoserverPublishException extends Exception {
