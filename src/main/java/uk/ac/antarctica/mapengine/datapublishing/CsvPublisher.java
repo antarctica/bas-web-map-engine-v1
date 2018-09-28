@@ -16,6 +16,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
 import uk.ac.antarctica.mapengine.model.UploadedData;
 import uk.ac.antarctica.mapengine.util.CoordinateConversionUtils;
+import uk.ac.antarctica.mapengine.util.GeoserverRestEndpointConnector;
 
 @Component
 public class CsvPublisher extends DataPublisher {
@@ -27,6 +28,8 @@ public class CsvPublisher extends DataPublisher {
      */
     @Override
     public void publish(UploadedData ud) throws GeoserverPublishException, IOException, DataAccessException {
+        
+        GeoserverRestEndpointConnector grec = new GeoserverRestEndpointConnector(null);
             
         String pgUserSchema = ud.getUfue().getUserPgSchema();
         String pgTable = standardiseName(ud.getUfmd().getName(), false, MAX_TABLENAME_LENGTH);

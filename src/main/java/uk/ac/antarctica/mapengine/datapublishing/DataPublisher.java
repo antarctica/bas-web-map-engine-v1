@@ -3,13 +3,11 @@
  */
 package uk.ac.antarctica.mapengine.datapublishing;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import it.geosolutions.geoserver.rest.HTTPUtils;
-import it.geosolutions.geoserver.rest.decoder.RESTDataStore;
 import it.geosolutions.geoserver.rest.encoder.GSLayerEncoder;
-import it.geosolutions.geoserver.rest.encoder.datastore.GSPostGISDatastoreEncoder;
 import it.geosolutions.geoserver.rest.encoder.feature.FeatureTypeAttribute;
 import it.geosolutions.geoserver.rest.encoder.feature.GSAttributeEncoder;
 import it.geosolutions.geoserver.rest.encoder.feature.GSFeatureTypeEncoder;
@@ -53,6 +51,7 @@ import org.springframework.web.multipart.MultipartFile;
 import uk.ac.antarctica.mapengine.model.UploadedData;
 import uk.ac.antarctica.mapengine.model.UploadedFileMetadata;
 import uk.ac.antarctica.mapengine.model.UploadedFileUserEnvironment;
+import uk.ac.antarctica.mapengine.util.GeoserverRestEndpointConnector;
 
 public abstract class DataPublisher {
 
@@ -99,7 +98,9 @@ public abstract class DataPublisher {
      * @throws IOException 
      */
     public UploadedData initWorkingEnvironment(ServletContext sc, MultipartFile mpf, Map<String, String[]> parms, String userName) 
-        throws IOException, DataAccessException, MalformedURLException, GeoserverPublishException {   
+        throws IOException, DataAccessException, MalformedURLException, GeoserverPublishException { 
+        
+        GeoserverRestEndpointConnector grec = new GeoserverRestEndpointConnector(null);
         
         setServletContext(sc);                
                 
@@ -122,7 +123,7 @@ public abstract class DataPublisher {
         ud.getUfue().setUserPgSchema(createPgSchema(userName));
         
         /* Check user PostGIS store exposing the above schema exists, and create it if not */
-        ud.getUfue().setUserDatastore(createPgSchemaDatastore(ud.getUfue().getUserPgSchema()));        
+        ud.getUfue().setUserDatastore(createPgSchemaDatastore(grec, ud.getUfue().getUserPgSchema()));        
         
         if (mpf == null) {
             /* No uploaded file data */
@@ -175,16 +176,12 @@ public abstract class DataPublisher {
      * Clear the GeowebCache cache for the given layer (needed when a style has been updated)
      * @param String layerName 
      */
-    public void clearCache(String layerName) {
-        System.out.println("Result of cache clear was : " + HTTPUtils.delete(
-            getEnv().getProperty("geoserver.internal.url") + "/gwc/rest/layers/" + layerName,
-            getEnv().getProperty("geoserver.internal.username"),
-            getEnv().getProperty("geoserver.internal.password")
-        ));
+    public void clearCache(GeoserverRestEndpointConnector grec, String layerName) {
+        System.out.println("Cache clear for layer " + layerName + " " + 
+            (grec.deleteContent("gwc/rest/layers/" + layerName) != null ? "successful": "failed")
+        );       
         /* Reload Geoserver catalogue */
-        System.out.println("Reloading catalogue...");        
-        //getGrm().getPublisher().reload();
-        System.out.println("Done");
+        System.out.println("Reloading catalogue " + (grec.getContent("reload") != null ? "successful" : "failed"));  
     }
     
     /**
@@ -235,41 +232,58 @@ public abstract class DataPublisher {
      * @param String schemaName 
      * @return String the datastore name
      */
-    protected String createPgSchemaDatastore(String schemaName) throws GeoserverPublishException {
-        String ws = getEnv().getProperty("geoserver.internal.userWorkspace");
-        RESTDataStore rds = getGrm().getReader().getDatastore(ws, schemaName);
-        if (rds == null) {
-            GSPostGISDatastoreEncoder dse = new GSPostGISDatastoreEncoder(schemaName);
-            dse.setHost("localhost");
-            dse.setPort(5432);
-            dse.setDatabase("magic");
-            dse.setUser(getEnv().getProperty("datasource.magic.username"));
-            dse.setPassword(getEnv().getProperty("datasource.magic.password"));
-            dse.setSchema(schemaName);
-            dse.setMaxConnections(10);
-            dse.setMinConnections(1);
-            dse.setFetchSize(1000);
-            dse.setExposePrimaryKeys(true);
-            dse.setConnectionTimeout(20);
-            dse.setValidateConnections(true);
-            dse.setMaxOpenPreparedStatements(50);
-            if (!getGrm().getStoreManager().create(ws, dse)) {
-                throw new GeoserverPublishException("Failed to create PostGIS user store");
-            }
+    protected String createPgSchemaDatastore(GeoserverRestEndpointConnector grec, String schemaName) throws GeoserverPublishException {
+        JsonObject joDs = new JsonObject();
+        joDs.addProperty("name", schemaName);
+        JsonObject joConn = new JsonObject();
+        JsonArray jaEntry = new JsonArray();
+        /* Add entries */
+        jaEntry.add(pgConnectionParameter("host", "localhost"));
+        jaEntry.add(pgConnectionParameter("port", "5432"));
+        jaEntry.add(pgConnectionParameter("database", "magic"));
+        jaEntry.add(pgConnectionParameter("user", getEnv().getProperty("datasource.magic.username")));
+        jaEntry.add(pgConnectionParameter("passwd", getEnv().getProperty("datasource.magic.password")));
+        jaEntry.add(pgConnectionParameter("schema", schemaName));
+        jaEntry.add(pgConnectionParameter("min connections", "1"));
+        jaEntry.add(pgConnectionParameter("max connections", "10"));
+        jaEntry.add(pgConnectionParameter("fetch size", "1000"));
+        jaEntry.add(pgConnectionParameter("Expose primary keys", "true"));
+        jaEntry.add(pgConnectionParameter("Connection timeout", "20"));
+        jaEntry.add(pgConnectionParameter("validate connections", "true"));
+        jaEntry.add(pgConnectionParameter("Max open prepared statements", "50"));
+        joConn.add("entry", jaEntry);
+        joDs.add("connectionParameters", joConn);
+        JsonObject data = new JsonObject();
+        data.add("dataStore", joDs);
+        if (grec.postContent("workspaces/" + getEnv().getProperty("geoserver.internal.userWorkspace") + "/datastores", data.toString()) == null) {
+            throw new GeoserverPublishException("Failed to create PostGIS user store " + schemaName + " for service at " + grec.getUrl());
         }
         return(schemaName);
     } 
     
+    /**
+     * Create a key/value pair entry in the Geoserver REST approved format
+     * @param key
+     * @param value
+     * @return 
+     */
+    protected JsonObject pgConnectionParameter(String key, String value) {
+        JsonObject jo = new JsonObject();
+        jo.addProperty("@key", key);
+        jo.addProperty("$", value);
+        return(jo);
+    }
     
     /**
      * Create a style based on the user's requirements
+     * @param GeoserverRestEndpointConnector grec
      * @param String schemaName
      * @param String tableName
      * @param String styledef
      * @param File exStyleFile
      * @return String style name
      */
-    protected String createLayerStyling(String schemaName, String tableName, String styledef, File exStyleFile) throws IOException, FileNotFoundException{        
+    protected String createLayerStyling(GeoserverRestEndpointConnector grec, String schemaName, String tableName, String styledef, File exStyleFile) throws IOException, FileNotFoundException{        
         JsonElement jesd = jsonParser.parse(styledef);
         JsonObject josd = jesd.getAsJsonObject();
         String mode = !josd.has("mode") ? "default" : josd.get("mode").getAsString();
@@ -281,15 +295,19 @@ public abstract class DataPublisher {
             case "file":
                 /* Style is in file supplied (shapefile), or internal to the file (GPX/KML) when exStyleFile is null */
                 if (exStyleFile != null) {
-                    if (getGrm().getReader().existsStyle(getEnv().getProperty("geoserver.internal.userWorkspace"), tableName)) {
-                        System.out.println("Style " + tableName + " exists");
-                        stylePublished = getGrm().getPublisher().updateStyleInWorkspace(getEnv().getProperty("geoserver.internal.userWorkspace"), exStyleFile, tableName);
-                        System.out.println("Updated " + stylePublished);
-                    } else {
+                    String userWs = getEnv().getProperty("geoserver.internal.userWorkspace");
+                    String exInfo = grec.getContent("workspaces/" + userWs + "/styles/" + tableName);
+                    if (exInfo.toLowerCase().startsWith("no such style")) {
+                        /* Style does not currently exist */
                         System.out.println("Style " + tableName + " not present");
-                        stylePublished = getGrm().getPublisher().publishStyleInWorkspace(getEnv().getProperty("geoserver.internal.userWorkspace"), exStyleFile, tableName);
-                        System.out.println("Created " + stylePublished);
-                    }
+                        String publishRes = grec.postContent("workspaces/" + userWs + "/styles", packageStyle(tableName, exStyleFile));
+                        System.out.println("Created ok " + (publishRes != null ? "yes" : "no"));
+                    } else {
+                        /* Existing style */
+                        System.out.println("Style " + tableName + " exists");
+                        String publishRes = grec.putContent("workspaces/" + userWs + "/styles/" + tableName, packageStyle(tableName, exStyleFile));
+                        System.out.println("Modified ok " + (publishRes != null ? "yes" : "no"));
+                    }                    
                 }      
                 break;
             case "point":
@@ -369,6 +387,19 @@ public abstract class DataPublisher {
                 System.out.println("Writing SLD...");
                 System.out.println(sldOut);
                 System.out.println("End of SLD");
+                String userWs = getEnv().getProperty("geoserver.internal.userWorkspace");
+                String exInfo = grec.getContent("workspaces/" + userWs + "/styles/" + tableName);
+                if (exInfo.toLowerCase().startsWith("no such style")) {
+                    /* Style does not currently exist */
+                    System.out.println("Style " + tableName + " not present");
+                    String publishRes = grec.postContent("workspaces/" + userWs + "/styles", packageStyle(tableName, exStyleFile));
+                    System.out.println("Created ok " + (publishRes != null ? "yes" : "no"));
+                } else {
+                    /* Existing style */
+                    System.out.println("Style " + tableName + " exists");
+                    String publishRes = grec.putContent("workspaces/" + userWs + "/styles/" + tableName, packageStyle(tableName, exStyleFile));
+                    System.out.println("Modified ok " + (publishRes != null ? "yes" : "no"));
+                }                    
                 if (getGrm().getReader().existsStyle(getEnv().getProperty("geoserver.internal.userWorkspace"), tableName)) {
                     System.out.println("Style " + tableName + " exists");
                     stylePublished = getGrm().getPublisher().updateStyleInWorkspace(getEnv().getProperty("geoserver.internal.userWorkspace"), sldOut, tableName);
@@ -386,6 +417,19 @@ public abstract class DataPublisher {
             styleName = tableName;
         }
         return(styleName);
+    }
+    
+    /**
+     * Package style in a JSON form suitable for POST/PUT to Geoserver REST API
+     * @param name
+     * @param sld
+     * @return 
+     */
+    protected String packageStyle(String name, File sld) {
+        JsonObject jo =  new JsonObject();
+        jo.addProperty("name", name);
+        jo.addProperty("filename", sld.getAbsolutePath());
+        return(jo.toString());
     }
     
     /**

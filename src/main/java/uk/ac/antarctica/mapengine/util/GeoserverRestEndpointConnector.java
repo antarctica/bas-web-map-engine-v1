@@ -127,7 +127,7 @@ public class GeoserverRestEndpointConnector {
      * @return 
      */
     public String getContent(String restPath) {
-        return(executeRequest("GET", url + restPath, null));        
+        return(executeRequest("GET", url + restPath, null, null));        
     }
     
     /***************************************************************************************************************************************
@@ -138,10 +138,21 @@ public class GeoserverRestEndpointConnector {
      * POST content to Geoserver REST API, appending a relative path (the part after /rest/)
      * @param restPath
      * @param postBody
+     * @param contentType
      * @return 
      */
-    public String postContent(String restPath, String postBody) {
-        return(executeRequest("POST", url + restPath, postBody));        
+    public String postContent(String restPath, String postBody, String contentType) {
+        return(executeRequest("POST", url + restPath, postBody, contentType));        
+    }
+    
+    /**
+     * POST JSON to Geoserver REST API, appending a relative path (the part after /rest/)
+     * @param restPath
+     * @param postBody
+     * @return 
+     */
+    public String postJson(String restPath, String postBody) {
+        return(executeRequest("POST", url + restPath, postBody, "application/json"));        
     }
     
     /***************************************************************************************************************************************
@@ -152,10 +163,21 @@ public class GeoserverRestEndpointConnector {
      * PUT content to Geoserver REST API, appending a relative path (the part after /rest/)
      * @param restPath
      * @param putBody
+     * @param contentType
+     * @return 
+     */
+    public String putContent(String restPath, String putBody, String contentType) {
+        return(executeRequest("PUT", url + restPath, putBody, contentType)); 
+    }
+    
+    /**
+     * PUT JSON to Geoserver REST API, appending a relative path (the part after /rest/)
+     * @param restPath
+     * @param putBody
      * @return 
      */
     public String putContent(String restPath, String putBody) {
-        return(executeRequest("PUT", url + restPath, putBody)); 
+        return(executeRequest("PUT", url + restPath, putBody, "application/json")); 
     }
     
     /***************************************************************************************************************************************
@@ -168,7 +190,7 @@ public class GeoserverRestEndpointConnector {
      * @return 
      */
     public String deleteContent(String restPath) {
-        return(executeRequest("DELETE", url + restPath, null));        
+        return(executeRequest("DELETE", url + restPath, null, null));        
     }
     
     /**
@@ -176,17 +198,18 @@ public class GeoserverRestEndpointConnector {
      * @param requestType
      * @param url
      * @param body
+     * @param contentType
      * @return 
      */
-    public String executeRequest(String requestType, String url, String body) {
+    public String executeRequest(String requestType, String url, String body, String contentType) {
         String content = null;
         if (url != null) {
             try {
                 guc = new GenericUrlConnector(url.startsWith("https"));
                 GenericUrlConnectorResponse gucOut = null;
                 switch(requestType) {
-                    case "POST":   gucOut = guc.post(url, body, username, password); break;
-                    case "PUT":    gucOut = guc.put(url, body, username, password);  break;
+                    case "POST":   gucOut = guc.post(url, body, contentType, username, password); break;
+                    case "PUT":    gucOut = guc.put(url, body, contentType, username, password);  break;
                     case "DELETE": gucOut = guc.delete(url, username, password);     break;
                     default:       gucOut = guc.get(url, username, password);     break;
                 }
