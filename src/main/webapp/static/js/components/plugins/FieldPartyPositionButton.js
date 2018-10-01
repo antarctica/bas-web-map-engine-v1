@@ -263,7 +263,6 @@ magic.classes.FieldPartyPositionButton.prototype.getPayload = function() {
  * @param {Object} payload
  */
 magic.classes.FieldPartyPositionButton.prototype.setPayload = function(payload) {  
-    console.log(payload);
     this.setComboboxValue("fix-input-sledge", payload.sledge);
     this.setDatepickerValue("fix-input-fix_date", payload.fix_date);
     jQuery("#fix-input-people_count").val(payload.people_count);
@@ -383,7 +382,7 @@ magic.classes.FieldPartyPositionButton.prototype.setComboboxValue = function(id,
  * @param {String} value
  */
 magic.classes.FieldPartyPositionButton.prototype.setDatepickerValue = function(id, value) {
-    jQuery("#" + id).val(moment(value, "DD/MM/YYYY"));
+    jQuery("#" + id).val(moment(value).format("DD/MM/YYYY"));
 };
 
 /**
