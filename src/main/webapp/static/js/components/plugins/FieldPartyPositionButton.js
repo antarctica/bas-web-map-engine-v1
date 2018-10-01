@@ -262,7 +262,8 @@ magic.classes.FieldPartyPositionButton.prototype.getPayload = function() {
  * Set the form's value to the given JSON object
  * @param {Object} payload
  */
-magic.classes.FieldPartyPositionButton.prototype.setPayload = function(payload) {    
+magic.classes.FieldPartyPositionButton.prototype.setPayload = function(payload) {  
+    console.log(payload);
     this.setComboboxValue("fix-input-sledge", payload.sledge);
     this.setDatepickerValue("fix-input-fix_date", payload.fix_date);
     jQuery("#fix-input-people_count").val(payload.people_count);
