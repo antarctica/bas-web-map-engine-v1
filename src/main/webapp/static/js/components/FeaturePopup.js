@@ -491,7 +491,13 @@ magic.classes.FeaturePopup.prototype.attributeValue = function(key, value) {
             }
             newValue = magic.modules.GeoUtils.applyPref("coordinates", value, "lat");
         } else if (magic.modules.Common.isDatetimeLike(key)) {
-            newValue = magic.modules.GeoUtils.applyPref("dates", value);
+            var momentValue = moment(value);
+            if (momentValue.isValid()) {
+                var fmt = magic.runtime.preferences["dates"] + (value.length > 10 ? " HH:mm:ss Z" : "");                            
+                newValue = moment(value).format(fmt);
+            } else {
+                newValue = value;
+            }            
         } else {
             newValue = value;
         }

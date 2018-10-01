@@ -231,8 +231,7 @@ magic.classes.FieldPartyPositionButton.prototype.confirmOperation = function(cal
                     label: "No",
                     className: "btn-danger"
                 }
-            }          
-        }, callbackEdited);
+            }, callbackEdited);
     } else {
         if (jQuery.isFunction(callbackNotEdited)) {
             callbackNotEdited();
