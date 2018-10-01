@@ -495,7 +495,7 @@ magic.classes.FeaturePopup.prototype.attributeValue = function(key, value, type)
         } else if (type == "date" || magic.modules.Common.isDatetimeLike(key)) {
             var momentValue = moment(value);
             if (momentValue.isValid()) {
-                var fmt = magic.runtime.preferences["dates"] + (value.length > 10 ? " HH:mm:ss Z" : "");                            
+                var fmt = (magic.runtime.preferences["dates"] == "dmy" ? "DD-MM-YYYY" : "YYYY-MM-DD") + (value.length > 10 ? " HH:mm:ss Z" : "");                            
                 newValue = moment(value).format(fmt);
             } else {
                 newValue = value;
