@@ -111,6 +111,8 @@ magic.classes.FieldPartyPositionButton.prototype.restoreState = function() {
 
 magic.classes.FieldPartyPositionButton.prototype.onActivate = function() { 
     
+    magic.runtime.featureinfotool.deactivate();
+    
     /* Detect changes to the form */
     this.formEdited = false;
     jQuery(".field-party-popover-content").find("form :input").change(jQuery.proxy(function() {
@@ -159,7 +161,7 @@ magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {
             /* Convert the sledge input field to combobox */
             this.initCombobox("fix-input-sledge", Object.keys(this.featureMap).sort());
             /* Convert the date input field to a datepicker */
-            this.initDatepicker("fix-input-date");
+            this.initDatepicker("fix-input-fix_date");
             /* Assign the save button handler */
             jQuery("#fix-save-go").off("click").on("click", jQuery.proxy(function(evt) {
                 var payload = this.getPayload();
@@ -182,7 +184,8 @@ magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {
     });   
 };
 
-magic.classes.FieldPartyPositionButton.prototype.onDeactivate = function() {    
+magic.classes.FieldPartyPositionButton.prototype.onDeactivate = function() {  
+    magic.runtime.featureinfotool.activate();
     this.target.popover("hide");
     magic.runtime.map.un("singleclick", this.clickToEditHandler, this);
 };
@@ -245,7 +248,7 @@ magic.classes.FieldPartyPositionButton.prototype.getPayload = function() {
     return({
         "season": this.computeSeason(),
         "sledge": this.getComboboxValue("fix-input-sledge"),
-        "date": this.getDatepickerValue("fix-input-date"),
+        "date": this.getDatepickerValue("fix-input-fix_date"),
         "people_count": jQuery("#fix-input-people_count").val(),
         "updater": jQuery("#fix-input-updater").val(),
         "lat": magic.modules.GeoUtils.toDecDegrees(jQuery("#fix-input-lat").val()),
@@ -261,7 +264,7 @@ magic.classes.FieldPartyPositionButton.prototype.getPayload = function() {
  */
 magic.classes.FieldPartyPositionButton.prototype.setPayload = function(payload) {    
     this.setComboboxValue("fix-input-sledge", payload.sledge);
-    this.setDatepickerValue("fix-input-date", payload.date);
+    this.setDatepickerValue("fix-input-fix_date", payload.fix_date);
     jQuery("#fix-input-people_count").val(payload.people_count);
     jQuery("#fix-input-updater").val(payload.updater || "");
     jQuery("#fix-input-lat").val(magic.modules.GeoUtils.applyPref("coordinates", payload.lat, "lat"));
@@ -284,8 +287,8 @@ magic.classes.FieldPartyPositionButton.prototype.validate = function(payload) {
             magic.modules.Common.flagInputError(jQuery("#fix-input-sledge-input"));
             valid = false;
         }
-        if (payload.date == null || payload.date == "") {
-            magic.modules.Common.flagInputError(jQuery("#fix-input-date"));
+        if (payload.fix_date == null || payload.fix_date == "") {
+            magic.modules.Common.flagInputError(jQuery("#fix-input-fix_date"));
             valid = false;
         }
         if (payload.people_count == null || payload.people_count == "") {

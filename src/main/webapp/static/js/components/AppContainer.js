@@ -70,6 +70,7 @@ magic.classes.AppContainer = function () {
     this.featureinfotool = new magic.classes.FeatureInfoTool();
     this.featureinfotool.activate();
     magic.runtime.layer_visibility_change_callback = jQuery.proxy(this.featureinfotool.layerVisibilityHandler, this.featureinfotool);
+    magic.runtime.featureinfotool = this.featureinfotool;
     
     /* Create information modal */
     new magic.classes.InfoModal();
@@ -297,8 +298,8 @@ magic.classes.AppContainer.prototype.setMapInteractionToolHandlers = function ()
                     }
                 }
             }, this));
-            if (tool != this.navbarTools["measurement"] && tool != this.navbarTools["field_party_position"]) {
-                /* Allow clicking on features (gets in the way bigtime when measuring, and not required for the BLIP successor!) */
+            if (tool != this.navbarTools["measurement"]) {
+                /* Allow clicking on features (gets in the way bigtime when measuring) */
                 this.featureinfotool.activate();
             } else {
                 this.featureinfotool.deactivate();
