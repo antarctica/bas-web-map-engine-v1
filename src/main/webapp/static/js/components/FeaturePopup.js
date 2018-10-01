@@ -233,9 +233,9 @@ magic.classes.FeaturePopup.prototype.featureAttributeTableMarkup = function(feat
                     } else { 
                         if (feat[attrdata.name] || jQuery.isNumeric(feat[attrdata.name])) {
                             /* Attribute has a non-null value, so worth displaying */
-                            var attrOut = this.attributeValue(attrdata.name, feat[attrdata.name]);
+                            var attrOut = this.attributeValue(attrdata.name, feat[attrdata.name], attrdata.type);
                             if (attrOut != "") {
-                                content += '<tr><td>' + nameStr + '</td><td align="right">' + this.attributeValue(attrdata.name, feat[attrdata.name]) + '</td></tr>';
+                                content += '<tr><td>' + nameStr + '</td><td align="right">' + attrOut + '</td></tr>';
                                 nDisplayed++;
                             }
                         }
@@ -475,10 +475,12 @@ magic.classes.FeaturePopup.prototype.fixPopoverPosition = function() {
  * Apply preferences (using some guesswork) to an attribute whose key and value are supplied
  * @param {string} key
  * @param {string} value
+ * @param {string} type
  * @returns {string}
  */
-magic.classes.FeaturePopup.prototype.attributeValue = function(key, value) {
+magic.classes.FeaturePopup.prototype.attributeValue = function(key, value, type) {
     var newValue = "";
+    type = type || "";
     if (value != null && value != "" && value != undefined) {
         if (magic.modules.Common.isLongitudeLike(key)) {
             if (!jQuery.isNumeric(value)) {
@@ -490,7 +492,7 @@ magic.classes.FeaturePopup.prototype.attributeValue = function(key, value) {
                 value = value.replace(/&[^;]+;\s?/g, " ");  /* Tracker co-ordinates have HTML escapes in them - sigh */
             }
             newValue = magic.modules.GeoUtils.applyPref("coordinates", value, "lat");
-        } else if (magic.modules.Common.isDatetimeLike(key)) {
+        } else if (type == "date" || magic.modules.Common.isDatetimeLike(key)) {
             var momentValue = moment(value);
             if (momentValue.isValid()) {
                 var fmt = magic.runtime.preferences["dates"] + (value.length > 10 ? " HH:mm:ss Z" : "");                            

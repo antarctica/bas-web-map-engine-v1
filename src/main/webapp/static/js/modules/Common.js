@@ -772,7 +772,7 @@ magic.modules.Common = function () {
          */
         isDatetimeLike: function(key) {
            key = key.toLowerCase();
-           var dateKeys = ["^date.*$", "^time.*$", "^utc$", "^[^u]*update.*$"];
+           var dateKeys = ["^date.*$", "^time.*$", "^utc$", "^[^u]*update.*$", "timestamp$"];
            for (var i = 0; i < dateKeys.length; i++) {
                var patt = new RegExp(dateKeys[i]);
                if (patt.test(key)) {

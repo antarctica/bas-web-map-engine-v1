@@ -4,7 +4,7 @@ magic.classes.ShipPositionButton = function (name, ribbon, options) {
     magic.classes.AssetPositionButton.call(this, name, ribbon, options);
     this.attribute_map = [
         {name: "callsign", alias: "Call sign", displayed: true},
-        {name: "checktimestamp", alias: "Date", displayed: true},
+        {name: "checktimestamp", alias: "Date", displayed: true, type: "date"},
         {name: "longitude", alias: "Longitude", displayed: true},
         {name: "latitude", alias: "Latitude", displayed: true},
         {name: "speed", alias: "Speed", displayed: false}
