@@ -152,7 +152,7 @@ magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {
                 for (var i = 0; i < fixes.length; i++) {
                     var rgba = "rgba(" + parseInt(255 - i*colourStep) + ",0," + parseInt(i*colourStep) + ",1.0)";
                     v[fixes[i]].setProperties({"rgba": rgba, "__layer": this.layer}, true);
-                    v[fixes[i]].setStyle(magic.modules.VectorStyles["bas_field_party"]());
+                    v[fixes[i]].setStyle(magic.modules.VectorStyles["bas_field_party"](6));
                 }
             }, this));
             this.layer.getSource().clear();
@@ -418,7 +418,7 @@ magic.classes.FieldPartyPositionButton.prototype.getDatepickerValue = function(i
  */
 magic.classes.FieldPartyPositionButton.prototype.clickToEditHandler = function(evt) {
     this.layer.getSource().forEachFeature(function(f) {
-        f.setStyle(magic.modules.VectorStyles["bas_field_party"]());                
+        f.setStyle(magic.modules.VectorStyles["bas_field_party"](6));                
     }, this);
     magic.runtime.map.forEachFeatureAtPixel(evt.pixel, jQuery.proxy(function(feat, layer) {
         if (layer == this.layer) {
