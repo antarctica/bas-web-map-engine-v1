@@ -141,10 +141,13 @@ magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {
                     this.featureMap[fname] = {};
                 }
                 if (this.featureMap[fname][fdate]) {
+                    /* Sometimes we get infelicities in the data => duplicate records in every way except id */
                     console.log("Duplicate found for " + fname + " at " + fdate);
                     console.log("Features with id " + attrs["id"] + " and " + this.featureMap[fname][fdate].getProperties()["id"]);
+                    console.log("Ignoring...");
+                } else {
+                    this.featureMap[fname][fdate] = f; 
                 }
-                this.featureMap[fname][fdate] = f;                  
             }, this));
             /* Now write styling hints into the feature attributes */
             jQuery.each(this.featureMap, jQuery.proxy(function(k, v) {               
@@ -421,17 +424,13 @@ magic.classes.FieldPartyPositionButton.prototype.getDatepickerValue = function(i
  * @param {jQuery.Event} evt
  */
 magic.classes.FieldPartyPositionButton.prototype.clickToEditHandler = function(evt) {
-    console.log("Reset all feature styles...");
     this.layer.getSource().forEachFeature(function(f) {
         f.setStyle(magic.modules.VectorStyles["bas_field_party"](6));                
     });
-    console.log("Done");
     magic.runtime.map.forEachFeatureAtPixel(evt.pixel, jQuery.proxy(function(feat, layer) {
         if (layer == this.layer) {
             /* Change feature style to indicate selection */
-            console.log("Highlight feature...");
             feat.setStyle(magic.modules.VectorStyles["bas_field_party"](12));
-            console.log("Highlighted");
             this.confirmOperation(
                 jQuery.proxy(function(result) {
                     if (result) {

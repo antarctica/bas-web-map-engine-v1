@@ -204,7 +204,6 @@ magic.modules.VectorStyles = function () {
                 }
                 var props = this.getProperties();                
                 var rgba = props["rgba"] || "rgba(255, 0, 0, 1.0)";
-                console.log("Feature id " + props["id"] + ", rgba " + props["rgba"]);
                 var rgbaInvisible = rgba.replace("1.0)", "0.0)");
                 return([new ol.style.Style({
                     image: new ol.style.RegularShape({
