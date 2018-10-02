@@ -418,7 +418,7 @@ magic.classes.FieldPartyPositionButton.prototype.getDatepickerValue = function(i
  */
 magic.classes.FieldPartyPositionButton.prototype.clickToEditHandler = function(evt) {
     this.layer.getSource().forEachFeature(function(f) {
-        f.setStyle(magic.modules.VectorStyles["bas_field_party"]()));                
+        f.setStyle(magic.modules.VectorStyles["bas_field_party"]());                
     }, this);
     magic.runtime.map.forEachFeatureAtPixel(evt.pixel, jQuery.proxy(function(feat, layer) {
         if (layer == this.layer) {
