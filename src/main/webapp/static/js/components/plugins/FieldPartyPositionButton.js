@@ -133,6 +133,7 @@ magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {
             });          
             var feats = fmtGeoJson.readFeatures(data);
             /* Now classify the features by name and fix date */
+            var noDupFeats = [];
             jQuery.each(feats, jQuery.proxy(function(idx, f) {
                 var attrs = f.getProperties();
                 var fname = attrs.sledge;
@@ -147,6 +148,7 @@ magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {
                     console.log("Ignoring...");
                 } else {
                     this.featureMap[fname][fdate] = f; 
+                    noDupFeats.push(f);
                 }
             }, this));
             /* Now write styling hints into the feature attributes */
@@ -163,7 +165,7 @@ magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {
                 }
             }, this));
             this.layer.getSource().clear();
-            this.layer.getSource().addFeatures(feats);
+            this.layer.getSource().addFeatures(noDupFeats);
             /* Activate the help button */
             jQuery(".fix-editing-help").popover({
                 placement: "right",
