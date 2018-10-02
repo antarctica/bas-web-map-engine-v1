@@ -198,7 +198,8 @@ magic.modules.VectorStyles = function () {
             });
         },
         bas_field_party: function() {
-            return(function() {
+            return(function(size) {
+                size = size || 6;
                 var props = this.getProperties();
                 var rgba = props["rgba"] || "rgba(255, 0, 0, 1.0)";
                 var rgbaInvisible = rgba.replace("1.0)", "0.0)");
@@ -207,7 +208,7 @@ magic.modules.VectorStyles = function () {
                         rotateWithView: true,
                         rotation: 0,
                         points: 3,
-                        radius: 6,
+                        radius: size,
                         fill: new ol.style.Fill({color: rgba}),
                         stroke: new ol.style.Stroke({color: rgba})
                     }),
@@ -215,7 +216,7 @@ magic.modules.VectorStyles = function () {
                         font: "Arial",
                         scale: 1.2,
                         offsetX: 14,
-                        text: props["sledge"],
+                        text: props["sledge"] + " at " + props["fix_date"],
                         textAlign: "left",
                         fill: new ol.style.Fill({color: rgbaInvisible}),
                         stroke: new ol.style.Stroke({color: rgbaInvisible})

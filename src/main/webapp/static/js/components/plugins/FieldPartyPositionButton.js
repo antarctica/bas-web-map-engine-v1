@@ -417,8 +417,13 @@ magic.classes.FieldPartyPositionButton.prototype.getDatepickerValue = function(i
  * @param {jQuery.Event} evt
  */
 magic.classes.FieldPartyPositionButton.prototype.clickToEditHandler = function(evt) {
+    this.layer.getSource().forEachFeature(function(f) {
+        f.setStyle(magic.modules.VectorStyles["bas_field_party"]()));                
+    }, this);
     magic.runtime.map.forEachFeatureAtPixel(evt.pixel, jQuery.proxy(function(feat, layer) {
         if (layer == this.layer) {
+            /* Change feature style to indicate selection */
+            feat.setStyle(magic.modules.VectorStyles["bas_field_party"](12);
             this.confirmOperation(
                 jQuery.proxy(function(result) {
                     if (result) {
@@ -458,22 +463,3 @@ magic.classes.FieldPartyPositionButton.prototype.computeSeason = function(curren
     } 
     return("");
 };
-
-/**
- * Display markup for a positional fix
- */
-//magic.classes.FieldPartyPositionButton.prototype.displayFix = function() {
-//    jQuery("#sledge-fix-display-pane").find("td").empty();
-//    if (this.displayedFixIndex != -1) {
-//        var fix = this.featureMap[this.clickedSledge][this.fixes[this.displayedFixIndex]];
-//        var nameStem = "fix-td-";
-//        jQuery("#" + nameStem + "fix_date").html(magic.modules.Common.dateFormat(fix.fix_date, "dmy"));
-//        jQuery("#" + nameStem + "people_count").html((isNaN(parseInt(fix.people_count)) ? "" : fix.people_count));
-//        jQuery("#" + nameStem + "updater").html((fix.updater || ""));
-//        jQuery("#" + nameStem + "lat").html(magic.modules.GeoUtils.applyPref("coordinates", fix.lat, "lat"));
-//        jQuery("#" + nameStem + "lon").html(magic.modules.GeoUtils.applyPref("coordinates", fix.lon, "lon"));
-//        jQuery("#" + nameStem + "height").html((isNaN(parseFloat(fix.height)) ? "" : fix.height));
-//        jQuery("#" + nameStem + "notes").html((fix.notes || ""));
-//    }    
-//};
-
