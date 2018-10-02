@@ -423,7 +423,7 @@ magic.classes.FieldPartyPositionButton.prototype.clickToEditHandler = function(e
     magic.runtime.map.forEachFeatureAtPixel(evt.pixel, jQuery.proxy(function(feat, layer) {
         if (layer == this.layer) {
             /* Change feature style to indicate selection */
-            feat.setStyle(magic.modules.VectorStyles["bas_field_party"](12);
+            feat.setStyle(magic.modules.VectorStyles["bas_field_party"](12));
             this.confirmOperation(
                 jQuery.proxy(function(result) {
                     if (result) {
