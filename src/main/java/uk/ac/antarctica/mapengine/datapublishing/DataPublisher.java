@@ -305,7 +305,7 @@ public abstract class DataPublisher {
                 if (exStyleFile != null) {
                     String userWs = getEnv().getProperty("geoserver.internal.userWorkspace");
                     String exInfo = grec.getContent("workspaces/" + userWs + "/styles/" + tableName);
-                    if (exInfo.toLowerCase().startsWith("no such style")) {
+                    if (exInfo == null) {
                         /* Style does not currently exist */
                         System.out.println("Style " + tableName + " not present");
                         String publishRes = grec.postJson("workspaces/" + userWs + "/styles", packageStyle(tableName, exStyleFile));
@@ -397,7 +397,7 @@ public abstract class DataPublisher {
                 System.out.println("End of SLD");
                 String userWs = getEnv().getProperty("geoserver.internal.userWorkspace");
                 String exInfo = grec.getContent("workspaces/" + userWs + "/styles/" + tableName);
-                if (exInfo.toLowerCase().startsWith("no such style")) {
+                if (exInfo == null) {
                     /* Style does not currently exist */
                     System.out.println("Style " + tableName + " not present");
                     String publishRes = grec.postContent("workspaces/" + userWs + "/styles?name=" + tableName, sldOut, "application/vnd.ogc.sld+xml");
@@ -561,13 +561,13 @@ public abstract class DataPublisher {
         /* Drop any Geoserver feature corresponding to this table */
         String userWs = getEnv().getProperty("geoserver.internal.userWorkspace");
         String exInfo = grec.getContent("workspaces/" + userWs + "/datastores/" + dataStore + "/featuretypes/" + tableName);
-        if (!exInfo.toLowerCase().startsWith("no such feature")) {
+        if (exInfo != null) {
             System.out.println("Unpublishing existing feature " + tableName + "...");
             System.out.println((grec.deleteContent("workspaces/" + userWs + "/datastores/" + dataStore + "/featuretypes/" + tableName) == null) ? "Failed" : "Success");
         }       
         /* Drop any Geoserver style relating to the table */
         String exStyleInfo = grec.getContent("workspaces/" + userWs + "/styles/" + tableName);
-        if (!exStyleInfo.toLowerCase().startsWith("no such style")) {
+        if (exStyleInfo == null) {
             /* Style does not currently exist */
             System.out.println("Deleting associated style " + tableName + "...");
             System.out.println((grec.deleteContent("workspaces/" + userWs + "/styles/" + tableName) == null) ? "Failed" : "Success");
