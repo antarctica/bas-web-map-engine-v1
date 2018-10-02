@@ -140,6 +140,10 @@ magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {
                 if (!this.featureMap[fname]) {
                     this.featureMap[fname] = {};
                 }
+                if (this.featureMap[fname][fdate]) {
+                    console.log("Duplicate found for " + fname + " at " + fdate);
+                    console.log("Features with id " + attrs["id"] + " and " + this.featureMap[fname][fdate].getProperties()["id"]);
+                }
                 this.featureMap[fname][fdate] = f;                  
             }, this));
             /* Now write styling hints into the feature attributes */
