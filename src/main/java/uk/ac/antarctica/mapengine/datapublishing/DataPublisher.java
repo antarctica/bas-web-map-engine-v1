@@ -304,8 +304,7 @@ public abstract class DataPublisher {
                 /* Style is in file supplied (shapefile), or internal to the file (GPX/KML) when exStyleFile is null */
                 if (exStyleFile != null) {
                     String userWs = getEnv().getProperty("geoserver.internal.userWorkspace");
-                    String exInfo = grec.getContent("workspaces/" + userWs + "/styles/" + tableName);
-                    if (exInfo == null) {
+                    if (grec.getContent("workspaces/" + userWs + "/styles/" + tableName) == null) {
                         /* Style does not currently exist */
                         System.out.println("Style " + tableName + " not present");
                         stylePublished = (grec.postJson("workspaces/" + userWs + "/styles", packageStyle(tableName, exStyleFile)) != null);
@@ -397,8 +396,7 @@ public abstract class DataPublisher {
                 System.out.println(sldOut);
                 System.out.println("End of SLD");
                 String userWs = getEnv().getProperty("geoserver.internal.userWorkspace");
-                String exInfo = grec.getContent("workspaces/" + userWs + "/styles/" + tableName);
-                if (exInfo == null) {
+                if (grec.getJson("workspaces/" + userWs + "/styles/" + tableName) == null) {
                     /* Style does not currently exist */
                     System.out.println("Style " + tableName + " not present");
                     stylePublished = (grec.postContent("workspaces/" + userWs + "/styles?name=" + tableName, sldOut, "application/vnd.ogc.sld+xml") != null);
