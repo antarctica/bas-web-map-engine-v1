@@ -10,7 +10,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
 import uk.ac.antarctica.mapengine.model.UploadedData;
-import uk.ac.antarctica.mapengine.util.GeoserverRestEndpointConnector;
+import uk.ac.antarctica.mapengine.components.GeoserverRestEndpointConnector;
 
 @Component
 public class GpxPublisher extends DataPublisher {

@@ -47,7 +47,7 @@ import org.springframework.web.multipart.MultipartFile;
 import uk.ac.antarctica.mapengine.model.UploadedData;
 import uk.ac.antarctica.mapengine.model.UploadedFileMetadata;
 import uk.ac.antarctica.mapengine.model.UploadedFileUserEnvironment;
-import uk.ac.antarctica.mapengine.util.GeoserverRestEndpointConnector;
+import uk.ac.antarctica.mapengine.components.GeoserverRestEndpointConnector;
 
 public abstract class DataPublisher {
 

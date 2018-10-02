@@ -40,7 +40,7 @@ import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 import uk.ac.antarctica.mapengine.util.GenericUrlConnector;
 import uk.ac.antarctica.mapengine.util.GenericUrlConnector.GenericUrlConnectorResponse;
-import uk.ac.antarctica.mapengine.util.GeoserverRestEndpointConnector;
+import uk.ac.antarctica.mapengine.components.GeoserverRestEndpointConnector;
 
 @Controller
 public class GeoserverRestController {   

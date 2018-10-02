@@ -52,7 +52,7 @@ import uk.ac.antarctica.mapengine.datapublishing.KmlPublisher;
 import uk.ac.antarctica.mapengine.datapublishing.NoUploadPublisher;
 import uk.ac.antarctica.mapengine.datapublishing.ShpZipPublisher;
 import uk.ac.antarctica.mapengine.model.UploadedData;
-import uk.ac.antarctica.mapengine.util.GeoserverRestEndpointConnector;
+import uk.ac.antarctica.mapengine.components.GeoserverRestEndpointConnector;
 import uk.ac.antarctica.mapengine.util.PackagingUtils;
 
 @Controller

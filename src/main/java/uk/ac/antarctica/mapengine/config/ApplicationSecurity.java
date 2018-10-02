@@ -3,6 +3,7 @@
  */
 package uk.ac.antarctica.mapengine.config;
 
+import uk.ac.antarctica.mapengine.components.GeoserverAuthenticationProvider;
 import java.io.IOException;
 import java.util.regex.Pattern;
 import javax.servlet.ServletException;

@@ -1,7 +1,7 @@
 /**
  * Generalised Geoserver URL connector
  */
-package uk.ac.antarctica.mapengine.util;
+package uk.ac.antarctica.mapengine.components;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -16,8 +16,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
+import uk.ac.antarctica.mapengine.util.GenericUrlConnector;
 import uk.ac.antarctica.mapengine.util.GenericUrlConnector.GenericUrlConnectorResponse;
 
+@Component
 public class GeoserverRestEndpointConnector {
     
     @Autowired

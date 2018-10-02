@@ -1,7 +1,7 @@
 /*
  * Custom authentication provider to allow login using Geoserver credentials
  */
-package uk.ac.antarctica.mapengine.config;
+package uk.ac.antarctica.mapengine.components;
 
 import java.io.IOException;
 import java.security.KeyManagementException;
@@ -14,6 +14,7 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
+import uk.ac.antarctica.mapengine.config.SessionConfig;
 import uk.ac.antarctica.mapengine.exception.GeoserverAuthenticationException;
 import uk.ac.antarctica.mapengine.util.GenericUrlConnector;
 import uk.ac.antarctica.mapengine.util.GenericUrlConnector.GenericUrlConnectorResponse;
