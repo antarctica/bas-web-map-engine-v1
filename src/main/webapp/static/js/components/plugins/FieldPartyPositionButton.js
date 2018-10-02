@@ -209,7 +209,8 @@ magic.classes.FieldPartyPositionButton.prototype.onDeactivate = function() {
 /**
  * Reset the form, taking account of whether or not it has been edited
  */
-magic.classes.FieldPartyPositionButton.prototype.resetForm = function() {    
+magic.classes.FieldPartyPositionButton.prototype.resetForm = function() {  
+    magic.modules.Common.resetFormIndicators();
     this.confirmOperation(jQuery.proxy(function (result) {
         if (result) {                
             this.saveForm();                    
@@ -263,7 +264,7 @@ magic.classes.FieldPartyPositionButton.prototype.getPayload = function() {
     return({
         "season": this.computeSeason(),
         "sledge": this.getComboboxValue("fix-input-sledge"),
-        "date": this.getDatepickerValue("fix-input-fix_date"),
+        "fix_date": this.getDatepickerValue("fix-input-fix_date"),
         "people_count": jQuery("#fix-input-people_count").val(),
         "updater": jQuery("#fix-input-updater").val(),
         "lat": magic.modules.GeoUtils.toDecDegrees(jQuery("#fix-input-lat").val()),
