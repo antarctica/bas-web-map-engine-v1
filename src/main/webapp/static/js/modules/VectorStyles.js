@@ -203,6 +203,7 @@ magic.modules.VectorStyles = function () {
                     r = 6;
                 }
                 var props = this.getProperties();
+                console.log(props);
                 var rgba = props["rgba"] || "rgba(255, 0, 0, 1.0)";
                 var rgbaInvisible = rgba.replace("1.0)", "0.0)");
                 return([new ol.style.Style({

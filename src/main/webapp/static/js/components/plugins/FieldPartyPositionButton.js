@@ -417,13 +417,17 @@ magic.classes.FieldPartyPositionButton.prototype.getDatepickerValue = function(i
  * @param {jQuery.Event} evt
  */
 magic.classes.FieldPartyPositionButton.prototype.clickToEditHandler = function(evt) {
+    console.log("Reset all feature styles...");
     this.layer.getSource().forEachFeature(function(f) {
         f.setStyle(magic.modules.VectorStyles["bas_field_party"](6));                
     });
+    console.log("Done");
     magic.runtime.map.forEachFeatureAtPixel(evt.pixel, jQuery.proxy(function(feat, layer) {
         if (layer == this.layer) {
             /* Change feature style to indicate selection */
+            console.log("Highlight feature...");
             feat.setStyle(magic.modules.VectorStyles["bas_field_party"](12));
+            console.log("Highlighted");
             this.confirmOperation(
                 jQuery.proxy(function(result) {
                     if (result) {
