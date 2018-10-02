@@ -13,7 +13,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
 import uk.ac.antarctica.mapengine.model.UploadedData;
-import uk.ac.antarctica.mapengine.components.GeoserverRestEndpointConnector;
+import uk.ac.antarctica.mapengine.util.GeoserverRestEndpointConnector;
 
 @Component
 public class ShpZipPublisher extends DataPublisher {
@@ -26,7 +26,7 @@ public class ShpZipPublisher extends DataPublisher {
     @Override
     public void publish(UploadedData ud) throws GeoserverPublishException, IOException, DataAccessException {
         
-        GeoserverRestEndpointConnector grec = new GeoserverRestEndpointConnector(null);
+        GeoserverRestEndpointConnector grec = geoserverRestEndpointConnectorProvider.getInstance();
         
         String pgUserSchema = ud.getUfue().getUserPgSchema();
 

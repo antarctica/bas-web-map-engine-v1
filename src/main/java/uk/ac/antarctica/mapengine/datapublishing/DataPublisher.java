@@ -44,10 +44,11 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import uk.ac.antarctica.mapengine.config.SessionConfig;
 import uk.ac.antarctica.mapengine.model.UploadedData;
 import uk.ac.antarctica.mapengine.model.UploadedFileMetadata;
 import uk.ac.antarctica.mapengine.model.UploadedFileUserEnvironment;
-import uk.ac.antarctica.mapengine.components.GeoserverRestEndpointConnector;
+import uk.ac.antarctica.mapengine.util.GeoserverRestEndpointConnector;
 
 public abstract class DataPublisher {
 
@@ -69,6 +70,9 @@ public abstract class DataPublisher {
     
     @Autowired
     private JsonParser jsonParser;
+    
+    @Autowired
+    protected SessionConfig.GeoserverRestEndpointConnectorProvider geoserverRestEndpointConnectorProvider;
     
     private ServletContext servletContext;   
     
@@ -96,7 +100,7 @@ public abstract class DataPublisher {
     public UploadedData initWorkingEnvironment(ServletContext sc, MultipartFile mpf, Map<String, String[]> parms, String userName) 
         throws IOException, DataAccessException, MalformedURLException, GeoserverPublishException { 
         
-        GeoserverRestEndpointConnector grec = new GeoserverRestEndpointConnector(null);
+        GeoserverRestEndpointConnector grec = geoserverRestEndpointConnectorProvider.getInstance();
         
         setServletContext(sc);                
                 

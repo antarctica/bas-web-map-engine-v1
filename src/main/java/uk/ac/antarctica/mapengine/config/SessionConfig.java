@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import uk.ac.antarctica.mapengine.util.GeoserverRestEndpointConnector;
 
 @Configuration
 public class SessionConfig {
@@ -41,6 +42,42 @@ public class SessionConfig {
             ua.setMagicDataTpl((JdbcTemplate)context.getBean("magicDataTpl"));
             ua.setJsonParser((JsonParser)context.getBean("jsonParser"));
             return(ua);
+        }
+
+    }
+    
+    @Bean
+    @Scope("prototype")
+    public GeoserverRestEndpointConnector geoserverRestEndpointConnector() {
+        return (new GeoserverRestEndpointConnector());
+    }
+    
+    @Service("geoserverRestEndpointConnectorProvider")
+    public class GeoserverRestEndpointConnectorProvider implements ApplicationContextAware {
+
+        private ApplicationContext context;
+        
+        @Override
+        public void setApplicationContext(ApplicationContext context) throws BeansException {
+            this.context = context;
+        }
+
+        public GeoserverRestEndpointConnector getInstance() {
+            GeoserverRestEndpointConnector grec = (GeoserverRestEndpointConnector)context.getBean("geoserverRestEndpointConnector");
+            grec.setEnv(context.getEnvironment());
+            grec.setMagicDataTpl((JdbcTemplate)context.getBean("magicDataTpl"));
+            grec.setJsonParser((JsonParser)context.getBean("jsonParser"));
+            grec.setEndpoint(null);
+            return(grec);
+        }
+        
+        public GeoserverRestEndpointConnector getInstance(Integer endpointid) {
+            GeoserverRestEndpointConnector grec = (GeoserverRestEndpointConnector)context.getBean("geoserverRestEndpointConnector");
+            grec.setEnv(context.getEnvironment());
+            grec.setMagicDataTpl((JdbcTemplate)context.getBean("magicDataTpl"));
+            grec.setJsonParser((JsonParser)context.getBean("jsonParser"));
+            grec.setEndpoint(endpointid);
+            return(grec);
         }
 
     }

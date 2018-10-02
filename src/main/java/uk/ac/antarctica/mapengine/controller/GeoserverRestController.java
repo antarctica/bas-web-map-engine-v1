@@ -38,9 +38,10 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
+import uk.ac.antarctica.mapengine.config.SessionConfig;
 import uk.ac.antarctica.mapengine.util.GenericUrlConnector;
 import uk.ac.antarctica.mapengine.util.GenericUrlConnector.GenericUrlConnectorResponse;
-import uk.ac.antarctica.mapengine.components.GeoserverRestEndpointConnector;
+import uk.ac.antarctica.mapengine.util.GeoserverRestEndpointConnector;
 
 @Controller
 public class GeoserverRestController {   
@@ -60,6 +61,9 @@ public class GeoserverRestController {
     
     @Autowired
     JdbcTemplate magicDataTpl;
+    
+    @Autowired
+    protected SessionConfig.GeoserverRestEndpointConnectorProvider geoserverRestEndpointConnectorProvider;
         
     /**
      * Proxy Geoserver REST API call to default endpoint to get filtered list of layers with attributes
@@ -76,7 +80,7 @@ public class GeoserverRestController {
         HttpServletResponse response, 
         @PathVariable("filter") String filter)
         throws ServletException, IOException, ServiceException {
-        GeoserverRestEndpointConnector grec = new GeoserverRestEndpointConnector(null);
+        GeoserverRestEndpointConnector grec = geoserverRestEndpointConnectorProvider.getInstance();
         response.setContentType("application/json");
         IOUtils.copy(IOUtils.toInputStream(listFilteredLayers(grec, filter)), response.getOutputStream()); 
         grec.close();
@@ -99,7 +103,7 @@ public class GeoserverRestController {
         @PathVariable("filter") String filter,
         @PathVariable("endpointid") Integer endpointid)
         throws ServletException, IOException, ServiceException {   
-        GeoserverRestEndpointConnector grec = new GeoserverRestEndpointConnector(endpointid);
+        GeoserverRestEndpointConnector grec = geoserverRestEndpointConnectorProvider.getInstance(endpointid);
         response.setContentType("application/json");
         IOUtils.copy(IOUtils.toInputStream(listFilteredLayers(grec, filter)), response.getOutputStream());    
         grec.close();
@@ -161,7 +165,7 @@ public class GeoserverRestController {
         HttpServletResponse response, 
         @PathVariable("layer") String layer)
         throws ServletException, IOException, ServiceException {  
-        GeoserverRestEndpointConnector grec = new GeoserverRestEndpointConnector(null);
+        GeoserverRestEndpointConnector grec = geoserverRestEndpointConnectorProvider.getInstance();
         response.setContentType("application/json");
         IOUtils.copy(IOUtils.toInputStream(listStylesForLayer(grec, layer)), response.getOutputStream());     
         grec.close();
@@ -183,7 +187,7 @@ public class GeoserverRestController {
         @PathVariable("layer") String layer,
         @PathVariable("endpointid") Integer endpointid)
         throws ServletException, IOException, ServiceException {
-        GeoserverRestEndpointConnector grec = new GeoserverRestEndpointConnector(endpointid);
+        GeoserverRestEndpointConnector grec = geoserverRestEndpointConnectorProvider.getInstance(endpointid);
         response.setContentType("application/json");
         IOUtils.copy(IOUtils.toInputStream(listStylesForLayer(grec, layer)), response.getOutputStream()); 
         grec.close();
@@ -217,7 +221,7 @@ public class GeoserverRestController {
         HttpServletResponse response, 
         @PathVariable("layer") String layer)
         throws ServletException, IOException, ServiceException {
-        GeoserverRestEndpointConnector grec = new GeoserverRestEndpointConnector(null);
+        GeoserverRestEndpointConnector grec = geoserverRestEndpointConnectorProvider.getInstance();
         response.setContentType("application/json");
         IOUtils.copy(IOUtils.toInputStream(listGranulesForLayer(grec, layer)), response.getOutputStream());
         grec.close();
@@ -239,7 +243,7 @@ public class GeoserverRestController {
         @PathVariable("layer") String layer,
         @PathVariable("endpointid") Integer endpointid)
         throws ServletException, IOException, ServiceException {
-        GeoserverRestEndpointConnector grec = new GeoserverRestEndpointConnector(endpointid);
+        GeoserverRestEndpointConnector grec = geoserverRestEndpointConnectorProvider.getInstance(endpointid);
         response.setContentType("application/json");        
         IOUtils.copy(IOUtils.toInputStream(listGranulesForLayer(grec, layer)), response.getOutputStream());
         grec.close();
@@ -280,7 +284,7 @@ public class GeoserverRestController {
         HttpServletResponse response, 
         @PathVariable("layer") String layer)
         throws ServletException, IOException, ServiceException {   
-        GeoserverRestEndpointConnector grec = new GeoserverRestEndpointConnector(null);
+        GeoserverRestEndpointConnector grec = geoserverRestEndpointConnectorProvider.getInstance();
         response.setContentType("application/json");
         IOUtils.copy(IOUtils.toInputStream(getLayerAttributes(grec, layer).toString()), response.getOutputStream());      
         grec.close();
@@ -302,7 +306,7 @@ public class GeoserverRestController {
         @PathVariable("layer") String layer,
         @PathVariable("endpointid") Integer endpointid)
         throws ServletException, IOException, ServiceException { 
-        GeoserverRestEndpointConnector grec = new GeoserverRestEndpointConnector(endpointid);
+        GeoserverRestEndpointConnector grec = geoserverRestEndpointConnectorProvider.getInstance(endpointid);
         response.setContentType("application/json");
         IOUtils.copy(IOUtils.toInputStream(getLayerAttributes(grec, layer).toString()), response.getOutputStream());  
         grec.close();
@@ -322,7 +326,7 @@ public class GeoserverRestController {
         HttpServletResponse response, 
         @PathVariable("layer") String layer)
         throws ServletException, IOException, ServiceException { 
-        GeoserverRestEndpointConnector grec = new GeoserverRestEndpointConnector(null);
+        GeoserverRestEndpointConnector grec = geoserverRestEndpointConnectorProvider.getInstance();
         response.setContentType("application/json");
         IOUtils.copy(IOUtils.toInputStream(getExtentForLayer(grec, layer)), response.getOutputStream());
         grec.close();
@@ -344,7 +348,7 @@ public class GeoserverRestController {
         @PathVariable("layer") String layer,
         @PathVariable("endpointid") Integer endpointid)
         throws ServletException, IOException, ServiceException {
-        GeoserverRestEndpointConnector grec = new GeoserverRestEndpointConnector(endpointid);
+        GeoserverRestEndpointConnector grec = geoserverRestEndpointConnectorProvider.getInstance(endpointid);
         response.setContentType("application/json");
         IOUtils.copy(IOUtils.toInputStream(getExtentForLayer(grec, layer)), response.getOutputStream());
         grec.close();

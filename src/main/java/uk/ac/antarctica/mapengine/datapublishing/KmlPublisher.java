@@ -8,7 +8,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
 import uk.ac.antarctica.mapengine.model.UploadedData;
-import uk.ac.antarctica.mapengine.components.GeoserverRestEndpointConnector;
+import uk.ac.antarctica.mapengine.util.GeoserverRestEndpointConnector;
 
 @Component
 public class KmlPublisher extends DataPublisher {
@@ -21,8 +21,8 @@ public class KmlPublisher extends DataPublisher {
     @Override
     public void publish(UploadedData ud) throws GeoserverPublishException, IOException, DataAccessException {
         
-        GeoserverRestEndpointConnector grec = new GeoserverRestEndpointConnector(null);
-                
+        GeoserverRestEndpointConnector grec = geoserverRestEndpointConnectorProvider.getInstance();       
+        
         String pgTable = standardiseName(FilenameUtils.getBaseName(ud.getUfmd().getUploaded().getName()), false, MAX_TABLENAME_LENGTH);
         String pgUserSchema = ud.getUfue().getUserPgSchema();
         String destTableName = pgUserSchema + "." + pgTable; 

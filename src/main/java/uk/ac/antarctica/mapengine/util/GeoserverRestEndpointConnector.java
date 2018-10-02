@@ -1,7 +1,7 @@
 /**
  * Generalised Geoserver URL connector
  */
-package uk.ac.antarctica.mapengine.components;
+package uk.ac.antarctica.mapengine.util;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -12,25 +12,18 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import org.apache.commons.io.IOUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Component;
-import uk.ac.antarctica.mapengine.util.GenericUrlConnector;
 import uk.ac.antarctica.mapengine.util.GenericUrlConnector.GenericUrlConnectorResponse;
 
-@Component
 public class GeoserverRestEndpointConnector {
     
-    @Autowired
     private Environment env;
     
-    @Autowired
-    JdbcTemplate magicDataTpl;
+    private JdbcTemplate magicDataTpl;
     
-    @Autowired
-    JsonParser jsonParser;
+    private JsonParser jsonParser;
 
     private String url;
     private String username;
@@ -40,18 +33,24 @@ public class GeoserverRestEndpointConnector {
 
     /**
      * Construct a REST connector for the endpoint with given id
+     */
+    public GeoserverRestEndpointConnector() {        
+    }
+    
+    /**
+     * Set endpoint data with given id
      * @param endpointid
      */
-    public GeoserverRestEndpointConnector(Integer endpointid) {
+    public void setEndpoint(Integer endpointid) {
         System.out.println("===== Create Geoserver REST connector for endpoint " + endpointid);
-        String localGsUrl = env.getProperty("geoserver.internal.url");
-        String localGsUser = env.getProperty("geoserver.internal.username");
-        String localGsPass = env.getProperty("geoserver.internal.password");
+        String localGsUrl = getEnv().getProperty("geoserver.internal.url");
+        String localGsUser = getEnv().getProperty("geoserver.internal.username");
+        String localGsPass = getEnv().getProperty("geoserver.internal.password");
         if (endpointid != null) {
             /* Attempt to resolve endpoint */
             System.out.println("Resolving endpoint...");
             String resolvedEndpoint = getEndpointUrl(endpointid);                                    
-            if (resolvedEndpoint == null || resolvedEndpoint.startsWith(env.getProperty("geoserver.internal.url"))) {
+            if (resolvedEndpoint == null || resolvedEndpoint.startsWith(getEnv().getProperty("geoserver.internal.url"))) {
                 url = localGsUrl;
                 username = localGsUser;
                 password = localGsPass;
@@ -86,7 +85,7 @@ public class GeoserverRestEndpointConnector {
         String data = getContent(restPath + ".json");
         if (data != null) {
             try {
-                content = jsonParser.parse(data);                
+                content = getJsonParser().parse(data);                
             } catch(JsonSyntaxException ex) {
                 System.out.println("Failed to parse retrieved JSON from " + url + restPath + ".json, exception was : " + ex.getMessage());
             }
@@ -243,8 +242,7 @@ public class GeoserverRestEndpointConnector {
     private String getEndpointUrl(Integer endpointid) {        
         String restUrl = null;        
         try {
-            restUrl = magicDataTpl.queryForObject(
-                "SELECT COALESCE(rest_endpoint, url) FROM " + env.getProperty("postgres.local.endpointsTable") + " WHERE id=?", 
+            restUrl = getMagicDataTpl().queryForObject("SELECT COALESCE(rest_endpoint, url) FROM " + getEnv().getProperty("postgres.local.endpointsTable") + " WHERE id=?", 
                 String.class, 
                 endpointid
             );
@@ -284,6 +282,30 @@ public class GeoserverRestEndpointConnector {
 
     public void setGuc(GenericUrlConnector guc) {
         this.guc = guc;
+    }
+
+    public Environment getEnv() {
+        return env;
+    }
+
+    public void setEnv(Environment env) {
+        this.env = env;
+    }
+
+    public JdbcTemplate getMagicDataTpl() {
+        return magicDataTpl;
+    }
+
+    public void setMagicDataTpl(JdbcTemplate magicDataTpl) {
+        this.magicDataTpl = magicDataTpl;
+    }
+
+    public JsonParser getJsonParser() {
+        return jsonParser;
+    }
+
+    public void setJsonParser(JsonParser jsonParser) {
+        this.jsonParser = jsonParser;
     }
 
 }

@@ -52,7 +52,7 @@ import uk.ac.antarctica.mapengine.datapublishing.KmlPublisher;
 import uk.ac.antarctica.mapengine.datapublishing.NoUploadPublisher;
 import uk.ac.antarctica.mapengine.datapublishing.ShpZipPublisher;
 import uk.ac.antarctica.mapengine.model.UploadedData;
-import uk.ac.antarctica.mapengine.components.GeoserverRestEndpointConnector;
+import uk.ac.antarctica.mapengine.util.GeoserverRestEndpointConnector;
 import uk.ac.antarctica.mapengine.util.PackagingUtils;
 
 @Controller
@@ -69,6 +69,9 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
     
     @Autowired
     private Gson jsonMapper;
+    
+    @Autowired
+    protected SessionConfig.GeoserverRestEndpointConnectorProvider geoserverRestEndpointConnectorProvider;
     
     @Autowired
     protected SessionConfig.UserAuthoritiesProvider userAuthoritiesProvider;
@@ -138,7 +141,7 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
                     args.toArray()
                 );
                 if (layer != null && !layer.isEmpty()) {
-                    GeoserverRestEndpointConnector grec = new GeoserverRestEndpointConnector(null);
+                    GeoserverRestEndpointConnector grec = geoserverRestEndpointConnectorProvider.getInstance();
                     JsonElement je = grec.getJson(
                         "workspaces/" + env.getProperty("geoserver.internal.userWorkspace") + "/featuretypes/" + layer,
                         "featureType/latLonBoundingBox"

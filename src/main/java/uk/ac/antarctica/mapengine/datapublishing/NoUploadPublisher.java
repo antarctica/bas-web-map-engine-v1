@@ -7,7 +7,7 @@ import java.io.IOException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
 import uk.ac.antarctica.mapengine.model.UploadedData;
-import uk.ac.antarctica.mapengine.components.GeoserverRestEndpointConnector;
+import uk.ac.antarctica.mapengine.util.GeoserverRestEndpointConnector;
 
 @Component
 public class NoUploadPublisher extends DataPublisher {
@@ -20,7 +20,7 @@ public class NoUploadPublisher extends DataPublisher {
     @Override
     public void publish(UploadedData ud) throws GeoserverPublishException, IOException, DataAccessException {
         
-        GeoserverRestEndpointConnector grec = new GeoserverRestEndpointConnector(null);
+        GeoserverRestEndpointConnector grec = geoserverRestEndpointConnectorProvider.getInstance();
         
         /* Save the record data */
         getMagicDataTpl().update("UPDATE " + getEnv().getProperty("postgres.local.userlayersTable") + " " + 
