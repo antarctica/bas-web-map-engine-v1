@@ -308,14 +308,15 @@ public abstract class DataPublisher {
                     if (exInfo == null) {
                         /* Style does not currently exist */
                         System.out.println("Style " + tableName + " not present");
-                        String publishRes = grec.postJson("workspaces/" + userWs + "/styles", packageStyle(tableName, exStyleFile));
-                        System.out.println("Created ok " + (publishRes != null ? "yes" : "no"));
+                        stylePublished = (grec.postJson("workspaces/" + userWs + "/styles", packageStyle(tableName, exStyleFile)) != null);
+                        System.out.println("Created ok " + (stylePublished ? "yes" : "no"));
                     } else {
                         /* Existing style */
                         System.out.println("Style " + tableName + " exists");
-                        String publishRes = grec.putJson("workspaces/" + userWs + "/styles/" + tableName, packageStyle(tableName, exStyleFile));
-                        System.out.println("Modified ok " + (publishRes != null ? "yes" : "no"));
-                    }                    
+                        stylePublished = (grec.putJson("workspaces/" + userWs + "/styles/" + tableName, packageStyle(tableName, exStyleFile)) != null);
+                        System.out.println("Modified ok " + (stylePublished ? "yes" : "no"));
+                    } 
+                     
                 }      
                 break;
             case "point":
@@ -400,13 +401,13 @@ public abstract class DataPublisher {
                 if (exInfo == null) {
                     /* Style does not currently exist */
                     System.out.println("Style " + tableName + " not present");
-                    String publishRes = grec.postContent("workspaces/" + userWs + "/styles?name=" + tableName, sldOut, "application/vnd.ogc.sld+xml");
-                    System.out.println("Created ok " + (publishRes != null ? "yes" : "no"));
+                    stylePublished = (grec.postContent("workspaces/" + userWs + "/styles?name=" + tableName, sldOut, "application/vnd.ogc.sld+xml") != null);
+                    System.out.println("Created ok " + (stylePublished ? "yes" : "no"));
                 } else {
                     /* Existing style */
                     System.out.println("Style " + tableName + " exists");
-                    String publishRes = grec.putContent("workspaces/" + userWs + "/styles/" + tableName, sldOut, "application/vnd.ogc.sld+xml");
-                    System.out.println("Modified ok " + (publishRes != null ? "yes" : "no"));
+                    stylePublished = (grec.putContent("workspaces/" + userWs + "/styles/" + tableName, sldOut, "application/vnd.ogc.sld+xml") != null);
+                    System.out.println("Modified ok " + (stylePublished ? "yes" : "no"));
                 }                                      
                 break;            
             default:
