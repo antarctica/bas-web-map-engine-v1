@@ -232,32 +232,40 @@ public abstract class DataPublisher {
      * @param schemaName 
      * @return the datastore name
      */
-    protected String createPgSchemaDatastore(GeoserverRestEndpointConnector grec, String schemaName) throws GeoserverPublishException {
-        JsonObject joDs = new JsonObject();
-        joDs.addProperty("name", schemaName);
-        JsonObject joConn = new JsonObject();
-        JsonArray jaEntry = new JsonArray();
-        /* Add entries */
-        jaEntry.add(pgConnectionParameter("host", "localhost"));
-        jaEntry.add(pgConnectionParameter("port", "5432"));
-        jaEntry.add(pgConnectionParameter("database", "magic"));
-        jaEntry.add(pgConnectionParameter("user", getEnv().getProperty("datasource.magic.username")));
-        jaEntry.add(pgConnectionParameter("passwd", getEnv().getProperty("datasource.magic.password")));
-        jaEntry.add(pgConnectionParameter("schema", schemaName));
-        jaEntry.add(pgConnectionParameter("min connections", "1"));
-        jaEntry.add(pgConnectionParameter("max connections", "10"));
-        jaEntry.add(pgConnectionParameter("fetch size", "1000"));
-        jaEntry.add(pgConnectionParameter("Expose primary keys", "true"));
-        jaEntry.add(pgConnectionParameter("Connection timeout", "20"));
-        jaEntry.add(pgConnectionParameter("validate connections", "true"));
-        jaEntry.add(pgConnectionParameter("Max open prepared statements", "50"));
-        joConn.add("entry", jaEntry);
-        joDs.add("connectionParameters", joConn);
-        JsonObject data = new JsonObject();
-        data.add("dataStore", joDs);
-        if (grec.postJson("workspaces/" + getEnv().getProperty("geoserver.internal.userWorkspace") + "/datastores", data.toString()) == null) {
-            throw new GeoserverPublishException("Failed to create PostGIS user store " + schemaName + " for service at " + grec.getUrl());
-        }
+    protected String createPgSchemaDatastore(GeoserverRestEndpointConnector grec, String schemaName) throws GeoserverPublishException {         
+        String rest = "workspaces/" + getEnv().getProperty("geoserver.internal.userWorkspace") + "/datastores";        
+        if (grec.getContent(rest + "/" + schemaName) == null) {
+            /* Store does not exist, so try to create it */
+            System.out.println("Create new PostGIS store " + schemaName);
+            JsonObject joDs = new JsonObject();
+            joDs.addProperty("name", schemaName);
+            JsonObject joConn = new JsonObject();
+            JsonArray jaEntry = new JsonArray();
+            /* Add entries */
+            jaEntry.add(pgConnectionParameter("host", "localhost"));
+            jaEntry.add(pgConnectionParameter("port", "5432"));
+            jaEntry.add(pgConnectionParameter("database", "magic"));
+            jaEntry.add(pgConnectionParameter("user", getEnv().getProperty("datasource.magic.username")));
+            jaEntry.add(pgConnectionParameter("passwd", getEnv().getProperty("datasource.magic.password")));
+            jaEntry.add(pgConnectionParameter("schema", schemaName));
+            jaEntry.add(pgConnectionParameter("min connections", "1"));
+            jaEntry.add(pgConnectionParameter("max connections", "10"));
+            jaEntry.add(pgConnectionParameter("fetch size", "1000"));
+            jaEntry.add(pgConnectionParameter("Expose primary keys", "true"));
+            jaEntry.add(pgConnectionParameter("Connection timeout", "20"));
+            jaEntry.add(pgConnectionParameter("validate connections", "true"));
+            jaEntry.add(pgConnectionParameter("Max open prepared statements", "50"));
+            joConn.add("entry", jaEntry);
+            joDs.add("connectionParameters", joConn);
+            JsonObject data = new JsonObject();
+            data.add("dataStore", joDs);
+            if (grec.postJson(rest, data.toString()) == null) {
+                throw new GeoserverPublishException("Failed to create PostGIS user store " + schemaName + " for service at " + grec.getUrl());
+            }
+        } else {
+            /* Already present */
+            System.out.println("PostGIS store " + schemaName + " already exists");
+        }            
         return(schemaName);
     } 
     
