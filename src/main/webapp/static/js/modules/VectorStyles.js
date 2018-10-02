@@ -218,7 +218,7 @@ magic.modules.VectorStyles = function () {
                         font: "Arial",
                         scale: 1.2,
                         offsetX: 14,
-                        text: props["sledge"] + ", " + props["fix_date"],
+                        text: props["sledge"] + ", " + moment(props["fix_date"]).format("DD/MM/YYYY"),
                         textAlign: "left",
                         fill: new ol.style.Fill({color: rgbaInvisible}),
                         stroke: new ol.style.Stroke({color: rgbaInvisible})
