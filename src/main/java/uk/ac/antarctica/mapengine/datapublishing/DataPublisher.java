@@ -653,19 +653,26 @@ public abstract class DataPublisher {
         String tsch = tableName.substring(0, tableName.indexOf("."));
         String tname = tableName.substring(tableName.indexOf(".") + 1);
         
-        JsonObject layerData = new JsonObject();
+        JsonObject layerData = new JsonObject();        
         layerData.addProperty("name", tname);
         layerData.addProperty("title", md.getTitle());
         layerData.addProperty("abstract", md.getDescription());
-        layerData.addProperty("nativeCRS", md.getSrs());
+        /* Only deal with lat/lon here */
+        String wgs84 = "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[\"EPSG\",\"4326\"]]";
+        layerData.addProperty("nativeCRS", wgs84);
         layerData.addProperty("srs", md.getSrs());
         
         JsonObject joAttr = new JsonObject();
         joAttr.add("attribute", packageAttributes(tsch, tname));
         layerData.add("attributes", joAttr);
         
+        /* https://stackoverflow.com/questions/51671250/can-not-create-new-layer-featuretype-in-geoserver-using-rest-api - documentation bug - 
+         * need an extra pointless wrapper whose name is completely non-obvious! */
+        JsonObject ftypeWrapper = new JsonObject();
+        ftypeWrapper.add("featureType", layerData);
+        
         /* Publish */
-        ret = ((grec.postJson("workspaces/" + userWs + "/datastores/" + dataStore + "/featuretypes", layerData.toString())) != null);
+        ret = ((grec.postJson("workspaces/" + userWs + "/datastores/" + dataStore + "/featuretypes", ftypeWrapper.toString())) != null);
         if (ret) {
             /* Configure default style, queryability etc */
             if (updatePgLayer(grec, tableName, defaultStyle)) {
