@@ -743,7 +743,7 @@ public abstract class DataPublisher {
         layerConf.add("defaultStyle", defStyle);
         
         /* Note: use of <ws>:<layername> here - the apparently correct endpoint for doing this stubbornly gives a 404 - David 02/10/2018 */
-        ret = (grec.putJson("/layers/" + getEnv().getProperty("geoserver.internal.userWorkspace") + ":" + layerName, layerConf.toString()) != null);
+        ret = (grec.putJson("layers/" + getEnv().getProperty("geoserver.internal.userWorkspace") + ":" + layerName, layerConf.toString()) != null);
         if (ret) {
             System.out.println("Successfully configured new layer " + layerName + " in Geoserver");
         } else {
