@@ -675,7 +675,7 @@ public abstract class DataPublisher {
         String rest = "workspaces/" + userWs + "/datastores/" + dataStore + "/featuretypes";
         if (grec.getContent(rest + "/" + tname) != null) {
             /* layer already exists, so delete it */
-            ret = grec.deleteContent(rest + "/" + tname) != null;
+            ret = grec.deleteContent(rest + "/" + tname + "?recurse=true") != null;
         }
         if (ret) {
             /* Layer didn't exist, or if layer was already present, we have successfully deleted it */
