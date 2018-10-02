@@ -34,6 +34,8 @@ magic.classes.FieldPartyPositionButton = function (options) {
     this.featureMap = {};
     
     this.formEdited = false;
+    
+    this.savedState = null;
    
     magic.classes.NavigationBarTool.call(this, options);    
     
@@ -102,11 +104,14 @@ magic.classes.FieldPartyPositionButton.prototype.interactsMap = function () {
 };
 
 magic.classes.FieldPartyPositionButton.prototype.saveState = function() {
-    //TODO
+    this.savedState = this.getPayload();
 };
 
 magic.classes.FieldPartyPositionButton.prototype.restoreState = function() {
-    //TODO
+    if (this.savedState != null) {
+        this.setPayload(this.savedState);
+        this.savedState = null;
+    }
 };
 
 magic.classes.FieldPartyPositionButton.prototype.onActivate = function() { 
@@ -177,6 +182,8 @@ magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {
             /* Assign the feature click-to-edit handler */
             magic.runtime.map.un("singleclick", this.clickToEditHandler, this);
             magic.runtime.map.on("singleclick", this.clickToEditHandler, this);
+            /* Restore any saved state */
+            this.restoreState();
         }, this),
         error: function() {
             console.log("Failed to get field party positional data - potential network outage?");

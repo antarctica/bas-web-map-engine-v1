@@ -682,7 +682,7 @@ public abstract class DataPublisher {
             ret = ((grec.postJson("workspaces/" + userWs + "/datastores/" + dataStore + "/featuretypes", ftypeWrapper.toString())) != null);
             if (ret) {
                 /* Configure default style, queryability etc */
-                if (updatePgLayer(grec, tableName, defaultStyle)) {
+                if (updatePgLayer(grec, tname, defaultStyle)) {
                     System.out.println("Successfully published table " + tableName + " to Geoserver");
                 } else {
                     System.out.println("Failed to configure newly published table " + tableName + " to Geoserver - will have default style");
