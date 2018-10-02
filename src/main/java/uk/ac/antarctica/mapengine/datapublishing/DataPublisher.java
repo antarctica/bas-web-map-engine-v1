@@ -646,7 +646,7 @@ public abstract class DataPublisher {
      */
     protected boolean publishPgLayer(GeoserverRestEndpointConnector grec, String dataStore, UploadedFileMetadata md, String tableName, String defaultStyle) {
         
-        boolean ret;
+        boolean ret = true;
         
         String userWs = getEnv().getProperty("geoserver.internal.userWorkspace");
         
@@ -672,16 +672,24 @@ public abstract class DataPublisher {
         ftypeWrapper.add("featureType", layerData);
         
         /* Publish */
-        ret = ((grec.postJson("workspaces/" + userWs + "/datastores/" + dataStore + "/featuretypes", ftypeWrapper.toString())) != null);
+        String rest = "workspaces/" + userWs + "/datastores/" + dataStore + "/featuretypes";
+        if (grec.getContent(rest + "/" + tname) != null) {
+            /* layer already exists, so delete it */
+            ret = grec.deleteContent(rest + "/" + tname) != null;
+        }
         if (ret) {
-            /* Configure default style, queryability etc */
-            if (updatePgLayer(grec, tableName, defaultStyle)) {
-                System.out.println("Successfully published table " + tableName + " to Geoserver");
+            /* Layer didn't exist, or if layer was already present, we have successfully deleted it */
+            ret = ((grec.postJson("workspaces/" + userWs + "/datastores/" + dataStore + "/featuretypes", ftypeWrapper.toString())) != null);
+            if (ret) {
+                /* Configure default style, queryability etc */
+                if (updatePgLayer(grec, tableName, defaultStyle)) {
+                    System.out.println("Successfully published table " + tableName + " to Geoserver");
+                } else {
+                    System.out.println("Failed to configure newly published table " + tableName + " to Geoserver - will have default style");
+                }
             } else {
-                System.out.println("Failed to configure newly published table " + tableName + " to Geoserver - will have default style");
+                System.out.println("Failed to publish table " + tableName + " to Geoserver");
             }
-        } else {
-            System.out.println("Failed to publish table " + tableName + " to Geoserver");
         }
         return(ret);
     }
