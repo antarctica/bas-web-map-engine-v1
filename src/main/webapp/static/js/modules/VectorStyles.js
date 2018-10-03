@@ -220,7 +220,7 @@ magic.modules.VectorStyles = function () {
                     var rgbaInvisible = rgba.replace("1.0)", "0.0)");
                     return([new ol.style.Style({
                         image: new ol.style.RegularShape({
-                            rotateWithView: true,
+                            rotateWithView: false,
                             rotation: 0,
                             points: 4,
                             radius: r,
