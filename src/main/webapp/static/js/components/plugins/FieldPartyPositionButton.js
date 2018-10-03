@@ -463,8 +463,9 @@ magic.classes.FieldPartyPositionButton.prototype.clickToEditHandler = function(e
             this.confirmOperation(
                 jQuery.proxy(function(result) {
                     if (result) {
-                        this.setPayload(feat.getProperties());
-                    }
+                        this.saveForm();
+                    } 
+                    this.setPayload(feat.getProperties());
                 }, this), 
                 jQuery.proxy(function() {
                     this.setPayload(feat.getProperties());
