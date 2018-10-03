@@ -24,6 +24,12 @@
                 </div>
                 <!-- Top Menu Items -->
                 <ul class="nav navbar-left top-nav">
+                    <li data-toggle="tooltip" data-placement="bottom" th:each="plugin : ${navplugins}" th:attr="title=${plugin.tooltip}" 
+                        th:unless="${#httpServletRequest.remoteUser} == null and ${plugin.allowed_usage} == 'login'">                        
+                        <a th:attr="id=${plugin.name}" href="JavaScript:void(0)" role="button" data-toggle="popover" data-placement="bottom">
+                            <span th:attr="class='navbar-tool-btn ' + ${plugin.iconclass}"></span><span class="hidden-sm"></span>
+                        </a>
+                    </li>
                     <li data-toggle="tooltip" data-placement="bottom" title="Search for place-names and locations">
                         <a id="geosearch-tool" href="JavaScript:void(0)" role="button" data-toggle="popover" data-placement="bottom">
                             <span class="navbar-tool-btn fa fa-map-marker"></span><span class="hidden-sm"></span>
@@ -53,13 +59,7 @@
                         <a id="feedback-tool" href="JavaScript:void(0)" role="button" data-toggle="popover" data-placement="bottom">
                             <span class="navbar-tool-btn fa fa-comment"></span><span class="hidden-sm"></span> 
                         </a>       
-                    </li>
-                    <li data-toggle="tooltip" data-placement="bottom" th:each="plugin : ${navplugins}" th:attr="title=${plugin.tooltip}" 
-                        th:unless="${#httpServletRequest.remoteUser} == null and ${plugin.allowed_usage} == 'login'">                        
-                        <a th:attr="id=${plugin.name}" href="JavaScript:void(0)" role="button" data-toggle="popover" data-placement="bottom">
-                            <span th:attr="class='navbar-tool-btn ' + ${plugin.iconclass}"></span><span class="hidden-sm"></span>
-                        </a>
-                    </li>
+                    </li>                    
                     <li data-toggle="tooltip" data-placement="bottom" title="Map information and credits">
                         <a id="info-tool" role="button" data-toggle="modal" data-target="#information-modal">
                             <span class="navbar-tool-btn fa fa-info-circle"></span><span class="hidden-sm"></span> 
