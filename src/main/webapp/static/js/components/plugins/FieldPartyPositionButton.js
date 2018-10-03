@@ -18,7 +18,7 @@ magic.classes.FieldPartyPositionButton = function (options) {
     
     /* Data fetch */
     this.WFS_FETCH = "http://mapengine-dev.nerc-bas.ac.uk:8080/geoserver/opsgis2/wfs?service=wfs&request=getfeature&version=2.0.0&" + 
-            "typeNames=opsgis2:ops_field_deployments&outputFormat=json&sortBy=fix_date+D&cql_filter=season=1819";
+            "typeNames=opsgis2:ops_field_deployments&outputFormat=json&sortBy=fix_date+D&cql_filter=season=1819";       
    
     /**
      * Classified feature map, so that heatmap styling can be applied
@@ -163,8 +163,13 @@ magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {
                 for (var i = 0; i < fixes.length; i++) {
                     var rgba = "rgba(" + parseInt(255 - i*colourStep) + ",0," + parseInt(i*colourStep) + ",1.0)";
                     var fixFeat = v[fixes[i]];
-                    fixFeat.setProperties({"rgba": rgba, "__layer": this.layer}, true);
-                    fixFeat.setStyle(magic.modules.VectorStyles["bas_field_party"](i == 0 ? 9 : 6));
+                    fixFeat.setProperties({
+                        "rgba": rgba, 
+                        "latest": i == 0, 
+                        "highlighted": false,
+                        "__layer": this.layer
+                    }, true);
+                    fixFeat.setStyle(magic.modules.VectorStyles["bas_field_party"]());
                     track.appendCoordinate(fixFeat.getGeometry().getFirstCoordinate());
                 }
                 /* Create track feature and style */
@@ -443,12 +448,18 @@ magic.classes.FieldPartyPositionButton.prototype.getDatepickerValue = function(i
  */
 magic.classes.FieldPartyPositionButton.prototype.clickToEditHandler = function(evt) {
     this.layer.getSource().forEachFeature(function(f) {
-        f.setStyle(magic.modules.VectorStyles["bas_field_party"](6));                
+        f.setProperties({
+            highlighted: false
+        });
+        f.setStyle(magic.modules.VectorStyles["bas_field_party"]());                
     });
     magic.runtime.map.forEachFeatureAtPixel(evt.pixel, jQuery.proxy(function(feat, layer) {
         if (layer == this.layer) {
             /* Change feature style to indicate selection */
-            feat.setStyle(magic.modules.VectorStyles["bas_field_party"](12));
+            feat.setProperties({
+                highlighted: true
+            });
+            feat.setStyle(magic.modules.VectorStyles["bas_field_party"]());
             this.confirmOperation(
                 jQuery.proxy(function(result) {
                     if (result) {

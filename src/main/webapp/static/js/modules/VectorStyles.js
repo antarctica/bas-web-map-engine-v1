@@ -197,11 +197,11 @@ magic.modules.VectorStyles = function () {
                 })]);
             });
         },
-        bas_field_party: function(r) {
+        bas_field_party: function() {
+             /* Icon sizes */
+            var ICON_ORDINARY = 4, ICON_LATEST = 6, ICON_HIGHLIGHT = 8;
             return(function() {
-                if (!r) { 
-                    r = 6;
-                }
+                
                 var geomType = this.getGeometry().getType();
                 if (geomType == "LineString") {
                     /* Field party track */
@@ -215,12 +215,14 @@ magic.modules.VectorStyles = function () {
                     ]);
                 } else {
                     /* Point fix */
-                    var props = this.getProperties();                
+                    var props = this.getProperties();  
+                    var latest = props["latest"];
+                    var highlighted = props["highlighted"];
                     var rgba = props["rgba"] || "rgba(255, 0, 0, 1.0)";
                     var rgbaInvisible = rgba.replace("1.0)", "0.0)");
                     return([new ol.style.Style({
                         image: new ol.style.Circle({
-                            radius: r,
+                            radius: highlighted ? ICON_HIGHLIGHT : (latest ? ICON_LATEST : ICON_ORDINARY),
                             fill: new ol.style.Fill({color: rgba}),
                             stroke: new ol.style.Stroke({color: rgba})
                         }),
