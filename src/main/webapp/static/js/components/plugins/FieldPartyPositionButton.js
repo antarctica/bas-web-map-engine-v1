@@ -133,7 +133,7 @@ magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {
             });          
             var feats = fmtGeoJson.readFeatures(data);
             /* Now classify the features by name and fix date */
-            var noDupFeats = [];
+            var noDupFeats = [], trackFeats = [];
             jQuery.each(feats, jQuery.proxy(function(idx, f) {
                 var attrs = f.getProperties();
                 var fname = attrs.sledge;
@@ -156,15 +156,27 @@ magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {
                 var fixes = Object.keys(v);
                 fixes.sort();
                 fixes.reverse();
+                /* Initialise the line track feature */
+                var track = new ol.geom.LineString([], "XY");
                 /* Now have descending order array of fixes */
                 var colourStep = 255/fixes.length;
                 for (var i = 0; i < fixes.length; i++) {
                     var rgba = "rgba(" + parseInt(255 - i*colourStep) + ",0," + parseInt(i*colourStep) + ",1.0)";
-                    v[fixes[i]].setProperties({"rgba": rgba, "__layer": this.layer}, true);
-                    v[fixes[i]].setStyle(magic.modules.VectorStyles["bas_field_party"](6));
+                    var fixFeat = v[fixes[i]];
+                    fixFeat.setProperties({"rgba": rgba, "__layer": this.layer}, true);
+                    fixFeat.setStyle(magic.modules.VectorStyles["bas_field_party"](i == 0 ? 9 : 6));
+                    track.appendCoordinate(fixFeat.getGeometry().getFirstCoordinate());
                 }
+                /* Create track feature and style */
+                var trackFeat = new ol.Feature({
+                    "name": k,
+                    "geometry": track
+                });
+                trackFeat.setStyle(magic.modules.VectorStyles["bas_field_party"]());
+                trackFeats.push(trackFeat);
             }, this));
             this.layer.getSource().clear();
+            this.layer.getSource().addFeatures(trackFeats);
             this.layer.getSource().addFeatures(noDupFeats);
             /* Activate the help button */
             jQuery(".fix-editing-help").popover({
@@ -204,6 +216,9 @@ magic.classes.FieldPartyPositionButton.prototype.onDeactivate = function() {
     magic.runtime.featureinfotool.activate();
     this.target.popover("hide");
     magic.runtime.map.un("singleclick", this.clickToEditHandler, this);
+    this.featureMap = {};    
+    this.formEdited = false;    
+    this.savedState = null;
 };
 
 /**

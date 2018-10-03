@@ -202,28 +202,42 @@ magic.modules.VectorStyles = function () {
                 if (!r) { 
                     r = 6;
                 }
-                var props = this.getProperties();                
-                var rgba = props["rgba"] || "rgba(255, 0, 0, 1.0)";
-                var rgbaInvisible = rgba.replace("1.0)", "0.0)");
-                return([new ol.style.Style({
-                    image: new ol.style.RegularShape({
-                        rotateWithView: true,
-                        rotation: 0,
-                        points: 3,
-                        radius: r,
-                        fill: new ol.style.Fill({color: rgba}),
-                        stroke: new ol.style.Stroke({color: rgba})
-                    }),
-                    text: new ol.style.Text({
-                        font: "Arial",
-                        scale: 1.2,
-                        offsetX: 14,
-                        text: props["sledge"] + ", " + moment(props["fix_date"]).format("DD/MM/YYYY"),
-                        textAlign: "left",
-                        fill: new ol.style.Fill({color: rgbaInvisible}),
-                        stroke: new ol.style.Stroke({color: rgbaInvisible})
-                    })
-                })]);
+                var geomType = this.getGeometry().getType();
+                if (geomType == "LineString") {
+                    /* Field party track */
+                    return([
+                       new ol.style.Style({
+                           stroke: new ol.style.Stroke({
+                               color: "rgba(0, 0, 255, 1.0)",
+                               width: 1.5
+                           })
+                       }) 
+                    ]);
+                } else {
+                    /* Point fix */
+                    var props = this.getProperties();                
+                    var rgba = props["rgba"] || "rgba(255, 0, 0, 1.0)";
+                    var rgbaInvisible = rgba.replace("1.0)", "0.0)");
+                    return([new ol.style.Style({
+                        image: new ol.style.RegularShape({
+                            rotateWithView: true,
+                            rotation: 0,
+                            points: 3,
+                            radius: r,
+                            fill: new ol.style.Fill({color: rgba}),
+                            stroke: new ol.style.Stroke({color: rgba})
+                        }),
+                        text: new ol.style.Text({
+                            font: "Arial",
+                            scale: 1.2,
+                            offsetX: 14,
+                            text: props["sledge"] + ", " + moment(props["fix_date"]).format("DD/MM/YYYY"),
+                            textAlign: "left",
+                            fill: new ol.style.Fill({color: rgbaInvisible}),
+                            stroke: new ol.style.Stroke({color: rgbaInvisible})
+                        })
+                    })]);
+                }
             });
         },
         red_map_pin: function() {
