@@ -51,7 +51,7 @@ public class FieldPartyPosition extends JsonCrudApp {
         setSledge((String) getJsonElement(jo, "sledge", false, ""));
         setSeason((String) getJsonElement(jo, "season", false, "1819"));
         setFix_date(LocalDate.parse((String) getJsonElement(jo, "fix_date", false, "")));
-        setUpdated(LocalDate.parse((String) getJsonElement(jo, "updated", false, "")));
+        setUpdated(LocalDate.now());
         setPeople_count((int) getJsonElement(jo, "people_count", true, 0));
         setUpdater((String) getJsonElement(jo, "updater", false, ""));
         setLat((double) getJsonElement(jo, "lat", false, 0.0));
