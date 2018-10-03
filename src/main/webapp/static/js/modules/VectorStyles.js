@@ -219,10 +219,7 @@ magic.modules.VectorStyles = function () {
                     var rgba = props["rgba"] || "rgba(255, 0, 0, 1.0)";
                     var rgbaInvisible = rgba.replace("1.0)", "0.0)");
                     return([new ol.style.Style({
-                        image: new ol.style.RegularShape({
-                            rotateWithView: false,
-                            rotation: 0,
-                            points: 4,
+                        image: new ol.style.Cicle({
                             radius: r,
                             fill: new ol.style.Fill({color: rgba}),
                             stroke: new ol.style.Stroke({color: rgba})
