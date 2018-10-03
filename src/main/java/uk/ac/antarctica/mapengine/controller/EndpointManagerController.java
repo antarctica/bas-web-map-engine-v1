@@ -98,7 +98,7 @@ public class EndpointManagerController {
     /*---------------------------------------------------------------- Save endpoint data ----------------------------------------------------------------*/
     
     /**
-     * Save a new map view whose data is PUT
+     * Save a new endpoint whose data is POST-ed
      * @param String payload   
      * @throws Exception
      */
@@ -111,7 +111,7 @@ public class EndpointManagerController {
     }
     
     /**
-     * Update an endpoint whose is PUT
+     * Update an endpoint whose data is PUT
      * @param String id
      * @param String payload   
      * @throws Exception

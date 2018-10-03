@@ -8,10 +8,10 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 public class EndpointData extends JsonCrudApp {
-    
+
     private int id;
     private String name;
-	private String url;
+    private String url;
     private String location;
     private boolean low_bandwidth;
     private String coast_layers;
@@ -22,43 +22,42 @@ public class EndpointData extends JsonCrudApp {
     private boolean is_user_service;
     private String url_aliases;
     private String rest_endpoint;
-    
+
     private String tableName;
-    
+
     public EndpointData(String tableName) {
         this.tableName = tableName;
     }
-        
+
     @Override
     public void fromPayload(String payload, String username) {
         JsonElement je = new JsonParser().parse(payload);
         JsonObject jo = je.getAsJsonObject();
-        setId((int)getJsonElement(jo, "id", true, 0, Integer.class));
-        setName((String)getJsonElement(jo, "name", false, "new_endpoint"));        
-        setUrl((String)getJsonElement(jo, "url", false, "http://localhost:8080/geoserver"));        
-        setLocation((String)getJsonElement(jo, "location", false, "cambridge"));           
-        setLow_bandwidth((boolean)getJsonElement(jo, "low_bandwidth", false, false));
-        setCoast_layers((String)getJsonElement(jo, "coast_layers", true, ""));
-        setGraticule_layer((String)getJsonElement(jo, "graticule_layer", true, ""));
-        setProxied_url((String)getJsonElement(jo, "proxied_url", true, ""));
-        setSrs((String)getJsonElement(jo, "srs", false, "EPSG:3031"));    
-        setHas_wfs((boolean)getJsonElement(jo, "has_wfs", false, false));
-        setIs_user_service((boolean)getJsonElement(jo, "is_user_service", false, false));
-        setUrl_aliases((String)getJsonElement(jo, "url_aliases", true, ""));  
-        setRest_endpoint((String)getJsonElement(jo, "rest_endpoint", true, ""));          
+        setId((int) getJsonElement(jo, "id", true, 0, Integer.class));
+        setName((String) getJsonElement(jo, "name", false, "new_endpoint"));
+        setUrl((String) getJsonElement(jo, "url", false, "http://localhost:8080/geoserver"));
+        setLocation((String) getJsonElement(jo, "location", false, "cambridge"));
+        setLow_bandwidth((boolean) getJsonElement(jo, "low_bandwidth", false, false));
+        setCoast_layers((String) getJsonElement(jo, "coast_layers", true, ""));
+        setGraticule_layer((String) getJsonElement(jo, "graticule_layer", true, ""));
+        setProxied_url((String) getJsonElement(jo, "proxied_url", true, ""));
+        setSrs((String) getJsonElement(jo, "srs", false, "EPSG:3031"));
+        setHas_wfs((boolean) getJsonElement(jo, "has_wfs", false, false));
+        setIs_user_service((boolean) getJsonElement(jo, "is_user_service", false, false));
+        setUrl_aliases((String) getJsonElement(jo, "url_aliases", true, ""));
+        setRest_endpoint((String) getJsonElement(jo, "rest_endpoint", true, ""));
     }
-    
+
     @Override
     public String insertSql() {
-        return("INSERT INTO " + getTableName() + " " + 
-            "(name, url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs, has_wfs, is_user_service, url_aliases, rest_endpoint) " + 
-            "VALUES(?,?,?,?,?,?,?,?,?,?,?,?)"
-        );
+        return ("INSERT INTO " + getTableName() + " "
+                + "(name, url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs, has_wfs, is_user_service, url_aliases, rest_endpoint) "
+                + "VALUES(?,?,?,?,?,?,?,?,?,?,?,?)");
     }
 
     @Override
     public Object[] insertArgs() {
-        return(new Object[] {
+        return (new Object[]{
             getName(),
             getUrl(),
             getLocation(),
@@ -70,32 +69,31 @@ public class EndpointData extends JsonCrudApp {
             isHas_wfs(),
             isIs_user_service(),
             getUrl_aliases(),
-            getRest_endpoint()              
+            getRest_endpoint()
         });
     }
 
     @Override
     public String updateSql() {
-        return("UPDATE " + getTableName() + " SET " + 
-            "name=?, " + 
-            "url=?, " +
-            "location=?, " +             
-            "low_bandwidth=?, " +             
-            "coast_layers=?, " + 
-            "graticule_layer=?, " + 
-            "proxied_url=?, " + 
-            "srs=?, " +
-            "has_wfs=?, " +
-            "is_user_service=?, " +
-            "url_aliases=?, " +
-            "rest_endpoint=? " +             
-            "WHERE id=?"
-        );
+        return ("UPDATE " + getTableName() + " SET "
+                + "name=?, "
+                + "url=?, "
+                + "location=?, "
+                + "low_bandwidth=?, "
+                + "coast_layers=?, "
+                + "graticule_layer=?, "
+                + "proxied_url=?, "
+                + "srs=?, "
+                + "has_wfs=?, "
+                + "is_user_service=?, "
+                + "url_aliases=?, "
+                + "rest_endpoint=? "
+                + "WHERE id=?");
     }
 
     @Override
     public Object[] updateArgs(Object id) {
-        return(new Object[] {
+        return (new Object[]{
             getName(),
             getUrl(),
             getLocation(),
@@ -114,21 +112,21 @@ public class EndpointData extends JsonCrudApp {
 
     @Override
     public String deleteSql() {
-        return("DELETE FROM " + getTableName() + " WHERE id=?");
+        return ("DELETE FROM " + getTableName() + " WHERE id=?");
     }
 
     @Override
     public Object[] deleteArgs(Object id) {
-        return(new Object[] {id});
+        return (new Object[]{id});
     }
-    
+
     public int getId() {
         return id;
     }
 
     public void setId(int id) {
         this.id = id;
-    }    
+    }
 
     public String getName() {
         return name;
@@ -233,5 +231,5 @@ public class EndpointData extends JsonCrudApp {
     public void setTableName(String tableName) {
         this.tableName = tableName;
     }
-            
+
 }

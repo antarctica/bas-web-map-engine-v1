@@ -86,6 +86,22 @@ public class UserAuthorities {
         }
         return(false);
     }
+    
+    /**
+     * Does the current user have one of the specified roles?
+     * @param String[] rolenames
+     * @return boolean
+     */
+    public boolean userHasRole(String[] rolenames) {
+        if (rolenames == null || !(rolenames instanceof String[]) || rolenames.length == 0) {
+            return(false);
+        }
+        JsonArray jaRoles = new JsonArray();
+        for (String role : rolenames) {
+            jaRoles.add(new JsonPrimitive(role));
+        }
+        return(userHasRole(jaRoles));
+    }
    
     /**
      * Does the current user have one of the specified roles?

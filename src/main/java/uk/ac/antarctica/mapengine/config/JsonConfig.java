@@ -15,10 +15,10 @@ public class JsonConfig {
     public Gson jsonMapper() {
         return new Gson();
     }
-
+    
     @Bean
     public JsonParser jsonParser() {
         return (new JsonParser());
     }
-
+    
 }
