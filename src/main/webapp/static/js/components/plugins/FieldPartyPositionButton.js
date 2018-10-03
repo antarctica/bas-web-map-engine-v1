@@ -114,16 +114,23 @@ magic.classes.FieldPartyPositionButton.prototype.restoreState = function() {
     }
 };
 
-magic.classes.FieldPartyPositionButton.prototype.onActivate = function() { 
+magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {   
     
-    magic.runtime.featureinfotool.deactivate();
+    magic.runtime.featureinfotool.deactivate();    
     
     /* Detect changes to the form */
     this.formEdited = false;
     jQuery(".field-party-popover-content").find("form :input").change(jQuery.proxy(function() {
         this.formEdited = true;
-    }, this));
+    }, this));    
     
+    this.loadFeatures();
+};
+
+/**
+ * Load up the WFS features
+ */
+magic.classes.FieldPartyPositionButton.prototype.loadFeatures = function() {
     jQuery.ajax({
         url: this.WFS_FETCH,
         method: "GET",
@@ -194,15 +201,7 @@ magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {
             /* Convert the date input field to a datepicker */
             this.initDatepicker("fix-input-fix_date");
             /* Assign the save button handler */
-            jQuery("#fix-save-go").off("click").on("click", jQuery.proxy(function(evt) {
-                var payload = this.getPayload();
-                if (this.validate(payload)) {
-                    this.saveForm();
-                    magic.modules.Common.buttonClickFeedback("fix-save", true, "Ok");
-                } else {
-                    magic.modules.Common.buttonClickFeedback("fix-save", false, "Errors found");
-                }
-            }, this));
+            jQuery("#fix-save-go").off("click").on("click", jQuery.proxy(this.saveForm, this));
             /* Assign the cancel button handler */
             jQuery("#fix-save-cancel").off("click").on("click", jQuery.proxy(this.resetForm, this));
             /* Assign the feature click-to-edit handler */
@@ -242,8 +241,37 @@ magic.classes.FieldPartyPositionButton.prototype.resetForm = function() {
     });    
 };
 
-magic.classes.FieldPartyPositionButton.prototype.saveForm = function() {
-    console.log(this.getPayload());
+/**
+ * Save the form data - NOTE: should eventually use WFS-T rather than same-server database ops - David 2018-10-03
+ */
+magic.classes.FieldPartyPositionButton.prototype.saveForm = function() {    
+    var payload = this.getPayload();
+    console.log(payload);
+    if (this.validate(payload)) {
+        jQuery.ajax({
+            url: magic.config.paths.baseurl + "/fpp/" + (payload.id ? "update/" + payload.id : "save"),
+            method: payload.id ? "PUT" : "POST",
+            processData: false,
+            data: JSON.stringify(payload),
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": jQuery("meta[name='_csrf']").attr("content")
+            },
+            success: jQuery.proxy(function() {
+                magic.modules.Common.resetFormIndicators();
+                this.featureMap = {};   
+                this.formEdited = false;    
+                this.savedState = null;
+                this.loadFeatures();
+                magic.modules.Common.buttonClickFeedback("fix-save", true, "Ok");
+            }, this),
+            error: function() {
+                magic.modules.Common.buttonClickFeedback("fix-save", false, "Errors found");
+            }
+        });        
+    } else {
+        magic.modules.Common.buttonClickFeedback("fix-save", false, "Errors found");
+    }
 };
 
 /**
@@ -282,6 +310,7 @@ magic.classes.FieldPartyPositionButton.prototype.confirmOperation = function(cal
  */
 magic.classes.FieldPartyPositionButton.prototype.getPayload = function() {    
     return({
+        "id": jQuery("#fix-input-id").val(),
         "season": this.computeSeason(),
         "sledge": this.getComboboxValue("fix-input-sledge"),
         "fix_date": this.getDatepickerValue("fix-input-fix_date"),
@@ -298,7 +327,8 @@ magic.classes.FieldPartyPositionButton.prototype.getPayload = function() {
  * Set the form's value to the given JSON object
  * @param {Object} payload
  */
-magic.classes.FieldPartyPositionButton.prototype.setPayload = function(payload) {  
+magic.classes.FieldPartyPositionButton.prototype.setPayload = function(payload) { 
+    jQuery("#fix-input-id").val(payload.id || "");
     this.setComboboxValue("fix-input-sledge", payload.sledge);
     this.setDatepickerValue("fix-input-fix_date", payload.fix_date);
     jQuery("#fix-input-people_count").val(payload.people_count);
