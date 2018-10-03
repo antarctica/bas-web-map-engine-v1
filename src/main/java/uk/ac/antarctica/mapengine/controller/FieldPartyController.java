@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import uk.ac.antarctica.mapengine.config.SessionConfig;
-import uk.ac.antarctica.mapengine.config.UserAuthorities;
 import uk.ac.antarctica.mapengine.exception.SuperUserOnlyException;
 import uk.ac.antarctica.mapengine.model.FieldPartyPosition;
 import uk.ac.antarctica.mapengine.util.PackagingUtils;
@@ -100,8 +99,7 @@ public class FieldPartyController {
      */
     protected ResponseEntity<String> executeOp(HttpServletRequest request, FieldPartyPosition fpp, Integer id) throws SuperUserOnlyException {
         ResponseEntity<String> ret;
-        UserAuthorities ua = userAuthoritiesProvider.getInstance();
-        if (ua.userIsAdmin()) {
+        if (userAuthoritiesProvider.getInstance().userHasRole(env.getProperty("plugins.fpp.editor", "magic").split(","))) {
             try {
                 String msg = "Successfully saved";
                 switch(request.getMethod()) {
