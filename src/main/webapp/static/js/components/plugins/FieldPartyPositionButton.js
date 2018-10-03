@@ -454,7 +454,7 @@ magic.classes.FieldPartyPositionButton.prototype.clickToEditHandler = function(e
         f.setStyle(magic.modules.VectorStyles["bas_field_party"]());                
     });
     magic.runtime.map.forEachFeatureAtPixel(evt.pixel, jQuery.proxy(function(feat, layer) {
-        if (layer == this.layer) {
+        if (layer == this.layer && feat.getGeometry().getType() == "Point") {
             /* Change feature style to indicate selection */
             feat.setProperties({
                 highlighted: true
