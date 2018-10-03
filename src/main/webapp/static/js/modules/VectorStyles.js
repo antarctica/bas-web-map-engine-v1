@@ -222,7 +222,7 @@ magic.modules.VectorStyles = function () {
                         image: new ol.style.RegularShape({
                             rotateWithView: true,
                             rotation: 0,
-                            points: 3,
+                            points: 4,
                             radius: r,
                             fill: new ol.style.Fill({color: rgba}),
                             stroke: new ol.style.Stroke({color: rgba})
