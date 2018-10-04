@@ -23,13 +23,7 @@
                     <a class="navbar-brand" id="apptitle" href="Javascript:void(0)"></a>
                 </div>
                 <!-- Top Menu Items -->
-                <ul class="nav navbar-left top-nav">
-                    <li data-toggle="tooltip" data-placement="bottom" th:each="plugin : ${navplugins}" th:attr="title=${plugin.tooltip}" 
-                        th:unless="${#httpServletRequest.remoteUser} == null and ${plugin.allowed_usage} == 'login'">                        
-                        <a th:attr="id=${plugin.name}" href="JavaScript:void(0)" role="button" data-toggle="popover" data-placement="bottom">
-                            <span th:attr="class='navbar-tool-btn ' + ${plugin.iconclass}"></span><span class="hidden-sm"></span>
-                        </a>
-                    </li>
+                <ul class="nav navbar-left top-nav">                    
                     <li data-toggle="tooltip" data-placement="bottom" title="Search for place-names and locations">
                         <a id="geosearch-tool" href="JavaScript:void(0)" role="button" data-toggle="popover" data-placement="bottom">
                             <span class="navbar-tool-btn fa fa-map-marker"></span><span class="hidden-sm"></span>
@@ -54,6 +48,12 @@
                         <a id="personaldata-tool" href="JavaScript:void(0)" role="button" data-toggle="popover" data-placement="bottom">
                             <span class="navbar-tool-btn fa fa-user"></span><span class="hidden-sm"></span> 
                         </a>                        
+                    </li>
+                    <li data-toggle="tooltip" data-placement="bottom" th:each="plugin : ${navplugins}" th:attr="title=${plugin.tooltip}" 
+                        th:unless="${#httpServletRequest.remoteUser} == null and ${plugin.allowed_usage} == 'login'">                        
+                        <a th:attr="id=${plugin.name}" href="JavaScript:void(0)" role="button" data-toggle="popover" data-placement="bottom">
+                            <span th:attr="class='navbar-tool-btn ' + ${plugin.iconclass}"></span><span class="hidden-sm"></span>
+                        </a>
                     </li>
                     <li data-toggle="tooltip" data-placement="bottom" title="User feedback">
                         <a id="feedback-tool" href="JavaScript:void(0)" role="button" data-toggle="popover" data-placement="bottom">

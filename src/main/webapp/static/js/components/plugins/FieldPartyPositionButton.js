@@ -175,7 +175,7 @@ magic.classes.FieldPartyPositionButton.prototype.loadFeatures = function() {
                     fixFeat.setProperties({
                         "rgba": rgba, 
                         "latest": i == 0, 
-                        "highlighted": false,
+                        "highlighted": false,                        
                         "__layer": this.layer
                     }, true);
                     fixFeat.setStyle(magic.modules.VectorStyles["bas_field_party"]());
@@ -185,6 +185,7 @@ magic.classes.FieldPartyPositionButton.prototype.loadFeatures = function() {
                 var trackFeat = new ol.Feature({
                     "name": k,
                     "palette_index": trackFeats.length,
+                    "_ignoreHovers": true,
                     "geometry": track
                 });
                 trackFeat.setStyle(magic.modules.VectorStyles["bas_field_party"]());
