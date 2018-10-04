@@ -436,29 +436,21 @@ magic.classes.FieldPartyPositionButton.prototype.initSledgeCombobox = function(i
     var cbSelect = jQuery("#" + id);
     if (cbSelect.length > 0) {
         /* The input exists (we must therefore be admin) */
-        cbSelect.empty();
-        var optgroupActive = jQuery('<optgroup>', {
-            label: "Currently active sledges"
-        });
+        cbSelect.empty();        
         cbSelect.append(jQuery('<option>', {value: "", text: ""}));
         /* Active sledges */
         var doneOptions = {};
         for (var j = 0; j < opts.length; j++) {           
-            optgroupActive.append(jQuery('<option>', {value: opts[j], text: opts[j]}));
+            cbSelect.append(jQuery('<option>', {value: opts[j], text: opts[j]}));
             doneOptions[opts[j]] = true;
         }
-        cbSelect.append(optgroupActive);
-        /* Others from the phonetic alphabet */
-        var optgroupInactive = jQuery('<optgroup>', {
-            label: "Currently non-active sledges"
-        });
+        /* Others from the phonetic alphabet */        
         for (var i = 0; i < this.PHONETIC_ALPHABET.length; i++) {
             var designator = this.PHONETIC_ALPHABET[i];
             if (doneOptions[designator] !== true) {
-                optgroupInactive.append(jQuery('<option>', {value: designator, text: designator}));
+                cbSelect.append(jQuery('<option>', {value: designator, text: designator}));
             }
         }
-        cbSelect.append(optgroupInactive);
         if (!cbSelect.hasClass("combobox")) {
             /* The input has not been converted */
             cbSelect.addClass("combobox");
@@ -470,6 +462,19 @@ magic.classes.FieldPartyPositionButton.prototype.initSledgeCombobox = function(i
             cbInput.attr("data-toggle", "tooltip");
             cbInput.attr("data-placement", "right");
             cbInput.attr("title", cbSelect.attr("title"));
+            /* Change backgrounds for list elements to indicate active/inactive */
+            jQuery("ul.typeahead").find('li[data-value != ""]').each(function(idx, elt) {
+                var designator = jQuery(elt).data("value");
+                if (designator != "") {
+                    if (doneOptions[designator] === true) {
+                        /* Active sledge */
+                        jQuery(elt).css("background-color", "#DFF0D8");
+                    } else {
+                        /* Yet to be activated one */
+                        jQuery(elt).css("background-color", "#F2DEDE");
+                    }
+                }
+            });
         }        
     }    
 };
