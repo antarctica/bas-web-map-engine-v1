@@ -455,7 +455,11 @@ magic.classes.FieldPartyPositionButton.prototype.initSledgeCombobox = function(i
             /* The input has not been converted */
             cbSelect.addClass("combobox");
             cbSelect.combobox({
-                appendId: "-input"
+                appendId: "-input",
+                highlighter: function(item) {
+                    var designator = jQuery(item).data("value");
+                    jQuery(item).css("background-color", doneOptions[designator] === true ? "#DFF0D8" : "#F2DEDE");
+                }
             });
             var cbInput = jQuery("#" + id + "-input");
             cbInput.attr("required", cbSelect.attr("required"));
