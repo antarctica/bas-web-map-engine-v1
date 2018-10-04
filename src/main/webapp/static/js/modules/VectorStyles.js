@@ -199,9 +199,9 @@ magic.modules.VectorStyles = function () {
         },
         bas_field_party: function() {
              /* Icon sizes */
-            var ICON_ORDINARY = 4, ICON_LATEST = 6, ICON_HIGHLIGHT = 8;
-            var props = this.getProperties();
+            var ICON_ORDINARY = 4, ICON_LATEST = 6, ICON_HIGHLIGHT = 8;            
             return(function() {                
+                var props = this.getProperties();
                 var geomType = this.getGeometry().getType();
                 if (geomType == "LineString") {
                     /* Field party track */
@@ -216,7 +216,8 @@ magic.modules.VectorStyles = function () {
                     /* Choose distinct line colour from palette */
                     return(magic.modules.Common.fetchStyle(geomType, props["palette_index"] || 0, false));
                 } else {
-                    /* Point fix */                      
+                    /* Point fix */               
+                    var props = this.getProperties();
                     var latest = props["latest"];
                     var highlighted = props["highlighted"];
                     var rgba = props["rgba"] || "rgba(255, 0, 0, 1.0)";
