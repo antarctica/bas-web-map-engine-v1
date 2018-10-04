@@ -45,6 +45,7 @@ public class FieldPartyPosition extends JsonCrudApp {
     
     @Override
     public void fromPayload(String payload, String username) {
+        //TODO - casts
         JsonElement je = new JsonParser().parse(payload);
         JsonObject jo = je.getAsJsonObject();
         setId((int) getJsonElement(jo, "id", true, 0, Integer.class));
@@ -52,11 +53,11 @@ public class FieldPartyPosition extends JsonCrudApp {
         setSeason((String) getJsonElement(jo, "season", false, "1819"));
         setFix_date(LocalDate.parse((String) getJsonElement(jo, "fix_date", false, "")));
         setUpdated(LocalDate.now());
-        setPeople_count((int) getJsonElement(jo, "people_count", true, 0));
+        setPeople_count((int) getJsonElement(jo, "people_count", true, 0, Integer.class));
         setUpdater((String) getJsonElement(jo, "updater", false, ""));
-        setLat((double) getJsonElement(jo, "lat", false, 0.0));
-        setLon((double) getJsonElement(jo, "lon", false, 0.0));
-        setHeight((double) getJsonElement(jo, "height", true, 0.0));
+        setLat((double) getJsonElement(jo, "lat", false, 0.0, Double.class));
+        setLon((double) getJsonElement(jo, "lon", false, 0.0, Double.class));
+        setHeight((double) getJsonElement(jo, "height", true, 0.0, Double.class));
         setNotes((String) getJsonElement(jo, "notes", true, ""));        
     }
 

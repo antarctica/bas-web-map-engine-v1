@@ -200,12 +200,21 @@ public class OgcServicesController {
                 /* Output 256x256 transparent PNG image informing user of restricted access */
                 mimeType = "image/png";
                 String[] annotations;
-                if (rde.getMessage().startsWith("Error:")) {                    
-                    annotations = new String[] {
-                        "Error status " + rde.getMessage().substring(rde.getMessage().indexOf(":")+1),
-                        "fetching " + getQueryParameter(params, "layers"),
-                        "is server down?"
-                    };
+                float bgTransp = 0.5f, textTransp = 1.0f;                
+                if (rde.getMessage().startsWith("Error:")) {
+                    /* Decided 2018-10-04 to simply output a completely transparent tile rather than report this error - there were a lot of them 
+                     * occurring, possibly as a result of load balancer errors, server glitches etc */
+                    bgTransp = textTransp = 0.0f;
+                    annotations = new String[] {};
+//                        "Error status " + rde.getMessage().substring(rde.getMessage().indexOf(":")+1),
+//                        "fetching " + getQueryParameter(params, "layers"),
+//                        "is server down?"
+//                    };
+                    System.out.println(
+                            "Error status " + rde.getMessage().substring(rde.getMessage().indexOf(":")+1) + " " + 
+                            "fetching " + getQueryParameter(params, "layers") + ". " + 
+                            "Is server down?"
+                    );
                 } else {
                     annotations = new String[] {
                         "Layer " + getQueryParameter(params, "layers"),
@@ -215,10 +224,10 @@ public class OgcServicesController {
                 }
                 BufferedImage bi = new BufferedImage(256, 256, BufferedImage.TRANSLUCENT);
                 Graphics g = bi.getGraphics();
-                g.setColor(new Color(1f, 1f, 1f, 0.5f));
+                g.setColor(new Color(1f, 1f, 1f, bgTransp));
                 g.fillRect(0, 0, 256, 256);
                 g.setFont(new Font("Arial", Font.PLAIN, 14));
-                g.setColor(new Color(1f, 0f, 0f, 1.0f));
+                g.setColor(new Color(1f, 0f, 0f, textTransp));
                 FontMetrics fm = g.getFontMetrics();
                 int y = 100;
                 for (String a : annotations) {

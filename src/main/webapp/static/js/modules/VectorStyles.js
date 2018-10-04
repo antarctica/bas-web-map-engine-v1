@@ -200,22 +200,23 @@ magic.modules.VectorStyles = function () {
         bas_field_party: function() {
              /* Icon sizes */
             var ICON_ORDINARY = 4, ICON_LATEST = 6, ICON_HIGHLIGHT = 8;
-            return(function() {
-                
+            var props = this.getProperties();
+            return(function() {                
                 var geomType = this.getGeometry().getType();
                 if (geomType == "LineString") {
                     /* Field party track */
-                    return([
-                       new ol.style.Style({
-                           stroke: new ol.style.Stroke({
-                               color: "rgba(0, 0, 255, 1.0)",
-                               width: 1.5
-                           })
-                       }) 
-                    ]);
+//                    return([
+//                       new ol.style.Style({
+//                           stroke: new ol.style.Stroke({
+//                               color: "rgba(0, 0, 255, 1.0)",
+//                               width: 1.5
+//                           })
+//                       }) 
+//                    ]);
+                    /* Choose distinct line colour from palette */
+                    return(magic.modules.Common.fetchStyle(geomType, props["palette_index"] || 0, false));
                 } else {
-                    /* Point fix */
-                    var props = this.getProperties();  
+                    /* Point fix */                      
                     var latest = props["latest"];
                     var highlighted = props["highlighted"];
                     var rgba = props["rgba"] || "rgba(255, 0, 0, 1.0)";

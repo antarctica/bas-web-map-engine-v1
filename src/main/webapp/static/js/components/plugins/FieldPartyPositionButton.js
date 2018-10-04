@@ -141,6 +141,7 @@ magic.classes.FieldPartyPositionButton.prototype.loadFeatures = function() {
             var feats = fmtGeoJson.readFeatures(data);
             /* Now classify the features by name and fix date */
             var noDupFeats = [], trackFeats = [];
+            console.log("Read " + feats.length + " features");
             jQuery.each(feats, jQuery.proxy(function(idx, f) {
                 var attrs = f.getProperties();
                 var fname = attrs.sledge;
@@ -159,6 +160,7 @@ magic.classes.FieldPartyPositionButton.prototype.loadFeatures = function() {
                 }
             }, this));
             /* Now write styling hints into the feature attributes */
+            console.log(noDupFeats.length + " features are non-duplicates");
             jQuery.each(this.featureMap, jQuery.proxy(function(k, v) {               
                 var fixes = Object.keys(v);
                 fixes.sort();
@@ -182,6 +184,7 @@ magic.classes.FieldPartyPositionButton.prototype.loadFeatures = function() {
                 /* Create track feature and style */
                 var trackFeat = new ol.Feature({
                     "name": k,
+                    "palette_index": trackFeats.length,
                     "geometry": track
                 });
                 trackFeat.setStyle(magic.modules.VectorStyles["bas_field_party"]());
