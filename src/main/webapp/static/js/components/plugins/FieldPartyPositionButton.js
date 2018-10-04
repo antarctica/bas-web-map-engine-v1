@@ -131,6 +131,13 @@ magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {
  * Load up the WFS features
  */
 magic.classes.FieldPartyPositionButton.prototype.loadFeatures = function() {
+    
+    jQuery(".field-party-popover-content").find("form")[0].reset();
+    magic.modules.Common.resetFormIndicators();
+    this.featureMap = {};   
+    this.formEdited = false;    
+    this.savedState = null;
+                
     jQuery.ajax({
         url: this.WFS_FETCH,
         method: "GET",
@@ -201,13 +208,15 @@ magic.classes.FieldPartyPositionButton.prototype.loadFeatures = function() {
                 content: "You can add, edit and remove positional fixes.  All red labelled fields are required. Edit an existing fix by clicking on the relevant icon on the map"
             });
             /* Convert the sledge input field to combobox */
-            this.initCombobox("fix-input-sledge", Object.keys(this.featureMap).sort());
+            this.initSledgeCombobox("fix-input-sledge", Object.keys(this.featureMap).sort());
             /* Convert the date input field to a datepicker */
-            this.initDatepicker("fix-input-fix_date");
+            this.initDatepicker("fix-input-fix_date");            
+            /* Assign the new button handler */
+            jQuery("#fix-new").off("click").on("click", jQuery.proxy(this.resetForm, this));
             /* Assign the save button handler */
-            jQuery("#fix-save-go").off("click").on("click", jQuery.proxy(this.saveForm, this));
-            /* Assign the cancel button handler */
-            jQuery("#fix-save-cancel").off("click").on("click", jQuery.proxy(this.resetForm, this));
+            jQuery("#fix-save-go").off("click").on("click", jQuery.proxy(this.saveForm, this));            
+            /* Assign the delete button handler */
+            jQuery("#fix-delete-go").off("click").on("click", jQuery.proxy(this.deleteFix, this));
             /* Assign the feature click-to-edit handler */
             magic.runtime.map.un("singleclick", this.clickToEditHandler, this);
             magic.runtime.map.on("singleclick", this.clickToEditHandler, this);
@@ -246,6 +255,42 @@ magic.classes.FieldPartyPositionButton.prototype.resetForm = function() {
 };
 
 /**
+ * Delete a positional fix
+ */
+magic.classes.FieldPartyPositionButton.prototype.deleteFix = function() {  
+    var delId = jQuery("#fix-input-id").val();
+    if (!isNaN(parseInt(delId))) {
+        /* Identifier is plausible */
+        this.confirmOperation(jQuery.proxy(function (result) {
+            if (result) {                
+                jQuery.ajax({
+                    url: magic.config.paths.baseurl + "/fpp/delete/" + delId,
+                    method: "DELETE",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": jQuery("meta[name='_csrf']").attr("content")              
+                    },
+                    success: jQuery.proxy(function() {
+                        jQuery(".field-party-popover-content").find("form")[0].reset();
+                        this.loadFeatures();
+                    }, this),
+                    error: function(xhr) {
+                        var errmsg = "Failed to delete fix - no further information available";
+                        try {
+                            var resp = JSON.parse(xhr.responseText);
+                            errmsg = "Status " + resp.status + " deleting fix - details : " + resp.detail;
+                        } catch (e) {}
+                        magic.modules.Common.buttonClickFeedback("fix-delete", false, errmsg);
+                    }
+                });                            
+            }                  
+            this.formEdited = false;
+        }, this), function() {
+        });            
+    }    
+};
+
+/**
  * Save the form data - NOTE: should eventually use WFS-T rather than same-server database ops - David 2018-10-03
  */
 magic.classes.FieldPartyPositionButton.prototype.saveForm = function() {    
@@ -261,16 +306,17 @@ magic.classes.FieldPartyPositionButton.prototype.saveForm = function() {
                 "Content-Type": "application/json",
                 "X-CSRF-TOKEN": jQuery("meta[name='_csrf']").attr("content")
             },
-            success: jQuery.proxy(function() {
-                magic.modules.Common.resetFormIndicators();
-                this.featureMap = {};   
-                this.formEdited = false;    
-                this.savedState = null;
+            success: jQuery.proxy(function() {                
                 this.loadFeatures();
                 magic.modules.Common.buttonClickFeedback("fix-save", true, "Ok");
             }, this),
-            error: function() {
-                magic.modules.Common.buttonClickFeedback("fix-save", false, "Errors found");
+            error: function(xhr) {
+                var errmsg = "Failed to save edits - no further information available";
+                try {
+                    var resp = JSON.parse(xhr.responseText);
+                    errmsg = "Status " + resp.status + " saving edits - details : " + resp.detail;
+                } catch (e) {}
+                magic.modules.Common.buttonClickFeedback("fix-save", false, errmsg);
             }
         });        
     } else {
@@ -386,15 +432,33 @@ magic.classes.FieldPartyPositionButton.prototype.validate = function(payload) {
  * @param {String} id
  * @param {Object} opts
  */
-magic.classes.FieldPartyPositionButton.prototype.initCombobox = function(id, opts) {
+magic.classes.FieldPartyPositionButton.prototype.initSledgeCombobox = function(id, opts) {
     var cbSelect = jQuery("#" + id);
     if (cbSelect.length > 0) {
         /* The input exists (we must therefore be admin) */
         cbSelect.empty();
+        var optgroupActive = jQuery('<optgroup>', {
+            label: "Currently active sledges"
+        });
         cbSelect.append(jQuery('<option>', {value: "", text: ""}));
+        /* Active sledges */
+        var doneOptions = {};
         for (var j = 0; j < opts.length; j++) {           
-            cbSelect.append(jQuery('<option>', {value: opts[j], text: opts[j]}));
+            optgroupActive.append(jQuery('<option>', {value: opts[j], text: opts[j]}));
+            doneOptions[opts[j]] = true;
         }
+        cbSelect.append(optgroupActive);
+        /* Others from the phonetic alphabet */
+        var optgroupInactive = jQuery('<optgroup>', {
+            label: "Currently non-active sledges"
+        });
+        for (var i = 0; i < this.PHONETIC_ALPHABET.length; i++) {
+            var designator = this.PHONETIC_ALPHABET[i];
+            if (doneOptions[designator] !== true) {
+                optgroupInactive.append(jQuery('<option>', {value: designator, text: designator}));
+            }
+        }
+        cbSelect.append(optgroupInactive);
         if (!cbSelect.hasClass("combobox")) {
             /* The input has not been converted */
             cbSelect.addClass("combobox");

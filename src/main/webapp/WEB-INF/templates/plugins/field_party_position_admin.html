@@ -83,7 +83,7 @@
 <div class="btn-toolbar col-sm-10" role="toolbar" style="margin-bottom:10px">       
     <div class="btn-group btn-group-sm"> 
         <button id="fix-save-go" class="btn btn-primary btn-sm" type="button"  
-            data-toggle="tooltip" data-trigger="hover" data-placement="top" title="Save the current data"> 
+            data-toggle="tooltip" data-trigger="hover" data-placement="top" title="Save the current positional fix data"> 
             <span class="fa fa-floppy-o"></span> Save 
         </button>
     </div> 
@@ -100,11 +100,29 @@
         </button> 
     </div> 
     <div class="btn-group btn-group-sm"> 
-        <button id="fix-save-cancel" class="btn btn-danger btn-sm" type="button"  
-            data-toggle="tooltip" data-trigger="hover" data-placement="top" title="Cancel"> 
-            <span class="fa fa-times-circle"></span> Clear 
+        <button id="fix-new" class="btn btn-primary btn-sm" type="button"  
+            data-toggle="tooltip" data-trigger="hover" data-placement="top" title="Cancel current data entry and clear the form (use to create a new fix)"> 
+            <span class="fa fa-star-o"></span> New 
         </button>      
     </div>
+    <div class="btn-group btn-group-sm"> 
+        <button id="fix-delete-go" class="btn btn-danger btn-sm" type="button"  
+            data-toggle="tooltip" data-trigger="hover" data-placement="top" title="Delete this positional fix"> 
+            <span class="fa fa-trash-o"></span> Delete 
+        </button>      
+    </div>
+    <div class="btn-group btn-group-sm">
+        <button id="fix-delete-fb-ok" class="btn btn-success btn-sm" style="display:none" type="button"  
+            data-toggle="tooltip" data-trigger="hover" data-placement="top" title="Ok"> 
+            <span class="fa fa-check"></span> Ok 
+        </button>
+    </div> 
+    <div class="btn-group btn-group-sm">
+        <button id="fix-delete-fb-error" class="btn btn-danger btn-sm" style="display:none" type="button"  
+            data-toggle="tooltip" data-trigger="hover" data-placement="top" title="Error"> 
+            <span class="fa fa-times-circle"></span> Error 
+        </button> 
+    </div> 
 </div>
 <div class="col-sm-2">
     <a role="button" tabindex="0" href="JavaScript:void(0)" style="font-size:24px; text-decoration:none"  class="fix-editing-help">
