@@ -456,9 +456,8 @@ magic.classes.FieldPartyPositionButton.prototype.initSledgeCombobox = function(i
             cbSelect.addClass("combobox");
             cbSelect.combobox({
                 appendId: "-input",
-                highlighter: function(item) {
-                    var designator = jQuery(item).data("value");
-                    jQuery(item).css("background-color", doneOptions[designator] === true ? "#DFF0D8" : "#F2DEDE");
+                highlighter: function(item) {                    
+                    jQuery("li[data-value='" + item + "']").css("background-color", doneOptions[item] === true ? "#DFF0D8" : "#F2DEDE");
                 }
             });
             var cbInput = jQuery("#" + id + "-input");
