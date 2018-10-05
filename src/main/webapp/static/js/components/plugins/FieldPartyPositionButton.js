@@ -133,7 +133,9 @@ magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {
  */
 magic.classes.FieldPartyPositionButton.prototype.loadFeatures = function() {
     
-    jQuery(".field-party-popover-content").find("form")[0].reset();
+    var form = jQuery(".field-party-popover-content").find("form");
+    form[0].reset();
+    form.find("input:hidden").val("");
     this.setButtonStates("disable", "enable", "disable");
     magic.modules.Common.resetFormIndicators();
     this.featureMap = {};   
@@ -251,16 +253,20 @@ magic.classes.FieldPartyPositionButton.prototype.resetForm = function(evt) {
     /* Get rid of tooltips before using the feedback animation */
     jQuery(evt.currentTarget).tooltip("hide");
     
+    var form = jQuery(".field-party-popover-content").find("form");
+    
     magic.modules.Common.resetFormIndicators();
     this.setButtonStates("disable", "enable", "disable");
     this.confirmOperation(jQuery.proxy(function (result) {
         if (result) {                
             this.saveForm();                    
         }      
-        jQuery(".field-party-popover-content").find("form")[0].reset();
+        form[0].reset();
+        form.find("input:hidden").val("");
         this.formEdited = false;
     }, this), function() {
-        jQuery(".field-party-popover-content").find("form")[0].reset();
+        form[0].reset();
+        form.find("input:hidden").val("");
     });    
 };
 
@@ -285,7 +291,6 @@ magic.classes.FieldPartyPositionButton.prototype.deleteFix = function(evt) {
                         "X-CSRF-TOKEN": jQuery("meta[name='_csrf']").attr("content")              
                     },
                     success: jQuery.proxy(function() {
-                        jQuery(".field-party-popover-content").find("form")[0].reset();
                         this.loadFeatures();
                         magic.modules.Common.buttonClickFeedback("fix-delete", true, "Ok");
                         this.resetForm();
