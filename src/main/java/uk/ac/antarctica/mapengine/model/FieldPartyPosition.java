@@ -9,8 +9,6 @@ import com.google.gson.JsonParser;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
@@ -55,7 +53,7 @@ public class FieldPartyPosition extends JsonCrudApp {
         setSledge((String) getJsonElement(jo, "sledge", false, ""));
         setSeason((String) getJsonElement(jo, "season", false, "1819"));
         try {
-            setFix_date(new SimpleDateFormat("YYYY-MM-DD HH:mm:ss").parse((String) getJsonElement(jo, "fix_date", false, "")));
+            setFix_date(new SimpleDateFormat("yyyy-MM-dd").parse((String) getJsonElement(jo, "fix_date", false, "")));
         } catch (ParseException ex) {
             setFix_date(new Date());
         }
