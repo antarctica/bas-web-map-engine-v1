@@ -57,7 +57,7 @@ public class FieldPartyController {
      * @param String payload   
      * @throws Exception
      */
-    @RequestMapping(value = "/fpp/save", method = RequestMethod.PUT, headers = {"Content-type=application/json"})
+    @RequestMapping(value = "/fpp/save", method = RequestMethod.POST, headers = {"Content-type=application/json"})
     public ResponseEntity<String> savePositionFix(HttpServletRequest request,
         @RequestBody String payload) throws Exception {        
         FieldPartyPosition fpp = new FieldPartyPosition(env.getProperty("plugins.fpp.tablename"));
