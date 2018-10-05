@@ -38,7 +38,7 @@ public class UserMapData extends AbstractMapData {
         return(
             "INSERT INTO " + getTableName() + " " + 
             "(name, title, description, creation_date, modified_date, owner_name, owner_email, allowed_usage, allowed_edit, basemap, data) " + 
-            "VALUES(?,?,?, current_timestamp,current_timestamp,?,?,?,?,?,?)"
+            "VALUES(?,?,?,current_timestamp,current_timestamp,?,?,?,?,?,?)"
         );
     }
     

@@ -6,7 +6,11 @@ package uk.ac.antarctica.mapengine.model;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import java.time.LocalDate;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
@@ -24,8 +28,8 @@ public class FieldPartyPosition extends JsonCrudApp {
     @Pattern(regexp = "[0-9]{4}")
     private String season;
     @NotNull
-    private LocalDate fix_date;
-    private LocalDate updated;
+    private Date fix_date;
+    private Date updated;
     private int people_count;
     @NotEmpty
     @Size(min = 1, max = 10)
@@ -45,14 +49,16 @@ public class FieldPartyPosition extends JsonCrudApp {
     
     @Override
     public void fromPayload(String payload, String username) {
-        //TODO - casts
         JsonElement je = new JsonParser().parse(payload);
         JsonObject jo = je.getAsJsonObject();
         setId((int) getJsonElement(jo, "id", false, 0, Integer.class));
         setSledge((String) getJsonElement(jo, "sledge", false, ""));
         setSeason((String) getJsonElement(jo, "season", false, "1819"));
-        setFix_date(LocalDate.parse((String) getJsonElement(jo, "fix_date", false, "")));
-        setUpdated(LocalDate.now());
+        try {
+            setFix_date(new SimpleDateFormat("YYYY-MM-DD HH:mm:ss").parse((String) getJsonElement(jo, "fix_date", false, "")));
+        } catch (ParseException ex) {
+            setFix_date(new Date());
+        }
         setPeople_count((int) getJsonElement(jo, "people_count", true, 0, Integer.class));
         setUpdater((String) getJsonElement(jo, "updater", false, ""));
         setLat((double) getJsonElement(jo, "lat", false, 0.0, Double.class));
@@ -65,7 +71,7 @@ public class FieldPartyPosition extends JsonCrudApp {
     public String insertSql() {
         return ("INSERT INTO " + getTableName() + " "
                 + "(sledge, season, fix_date, updated, people_count, updater, lat, lon, height, notes) "
-                + "VALUES(?,?,?,?,?,?,?,?,?,?)");
+                + "VALUES(?,?,?,current_timestamp,?,?,?,?,?,?)");
     }
 
     @Override
@@ -74,7 +80,6 @@ public class FieldPartyPosition extends JsonCrudApp {
             getSledge(),
             getSeason(),
             getFix_date(),
-            getUpdated(),
             getPeople_count(),
             getUpdater(),
             getLat(),
@@ -90,7 +95,7 @@ public class FieldPartyPosition extends JsonCrudApp {
                 + "sledge=?, "
                 + "season=?, "
                 + "fix_date=?, "
-                + "updated=?, "
+                + "updated=current_timestamp, "
                 + "people_count=?, "
                 + "updater=?, "
                 + "lat=?, "
@@ -106,7 +111,6 @@ public class FieldPartyPosition extends JsonCrudApp {
             getSledge(),
             getSeason(),
             getFix_date(),
-            getUpdated(),
             getPeople_count(),
             getUpdater(),
             getLat(),
@@ -151,19 +155,19 @@ public class FieldPartyPosition extends JsonCrudApp {
         this.season = season;
     }
 
-    public LocalDate getFix_date() {
+    public Date getFix_date() {
         return fix_date;
     }
 
-    public void setFix_date(LocalDate fix_date) {
+    public void setFix_date(Date fix_date) {
         this.fix_date = fix_date;
     }
 
-    public LocalDate getUpdated() {
+    public Date getUpdated() {
         return updated;
     }
 
-    public void setUpdated(LocalDate updated) {
+    public void setUpdated(Date updated) {
         this.updated = updated;
     }
 
