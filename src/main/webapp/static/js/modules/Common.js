@@ -2,7 +2,7 @@
 
 magic.modules.Common = function () {
 
-    return({       
+    return({
         /* Taken from OL2 Util.js */
         inches_per_unit: {
             "ins": 1.0,
@@ -19,23 +19,23 @@ magic.modules.Common = function () {
             "Point": {
                 image: "circle",
                 radius: 5,
-                fill: "rgba(255,255,0,0.5)",                               
-                stroke: "#ff0",                        
-                width: 1                
+                fill: "rgba(255,255,0,0.5)",
+                stroke: "#ff0",
+                width: 1
             },
             "LineString": {
                 stroke: "#f00",
                 width: 3
             },
             "Polygon": {
-                fill: "rgba(0,255,255,0.5)",                
+                fill: "rgba(0,255,255,0.5)",
                 stroke: "#0ff",
-                width: 1                
+                width: 1
             },
             "MultiPoint": {
                 image: "circle",
                 radius: 5,
-                fill: "rgba(255,0,255,0.5)",                                 
+                fill: "rgba(255,0,255,0.5)",
                 stroke: "#f0f",
                 width: 1
             },
@@ -52,20 +52,20 @@ magic.modules.Common = function () {
         /* Colour palette for distinctive styling of drag/drop layers 
          * Based on https://en.wikipedia.org/wiki/List_of_software_palettes#Apple_Macintosh_default_16-color_palette 
          * leaving out white and light grey for obvious reasons */
-        color_palette: [            
-            "#FF6403",  /* orange */
-            "#800000",  /* dark red */
-            "#DD0907",  /* red */
-            "#F20884",  /* magenta */
-            "#4700A5",  /* purple */
-            "#0000D3",  /* blue */
-            "#02ABEA",  /* cyan */
-            "#1FB714",  /* green */
-            "#006412",  /* dark green */
-            "#562C05",  /* brown */
-            "#90713A",  /* tan */
-            "#808080",  /* medium grey */
-            "#404040",  /* dark grey */
+        color_palette: [
+            "#FF6403", /* orange */
+            "#800000", /* dark red */
+            "#DD0907", /* red */
+            "#F20884", /* magenta */
+            "#4700A5", /* purple */
+            "#0000D3", /* blue */
+            "#02ABEA", /* cyan */
+            "#1FB714", /* green */
+            "#006412", /* dark green */
+            "#562C05", /* brown */
+            "#90713A", /* tan */
+            "#808080", /* medium grey */
+            "#404040", /* dark grey */
             "#000000"   /* black */
         ],
         /**
@@ -74,13 +74,13 @@ magic.modules.Common = function () {
          * @param {string} rgb
          * @returns {string}
          */
-        rgbToDec: function(rgb, opacity) {
+        rgbToDec: function (rgb, opacity) {
             rgb = rgb || "#000000";
             opacity = jQuery.isNumeric(opacity) ? opacity : 1.0;
             rgb = eval("0x" + rgb.replace(/#/, ""));
             var components = {
-                r: (rgb & 0xff0000) >> 16, 
-                g: (rgb & 0x00ff00) >> 8, 
+                r: (rgb & 0xff0000) >> 16,
+                g: (rgb & 0x00ff00) >> 8,
                 b: (rgb & 0x0000ff)
             };
             return("rgba(" + components.r + "," + components.g + "," + components.b + "," + opacity + ")");
@@ -90,14 +90,14 @@ magic.modules.Common = function () {
          * http://stackoverflow.com/questions/5685589/scroll-to-element-only-if-not-in-view-jquery
          * @param {object} target
          */
-        scrollViewportToElement: function(target) {
+        scrollViewportToElement: function (target) {
             var rect = target.getBoundingClientRect();
             if (rect.bottom > window.innerHeight) {
                 target.scrollIntoView(false);
             }
             if (rect.top < 0) {
                 target.scrollIntoView();
-            } 
+            }
         },
         /**
          * Create a set of buttons suitable for giving feedback on a POST/PUT/DELETE operation
@@ -108,7 +108,7 @@ magic.modules.Common = function () {
          * @param {boolean} cancel 
          * @returns {String}
          */
-        buttonFeedbackSet: function(btnBaseId, msg, size, btnCaption, cancel) {
+        buttonFeedbackSet: function (btnBaseId, msg, size, btnCaption, cancel) {
             if (!size) {
                 size = "sm";
             }
@@ -116,34 +116,34 @@ magic.modules.Common = function () {
                 btnCaption = "Save";
             }
             return(
-                '<div class="btn-toolbar col-' + size + '-12" role="toolbar" style="margin-bottom:10px">' +
-                    '<div class="btn-group btn-group-' + size + '">' + 
-                        '<button id="' + btnBaseId + '-go" class="btn btn-' + size + ' btn-primary" type="button" ' + 
-                            'data-toggle="tooltip" data-trigger="hover" data-placement="top" title="' + msg + '">' + 
-                            '<span class="fa fa-floppy-o"></span> ' + btnCaption + 
-                        '</button>' +
-                    '</div>' + 
+                    '<div class="btn-toolbar col-' + size + '-12" role="toolbar" style="margin-bottom:10px">' +
                     '<div class="btn-group btn-group-' + size + '">' +
-                        '<button id="' + btnBaseId + '-fb-ok" class="btn btn-' + size + ' btn-success" style="display:none" type="button" ' + 
-                            'data-toggle="tooltip" data-trigger="hover" data-placement="top" title="Ok">' + 
-                            '<span class="fa fa-check post-ok"></span> Ok' + 
-                        '</button>' +
-                    '</div>' + 
+                    '<button id="' + btnBaseId + '-go" class="btn btn-' + size + ' btn-primary" type="button" ' +
+                    'data-toggle="tooltip" data-trigger="hover" data-placement="top" title="' + msg + '">' +
+                    '<span class="fa fa-floppy-o"></span> ' + btnCaption +
+                    '</button>' +
+                    '</div>' +
                     '<div class="btn-group btn-group-' + size + '">' +
-                        '<button id="' + btnBaseId + '-fb-error" class="btn btn-' + size + ' btn-danger" style="display:none" type="button" ' + 
-                            'data-toggle="tooltip" data-trigger="hover" data-placement="top" title="Error">' + 
-                            '<span class="fa fa-times-circle post-error"></span> Error' + 
-                        '</button>' + 
-                    '</div>' + 
+                    '<button id="' + btnBaseId + '-fb-ok" class="btn btn-' + size + ' btn-success" style="display:none" type="button" ' +
+                    'data-toggle="tooltip" data-trigger="hover" data-placement="top" title="Ok">' +
+                    '<span class="fa fa-check post-ok"></span> Ok' +
+                    '</button>' +
+                    '</div>' +
+                    '<div class="btn-group btn-group-' + size + '">' +
+                    '<button id="' + btnBaseId + '-fb-error" class="btn btn-' + size + ' btn-danger" style="display:none" type="button" ' +
+                    'data-toggle="tooltip" data-trigger="hover" data-placement="top" title="Error">' +
+                    '<span class="fa fa-times-circle post-error"></span> Error' +
+                    '</button>' +
+                    '</div>' +
                     (cancel === true ?
-                    '<div class="btn-group btn-group-' + size + '">' + 
-                        '<button id="' + btnBaseId + '-cancel" class="btn btn-' + size + ' btn-danger" type="button" ' + 
-                            'data-toggle="tooltip" data-trigger="hover" data-placement="right" title="Cancel">' + 
-                            '<span class="fa fa-times-circle"></span> Cancel' + 
-                        '</button>' +      
-                    '</div>' : '') + 
-                '</div>'
-            );
+                            '<div class="btn-group btn-group-' + size + '">' +
+                            '<button id="' + btnBaseId + '-cancel" class="btn btn-' + size + ' btn-danger" type="button" ' +
+                            'data-toggle="tooltip" data-trigger="hover" data-placement="right" title="Cancel">' +
+                            '<span class="fa fa-times-circle"></span> Cancel' +
+                            '</button>' +
+                            '</div>' : '') +
+                    '</div>'
+                    );
         },
         /**
          * Give success/failure feedback by animating a button set
@@ -152,24 +152,28 @@ magic.modules.Common = function () {
          * @param {boolean} success 
          * @param {string} msg      
          */
-        buttonClickFeedback: function(btnBaseId, success, msg) {
+        buttonClickFeedback: function (btnBaseId, success, msg) {
             var btnGo = jQuery("#" + btnBaseId + "-go"),
-                btnFbOk = jQuery("#" + btnBaseId + "-fb-ok"),
-                btnFbError = jQuery("#" + btnBaseId + "-fb-error"),
-                effect;
+                    btnFbOk = jQuery("#" + btnBaseId + "-fb-ok"),
+                    btnFbError = jQuery("#" + btnBaseId + "-fb-error"),
+                    effect;
             btnGo.hide();
             /* See https://api.jquery.com/promise/ for queuing up animations like this */
-            if (success) {                            
+            if (success) {
                 btnFbOk.attr("data-original-title", msg).tooltip("fixTitle");
-                effect = function(){return(btnFbOk.fadeIn(300).delay(1200).fadeOut(300))};                                                      
+                effect = function () {
+                    return(btnFbOk.fadeIn(300).delay(1200).fadeOut(300))
+                };
             } else {
                 btnFbError.attr("data-original-title", msg).tooltip("fixTitle");
-                effect = function(){return(btnFbError.fadeIn(600).delay(6000).fadeOut(600))};
+                effect = function () {
+                    return(btnFbError.fadeIn(600).delay(6000).fadeOut(600))
+                };
             }
-            jQuery.when(effect()).done(function() {
-                btnGo.show();                            
-            });                        
-        },        
+            jQuery.when(effect()).done(function () {
+                btnGo.show();
+            });
+        },
         /**
          * Put together a suitable style for an uploaded layer, distinct from the rest
          * @param {string} geomType
@@ -177,13 +181,13 @@ magic.modules.Common = function () {
          * @param {string} label
          * @returns {Array<ol.Style>}
          */
-        fetchStyle: function(geomType, paletteEntry, label) {
+        fetchStyle: function (geomType, paletteEntry, label) {
             var style = this.default_styles[geomType];
             if (style) {
                 var styling = {};
                 if (geomType.toLowerCase().indexOf("point") >= 0) {
                     /* Create image */
-                    styling.image = this.getPointImageStyle(paletteEntry);                 
+                    styling.image = this.getPointImageStyle(paletteEntry);
                 } else if (geomType.toLowerCase().indexOf("linestring") >= 0) {
                     styling.stroke = new ol.style.Stroke({
                         color: this.rgbToDec(this.color_palette[paletteEntry]),
@@ -191,13 +195,13 @@ magic.modules.Common = function () {
                     });
                 } else {
                     styling.fill = new ol.style.Fill({
-                        color: this.rgbToDec(this.color_palette[paletteEntry], 0.5),                               
+                        color: this.rgbToDec(this.color_palette[paletteEntry], 0.5),
                     });
                     styling.stroke = new ol.style.Stroke({
                         color: this.rgbToDec(this.color_palette[paletteEntry]),
                         width: style.width || 1
-                    });                  
-                } 
+                    });
+                }
                 if (label) {
                     styling.text = new ol.style.Text({
                         font: "Arial",
@@ -217,8 +221,8 @@ magic.modules.Common = function () {
                 return([new ol.style.Style(styling)]);
             } else {
                 return(null);
-            }            
-        },        
+            }
+        },
         /**
          * Make some different choices for icon style for points to allow more distinction between layers on the map
          * Supports:
@@ -229,7 +233,7 @@ magic.modules.Common = function () {
          * @param {int} paletteEntry
          * @returns {ol.style.<Circle|RegularShape>}
          */
-        getPointImageStyle: function(paletteEntry) {
+        getPointImageStyle: function (paletteEntry) {
             var idx = paletteEntry % 4;
             if (idx == 0) {
                 return(new ol.style.Circle({
@@ -241,7 +245,7 @@ magic.modules.Common = function () {
                         color: this.rgbToDec(this.color_palette[paletteEntry]),
                         width: 1
                     })
-                }));       
+                }));
             } else if (idx == 1) {
                 return(new ol.style.RegularShape({
                     rotation: 0,
@@ -289,7 +293,7 @@ magic.modules.Common = function () {
          * @param {boolean} vis
          * @param {int} fcount number of features at this pixel location
          */
-        labelVisibility: function(feat, layer, vis, fcount) {
+        labelVisibility: function (feat, layer, vis, fcount) {
             if (feat.get("_ignoreHovers")) {
                 return;
             }
@@ -307,49 +311,49 @@ magic.modules.Common = function () {
                 }
             } else if (jQuery.isFunction(layer.getStyle) && layer.getStyle()) {
                 style = layer.getStyle();
-            }            
-            if (style && style.getText()) {            
+            }
+            if (style && style.getText()) {
                 var sclone = style.clone();
                 var label = sclone.getText();
                 if (label && label.getText()) {
                     /* Found a feature whose label needs to be hovered => make text opaque */
                     var text = label.getText();
                     if (vis) {
-                        label.setText(text + (fcount > 1 ? " (+" + (fcount-1) + ")" : ""));
+                        label.setText(text + (fcount > 1 ? " (+" + (fcount - 1) + ")" : ""));
                     } else {
                         label.setText(text.replace(/\s+\(\+\d+\)$/, ""));
                     }
                     var stroke = label.getStroke();
-                    var scolor = stroke.getColor(); 
+                    var scolor = stroke.getColor();
                     if (!jQuery.isArray(scolor)) {
                         /* Will be of form rgba(255, 255, 255, 0.0) */
-                        stroke.setColor(scolor.substring(0, scolor.lastIndexOf(",")+1) + (vis ? "1.0" : "0.0") + ")");
+                        stroke.setColor(scolor.substring(0, scolor.lastIndexOf(",") + 1) + (vis ? "1.0" : "0.0") + ")");
                     } else {
                         /* [R, G, B, OP] */
                         scolor[3] = (vis ? "1.0" : "0.0");
                         stroke.setColor(scolor);
-                    }                   
+                    }
                     var fill = label.getFill();
                     var fcolor = fill.getColor();
                     if (!jQuery.isArray(fcolor)) {
                         /* Will be of form rgba(255, 255, 255, 0.0) */
-                        fill.setColor(fcolor.substring(0, fcolor.lastIndexOf(",")+1) + (vis ? "1.0" : "0.0") + ")"); 
+                        fill.setColor(fcolor.substring(0, fcolor.lastIndexOf(",") + 1) + (vis ? "1.0" : "0.0") + ")");
                     } else {
                         /* [R, G, B, OP] */
                         fcolor[3] = (vis ? "1.0" : "0.0");
                         fill.setColor(fcolor);
-                    }                                    
+                    }
                     feat.setStyle(sclone);
-                    feat.changed();           
-                }                
+                    feat.changed();
+                }
             }
-        },        
+        },
         /**
          * Apply proxying to a URL (e.g. a vector feed) unless it's from the same host
          * @param {String} url
          * @returns {String}
          */
-        proxyUrl: function(url) {
+        proxyUrl: function (url) {
             var proxyUrl = url;
             if (url.indexOf(window.location.protocol + "//" + window.location.hostname) != 0) {
                 proxyUrl = magic.config.paths.baseurl + "/proxy?url=" + encodeURIComponent(url);
@@ -363,9 +367,9 @@ magic.modules.Common = function () {
          * @param {String} feature
          * @returns {String}
          */
-        getWxsRequestUrl: function(wmsUrl, operation, feature) {
+        getWxsRequestUrl: function (wmsUrl, operation, feature) {
             var requestUrl = "";
-            switch(operation.toLowerCase()) {
+            switch (operation.toLowerCase()) {
                 case "getcapabilities":
                     /* Watch out for UMN Mapserver URLs which alrady contain the '?' */
                     requestUrl = magic.modules.Endpoints.getOgcEndpoint(wmsUrl, "wms") + (wmsUrl.indexOf("?") != -1 ? "&" : "?") + "request=GetCapabilities&service=wms";
@@ -373,7 +377,7 @@ magic.modules.Common = function () {
                 case "describefeaturetype":
                     /* Note: version set to 1.0.0 here as certain attributes do NOT get picked up by later versions - is a Geoserver bug - note that the 
                      * layer parameter is 'typename' singular, not 'typenames' as in version 2.0.0 */
-                    requestUrl = magic.modules.Endpoints.getOgcEndpoint(wmsUrl, "wfs") + "?version=1.0.0&request=DescribeFeatureType&typename=" + feature;                    
+                    requestUrl = magic.modules.Endpoints.getOgcEndpoint(wmsUrl, "wfs") + "?version=1.0.0&request=DescribeFeatureType&typename=" + feature;
                     break;
                 default:
                     break;
@@ -386,12 +390,12 @@ magic.modules.Common = function () {
          * @param {Function} callback
          * @param {string} typename
          */
-        getCapabilities: function(url, callback, typename) {
+        getCapabilities: function (url, callback, typename) {
             if (magic.runtime.map_context.capabilities[url]) {
                 callback(magic.runtime.map_context.capabilities[url], typename);
             } else {
-                var parser = new ol.format.WMSCapabilities();                
-                jQuery.get(this.getWxsRequestUrl(url, "GetCapabilities"), jQuery.proxy(function(response) {
+                var parser = new ol.format.WMSCapabilities();
+                jQuery.get(this.getWxsRequestUrl(url, "GetCapabilities"), jQuery.proxy(function (response) {
                     try {
                         var capsJson = jQuery.parseJSON(JSON.stringify(parser.read(response)));
                         if (capsJson) {
@@ -399,21 +403,21 @@ magic.modules.Common = function () {
                             if ("Capability" in capsJson && "Layer" in capsJson.Capability && "Layer" in capsJson.Capability.Layer && jQuery.isArray(capsJson.Capability.Layer.Layer)) {
                                 var layers = capsJson.Capability.Layer.Layer;
                                 ftypes = {};
-                                this.getFeatureTypes(ftypes, layers);                                
+                                this.getFeatureTypes(ftypes, layers);
                             }
                             if (ftypes != null) {
                                 magic.runtime.map_context.capabilities[url] = ftypes;
                                 callback(magic.runtime.map_context.capabilities[url], typename);
                             } else {
                                 callback(null, typename, "No feature types found in GetCapabilities response from " + url);
-                            }                            
+                            }
                         } else {
                             callback(null, typename, "Malformed GetCapabilities response from " + url);
                         }
-                    } catch(e) {
+                    } catch (e) {
                         callback(null, typename, "Parsing GetCapabilities response from " + url + " failed with error " + e.message);
                     }
-                }, this)).fail(function(xhr, status, errMsg) {
+                }, this)).fail(function (xhr, status, errMsg) {
                     var message = "Failed to WMS GetCapabilities document from " + url + ", error was : " + errMsg;
                     if (status == 401) {
                         message = "Not authorised to retrieve WMS GetCapabilities document from " + url;
@@ -427,29 +431,29 @@ magic.modules.Common = function () {
          * @param {ol.Event} evt
          * @return {Object} highlighted feature/layer object
          */
-        defaultMouseover: function(evt) {
+        defaultMouseover: function (evt) {
             var fcount = 0;
             var customHandled = false;
-            var highlighted = null;        
-            evt.map.forEachFeatureAtPixel(evt.pixel, jQuery.proxy(function(feat, layer) {
+            var highlighted = null;
+            evt.map.forEachFeatureAtPixel(evt.pixel, jQuery.proxy(function (feat, layer) {
                 if (layer != null && feat.get("_ignoreHovers") !== true) {
                     if (feat.get("_customHover") === true) {
                         /* Feature has a custom mouseover behaviour */
                         highlighted = null;
-                        customHandled = true;                   
+                        customHandled = true;
                     } else if (fcount == 0) {
                         /* Record the first feature that should receive a default name label */
                         highlighted = {
-                            feature: feat, 
+                            feature: feat,
                             layer: layer
-                        };                    
+                        };
                     }
-                    fcount++; 
+                    fcount++;
                     return(customHandled);
                 }
             }, this));
             if (!customHandled && fcount > 0) {
-                /* Show default label on the highlighted feature */            
+                /* Show default label on the highlighted feature */
                 this.labelVisibility(highlighted.feature, highlighted.layer, true, fcount);
             }
             jQuery("#" + evt.map.getTarget()).css("cursor", highlighted ? "pointer" : "help");
@@ -459,40 +463,40 @@ magic.modules.Common = function () {
          * Default labelling mouseout for vectors
          * @param {Object} highlighted feature/layer object
          */
-        defaultMouseout: function(highlighted) {
-            if (highlighted && highlighted.feature && highlighted.feature.get("_customHover") !== true) { 
+        defaultMouseout: function (highlighted) {
+            if (highlighted && highlighted.feature && highlighted.feature.get("_customHover") !== true) {
                 /* No custom behaviour defined */
-                this.labelVisibility(highlighted.feature, highlighted.layer, false, 1);            
+                this.labelVisibility(highlighted.feature, highlighted.layer, false, 1);
             }
         },
         /**
          * Get all vector features at the given pixel (e.g. from Geosearch or user GPX/KML layers)
          * @param {ol.Event} click event
          */
-        featuresAtPixel: function(evt) {
+        featuresAtPixel: function (evt) {
             var fprops = [];
-            evt.map.forEachFeatureAtPixel(evt.pixel, function(feature, layer) {
+            evt.map.forEachFeatureAtPixel(evt.pixel, function (feature, layer) {
                 if (layer != null) {
                     /* This is not a feature overlay i.e. an artefact of presentation not real data */
                     var clusterMembers = feature.get("features");
                     if (clusterMembers && jQuery.isArray(clusterMembers)) {
                         /* Unpack cluster features */
-                        jQuery.each(clusterMembers, function(fi, f) {
+                        jQuery.each(clusterMembers, function (fi, f) {
                             if (!f.get("ignoreClicks") && f.getGeometry()) {
                                 var exProps = f.getProperties();
-                                fprops.push(jQuery.extend({}, exProps, {"layer": layer}));                           
-                            }                    
+                                fprops.push(jQuery.extend({}, exProps, {"layer": layer}));
+                            }
                         });
                     } else {
                         if (!feature.get("_ignoreClicks") && feature.getGeometry()) {
                             var exProps = feature.getProperties();
                             fprops.push(jQuery.extend({}, exProps, {"layer": layer}));
-                        }          
+                        }
                     }
                 }
-            }, {layerFilter: function(candidate) {
-                return(candidate.getVisible() && candidate.get("metadata") && candidate.get("metadata")["is_interactive"] === true);
-            }}, this);
+            }, {layerFilter: function (candidate) {
+                    return(candidate.getVisible() && candidate.get("metadata") && candidate.get("metadata")["is_interactive"] === true);
+                }}, this);
             return(fprops);
         },
         /**
@@ -500,15 +504,15 @@ magic.modules.Common = function () {
          * @param {Object} ftypes
          * @param {Array} layers
          */
-        getFeatureTypes: function(ftypes, layers) {
-            jQuery.each(layers, jQuery.proxy(function(idx, layer) {
+        getFeatureTypes: function (ftypes, layers) {
+            jQuery.each(layers, jQuery.proxy(function (idx, layer) {
                 if ("Name" in layer) {
                     /* Leaf node - a named layer */
                     ftypes[layer.Name] = layer;
                 } else if ("Layer" in layer && jQuery.isArray(layer["Layer"])) {
                     /* More trawling to do */
                     this.getFeatureTypes(ftypes, layer["Layer"]);
-                }        
+                }
             }, this));
         },
         /**
@@ -520,26 +524,26 @@ magic.modules.Common = function () {
          * @param {string} defval
          * @param {boolean} prependInvite whether to add a "Please select" entry at the beginning
          */
-        populateSelect: function(select, optArr, valAttr, txtAttr, defval, prependInvite) {
+        populateSelect: function (select, optArr, valAttr, txtAttr, defval, prependInvite) {
             var selOpt = null;
             select.find("option").remove();
             if (prependInvite === true) {
                 select.append(jQuery("<option>", {
-                    value: "", 
+                    value: "",
                     selected: (defval == "" ? " selected" : ""),
                     text: "Please select"
                 }));
             }
             /* Sort by txtAttr */
-            optArr.sort(function(a, b) {
+            optArr.sort(function (a, b) {
                 var lca = a[txtAttr] ? a[txtAttr].toLowerCase() : a[valAttr].toLowerCase();
                 var lcb = b[txtAttr] ? b[txtAttr].toLowerCase() : b[valAttr].toLowerCase();
-                return((lca < lcb ) ? -1 : (lca > lcb) ? 1 : 0);
+                return((lca < lcb) ? -1 : (lca > lcb) ? 1 : 0);
             });
-            jQuery.each(optArr, function(idx, optObj) {
+            jQuery.each(optArr, function (idx, optObj) {
                 var opt = jQuery("<option>", {value: optObj[valAttr]});
-                var text = optObj[txtAttr] || optObj[valAttr];               
-                opt.text(text);            
+                var text = optObj[txtAttr] || optObj[valAttr];
+                opt.text(text);
                 select.append(opt);
                 if (defval && optObj[valAttr] == defval) {
                     selOpt = opt;
@@ -556,8 +560,8 @@ magic.modules.Common = function () {
          * @param {object} data
          * @param {string} prefix
          */
-        jsonToForm: function(fields, data, prefix) { 
-            jQuery.each(fields, function(idx, fo) {
+        jsonToForm: function (fields, data, prefix) {
+            jQuery.each(fields, function (idx, fo) {
                 var name = fo["field"];
                 var defval = fo["default"];
                 var input = jQuery("#" + prefix + "-" + name);
@@ -572,7 +576,7 @@ magic.modules.Common = function () {
                     /* Simple case */
                     input.val(!data ? defval : (name in data ? value : defval));
                 }
-            });            
+            });
         },
         /**
          * Populate the data object with values from the given form
@@ -581,17 +585,17 @@ magic.modules.Common = function () {
          * @param {string} prefix
          * @return {Object} json
          */
-        formToJson: function(fields, prefix) {
+        formToJson: function (fields, prefix) {
             var json = {};
-            jQuery.each(fields, function(idx, fo) {
+            jQuery.each(fields, function (idx, fo) {
                 var name = fo["field"];
-                var input = jQuery("#" + prefix + "-" + name);                    
-                switch(input.attr("type")) {
+                var input = jQuery("#" + prefix + "-" + name);
+                switch (input.attr("type")) {
                     case "checkbox":
                     case "radio":
                         /* Set the "checked" property */
                         json[name] = input.prop("checked") ? true : false;
-                        break;                       
+                        break;
                     default:
                         var value = input.val();
                         if (input.attr("type") == "number" && jQuery.isNumeric(value)) {
@@ -603,8 +607,8 @@ magic.modules.Common = function () {
                         } else {
                             json[name] = value;
                         }
-                        break;                       
-                }                    
+                        break;
+                }
             });
             return(json);
         },
@@ -612,18 +616,18 @@ magic.modules.Common = function () {
          * Add an input error indicator to the given field
          * @param {Object} inputEl
          */
-        flagInputError: function(inputEl) {
-             var fg = inputEl.closest("div.form-group");
-             if (fg) {
-                 fg.addClass("has-error");
-             }
+        flagInputError: function (inputEl) {
+            var fg = inputEl.closest("div.form-group");
+            if (fg) {
+                fg.addClass("has-error");
+            }
         },
         /**
          * Show a bootbox alert
          * @param {String} message
          * @param {String} type info|warning|error
          */
-        showAlertModal: function(message, type) {
+        showAlertModal: function (message, type) {
             message = message || "An unspecified error occurred";
             type = type || "error";
             var alertClass = type, divStyle = "margin-bottom:0";
@@ -633,16 +637,16 @@ magic.modules.Common = function () {
             }
             bootbox.hideAll();
             bootbox.alert(
-                '<div class="alert alert-' + alertClass + '" style="' + divStyle + '">' + 
-                    '<p>A problem occurred - more details below:</p>' + 
-                    '<p>' + message + '</p>' + 
-                '</div>'
-            );
+                    '<div class="alert alert-' + alertClass + '" style="' + divStyle + '">' +
+                    '<p>A problem occurred - more details below:</p>' +
+                    '<p>' + message + '</p>' +
+                    '</div>'
+                    );
         },
         /**
          * Remove all success/error indications on all form inputs on a page
          */
-        resetFormIndicators: function() {
+        resetFormIndicators: function () {
             jQuery("div.form-group").removeClass("has-error");
         },
         /**
@@ -650,14 +654,14 @@ magic.modules.Common = function () {
          * @param {String} url
          * @param {Function} callback
          */
-        getScript: function(url, callback) {
+        getScript: function (url, callback) {
             jQuery.ajax({
-                 type: "GET",
-                 url: url,
-                 success: callback,
-                 dataType: "script",
-                 cache: true
-             });    
+                type: "GET",
+                url: url,
+                success: callback,
+                dataType: "script",
+                cache: true
+            });
         },
         /**
          * Parse CSV string to an array of strings
@@ -680,7 +684,8 @@ magic.modules.Common = function () {
                     if ('\r' === p) {
                         row[i] = row[i].slice(0, -1);
                     }
-                    row = ret[++r] = [l = '']; i = 0;
+                    row = ret[++r] = [l = ''];
+                    i = 0;
                 } else {
                     row[i] += l;
                 }
@@ -688,14 +693,14 @@ magic.modules.Common = function () {
             }
             return(ret);
         },
-        sortedUniqueArray: function(arr) {
+        sortedUniqueArray: function (arr) {
             var suArr = [];
             if (!arr || arr.length == 0) {
                 return(suArr);
-            }            
+            }
             var dupHash = {};
-            suArr = jQuery.map(arr, function(elt) {
-                if (elt in dupHash) { 
+            suArr = jQuery.map(arr, function (elt) {
+                if (elt in dupHash) {
                     return(null);
                 } else {
                     dupHash[elt] = 1;
@@ -710,76 +715,76 @@ magic.modules.Common = function () {
          * @param {String} str
          * @return {boolean}
          */
-        isUrl: function(str) {
+        isUrl: function (str) {
             if (typeof str == "string") {
                 var regexp = /((https?\:\/\/)|(www\.))(\S+)(\w{2,4})(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/g;
                 return(str.match(regexp));
             }
-            return(false);            
+            return(false);
         },
         /**
          * Does the given key name look name-like?
          * @param {String} key
          * @returns {boolean}
          */
-        isNameLike: function(key) {
-           key = key.toLowerCase();
-           var nameKeys = ["^name.*$", "^callsign$", "^[^n]*name$"];
-           for (var i = 0; i < nameKeys.length; i++) {
-               var patt = new RegExp(nameKeys[i]);
-               if (patt.test(key)) {
-                   return(true);
-               }
-           }
-           return(false);
+        isNameLike: function (key) {
+            key = key.toLowerCase();
+            var nameKeys = ["^name.*$", "^callsign$", "^[^n]*name$"];
+            for (var i = 0; i < nameKeys.length; i++) {
+                var patt = new RegExp(nameKeys[i]);
+                if (patt.test(key)) {
+                    return(true);
+                }
+            }
+            return(false);
         },
         /**
          * Does the given key name look like a longitude?
          * @param {String} key
          * @returns {boolean}
          */
-        isLongitudeLike: function(key) {
-           key = key.toLowerCase();
-           var lonKeys = ["^lon.*$", "^x$", "^xcoord.*$"];
-           for (var i = 0; i < lonKeys.length; i++) {
-               var patt = new RegExp(lonKeys[i]);
-               if (patt.test(key)) {
-                   return(true);
-               }
-           }
-           return(false);
+        isLongitudeLike: function (key) {
+            key = key.toLowerCase();
+            var lonKeys = ["^lon.*$", "^x$", "^xcoord.*$"];
+            for (var i = 0; i < lonKeys.length; i++) {
+                var patt = new RegExp(lonKeys[i]);
+                if (patt.test(key)) {
+                    return(true);
+                }
+            }
+            return(false);
         },
         /**
          * Does the given key name look like a latitude?
          * @param {String} key
          * @returns {boolean}
          */
-        isLatitudeLike: function(key) {
-           key = key.toLowerCase();
-           var latKeys = ["^lat.*$", "^y$", "^ycoord.*$"];
-           for (var i = 0; i < latKeys.length; i++) {
-               var patt = new RegExp(latKeys[i]);
-               if (patt.test(key)) {
-                   return(true);
-               }
-           }
-           return(false);
+        isLatitudeLike: function (key) {
+            key = key.toLowerCase();
+            var latKeys = ["^lat.*$", "^y$", "^ycoord.*$"];
+            for (var i = 0; i < latKeys.length; i++) {
+                var patt = new RegExp(latKeys[i]);
+                if (patt.test(key)) {
+                    return(true);
+                }
+            }
+            return(false);
         },
         /**
          * Does the given key name look like a date/time?
          * @param {String} key
          * @returns {boolean}
          */
-        isDatetimeLike: function(key) {
-           key = key.toLowerCase();
-           var dateKeys = ["^date.*$", "^time.*$", "^utc$", "^[^u]*update.*$", "timestamp$"];
-           for (var i = 0; i < dateKeys.length; i++) {
-               var patt = new RegExp(dateKeys[i]);
-               if (patt.test(key)) {
-                   return(true);
-               }
-           }
-           return(false);
+        isDatetimeLike: function (key) {
+            key = key.toLowerCase();
+            var dateKeys = ["^date.*$", "^time.*$", "^utc$", "^[^u]*update.*$", "timestamp$"];
+            for (var i = 0; i < dateKeys.length; i++) {
+                var patt = new RegExp(dateKeys[i]);
+                if (patt.test(key)) {
+                    return(true);
+                }
+            }
+            return(false);
         },
         /**
          * Convert date value to format, discarding times
@@ -796,11 +801,11 @@ magic.modules.Common = function () {
             if (value.toLowerCase().indexOf("invalid") == -1) {
                 var dd = d.getDate();
                 dd = (dd < 10 ? "0" : "") + dd;
-                var mm = d.getMonth()+1;
+                var mm = d.getMonth() + 1;
                 mm = (mm < 10 ? "0" : "") + mm;
                 var yyyy = d.getFullYear();
                 formattedValue = (format == "dmy" ? dd + "-" + mm + "-" + yyyy : yyyy + "-" + mm + "-" + dd);
-            }            
+            }
             return(formattedValue);
         },
         /**
@@ -819,7 +824,7 @@ magic.modules.Common = function () {
          * @param {String} str
          * @return {String}
          */
-        JsonEscape: function(str) {
+        JsonEscape: function (str) {
             var strOut = str.replace(/\&/g, "&amp;");
             strOut = strOut.replace(/\"/g, "&quot;");
             return(strOut);
@@ -829,11 +834,11 @@ magic.modules.Common = function () {
          * @param {String} str
          * @return {String}
          */
-        JsonUnescape: function(str) {
+        JsonUnescape: function (str) {
             var strOut = str.replace(/\&quot;/g, '"');
             strOut = strOut.replace(/\&amp;/g, "&");
             return(strOut);
-        },        
+        },
         /**
          * Replace urls in given value by links
          * Courtesy of http://stackoverflow.com/questions/37684/how-to-replace-plain-urls-with-links
@@ -846,9 +851,9 @@ magic.modules.Common = function () {
             if (!value) {
                 return("");
             }
-            
+
             if (typeof value == "string") {
-                
+
                 if (value.indexOf("<a") != -1) {
                     /* Already deemed to be linkified - don't try again! */
                     return(value);
@@ -874,20 +879,20 @@ magic.modules.Common = function () {
 
                 /* Email addresses */
                 var emailAddressPattern = /\w+@[a-zA-Z_]+?(?:\.[a-zA-Z]{2,6})+/gim;
-                
+
                 if (linkText) {
                     return(value
-                        .replace(urlPattern, '<a href="$&" title="$&" target="_blank">' + linkText + '</a>')
-                        .replace(pseudoUrlPattern, '$1<a href="http://$2" target="_blank">' + linkText + '</a>')
-                        .replace(emailAddressPattern, '<a href="mailto:$&">' + linkText + '</a>')
-                    );
+                            .replace(urlPattern, '<a href="$&" title="$&" target="_blank">' + linkText + '</a>')
+                            .replace(pseudoUrlPattern, '$1<a href="http://$2" target="_blank">' + linkText + '</a>')
+                            .replace(emailAddressPattern, '<a href="mailto:$&">' + linkText + '</a>')
+                            );
                 } else {
                     return(value
-                        .replace(urlPattern, '<a href="$&" title="$&" target="_blank">[external resource]</a>')
-                        .replace(pseudoUrlPattern, '$1<a href="http://$2" target="_blank">$2</a>')
-                        .replace(emailAddressPattern, '<a href="mailto:$&">$&</a>')
-                    );
-                }   
+                            .replace(urlPattern, '<a href="$&" title="$&" target="_blank">[external resource]</a>')
+                            .replace(pseudoUrlPattern, '$1<a href="http://$2" target="_blank">$2</a>')
+                            .replace(emailAddressPattern, '<a href="mailto:$&">$&</a>')
+                            );
+                }
             } else {
                 return(value);
             }
@@ -990,7 +995,7 @@ magic.modules.Common = function () {
          */
         unitConverter: function (value, from, to, dims) {
             dims = dims || 1;
-            var converted = 0.0, fromUnits = from, toUnits = to;            
+            var converted = 0.0, fromUnits = from, toUnits = to;
             if (fromUnits in this.inches_per_unit && toUnits in this.inches_per_unit && (dims == 1 || dims == 2)) {
                 converted = value * Math.pow(this.inches_per_unit[fromUnits] / this.inches_per_unit[toUnits], dims);
                 converted = converted.toFixed(3) + " " + toUnits + (dims == 2 ? "<sup>2</sup>" : "");
@@ -1002,9 +1007,9 @@ magic.modules.Common = function () {
          * http://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript answer by broofa
          * @returns {string}
          */
-        uuid: function() {            
-            return('xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+        uuid: function () {
+            return('xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
                 return v.toString(16);
             }));
         },

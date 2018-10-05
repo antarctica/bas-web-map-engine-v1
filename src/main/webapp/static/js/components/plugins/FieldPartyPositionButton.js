@@ -122,6 +122,7 @@ magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {
     this.formEdited = false;
     jQuery(".field-party-popover-content").find("form :input").change(jQuery.proxy(function() {
         this.formEdited = true;
+        this.setButtonStates("enable", "leave", "leave");
     }, this));    
     
     this.loadFeatures();
@@ -133,7 +134,7 @@ magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {
 magic.classes.FieldPartyPositionButton.prototype.loadFeatures = function() {
     
     jQuery(".field-party-popover-content").find("form")[0].reset();
-    this.setButtonStatuses(true, true, true);
+    this.setButtonStates("disable", "enable", "disable");
     magic.modules.Common.resetFormIndicators();
     this.featureMap = {};   
     this.formEdited = false;    
@@ -244,7 +245,7 @@ magic.classes.FieldPartyPositionButton.prototype.onDeactivate = function() {
  */
 magic.classes.FieldPartyPositionButton.prototype.resetForm = function() {  
     magic.modules.Common.resetFormIndicators();
-    this.setButtonStatuses(true, true, true);
+    this.setButtonStates("disable", "enable", "disable");
     this.confirmOperation(jQuery.proxy(function (result) {
         if (result) {                
             this.saveForm();                    
@@ -392,7 +393,7 @@ magic.classes.FieldPartyPositionButton.prototype.setPayload = function(payload) 
     jQuery("#fix-input-lon").val(magic.modules.GeoUtils.applyPref("coordinates", payload.lon, "lon"));
     jQuery("#fix-input-height").val(payload.height || 0.0);
     jQuery("#fix-input-notes").val(payload.notes || "");
-    this.setButtonStatuses(false, false, payload.id ? false : true);
+    this.setButtonStates("disable", "enable", payload.id ? "enable" : "disable");
 };
 
 /**
@@ -498,7 +499,7 @@ magic.classes.FieldPartyPositionButton.prototype.initDatepicker = function(id) {
         dtInput.addClass("date");
         dtInput.datetimepicker({
             viewMode: "days",
-            endDate: "+0d",     /* Prevent selection of future dates */
+            maxDate: moment(),     /* Prevent selection of future dates */
             format: "DD/MM/YYYY"
         });
     }
@@ -592,14 +593,20 @@ magic.classes.FieldPartyPositionButton.prototype.clickToEditHandler = function(e
 
 /**
  * Set the button enabled states according to what the user is allowed to do
- * @param {boolean} saveState
- * @param {boolean} newState
- * @param {boolean} delState
+ * @param {String} saveState enable|disable|leave
+ * @param {String} newState enable|disable|leave
+ * @param {String} delState enable|disable|leave
  */
-magic.classes.FieldPartyPositionButton.prototype.setButtonStatuses = function(saveState, newState, delState) {
-    jQuery("#fix-save-go").prop("disabled", saveState);
-    jQuery("#fix-new").prop("disabled", newState);
-    jQuery("#fix-delete-go").prop("disabled", delState);
+magic.classes.FieldPartyPositionButton.prototype.setButtonStates = function(saveState, newState, delState) {
+    if (saveState != "leave") {
+        jQuery("#fix-save-go").prop("disabled", saveState == "disable");
+    }
+    if (newState != "leave") {
+        jQuery("#fix-new").prop("disabled", newState == "disable");
+    }
+    if (delState != "leave") {
+        jQuery("#fix-delete-go").prop("disabled", delState == "disable");
+    }
 };
 
 /**
