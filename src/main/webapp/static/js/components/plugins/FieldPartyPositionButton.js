@@ -264,6 +264,10 @@ magic.classes.FieldPartyPositionButton.prototype.resetForm = function() {
  * Delete a positional fix
  */
 magic.classes.FieldPartyPositionButton.prototype.deleteFix = function() {  
+    
+    /* Get rid of tooltips before using the feedback animation */
+    jQuery("body").tooltip("dispose");
+    
     var delId = jQuery("#fix-input-id").val();
     if (!isNaN(parseInt(delId))) {
         /* Identifier is plausible */
@@ -301,7 +305,11 @@ magic.classes.FieldPartyPositionButton.prototype.deleteFix = function() {
 /**
  * Save the form data - NOTE: should eventually use WFS-T rather than same-server database ops - David 2018-10-03
  */
-magic.classes.FieldPartyPositionButton.prototype.saveForm = function() {    
+magic.classes.FieldPartyPositionButton.prototype.saveForm = function() {  
+    
+    /* Get rid of tooltips before using the feedback animation */
+    jQuery("body").tooltip("dispose");
+    
     var payload = this.getPayload();
     console.log(payload);
     if (this.validate(payload)) {
