@@ -33,3 +33,37 @@ COMMENT ON COLUMN opsgis2.ops_field_deployments.lat IS 'Latitude of fix, in deci
 COMMENT ON COLUMN opsgis2.ops_field_deployments.lon IS 'Longitude of fix, in decimal degrees';
 COMMENT ON COLUMN opsgis2.ops_field_deployments.height IS 'Height of fix, in feet';
 COMMENT ON COLUMN opsgis2.ops_field_deployments.notes IS 'Other relevant description';
+
+-- FUNCTION: opsgis2.ofd_populate_geometry()
+
+-- DROP FUNCTION opsgis2.ofd_populate_geometry();
+
+CREATE FUNCTION opsgis2.ofd_populate_geometry()
+    RETURNS trigger
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE 
+AS $BODY$
+BEGIN		
+    IF NEW.geometry IS NULL THEN
+        -- Try to populate the_geom from lat,lon fields
+        IF NEW.lat IS NULL AND NEW.lon IS NULL THEN				
+            RAISE EXCEPTION 'Lat and lon may not be null';			
+        ELSE
+            -- Update geometry to match lat,lon
+            NEW.geometry := st_transform(st_setsrid(st_makepoint(NEW.lon, NEW.lat),4326), 3031);				
+        END IF;		
+    END IF;
+    RETURN NEW;
+END
+$BODY$;
+
+ALTER FUNCTION opsgis2.ofd_populate_geometry()
+    OWNER TO add;
+
+
+CREATE TRIGGER populate_geometry_from_lat_lon
+    BEFORE INSERT OR UPDATE 
+    ON opsgis2.ops_field_deployments
+    FOR EACH ROW
+    EXECUTE PROCEDURE opsgis2.ofd_populate_geometry();

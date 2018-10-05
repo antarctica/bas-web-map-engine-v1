@@ -120,7 +120,7 @@ magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {
     
     /* Detect changes to the form */
     this.formEdited = false;
-    jQuery(".field-party-popover-content").find("form :input").change(jQuery.proxy(function() {
+    jQuery(".field-party-popover-content").find("form :input").on("input", jQuery.proxy(function() {
         this.formEdited = true;
         this.setButtonStates("enable", "leave", "leave");
     }, this));    
@@ -152,6 +152,9 @@ magic.classes.FieldPartyPositionButton.prototype.loadFeatures = function() {
             var noDupFeats = [], trackFeats = [];
             console.log("Read " + feats.length + " features");
             jQuery.each(feats, jQuery.proxy(function(idx, f) {
+                if (f.getGeometry() == null) {
+                    return(true);   /* Defend against null geometries */
+                }
                 var attrs = f.getProperties();
                 var fname = attrs.sledge;
                 var fdate = attrs.fix_date;
