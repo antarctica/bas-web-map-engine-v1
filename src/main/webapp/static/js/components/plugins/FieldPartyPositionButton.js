@@ -152,7 +152,7 @@ magic.classes.FieldPartyPositionButton.prototype.loadFeatures = function() {
             var feats = fmtGeoJson.readFeatures(data);
             /* Now classify the features by name and fix date */
             var noDupFeats = [], trackFeats = [];
-            console.log("Read " + feats.length + " features");
+            //console.log("Read " + feats.length + " features");
             jQuery.each(feats, jQuery.proxy(function(idx, f) {
                 if (f.getGeometry() == null) {
                     return(true);   /* Defend against null geometries */
@@ -165,16 +165,16 @@ magic.classes.FieldPartyPositionButton.prototype.loadFeatures = function() {
                 }
                 if (this.featureMap[fname][fdate]) {
                     /* Sometimes we get infelicities in the data => duplicate records in every way except id */
-                    console.log("Duplicate found for " + fname + " at " + fdate);
-                    console.log("Features with id " + attrs["id"] + " and " + this.featureMap[fname][fdate].getProperties()["id"]);
-                    console.log("Ignoring...");
+                    //console.log("Duplicate found for " + fname + " at " + fdate);
+                    //console.log("Features with id " + attrs["id"] + " and " + this.featureMap[fname][fdate].getProperties()["id"]);
+                    //console.log("Ignoring...");
                 } else {
                     this.featureMap[fname][fdate] = f; 
                     noDupFeats.push(f);
                 }
             }, this));
             /* Now write styling hints into the feature attributes */
-            console.log(noDupFeats.length + " features are non-duplicates");
+            //console.log(noDupFeats.length + " features are non-duplicates");
             jQuery.each(this.featureMap, jQuery.proxy(function(k, v) {               
                 var fixes = Object.keys(v);
                 fixes.sort();
@@ -280,34 +280,29 @@ magic.classes.FieldPartyPositionButton.prototype.deleteFix = function(evt) {
     
     var delId = jQuery("#fix-input-id").val();
     if (!isNaN(parseInt(delId))) {
-        /* Identifier is plausible */
-        this.confirmOperation(jQuery.proxy(function (result) {
-            if (result) {                
-                jQuery.ajax({
-                    url: magic.config.paths.baseurl + "/fpp/delete/" + delId,
-                    method: "DELETE",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRF-TOKEN": jQuery("meta[name='_csrf']").attr("content")              
-                    },
-                    success: jQuery.proxy(function() {
-                        this.loadFeatures();
-                        magic.modules.Common.buttonClickFeedback("fix-delete", true, "Ok");
-                        this.resetForm();
-                    }, this),
-                    error: function(xhr) {
-                        var errmsg = "Failed to delete fix - no further information available";
-                        try {
-                            var resp = JSON.parse(xhr.responseText);
-                            errmsg = "Status " + resp.status + " deleting fix - details : " + resp.detail;
-                        } catch (e) {}
-                        magic.modules.Common.buttonClickFeedback("fix-delete", false, errmsg);
-                    }
-                });                            
-            }                  
-            this.formEdited = false;
-        }, this), function() {
-        });            
+        /* Identifier is plausible */           
+        jQuery.ajax({
+            url: magic.config.paths.baseurl + "/fpp/delete/" + delId,
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": jQuery("meta[name='_csrf']").attr("content")              
+            },
+            success: jQuery.proxy(function() {
+                this.loadFeatures();
+                magic.modules.Common.buttonClickFeedback("fix-delete", true, "Ok");
+                this.resetForm();
+            }, this),
+            error: function(xhr) {
+                var errmsg = "Failed to delete fix - no further information available";
+                try {
+                    var resp = JSON.parse(xhr.responseText);
+                    errmsg = "Status " + resp.status + " deleting fix - details : " + resp.detail;
+                } catch (e) {}
+                magic.modules.Common.buttonClickFeedback("fix-delete", false, errmsg);
+            }
+        });                            
+        this.formEdited = false;        
     }    
 };
 
@@ -320,7 +315,7 @@ magic.classes.FieldPartyPositionButton.prototype.saveForm = function(evt) {
     jQuery(evt.currentTarget).tooltip("hide");
     
     var payload = this.getPayload();
-    console.log(payload);
+    //console.log(payload);
     if (this.validate(payload)) {
         jQuery.ajax({
             url: magic.config.paths.baseurl + "/fpp/" + (payload.id ? "update/" + payload.id : "save"),
