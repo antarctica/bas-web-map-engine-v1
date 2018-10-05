@@ -133,6 +133,7 @@ magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {
 magic.classes.FieldPartyPositionButton.prototype.loadFeatures = function() {
     
     jQuery(".field-party-popover-content").find("form")[0].reset();
+    this.setButtonStatuses(true, true, true);
     magic.modules.Common.resetFormIndicators();
     this.featureMap = {};   
     this.formEdited = false;    
@@ -243,6 +244,7 @@ magic.classes.FieldPartyPositionButton.prototype.onDeactivate = function() {
  */
 magic.classes.FieldPartyPositionButton.prototype.resetForm = function() {  
     magic.modules.Common.resetFormIndicators();
+    this.setButtonStatuses(true, true, true);
     this.confirmOperation(jQuery.proxy(function (result) {
         if (result) {                
             this.saveForm();                    
@@ -273,6 +275,8 @@ magic.classes.FieldPartyPositionButton.prototype.deleteFix = function() {
                     success: jQuery.proxy(function() {
                         jQuery(".field-party-popover-content").find("form")[0].reset();
                         this.loadFeatures();
+                        magic.modules.Common.buttonClickFeedback("fix-delete", true, "Ok");
+                        this.resetForm();
                     }, this),
                     error: function(xhr) {
                         var errmsg = "Failed to delete fix - no further information available";
@@ -299,7 +303,7 @@ magic.classes.FieldPartyPositionButton.prototype.saveForm = function() {
     if (this.validate(payload)) {
         jQuery.ajax({
             url: magic.config.paths.baseurl + "/fpp/" + (payload.id ? "update/" + payload.id : "save"),
-            method: payload.id ? "PUT" : "POST",
+            method: "PUT",
             processData: false,
             data: JSON.stringify(payload),
             headers: {
@@ -309,6 +313,7 @@ magic.classes.FieldPartyPositionButton.prototype.saveForm = function() {
             success: jQuery.proxy(function() {                
                 this.loadFeatures();
                 magic.modules.Common.buttonClickFeedback("fix-save", true, "Ok");
+                this.resetForm();
             }, this),
             error: function(xhr) {
                 var errmsg = "Failed to save edits - no further information available";
@@ -387,6 +392,7 @@ magic.classes.FieldPartyPositionButton.prototype.setPayload = function(payload) 
     jQuery("#fix-input-lon").val(magic.modules.GeoUtils.applyPref("coordinates", payload.lon, "lon"));
     jQuery("#fix-input-height").val(payload.height || 0.0);
     jQuery("#fix-input-notes").val(payload.notes || "");
+    this.setButtonStatuses(false, false, payload.id ? false : true);
 };
 
 /**
@@ -403,7 +409,7 @@ magic.classes.FieldPartyPositionButton.prototype.validate = function(payload) {
             magic.modules.Common.flagInputError(jQuery("#fix-input-sledge-input"));
             valid = false;
         }
-        if (payload.fix_date == null || payload.fix_date == "") {
+        if (payload.fix_date == null || payload.fix_date == "" || moment(payload.fix_date, "DD/MM/YYYY").isAfter(moment())) {
             magic.modules.Common.flagInputError(jQuery("#fix-input-fix_date"));
             valid = false;
         }
@@ -492,6 +498,7 @@ magic.classes.FieldPartyPositionButton.prototype.initDatepicker = function(id) {
         dtInput.addClass("date");
         dtInput.datetimepicker({
             viewMode: "days",
+            endDate: "+0d",     /* Prevent selection of future dates */
             format: "DD/MM/YYYY"
         });
     }
@@ -581,6 +588,18 @@ magic.classes.FieldPartyPositionButton.prototype.clickToEditHandler = function(e
         }
         return(false);
     }, this));
+};
+
+/**
+ * Set the button enabled states according to what the user is allowed to do
+ * @param {boolean} saveState
+ * @param {boolean} newState
+ * @param {boolean} delState
+ */
+magic.classes.FieldPartyPositionButton.prototype.setButtonStatuses = function(saveState, newState, delState) {
+    jQuery("#fix-save-go").prop("disabled", saveState);
+    jQuery("#fix-new").prop("disabled", newState);
+    jQuery("#fix-delete-go").prop("disabled", delState);
 };
 
 /**
