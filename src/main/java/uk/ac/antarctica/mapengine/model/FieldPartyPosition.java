@@ -48,7 +48,7 @@ public class FieldPartyPosition extends JsonCrudApp {
         //TODO - casts
         JsonElement je = new JsonParser().parse(payload);
         JsonObject jo = je.getAsJsonObject();
-        setId((int) getJsonElement(jo, "id", true, 0, Integer.class));
+        setId((int) getJsonElement(jo, "id", false, 0, Integer.class));
         setSledge((String) getJsonElement(jo, "sledge", false, ""));
         setSeason((String) getJsonElement(jo, "season", false, "1819"));
         setFix_date(LocalDate.parse((String) getJsonElement(jo, "fix_date", false, "")));
