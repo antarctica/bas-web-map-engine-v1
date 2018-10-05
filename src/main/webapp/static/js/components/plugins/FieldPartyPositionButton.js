@@ -246,7 +246,11 @@ magic.classes.FieldPartyPositionButton.prototype.onDeactivate = function() {
 /**
  * Reset the form, taking account of whether or not it has been edited
  */
-magic.classes.FieldPartyPositionButton.prototype.resetForm = function() {  
+magic.classes.FieldPartyPositionButton.prototype.resetForm = function(evt) {  
+    
+    /* Get rid of tooltips before using the feedback animation */
+    jQuery(evt.currentTarget).tooltip("hide");
+    
     magic.modules.Common.resetFormIndicators();
     this.setButtonStates("disable", "enable", "disable");
     this.confirmOperation(jQuery.proxy(function (result) {
@@ -263,10 +267,10 @@ magic.classes.FieldPartyPositionButton.prototype.resetForm = function() {
 /**
  * Delete a positional fix
  */
-magic.classes.FieldPartyPositionButton.prototype.deleteFix = function() {  
+magic.classes.FieldPartyPositionButton.prototype.deleteFix = function(evt) {  
     
     /* Get rid of tooltips before using the feedback animation */
-    jQuery("body").tooltip("dispose");
+    jQuery(evt.currentTarget).tooltip("hide");
     
     var delId = jQuery("#fix-input-id").val();
     if (!isNaN(parseInt(delId))) {
@@ -305,10 +309,10 @@ magic.classes.FieldPartyPositionButton.prototype.deleteFix = function() {
 /**
  * Save the form data - NOTE: should eventually use WFS-T rather than same-server database ops - David 2018-10-03
  */
-magic.classes.FieldPartyPositionButton.prototype.saveForm = function() {  
+magic.classes.FieldPartyPositionButton.prototype.saveForm = function(evt) {  
     
     /* Get rid of tooltips before using the feedback animation */
-    jQuery("body").tooltip("dispose");
+    jQuery(evt.currentTarget).tooltip("hide");
     
     var payload = this.getPayload();
     console.log(payload);
