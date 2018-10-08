@@ -473,8 +473,7 @@ magic.classes.FieldPartyPositionButton.prototype.initSledgeCombobox = function(i
         /* Active sledges */
         var doneOptions = {};
         for (var j = 0; j < opts.length; j++) { 
-            var optVal = "active:" + opts[j];
-            cbSelect.append(jQuery('<option>', {value: opts[j], text: optVal}));
+            cbSelect.append(jQuery('<option>', {value: opts[j], text: opts[j]}));
             doneOptions[opts[j]] = true;
         }
         /* Others from the phonetic alphabet */        
@@ -489,32 +488,19 @@ magic.classes.FieldPartyPositionButton.prototype.initSledgeCombobox = function(i
             cbSelect.addClass("combobox");
             cbSelect.combobox({
                 appendId: "-input",
-                highlighter: function(item) { 
+                highlighter: jQuery.proxy(function(item) { 
                     return(
-                        '<div style="width:100%;background-color:' + (item.indexOf("active:") == 0 ? '#99cc00' : '#c9302c') + '">'+ 
-                            '<strong>' + item.replace("active:", "") + '</strong>' + 
+                        '<div style="width:100%;background-color:' + (this.featureMap[item] ? '#99cc00' : '#c9302c') + '">'+ 
+                            '<strong>' + item + '</strong>' + 
                         '</div>'
                     );
                 }
-            });
+            }, this));
             var cbInput = jQuery("#" + id + "-input");
             cbInput.attr("required", cbSelect.attr("required"));
             cbInput.attr("data-toggle", "tooltip");
             cbInput.attr("data-placement", "right");
-            cbInput.attr("title", cbSelect.attr("title"));
-            /* Change backgrounds for list elements to indicate active/inactive */
-            jQuery("ul.typeahead").find('li[data-value != ""]').each(function(idx, elt) {
-                var designator = jQuery(elt).data("value");
-                if (designator != "") {
-                    if (doneOptions[designator] === true) {
-                        /* Active sledge */
-                        jQuery(elt).css("background-color", "#DFF0D8");
-                    } else {
-                        /* Yet to be activated one */
-                        jQuery(elt).css("background-color", "#F2DEDE");
-                    }
-                }
-            });
+            cbInput.attr("title", cbSelect.attr("title"));            
             jQuery("input[type='text'].combobox").on("change", jQuery.proxy(function () {
                 this.formEdited = true;
                 this.setButtonStates("enable", "leave", "leave");
@@ -581,7 +567,7 @@ magic.classes.FieldPartyPositionButton.prototype.setDatepickerValue = function(i
 magic.classes.FieldPartyPositionButton.prototype.getComboboxValue = function(id) {
     var cbInput = jQuery("#" + id + "-input");
     var cbHidden = cbInput.closest("div.combobox-container").find("input[type='hidden']");
-    return(cbHidden.val().replace("active:", ""));
+    return(cbHidden.val());
 };
 
 /**
