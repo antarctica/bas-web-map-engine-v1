@@ -448,47 +448,44 @@ magic.classes.FieldPartyPositionButton.prototype.validate = function(payload) {
  */
 magic.classes.FieldPartyPositionButton.prototype.initSledgeCombobox = function(id) {
     var opts = Object.keys(this.featureMap).sort();
-    var cbSelect = jQuery("#" + id);
-    if (cbSelect.length > 0) {
-        /* The input exists (we must therefore be admin) */
-        cbSelect.empty(); 
-        cbSelect.parent().find("div.combobox-container").remove();
-        cbSelect.removeClass("combobox");
-        cbSelect.append(jQuery('<option>', {value: "", text: ""}));
-        /* Active sledges */
-        var doneOptions = {};
-        for (var j = 0; j < opts.length; j++) { 
-            cbSelect.append(jQuery('<option>', {value: opts[j], text: opts[j]}));
-            doneOptions[opts[j]] = true;
+    var sledgeComboDiv = jQuery("div.sledge-combo");
+    sledgeComboDiv.empty();    
+    var cbSelect = jQuery('<select>', {id: id});
+    cbSelect.addClass("form-control combobox");
+    cbSelect.append(jQuery('<option>', {value: "", text: ""}));
+    /* Active sledges */
+    var doneOptions = {};
+    for (var j = 0; j < opts.length; j++) { 
+        cbSelect.append(jQuery('<option>', {value: opts[j], text: opts[j]}));
+        doneOptions[opts[j]] = true;
+    }
+    /* Others from the phonetic alphabet */        
+    for (var i = 0; i < this.PHONETIC_ALPHABET.length; i++) {
+        var designator = this.PHONETIC_ALPHABET[i];
+        if (doneOptions[designator] !== true) {
+            cbSelect.append(jQuery('<option>', {value: designator, text: designator}));
         }
-        /* Others from the phonetic alphabet */        
-        for (var i = 0; i < this.PHONETIC_ALPHABET.length; i++) {
-            var designator = this.PHONETIC_ALPHABET[i];
-            if (doneOptions[designator] !== true) {
-                cbSelect.append(jQuery('<option>', {value: designator, text: designator}));
-            }
-        }
-        cbSelect.addClass("combobox");            
-        cbSelect.combobox({
-            appendId: "-input",
-            clearIfNoMatch: false,
-            highlighter: jQuery.proxy(function(item) { 
-                return(
-                    '<div style="width:100%;background-color:' + (this.featureMap[item] ? '#99cc00' : '#c9302c') + '">'+ 
-                        '<strong>' + item + '</strong>' + 
-                    '</div>'
-                );
-            }, this)
-        });
-        var cbInput = jQuery("#" + id + "-input");
-        cbInput.attr("required", cbSelect.attr("required"));
-        cbInput.attr("data-toggle", "tooltip");
-        cbInput.attr("data-placement", "right");
-        cbInput.attr("title", cbSelect.attr("title"));            
-        jQuery("input[type='text'].combobox").off("change").on("change", jQuery.proxy(function () {
-            this.formEdited = true;
-            this.setButtonStates("enable", "leave", "leave");
-       }, this));
+    }
+    cbSelect.combobox({
+        appendId: "-input",
+        clearIfNoMatch: false,
+        highlighter: jQuery.proxy(function(item) { 
+            return(
+                '<div style="width:100%;background-color:' + (this.featureMap[item] ? '#99cc00' : '#c9302c') + '">'+ 
+                    '<strong>' + item + '</strong>' + 
+                '</div>'
+            );
+        }, this)
+    });
+    var cbInput = jQuery("#" + id + "-input");
+    cbInput.attr("required", "required");
+    cbInput.attr("data-toggle", "tooltip");
+    cbInput.attr("data-placement", "right");
+    cbInput.attr("title", "Sledge designator - choose a standard one, or enter a custom name (required)");            
+    jQuery("input[type='text'].combobox").off("change").on("change", jQuery.proxy(function () {
+        this.formEdited = true;
+        this.setButtonStates("enable", "leave", "leave");
+   }, this));
     }    
 };
 
