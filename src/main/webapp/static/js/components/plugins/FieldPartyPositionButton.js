@@ -548,8 +548,8 @@ magic.classes.FieldPartyPositionButton.prototype.setDatepickerValue = function(i
  */
 magic.classes.FieldPartyPositionButton.prototype.getComboboxValue = function(id) {
     var cbInput = jQuery("#" + id + "-input");
-    var cbHidden = cbInput.closest("div.combobox-container").find("input[type='hidden']");
-    return(cbHidden.val());
+    //var cbHidden = cbInput.closest("div.combobox-container").find("input[type='hidden']");
+    return(cbInput.val());
 };
 
 /**
