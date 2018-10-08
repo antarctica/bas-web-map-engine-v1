@@ -472,8 +472,9 @@ magic.classes.FieldPartyPositionButton.prototype.initSledgeCombobox = function(i
         cbSelect.append(jQuery('<option>', {value: "", text: ""}));
         /* Active sledges */
         var doneOptions = {};
-        for (var j = 0; j < opts.length; j++) {           
-            cbSelect.append(jQuery('<option>', {value: opts[j], text: opts[j]}));
+        for (var j = 0; j < opts.length; j++) { 
+            var optVal = "active:" + opts[j];
+            cbSelect.append(jQuery('<option>', {value: optVal, text: optVal}));
             doneOptions[opts[j]] = true;
         }
         /* Others from the phonetic alphabet */        
@@ -489,7 +490,11 @@ magic.classes.FieldPartyPositionButton.prototype.initSledgeCombobox = function(i
             cbSelect.combobox({
                 appendId: "-input",
                 highlighter: function(item) { 
-                    return('<div style="width:100%;background-color:' + (doneOptions[item] === true ? '#99cc00' : '#c9302c') + '"><strong>' + item + '</strong></div>');
+                    return(
+                        '<div style="width:100%;background-color:' + (item.indexOf("active:") == 0 ? '#99cc00' : '#c9302c') + '">'+ 
+                            '<strong>' + item.replace("active:", "") + '</strong>' + 
+                        '</div>'
+                    );
                 }
             });
             var cbInput = jQuery("#" + id + "-input");
@@ -510,6 +515,9 @@ magic.classes.FieldPartyPositionButton.prototype.initSledgeCombobox = function(i
                     }
                 }
             });
+            jQuery("input[type='text'].combobox").on("change", jQuery.proxy(function () {
+                this.formEdited = true;
+           }, this));
         }        
     }    
 };
@@ -527,6 +535,9 @@ magic.classes.FieldPartyPositionButton.prototype.initDatepicker = function(id) {
             maxDate: moment(),     /* Prevent selection of future dates */
             format: "DD/MM/YYYY"
         });
+        dtInput.on("dp.update", jQuery.proxy(function(evt) {
+            this.formEdited = true;
+        }, this));
     }
 };
 
@@ -568,7 +579,7 @@ magic.classes.FieldPartyPositionButton.prototype.setDatepickerValue = function(i
 magic.classes.FieldPartyPositionButton.prototype.getComboboxValue = function(id) {
     var cbInput = jQuery("#" + id + "-input");
     var cbHidden = cbInput.closest("div.combobox-container").find("input[type='hidden']");
-    return(cbHidden.val());
+    return(cbHidden.val().replace("active:", ""));
 };
 
 /**
