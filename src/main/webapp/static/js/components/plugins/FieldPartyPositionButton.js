@@ -466,6 +466,7 @@ magic.classes.FieldPartyPositionButton.prototype.initSledgeCombobox = function(i
             cbSelect.append(jQuery('<option>', {value: designator, text: designator}));
         }
     }
+    sledgeComboDiv.append(cbSelect);
     cbSelect.combobox({
         appendId: "-input",
         clearIfNoMatch: false,
