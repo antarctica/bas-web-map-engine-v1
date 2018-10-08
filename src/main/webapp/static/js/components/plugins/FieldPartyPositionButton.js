@@ -486,7 +486,6 @@ magic.classes.FieldPartyPositionButton.prototype.initSledgeCombobox = function(i
         this.formEdited = true;
         this.setButtonStates("enable", "leave", "leave");
    }, this));
-    }    
 };
 
 /**
