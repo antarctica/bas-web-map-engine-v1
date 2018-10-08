@@ -209,7 +209,7 @@ magic.classes.FieldPartyPositionButton.prototype.loadFeatures = function() {
                 content: "You can add, edit and remove positional fixes.  All red labelled fields are required. Edit an existing fix by clicking on the relevant icon on the map"
             });
             /* Convert the sledge input field to combobox */
-            this.initSledgeCombobox("fix-input-sledge", Object.keys(this.featureMap));
+            this.initSledgeCombobox("fix-input-sledge");
             /* Convert the date input field to a datepicker */
             this.initDatepicker("fix-input-fix_date");            
             /* Assign the new button handler */
@@ -445,13 +445,14 @@ magic.classes.FieldPartyPositionButton.prototype.validate = function(payload) {
 /**
  * Set up a combobox style of dropdown field (standard in the formwidgets library)
  * @param {String} id
- * @param {Object} opts
  */
-magic.classes.FieldPartyPositionButton.prototype.initSledgeCombobox = function(id, opts) {
+magic.classes.FieldPartyPositionButton.prototype.initSledgeCombobox = function(id) {
+    var opts = Object.keys(this.featureMap).sort();
     var cbSelect = jQuery("#" + id);
     if (cbSelect.length > 0) {
         /* The input exists (we must therefore be admin) */
-        cbSelect.empty();        
+        cbSelect.empty(); 
+        cbSelect.removeClass("combobox");
         cbSelect.append(jQuery('<option>', {value: "", text: ""}));
         /* Active sledges */
         var doneOptions = {};
@@ -466,12 +467,10 @@ magic.classes.FieldPartyPositionButton.prototype.initSledgeCombobox = function(i
                 cbSelect.append(jQuery('<option>', {value: designator, text: designator}));
             }
         }
-        if (!cbSelect.hasClass("combobox")) {
-            /* The input has not been converted */
-            cbSelect.addClass("combobox");            
-        } 
+        cbSelect.addClass("combobox");            
         cbSelect.combobox({
             appendId: "-input",
+            clearIfNoMatch: false,
             highlighter: jQuery.proxy(function(item) { 
                 return(
                     '<div style="width:100%;background-color:' + (this.featureMap[item] ? '#99cc00' : '#c9302c') + '">'+ 
