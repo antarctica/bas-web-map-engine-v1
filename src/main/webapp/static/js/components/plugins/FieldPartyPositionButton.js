@@ -494,8 +494,8 @@ magic.classes.FieldPartyPositionButton.prototype.initSledgeCombobox = function(i
                             '<strong>' + item + '</strong>' + 
                         '</div>'
                     );
-                }
-            }, this));
+                }, this)
+            });
             var cbInput = jQuery("#" + id + "-input");
             cbInput.attr("required", cbSelect.attr("required"));
             cbInput.attr("data-toggle", "tooltip");
