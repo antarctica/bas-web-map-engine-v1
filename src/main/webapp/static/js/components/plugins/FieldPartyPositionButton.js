@@ -152,7 +152,6 @@ magic.classes.FieldPartyPositionButton.prototype.loadFeatures = function() {
             var feats = fmtGeoJson.readFeatures(data);
             /* Now classify the features by name and fix date */
             var noDupFeats = [], trackFeats = [];
-            console.log("Read " + feats.length + " features");
             jQuery.each(feats, jQuery.proxy(function(idx, f) {
                 if (f.getGeometry() == null) {
                     return(true);   /* Defend against null geometries */
@@ -163,29 +162,19 @@ magic.classes.FieldPartyPositionButton.prototype.loadFeatures = function() {
                 if (!this.featureMap[fname]) {
                     this.featureMap[fname] = {};
                 }
-                if (this.featureMap[fname][fdate]) {
-                    /* Sometimes we get infelicities in the data => duplicate records in every way except id */
-                    console.log("Duplicate found for " + fname + " at " + fdate);
-                    console.log("Features with id " + attrs["id"] + " and " + this.featureMap[fname][fdate].getProperties()["id"]);
-                    console.log("Ignoring...");
-                } else {
+                if (!this.featureMap[fname][fdate]) {
+                    /* Sometimes we get infelicities in the data => duplicate records in every way except id */                    
                     this.featureMap[fname][fdate] = f; 
                     noDupFeats.push(f);
                 }
             }, this));
             /* Now write styling hints into the feature attributes */
-            console.log(noDupFeats.length + " features are non-duplicates");
             jQuery.each(this.featureMap, jQuery.proxy(function(k, v) {  
-                console.log("=== Process fixes for " + k);
                 var fixes = Object.keys(v);
                 fixes.sort();
-                fixes.reverse();
-                console.log("=== Fixes:");
-                console.log(fixes);
-                console.log("=== End of fixes");
+                fixes.reverse();                
                 /* Initialise the line track feature */
                 var track = new ol.geom.LineString([], "XY");
-                console.log("Created new track");
                 /* Now have descending order array of fixes */
                 var colourStep = 255/fixes.length;
                 for (var i = 0; i < fixes.length; i++) {
@@ -199,7 +188,6 @@ magic.classes.FieldPartyPositionButton.prototype.loadFeatures = function() {
                     }, true);
                     fixFeat.setStyle(magic.modules.VectorStyles["bas_field_party"]());
                     track.appendCoordinate(fixFeat.getGeometry().getFirstCoordinate());
-                    console.log("Appended fix to track");
                 }
                 /* Create track feature and style */
                 var trackFeat = new ol.Feature({
@@ -212,12 +200,8 @@ magic.classes.FieldPartyPositionButton.prototype.loadFeatures = function() {
                 trackFeats.push(trackFeat);
             }, this));
             this.layer.getSource().clear();
-            this.layer.getSource().addFeatures(trackFeats);
-            console.log("=== Adding tracks to layer...");
-            console.log(trackFeats);
-            console.log("=== Adding features to layer...");
+            this.layer.getSource().addFeatures(trackFeats);            
             this.layer.getSource().addFeatures(noDupFeats);
-            console.log(noDupFeats);
             /* Activate the help button */
             jQuery(".fix-editing-help").popover({
                 placement: "right",
@@ -225,7 +209,7 @@ magic.classes.FieldPartyPositionButton.prototype.loadFeatures = function() {
                 content: "You can add, edit and remove positional fixes.  All red labelled fields are required. Edit an existing fix by clicking on the relevant icon on the map"
             });
             /* Convert the sledge input field to combobox */
-            this.initSledgeCombobox("fix-input-sledge", Object.keys(this.featureMap).sort());
+            this.initSledgeCombobox("fix-input-sledge", Object.keys(this.featureMap));
             /* Convert the date input field to a datepicker */
             this.initDatepicker("fix-input-fix_date");            
             /* Assign the new button handler */
@@ -258,10 +242,10 @@ magic.classes.FieldPartyPositionButton.prototype.onDeactivate = function() {
 /**
  * Reset the form, taking account of whether or not it has been edited
  */
-magic.classes.FieldPartyPositionButton.prototype.resetForm = function(evt) {  
+magic.classes.FieldPartyPositionButton.prototype.resetForm = function() {  
     
     /* Get rid of tooltips before using the feedback animation */
-    jQuery(evt.currentTarget).tooltip("hide");
+    jQuery("#fix-new").tooltip("hide");
     
     var form = jQuery(".field-party-popover-content").find("form");
     
@@ -319,13 +303,12 @@ magic.classes.FieldPartyPositionButton.prototype.deleteFix = function(evt) {
 /**
  * Save the form data - NOTE: should eventually use WFS-T rather than same-server database ops - David 2018-10-03
  */
-magic.classes.FieldPartyPositionButton.prototype.saveForm = function(evt) {  
+magic.classes.FieldPartyPositionButton.prototype.saveForm = function() {  
     
     /* Get rid of tooltips before using the feedback animation */
-    jQuery(evt.currentTarget).tooltip("hide");
+    jQuery("#fix-save-go").tooltip("hide");
     
     var payload = this.getPayload();
-    //console.log(payload);
     if (this.validate(payload)) {
         jQuery.ajax({
             url: magic.config.paths.baseurl + "/fpp/" + (payload.id ? "update/" + payload.id : "save"),
