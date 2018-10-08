@@ -152,7 +152,7 @@ magic.classes.FieldPartyPositionButton.prototype.loadFeatures = function() {
             var feats = fmtGeoJson.readFeatures(data);
             /* Now classify the features by name and fix date */
             var noDupFeats = [], trackFeats = [];
-            //console.log("Read " + feats.length + " features");
+            console.log("Read " + feats.length + " features");
             jQuery.each(feats, jQuery.proxy(function(idx, f) {
                 if (f.getGeometry() == null) {
                     return(true);   /* Defend against null geometries */
@@ -165,22 +165,27 @@ magic.classes.FieldPartyPositionButton.prototype.loadFeatures = function() {
                 }
                 if (this.featureMap[fname][fdate]) {
                     /* Sometimes we get infelicities in the data => duplicate records in every way except id */
-                    //console.log("Duplicate found for " + fname + " at " + fdate);
-                    //console.log("Features with id " + attrs["id"] + " and " + this.featureMap[fname][fdate].getProperties()["id"]);
-                    //console.log("Ignoring...");
+                    console.log("Duplicate found for " + fname + " at " + fdate);
+                    console.log("Features with id " + attrs["id"] + " and " + this.featureMap[fname][fdate].getProperties()["id"]);
+                    console.log("Ignoring...");
                 } else {
                     this.featureMap[fname][fdate] = f; 
                     noDupFeats.push(f);
                 }
             }, this));
             /* Now write styling hints into the feature attributes */
-            //console.log(noDupFeats.length + " features are non-duplicates");
-            jQuery.each(this.featureMap, jQuery.proxy(function(k, v) {               
+            console.log(noDupFeats.length + " features are non-duplicates");
+            jQuery.each(this.featureMap, jQuery.proxy(function(k, v) {  
+                console.log("=== Process fixes for " + k);
                 var fixes = Object.keys(v);
                 fixes.sort();
                 fixes.reverse();
+                console.log("=== Fixes:");
+                console.log(fixes);
+                console.log("=== End of fixes");
                 /* Initialise the line track feature */
                 var track = new ol.geom.LineString([], "XY");
+                console.log("Created new track");
                 /* Now have descending order array of fixes */
                 var colourStep = 255/fixes.length;
                 for (var i = 0; i < fixes.length; i++) {
@@ -194,6 +199,7 @@ magic.classes.FieldPartyPositionButton.prototype.loadFeatures = function() {
                     }, true);
                     fixFeat.setStyle(magic.modules.VectorStyles["bas_field_party"]());
                     track.appendCoordinate(fixFeat.getGeometry().getFirstCoordinate());
+                    console.log("Appended fix to track");
                 }
                 /* Create track feature and style */
                 var trackFeat = new ol.Feature({
@@ -207,7 +213,11 @@ magic.classes.FieldPartyPositionButton.prototype.loadFeatures = function() {
             }, this));
             this.layer.getSource().clear();
             this.layer.getSource().addFeatures(trackFeats);
+            console.log("=== Adding tracks to layer...");
+            console.log(trackFeats);
+            console.log("=== Adding features to layer...");
             this.layer.getSource().addFeatures(noDupFeats);
+            console.log(noDupFeats);
             /* Activate the help button */
             jQuery(".fix-editing-help").popover({
                 placement: "right",
