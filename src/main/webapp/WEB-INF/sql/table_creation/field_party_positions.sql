@@ -67,7 +67,6 @@ CREATE TRIGGER populate_geometry_from_lat_lon
 
 CREATE TABLE opsgis2.ops_field_deployments_history
 (
-  id serial,
   fp_id integer,
   sledge varchar(20),
   season varchar(4),
@@ -78,9 +77,7 @@ CREATE TABLE opsgis2.ops_field_deployments_history
   lat numeric,
   lon numeric,
   height numeric,
-  notes text,
-  geometry geometry(POINT, 3031),
-  CONSTRAINT fpp_history_pkey PRIMARY KEY (id)
+  notes text
 )
 WITH (
   OIDS=FALSE

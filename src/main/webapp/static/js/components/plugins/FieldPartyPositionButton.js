@@ -134,13 +134,17 @@ magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {
 magic.classes.FieldPartyPositionButton.prototype.loadFeatures = function() {
     
     var form = jQuery(".field-party-popover-content").find("form");
-    form[0].reset();
-    form.find("input:hidden").val("");
+    if (this.savedState != null) {
+        this.restoreState();
+    } else {
+        form[0].reset();
+        form.find("input:hidden").val("");           
+        this.savedState = null;
+    }
     this.setButtonStates("disable", "enable", "disable");
     magic.modules.Common.resetFormIndicators();
     this.featureMap = {};   
-    this.formEdited = false;    
-    this.savedState = null;
+    this.formEdited = false; 
                 
     jQuery.ajax({
         url: this.WFS_FETCH,
@@ -220,9 +224,7 @@ magic.classes.FieldPartyPositionButton.prototype.loadFeatures = function() {
             jQuery("#fix-delete-go").off("click").on("click", jQuery.proxy(this.deleteFix, this));
             /* Assign the feature click-to-edit handler */
             magic.runtime.map.un("singleclick", this.clickToEditHandler, this);
-            magic.runtime.map.on("singleclick", this.clickToEditHandler, this);
-            /* Restore any saved state */
-            this.restoreState();
+            magic.runtime.map.on("singleclick", this.clickToEditHandler, this);            
         }, this),
         error: function() {
             console.log("Failed to get field party positional data - potential network outage?");
