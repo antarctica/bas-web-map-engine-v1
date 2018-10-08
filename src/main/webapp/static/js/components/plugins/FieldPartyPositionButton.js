@@ -517,6 +517,7 @@ magic.classes.FieldPartyPositionButton.prototype.initSledgeCombobox = function(i
             });
             jQuery("input[type='text'].combobox").on("change", jQuery.proxy(function () {
                 this.formEdited = true;
+                this.setButtonStates("enable", "leave", "leave");
            }, this));
         }        
     }    
@@ -537,6 +538,7 @@ magic.classes.FieldPartyPositionButton.prototype.initDatepicker = function(id) {
         });
         dtInput.on("dp.update dp.change", jQuery.proxy(function(evt) {
             this.formEdited = true;
+            this.setButtonStates("enable", "leave", "leave");
         }, this));
     }
 };
