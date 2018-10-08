@@ -54,9 +54,17 @@ public abstract class JsonCrudApp {
                     if (jp.getAsString().equals("") && !allowEmpty && defaultValue != null) {
                         elt = defaultValue;
                     } else if (clazz == Integer.class) {
-                        elt = jp.getAsInt();
+                        try {                        
+                            elt = jp.getAsInt();
+                        } catch(NumberFormatException nfe) {
+                            elt = defaultValue;
+                        }
                     } else if (clazz == Double.class) {
-                        elt = jp.getAsDouble();
+                        try {
+                            elt = jp.getAsDouble();
+                        } catch(NumberFormatException nfe) {
+                            elt = defaultValue;
+                        }
                     } else {                        
                         elt = jp.getAsString();
                     }
