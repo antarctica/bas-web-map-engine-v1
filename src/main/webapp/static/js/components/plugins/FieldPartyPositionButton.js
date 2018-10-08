@@ -474,7 +474,7 @@ magic.classes.FieldPartyPositionButton.prototype.initSledgeCombobox = function(i
         var doneOptions = {};
         for (var j = 0; j < opts.length; j++) { 
             var optVal = "active:" + opts[j];
-            cbSelect.append(jQuery('<option>', {value: optVal, text: opts[j]}));
+            cbSelect.append(jQuery('<option>', {value: opts[j], text: optVal}));
             doneOptions[opts[j]] = true;
         }
         /* Others from the phonetic alphabet */        
