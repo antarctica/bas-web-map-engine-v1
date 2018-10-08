@@ -485,27 +485,27 @@ magic.classes.FieldPartyPositionButton.prototype.initSledgeCombobox = function(i
         }
         if (!cbSelect.hasClass("combobox")) {
             /* The input has not been converted */
-            cbSelect.addClass("combobox");
-            cbSelect.combobox({
-                appendId: "-input",
-                highlighter: jQuery.proxy(function(item) { 
-                    return(
-                        '<div style="width:100%;background-color:' + (this.featureMap[item] ? '#99cc00' : '#c9302c') + '">'+ 
-                            '<strong>' + item + '</strong>' + 
-                        '</div>'
-                    );
-                }, this)
-            });
-            var cbInput = jQuery("#" + id + "-input");
-            cbInput.attr("required", cbSelect.attr("required"));
-            cbInput.attr("data-toggle", "tooltip");
-            cbInput.attr("data-placement", "right");
-            cbInput.attr("title", cbSelect.attr("title"));            
-            jQuery("input[type='text'].combobox").on("change", jQuery.proxy(function () {
-                this.formEdited = true;
-                this.setButtonStates("enable", "leave", "leave");
-           }, this));
-        }        
+            cbSelect.addClass("combobox");            
+        } 
+        cbSelect.combobox({
+            appendId: "-input",
+            highlighter: jQuery.proxy(function(item) { 
+                return(
+                    '<div style="width:100%;background-color:' + (this.featureMap[item] ? '#99cc00' : '#c9302c') + '">'+ 
+                        '<strong>' + item + '</strong>' + 
+                    '</div>'
+                );
+            }, this)
+        });
+        var cbInput = jQuery("#" + id + "-input");
+        cbInput.attr("required", cbSelect.attr("required"));
+        cbInput.attr("data-toggle", "tooltip");
+        cbInput.attr("data-placement", "right");
+        cbInput.attr("title", cbSelect.attr("title"));            
+        jQuery("input[type='text'].combobox").off("change").on("change", jQuery.proxy(function () {
+            this.formEdited = true;
+            this.setButtonStates("enable", "leave", "leave");
+       }, this));
     }    
 };
 
