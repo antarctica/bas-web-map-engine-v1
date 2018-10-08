@@ -452,7 +452,7 @@ magic.classes.FieldPartyPositionButton.prototype.initSledgeCombobox = function(i
     if (cbSelect.length > 0) {
         /* The input exists (we must therefore be admin) */
         cbSelect.empty(); 
-        cbSelect.parent().children().first().remove();
+        cbSelect.parent().find("div.combobox").remove();
         cbSelect.removeClass("combobox");
         cbSelect.append(jQuery('<option>', {value: "", text: ""}));
         /* Active sledges */
