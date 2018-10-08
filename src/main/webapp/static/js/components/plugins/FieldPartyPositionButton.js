@@ -535,7 +535,7 @@ magic.classes.FieldPartyPositionButton.prototype.initDatepicker = function(id) {
             maxDate: moment(),     /* Prevent selection of future dates */
             format: "DD/MM/YYYY"
         });
-        dtInput.on("dp.update", jQuery.proxy(function(evt) {
+        dtInput.on("dp.update dp.change", jQuery.proxy(function(evt) {
             this.formEdited = true;
         }, this));
     }
