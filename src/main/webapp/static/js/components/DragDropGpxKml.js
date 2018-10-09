@@ -32,12 +32,12 @@ magic.classes.DragDropGpxKml = function(options) {
         var layer = new ol.layer.Vector({
             name: (evt.file && evt.file.name) ? evt.file.name : "_user_layer_" + this.userlayers.length,
             source: vectorSource,
-            renderMode: "image",
             metadata: {                
                 is_interactive: true
             }
         });
         this.map.addLayer(layer); 
+        console.log("Layer z-index is " + layer.getZIndex());
         var dataExtent = magic.modules.GeoUtils.bufferExtent(vectorSource.getExtent());
         this.map.getView().fit(dataExtent, {padding: [20, 20, 20, 20]});
         this.userlayers.push(layer);
