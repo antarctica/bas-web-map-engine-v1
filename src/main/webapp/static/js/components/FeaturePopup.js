@@ -441,6 +441,7 @@ magic.classes.FeaturePopup.prototype.assignFullSetHandler = function(elt) {
                     /* NOTE: David 2016-11-02 - suppress null non-numeric values in the pop-up */
                     var finalValue = "";
                     if (value) {
+                        value = value.toString();
                         var quote1 = value.indexOf("\"");
                         var quote2 = value.lastIndexOf("\"");
                         if (quote1 != -1 && quote2 != -1) {
