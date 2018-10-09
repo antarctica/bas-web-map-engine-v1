@@ -579,13 +579,13 @@ public abstract class DataPublisher {
         String userWs = getEnv().getProperty("geoserver.internal.userWorkspace");
         if (grec.getJson("workspaces/" + userWs + "/datastores/" + dataStore + "/featuretypes/" + tableName) != null) {
             System.out.println("Unpublishing existing feature " + tableName + "...");
-            System.out.println((grec.deleteContent("workspaces/" + userWs + "/datastores/" + dataStore + "/featuretypes/" + tableName) == null) ? "Failed" : "Success");
+            System.out.println((grec.deleteContent("workspaces/" + userWs + "/datastores/" + dataStore + "/featuretypes/" + tableName + "?recurse=true") == null) ? "Failed" : "Success");
         }       
         /* Drop any Geoserver style relating to the table */
         if (grec.getJson("workspaces/" + userWs + "/styles/" + tableName) == null) {
             /* Style does not currently exist */
             System.out.println("Deleting associated style " + tableName + "...");
-            System.out.println((grec.deleteContent("workspaces/" + userWs + "/styles/" + tableName) == null) ? "Failed" : "Success");
+            System.out.println((grec.deleteContent("workspaces/" + userWs + "/styles/" + tableName + "?recurse=true&purge=true") == null) ? "Failed" : "Success");
         }       
         /* Drop the existing table, including any sequence and index previously created by ogr2ogr */
         System.out.println("Drop underlying PostGIS table " + tableSchema + "." + tableName + "...");
