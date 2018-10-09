@@ -137,11 +137,14 @@ magic.classes.FieldPartyPositionButton.prototype.loadFeatures = function() {
     this.resetForm();
     
     if (this.savedState != null) {
-        /* Restore a saved state - feature map etc will be intact as popover was minimised not closed */        
+        /* Restore a saved state - feature map etc will be intact as popover was minimised not closed */    
+        console.log("Saved state present - should it be?");
+        console.log(this.savedState);
         this.assignHandlers();
         this.restoreState();
     } else {
         /* Load WFS features */
+        console.log("No saved state");
         this.featureMap = {};
         jQuery.ajax({
             url: this.WFS_FETCH,
@@ -251,8 +254,7 @@ magic.classes.FieldPartyPositionButton.prototype.assignHandlers = function() {
  */
 magic.classes.FieldPartyPositionButton.prototype.resetForm = function() {  
     
-    /* Get rid of tooltips before using the feedback animation */
-    jQuery("#fix-new").tooltip("hide");
+    this.hideTooltips();
     
     var form = jQuery(".field-party-popover-content").find("form");
     
@@ -276,8 +278,7 @@ magic.classes.FieldPartyPositionButton.prototype.resetForm = function() {
  */
 magic.classes.FieldPartyPositionButton.prototype.deleteFix = function() {  
     
-    /* Get rid of tooltips before using the feedback animation */
-    jQuery("#fix-delete-go").tooltip("hide");
+    this.hideTooltips();
     
     var delId = jQuery("#fix-input-id").val();
     if (!isNaN(parseInt(delId))) {
@@ -312,8 +313,7 @@ magic.classes.FieldPartyPositionButton.prototype.deleteFix = function() {
  */
 magic.classes.FieldPartyPositionButton.prototype.saveForm = function() {  
     
-    /* Get rid of tooltips before using the feedback animation */
-    jQuery("#fix-save-go").tooltip("hide");
+    this.hideTooltips();
     
     var payload = this.getPayload();
     if (this.validate(payload)) {
@@ -343,6 +343,16 @@ magic.classes.FieldPartyPositionButton.prototype.saveForm = function() {
     } else {
         magic.modules.Common.buttonClickFeedback("fix-save", false, "Errors found");
     }
+};
+
+/**
+ * Compensate for Bootstrap tooltip bug with the feedback animation - tooltips sometimes get stuck!
+ */
+magic.classes.FieldPartyPositionButton.prototype.hideTooltips = function() {
+    /* Get rid of tooltips before using the feedback animation */
+    jQuery("#fix-new").tooltip("hide");
+    jQuery("#fix-delete-go").tooltip("hide");
+    jQuery("#fix-save-go").tooltip("hide");
 };
 
 /**
