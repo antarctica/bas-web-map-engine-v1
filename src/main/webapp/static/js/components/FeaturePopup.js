@@ -208,14 +208,15 @@ magic.classes.FeaturePopup.prototype.featureAttributeTableMarkup = function(feat
                         var finalValue = "";
                         if (feat[attrdata.name]) {
                             /* Attribute has a value, so worth displaying */
-                            var quote1 = feat[attrdata.name].indexOf("\"");
-                            var quote2 = feat[attrdata.name].lastIndexOf("\"");
+                            var attrValue = feat[attrdata.name].toString();
+                            var quote1 = attrValue.indexOf("\"");
+                            var quote2 = attrValue.lastIndexOf("\"");
                             if (quote1 != -1 && quote2 != -1) {
                                 /* This is a link with an alias i.e. "<linktext>":<url> */
-                                finalValue = magic.modules.Common.linkify(feat[attrdata.name].substring(quote2+2), feat[attrdata.name].substring(quote1+1, quote2));
+                                finalValue = magic.modules.Common.linkify(attrValue.substring(quote2+2), attrValue.substring(quote1+1, quote2));
                             } else {
-                                var longContent = magic.modules.Common.linkify(feat[attrdata.name]);
-                                if (feat[attrdata.name].length > this.LONG_FIELD_THRESHOLD) {
+                                var longContent = magic.modules.Common.linkify(attrValue);
+                                if (attrValue.length > this.LONG_FIELD_THRESHOLD) {
                                     /* Long field attribute, not a long link */
                                     finalValue += 
                                         '<button class="btn btn-default btn-sm long-field-extension" role="button" data-toggle="popover" data-placement="right">' + 

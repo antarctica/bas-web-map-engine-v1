@@ -915,6 +915,9 @@ magic.modules.Common = function () {
          * @param {int} size
          */
         ellipsis: function (str, size) {
+            if (!str) {
+                return("");
+            }
             if (str.length <= size) {
                 return(str);
             }
