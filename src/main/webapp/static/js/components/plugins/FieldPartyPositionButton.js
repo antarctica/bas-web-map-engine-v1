@@ -552,9 +552,7 @@ magic.classes.FieldPartyPositionButton.prototype.setDatepickerValue = function(i
  * @return {String}
  */
 magic.classes.FieldPartyPositionButton.prototype.getComboboxValue = function(id) {
-    var cbInput = jQuery("#" + id + "-input");
-    //var cbHidden = cbInput.closest("div.combobox-container").find("input[type='hidden']");
-    return(cbInput.val());
+    return(jQuery("#" + id + "-input").val());
 };
 
 /**
@@ -564,7 +562,7 @@ magic.classes.FieldPartyPositionButton.prototype.getComboboxValue = function(id)
  */
 magic.classes.FieldPartyPositionButton.prototype.getDatepickerValue = function(id) {
     var field = jQuery("#" + id);
-    return(field.val() ? moment(field.val(), "DD/MM/YYYY").format("YYYY-MM-DD") : "");
+    return(field.val() ? moment(field.val(), "DD/MM/YYYY").format("YYYY-MM-DD") : moment().format("YYYY-MM-DD"));
 };
 
 /**
