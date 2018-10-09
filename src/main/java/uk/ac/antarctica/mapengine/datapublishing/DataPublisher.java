@@ -234,7 +234,7 @@ public abstract class DataPublisher {
      */
     protected String createPgSchemaDatastore(GeoserverRestEndpointConnector grec, String schemaName) throws GeoserverPublishException {         
         String rest = "workspaces/" + getEnv().getProperty("geoserver.internal.userWorkspace") + "/datastores";        
-        if (grec.getContent(rest + "/" + schemaName) == null) {
+        if (grec.getJson(rest + "/" + schemaName) == null) {
             /* Store does not exist, so try to create it */
             System.out.println("Create new PostGIS store " + schemaName);
             JsonObject joDs = new JsonObject();
@@ -304,7 +304,7 @@ public abstract class DataPublisher {
                 /* Style is in file supplied (shapefile), or internal to the file (GPX/KML) when exStyleFile is null */
                 if (exStyleFile != null) {
                     String userWs = getEnv().getProperty("geoserver.internal.userWorkspace");
-                    if (grec.getContent("workspaces/" + userWs + "/styles/" + tableName) == null) {
+                    if (grec.getJson("workspaces/" + userWs + "/styles/" + tableName) == null) {
                         /* Style does not currently exist */
                         System.out.println("Style " + tableName + " not present");
                         stylePublished = (grec.postJson("workspaces/" + userWs + "/styles", packageStyle(tableName, exStyleFile)) != null);
@@ -559,14 +559,12 @@ public abstract class DataPublisher {
         
         /* Drop any Geoserver feature corresponding to this table */
         String userWs = getEnv().getProperty("geoserver.internal.userWorkspace");
-        String exInfo = grec.getContent("workspaces/" + userWs + "/datastores/" + dataStore + "/featuretypes/" + tableName);
-        if (exInfo != null) {
+        if (grec.getJson("workspaces/" + userWs + "/datastores/" + dataStore + "/featuretypes/" + tableName) != null) {
             System.out.println("Unpublishing existing feature " + tableName + "...");
             System.out.println((grec.deleteContent("workspaces/" + userWs + "/datastores/" + dataStore + "/featuretypes/" + tableName) == null) ? "Failed" : "Success");
         }       
         /* Drop any Geoserver style relating to the table */
-        String exStyleInfo = grec.getContent("workspaces/" + userWs + "/styles/" + tableName);
-        if (exStyleInfo == null) {
+        if (grec.getJson("workspaces/" + userWs + "/styles/" + tableName) == null) {
             /* Style does not currently exist */
             System.out.println("Deleting associated style " + tableName + "...");
             System.out.println((grec.deleteContent("workspaces/" + userWs + "/styles/" + tableName) == null) ? "Failed" : "Success");
@@ -671,10 +669,10 @@ public abstract class DataPublisher {
         ftypeWrapper.add("featureType", layerData);
         
         /* Publish */
-        String rest = "workspaces/" + userWs + "/datastores/" + dataStore + "/featuretypes";
-        if (grec.getContent(rest + "/" + tname) != null) {
+        String fpath = "workspaces/" + userWs + "/datastores/" + dataStore + "/featuretypes/" + tname;
+        if (grec.getJson(fpath) != null) {
             /* layer already exists, so delete it */
-            ret = grec.deleteContent(rest + "/" + tname + "?recurse=true") != null;
+            ret = grec.deleteContent(fpath + "?recurse=true") != null;
         }
         if (ret) {
             /* Layer didn't exist, or if layer was already present, we have successfully deleted it */
