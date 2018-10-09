@@ -389,7 +389,9 @@ magic.classes.FieldPartyPositionButton.prototype.confirmOperation = function(cal
  * Retrieve the form's value as a JSON object
  * @returns {Object}
  */
-magic.classes.FieldPartyPositionButton.prototype.getPayload = function() {    
+magic.classes.FieldPartyPositionButton.prototype.getPayload = function() { 
+    var lat = magic.modules.GeoUtils.toDecDegrees(jQuery("#fix-input-lat").val());
+    var lon = magic.modules.GeoUtils.toDecDegrees(jQuery("#fix-input-lon").val());
     return({
         "id": jQuery("#fix-input-id").val(),
         "season": this.computeSeason(),
@@ -397,8 +399,8 @@ magic.classes.FieldPartyPositionButton.prototype.getPayload = function() {
         "fix_date": this.getDatepickerValue("fix-input-fix_date"),
         "people_count": jQuery("#fix-input-people_count").val(),
         "updater": jQuery("#fix-input-updater").val(),
-        "lat": magic.modules.GeoUtils.toDecDegrees(jQuery("#fix-input-lat").val()),
-        "lon": magic.modules.GeoUtils.toDecDegrees(jQuery("#fix-input-lon").val()),
+        "lat": (jQuery.isNumeric(lat) || typeof lat == "string") ? lat : "",
+        "lon": (jQuery.isNumeric(lon) || typeof lon == "string") ? lon : "",
         "height": jQuery("#fix-input-height").val(),
         "notes": jQuery("#fix-input-notes").val()
     });
@@ -415,9 +417,9 @@ magic.classes.FieldPartyPositionButton.prototype.setPayload = function(payload) 
     jQuery("#fix-input-people_count").val(payload.people_count);
     jQuery("#fix-input-updater").val(payload.updater || "");
     var lat = magic.modules.GeoUtils.applyPref("coordinates", payload.lat, "lat");   
-    jQuery("#fix-input-lat").val(isNaN(lat) ? "" : lat);
+    jQuery("#fix-input-lat").val((jQuery.isNumeric(lat) || typeof lat == "string") ? lat : "");
     var lon = magic.modules.GeoUtils.applyPref("coordinates", payload.lon, "lon");
-    jQuery("#fix-input-lon").val(isNaN(lon) ? "" : lon);
+    jQuery("#fix-input-lon").val((jQuery.isNumeric(lon) || typeof lon == "string") ? lon : "");
     jQuery("#fix-input-height").val(payload.height || 0.0);
     jQuery("#fix-input-notes").val(payload.notes || "");
     this.setButtonStates("disable", "enable", payload.id ? "enable" : "disable");
