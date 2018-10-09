@@ -133,103 +133,83 @@ magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {
  */
 magic.classes.FieldPartyPositionButton.prototype.loadFeatures = function() {
     
-    var form = jQuery(".field-party-popover-content").find("form");
+    this.formEdited = false;
+    this.resetForm();
+    
     if (this.savedState != null) {
+        /* Restore a saved state - feature map etc will be intact as popover was minimised not closed */        
+        this.assignHandlers();
         this.restoreState();
     } else {
-        form[0].reset();
-        form.find("input:hidden").val("");           
-        this.savedState = null;
-    }
-    this.setButtonStates("disable", "enable", "disable");
-    magic.modules.Common.resetFormIndicators();
-    this.featureMap = {};   
-    this.formEdited = false; 
-                
-    jQuery.ajax({
-        url: this.WFS_FETCH,
-        method: "GET",
-        success: jQuery.proxy(function(data) {
-            var fmtGeoJson = new ol.format.GeoJSON({
-                geometryName: "geometry"
-            });          
-            var feats = fmtGeoJson.readFeatures(data);
-            /* Now classify the features by name and fix date */
-            var noDupFeats = [], trackFeats = [];
-            jQuery.each(feats, jQuery.proxy(function(idx, f) {
-                if (f.getGeometry() == null) {
-                    return(true);   /* Defend against null geometries */
-                }
-                var attrs = f.getProperties();
-                var fname = attrs.sledge;
-                var fdate = attrs.fix_date;
-                if (!this.featureMap[fname]) {
-                    this.featureMap[fname] = {};
-                }
-                if (!this.featureMap[fname][fdate]) {
-                    /* Sometimes we get infelicities in the data => duplicate records in every way except id */                    
-                    this.featureMap[fname][fdate] = f; 
-                    noDupFeats.push(f);
-                }
-            }, this));
-            /* Now write styling hints into the feature attributes */
-            jQuery.each(this.featureMap, jQuery.proxy(function(k, v) {  
-                var fixes = Object.keys(v);
-                fixes.sort();
-                fixes.reverse();                
-                /* Initialise the line track feature */
-                var track = new ol.geom.LineString([], "XY");
-                /* Now have descending order array of fixes */
-                var colourStep = 255/fixes.length;
-                for (var i = 0; i < fixes.length; i++) {
-                    var rgba = "rgba(" + parseInt(255 - i*colourStep) + ",0," + parseInt(i*colourStep) + ",1.0)";
-                    var fixFeat = v[fixes[i]];
-                    fixFeat.setProperties({
-                        "rgba": rgba, 
-                        "latest": i == 0, 
-                        "highlighted": false,                        
-                        "__layer": this.layer
-                    }, true);
-                    fixFeat.setStyle(magic.modules.VectorStyles["bas_field_party"]());
-                    track.appendCoordinate(fixFeat.getGeometry().getFirstCoordinate());
-                }
-                /* Create track feature and style */
-                var trackFeat = new ol.Feature({
-                    "name": k,
-                    "palette_index": trackFeats.length,
-                    "_ignoreHovers": true,
-                    "geometry": track
-                });
-                trackFeat.setStyle(magic.modules.VectorStyles["bas_field_party"]());
-                trackFeats.push(trackFeat);
-            }, this));
-            this.layer.getSource().clear();
-            this.layer.getSource().addFeatures(trackFeats);            
-            this.layer.getSource().addFeatures(noDupFeats);
-            /* Activate the help button */
-            jQuery(".fix-editing-help").popover({
-                placement: "right",
-                trigger: "focus",
-                content: "You can add, edit and remove positional fixes.  All red labelled fields are required. Edit an existing fix by clicking on the relevant icon on the map"
-            });
-            /* Convert the sledge input field to combobox */
-            this.initSledgeCombobox("fix-input-sledge");
-            /* Convert the date input field to a datepicker */
-            this.initDatepicker("fix-input-fix_date");            
-            /* Assign the new button handler */
-            jQuery("#fix-new").off("click").on("click", jQuery.proxy(this.resetForm, this));
-            /* Assign the save button handler */
-            jQuery("#fix-save-go").off("click").on("click", jQuery.proxy(this.saveForm, this));            
-            /* Assign the delete button handler */
-            jQuery("#fix-delete-go").off("click").on("click", jQuery.proxy(this.deleteFix, this));
-            /* Assign the feature click-to-edit handler */
-            magic.runtime.map.un("singleclick", this.clickToEditHandler, this);
-            magic.runtime.map.on("singleclick", this.clickToEditHandler, this);            
-        }, this),
-        error: function() {
-            console.log("Failed to get field party positional data - potential network outage?");
-        }
-    });   
+        /* Load WFS features */
+        this.featureMap = {};
+        jQuery.ajax({
+            url: this.WFS_FETCH,
+            method: "GET",
+            success: jQuery.proxy(function(data) {
+                var fmtGeoJson = new ol.format.GeoJSON({
+                    geometryName: "geometry"
+                });          
+                var feats = fmtGeoJson.readFeatures(data);
+                /* Now classify the features by name and fix date */
+                var noDupFeats = [], trackFeats = [];
+                jQuery.each(feats, jQuery.proxy(function(idx, f) {
+                    if (f.getGeometry() == null) {
+                        return(true);   /* Defend against null geometries */
+                    }
+                    var attrs = f.getProperties();
+                    var fname = attrs.sledge;
+                    var fdate = attrs.fix_date;
+                    if (!this.featureMap[fname]) {
+                        this.featureMap[fname] = {};
+                    }
+                    if (!this.featureMap[fname][fdate]) {
+                        /* Sometimes we get infelicities in the data => duplicate records in every way except id */                    
+                        this.featureMap[fname][fdate] = f; 
+                        noDupFeats.push(f);
+                    }
+                }, this));
+                /* Now write styling hints into the feature attributes */
+                jQuery.each(this.featureMap, jQuery.proxy(function(k, v) {  
+                    var fixes = Object.keys(v);
+                    fixes.sort();
+                    fixes.reverse();                
+                    /* Initialise the line track feature */
+                    var track = new ol.geom.LineString([], "XY");
+                    /* Now have descending order array of fixes */
+                    var colourStep = 255/fixes.length;
+                    for (var i = 0; i < fixes.length; i++) {
+                        var rgba = "rgba(" + parseInt(255 - i*colourStep) + ",0," + parseInt(i*colourStep) + ",1.0)";
+                        var fixFeat = v[fixes[i]];
+                        fixFeat.setProperties({
+                            "rgba": rgba, 
+                            "latest": i == 0, 
+                            "highlighted": false,                        
+                            "__layer": this.layer
+                        }, true);
+                        fixFeat.setStyle(magic.modules.VectorStyles["bas_field_party"]());
+                        track.appendCoordinate(fixFeat.getGeometry().getFirstCoordinate());
+                    }
+                    /* Create track feature and style */
+                    var trackFeat = new ol.Feature({
+                        "name": k,
+                        "palette_index": trackFeats.length,
+                        "_ignoreHovers": true,
+                        "geometry": track
+                    });
+                    trackFeat.setStyle(magic.modules.VectorStyles["bas_field_party"]());
+                    trackFeats.push(trackFeat);
+                }, this));
+                this.layer.getSource().clear();
+                this.layer.getSource().addFeatures(trackFeats);            
+                this.layer.getSource().addFeatures(noDupFeats);
+                this.assignHandlers();                        
+            }, this),
+            error: function() {
+                console.log("Failed to get field party positional data - potential network outage?");
+            }
+        });   
+    }       
 };
 
 magic.classes.FieldPartyPositionButton.prototype.onDeactivate = function() {  
@@ -239,6 +219,31 @@ magic.classes.FieldPartyPositionButton.prototype.onDeactivate = function() {
     this.featureMap = {};    
     this.formEdited = false;    
     this.savedState = null;
+};
+
+/**
+ * Set up special inputs, attach button and map click handlers
+ */
+magic.classes.FieldPartyPositionButton.prototype.assignHandlers = function() {
+    /* Activate the help button */
+    jQuery(".fix-editing-help").popover({
+        placement: "right",
+        trigger: "focus",
+        content: "You can add, edit and remove positional fixes.  All red labelled fields are required. Edit an existing fix by clicking on the relevant icon on the map"
+    });
+    /* Convert the sledge input field to combobox */
+    this.initSledgeCombobox("fix-input-sledge");
+    /* Convert the date input field to a datepicker */
+    this.initDatepicker("fix-input-fix_date");            
+    /* Assign the new button handler */
+    jQuery("#fix-new").off("click").on("click", jQuery.proxy(this.resetForm, this));
+    /* Assign the save button handler */
+    jQuery("#fix-save-go").off("click").on("click", jQuery.proxy(this.saveForm, this));            
+    /* Assign the delete button handler */
+    jQuery("#fix-delete-go").off("click").on("click", jQuery.proxy(this.deleteFix, this));
+    /* Assign the feature click-to-edit handler */
+    magic.runtime.map.un("singleclick", this.clickToEditHandler, this);
+    magic.runtime.map.on("singleclick", this.clickToEditHandler, this); 
 };
 
 /**
@@ -269,10 +274,10 @@ magic.classes.FieldPartyPositionButton.prototype.resetForm = function() {
 /**
  * Delete a positional fix
  */
-magic.classes.FieldPartyPositionButton.prototype.deleteFix = function(evt) {  
+magic.classes.FieldPartyPositionButton.prototype.deleteFix = function() {  
     
     /* Get rid of tooltips before using the feedback animation */
-    jQuery(evt.currentTarget).tooltip("hide");
+    jQuery("#fix-delete-go").tooltip("hide");
     
     var delId = jQuery("#fix-input-id").val();
     if (!isNaN(parseInt(delId))) {
