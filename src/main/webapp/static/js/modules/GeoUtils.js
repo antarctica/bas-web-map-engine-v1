@@ -413,32 +413,34 @@ magic.modules.GeoUtils = function() {
         toDecDegrees: function(value) {
             var res = value;
             if (!jQuery.isNumeric(value)) {
-                /* Try DMS */
-                res = Number.NaN;
-                value = value.trim().toUpperCase();
-                var hh = "X";
-                var dd = 0.0, mm = 0.0, ss = 0.0;
-                var c1 = value.charAt(0), cn = value.charAt(value.length-1);
-                if (c1 == "N" || c1 == "S" || c1 == "E" || c1 == "W") {
-                    hh = c1;
-                    value = value.substring(1);
-                } else if (cn == "N" || cn == "S" || cn == "E" || cn == "W") {
-                    hh = cn;
-                    value = value.substring(0, value.length-1);
+                if (typeof value == "string") {
+                    /* Try DMS */
+                    res = Number.NaN;
+                    value = value.trim().toUpperCase();
+                    var hh = "X";
+                    var dd = 0.0, mm = 0.0, ss = 0.0;
+                    var c1 = value.charAt(0), cn = value.charAt(value.length-1);
+                    if (c1 == "N" || c1 == "S" || c1 == "E" || c1 == "W") {
+                        hh = c1;
+                        value = value.substring(1);
+                    } else if (cn == "N" || cn == "S" || cn == "E" || cn == "W") {
+                        hh = cn;
+                        value = value.substring(0, value.length-1);
+                    }
+                    if (hh != "X") {
+                        value = value.replace(/[^0-9.]{1,}/g, " ");
+                        value = value.trim();
+                        var parts = value.split(" ");
+                        dd = parseFloat(parts[0]);
+                        if (parts.length > 1) {
+                            mm = parseFloat(parts[1]);
+                        }
+                        if (parts.length > 2) {
+                            ss = parseFloat(parts[2]);
+                        }
+                        res = (dd + mm / 60.0 + ss / 3600.0) * ((hh == "S" || hh == "W") ? -1.0 : 1.0); 
+                    }        
                 }
-                if (hh != "X") {
-                    value = value.replace(/[^0-9.]{1,}/g, " ");
-                    value = value.trim();
-                    var parts = value.split(" ");
-                    dd = parseFloat(parts[0]);
-                    if (parts.length > 1) {
-                        mm = parseFloat(parts[1]);
-                    }
-                    if (parts.length > 2) {
-                        ss = parseFloat(parts[2]);
-                    }
-                    res = (dd + mm / 60.0 + ss / 3600.0) * ((hh == "S" || hh == "W") ? -1.0 : 1.0); 
-                }                
             }
             return(isNaN(res) ? Number.NaN : parseFloat(res));
         },
