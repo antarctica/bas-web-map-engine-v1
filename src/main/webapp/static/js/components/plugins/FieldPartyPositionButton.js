@@ -414,8 +414,10 @@ magic.classes.FieldPartyPositionButton.prototype.setPayload = function(payload) 
     this.setDatepickerValue("fix-input-fix_date", payload.fix_date);
     jQuery("#fix-input-people_count").val(payload.people_count);
     jQuery("#fix-input-updater").val(payload.updater || "");
-    jQuery("#fix-input-lat").val(magic.modules.GeoUtils.applyPref("coordinates", payload.lat, "lat"));
-    jQuery("#fix-input-lon").val(magic.modules.GeoUtils.applyPref("coordinates", payload.lon, "lon"));
+    var lat = magic.modules.GeoUtils.applyPref("coordinates", payload.lat, "lat");   
+    jQuery("#fix-input-lat").val(isNaN(lat) ? "" : lat);
+    var lon = magic.modules.GeoUtils.applyPref("coordinates", payload.lon, "lon");
+    jQuery("#fix-input-lon").val(isNaN(lon) ? "" : lon);
     jQuery("#fix-input-height").val(payload.height || 0.0);
     jQuery("#fix-input-notes").val(payload.notes || "");
     this.setButtonStates("disable", "enable", payload.id ? "enable" : "disable");
