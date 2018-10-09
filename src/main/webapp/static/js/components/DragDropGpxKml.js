@@ -36,6 +36,7 @@ magic.classes.DragDropGpxKml = function(options) {
                 is_interactive: true
             }
         });
+        layer.setZIndex(11000);
         this.map.addLayer(layer); 
         console.log("Layer z-index is " + layer.getZIndex());
         var dataExtent = magic.modules.GeoUtils.bufferExtent(vectorSource.getExtent());
