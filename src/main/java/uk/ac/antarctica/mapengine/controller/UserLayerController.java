@@ -134,16 +134,17 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
         switch(op) {
             case "extent":                
                 args.add(id);
-                String layer = magicDataTpl.queryForObject(
-                    "SELECT layer FROM " + env.getProperty("postgres.local.userlayersTable") + " WHERE id=? AND " +
+                Map<String, Object> rec = magicDataTpl.queryForMap(
+                    "SELECT store, layer FROM " + env.getProperty("postgres.local.userlayersTable") + " WHERE id=? AND " +
                     userAuthoritiesProvider.getInstance().sqlRoleClause("allowed_usage", "owner", args, "read"),
-                    String.class, 
                     args.toArray()
                 );
+                String layer = (String)rec.get("layer");
+                String store = (String)rec.get("store");
                 if (layer != null && !layer.isEmpty()) {
                     GeoserverRestEndpointConnector grec = geoserverRestEndpointConnectorProvider.getInstance();
                     JsonElement je = grec.getJson(
-                        "workspaces/" + env.getProperty("geoserver.internal.userWorkspace") + "/featuretypes/" + layer,
+                        "workspaces/" + env.getProperty("geoserver.internal.userWorkspace") + "/datastores/" + store + "/featuretypes/" + layer,
                         "featureType/latLonBoundingBox"
                     );
                     if (je != null) {
@@ -155,7 +156,7 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
                             ja.add(new JsonPrimitive(bbox.getAsJsonPrimitive("maxx").getAsDouble()));
                             ja.add(new JsonPrimitive(bbox.getAsJsonPrimitive("maxy").getAsDouble()));                                    
                             writeOut(response, 200, "application/json; charset=utf-8", ja.toString(), null);
-                        } catch(Exception ex) {
+                        } catch(IOException ex) {
                             writeOut(response, 400, "application/json; charset=utf-8", "Malformed JSON response for Layer " + layer, null);
                         }       
                     } else {
@@ -236,23 +237,7 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
 
                     try {
                         String extension = FilenameUtils.getExtension(mpf.getOriginalFilename());
-                        DataPublisher pub = null;
-                        switch(extension) {
-                            case "gpx":
-                                pub = applicationContext.getBean(GpxPublisher.class);
-                                break;
-                            case "kml":
-                                pub = applicationContext.getBean(KmlPublisher.class);
-                                break;
-                            case "csv":
-                                pub = applicationContext.getBean(CsvPublisher.class);
-                                break;
-                            case "zip":
-                                pub = applicationContext.getBean(ShpZipPublisher.class);
-                                break;
-                            default:
-                                break;
-                        }
+                        DataPublisher pub = getPublisher(extension);
                         if (pub != null) {
                             /* Publish the file */
                             UploadedData ud = pub.initWorkingEnvironment(servletContext, mpf, request.getParameterMap(), userName);
@@ -308,7 +293,7 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
                 parms.put("description", new String[]{jo.get("description").getAsString()});
                 parms.put("allowed_usage", new String[]{jo.get("allowed_usage").getAsString()});
                 parms.put("styledef", new String[]{jo.get("styledef").getAsString()});
-                DataPublisher pub = applicationContext.getBean(NoUploadPublisher.class);
+                DataPublisher pub = getPublisher("none");
                 UploadedData ud = pub.initWorkingEnvironment(servletContext, null, parms, userName);
                 pub.publish(ud);                    
                 ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Published ok");
@@ -340,16 +325,45 @@ public class UserLayerController implements ApplicationContextAware, ServletCont
         if (isOwner(id, userName)) {
             /* Logged-in user is the owner of the layer => do deletion */            
             try {
-                magicDataTpl.update("DELETE FROM " + env.getProperty("postgres.local.userlayersTable") + " WHERE id=?", id);                        
+                getPublisher("none").unpublish(id);                                       
                 ret = PackagingUtils.packageResults(HttpStatus.OK, null, "Successfully deleted");
-            } catch(DataAccessException dae) {
-                ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Error deleting data, message was: " + dae.getMessage());
+            } catch(GeoserverPublishException gpe) {
+                ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Error deleting data, message was: " + gpe.getMessage());
             }
         } else {
             ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "You are not the owner of this user layer");
         }       
         return (ret);
     }  
+    
+    /**
+     * Return bean instance appropriate to file type
+     * @param String fileType
+     * @return 
+     */    
+    private DataPublisher getPublisher(String fileType) {
+        DataPublisher pub = null;
+        switch(fileType) {
+            case "gpx":
+                pub = applicationContext.getBean(GpxPublisher.class);
+                break;
+            case "kml":
+                pub = applicationContext.getBean(KmlPublisher.class);
+                break;
+            case "csv":
+                pub = applicationContext.getBean(CsvPublisher.class);
+                break;
+            case "zip":
+                pub = applicationContext.getBean(ShpZipPublisher.class);
+                break;
+            case "none":
+                pub = applicationContext.getBean(NoUploadPublisher.class);
+                break;
+            default:
+                break;
+        }
+        return(pub);
+    }
     
     /**
      * Write response to the output body

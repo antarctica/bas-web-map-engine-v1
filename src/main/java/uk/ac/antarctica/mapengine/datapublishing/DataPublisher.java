@@ -79,14 +79,32 @@ public abstract class DataPublisher {
     /* Map of PostgreSQL schema/credentials */
     private HashMap<String, String> pgMap = new HashMap();
 
-    /* Access to OS level commands */
-    private Runtime appRuntime = Runtime.getRuntime();
-
     public DataPublisher() {               
     }
 
     @Transactional
     public abstract void publish(UploadedData ud) throws GeoserverPublishException, IOException, DataAccessException;
+    
+    /**
+     * Unpublish data with identifier (i.e. delete from user layers table and unpublish Geoserver feature and style)
+     * @param String id 
+     */
+    public void unpublish(String id) throws GeoserverPublishException {
+        String tblUserLayers = env.getProperty("postgres.local.userlayersTable");
+        try {
+            Map<String, Object> rec = magicDataTpl.queryForMap("SELECT store, layer FROM " + tblUserLayers + " WHERE id=?", id);
+            if (rec != null) {
+                /* Got the data for the user layer record to delete, so remove it and underlying Geoserver data */     
+                String store = (String)rec.get("store");
+                String layer = (String)rec.get("layer");
+                removeExistingData(geoserverRestEndpointConnectorProvider.getInstance(), id, store, store, layer);
+            } else {
+                throw new GeoserverPublishException("No user layer found with id " + id);
+            }
+        } catch(DataAccessException dae) {
+            throw new GeoserverPublishException("Error deleting user layer record with id " + id + ", error was : " + dae.getMessage());
+        }                 
+    }
     
     /**
      * Create the working environment to process a data file upload
@@ -672,7 +690,7 @@ public abstract class DataPublisher {
         String fpath = "workspaces/" + userWs + "/datastores/" + dataStore + "/featuretypes/" + tname;
         if (grec.getJson(fpath) != null) {
             /* layer already exists, so delete it */
-            ret = grec.deleteContent(fpath + "?recurse=true") != null;
+            ret = grec.deleteContent(fpath + "?recurse=true&purge=true") != null;
         }
         if (ret) {
             /* Layer didn't exist, or if layer was already present, we have successfully deleted it */
@@ -865,14 +883,6 @@ public abstract class DataPublisher {
 
     public void setServletContext(ServletContext servletContext) {
         this.servletContext = servletContext;
-    }
-
-    public Runtime getAppRuntime() {
-        return appRuntime;
-    }
-
-    public void setAppRuntime(Runtime appRuntime) {
-        this.appRuntime = appRuntime;
     }
     
     public class GeoserverPublishException extends Exception {
