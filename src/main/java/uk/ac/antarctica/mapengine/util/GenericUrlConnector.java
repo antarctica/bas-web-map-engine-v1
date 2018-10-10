@@ -11,6 +11,7 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.Date;
 import java.util.HashMap;
 import javax.net.ssl.SSLContext;
 import org.apache.commons.httpclient.HttpStatus;
@@ -221,7 +222,9 @@ public class GenericUrlConnector {
         
         String url = request.getURI().toURL().toString();
         
-        if (url.contains("polarview.aq")) {
+        boolean isPvan = url.contains("polarview.aq");
+        if (isPvan) {
+            System.out.println("=== POLAR VIEW : request start " + new Date().toString());
             System.out.println("=== POLAR VIEW : geoserver URL is " + url);
             System.out.println("=== POLAR VIEW : Basic Auth username is " + username);
             System.out.println("=== POLAR VIEW : Basic Auth password is " + password);
@@ -252,9 +255,9 @@ public class GenericUrlConnector {
             context.setAuthCache(authCache);
             try {
                 response = getClient().execute(targetHost, request, context);
-            } catch(IOException ioe) {
+            } catch(IOException ioe) {                
                 System.out.println("Failed to get response from " + url + " (digest authentication), error was : " + ioe.getMessage());
-                gucOut.setStatus(HttpStatus.SC_BAD_REQUEST);
+                gucOut.setStatus(HttpStatus.SC_BAD_REQUEST);                
             }
         } else {
             if (username != null && password != null) {
@@ -265,8 +268,17 @@ public class GenericUrlConnector {
             try {
                 response = getClient().execute(request);
             } catch(IOException ioe) {
-                System.out.println("Failed to get response from " + url + " (basic authentication), error was : " + ioe.getMessage());
+                if (isPvan) {
+                    System.out.println("=== POLAR VIEW : request threw exception " + ioe.getMessage());
+                    System.out.println("=== POLAR VIEW : caused by " + ioe.getCause().getMessage());
+                } else {
+                    System.out.println("Failed to get response from " + url + " (basic authentication), error was : " + ioe.getMessage());
+                }
                 gucOut.setStatus(HttpStatus.SC_BAD_REQUEST);
+                if (isPvan) {
+                    System.out.println("=== POLAR VIEW : Returning 400");
+                    System.out.println("=== POLAR VIEW : request completed " + new Date().toString());                    
+                }
             }            
         }
         if (response != null && gucOut.getStatus() == HttpStatus.SC_OK) {
