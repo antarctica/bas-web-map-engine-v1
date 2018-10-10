@@ -221,6 +221,12 @@ public class GenericUrlConnector {
         
         String url = request.getURI().toURL().toString();
         
+        if (url.contains("polarview.aq")) {
+            System.out.println("=== POLAR VIEW : geoserver URL is " + url);
+            System.out.println("=== POLAR VIEW : Basic Auth username is " + username);
+            System.out.println("=== POLAR VIEW : Basic Auth password is " + password);
+        }
+        
         HttpResponse response = null;
         
         HashMap<String, String> digestParms = new HashMap();

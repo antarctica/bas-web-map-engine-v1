@@ -3,6 +3,14 @@ VALUES('Antarctic Digital Database', 'https://maps.bas.ac.uk/antarctic/wms', 'ca
     NULL, 'EPSG:3031', TRUE, FALSE, 'https://add.data.bas.ac.uk/geoserver/add/wms,http://add.antarctica.ac.uk/geoserver/add/wms', 'https://add.data.bas.ac.uk/geoserver');
 
 INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs, has_wfs, is_user_service, url_aliases, rest_endpoint) 
+VALUES('Bedmap GIS', 'https://add.data.bas.ac.uk/geoserver/bedmap/wms', 'cambridge', FALSE, NULL, NULL, 
+    NULL, 'EPSG:3031', TRUE, FALSE, 'http://add.antarctica.ac.uk/geoserver/bedmap/wms', 'https://add.data.bas.ac.uk/geoserver');
+
+INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs, has_wfs, is_user_service, url_aliases, rest_endpoint) 
+VALUES('iStar GIS', 'http://gis.istar.ac.uk/geoserver/istar/wms', 'cambridge', FALSE, NULL, NULL, 
+    NULL, 'EPSG:3031', TRUE, FALSE, NULL, 'http://bslmagj.nerc-bas.ac.uk/geoserver');
+
+INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs, has_wfs, is_user_service, url_aliases, rest_endpoint) 
 VALUES('Operations GIS', 'https://opsgis.web.bas.ac.uk/geoserver/opsgis/wms', 'cambridge', FALSE, NULL, NULL, 
     NULL, 'EPSG:3031', TRUE, FALSE, 'http://bslgisa.nerc-bas.ac.uk/geoserver/opsgis/wms', 'http://bslgisa.nerc-bas.ac.uk/geoserver');
 
