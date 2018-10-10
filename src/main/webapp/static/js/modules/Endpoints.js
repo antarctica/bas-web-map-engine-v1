@@ -131,6 +131,11 @@ magic.modules.Endpoints = function () {
                 } else if (filterName == "url") {
                     /* Note that stored endpoints should be WMS ones, so remove wms|wfs|wcs from end of filter */
                     var serviceNeutralFilter = filterValue.replace(/\/w[cfm]s$/, "");
+                    /* Check for REST endpoints and strip everything before /rest */
+                    var restIdx = serviceNeutralFilter.indexOf("/rest");
+                    if (restIdx != -1) {
+                        serviceNeutralFilter = serviceNeutralFilter.substring(0, restIdx);
+                    }
                     var foundUrl = ep[filterName].indexOf(serviceNeutralFilter) == 0;                   
                     if (!foundUrl && ep["url_aliases"]) {
                         /* Check any of the aliases match in protocol, host and port */
