@@ -370,6 +370,7 @@ public class GeoserverRestController {
                 if (attrHref != null && !attrHref.isEmpty()) {
                     attrHref = attrHref.replaceAll("\\\\", "");
                     String restPath = attrHref.substring(attrHref.indexOf("/rest/")+6);
+                    restPath = restPath.substring(0, restPath.lastIndexOf("."));      /* Strip '.json' from the end */
                     JsonObject bbox = restPath.contains("/coverages/") 
                             ? grec.getJson(restPath, "coverage/latLonBoundingBox").getAsJsonObject()
                             : grec.getJson(restPath, "featureType/latLonBoundingBox").getAsJsonObject();                   
@@ -509,6 +510,7 @@ public class GeoserverRestController {
                 if (attrHref != null && !attrHref.isEmpty()) {
                     attrHref = attrHref.replaceAll("\\\\", "");
                     String restPath = attrHref.substring(attrHref.indexOf("/rest/")+6);
+                    restPath = restPath.substring(0, restPath.lastIndexOf("."));      /* Strip '.json' from the end */
                     JsonObject joDetails = restPath.contains("/coverages/") 
                             ? grec.getJson(restPath, "coverage").getAsJsonObject()
                             : grec.getJson(restPath, "featureType").getAsJsonObject();                   

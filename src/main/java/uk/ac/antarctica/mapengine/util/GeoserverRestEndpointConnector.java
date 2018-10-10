@@ -82,7 +82,7 @@ public class GeoserverRestEndpointConnector {
     public JsonElement getJson(String restPath) {
         JsonElement content = null;
         System.out.println("Get JSON from " + url + restPath);
-        String data = getContent(restPath);
+        String data = getContent(restPath + ".json");
         if (data != null) {
             try {
                 content = getJsonParser().parse(data);                
