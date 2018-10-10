@@ -51,15 +51,15 @@ VALUES('Midlatitude Data', 'osm', 'cambridge', FALSE, 'osm', 'ol', NULL, 'EPSG:3
 
 INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs, has_wfs, is_user_service, url_aliases, rest_endpoint) 
 VALUES('Polar Code Geoserver', 'http://bslmagl.nerc-bas.ac.uk/geoserver/polarcode/wms', 'cambridge', FALSE, NULL, NULL, 
-    NULL, 'EPSG:3031', TRUE, 'https://polarcode.data.bas.ac.uk/geoserver/polarcode/wms', 'http://bslmagl.nerc-bas.ac.uk/geoserver');
+    NULL, 'EPSG:3031', TRUE, FALSE, 'https://polarcode.data.bas.ac.uk/geoserver/polarcode/wms', 'http://bslmagl.nerc-bas.ac.uk/geoserver');
 
 INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs, has_wfs, is_user_service, url_aliases, rest_endpoint) 
 VALUES('Polar Code Geoserver matchups', 'http://bslmagl.nerc-bas.ac.uk/geoserver/matchups/wms', 'cambridge', FALSE, NULL, NULL, 
-    NULL, 'EPSG:3031', TRUE, 'https://polarcode.data.bas.ac.uk/geoserver/matchups/wms', 'http://bslmagl.nerc-bas.ac.uk/geoserver');
+    NULL, 'EPSG:3031', TRUE, FALSE, 'https://polarcode.data.bas.ac.uk/geoserver/matchups/wms', 'http://bslmagl.nerc-bas.ac.uk/geoserver');
 
 INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs, has_wfs, is_user_service, url_aliases, rest_endpoint) 
 VALUES('Polar Code Geoserver temperature', 'http://bslmagl.nerc-bas.ac.uk/geoserver/tempantarctic/wms', 'cambridge', FALSE, NULL, NULL, 
-    NULL, 'EPSG:3031', TRUE, 'https://polarcode.data.bas.ac.uk/geoserver/tempantarctic/wms', 'http://bslmagl.nerc-bas.ac.uk/geoserver');
+    NULL, 'EPSG:3031', TRUE, FALSE, 'https://polarcode.data.bas.ac.uk/geoserver/tempantarctic/wms', 'http://bslmagl.nerc-bas.ac.uk/geoserver');
 
 INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs, has_wfs, is_user_service, url_aliases, rest_endpoint) 
 VALUES('Polar View', 'https://geos.polarview.aq/geoserver/wms', 'cambridge', FALSE, NULL, NULL, 
@@ -67,20 +67,20 @@ VALUES('Polar View', 'https://geos.polarview.aq/geoserver/wms', 'cambridge', FAL
 
 INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs, has_wfs, is_user_service, url_aliases, rest_endpoint) 
 VALUES('Polar Code Geoserver probability grids', 'http://bslmagl.nerc-bas.ac.uk/geoserver/probabilitygrids/wms', 'cambridge', FALSE, NULL, NULL, 
-    NULL, 'EPSG:3031', TRUE, 'https://polarcode.data.bas.ac.uk/geoserver/probabilitygrids/wms', 'http://bslmagl.nerc-bas.ac.uk/geoserver');
+    NULL, 'EPSG:3031', TRUE, FALSE, 'https://polarcode.data.bas.ac.uk/geoserver/probabilitygrids/wms', 'http://bslmagl.nerc-bas.ac.uk/geoserver');
 
 INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs, has_wfs, is_user_service, url_aliases, rest_endpoint) 
 VALUES('Polar Code Geoserver NIC Antarctic Charts', 'http://bslmagl.nerc-bas.ac.uk/geoserver/nicantarctic/wms', 'cambridge', FALSE, NULL, NULL, 
-    NULL, 'EPSG:3031', TRUE, 'https://polarcode.data.bas.ac.uk/geoserver/nicantarctic/wms', 'http://bslmagl.nerc-bas.ac.uk/geoserver');
+    NULL, 'EPSG:3031', TRUE, FALSE, 'https://polarcode.data.bas.ac.uk/geoserver/nicantarctic/wms', 'http://bslmagl.nerc-bas.ac.uk/geoserver');
 
 INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs, has_wfs, is_user_service, url_aliases, rest_endpoint) 
 VALUES('Polar Code Geoserver NRT', 'http://bslmagl.nerc-bas.ac.uk/geoserver/nrt/wms', 'cambridge', FALSE, NULL, NULL, 
-    NULL, 'EPSG:3031', TRUE, 'https://polarcode.data.bas.ac.uk/geoserver/nrt/wms', 'http://bslmagl.nerc-bas.ac.uk/geoserver');
+    NULL, 'EPSG:3031', TRUE, FALSE, 'https://polarcode.data.bas.ac.uk/geoserver/nrt/wms', 'http://bslmagl.nerc-bas.ac.uk/geoserver');
 
 INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs, has_wfs, is_user_service, url_aliases, rest_endpoint) 
 VALUES('Polar Code Geoserver NIC Arctic Charts', 'http://bslmagl.nerc-bas.ac.uk/geoserver/nicarctic/wms', 'cambridge', FALSE, NULL, NULL, 
-    NULL, 'EPSG:3995', TRUE, 'https://polarcode.data.bas.ac.uk/geoserver/nicarctic/wms', 'http://bslmagl.nerc-bas.ac.uk/geoserver');
+    NULL, 'EPSG:3995', TRUE, FALSE, 'https://polarcode.data.bas.ac.uk/geoserver/nicarctic/wms', 'http://bslmagl.nerc-bas.ac.uk/geoserver');
 
 INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs, has_wfs, is_user_service, url_aliases, rest_endpoint) 
 VALUES('Polar Code Geoserver temperature Arctic', 'http://bslmagl.nerc-bas.ac.uk/geoserver/temparctic/wms', 'cambridge', FALSE, NULL, NULL, 
-    NULL, 'EPSG:3995', TRUE, 'https://polarcode.data.bas.ac.uk/geoserver/temparctic/wms', 'http://bslmagl.nerc-bas.ac.uk/geoserver');
+    NULL, 'EPSG:3995', TRUE, FALSE, 'https://polarcode.data.bas.ac.uk/geoserver/temparctic/wms', 'http://bslmagl.nerc-bas.ac.uk/geoserver');
