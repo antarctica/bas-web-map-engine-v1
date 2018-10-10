@@ -519,7 +519,7 @@ public class GeoserverRestController {
                         String namespace = joDetails.getAsJsonObject("namespace").getAsJsonPrimitive("name").getAsString();
                         jo.addProperty("feature_name", namespace + ":" + joDetails.getAsJsonPrimitive("nativeName").getAsString());
                         jo.addProperty("name", joDetails.getAsJsonPrimitive("title").getAsString());
-                        jo.addProperty("wms_source", grec.getUrl() + "/" + namespace + "/wms");
+                        jo.addProperty("wms_source", env.getProperty("geoserver.internal.url") + "/" + namespace + "/wms");
                         if (!restPath.contains("/coverages/")) {
                             /* Vectors have attributes to list */
                             JsonArray attrs = joDetails.getAsJsonObject("attributes").getAsJsonArray("attribute");
