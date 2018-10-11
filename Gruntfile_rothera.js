@@ -239,11 +239,27 @@ module.exports = function (grunt) {
                     }
                 ]
             },
+            map_cdn: {
+                files: [
+                    {        
+                        src: 'src/main/webapp/static/buildjs_rothera/cdn_map_opsgis_rothera.js',
+                        dest: 'src/main/webapp/static/dist/cdn_map_opsgis_rothera.min.js'
+                    }
+                ]
+            },
             creator: {
                 files: [
                     {        
                         src: 'src/main/webapp/static/buildjs_rothera/creator.js',
                         dest: 'src/main/webapp/static/dist/creator.min.js'
+                    }
+                ]
+            },
+            creator_cdn: {
+                files: [
+                    {        
+                        src: 'src/main/webapp/static/buildjs_rothera/cdn_creator_opsgis_rothera.js',
+                        dest: 'src/main/webapp/static/dist/cdn_creator_opsgis_rothera.min.js'
                     }
                 ]
             },
@@ -255,6 +271,14 @@ module.exports = function (grunt) {
                     }
                 ]
             },
+            console_cdn: {
+                files: [
+                    {        
+                        src: 'src/main/webapp/static/buildjs_rothera/cdn_console_opsgis_rothera.js',
+                        dest: 'src/main/webapp/static/dist/cdn_console_opsgis_rothera.min.js'
+                    }
+                ]
+            },
             embedded_creator: {
                 files: [
                     {        
@@ -263,11 +287,27 @@ module.exports = function (grunt) {
                     }
                 ]
             },
+            embedded_creator_cdn: {
+                files: [
+                    {        
+                        src: 'src/main/webapp/static/buildjs_rothera/cdn_embedded_creator_opsgis_rothera.js',
+                        dest: 'src/main/webapp/static/dist/cdn_embedded_creator_opsgis_rothera.min.js'
+                    }
+                ]
+            },
             endpoint_manager: {
                 files: [
                     {        
                         src: 'src/main/webapp/static/buildjs_rothera/endpoint_manager.js',
                         dest: 'src/main/webapp/static/dist/endpoint_manager.min.js'
+                    }
+                ]
+            },
+            endpoint_manager_cdn: {
+                files: [
+                    {        
+                        src: 'src/main/webapp/static/buildjs_rothera/cdn_endpoint_manager_opsgis_rothera.js',
+                        dest: 'src/main/webapp/static/dist/cdn_embedded_endpoint_manager_opsgis_rothera.min.js'
                     }
                 ]
             }
