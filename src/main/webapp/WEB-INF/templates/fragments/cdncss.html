@@ -1,9 +1,16 @@
 <div th:fragment="assets" th:remove="tag">
-    <link href="https://cdn.web.bas.ac.uk/magic/css/openlayers/4.2.0/ol.css" rel="stylesheet"></link>
-    <link th:href="${theme} == '' ? @{'https://cdn.web.bas.ac.uk/magic/css/bootstrap/3.3.7/bootstrap.min.css'} : @{'https://cdn.web.bas.ac.uk/magic/css/bootstrap/3.3.7/bootstrap.min.' + ${theme} + '.css'}" rel="stylesheet"></link>
-    <link href="https://cdn.web.bas.ac.uk/magic/css/bootstrap-slider/10.0.0/bootstrap-slider.min.css" rel="stylesheet"></link>
-    <link href="https://cdn.web.bas.ac.uk/magic/css/bootstrap-tagsinput/0.6.1/bootstrap-tagsinput.min.css" rel="stylesheet"></link>
-    <link href="https://cdn.web.bas.ac.uk/magic/css/dropzone/4.3.0/dropzone.min.css" rel="stylesheet"></link>
-    <link href="https://cdn.web.bas.ac.uk/magic/css/font-awesome/4.4.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"></link>
-    <link href="https://cdn.web.bas.ac.uk/magic/css/webhosting-glyphs/1.0.0/css/whhg-reduced.min.css" rel="stylesheet" type="text/css"></link>
+    <div th:switch="${profile}" th:remove="tag">
+        <div th:case="opsgis_rothera" th:remove="tag">
+            <link th:href="@{'/static/dist/cdn_creator_opsgis_rothera.min.css'}"></link>
+        </div>
+        <div th:case="*" th:remove="tag">
+            <link href="https://cdn.web.bas.ac.uk/magic/css/openlayers/4.2.0/ol.css" rel="stylesheet"></link>
+            <link th:href="${theme} == '' ? @{'https://cdn.web.bas.ac.uk/magic/css/bootstrap/3.3.7/bootstrap.min.css'} : @{'https://cdn.web.bas.ac.uk/magic/css/bootstrap/3.3.7/bootstrap.min.' + ${theme} + '.css'}" rel="stylesheet"></link>
+            <link href="https://cdn.web.bas.ac.uk/magic/css/bootstrap-slider/10.0.0/bootstrap-slider.min.css" rel="stylesheet"></link>
+            <link href="https://cdn.web.bas.ac.uk/magic/css/bootstrap-tagsinput/0.6.1/bootstrap-tagsinput.min.css" rel="stylesheet"></link>
+            <link href="https://cdn.web.bas.ac.uk/magic/css/dropzone/4.3.0/dropzone.min.css" rel="stylesheet"></link>
+            <link href="https://cdn.web.bas.ac.uk/magic/css/font-awesome/4.4.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"></link>
+            <link href="https://cdn.web.bas.ac.uk/magic/css/webhosting-glyphs/1.0.0/css/whhg-reduced.min.css" rel="stylesheet" type="text/css"></link>
+        </div>  
+    </div>
 </div>

@@ -1,19 +1,26 @@
 <div th:fragment="assets" th:remove="tag">
-    <script src="https://cdn.web.bas.ac.uk/magic/js/xml-to-json/1.3.0/xmlToJSON.min.js"></script>
-    <script src="https://cdn.web.bas.ac.uk/libs/js-cookie/2.1.3/js.cookie-2.1.3.min.js"></script>
-    <script src="https://cdn.web.bas.ac.uk/magic/js/moment/2.22.1/moment.min.js"></script>
-    <script src="https://cdn.web.bas.ac.uk/magic/js/openlayers/4.2.0/ol.min.js"></script>
-    <script src="https://cdn.web.bas.ac.uk/libs/jquery/3.3.1/jquery-3.3.1.min.js"></script>
-    <script src="https://cdn.web.bas.ac.uk/magic/js/vector/1.0.0/vector.js"></script>
-    <script src="https://cdn.web.bas.ac.uk/libs/proj4js/2.4.3/proj4.js"></script>
-    <script src="https://cdn.web.bas.ac.uk/libs/proj4js/projections/3031/2005-04-14/3031.js"></script>
-    <script src="https://cdn.web.bas.ac.uk/libs/proj4js/projections/3762/2007-07-06/3762.js"></script>
-    <script src="https://cdn.web.bas.ac.uk/libs/proj4js/projections/3995/2008-09-19/3995.js"></script>
-    <script src="https://cdn.web.bas.ac.uk/libs/proj4js/projections/102020/2000-01-01/102020.js"></script>
-    <script src="https://cdn.web.bas.ac.uk/libs/bootstrap/3.3.7/js/bootstrap-3.3.7.min.js"></script>
-    <script src="https://cdn.web.bas.ac.uk/magic/js/typeahead/0.11.1/typeahead.bundle.min.js"></script>
-    <script src="https://cdn.web.bas.ac.uk/magic/js/bootstrap-slider/10.0.0/bootstrap-slider.min.js"></script>
-    <script src="https://cdn.web.bas.ac.uk/magic/js/bootstrap-tagsinput/0.6.1/bootstrap-tagsinput.min.js"></script>
-    <script src="https://cdn.web.bas.ac.uk/magic/js/bootbox/4.4.0/bootbox.min.js"></script>
-    <script src="https://cdn.web.bas.ac.uk/magic/js/dropzone/4.3.0/dropzone.min.js"></script>
+    <div th:switch="${profile}" th:remove="tag">
+        <div th:case="opsgis_rothera" th:remove="tag">
+            <script th:src="@{'/static/dist/cdn__map_opsgis_rothera.min.js'}"></script>
+        </div>
+        <div th:case="*" th:remove="tag">
+            <script src="https://cdn.web.bas.ac.uk/magic/js/xml-to-json/1.3.0/xmlToJSON.min.js"></script>
+            <script src="https://cdn.web.bas.ac.uk/libs/js-cookie/2.1.3/js.cookie-2.1.3.min.js"></script>
+            <script src="https://cdn.web.bas.ac.uk/magic/js/moment/2.22.1/moment.min.js"></script>
+            <script src="https://cdn.web.bas.ac.uk/magic/js/openlayers/4.2.0/ol.min.js"></script>
+            <script src="https://cdn.web.bas.ac.uk/libs/jquery/3.3.1/jquery-3.3.1.min.js"></script>
+            <script src="https://cdn.web.bas.ac.uk/magic/js/vector/1.0.0/vector.js"></script>
+            <script src="https://cdn.web.bas.ac.uk/libs/proj4js/2.4.3/proj4.js"></script>
+            <script src="https://cdn.web.bas.ac.uk/libs/proj4js/projections/3031/2005-04-14/3031.js"></script>
+            <script src="https://cdn.web.bas.ac.uk/libs/proj4js/projections/3762/2007-07-06/3762.js"></script>
+            <script src="https://cdn.web.bas.ac.uk/libs/proj4js/projections/3995/2008-09-19/3995.js"></script>
+            <script src="https://cdn.web.bas.ac.uk/libs/proj4js/projections/102020/2000-01-01/102020.js"></script>
+            <script src="https://cdn.web.bas.ac.uk/libs/bootstrap/3.3.7/js/bootstrap-3.3.7.min.js"></script>
+            <script src="https://cdn.web.bas.ac.uk/magic/js/typeahead/0.11.1/typeahead.bundle.min.js"></script>
+            <script src="https://cdn.web.bas.ac.uk/magic/js/bootstrap-slider/10.0.0/bootstrap-slider.min.js"></script>
+            <script src="https://cdn.web.bas.ac.uk/magic/js/bootstrap-tagsinput/0.6.1/bootstrap-tagsinput.min.js"></script>
+            <script src="https://cdn.web.bas.ac.uk/magic/js/bootbox/4.4.0/bootbox.min.js"></script>
+            <script src="https://cdn.web.bas.ac.uk/magic/js/dropzone/4.3.0/dropzone.min.js"></script>
+        </div>  
+    </div>
 </div>
