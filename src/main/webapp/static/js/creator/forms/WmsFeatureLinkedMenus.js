@@ -81,8 +81,8 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.init = function(data) {
     /* Need to apply URL aliases here - fix David 2018-10-11 */
     var wmsSource = data.wms_source;
     var equivalentEndpoint = magic.modules.Endpoints.getEndpointsBy("url", wmsSource);
-    if (equivalentEndpoint && equivalentEndpoint.url) {
-        wmsSource = equivalentEndpoint.url;
+    if (jQuery.isArray(equivalentEndpoint) && equivalentEndpoint[0].url) {
+        wmsSource = equivalentEndpoint[0].url;
     }
         
     /* Populate the WMS endpoint dropdown with all those endpoints valid for this projection */
