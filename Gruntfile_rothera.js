@@ -109,11 +109,31 @@ module.exports = function (grunt) {
                     }
                 ]
             },
+            consolejs_cdn: {
+                files: [
+                    {        
+                        src: [
+                            'provisioning/rothera/js/console/*.js'
+                        ],
+                        dest: 'src/main/webapp/static/buildjs_rothera/cdn_console_opsgis_rothera.js'
+                    }
+                ]
+            },
             consolecss: {
                 files: [
                     {
                         src: ['src/main/webapp/static/css/nav.css', 'src/main/webapp/static/css/console.css'],
                         dest: 'src/main/webapp/static/buildcss_rothera/console.css'
+                    }
+                ]
+            },
+            consolecss_cdn: {
+                files: [
+                    {        
+                        src: [
+                            'provisioning/rothera/css/console/*.css'
+                        ],
+                        dest: 'src/main/webapp/static/buildcss_rothera/cdn_console_opsgis_rothera.css'
                     }
                 ]
             },
@@ -138,11 +158,31 @@ module.exports = function (grunt) {
                     }
                 ]
             },
+            embedded_creatorjs_cdn: {
+                files: [
+                    {        
+                        src: [
+                            'provisioning/rothera/js/embedded_creator/*.js'
+                        ],
+                        dest: 'src/main/webapp/static/buildjs_rothera/cdn_embedded_creator_opsgis_rothera.js'
+                    }
+                ]
+            },
             embedded_creatorcss: {
                 files: [
                     {
                         src: ['src/main/webapp/static/css/nav.css', 'src/main/webapp/static/css/creator_common.css'],
                         dest: 'src/main/webapp/static/buildcss_rothera/embedded_creator.css'
+                    }
+                ]
+            },
+            embedded_creatorcss_cdn: {
+                files: [
+                    {        
+                        src: [
+                            'provisioning/rothera/css/embedded_creator/*.css'
+                        ],
+                        dest: 'src/main/webapp/static/buildcss_rothera/cdn_embedded_creator_opsgis_rothera.css'
                     }
                 ]
             },
@@ -161,6 +201,16 @@ module.exports = function (grunt) {
                     }
                 ]
             },
+            endpoint_managerjs_cdn: {
+                files: [
+                    {        
+                        src: [
+                            'provisioning/rothera/js/endpoint_manager/*.js'
+                        ],
+                        dest: 'src/main/webapp/static/buildjs_rothera/cdn_endpoint_manager_opsgis_rothera.js'
+                    }
+                ]
+            },
             endpoint_managercss: {
                 files: [
                     {
@@ -169,6 +219,16 @@ module.exports = function (grunt) {
                     }
                 ]
             },
+            endpoint_managercss_cdn: {
+                files: [
+                    {        
+                        src: [
+                            'provisioning/rothera/css/endpoint_manager/*.css'
+                        ],
+                        dest: 'src/main/webapp/static/buildcss_rothera/cdn_endpoint_manager_opsgis_rothera.css'
+                    }
+                ]
+            }
         },
         uglify: {
             map: {

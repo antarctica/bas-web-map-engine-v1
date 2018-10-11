@@ -287,7 +287,8 @@ magic.classes.LayerTree.prototype.assignLayerHandlers = function(belowElt) {
  */
 magic.classes.LayerTree.prototype.assignOneOnlyLayerGroupHandlers = function(belowElt) {
     if (belowElt) {
-        var layerRbs = belowElt.find("a[id^='group-rb-off-']");   
+        /* Bugfix for Polar Code 2018-10-11 David */
+        var layerRbs = belowElt.closest("div.panel").find("a[id^='group-rb-off']");  
         layerRbs.each(jQuery.proxy(function(idx, elt) {
             var allOff = jQuery(elt);
             allOff.click(jQuery.proxy(function(evt) {

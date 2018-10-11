@@ -462,14 +462,7 @@ public class OgcServicesController {
      * @throws IOException, RestrictedDataException
      */
     private void getFromUrl(HttpServletResponse response, String url, String mimeType, boolean secured) throws IOException, RestrictedDataException { 
-        
-        /* Tracking down persistent GetCapabilities failure in Map Creator - David 2018-10-11 */
-        boolean isGetCaps = url.toLowerCase().contains("getcapabilities");
-        
-        if (isGetCaps) {
-            System.out.println("=== GetCapabilities request : " + url);
-        }
-        
+               
         GenericUrlConnector guc = null;
         
         UserAuthorities ua = userAuthoritiesProvider.getInstance();
@@ -478,35 +471,21 @@ public class OgcServicesController {
         String username = null, password = null;
         String localServer = env.getProperty("geoserver.internal.url");
         boolean isLocal = url.startsWith(localServer);
-        
-        if (isGetCaps) {
-            System.out.println("Local server is : " + localServer + ", request URL deemed as local (pre alias comparison) " + isLocal);
-        }
-        
+               
         if (!isLocal) {
             String[] externalAliases = env.getProperty("geoserver.external.url").split(",");
-            for (String alias : externalAliases) {
-                if (isGetCaps) {
-                    System.out.println("Compare alias : " + alias);
-                }
+            for (String alias : externalAliases) {              
                 if (url.startsWith(alias)) {
                     isLocal = true;
                     break;
                 }
             }
-        }
-        
-        if (isGetCaps) {
-            System.out.println("Is deemed local after alias comparison : " + isLocal);
-        }
+        }       
         
         if (isLocal) {
             /* Get username and password */
             username = ua.currentUserName();
-            password = ua.currentUserPassword();
-            if (isGetCaps) {
-                System.out.println("Username : " + username + ", password <defined>");
-            }
+            password = ua.currentUserPassword();            
         }        
         
         try {
@@ -517,15 +496,9 @@ public class OgcServicesController {
                 response.setContentType(mimeType);
                 IOUtils.copy(gucOut.getContent(), response.getOutputStream());                
             } else if (gucOut.getStatus() == 401) {
-                /* User unauthorised */      
-                if (isGetCaps) {
-                    System.out.println("Status 401, content was : " + IOUtils.toString(gucOut.getContent()));
-                }
+                /* User unauthorised */                     
                 throw new RestrictedDataException("You are not authorised to access this resource");
-            } else {   
-                if (isGetCaps) {
-                    System.out.println("Status " + gucOut.getStatus() + ", content was : " + IOUtils.toString(gucOut.getContent()));
-                }
+            } else {                   
                 throw new RestrictedDataException("Error:" + gucOut.getStatus());
             }
         } catch(IOException ioe) {
