@@ -1,7 +1,7 @@
 <div th:fragment="assets" th:remove="tag">
     <div th:switch="${profile}" th:remove="tag">
         <div th:case="opsgis_rothera" th:remove="tag">
-            <script th:src="@{'/static/dist/cdn_console_opsgis_rothera.min.js'}"></script>
+            <script th:src="@{'/static/dist/cdn_endpoint_manager_opsgis_rothera.min.js'}"></script>
         </div>
         <div th:case="*" th:remove="tag">
             <script th:src="@{https://cdn.web.bas.ac.uk/libs/jquery/3.3.1/jquery-3.3.1.min.js}"></script>        

@@ -1,7 +1,7 @@
 <div th:fragment="assets" th:remove="tag">
     <div th:switch="${profile}" th:remove="tag">
         <div th:case="opsgis_rothera" th:remove="tag">
-            <script th:src="@{'/static/dist/cdn__map_opsgis_rothera.min.js'}"></script>
+            <script th:src="@{'/static/dist/cdn_map_opsgis_rothera.min.js'}"></script>
         </div>
         <div th:case="*" th:remove="tag">
             <script src="https://cdn.web.bas.ac.uk/magic/js/xml-to-json/1.3.0/xmlToJSON.min.js"></script>

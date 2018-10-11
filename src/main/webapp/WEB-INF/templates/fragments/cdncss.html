@@ -1,7 +1,7 @@
 <div th:fragment="assets" th:remove="tag">
     <div th:switch="${profile}" th:remove="tag">
         <div th:case="opsgis_rothera" th:remove="tag">
-            <link th:href="@{'/static/dist/cdn_creator_opsgis_rothera.min.css'}"></link>
+            <link th:href="@{'/static/dist/cdn_map_opsgis_rothera.min.css'}"></link>
         </div>
         <div th:case="*" th:remove="tag">
             <link href="https://cdn.web.bas.ac.uk/magic/css/openlayers/4.2.0/ol.css" rel="stylesheet"></link>
