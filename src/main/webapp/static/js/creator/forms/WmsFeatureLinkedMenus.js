@@ -77,15 +77,22 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.init = function(data) {
     this.dropdowns.wms_source = jQuery("#" + this.id + "-wms_source");
     this.dropdowns.feature_name = jQuery("#" + this.id + "-feature_name");
     this.dropdowns.style_name = jQuery("#" + this.id + "-style_name"); 
+    
+    /* Need to apply URL aliases here - fix David 2018-10-11 */
+    var wmsSource = data.wms_source;
+    var equivalentEndpoint = magic.modules.Endpoints.getEndpointsBy("url", wmsSource);
+    if (equivalentEndpoint && equivalentEndpoint.url) {
+        wmsSource = equivalentEndpoint.url;
+    }
         
     /* Populate the WMS endpoint dropdown with all those endpoints valid for this projection */
     magic.modules.Common.populateSelect(
         this.dropdowns.wms_source, 
         magic.modules.Endpoints.getEndpointsBy("srs", this.projection), 
-        "url", "name", data.wms_source, true
-    );
+        "url", "name", wmsSource, true
+    );    
     if (data.feature_name) {
-        this.loadFeaturesFromService(data.wms_source, data.feature_name, data.style_name);
+        this.loadFeaturesFromService(wmsSource, data.feature_name, data.style_name);
     }
     
     /* Assign handler for endpoint selection */    
