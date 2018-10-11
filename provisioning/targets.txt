@@ -1,6 +1,6 @@
-#add
+add
 #istargis
-#opsgis
+opsgis
 #opsgis_rothera
 #polarcode
 sggis
