@@ -17,7 +17,7 @@ magic.classes.FieldPartyPositionButton = function (options) {
     this.BUTTONS_PER_ROW = 4;
     
     /* Data fetch */
-    this.WFS_FETCH = "http://mapengine-dev.nerc-bas.ac.uk:8080/geoserver/opsgis2/wfs?service=wfs&request=getfeature&version=2.0.0&" + 
+    this.WFS_FETCH = "https://opsgis.web.bas.ac.uk/geoserver/opsgis/wfs?service=wfs&request=getfeature&version=2.0.0&" + 
             "typeNames=opsgis2:ops_field_deployments&outputFormat=json&sortBy=fix_date+D&cql_filter=season=1819";       
    
     /**
