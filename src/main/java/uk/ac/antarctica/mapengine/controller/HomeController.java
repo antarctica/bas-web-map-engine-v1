@@ -390,17 +390,18 @@ public class HomeController {
         String username = ua.currentUserName();        
         model.addAttribute("username", username);
         model.addAttribute("profile", activeProfile);
+        model.addAttribute("cdn", env.getProperty("default.cdn", "https://cdn.web.bas.ac.uk"));
         model.addAttribute("isadmin", ua.userIsAdmin() ? "yes" : "no");
         model.addAttribute("issuperuser", ua.userIsSuperUser() ? "yes" : "no");
 
         /* Page parameters */
-        String pageTitle = env.getProperty("default.title") != null ? env.getProperty("default.title") : "";
-        String logo = env.getProperty("default.logo") != null ? env.getProperty("default.logo") : "1x1.png";
-        String favicon = env.getProperty("default.favicon") != null ? env.getProperty("default.favicon") : "bas.ico";
-        String logoUrl = env.getProperty("default.logoUrl") != null ? env.getProperty("default.logoUrl") : "Javascript:void(0)";
-        String backgroundColor = env.getProperty("default.backgroundColor") != null ? env.getProperty("default.backgroundColor") : "#ffffff";
-        String theme = env.getProperty("default.theme") != null ? env.getProperty("default.theme") : "";
-        String navbarClass = env.getProperty("default.navbarclass") != null ? env.getProperty("default.navbarclass") : "navbar-inverse";
+        String pageTitle = env.getProperty("default.title", "");
+        String logo = env.getProperty("default.logo", "1x1.png");
+        String favicon = env.getProperty("default.favicon", "bas.ico");
+        String logoUrl = env.getProperty("default.logoUrl", "Javascript:void(0)");
+        String backgroundColor = env.getProperty("default.backgroundColor", "#ffffff");
+        String theme = env.getProperty("default.theme", "");
+        String navbarClass = env.getProperty("default.navbarclass", "navbar-inverse");
         
         /* Home, services and contact URLs */
         model.addAttribute("homeurl", env.getProperty("default.homeUrl"));

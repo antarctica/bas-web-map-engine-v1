@@ -1,14 +1,7 @@
-<div th:fragment="assets" th:remove="tag">
-    <div th:switch="${profile}" th:remove="tag">
-        <div th:case="opsgis_rothera" th:remove="tag">
-            <script th:src="@{'/static/dist/cdn_endpoint_manager_opsgis_rothera.min.js'}"></script>
-        </div>
-        <div th:case="*" th:remove="tag">
-            <script th:src="@{https://cdn.web.bas.ac.uk/libs/jquery/3.3.1/jquery-3.3.1.min.js}"></script>        
-            <script th:src="@{https://cdn.web.bas.ac.uk/libs/bootstrap/3.3.7/js/bootstrap-3.3.7.min.js}"></script>
-            <script th:src="@{https://cdn.web.bas.ac.uk/magic/js/bootbox/4.4.0/bootbox.min.js}"></script>  
-            <script th:src="@{https://cdn.web.bas.ac.uk/magic/js/bootstrap-tagsinput/0.6.1/bootstrap-tagsinput.min.js}"></script>
-            <script th:src="@{https://cdn.web.bas.ac.uk/magic/js/bootstrap-select/1.12.4/bootstrap-select.min.js}"></script>
-        </div>  
-    </div>
+<div th:fragment="assets" th:remove="tag">   
+    <script th:src="@{${cdn} + '/libs/jquery/3.3.1/jquery-3.3.1.min.js'}"></script>        
+    <script th:src="@{${cdn} + '/libs/bootstrap/3.3.7/js/bootstrap-3.3.7.min.js'}"></script>
+    <script th:src="@{${cdn} + '/magic/js/bootbox/4.4.0/bootbox.min.js'}"></script>  
+    <script th:src="@{${cdn} + '/magic/js/bootstrap-tagsinput/0.6.1/bootstrap-tagsinput.min.js'}"></script>
+    <script th:src="@{${cdn} + '/magic/js/bootstrap-select/1.12.4/bootstrap-select.min.js'}"></script>
 </div>

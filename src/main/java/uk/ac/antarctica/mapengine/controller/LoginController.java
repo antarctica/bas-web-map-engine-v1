@@ -28,14 +28,9 @@ public class LoginController {
             /*
              * Use local Spring Security login
              */
-            String favicon = env.getProperty("default.favicon") != null ? env.getProperty("default.favicon") : "bas.ico";
-            model.addAttribute("favicon", favicon);
-            String loginView = env.getProperty("default.login_view");
-            if (loginView == null || loginView.isEmpty()) {
-                return ("fragments/login");
-            } else {
-                return (loginView);
-            }
+            model.addAttribute("favicon", env.getProperty("default.favicon", "bas.ico"));
+            model.addAttribute("cdn", env.getProperty("default.cdn", "https://cdn.web.bas.ac.uk"));
+            return(env.getProperty("default.login_view", "fragments.login"));            
         } else {
             /*
              * Redirect to custom login URL
@@ -54,8 +49,8 @@ public class LoginController {
             /*
              * Use local Spring Security login
              */
-            String favicon = env.getProperty("default.favicon") != null ? env.getProperty("default.favicon") : "bas.ico";
-            model.addAttribute("favicon", favicon);
+            model.addAttribute("favicon", env.getProperty("default.favicon", "bas.ico"));
+            model.addAttribute("cdn", env.getProperty("default.cdn", "https://cdn.web.bas.ac.uk"));
             return ("fragments/login");
         } else {
             /*

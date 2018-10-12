@@ -1,12 +1,5 @@
-<div th:fragment="assets" th:remove="tag">
-    <div th:switch="${profile}" th:remove="tag">
-        <div th:case="opsgis_rothera" th:remove="tag">
-            <link th:href="@{'/static/dist/cdn_embedded_creator_opsgis_rothera.min.css'}"></link>
-        </div>
-        <div th:case="*" th:remove="tag">
-            <link href="https://cdn.web.bas.ac.uk/magic/css/openlayers/4.2.0/ol.css" rel="stylesheet"></link>
-            <link th:href="${theme} == '' ? @{'https://cdn.web.bas.ac.uk/magic/css/bootstrap/3.3.7/bootstrap.min.css'} : @{'https://cdn.web.bas.ac.uk/magic/css/bootstrap/3.3.7/bootstrap.min.' + ${theme} + '.css'}" rel="stylesheet"></link>
-            <link href="https://cdn.web.bas.ac.uk/magic/css/font-awesome/4.4.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"></link>
-        </div>  
-    </div>
+<div th:fragment="assets" th:remove="tag">    
+    <link th:href="@{${cdn} + '/magic/css/openlayers/4.2.0/ol.css'}" rel="stylesheet"></link>
+    <link th:href="${theme} == '' ? @{${cdn} + '/magic/css/bootstrap/3.3.7/bootstrap.min.css'} : @{${cdn} + '/magic/css/bootstrap/3.3.7/bootstrap.min.' + ${theme} + '.css'}" rel="stylesheet"></link>
+    <link th:href="@{${cdn} + '/magic/css/font-awesome/4.4.0/css/font-awesome.min.css'}" rel="stylesheet" type="text/css"></link>        
 </div>
