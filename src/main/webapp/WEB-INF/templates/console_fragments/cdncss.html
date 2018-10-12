@@ -1,5 +1,5 @@
 <div th:fragment="assets" th:remove="tag">    
-    <link th:href="@{${cdn} + '/magic/css/openlayers/4.2.0/ol.css}'" rel="stylesheet"></link>        
+    <link th:href="@{${cdn} + '/magic/css/openlayers/4.2.0/ol.css'}" rel="stylesheet"></link>        
     <link th:href="${theme} == '' ? @{${cdn} + '/magic/css/bootstrap/3.3.7/bootstrap.min.css'} : @{${cdn} + '/magic/css/bootstrap/3.3.7/bootstrap.min.' + ${theme} + '.css'}" rel="stylesheet"></link>
     <link th:href="@{${cdn} + '/magic/css/dropzone/4.3.0/dropzone.min.css'}" rel="stylesheet" type="text/css"></link>
     <link th:href="@{${cdn} + '/magic/css/font-awesome/4.4.0/css/font-awesome.min.css'}" rel="stylesheet" type="text/css"></link>        
