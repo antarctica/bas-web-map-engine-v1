@@ -1095,7 +1095,7 @@ magic.classes.LayerTree.prototype.getVectorStyle = function(styleDef, labelField
             }
             if (!jQuery.isEmptyObject(styleDef.predefined) && styleDef.predefined) {
                 /* Canned vector style */
-                return(jQuery.proxy(magic.modules.VectorStyles[styleDef.predefined](), feature)());
+                return(jQuery.proxy(magic.modules.VectorStyles[styleDef.predefined["key"]](), feature)());
             } else {
                 /* Unpack symbology */
                 if (styleDef.fill) {
