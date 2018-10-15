@@ -85,7 +85,13 @@ magic.classes.MosaicTimeSeriesPlayer = function(options) {
                 jQuery.getJSON(restGranules, jQuery.proxy(function(data) {
                     this.loadGranules(data);
                     this.cache[this.nodeid] = data;
-                }, this));
+                }, this)).fail(function(xhr, status, error) {
+                    console.log("Failed to parse granule data");
+                    console.log("Status : " + status);
+                    console.log("Apparent error : " + error);
+                    console.log("Response was : " + xhr.responseText);
+                    console.log("End of granule fail message");
+                });
             }
         }
         /* Set button and refresh rate handlers */               
