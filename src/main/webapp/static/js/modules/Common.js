@@ -318,6 +318,9 @@ magic.modules.Common = function () {
                 if (label && label.getText()) {
                     /* Found a feature whose label needs to be hovered => make text opaque */
                     var text = label.getText();
+                    /* Strip HTML <p> and <br> tags which sometimes occur in KML */
+                    text = text.replace(/<p>/g, "\n");
+                    text = text.replace(/<br>/g, "\n");
                     if (vis) {
                         label.setText(text + (fcount > 1 ? " (+" + (fcount - 1) + ")" : ""));
                     } else {
