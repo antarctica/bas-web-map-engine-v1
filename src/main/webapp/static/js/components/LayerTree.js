@@ -1095,7 +1095,12 @@ magic.classes.LayerTree.prototype.getVectorStyle = function(styleDef, labelField
             }
             if (!jQuery.isEmptyObject(styleDef.predefined) && styleDef.predefined) {
                 /* Canned vector style */
-                return(jQuery.proxy(magic.modules.VectorStyles[styleDef.predefined["key"]](), feature)());
+                var predef = styleDef.predefined;
+                if (typeof predef == "object" && predef.key) {
+                    /* Legacy maps may contain the style defined with an extra object wrapper */
+                    predef = predef.key;
+                }
+                return(jQuery.proxy(magic.modules.VectorStyles[predef](), feature)());
             } else {
                 /* Unpack symbology */
                 if (styleDef.fill) {
