@@ -257,7 +257,7 @@ public class GeoserverRestController {
      */
     private String listGranulesForLayer(GeoserverRestEndpointConnector grec, String layer) {        
         String content = "{features: []}";
-        JsonElement jhref = grec.getJson("layers/" + layer, "name/resource/href");
+        JsonElement jhref = grec.getJson("layers/" + layer, "layer/resource/href");
         if (jhref != null) {
             String mosaicHref = jhref.getAsString().replaceAll("\\\\", "");         /* Eliminate '\' escapes put there by Geoserver */       
             mosaicHref = mosaicHref.substring(mosaicHref.indexOf("/rest"+5));       /* Isolate relative path */
