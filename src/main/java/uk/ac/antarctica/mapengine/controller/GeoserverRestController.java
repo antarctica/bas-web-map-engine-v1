@@ -256,7 +256,7 @@ public class GeoserverRestController {
      * @return String
      */
     private String listGranulesForLayer(GeoserverRestEndpointConnector grec, String layer) {        
-        String content = "{features: []}";
+        String content = "{\"features\": []}";
         JsonElement jhref = grec.getJson("layers/" + layer, "layer/resource/href");
         if (jhref != null) {
             String mosaicHref = jhref.getAsString().replaceAll("\\\\", "");         /* Eliminate '\' escapes put there by Geoserver */       
@@ -264,7 +264,7 @@ public class GeoserverRestController {
             mosaicHref = mosaicHref.substring(0, mosaicHref.lastIndexOf("."));      /* Strip '.json' from the end */
             JsonElement jeGranules = grec.getJson(mosaicHref + "/index/granules", "features");
             if (jeGranules != null) {
-                content = "{features:" + jeGranules.toString() + "}";
+                content = "{\"features\":" + jeGranules.toString() + "}";
             }                        
         }
         return(content);
