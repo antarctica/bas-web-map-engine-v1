@@ -260,7 +260,7 @@ public class GeoserverRestController {
         JsonElement jhref = grec.getJson("layers/" + layer, "layer/resource/href");
         if (jhref != null) {
             String mosaicHref = jhref.getAsString().replaceAll("\\\\", "");         /* Eliminate '\' escapes put there by Geoserver */       
-            mosaicHref = mosaicHref.substring(mosaicHref.indexOf("/rest")+4);       /* Isolate relative path */
+            mosaicHref = mosaicHref.substring(mosaicHref.indexOf("/rest")+6);       /* Isolate relative path */
             mosaicHref = mosaicHref.substring(0, mosaicHref.lastIndexOf("."));      /* Strip '.json' from the end */
             JsonElement jeGranules = grec.getJson(mosaicHref + "/index/granules", "features");
             if (jeGranules != null) {
