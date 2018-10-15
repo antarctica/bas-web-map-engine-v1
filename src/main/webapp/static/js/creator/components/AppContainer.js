@@ -174,11 +174,11 @@ magic.classes.creator.AppContainer.prototype.saveContext = function() {
                 );
             } else {
                 /* Schema validation was ok */
-                //console.log("Validated context...");
-                //console.log(context);
-                //console.log("Stringified context...");
-                //console.log(JSON.stringify(context));
-                //console.log("End of context");
+                console.log("Validated context...");
+                console.log(context);
+                console.log("Stringified context...");
+                console.log(JSON.stringify(context));
+                console.log("End of context");
                 var existingId = context.id;
                 var csrfHeaderVal = jQuery("meta[name='_csrf']").attr("content");
                 var csrfHeader = jQuery("meta[name='_csrf_header']").attr("content");
