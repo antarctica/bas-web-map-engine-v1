@@ -69,12 +69,8 @@ VALUES('South Georgia GIS', 'https://maps.bas.ac.uk/southgeorgia/wms', 'cambridg
     NULL, 'EPSG:3762', TRUE, FALSE, 'https://www.sggis.gov.gs/geoserver/sggis/wms,http://www.sggis.gov.gs/geoserver/sggis/wms' , 'https://www.sggis.gov.gs/geoserver');
 
 INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs, has_wfs, is_user_service, url_aliases, rest_endpoint) 
-VALUES('Oracle test WMS', 'http://mapengine-dev.nerc-bas.ac.uk:8080/geoserver/oracle/wms', 'cambridge', FALSE, NULL, NULL, 
-    NULL, 'EPSG:3762', TRUE, FALSE, NULL, 'http://mapengine-dev.nerc-bas.ac.uk:8080/geoserver');
-
-INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs, has_wfs, is_user_service, url_aliases, rest_endpoint) 
-VALUES('Local Geoserver user data', 'http://mapengine-dev.nerc-bas.ac.uk:8080/geoserver/user/wms', 'cambridge', FALSE, NULL, NULL, 
-    NULL, 'EPSG:3031', TRUE, TRUE, NULL, 'http://mapengine-dev.nerc-bas.ac.uk:8080/geoserver');
+VALUES('Local Geoserver user data', 'http://opsgis.web.bas.ac.uk/geoserver/user/wms', 'cambridge', FALSE, NULL, NULL, 
+    NULL, 'EPSG:3031', TRUE, TRUE, 'http://bslgisa.nerc-bas.ac.uk/geoserver/user/wms', 'http://bslgisa.nerc-bas.ac.uk/geoserver');
 
 INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs, has_wfs, is_user_service, url_aliases, rest_endpoint) 
 VALUES('Midlatitude Data', 'osm', 'cambridge', FALSE, 'osm', 'ol', NULL, 'EPSG:3857', FALSE, FALSE, NULL, NULL);
@@ -92,6 +88,10 @@ INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers
 INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs, has_wfs, is_user_service, url_aliases, rest_endpoint) 
     VALUES('Arctic Open Data', 'http://rolgis.rothera.nerc-bas.ac.uk/geoserver/arctic/wms', 'rothera', TRUE, 
     'arctic:arctic_coastline','arctic:arctic_graticule', NULL, 'EPSG:3995', TRUE, FALSE, NULL, 'http://rolgis.rothera.nerc-bas.ac.uk/geoserver');
+
+INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs, has_wfs, is_user_service, url_aliases, rest_endpoint) 
+    VALUES('User uploaded data', 'http://rolgis.rothera.nerc-bas.ac.uk/geoserver/user/wms', 'rothera', TRUE, 
+    NULL, NULL, NULL, 'EPSG:3031', TRUE, FALSE, NULL, 'http://rolgis.rothera.nerc-bas.ac.uk/geoserver');
 
 INSERT INTO webmap.endpoints ("name", url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs, has_wfs, is_user_service, url_aliases, rest_endpoint) 
     VALUES('South Georgia GIS', 'http://rolgis.rothera.nerc-bas.ac.uk/geoserver/sggis/wms', 'rothera', TRUE, 
