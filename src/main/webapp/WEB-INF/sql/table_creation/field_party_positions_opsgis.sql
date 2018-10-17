@@ -77,7 +77,8 @@ CREATE TABLE opsgis2.ops_field_deployments_history
   lat numeric,
   lon numeric,
   height numeric,
-  notes text
+  notes text,
+  actiontype varchar(10)
 )
 WITH (
   OIDS=FALSE
@@ -95,12 +96,12 @@ AS $BODY$
 BEGIN
     IF (TG_OP = 'DELETE') THEN
         INSERT INTO opsgis2.ops_field_deployments_history 
-        (SELECT id, sledge, season, fix_date, CURRENT_TIMESTAMP, people_count, updater, lat, lon, height, notes
+        (SELECT id, sledge, season, fix_date, CURRENT_TIMESTAMP, people_count, updater, lat, lon, height, notes, 'deleted'
         FROM opsgis2.ops_field_deployments WHERE id = OLD.id);
         RETURN OLD;
     ELSIF (TG_OP = 'UPDATE') THEN
         INSERT INTO opsgis2.ops_field_deployments_history 
-        (SELECT id, sledge, season, fix_date, CURRENT_TIMESTAMP, people_count, updater, lat, lon, height, notes 
+        (SELECT id, sledge, season, fix_date, CURRENT_TIMESTAMP, people_count, updater, lat, lon, height, notes, 'updated' 
         FROM opsgis2.ops_field_deployments WHERE id = NEW.id);
         RETURN NEW;
     END IF;
