@@ -15,6 +15,7 @@ import java.util.Date;
 import java.util.HashMap;
 import javax.net.ssl.SSLContext;
 import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpHost;
@@ -44,6 +45,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.springframework.security.access.AccessDeniedException;
+import uk.ac.antarctica.mapengine.util.GenericUrlConnector.GenericUrlConnectorResponse;
 
 public class GenericUrlConnector {
 
@@ -289,7 +291,11 @@ public class GenericUrlConnector {
                 System.out.println("Failed to get content from " + url + ", error was : " + ioe.getMessage());
                 gucOut.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
             }
-        }               
+        } else if (gucOut.getStatus() == HttpStatus.SC_UNAUTHORIZED) {
+            System.out.println("===" + new Date().toString() + " - Http 403 returned for URL : " + url);
+            System.out.println("=== Content output was : " + IOUtils.toString(gucOut.getContent()));
+            System.out.println("=== End");
+        }             
         return(gucOut);
     }
     
