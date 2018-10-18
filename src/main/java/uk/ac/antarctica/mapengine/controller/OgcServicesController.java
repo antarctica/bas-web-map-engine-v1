@@ -19,6 +19,7 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -498,7 +499,12 @@ public class OgcServicesController {
             } else if (gucOut.getStatus() == 401) {
                 /* User unauthorised */                     
                 throw new RestrictedDataException("You are not authorised to access this resource");
-            } else {                   
+            } else {                                   
+                if (gucOut.getStatus() == 403) {
+                    System.out.println("=== OgcServicesController.getFromUrl() at " + new Date().toString() + " - Http 403 returned for URL : " + url);
+                    System.out.println("=== Content output was : " + IOUtils.toString(gucOut.getContent()));
+                    System.out.println("=== End");
+                }
                 throw new RestrictedDataException("Error:" + gucOut.getStatus());
             }
         } catch(IOException ioe) {
