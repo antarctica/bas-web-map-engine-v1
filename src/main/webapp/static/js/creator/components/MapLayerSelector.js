@@ -49,7 +49,7 @@ magic.classes.creator.MapLayerSelector.prototype.loadContext = function(data) {
             this.layerMarkup(table, layers[i]);
         }
         /* Enable sortable layers table */
-        jQuery(".table-sortable tbody").sortable({
+        sortable(".table-sortable tbody", {
             handle: "td.layerdata-name",
             placeholderClass: "fa fa-caret-right"
         });
@@ -172,7 +172,7 @@ magic.classes.creator.MapLayerSelector.prototype.updateLayerData = function(laye
     }
     this.layerEdits[layerData.id] = layerData;
     /* Enable sortable layers table - now includes the new layer */
-    jQuery(".table-sortable tbody").sortable({
+    sortable(".table-sortable tbody", {
         handle: "td.layerdata-name",
         placeholderClass: "fa fa-caret-right"
     });
