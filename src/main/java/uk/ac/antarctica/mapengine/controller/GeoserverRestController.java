@@ -199,10 +199,11 @@ public class GeoserverRestController {
      * @param String layer
      * @return String
      */    
-    private String listStylesForLayer(GeoserverRestEndpointConnector grec, String layer) {        
-        String content = grec.getContent("layers/" + layer + "/styles");        
-        if (content == null) {
-            content = "{styles: \"\"}";
+    private String listStylesForLayer(GeoserverRestEndpointConnector grec, String layer) {    
+        String content = "{styles: \"\"}";;
+        JsonElement je = grec.getJson("layers/" + layer + "/styles");        
+        if (je != null && !je.isJsonNull()) {
+            content = je.getAsString();
         }
         return(content);        
     }
