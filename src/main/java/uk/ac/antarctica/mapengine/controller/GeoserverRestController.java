@@ -203,7 +203,7 @@ public class GeoserverRestController {
         String content = "{styles: \"\"}";;
         JsonElement je = grec.getJson("layers/" + layer + "/styles");        
         if (je != null && !je.isJsonNull()) {
-            content = je.getAsString();
+            content = ((JsonObject)je).toString();
         }
         return(content);        
     }
