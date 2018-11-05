@@ -145,7 +145,6 @@ magic.classes.LayerTree = function (target, container) {
     /* Assign all handlers */
     this.initHandlers(null);  
     this.refreshTreeIndicators(); 
-    this.chromeRefreshWorkaround();
 };
 
 magic.classes.LayerTree.prototype.getTarget = function () {
