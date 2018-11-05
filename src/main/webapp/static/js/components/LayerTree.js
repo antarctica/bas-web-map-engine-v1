@@ -581,8 +581,8 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                         }
                     })
                     .done(function(data) {
-                        vectorSource.clear(true);
-                        vectorSource.addFeatures(format.readFeatures(data));
+                        this.clear(true);
+                        this.addFeatures(this.getFormat().readFeatures(data));
                     })
                     .fail(function(xhr) {
                         var msg;
@@ -611,8 +611,8 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                         data: {"cachebuster": new Date().getTime()}
                     })
                     .done(function(data) {
-                        vectorSource.clear(true);
-                        vectorSource.addFeatures(format.readFeatures(data));
+                        this.clear(true);
+                        this.addFeatures(this.getFormat().readFeatures(data));
                     })
                     .fail(function(xhr) {
                         var msg;
@@ -660,12 +660,12 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                         } else {
                             opLayers = [data.operationalLayers[0]];
                         }
-                        var features = format.readFeatures(opLayers[0].featureCollection.layers[0].featureSet, {
+                        var features = this.getFormat().readFeatures(opLayers[0].featureCollection.layers[0].featureSet, {
                             dataProjection: "EPSG:3857",
                             featureProjection: magic.runtime.map_context.data.projection
                         });
-                        vectorSource.clear(true);
-                        vectorSource.addFeatures(features);
+                        this.clear(true);
+                        this.addFeatures(features);
                     } catch(e) {
                         magic.modules.Common.showAlertModal("Failed to parse the output from ESRI JSON service at " + nd.source.esrijson_source, "warning");                          
                     }
@@ -700,7 +700,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
             name: nd.name,
             visible: isVisible,
             metadata: nd,    
-            vectorSource: new ol.source.Vector({
+            source: new ol.source.Vector({
                 format: new ol.format.GPX({readExtensions: function(f, enode){                       
                     try {
                         var json = xmlToJSON.parseString(enode.outerHTML.trim());
@@ -726,8 +726,8 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                         data: {"cachebuster": new Date().getTime()}
                     })
                     .done(function(data) {
-                        vectorSource.clear(true);
-                        vectorSource.addFeatures(format.readFeatures(data));
+                        this.clear(true);
+                        this.addFeatures(this.getFormat().readFeatures(data));
                     })
                     .fail(function(xhr) {
                         var msg;
@@ -766,7 +766,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
             name: nd.name,
             visible: isVisible,
             metadata: nd,
-            vectorSource: new ol.source.Vector({
+            source: new ol.source.Vector({
                 format: new ol.format.KML({
                     extractStyles: kmlStyle == null,
                     showPointNames: false
@@ -778,8 +778,8 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                         data: {"cachebuster": new Date().getTime()}
                     })
                     .done(function(data) {
-                        vectorSource.clear(true);
-                        vectorSource.addFeatures(format.readFeatures(data));
+                        this.clear(true);
+                        this.addFeatures(this.getFormat().readFeatures(data));
                     })
                     .fail(function(xhr) {
                         var msg;
