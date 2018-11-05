@@ -78,7 +78,7 @@ magic.classes.creator.EsriJsonSourceEditor.prototype.writeStyle = function(style
         styledef = {"mode": "default"};
     }
     jQuery("#" + this.prefix + "-style_definition").val(JSON.stringify(styledef));
-    jQuery("#" + this.prefix + "-style-edit").prop("disabled", (mode == "predefined" || mode == "default"));    
+    jQuery("#" + this.prefix + "-style-edit").prop("disabled", (styledef.mode == "predefined" || styledef.mode == "default"));    
     if (jQuery.isFunction(this.controlCallbacks.onSaveContext)) {
         this.controlCallbacks.onSaveContext();
     }

@@ -97,13 +97,15 @@ magic.classes.creator.GeoJsonSourceEditor.prototype.init = function(context) {
         '<option value="' + magic.runtime.projection + '">' + magic.runtime.projection + '</option>'
     );
     
-    this.populateCannedStylesDropdown(context.style_definition.predefined || "");
+    var mode = this.getStyleParameter(context.style_definition, "mode");
+    var predefined = this.getStyleParameter(context.style_definition, "predefined") || "";
+    this.populateCannedStylesDropdown(predefined);
     this.setStyleHandlers(context);               
     
     /* Show canned styles input if appropriate */
     var predefinedStyleDiv = jQuery("div.predefined-style-input");
     if (predefinedStyleDiv.length > 0) {
-        if (context.style_definition && context.style_definition.mode == "predefined" && context.style_definition.predefined) {              
+        if (mode == "predefined" && predefined) {              
             predefinedStyleDiv.removeClass("hidden");
         } else {
             predefinedStyleDiv.addClass("hidden");

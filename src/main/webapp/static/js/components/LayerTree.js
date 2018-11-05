@@ -924,6 +924,9 @@ magic.classes.LayerTree.prototype.refreshLayer = function(layer) {
  * @param {ol.source.Vector} source
  */
 magic.classes.LayerTree.prototype.reloadVectorSource = function(source) {
+    var sourceUrl = source.getUrl();
+    /* Add a cache busting parameter */
+    sourceUrl = sourceUrl + (sourceUrl.indexOf("?") == -1 ? "?" : "&") + "cachebuster=" + new Date().getMilliseconds();
     jQuery.ajax(source.getUrl(), function(response) {
         var format = source.getFormat();
         source.clear(true);

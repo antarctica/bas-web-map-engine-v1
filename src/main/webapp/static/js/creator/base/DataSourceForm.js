@@ -76,7 +76,7 @@ magic.classes.creator.DataSourceForm.prototype.setStyleHandlers = function(conte
         ddStyleMode.val("default");
         btnStyleEdit.prop("disabled", true);        
         context.style_definition = this.styler.convertLegacyFormats(context.style_definition);
-        var mode = context.style_definition.mode;
+        var mode = this.getStyleParameter(context.style_definition, "mode");
         ddStyleMode.val(mode);
         btnStyleEdit.prop("disabled", mode == "predefined" || mode == "default" || mode == "file");
     }
@@ -100,4 +100,10 @@ magic.classes.creator.DataSourceForm.prototype.deactivateStyler = function(callb
     }
 };
 
+magic.classes.creator.DataSourceForm.prototype.getStyleParameter = function(styledef, name) {
+    if (typeof styledef == "string") {
+        styledef = JSON.parse(styledef);
+    }
+    return(styledef[name] || null);
+};
 
