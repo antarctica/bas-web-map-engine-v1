@@ -928,11 +928,21 @@ magic.classes.LayerTree.prototype.reloadVectorSource = function(source) {
         data: {"cachebuster": new Date().getTime()} /* Add a cache busting parameter */
     })
     .done(function(response) {
+        console.log("===============================");
+        console.log("Refreshing vector layer...");        
+        console.log("Server response:");
+        console.log("===============================");
         console.log(response);
+        console.log("===============================");
         var format = source.getFormat();
         source.clear(true);
-        source.addFeatures(format.readFeatures(response));
-        source.refresh();
+        var feats = format.readFeatures(response);
+        console.log("===============================");
+        console.log("Read features:")
+        console.log(feats);
+        console.log("===============================");
+        source.addFeatures(feats);
+        console.log("Finished");
     })
     .fail(function(xhr) {
         var msg;
