@@ -554,19 +554,16 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
     } else if (nd.source.geojson_source) {
         /* GeoJSON layer */
         var vectorSource;
-        var labelRotation = nd.source.feature_name ? 0.0 : -magic.runtime.map_context.data.rotation;
-        var format = new ol.format.GeoJSON();
+        var labelRotation = nd.source.feature_name ? 0.0 : -magic.runtime.map_context.data.rotation;        
         var url = nd.source.geojson_source;
         if (nd.source.feature_name) {                           
             /* WFS */
             url = magic.modules.Endpoints.getOgcEndpoint(url, "wfs");
             vectorSource = new ol.source.Vector({
-                format: format,
                 loader: function(extent) {
                     if (!jQuery.isArray(extent) || !(isFinite(extent[0]) && isFinite(extent[1]) && isFinite(extent[2]) && isFinite(extent[3]))) {
                         extent = magic.runtime.map_context.data.proj_extent;
                     }
-                    var srcObj = this;
                     jQuery.ajax({
                         url: url,
                         method: "GET",
@@ -581,9 +578,8 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                             "cachebuster": new Date().getTime()
                         }
                     })
-                    .done(function(data) {
-                        srcObj.clear(true);
-                        srcObj.addFeatures(srcObj.getFormat().readFeatures(data));
+                    .done(function(data) {                        
+                        vectorSource.addFeatures(new ol.format.GeoJSON().readFeatures(data));
                     })
                     .fail(function(xhr) {
                         var msg;
@@ -604,17 +600,14 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
             /* Another GeoJSON source */
             url = magic.modules.Common.proxyUrl(url);
             vectorSource = new ol.source.Vector({
-                format: format,
                 loader: function() {  
-                    var srcObj = this;
                     jQuery.ajax({
                         url: url,
                         method: "GET",
                         data: {"cachebuster": new Date().getTime()}
                     })
                     .done(function(data) {
-                        srcObj.clear(true);
-                        srcObj.addFeatures(srcObj.getFormat().readFeatures(data));
+                        vectorSource.addFeatures(new ol.format.GeoJSON().readFeatures(data));
                     })
                     .fail(function(xhr) {
                         var msg;
@@ -646,13 +639,15 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
     } else if (nd.source.esrijson_source) {
         /* ESRI JSON layer */
         var vectorSource;
-        var format = new ol.format.EsriJSON();
         var labelRotation = -magic.runtime.map_context.data.rotation;
         vectorSource = new ol.source.Vector({
-            format: format,
             loader: function() {
-                var srcObj = this;
-                jQuery.getJSON(nd.source.esrijson_source, function(data) {
+                jQuery.ajax({
+                    url: nd.source.esrijson_source,
+                    method: "GET",
+                    data: {"cachebuster": new Date().getTime()}
+                })
+                .done(function(data) {
                     var layerTitle = nd.source.layer_title;
                     var opLayers;
                     try {
@@ -663,26 +658,28 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                         } else {
                             opLayers = [data.operationalLayers[0]];
                         }
-                        var features = this.getFormat().readFeatures(opLayers[0].featureCollection.layers[0].featureSet, {
+                        var features = new ol.format.EsriJSON().readFeatures(opLayers[0].featureCollection.layers[0].featureSet, {
                             dataProjection: "EPSG:3857",
                             featureProjection: magic.runtime.map_context.data.projection
                         });
-                        srcObj.clear(true);
-                        srcObj.addFeatures(features);
+                        vectorSource.addFeatures(features);
                     } catch(e) {
                         magic.modules.Common.showAlertModal("Failed to parse the output from ESRI JSON service at " + nd.source.esrijson_source, "warning");                          
                     }
                 })
                 .fail(function(xhr) {
-                    var msg;                    
-                    try {
-                        msg = JSON.parse(xhr.responseText)["detail"];
-                    } 
-                    catch(e) {
-                        msg = xhr.responseText;
+                    var msg;
+                    if (xhr.status == 401) {
+                        msg = "Not authorised to access layer " + nd.source.feature_name;
+                    } else {
+                        try {
+                            msg = JSON.parse(xhr.responseText)["detail"];
+                        } catch(e) {
+                            msg = xhr.responseText;
+                        }
                     }
-                    console.log("Failed to load EsriJSON layer, error was : " + msg);                     
-                });
+                    console.log("Failed to load EsriJSON layer, error was : " + msg);                        
+                });                
             }
         });        
         layer = new ol.layer.Vector({
@@ -699,55 +696,55 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
     } else if (nd.source.gpx_source) {
         /* GPX layer */
         var labelRotation = -magic.runtime.map_context.data.rotation;
+        var vectorSource = 
+            new ol.source.Vector({
+            format: new ol.format.GPX({readExtensions: function(f, enode){                       
+                try {
+                    var json = xmlToJSON.parseString(enode.outerHTML.trim());
+                    if ("extensions" in json && jQuery.isArray(json.extensions) && json.extensions.length == 1) {
+                        var eo = json.extensions[0];
+                        for (var eok in eo) {
+                            if (eok.indexOf("_") != 0) {
+                                if (jQuery.isArray(eo[eok]) && eo[eok].length == 1) {
+                                    var value = eo[eok][0]["_text"];
+                                    f.set(eok, value, true);
+                                }
+                            }
+                        }
+                    }
+                } catch (e) {
+                }
+                return(f);
+            }}),
+            loader: function() { 
+                jQuery.ajax({
+                    url: magic.modules.Common.proxyUrl(nd.source.gpx_source),
+                    method: "GET",
+                    data: {"cachebuster": new Date().getTime()}
+                })
+                .done(function(data) {
+                    vectorSource.addFeatures(vectorSource.getFormat().readFeatures(data));
+                })
+                .fail(function(xhr) {
+                    var msg;
+                    if (xhr.status == 401) {
+                        msg = "Not authorised to access layer " + nd.source.feature_name;
+                    } else {
+                        try {
+                            msg = JSON.parse(xhr.responseText)["detail"];
+                        } catch(e) {
+                            msg = xhr.responseText;
+                        }
+                    }
+                    console.log("Failed to load GPX layer, error was : " + msg);                        
+                });
+            }
+        });
         layer = new ol.layer.Vector({
             name: nd.name,
             visible: isVisible,
             metadata: nd,    
-            source: new ol.source.Vector({
-                format: new ol.format.GPX({readExtensions: function(f, enode){                       
-                    try {
-                        var json = xmlToJSON.parseString(enode.outerHTML.trim());
-                        if ("extensions" in json && jQuery.isArray(json.extensions) && json.extensions.length == 1) {
-                            var eo = json.extensions[0];
-                            for (var eok in eo) {
-                                if (eok.indexOf("_") != 0) {
-                                    if (jQuery.isArray(eo[eok]) && eo[eok].length == 1) {
-                                        var value = eo[eok][0]["_text"];
-                                        f.set(eok, value, true);
-                                    }
-                                }
-                            }
-                        }
-                    } catch (e) {
-                    }
-                    return(f);
-                }}),
-                loader: function() { 
-                    var srcObj = this;
-                    jQuery.ajax({
-                        url: magic.modules.Common.proxyUrl(nd.source.gpx_source),
-                        method: "GET",
-                        data: {"cachebuster": new Date().getTime()}
-                    })
-                    .done(function(data) {
-                        srcObj.clear(true);
-                        srcObj.addFeatures(srcObj.getFormat().readFeatures(data));
-                    })
-                    .fail(function(xhr) {
-                        var msg;
-                        if (xhr.status == 401) {
-                            msg = "Not authorised to access layer " + nd.source.feature_name;
-                        } else {
-                            try {
-                                msg = JSON.parse(xhr.responseText)["detail"];
-                            } catch(e) {
-                                msg = xhr.responseText;
-                            }
-                        }
-                        console.log("Failed to load GPX layer, error was : " + msg);                        
-                    });
-                }
-            }),
+            source: vectorSource,
             style: this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map), labelRotation),
             renderMode: "image",
             minResolution: minRes,
@@ -766,41 +763,40 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
         if (sd.mode != "default") {
             kmlStyle = this.getVectorStyle(sd, this.getLabelField(nd.attribute_map), labelRotation);
         }
+        var vectorSource = new ol.source.Vector({
+            format: new ol.format.KML({
+                extractStyles: kmlStyle == null,
+                showPointNames: false
+            }),
+            loader: function() {     
+                jQuery.ajax({
+                    url: magic.modules.Common.proxyUrl(nd.source.kml_source),
+                    method: "GET",
+                    data: {"cachebuster": new Date().getTime()}
+                })
+                .done(function(data) {
+                    vectorSource.addFeatures(vectorSource.getFormat().readFeatures(data));
+                })
+                .fail(function(xhr) {
+                    var msg;
+                    if (xhr.status == 401) {
+                        msg = "Not authorised to access layer " + nd.source.feature_name;
+                    } else {
+                        try {
+                            msg = JSON.parse(xhr.responseText)["detail"];
+                        } catch(e) {
+                            msg = xhr.responseText;
+                        }
+                    }
+                    console.log("Failed to load KML layer, error was : " + msg);                        
+                });
+            }
+        });
         layer = new ol.layer.Vector({
             name: nd.name,
             visible: isVisible,
             metadata: nd,
-            source: new ol.source.Vector({
-                format: new ol.format.KML({
-                    extractStyles: kmlStyle == null,
-                    showPointNames: false
-                }),
-                loader: function() {     
-                    var srcObj = this;
-                    jQuery.ajax({
-                        url: magic.modules.Common.proxyUrl(nd.source.kml_source),
-                        method: "GET",
-                        data: {"cachebuster": new Date().getTime()}
-                    })
-                    .done(function(data) {
-                        srcObj.clear(true);
-                        srcObj.addFeatures(srcObj.getFormat().readFeatures(data));
-                    })
-                    .fail(function(xhr) {
-                        var msg;
-                        if (xhr.status == 401) {
-                            msg = "Not authorised to access layer " + nd.source.feature_name;
-                        } else {
-                            try {
-                                msg = JSON.parse(xhr.responseText)["detail"];
-                            } catch(e) {
-                                msg = xhr.responseText;
-                            }
-                        }
-                        console.log("Failed to load KML layer, error was : " + msg);                        
-                    });
-                }
-            }),
+            source: vectorSource,
             renderMode: "image",
             minResolution: minRes,
             maxResolution: maxRes
