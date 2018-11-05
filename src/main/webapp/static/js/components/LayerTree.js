@@ -696,11 +696,12 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
         /* KML source */
         var kmlStyle = null;
         var labelRotation = -magic.runtime.map_context.data.rotation;
-        if (typeof nd.source.style_definition == "string") {
-            var sd = JSON.parse(nd.source.style_definition);
-            if (sd.mode != "default") {
-                kmlStyle = this.getVectorStyle(nd.source.style_definition, this.getLabelField(nd.attribute_map), labelRotation);
-            }
+        var sd = nd.source.style_definition;
+        if (typeof sd == "string") {
+            sd = JSON.parse(sd);            
+        }
+        if (sd.mode != "default") {
+            kmlStyle = this.getVectorStyle(sd, this.getLabelField(nd.attribute_map), labelRotation);
         }
         layer = new ol.layer.Vector({
             name: nd.name,
@@ -910,11 +911,8 @@ magic.classes.LayerTree.prototype.refreshLayer = function(layer) {
         params.t = new Date().getTime();
         layer.getSource().updateParams(params);
     } else if (layer.getSource() instanceof ol.source.Vector) {
-        /* WFS/GeoJSON layer */
+        /* WFS/GeoJSON/GPX/KML layer */
         this.reloadVectorSource(layer.getSource());
-    } else if (jQuery.isFunction(layer.getSource().getSource) && layer.getSource().getSource() instanceof ol.source.Vector) {
-        /* GPX/KML layers */
-        this.reloadVectorSource(layer.getSource().getSource());
     }
 };
 
@@ -931,6 +929,7 @@ magic.classes.LayerTree.prototype.reloadVectorSource = function(source) {
         var format = source.getFormat();
         source.clear(true);
         source.addFeatures(format.readFeatures(response));
+        source.refresh();
     });
 };
 
@@ -1320,21 +1319,3 @@ magic.classes.LayerTree.prototype.userGroupExpanded = function(groupId, defVal) 
     }
     return(attrVal);
 };
-
-/**
- * Chrome-specific hack to avoid random disappearing elements in layer tree - added 2017-10-26 by David
- * The problem is cured by turning off hardware acceleration in Chrome, so is a bug somewhere in that area
- * this hack is left in to work around the worst symptoms of it for those with HA turned on
- * Commented out 2017-11-16 - not thought to be a common problem
- */
-magic.classes.LayerTree.prototype.chromeRefreshWorkaround = function() {
-//    if (navigator.appVersion.toLowerCase().indexOf("chrome") >= 0) {
-//        console.log("Chrome refresh workaround - test periodically if this is still needed!");
-//        /* Force a refresh via tiny resize and back */
-//        var lt = jQuery("#" + this.target);
-//        var ltw = parseInt(lt.css("width").replace("px", ""));
-//        lt.css("width", (ltw+1) + "px");
-//        lt.css("width", ltw + "px");
-//    }
-};
- 
