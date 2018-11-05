@@ -579,7 +579,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                         }
                     })
                     .done(function(data) {                        
-                        vectorSource.addFeatures(new ol.format.GeoJSON().readFeatures(data));
+                        vectorSource.addFeatures(new ol.format.GeoJSON({featureProjection: proj.getCode()}).readFeatures(data));
                     })
                     .fail(function(xhr) {
                         var msg;
@@ -607,7 +607,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                         data: {"cachebuster": new Date().getTime()}
                     })
                     .done(function(data) {
-                        vectorSource.addFeatures(new ol.format.GeoJSON().readFeatures(data));
+                        vectorSource.addFeatures(new ol.format.GeoJSON({featureProjection: proj.getCode()}).readFeatures(data));
                     })
                     .fail(function(xhr) {
                         var msg;
