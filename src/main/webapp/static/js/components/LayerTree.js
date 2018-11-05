@@ -579,7 +579,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                         }
                     })
                     .done(function(data) {                        
-                        vectorSource.addFeatures(new ol.format.GeoJSON({featureProjection: proj.getCode()}).readFeatures(data));
+                        vectorSource.addFeatures(new ol.format.GeoJSON({featureProjection: magic.runtime.map_context.data.projection}).readFeatures(data));
                     })
                     .fail(function(xhr) {
                         var msg;
@@ -607,7 +607,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                         data: {"cachebuster": new Date().getTime()}
                     })
                     .done(function(data) {
-                        vectorSource.addFeatures(new ol.format.GeoJSON({featureProjection: proj.getCode()}).readFeatures(data));
+                        vectorSource.addFeatures(new ol.format.GeoJSON({featureProjection: magic.runtime.map_context.data.projection}).readFeatures(data));
                     })
                     .fail(function(xhr) {
                         var msg;
@@ -696,26 +696,25 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
     } else if (nd.source.gpx_source) {
         /* GPX layer */
         var labelRotation = -magic.runtime.map_context.data.rotation;
-        var vectorSource = 
-            new ol.source.Vector({
-            format: new ol.format.GPX({readExtensions: function(f, enode){                       
-                try {
-                    var json = xmlToJSON.parseString(enode.outerHTML.trim());
-                    if ("extensions" in json && jQuery.isArray(json.extensions) && json.extensions.length == 1) {
-                        var eo = json.extensions[0];
-                        for (var eok in eo) {
-                            if (eok.indexOf("_") != 0) {
-                                if (jQuery.isArray(eo[eok]) && eo[eok].length == 1) {
-                                    var value = eo[eok][0]["_text"];
-                                    f.set(eok, value, true);
-                                }
+        var format = new ol.format.GPX({readExtensions: function(f, enode){                       
+            try {
+                var json = xmlToJSON.parseString(enode.outerHTML.trim());
+                if ("extensions" in json && jQuery.isArray(json.extensions) && json.extensions.length == 1) {
+                    var eo = json.extensions[0];
+                    for (var eok in eo) {
+                        if (eok.indexOf("_") != 0) {
+                            if (jQuery.isArray(eo[eok]) && eo[eok].length == 1) {
+                                var value = eo[eok][0]["_text"];
+                                f.set(eok, value, true);
                             }
                         }
                     }
-                } catch (e) {
                 }
-                return(f);
-            }}),
+            } catch (e) {
+            }
+            return(f);
+        }});
+        var vectorSource = new ol.source.Vector({            
             loader: function() { 
                 jQuery.ajax({
                     url: magic.modules.Common.proxyUrl(nd.source.gpx_source),
@@ -723,7 +722,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                     data: {"cachebuster": new Date().getTime()}
                 })
                 .done(function(data) {
-                    vectorSource.addFeatures(vectorSource.getFormat().readFeatures(data));
+                    vectorSource.addFeatures(format.readFeatures(data));
                 })
                 .fail(function(xhr) {
                     var msg;
@@ -763,11 +762,11 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
         if (sd.mode != "default") {
             kmlStyle = this.getVectorStyle(sd, this.getLabelField(nd.attribute_map), labelRotation);
         }
+        var format = format: new ol.format.KML({
+            extractStyles: kmlStyle == null,
+            showPointNames: false
+        });
         var vectorSource = new ol.source.Vector({
-            format: new ol.format.KML({
-                extractStyles: kmlStyle == null,
-                showPointNames: false
-            }),
             loader: function() {     
                 jQuery.ajax({
                     url: magic.modules.Common.proxyUrl(nd.source.kml_source),
@@ -775,7 +774,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                     data: {"cachebuster": new Date().getTime()}
                 })
                 .done(function(data) {
-                    vectorSource.addFeatures(vectorSource.getFormat().readFeatures(data));
+                    vectorSource.addFeatures(format.readFeatures(data));
                 })
                 .fail(function(xhr) {
                     var msg;
@@ -1385,3 +1384,5 @@ magic.classes.LayerTree.prototype.userGroupExpanded = function(groupId, defVal) 
     }
     return(attrVal);
 };
+
+
