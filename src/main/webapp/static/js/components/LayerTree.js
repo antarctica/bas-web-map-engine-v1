@@ -566,6 +566,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                     if (!jQuery.isArray(extent) || !(isFinite(extent[0]) && isFinite(extent[1]) && isFinite(extent[2]) && isFinite(extent[3]))) {
                         extent = magic.runtime.map_context.data.proj_extent;
                     }
+                    var srcObj = this;
                     jQuery.ajax({
                         url: url,
                         method: "GET",
@@ -581,8 +582,8 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                         }
                     })
                     .done(function(data) {
-                        this.clear(true);
-                        this.addFeatures(this.getFormat().readFeatures(data));
+                        srcObj.clear(true);
+                        srcObj.addFeatures(srcObj.getFormat().readFeatures(data));
                     })
                     .fail(function(xhr) {
                         var msg;
@@ -604,15 +605,16 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
             url = magic.modules.Common.proxyUrl(url);
             vectorSource = new ol.source.Vector({
                 format: format,
-                loader: function() {                    
+                loader: function() {  
+                    var srcObj = this;
                     jQuery.ajax({
                         url: url,
                         method: "GET",
                         data: {"cachebuster": new Date().getTime()}
                     })
                     .done(function(data) {
-                        this.clear(true);
-                        this.addFeatures(this.getFormat().readFeatures(data));
+                        srcObj.clear(true);
+                        srcObj.addFeatures(srcObj.getFormat().readFeatures(data));
                     })
                     .fail(function(xhr) {
                         var msg;
@@ -649,6 +651,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
         vectorSource = new ol.source.Vector({
             format: format,
             loader: function() {
+                var srcObj = this;
                 jQuery.getJSON(nd.source.esrijson_source, function(data) {
                     var layerTitle = nd.source.layer_title;
                     var opLayers;
@@ -664,8 +667,8 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                             dataProjection: "EPSG:3857",
                             featureProjection: magic.runtime.map_context.data.projection
                         });
-                        this.clear(true);
-                        this.addFeatures(features);
+                        srcObj.clear(true);
+                        srcObj.addFeatures(features);
                     } catch(e) {
                         magic.modules.Common.showAlertModal("Failed to parse the output from ESRI JSON service at " + nd.source.esrijson_source, "warning");                          
                     }
@@ -719,15 +722,16 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                     }
                     return(f);
                 }}),
-                loader: function() {                    
+                loader: function() { 
+                    var srcObj = this;
                     jQuery.ajax({
                         url: magic.modules.Common.proxyUrl(nd.source.gpx_source),
                         method: "GET",
                         data: {"cachebuster": new Date().getTime()}
                     })
                     .done(function(data) {
-                        this.clear(true);
-                        this.addFeatures(this.getFormat().readFeatures(data));
+                        srcObj.clear(true);
+                        srcObj.addFeatures(srcObj.getFormat().readFeatures(data));
                     })
                     .fail(function(xhr) {
                         var msg;
@@ -771,15 +775,16 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                     extractStyles: kmlStyle == null,
                     showPointNames: false
                 }),
-                loader: function() {                    
+                loader: function() {     
+                    var srcObj = this;
                     jQuery.ajax({
                         url: magic.modules.Common.proxyUrl(nd.source.kml_source),
                         method: "GET",
                         data: {"cachebuster": new Date().getTime()}
                     })
                     .done(function(data) {
-                        this.clear(true);
-                        this.addFeatures(this.getFormat().readFeatures(data));
+                        srcObj.clear(true);
+                        srcObj.addFeatures(srcObj.getFormat().readFeatures(data));
                     })
                     .fail(function(xhr) {
                         var msg;
