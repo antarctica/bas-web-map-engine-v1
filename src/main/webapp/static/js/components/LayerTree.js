@@ -921,15 +921,28 @@ magic.classes.LayerTree.prototype.refreshLayer = function(layer) {
  * @param {ol.source.Vector} source
  */
 magic.classes.LayerTree.prototype.reloadVectorSource = function(source) {
-    var sourceUrl = source.getUrl();
-    /* Add a cache busting parameter */
-    sourceUrl = sourceUrl + (sourceUrl.indexOf("?") == -1 ? "?" : "&") + "cachebuster=" + new Date().getTime();
-    jQuery.ajax(sourceUrl, function(response) {
+    var sourceUrl = source.getUrl();    
+    jQuery.ajax({
+        url: sourceUrl,
+        method: "GET",
+        data: {"cachebuster": new Date().getTime()} /* Add a cache busting parameter */
+    })
+    .done(function(response) {
+        console.log(response);
         var format = source.getFormat();
         source.clear(true);
         source.addFeatures(format.readFeatures(response));
         source.refresh();
-    });
+    })
+    .fail(function(xhr) {
+        var msg;
+        try {
+            msg = JSON.parse(xhr.responseText)["detail"];
+        } catch(e) {
+            msg = xhr.responseText;
+        }
+        console.log("Failure refreshing vector layer, error was : " + msg);                        
+    });    
 };
 
 /**
