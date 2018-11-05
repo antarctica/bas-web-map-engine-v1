@@ -907,7 +907,7 @@ magic.classes.LayerTree.prototype.refreshLayer = function(layer) {
     if (typeof layer.getSource().updateParams === "function") {
         /* Add time parameter to force refresh of WMS layer */
         var params = layer.getSource().getParams();
-        params.t = new Date().getMilliseconds();
+        params.t = new Date().getTime();
         layer.getSource().updateParams(params);
     } else if (layer.getSource() instanceof ol.source.Vector) {
         /* WFS/GeoJSON layer */
@@ -926,7 +926,7 @@ magic.classes.LayerTree.prototype.refreshLayer = function(layer) {
 magic.classes.LayerTree.prototype.reloadVectorSource = function(source) {
     var sourceUrl = source.getUrl();
     /* Add a cache busting parameter */
-    sourceUrl = sourceUrl + (sourceUrl.indexOf("?") == -1 ? "?" : "&") + "cachebuster=" + new Date().getMilliseconds();
+    sourceUrl = sourceUrl + (sourceUrl.indexOf("?") == -1 ? "?" : "&") + "cachebuster=" + new Date().getTime();
     jQuery.ajax(sourceUrl, function(response) {
         var format = source.getFormat();
         source.clear(true);
