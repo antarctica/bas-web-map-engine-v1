@@ -630,6 +630,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                 jQuery.ajax({
                     url: nd.source.esrijson_source,
                     method: "GET",
+                    dataType: "json",
                     data: {"cachebuster": new Date().getTime()}
                 })
                 .done(function(data) {
