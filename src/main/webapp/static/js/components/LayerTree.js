@@ -573,14 +573,14 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                             "request": "getfeature",
                             "outputFormat": "application/json",
                             "typenames": nd.source.feature_name,
-                            "srsname": magic.runtime.map.getView().getprojection().getCode(),
+                            "srsname": magic.runtime.map.getView().getProjection().getCode(),
                             "bbox": extent.join(","),
                             "cachebuster": new Date().getTime()
                         }
                     })
                     .done(function(data) {                        
                         vectorSource.addFeatures(new ol.format.GeoJSON({
-                            dataProjection: magic.runtime.map.getView().getprojection().getCode()
+                            dataProjection: magic.runtime.map.getView().getProjection().getCode()
                         }).readFeatures(data));
                     })
                     .fail(jQuery.proxy(function(xhr) {
@@ -601,7 +601,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                     .done(function(data) {
                         vectorSource.addFeatures(new ol.format.GeoJSON({
                             dataProjection: nd.source.srs || "EPSG:4326",
-                            featureProjection: magic.runtime.map.getView().getprojection().getCode()
+                            featureProjection: magic.runtime.map.getView().getProjection().getCode()
                         }).readFeatures(data));
                     })
                     .fail(jQuery.proxy(function(xhr) {
@@ -645,7 +645,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                         }
                         var features = new ol.format.EsriJSON().readFeatures(opLayers[0].featureCollection.layers[0].featureSet, {
                             dataProjection: "EPSG:3857",
-                            featureProjection: magic.runtime.map.getView().getprojection().getCode()
+                            featureProjection: magic.runtime.map.getView().getProjection().getCode()
                         });
                         vectorSource.addFeatures(features);
                     } catch(e) {
@@ -699,7 +699,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                 .done(function(data) {
                     vectorSource.addFeatures(format.readFeatures(data, {
                         dataProjection: "EPSG:4326",
-                        featureProjection: magic.runtime.map.getView().getprojection().getCode()
+                        featureProjection: magic.runtime.map.getView().getProjection().getCode()
                     }));
                 })
                 .fail(jQuery.proxy(function(xhr) {
@@ -744,7 +744,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                     });
                     vectorSource.addFeatures(format.readFeatures(data, {
                         dataProjection: "EPSG:4326",
-                        featureProjection: magic.runtime.map.getView().getprojection().getCode()
+                        featureProjection: magic.runtime.map.getView().getProjection().getCode()
                     }));
                 })
                 .fail(jQuery.proxy(function(xhr) {
