@@ -55,7 +55,7 @@ magic.classes.creator.GeoJsonSourceEditor.prototype.markup = function() {
             '<div class="col-md-9">' + 
                 '<select class="form-control" id="' + this.prefix + '-srs" name="' + this.prefix + '-srs" ' + 
                         'data-toggle="tooltip" data-placement="left" ' + 
-                        'title="Projection of GeoJSON feed data (defaults to lat/lon WGS84). If feed is WFS, set this value to reproject the data to this SRS">' +                     
+                        'title="Projection of GeoJSON feed data (defaults to lat/lon WGS84). This is IGNORED for WFS feeds">' +                     
                 '</select>' + 
             '</div>' + 
         '</div>' + 

@@ -573,27 +573,19 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                             "request": "getfeature",
                             "outputFormat": "application/json",
                             "typenames": nd.source.feature_name,
-                            "srsname": (nd.source.srs || magic.runtime.map.getView().getprojection().getCode()),
+                            "srsname": magic.runtime.map.getView().getprojection().getCode(),
                             "bbox": extent.join(","),
                             "cachebuster": new Date().getTime()
                         }
                     })
                     .done(function(data) {                        
-                        vectorSource.addFeatures(new ol.format.GeoJSON({featureProjection: magic.runtime.map_context.data.projection}).readFeatures(data));
+                        vectorSource.addFeatures(new ol.format.GeoJSON({
+                            dataProjection: magic.runtime.map.getView().getprojection().getCode()
+                        }).readFeatures(data));
                     })
-                    .fail(function(xhr) {
-                        var msg;
-                        if (xhr.status == 401) {
-                            msg = "Not authorised to access layer " + nd.source.feature_name;
-                        } else {
-                            try {
-                                msg = JSON.parse(xhr.responseText)["detail"];
-                            } catch(e) {
-                                msg = xhr.responseText;
-                            }
-                        }
-                        console.log("Failed to load WFS layer, error was : " + msg);                        
-                    });
+                    .fail(jQuery.proxy(function(xhr) {
+                        this.feedLoadFailed(xhr, "WFS");                                             
+                    }, this));
                 }
             });  
         } else {
@@ -607,21 +599,14 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                         data: {"cachebuster": new Date().getTime()}
                     })
                     .done(function(data) {
-                        vectorSource.addFeatures(new ol.format.GeoJSON({featureProjection: magic.runtime.map_context.data.projection}).readFeatures(data));
+                        vectorSource.addFeatures(new ol.format.GeoJSON({
+                            dataProjection: nd.source.srs || "EPSG:4326",
+                            featureProjection: magic.runtime.map.getView().getprojection().getCode()
+                        }).readFeatures(data));
                     })
-                    .fail(function(xhr) {
-                        var msg;
-                        if (xhr.status == 401) {
-                            msg = "Not authorised to access layer " + nd.source.feature_name;
-                        } else {
-                            try {
-                                msg = JSON.parse(xhr.responseText)["detail"];
-                            } catch(e) {
-                                msg = xhr.responseText;
-                            }
-                        }
-                        console.log("Failed to load GeoJSON layer, error was : " + msg);                        
-                    });
+                    .fail(jQuery.proxy(function(xhr) {
+                        this.feedLoadFailed(xhr, "GeoJSON");                                             
+                    }, this));
                 }
             });              
         }        
@@ -660,26 +645,16 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                         }
                         var features = new ol.format.EsriJSON().readFeatures(opLayers[0].featureCollection.layers[0].featureSet, {
                             dataProjection: "EPSG:3857",
-                            featureProjection: magic.runtime.map_context.data.projection
+                            featureProjection: magic.runtime.map.getView().getprojection().getCode()
                         });
                         vectorSource.addFeatures(features);
                     } catch(e) {
                         magic.modules.Common.showAlertModal("Failed to parse the output from ESRI JSON service at " + nd.source.esrijson_source, "warning");                          
                     }
                 })
-                .fail(function(xhr) {
-                    var msg;
-                    if (xhr.status == 401) {
-                        msg = "Not authorised to access layer " + nd.source.feature_name;
-                    } else {
-                        try {
-                            msg = JSON.parse(xhr.responseText)["detail"];
-                        } catch(e) {
-                            msg = xhr.responseText;
-                        }
-                    }
-                    console.log("Failed to load EsriJSON layer, error was : " + msg);                        
-                });                
+                .fail(jQuery.proxy(function(xhr) {
+                    this.feedLoadFailed(xhr, "EsriJSON");                                             
+                }, this));    
             }
         });        
         layer = new ol.layer.Vector({
@@ -722,21 +697,14 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                     data: {"cachebuster": new Date().getTime()}
                 })
                 .done(function(data) {
-                    vectorSource.addFeatures(format.readFeatures(data));
+                    vectorSource.addFeatures(format.readFeatures(data, {
+                        dataProjection: "EPSG:4326",
+                        featureProjection: magic.runtime.map.getView().getprojection().getCode()
+                    }));
                 })
-                .fail(function(xhr) {
-                    var msg;
-                    if (xhr.status == 401) {
-                        msg = "Not authorised to access layer " + nd.source.feature_name;
-                    } else {
-                        try {
-                            msg = JSON.parse(xhr.responseText)["detail"];
-                        } catch(e) {
-                            msg = xhr.responseText;
-                        }
-                    }
-                    console.log("Failed to load GPX layer, error was : " + msg);                        
-                });
+                .fail(jQuery.proxy(function(xhr) {
+                    this.feedLoadFailed(xhr, "GPX");                                             
+                }, this));   
             }
         });
         layer = new ol.layer.Vector({
@@ -772,23 +740,16 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                 .done(function(data) {
                     var format = new ol.format.KML({
                         extractStyles: kmlStyle == null,
-                        showPointNames: false
+                        showPointNames: false                        
                     });
-                    vectorSource.addFeatures(format.readFeatures(data));
+                    vectorSource.addFeatures(format.readFeatures(data, {
+                        dataProjection: "EPSG:4326",
+                        featureProjection: magic.runtime.map.getView().getprojection().getCode()
+                    }));
                 })
-                .fail(function(xhr) {
-                    var msg;
-                    if (xhr.status == 401) {
-                        msg = "Not authorised to access layer " + nd.source.feature_name;
-                    } else {
-                        try {
-                            msg = JSON.parse(xhr.responseText)["detail"];
-                        } catch(e) {
-                            msg = xhr.responseText;
-                        }
-                    }
-                    console.log("Failed to load KML layer, error was : " + msg);                        
-                });
+                .fail(jQuery.proxy(function(xhr) {
+                    this.feedLoadFailed(xhr, "KML");                                             
+                }, this));   
             }
         });
         layer = new ol.layer.Vector({
@@ -1282,21 +1243,7 @@ magic.classes.LayerTree.prototype.getVectorStyle = function(styleDef, labelField
                             image: graphic,                    
                             text: text
                         }));
-                    /* Originally for AAD demonstrator - they export tracks which are monotonically increasing in size and look a real mess rendered */
-                    } /*else if (gtype == "line") {
-                        returnedStyles.push(new ol.style.Style({
-                            geometry: geoms[i],
-                            stroke: stroke,
-                            text: text
-                        }));
-                    } else if (gtype == "polygon") {
-                        returnedStyles.push(new ol.style.Style({
-                            geometry: geoms[i],
-                            fill: fill,
-                            stroke: stroke,
-                            text: text
-                        }));
-                    }*/
+                    }
                 }
                 break;
             default: 
@@ -1384,5 +1331,27 @@ magic.classes.LayerTree.prototype.userGroupExpanded = function(groupId, defVal) 
     }
     return(attrVal);
 };
+
+/**
+ * Report a failure arising from an Ajax request for a data feed
+ * @param {XmlHttpRequest} xhr
+ * @param {String} feedType
+ */
+magic.classes.LayerTree.prototype.feedLoadFailed = function(xhr, feedType) {
+    var msg;
+    if (xhr.status == 401) {
+        msg = "Not authorised to access feed at " + xhr.responseURL;
+    } else {
+        try {
+            msg = JSON.parse(xhr.responseText)["detail"];
+        } catch(e) {
+            msg = xhr.responseText;
+        }
+    }
+    magic.modules.Common.showAlertModal(feedType + " service returned an error : " + msg);
+};
+
+
+
 
 
