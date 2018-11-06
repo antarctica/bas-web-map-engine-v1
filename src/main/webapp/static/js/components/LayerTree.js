@@ -761,11 +761,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
         }
         if (sd.mode != "default") {
             kmlStyle = this.getVectorStyle(sd, this.getLabelField(nd.attribute_map), labelRotation);
-        }
-        var format = format: new ol.format.KML({
-            extractStyles: kmlStyle == null,
-            showPointNames: false
-        });
+        }        
         var vectorSource = new ol.source.Vector({
             loader: function() {     
                 jQuery.ajax({
@@ -774,6 +770,10 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                     data: {"cachebuster": new Date().getTime()}
                 })
                 .done(function(data) {
+                    var format = format: new ol.format.KML({
+                        extractStyles: kmlStyle == null,
+                        showPointNames: false
+                    });
                     vectorSource.addFeatures(format.readFeatures(data));
                 })
                 .fail(function(xhr) {
