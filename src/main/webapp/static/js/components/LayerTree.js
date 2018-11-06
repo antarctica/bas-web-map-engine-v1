@@ -770,7 +770,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                     data: {"cachebuster": new Date().getTime()}
                 })
                 .done(function(data) {
-                    var format = format: new ol.format.KML({
+                    var format = new ol.format.KML({
                         extractStyles: kmlStyle == null,
                         showPointNames: false
                     });
