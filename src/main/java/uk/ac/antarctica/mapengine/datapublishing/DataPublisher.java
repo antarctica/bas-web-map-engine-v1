@@ -260,6 +260,7 @@ public abstract class DataPublisher {
             JsonObject joConn = new JsonObject();
             JsonArray jaEntry = new JsonArray();
             /* Add entries */
+            jaEntry.add(pgConnectionParameter("dbtype", "postgis"));
             jaEntry.add(pgConnectionParameter("host", "localhost"));
             jaEntry.add(pgConnectionParameter("port", "5432"));
             jaEntry.add(pgConnectionParameter("database", "magic"));
