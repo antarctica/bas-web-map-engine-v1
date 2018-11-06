@@ -955,7 +955,8 @@ magic.classes.LayerTree.prototype.refreshLayer = function(layer) {
         layer.getSource().updateParams(params);
     } else if (layer.getSource() instanceof ol.source.Vector) {
         /* WFS/GeoJSON/GPX/KML layer */
-        layer.getSource().refresh();
+        /* See https://github.com/openlayers/openlayers/issues/7044 for why layer source refresh method doesn't work here */
+        layer.getSource().clear(true);
     }
 };
 
