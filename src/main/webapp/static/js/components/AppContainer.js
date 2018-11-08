@@ -83,7 +83,7 @@ magic.classes.AppContainer = function () {
      */    
     this.navbarTools = {
         "geosearch": this.allocateNavbarTool("geosearch", "Geosearch", {
-            gazetteers: magic.runtime.map_context.data.gazetteers,
+            gazetteers: magic.modules.GeoUtils.defaultGazetteers(magic.runtime.map.getView().getProjection().getCode()),
             target: "geosearch-tool"
         }),
         "measurement": this.allocateNavbarTool("measurement", "Measurement", {

@@ -58,8 +58,7 @@ magic.modules.GeoUtils = function() {
                 "center": [0, 0],
                 "zoom": 0,
                 "rotation": 0,                
-                "resolutions": [11200, 5600, 2800, 1400, 560, 280, 140, 56, 28, 14, 5.6, 2.8, 1.4, 0.56],
-                "gazetteers": ["bat", "cga"]
+                "resolutions": [11200, 5600, 2800, 1400, 560, 280, 140, 56, 28, 14, 5.6, 2.8, 1.4, 0.56]
             },
             /* For CCAMLR */
             "antarctic_laea": {
@@ -68,8 +67,7 @@ magic.modules.GeoUtils = function() {
                 "center": [0, 0],
                 "zoom": 0,
                 "rotation": 0,               
-                "resolutions": [14000, 7000, 2800, 1400, 560, 280, 140],
-                "gazetteers": ["cga"]
+                "resolutions": [14000, 7000, 2800, 1400, 560, 280, 140]                
             },
             "arctic": {
                 "projection": "EPSG:3995",
@@ -77,8 +75,7 @@ magic.modules.GeoUtils = function() {
                 "center": [0, 0],
                 "zoom": 0,
                 "rotation": 0,               
-                "resolutions": [11200, 5600, 2800, 1400, 560, 280, 140],
-                "gazetteers": ["arctic"]
+                "resolutions": [11200, 5600, 2800, 1400, 560, 280, 140]
             }, 
             "southgeorgia":{
                 "projection": "EPSG:3762",
@@ -86,8 +83,7 @@ magic.modules.GeoUtils = function() {
                 "center": [-1000.0, 61900.0],
                 "zoom": 4,
                 "rotation": 0,                
-                "resolutions": [3360, 1680, 840, 420, 210, 105, 42, 21, 10.5, 4.2, 2.1, 1.12, 0.56, 0.28, 0.14],
-                "gazetteers": ["sgssi"]
+                "resolutions": [3360, 1680, 840, 420, 210, 105, 42, 21, 10.5, 4.2, 2.1, 1.12, 0.56, 0.28, 0.14]
             },
             "midlatitudes": {
                 "projection": "EPSG:3857",  /* Spherical Mercator as per OSM/Google */
@@ -95,9 +91,34 @@ magic.modules.GeoUtils = function() {
                 "center": [0, 0],
                 "zoom": 0,
                 "rotation": 0,                
-                "resolutions": [],
-                "gazetteers": []
+                "resolutions": []
             }
+        },
+        
+        /**
+         * Default gazetteers for different regions
+         * @param {String} region
+         * @return {Object}
+         */
+        defaultGazetteers: function(projCode) {
+            var gaz = [];
+            switch(projCode) {
+                case "EPSG:3762": 
+                    gaz = ["sgssi"];
+                    break;
+                case "EPSG:3031":
+                    gaz = ["bat", "cga"];
+                    break;
+                case "EPSG:102020":
+                    gaz = ["cga"];
+                    break;
+                case "EPSG:3995":
+                    gaz = ["arctic"];
+                    break;
+                default:
+                    break;
+            }
+            return(gaz);
         },
         
         /**
