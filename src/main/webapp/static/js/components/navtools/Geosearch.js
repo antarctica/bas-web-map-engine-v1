@@ -283,6 +283,9 @@ magic.classes.Geosearch.prototype.placenameSearchHandler = function (evt) {
 
     this.saveState();
     var currentSearchData = this.searchInput.getSelection();
+    if (currentSearchData == null) {
+        return;
+    }
 
     /* Check if this search has already been done */
     var gazName = currentSearchData["__gaz_name"];
