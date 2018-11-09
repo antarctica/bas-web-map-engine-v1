@@ -106,9 +106,7 @@ magic.modules.GeoUtils = function() {
                 case "EPSG:3762": 
                     gaz = ["sgssi"];
                     break;
-                case "EPSG:3031":
-                    gaz = ["bat", "cga"];
-                    break;
+                case "EPSG:3031":                
                 case "EPSG:102020":
                     gaz = ["cga"];
                     break;
