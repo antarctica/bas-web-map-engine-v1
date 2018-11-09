@@ -29,7 +29,10 @@ magic.classes.GraticuleButton = function (name, ribbon) {
         if (!this.graticule) {
             projection.setWorldExtent(projExtent);
             projection.setExtent(projExtent);
-            this.graticule = new ol.Graticule({showLabels: true});
+            this.graticule = new ol.Graticule({
+                showLabels: true,
+                targetSize: 150
+            });
         }
         this.graticule.setMap(this.map);
     } else {

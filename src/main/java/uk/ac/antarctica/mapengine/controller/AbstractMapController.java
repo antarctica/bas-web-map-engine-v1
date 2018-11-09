@@ -136,7 +136,7 @@ public class AbstractMapController {
                 }
                 ret = PackagingUtils.packageResults(HttpStatus.OK, jsonMapper.toJsonTree(userMapData).toString(), null);
             } catch (IncorrectResultSizeDataAccessException irsdae) {
-                ret = PackagingUtils.packageResults(HttpStatus.UNAUTHORIZED, null, "No maps found that you are allowed to access");
+                ret = PackagingUtils.packageResults(HttpStatus.NOT_FOUND, null, "No maps found that you are allowed to access");
             } catch (DataAccessException dae) {
                 ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Error occurred, message was: " + dae.getMessage());
             }
