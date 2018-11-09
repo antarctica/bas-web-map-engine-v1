@@ -390,7 +390,7 @@ div.button-ribbon span {
 
 /* Overrides the standard OL blue box which is difficult to see */
 .ol-overviewmap-box {
-  border: 2px dotted rgba(255,0,0,0.7) !important;
+    border: 2px dotted rgba(255,0,0,0.7) !important;
 }
 
 .custom-overview-map {
@@ -700,8 +700,8 @@ button.mosaic-player {
 
 /* Drag-zoom box */
 .ol-dragzoom {
-  border: 3px dashed rgba(255,0,0,1.0);
-  background-color: rgba(255,255,255,0.4);
+    border: 3px dashed rgba(255,0,0,1.0);
+    background-color: rgba(255,255,255,0.4);
 }
 
 /* Watermark */
@@ -739,9 +739,9 @@ div.watermark {
 
 /* Allow pretty much arbitrary width popovers - could be dodgy! */
 .popover {
-	max-width: 1000px;
+    max-width: 1000px;
     z-index: 4000;
-	width: auto;
+    width: auto;
 }
 
 /* Personal data tool styles */
@@ -789,6 +789,10 @@ div.field-party-popover-content {
     min-width: 200px;
 }
 
+.overview-map-popover-content {
+    width: 162px !important;
+}
+
 /* Issue information div */
 div.issue-info {
     position: absolute;
@@ -805,5 +809,5 @@ div.issue-info {
 
 /* Striping of dropdown menus for better user experience */
 ul.dropdown-menu > li > a:hover {
-  background-color: #e0e0e0;
+    background-color: #e0e0e0;
 }
