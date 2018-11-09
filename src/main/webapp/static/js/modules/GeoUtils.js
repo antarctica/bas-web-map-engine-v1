@@ -96,9 +96,35 @@ magic.modules.GeoUtils = function() {
         },
         
         /**
+         * Default (maximum) resolutions for different regions
+         * @param {String} projCode
+         * @return {float}
+         */
+        defaultResolution: function(projCode) {
+            var res = 0.0;
+            switch(projCode) {
+                case "EPSG:3762": 
+                    res = this.DEFAULT_MAP_PARAMS["southgeorgia"]["resolutions"][0];
+                    break;
+                case "EPSG:3031":    
+                    res = this.DEFAULT_MAP_PARAMS["antarctic"]["resolutions"][0];
+                    break;
+                case "EPSG:102020":
+                    res = this.DEFAULT_MAP_PARAMS["antarctic_laea"]["resolutions"][0];
+                    break;
+                case "EPSG:3995":
+                    res = this.DEFAULT_MAP_PARAMS["arctic"]["resolutions"][0];
+                    break;
+                default:
+                    break;
+            }
+            return(res);
+        },
+        
+        /**
          * Default gazetteers for different regions
-         * @param {String} region
-         * @return {Object}
+         * @param {String} projCode
+         * @return {Array}
          */
         defaultGazetteers: function(projCode) {
             var gaz = [];

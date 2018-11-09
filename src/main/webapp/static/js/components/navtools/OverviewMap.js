@@ -56,7 +56,7 @@ magic.classes.OverviewMap.prototype.initControl = function() {
             center: magic.runtime.map.getView().getCenter(),
             projection: magic.runtime.map.getView().getProjection().getCode(),
             rotation: magic.runtime.map.getView().getRotation(),
-            zoom: 0
+            zoom: magic.modules.GeoUtils.defaultResolution(magic.runtime.map.getView().getProjection().getCode())
         })
     });        
     magic.runtime.map.addControl(this.control);
