@@ -10,6 +10,7 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
@@ -24,6 +25,7 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
@@ -89,7 +91,7 @@ public class FeedbackController {
                         feedback.getSubject(),
                         feedback.getDescription(),
                         feedback.getReporter(),
-                        feedback.getMapdata()
+                        getJsonDataAsPgObject(feedback.getMapdata())
                     }, Integer.class);
                     /* Now write the data as an issue in GitLab */
                     int gitlabIssue = postToGitLab(
@@ -292,6 +294,24 @@ public class FeedbackController {
             System.out.println("===== No GitLab project or credentials supplied - nothing to do =====");
         }
         return (issueId);
+    }
+
+    /**
+     * Allow a value to be written into a JSON field
+     * 
+     * @param mapdata
+     * @return 
+     */
+    private Object getJsonDataAsPgObject(String mapdata) {
+        /* A bit of "cargo-cult" programming from https://github.com/denishpatel/java/blob/master/PgJSONExample.java - what a palaver! */
+        PGobject dataObject = new PGobject();
+        dataObject.setType("json");
+        try {
+            dataObject.setValue(mapdata);
+        } catch (SQLException ex) {
+            System.out.println("Problem preparing JSON value for PostGIS ingestion : " + ex.getMessage());
+        }
+        return(dataObject);
     }
 
 }
