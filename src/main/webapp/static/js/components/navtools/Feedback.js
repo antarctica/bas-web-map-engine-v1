@@ -114,7 +114,7 @@ magic.classes.Feedback.prototype.onActivateHandler = function() {
         jQuery(evt.currentTarget).tooltip("hide");  /* Get rid of annoying persistent tooltip - not sure why... */        
         if (this.validate()) {
             /* Insert map data */
-            jQuery("#" + this.id + "-mapdata").val(this.mapPayload());
+            jQuery("#" + this.id + "-mapdata").val(JSON.stringify(this.mapPayload()));
             var jqXhr = jQuery.ajax({
                 url: magic.config.paths.baseurl + "/feedback",
                 method: "POST",
@@ -125,7 +125,7 @@ magic.classes.Feedback.prototype.onActivateHandler = function() {
                     "X-CSRF-TOKEN": jQuery("meta[name='_csrf']").attr("content")
                 }
             });
-            jqXhr.done(jQuery.proxy(function(response) {                        
+            jqXhr.done(jQuery.proxy(function() {                        
                 bootbox.alert(
                     '<div class="alert alert-info" style="margin-bottom:0">' + 
                         '<p>Successfully sent your feedback</p>' + 
