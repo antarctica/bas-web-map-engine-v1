@@ -196,7 +196,7 @@ magic.classes.Feedback.prototype.mapPayload = function() {
             payload.visible[layer.get("name")] = layer.getVisible();
         });
         /* Save map URL */
-        payload.mapUrl = window.location.href;
+        payload.mapUrl = magic.config.paths.baseurl + "/restricted/" + magic.runtime.map_context.mapname;
         /* Save user's browser and OS details */
         payload.userAgent = navigator.userAgent;
     }
