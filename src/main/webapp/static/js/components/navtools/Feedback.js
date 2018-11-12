@@ -24,7 +24,7 @@ magic.classes.Feedback = function(options) {
     });
     
     /* Form input names */
-    this.inputs = ["trackerId", "subject", "description", "reporter"];
+    this.inputs = ["mapdata", "issuetype", "subject", "description", "reporter"];
     
     /* Saved state */
     this.savedState = {};
@@ -51,7 +51,7 @@ magic.classes.Feedback.prototype.markup = function() {
     return(
         '<div id="' + this.id + '-content">' +                                   
             '<form id="' + this.id + '-feedback-form" class="form" role="form">' +
-                '<input type="hidden" id="' + this.id + '-payload"></input>' + 
+                '<input type="hidden" id="' + this.id + '-mapdata"></input>' + 
                 '<div class="panel">' +
                     '<div class="panel-body alert-info">' + 
                     'Your chance to improve service quality by reporting data or interface problems. Give a short description below e.g. ' +
@@ -112,14 +112,14 @@ magic.classes.Feedback.prototype.onActivateHandler = function() {
     /* Set send button handler */
     jQuery("#" + this.id + "-go").click(jQuery.proxy(function(evt) {
         jQuery(evt.currentTarget).tooltip("hide");  /* Get rid of annoying persistent tooltip - not sure why... */        
-        if (this.validate()) {  
-            var formdata = this.formToPayload();
-            formdata.description = JSON.stringify(jQuery.extend({}, this.mapPayload(), {"description": formdata.description}));
+        if (this.validate()) {
+            /* Insert map data */
+            jQuery("#" + this.id + "-mapdata").val(this.mapPayload());
             var jqXhr = jQuery.ajax({
                 url: magic.config.paths.baseurl + "/feedback",
                 method: "POST",
                 processData: false,
-                data: JSON.stringify(formdata),
+                data: JSON.stringify(this.formToPayload()),
                 headers: {
                     "Content-Type": "application/json",
                     "X-CSRF-TOKEN": jQuery("meta[name='_csrf']").attr("content")

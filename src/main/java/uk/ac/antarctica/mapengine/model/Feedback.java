@@ -19,7 +19,7 @@ public class Feedback {
     @NotEmpty
     private String reporter;
     @NotEmpty
-    private String payload;
+    private String mapdata;
 
     public String getIssuetype() {
         return issuetype;
@@ -53,12 +53,12 @@ public class Feedback {
         this.reporter = reporter;
     }
 
-    public String getPayload() {
-        return payload;
+    public String getMapdata() {
+        return mapdata;
     }
 
-    public void setPayload(String payload) {
-        this.payload = payload;
+    public void setMapdata(String mapdata) {
+        this.mapdata = mapdata;
     }
     
     @Override
@@ -83,7 +83,7 @@ public class Feedback {
         sb.append(getReporter());
         sb.append("\n");
         sb.append("Replay JSON : ");
-        sb.append(getPayload());
+        sb.append(getMapdata());
         sb.append("\n");
         sb.append("------------------------\n");
         sb.append("End of feedback payload\n");

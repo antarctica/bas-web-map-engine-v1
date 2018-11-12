@@ -89,12 +89,12 @@ public class FeedbackController {
                         feedback.getSubject(),
                         feedback.getDescription(),
                         feedback.getReporter(),
-                        feedback.getPayload()
+                        feedback.getMapdata()
                     }, Integer.class);
                     /* Now write the data as an issue in GitLab */
                     int gitlabIssue = postToGitLab(
                         feedback.getSubject(), 
-                        assembleDescription(feedback.getPayload(), feedback.getDescription(), feedback.getReporter(), insertedId), 
+                        assembleDescription(feedback.getMapdata(), feedback.getDescription(), feedback.getReporter(), insertedId), 
                         LocalDate.now().plusMonths(1).toString(),
                         LocalDate.now().toString(),
                         ""
@@ -149,17 +149,17 @@ public class FeedbackController {
     /**
      * Create a suitable description for the GitLab issue
      * 
-     * @param payload
+     * @param mapData
      * @param desc
      * @param reporter
      * @param issueId
      * @return 
      */
-    private String assembleDescription(String payload, String desc, String reporter, int issueId) {
+    private String assembleDescription(String mapData, String desc, String reporter, int issueId) {
         StringBuilder sb = new StringBuilder();
         String mapUrl = null;
         try {
-            JsonElement jp = new JsonParser().parse(payload);
+            JsonElement jp = new JsonParser().parse(mapData);
             if (jp.isJsonObject()) {
                 JsonObject jo = jp.getAsJsonObject();
                 mapUrl = jo.get("mapUrl").getAsString() + "/" + issueId;                
