@@ -488,6 +488,7 @@ public class HomeController {
                 data = "{}";
             }   
         }
+        System.out.println("Issue data " + data);
         return(data);
     }
     
