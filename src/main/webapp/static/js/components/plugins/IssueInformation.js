@@ -17,7 +17,7 @@ magic.classes.IssueInformation = function(options) {
                 '<tr><th>Issue ID</th><td>' + this.issueData.id + '</td></tr>' + 
                 '<tr><th>Subject</th><td>' + this.issueData.subject + '</td></tr>' + 
                 '<tr><th>Description</th><td>' + this.issueData.description + '</td></tr>' + 
-                '<tr><th>Last updated</th><td>' + this.issueData.updated + '</td></tr>' +                             
+                '<tr><th>Opened</th><td>' + this.issueData.updated + '</td></tr>' +                             
             '</table>' 
         );
     } else {
