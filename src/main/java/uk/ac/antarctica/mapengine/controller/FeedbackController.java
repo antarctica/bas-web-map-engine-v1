@@ -164,7 +164,7 @@ public class FeedbackController {
             JsonElement jp = new JsonParser().parse(mapData);
             if (jp.isJsonObject()) {
                 JsonObject jo = jp.getAsJsonObject();
-                mapUrl = jo.get("mapUrl").getAsString() + "/" + issueId;                
+                mapUrl = jo.get("mapUrl").getAsString() + "/issue/" + issueId;                
             }
         } catch(JsonParseException je) {            
         }
