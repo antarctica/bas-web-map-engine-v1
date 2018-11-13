@@ -34,7 +34,7 @@ magic.classes.IssueInformation.prototype.getPayload = function() {
     var payload = "None";
     if (!jQuery.isEmptyObject(this.issueData)) {
         try {
-            payload = JSON.parse(this.issueData.payload)["value"];
+            payload = JSON.parse(this.issueData["payload"]["value"]);
         } catch(e) {}
     }
     return(payload);
