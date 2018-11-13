@@ -16,7 +16,8 @@ magic.classes.IssueInformation = function(options) {
             '<table class="table table-condensed" style="margin-bottom:0px">' + 
                 '<tr><th>Issue ID</th><td>' + this.issueData.id + '</td></tr>' + 
                 '<tr><th>Subject</th><td>' + this.issueData.subject + '</td></tr>' + 
-                '<tr><th>Last updated</th><td>' + this.issueData.updated_on + '</td></tr>' +                             
+                '<tr><th>Description</th><td>' + this.issueData.description + '</td></tr>' + 
+                '<tr><th>Last updated</th><td>' + this.issueData.updated + '</td></tr>' +                             
             '</table>' 
         );
     } else {
@@ -33,7 +34,7 @@ magic.classes.IssueInformation.prototype.getPayload = function() {
     var payload = "None";
     if (!jQuery.isEmptyObject(this.issueData)) {
         try {
-            payload = JSON.parse(this.issueData.description)["description"];
+            payload = JSON.parse(this.issueData.payload)["value"];
         } catch(e) {}
     }
     return(payload);
