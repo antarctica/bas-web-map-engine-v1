@@ -53,7 +53,8 @@ public class FieldPartyPosition extends JsonCrudApp {
         setSledge((String) getJsonElement(jo, "sledge", false, ""));
         setSeason((String) getJsonElement(jo, "season", false, "1819"));
         try {
-            Date fd = new SimpleDateFormat("yyyy-MM-dd").parse((String) getJsonElement(jo, "fix_date", false, ""));
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            Date fd = sdf.parse((String) getJsonElement(jo, "fix_date", false, ""));
             System.out.println("Parsed fix date as : " + fd.toString());
             setFix_date(fd);
         } catch (ParseException ex) {
@@ -71,13 +72,14 @@ public class FieldPartyPosition extends JsonCrudApp {
     
     @Override
     public String toString() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         StringBuilder sb = new StringBuilder();
         sb
             .append("--- Field Party Position ---").append("\n")
             .append("id : ").append(getId()).append("\n")
             .append("sledge : ").append(getSledge()).append("\n")
             .append("season : ").append(getSeason()).append("\n")
-            .append("fix_date : ").append(getFix_date()).append("\n")
+            .append("fix_date : ").append(sdf.format(getFix_date())).append("\n")
             .append("updated : ").append(getUpdated()).append("\n")
             .append("people_count : ").append(getPeople_count()).append("\n")
             .append("updater : ").append(getUpdater()).append("\n")
@@ -98,10 +100,11 @@ public class FieldPartyPosition extends JsonCrudApp {
 
     @Override
     public Object[] insertArgs() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         return (new Object[]{
             getSledge(),
             getSeason(),
-            getFix_date(),
+            sdf.format(getFix_date()),
             getPeople_count(),
             getUpdater(),
             getLat(),
@@ -129,10 +132,11 @@ public class FieldPartyPosition extends JsonCrudApp {
 
     @Override
     public Object[] updateArgs(Object id) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         return (new Object[]{
             getSledge(),
             getSeason(),
-            getFix_date(),
+            sdf.format(getFix_date()),
             getPeople_count(),
             getUpdater(),
             getLat(),
