@@ -95,7 +95,7 @@ public class FieldPartyPosition extends JsonCrudApp {
     public String insertSql() {
         return ("INSERT INTO " + getTableName() + " "
                 + "(sledge, season, fix_date, updated, people_count, updater, lat, lon, height, notes) "
-                + "VALUES(?,?,to_date(?),current_timestamp,?,?,?,?,?,?)");
+                + "VALUES(?,?,to_date(?, 'YYYY-MM-DD'),current_timestamp,?,?,?,?,?,?)");
     }
 
     @Override
@@ -119,7 +119,7 @@ public class FieldPartyPosition extends JsonCrudApp {
         return ("UPDATE " + getTableName() + " SET "
                 + "sledge=?, "
                 + "season=?, "
-                + "fix_date=to_date(?), "
+                + "fix_date=to_date(?, 'YYYY-MM-DD'), "
                 + "updated=current_timestamp, "
                 + "people_count=?, "
                 + "updater=?, "
