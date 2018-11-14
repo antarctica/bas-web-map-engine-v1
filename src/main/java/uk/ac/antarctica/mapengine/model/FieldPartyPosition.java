@@ -65,7 +65,28 @@ public class FieldPartyPosition extends JsonCrudApp {
         setLat((double) getJsonElement(jo, "lat", false, 0.0, Double.class));
         setLon((double) getJsonElement(jo, "lon", false, 0.0, Double.class));
         setHeight((double) getJsonElement(jo, "height", true, 0.0, Double.class));
-        setNotes((String) getJsonElement(jo, "notes", true, ""));        
+        setNotes((String) getJsonElement(jo, "notes", true, ""));  
+        System.out.println(this.toString());
+    }
+    
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb
+            .append("--- Field Party Position ---")
+            .append("id : ").append(getId())
+            .append("sledge : ").append(getSledge())
+            .append("season : ").append(getSeason())
+            .append("fix_date : ").append(getFix_date())
+            .append("updated : ").append(getUpdated())
+            .append("people_count : ").append(getPeople_count())
+            .append("updater : ").append(getUpdater())
+            .append("lat : ").append(getLat())
+            .append("lon : ").append(getLon())
+            .append("height : ").append(getHeight())
+            .append("notes : ").append(getNotes())
+            .append("--- End Field Party Position ---");
+        return(sb.toString());
     }
 
     @Override
