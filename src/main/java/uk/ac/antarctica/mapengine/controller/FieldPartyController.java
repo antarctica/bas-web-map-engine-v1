@@ -57,7 +57,7 @@ public class FieldPartyController {
      * @param String payload   
      * @throws Exception
      */
-    @RequestMapping(value = "/fpp/save", method = RequestMethod.PUT, headers = {"Content-type=application/json"})
+    @RequestMapping(value = "/fpp/save", method = RequestMethod.POST, headers = {"Content-type=application/json"})
     public ResponseEntity<String> savePositionFix(HttpServletRequest request,
         @RequestBody String payload) throws Exception {
         System.out.println("Fp Controller : save method entered");
@@ -72,7 +72,7 @@ public class FieldPartyController {
      * @param String payload   
      * @throws Exception
      */
-    @RequestMapping(value = "/fpp/update/{id}", method = RequestMethod.PUT, headers = {"Content-type=application/json"})
+    @RequestMapping(value = "/fpp/update/{id}", method = RequestMethod.POST, headers = {"Content-type=application/json"})
     public ResponseEntity<String> updatePositionFix(HttpServletRequest request,
         @PathVariable("id") Integer id,
         @RequestBody String payload) throws Exception {       
@@ -106,7 +106,7 @@ public class FieldPartyController {
             try {
                 String msg = "Successfully saved";
                 switch(request.getMethod()) {
-                    case "PUT":
+                    case "POST":
                         if (id == null) {
                             System.out.println("FP Controller : PUT request to do insert");
                             magicDataTpl.update(fpp.insertSql(), fpp.insertArgs());

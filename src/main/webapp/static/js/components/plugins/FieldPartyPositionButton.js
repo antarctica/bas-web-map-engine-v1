@@ -319,7 +319,7 @@ magic.classes.FieldPartyPositionButton.prototype.saveForm = function() {
     if (this.validate(payload)) {
         jQuery.ajax({
             url: magic.config.paths.baseurl + "/fpp/" + (payload.id ? "update/" + payload.id : "save"),
-            method: "PUT",
+            method: "POST",
             processData: false,
             data: JSON.stringify(payload),
             headers: {
