@@ -73,19 +73,19 @@ public class FieldPartyPosition extends JsonCrudApp {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb
-            .append("--- Field Party Position ---")
-            .append("id : ").append(getId())
-            .append("sledge : ").append(getSledge())
-            .append("season : ").append(getSeason())
-            .append("fix_date : ").append(getFix_date())
-            .append("updated : ").append(getUpdated())
-            .append("people_count : ").append(getPeople_count())
-            .append("updater : ").append(getUpdater())
-            .append("lat : ").append(getLat())
-            .append("lon : ").append(getLon())
-            .append("height : ").append(getHeight())
-            .append("notes : ").append(getNotes())
-            .append("--- End Field Party Position ---");
+            .append("--- Field Party Position ---").append("\n")
+            .append("id : ").append(getId()).append("\n")
+            .append("sledge : ").append(getSledge()).append("\n")
+            .append("season : ").append(getSeason()).append("\n")
+            .append("fix_date : ").append(getFix_date()).append("\n")
+            .append("updated : ").append(getUpdated()).append("\n")
+            .append("people_count : ").append(getPeople_count()).append("\n")
+            .append("updater : ").append(getUpdater()).append("\n")
+            .append("lat : ").append(getLat()).append("\n")
+            .append("lon : ").append(getLon()).append("\n")
+            .append("height : ").append(getHeight()).append("\n")
+            .append("notes : ").append(getNotes()).append("\n")
+            .append("--- End Field Party Position ---").append("\n");
         return(sb.toString());
     }
 
