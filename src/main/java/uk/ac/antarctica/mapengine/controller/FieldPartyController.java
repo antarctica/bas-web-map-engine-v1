@@ -105,10 +105,13 @@ public class FieldPartyController {
                 switch(request.getMethod()) {
                     case "PUT":
                         if (id == null) {
+                            System.out.println("FP Controller : PUT request to do insert");
                             magicDataTpl.update(fpp.insertSql(), fpp.insertArgs());
                         } else {
+                            System.out.println("FP Controller : PUT request to do update");
                             magicDataTpl.update(fpp.updateSql(), fpp.updateArgs(id));
                         }
+                        System.out.println("FP Controller : Updated database");
                         break;                    
                     case "DELETE":
                         magicDataTpl.update(fpp.deleteSql(), fpp.deleteArgs(id)); 

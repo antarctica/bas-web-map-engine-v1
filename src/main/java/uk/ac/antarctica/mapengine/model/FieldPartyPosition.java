@@ -53,8 +53,11 @@ public class FieldPartyPosition extends JsonCrudApp {
         setSledge((String) getJsonElement(jo, "sledge", false, ""));
         setSeason((String) getJsonElement(jo, "season", false, "1819"));
         try {
-            setFix_date(new SimpleDateFormat("yyyy-MM-dd").parse((String) getJsonElement(jo, "fix_date", false, "")));
+            Date fd = new SimpleDateFormat("yyyy-MM-dd").parse((String) getJsonElement(jo, "fix_date", false, ""));
+            System.out.println("Parsed fix date as : " + fd.toString());
+            setFix_date(fd);
         } catch (ParseException ex) {
+            System.out.println("Parse exception : " + ex.getMessage() + " making sense of fix date");
             setFix_date(new Date());
         }
         setPeople_count((int) getJsonElement(jo, "people_count", true, 0, Integer.class));
