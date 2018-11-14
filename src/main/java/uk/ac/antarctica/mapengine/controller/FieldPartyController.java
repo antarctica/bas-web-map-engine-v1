@@ -59,7 +59,8 @@ public class FieldPartyController {
      */
     @RequestMapping(value = "/fpp/save", method = RequestMethod.PUT, headers = {"Content-type=application/json"})
     public ResponseEntity<String> savePositionFix(HttpServletRequest request,
-        @RequestBody String payload) throws Exception {        
+        @RequestBody String payload) throws Exception {
+        System.out.println("Fp Controller : save method entered");
         FieldPartyPosition fpp = new FieldPartyPosition(env.getProperty("plugins.fpp.tablename"));
         fpp.fromPayload(payload, null);
         return (executeOp(request, fpp, null));       
@@ -99,7 +100,9 @@ public class FieldPartyController {
      */
     protected ResponseEntity<String> executeOp(HttpServletRequest request, FieldPartyPosition fpp, Integer id) throws SuperUserOnlyException {
         ResponseEntity<String> ret;
+        System.out.println("FP Controller : executeOp method entered");
         if (userAuthoritiesProvider.getInstance().userHasRole(env.getProperty("plugins.fpp.editor", "magic").split(","))) {
+            System.out.println("FP Controller : authorised");
             try {
                 String msg = "Successfully saved";
                 switch(request.getMethod()) {
@@ -125,6 +128,7 @@ public class FieldPartyController {
                 ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Database error, message was: " + dae.getMessage());
             }
         } else {
+            System.out.println("FP Controller : unauthorised");
             throw new SuperUserOnlyException("You are not authorised to do this");
         }   
         return(ret);
