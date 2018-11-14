@@ -102,7 +102,7 @@ public class EndpointManagerController {
      * @param String payload   
      * @throws Exception
      */
-    @RequestMapping(value = "/endpoints/save", method = RequestMethod.PUT, headers = {"Content-type=application/json"})
+    @RequestMapping(value = "/endpoints/save", method = RequestMethod.POST, headers = {"Content-type=application/json"})
     public ResponseEntity<String> saveEndpoint(HttpServletRequest request,
         @RequestBody String payload) throws Exception {        
         EndpointData epd = new EndpointData(env.getProperty("postgres.local.endpointsTable"));
@@ -116,7 +116,7 @@ public class EndpointManagerController {
      * @param String payload   
      * @throws Exception
      */
-    @RequestMapping(value = "/endpoints/update/{id}", method = RequestMethod.PUT, headers = {"Content-type=application/json"})
+    @RequestMapping(value = "/endpoints/update/{id}", method = RequestMethod.POST, headers = {"Content-type=application/json"})
     public ResponseEntity<String> updateEndpoint(HttpServletRequest request,
         @PathVariable("id") Integer id,
         @RequestBody String payload) throws Exception {       
