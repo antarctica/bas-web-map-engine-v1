@@ -107,6 +107,10 @@ public class FieldPartyController {
                 String msg = "Successfully saved";
                 switch(request.getMethod()) {
                     case "POST":
+                        /**
+                         * Note: 2018-11-14 David. This should clearly be a PUT request.  However, the load balancer SSL termination has 
+                         * broken PUT such that it fails when an SSL endpoint is used. POST works. See #4343 in the servicedesk ticketing system
+                         */
                         if (id == null) {
                             System.out.println("FP Controller : POST request to do insert");
                             magicDataTpl.update(fpp.insertSql(), fpp.insertArgs());
@@ -117,6 +121,10 @@ public class FieldPartyController {
                         System.out.println("FP Controller : Updated database");
                         break;                    
                     case "DELETE":
+                        /**
+                         * Note: 2018-11-14 David. Load balancer SSL termination has broken DELETE such that it fails when an SSL endpoint is used
+                         * See #4343 in the servicedesk ticketing system
+                         */
                         magicDataTpl.update(fpp.deleteSql(), fpp.deleteArgs(id)); 
                         msg = "Successfully deleted";
                         break;

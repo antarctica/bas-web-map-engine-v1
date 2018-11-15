@@ -160,9 +160,16 @@ magic.classes.FieldPartyPositionButton.prototype.loadFeatures = function() {
                     if (f.getGeometry() == null) {
                         return(true);   /* Defend against null geometries */
                     }
+                    /* Massage the fix date - Geoserver seems to insert an annoying "Z" on the end - David 2018-11-15 GitLab issue #1 */
+                    var fdate = f.get("fix_date");
+                    if (fdate.indexOf("Z") == fdate.length-1) {
+                        console.log("Spurious Z found at end of Geoserver date, massaging value");
+                        fdate = fdate.substring(0, fdate.length-1);
+                        f.set("fix_date", fdate);
+                        console.log("Attribute now set to " + fdate);
+                    }
                     var attrs = f.getProperties();
                     var fname = attrs.sledge;
-                    var fdate = attrs.fix_date;
                     if (!this.featureMap[fname]) {
                         this.featureMap[fname] = {};
                     }

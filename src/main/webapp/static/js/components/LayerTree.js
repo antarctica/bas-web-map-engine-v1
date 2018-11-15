@@ -592,7 +592,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
             /* Another GeoJSON source */
             url = magic.modules.Common.proxyUrl(url);
             vectorSource = new ol.source.Vector({
-                loader: function() {  
+                loader: jQuery.proxy(function() {  
                     jQuery.ajax({
                         url: url,
                         method: "GET",
@@ -607,7 +607,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                     .fail(jQuery.proxy(function(xhr) {
                         this.feedLoadFailed(xhr, "GeoJSON");                                             
                     }, this));
-                }
+                }, this)
             });              
         }        
         layer = new ol.layer.Vector({
@@ -626,7 +626,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
         var vectorSource;
         var labelRotation = -magic.runtime.map_context.data.rotation;
         vectorSource = new ol.source.Vector({
-            loader: function() {
+            loader: jQuery.proxy(function() {
                 jQuery.ajax({
                     url: nd.source.esrijson_source,
                     method: "GET",
@@ -656,7 +656,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                 .fail(jQuery.proxy(function(xhr) {
                     this.feedLoadFailed(xhr, "EsriJSON");                                             
                 }, this));    
-            }
+            }, this)
         });        
         layer = new ol.layer.Vector({
             name: nd.name,
@@ -691,7 +691,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
             return(f);
         }});
         var vectorSource = new ol.source.Vector({            
-            loader: function() { 
+            loader: jQuery.proxy(function() { 
                 jQuery.ajax({
                     url: magic.modules.Common.proxyUrl(nd.source.gpx_source),
                     method: "GET",
@@ -706,7 +706,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                 .fail(jQuery.proxy(function(xhr) {
                     this.feedLoadFailed(xhr, "GPX");                                             
                 }, this));   
-            }
+            }, this)
         });
         layer = new ol.layer.Vector({
             name: nd.name,
@@ -732,7 +732,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
             kmlStyle = this.getVectorStyle(sd, this.getLabelField(nd.attribute_map), labelRotation);
         }        
         var vectorSource = new ol.source.Vector({
-            loader: function() {     
+            loader: jQuery.proxy(function() {     
                 jQuery.ajax({
                     url: magic.modules.Common.proxyUrl(nd.source.kml_source),
                     method: "GET",
@@ -751,7 +751,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                 .fail(jQuery.proxy(function(xhr) {
                     this.feedLoadFailed(xhr, "KML");                                             
                 }, this));   
-            }
+            }, this)
         });
         layer = new ol.layer.Vector({
             name: nd.name,
