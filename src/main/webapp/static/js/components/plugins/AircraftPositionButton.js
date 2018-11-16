@@ -15,10 +15,17 @@ magic.classes.AircraftPositionButton.prototype = Object.create(magic.classes.Ass
 magic.classes.AircraftPositionButton.prototype.constructor = magic.classes.AircraftPositionButton;
 
 magic.classes.AircraftPositionButton.prototype.getData = function() {
-    /* Aircraft positional API */
+    /* Aircraft positional API - temporary bodge to use the new CATS feed on bslmagt until IT can give it an external endpoint... David 2018-11-16 */
+    var apiUrl = "https://add.data.bas.ac.uk/geoserver/assets/wfs?service=wfs&request=getfeature&version=2.0.0&typeNames=assets:latest_aircraft_positions&outputFormat=json";
+    var catsEp = magic.modules.Endpoints.getEndpointBy("name", "COMNAP CATS Asset Feed");
+    if (catsEp != null) {
+        /* Use new CATS endpoint */
+        apiUrl = magic.modules.Endpoints.getOgcEndpoint(catsEp.url, "wfs") + 
+                "?service=wfs&request=getfeature&version=2.0.0&typeNames=cats:aircraft_latest_cats&outputFormat=json";
+    }
     jQuery.ajax({
         /* Might be nice to get this listed as part of the maps.bas.ac.uk stable... */
-        url: "https://add.data.bas.ac.uk/geoserver/assets/wfs?service=wfs&request=getfeature&version=2.0.0&typeNames=assets:latest_aircraft_positions&outputFormat=json",
+        url: apiUrl,
         method: "GET",
         success: jQuery.proxy(function(data) {
             if (!this.geoJson) {
