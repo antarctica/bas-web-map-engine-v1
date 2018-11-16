@@ -149,7 +149,7 @@ public class EndpointManagerController {
             try {
                 String msg = "Successfully saved";
                 switch(request.getMethod()) {
-                    case "PUT":
+                    case "POST":
                         if (id == null) {
                             magicDataTpl.update(epd.insertSql(), epd.insertArgs());
                         } else {
