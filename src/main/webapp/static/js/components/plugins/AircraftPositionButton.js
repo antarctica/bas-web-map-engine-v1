@@ -16,12 +16,15 @@ magic.classes.AircraftPositionButton.prototype.constructor = magic.classes.Aircr
 
 magic.classes.AircraftPositionButton.prototype.getData = function() {
     /* Aircraft positional API - temporary bodge to use the new CATS feed on bslmagt until IT can give it an external endpoint... David 2018-11-16 */
+    var style = "bas_aircraft";
     var apiUrl = "https://add.data.bas.ac.uk/geoserver/assets/wfs?service=wfs&request=getfeature&version=2.0.0&typeNames=assets:latest_aircraft_positions&outputFormat=json";
     var catsEp = magic.modules.Endpoints.getEndpointBy("name", "COMNAP CATS Asset Feed");
     if (catsEp != null) {
         /* Use new CATS endpoint */
         apiUrl = magic.modules.Endpoints.getOgcEndpoint(catsEp.url, "wfs") + 
                 "?service=wfs&request=getfeature&version=2.0.0&typeNames=cats:aircraft_latest_cats&outputFormat=json";
+        style = "bas_aircraft_cats";
+        
     }
     jQuery.ajax({
         /* Might be nice to get this listed as part of the maps.bas.ac.uk stable... */
@@ -43,11 +46,11 @@ magic.classes.AircraftPositionButton.prototype.getData = function() {
                 fclone.setProperties(props);
                 if (f.getGeometry().intersectsExtent(projExtent)) {                            
                     fclone.getGeometry().transform("EPSG:4326", magic.runtime.map.getView().getProjection().getCode());
-                    fclone.setStyle(magic.modules.VectorStyles["bas_aircraft"](magic.runtime.map.getView().getProjection().getCode()));
+                    fclone.setStyle(magic.modules.VectorStyles[style](magic.runtime.map.getView().getProjection().getCode()));
                     this.data.inside.push(fclone);
                 } else {
                     fclone.getGeometry().transform("EPSG:4326", "EPSG:3857");
-                    fclone.setStyle(magic.modules.VectorStyles["bas_aircraft"]("EPSG:3857"));
+                    fclone.setStyle(magic.modules.VectorStyles[style]("EPSG:3857"));
                     this.data.outside.push(fclone);
                 }                        
             }, this));
