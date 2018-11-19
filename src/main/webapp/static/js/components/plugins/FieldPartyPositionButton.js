@@ -89,7 +89,12 @@ magic.classes.FieldPartyPositionButton = function (options) {
                 };
                 var popoverDiv = jQuery(".field-party-popover-content");
                 popoverDiv.html(markup); 
-                this.readOnly = jQuery(".field-party-popover-content").find("form").length == 0;            
+                this.readOnly = jQuery(".field-party-popover-content").find("form").length == 0;     
+                if (readOnly) {
+                    jQuery(".hide-readonly-msg").click(jQuery.proxy(function() {
+                        jQuery("." + this.popoverClass).find("button.dialog-minimise").click();
+                    }, this);
+                }
                 this.activate();
             }, this),
             error: function() {
@@ -107,11 +112,13 @@ magic.classes.FieldPartyPositionButton.prototype.interactsMap = function () {
 };
 
 magic.classes.FieldPartyPositionButton.prototype.saveState = function() {
-    this.savedState = this.getPayload();
+    if (!this.readOnly) {
+        this.savedState = this.getPayload();
+    }
 };
 
 magic.classes.FieldPartyPositionButton.prototype.restoreState = function() {
-    if (this.savedState != null) {
+    if (!this.readOnly && this.savedState != null) {
         this.setPayload(this.savedState);
         this.savedState = null;
     }
