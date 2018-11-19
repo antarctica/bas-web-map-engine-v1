@@ -264,20 +264,21 @@ magic.classes.FieldPartyPositionButton.prototype.resetForm = function() {
     this.hideTooltips();
     
     var form = jQuery(".field-party-popover-content").find("form");
-    
-    magic.modules.Common.resetFormIndicators();
-    this.setButtonStates("disable", "enable", "disable");
-    this.confirmOperation(jQuery.proxy(function (result) {
-        if (result) {                
-            this.saveForm();                    
-        }      
-        form[0].reset();
-        form.find("input:hidden").val("");
-        this.formEdited = false;
-    }, this), function() {
-        form[0].reset();
-        form.find("input:hidden").val("");
-    });    
+    if (form) {       
+        magic.modules.Common.resetFormIndicators();
+        this.setButtonStates("disable", "enable", "disable");
+        this.confirmOperation(jQuery.proxy(function (result) {
+            if (result) {                
+                this.saveForm();                    
+            }      
+            form[0].reset();
+            form.find("input:hidden").val("");
+            this.formEdited = false;
+        }, this), function() {
+            form[0].reset();
+            form.find("input:hidden").val("");
+        });    
+    }
 };
 
 /**
