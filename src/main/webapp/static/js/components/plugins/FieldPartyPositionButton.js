@@ -33,6 +33,8 @@ magic.classes.FieldPartyPositionButton = function (options) {
      */
     this.featureMap = {};
     
+    this.readOnly = false;
+    
     this.formEdited = false;
     
     this.savedState = null;
@@ -86,7 +88,8 @@ magic.classes.FieldPartyPositionButton = function (options) {
                     up: "fa fa-chevron-up"
                 };
                 var popoverDiv = jQuery(".field-party-popover-content");
-                popoverDiv.html(markup);            
+                popoverDiv.html(markup); 
+                this.readOnly = jQuery(".field-party-popover-content").find("form").length == 0;            
                 this.activate();
             }, this),
             error: function() {
@@ -114,17 +117,18 @@ magic.classes.FieldPartyPositionButton.prototype.restoreState = function() {
     }
 };
 
-magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {   
+magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {  
     
-    magic.runtime.featureinfotool.deactivate();    
-    
-    /* Detect changes to the form */
-    this.formEdited = false;
-    jQuery(".field-party-popover-content").find("form :input").on("input", jQuery.proxy(function() {
-        this.formEdited = true;
-        this.setButtonStates("enable", "leave", "leave");
-    }, this));    
-    
+    if (!this.readOnly) {
+        /* User has edit rights */
+        magic.runtime.featureinfotool.deactivate();        
+        /* Detect changes to the form */
+        this.formEdited = false;
+        jQuery(".field-party-popover-content").find("form :input").on("input", jQuery.proxy(function() {
+            this.formEdited = true;
+            this.setButtonStates("enable", "leave", "leave");
+        }, this));    
+    }
     this.loadFeatures();
 };
 
@@ -136,7 +140,7 @@ magic.classes.FieldPartyPositionButton.prototype.loadFeatures = function() {
     this.formEdited = false;
     this.resetForm();
     
-    if (this.savedState != null) {
+    if (!this.readOnly && this.savedState != null) {
         /* Restore a saved state - feature map etc will be intact as popover was minimised not closed */    
         console.log("Saved state present - should it be?");
         console.log(this.savedState);
@@ -223,37 +227,42 @@ magic.classes.FieldPartyPositionButton.prototype.loadFeatures = function() {
 };
 
 magic.classes.FieldPartyPositionButton.prototype.onDeactivate = function() {  
-    magic.runtime.featureinfotool.activate();
-    this.target.popover("hide");
-    magic.runtime.map.un("singleclick", this.clickToEditHandler, this);
-    this.featureMap = {};    
-    this.formEdited = false;    
-    this.savedState = null;
+    if (!this.readOnly) {
+        /* User has edit rights */
+        magic.runtime.featureinfotool.activate();
+        this.target.popover("hide");
+        magic.runtime.map.un("singleclick", this.clickToEditHandler, this);
+        this.featureMap = {};    
+        this.formEdited = false;    
+        this.savedState = null;
+    }    
 };
 
 /**
  * Set up special inputs, attach button and map click handlers
  */
 magic.classes.FieldPartyPositionButton.prototype.assignHandlers = function() {
-    /* Activate the help button */
-    jQuery(".fix-editing-help").popover({
-        placement: "right",
-        trigger: "focus",
-        content: "You can add, edit and remove positional fixes.  All red labelled fields are required. Edit an existing fix by clicking on the relevant icon on the map"
-    });
-    /* Convert the sledge input field to combobox */
-    this.initSledgeCombobox("fix-input-sledge");
-    /* Convert the date input field to a datepicker */
-    this.initDatepicker("fix-input-fix_date");            
-    /* Assign the new button handler */
-    jQuery("#fix-new").off("click").on("click", jQuery.proxy(this.resetForm, this));
-    /* Assign the save button handler */
-    jQuery("#fix-save-go").off("click").on("click", jQuery.proxy(this.saveForm, this));            
-    /* Assign the delete button handler */
-    jQuery("#fix-delete-go").off("click").on("click", jQuery.proxy(this.deleteFix, this));
-    /* Assign the feature click-to-edit handler */
-    magic.runtime.map.un("singleclick", this.clickToEditHandler, this);
-    magic.runtime.map.on("singleclick", this.clickToEditHandler, this); 
+    if (!this.readOnly) {
+        /* Activate the help button */
+        jQuery(".fix-editing-help").popover({
+            placement: "right",
+            trigger: "focus",
+            content: "You can add, edit and remove positional fixes.  All red labelled fields are required. Edit an existing fix by clicking on the relevant icon on the map"
+        });
+        /* Convert the sledge input field to combobox */
+        this.initSledgeCombobox("fix-input-sledge");
+        /* Convert the date input field to a datepicker */
+        this.initDatepicker("fix-input-fix_date");            
+        /* Assign the new button handler */
+        jQuery("#fix-new").off("click").on("click", jQuery.proxy(this.resetForm, this));
+        /* Assign the save button handler */
+        jQuery("#fix-save-go").off("click").on("click", jQuery.proxy(this.saveForm, this));            
+        /* Assign the delete button handler */
+        jQuery("#fix-delete-go").off("click").on("click", jQuery.proxy(this.deleteFix, this));
+        /* Assign the feature click-to-edit handler */
+        magic.runtime.map.un("singleclick", this.clickToEditHandler, this);
+        magic.runtime.map.on("singleclick", this.clickToEditHandler, this); 
+    }
 };
 
 /**
@@ -261,10 +270,8 @@ magic.classes.FieldPartyPositionButton.prototype.assignHandlers = function() {
  */
 magic.classes.FieldPartyPositionButton.prototype.resetForm = function() {  
     
-    this.hideTooltips();
-    
-    var form = jQuery(".field-party-popover-content").find("form");
-    if (form.length > 0) {       
+    if (!this.readOnly) {
+        this.hideTooltips();       
         magic.modules.Common.resetFormIndicators();
         this.setButtonStates("disable", "enable", "disable");
         this.confirmOperation(jQuery.proxy(function (result) {
