@@ -264,7 +264,7 @@ magic.classes.FieldPartyPositionButton.prototype.resetForm = function() {
     this.hideTooltips();
     
     var form = jQuery(".field-party-popover-content").find("form");
-    if (form) {       
+    if (form.length > 0) {       
         magic.modules.Common.resetFormIndicators();
         this.setButtonStates("disable", "enable", "disable");
         this.confirmOperation(jQuery.proxy(function (result) {
