@@ -1,6 +1,7 @@
 <script th:fragment="layout">
     /* <![CDATA[*/    
     function fetchPayload() {
+        moment.suppressDeprecationWarnings = true;
         var payloadUrl = magic.config.paths.baseurl + "/maps/name/" + backendVars.mapname;
         if (backendVars.usermapid) {
             payloadUrl += "/" + backendVars.usermapid;
