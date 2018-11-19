@@ -93,7 +93,7 @@ magic.classes.FieldPartyPositionButton = function (options) {
                 if (readOnly) {
                     jQuery(".hide-readonly-msg").click(jQuery.proxy(function() {
                         jQuery("." + this.popoverClass).find("button.dialog-minimise").click();
-                    }, this);
+                    }, this));
                 }
                 this.activate();
             }, this),
