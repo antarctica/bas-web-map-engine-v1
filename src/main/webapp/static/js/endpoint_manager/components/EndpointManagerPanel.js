@@ -142,7 +142,7 @@ magic.classes.endpoint_manager.EndpointManagerPanel.prototype.updateHandler = fu
         jQuery.ajax({
             url: saveUrl, 
             data: JSON.stringify(this.formToPayload()), 
-            method: "POST",
+            method: this.selectedEndpointId == null ? "POST" : "PUT",
             dataType: "json",
             contentType: "application/json",
             headers: {
