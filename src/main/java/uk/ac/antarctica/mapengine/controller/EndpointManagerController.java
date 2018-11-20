@@ -116,7 +116,7 @@ public class EndpointManagerController {
      * @param String payload   
      * @throws Exception
      */
-    @RequestMapping(value = "/endpoints/update/{id}", method = RequestMethod.POST, headers = {"Content-type=application/json"})
+    @RequestMapping(value = "/endpoints/update/{id}", method = RequestMethod.PUT, headers = {"Content-type=application/json"})
     public ResponseEntity<String> updateEndpoint(HttpServletRequest request,
         @PathVariable("id") Integer id,
         @RequestBody String payload) throws Exception {       
@@ -150,6 +150,7 @@ public class EndpointManagerController {
                 String msg = "Successfully saved";
                 switch(request.getMethod()) {
                     case "POST":
+                    case "PUT":
                         if (id == null) {
                             magicDataTpl.update(epd.insertSql(), epd.insertArgs());
                         } else {
