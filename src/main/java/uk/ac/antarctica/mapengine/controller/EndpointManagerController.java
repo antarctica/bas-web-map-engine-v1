@@ -144,26 +144,32 @@ public class EndpointManagerController {
      */
     protected ResponseEntity<String> executeOp(HttpServletRequest request, EndpointData epd, Integer id) throws SuperUserOnlyException {
         ResponseEntity<String> ret;
+        System.out.println("Executing " + request.getMethod() + " on record " + id);
         UserAuthorities ua = userAuthoritiesProvider.getInstance();
         if (ua.userIsAdmin()) {
+            System.out.println("User is authorised to do this");
             try {
                 String msg = "Successfully saved";
                 switch(request.getMethod()) {
                     case "POST":
                     case "PUT":
                         if (id == null) {
+                            System.out.println("Add new record...");
                             magicDataTpl.update(epd.insertSql(), epd.insertArgs());
                         } else {
+                            System.out.println("Update existing record...");
                             magicDataTpl.update(epd.updateSql(), epd.updateArgs(id));
                         }
                         break;                    
                     case "DELETE":
+                        System.out.println("Delete existing record...");
                         magicDataTpl.update(epd.deleteSql(), epd.deleteArgs(id)); 
                         msg = "Successfully deleted";
                         break;
                     default:
                         break;
                 }                
+                System.out.println("Done");
                 ret = PackagingUtils.packageResults(HttpStatus.OK, null, msg);
             } catch(DataAccessException dae) {
                 ret = PackagingUtils.packageResults(HttpStatus.BAD_REQUEST, null, "Database error, message was: " + dae.getMessage());
