@@ -510,6 +510,7 @@ function init() {
                     var serviceBase = serviceUrl.substring(0, serviceUrl.indexOf("embedded_maps/name"));
                     var filter = getUrlParameter("filter", serviceUrl);
                     var filterUrl = serviceBase + "gs/filtered_extent/" + encodeURIComponent(filterFeat);
+                    filterUrl = filterUrl + "/" + encodeURIComponent(embedView.getProjection().getCode());
                     if (filter != null && filter !="") {
                         filterUrl = filterUrl + "/" + encodeURIComponent(filter).replace(/'/g, "%27");
                     }

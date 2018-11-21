@@ -395,18 +395,20 @@ public class GeoserverRestController {
      * NOTE: does NOT support arbitrary REST endpoints - must be local Geoserver
      * @param HttpServletResponse response
      * @param String layer
+     * @param String proj EPSG:3031 etc
      * @return
      * @throws ServletException
      * @throws IOException
      */
-    @RequestMapping(value = "/gs/filtered_extent/{layer}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
+    @RequestMapping(value = "/gs/filtered_extent/{layer}/{proj}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
     @ResponseBody
     public void geoserverExtentForNonFilteredLayer(
         HttpServletResponse response, 
-        @PathVariable("layer") String layer)
+        @PathVariable("layer") String layer, 
+        @PathVariable("proj") String proj)
         throws ServletException, IOException, ServiceException {  
         response.setContentType("application/json");
-        IOUtils.copy(IOUtils.toInputStream(getFilteredExtent(layer, null)), response.getOutputStream());
+        IOUtils.copy(IOUtils.toInputStream(getFilteredExtent(layer, proj, null)), response.getOutputStream());
     }
     
     /**
@@ -415,36 +417,40 @@ public class GeoserverRestController {
      * NOTE: does NOT support arbitrary REST endpoints - must be local Geoserver
      * @param HttpServletResponse response
      * @param String layer
+     * @param String proj EPSG:3031 etc
      * @param String filter
      * @return
      * @throws ServletException
      * @throws IOException
      */
-    @RequestMapping(value = "/gs/filtered_extent/{layer}/{filter}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
+    @RequestMapping(value = "/gs/filtered_extent/{layer}/{proj}/{filter}", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
     @ResponseBody
     public void geoserverExtentForFilteredLayer(
         HttpServletResponse response, 
         @PathVariable("layer") String layer,
+        @PathVariable("proj") String proj,
         @PathVariable("filter") String filter)
         throws ServletException, IOException, ServiceException {
         response.setContentType("application/json");
-        IOUtils.copy(IOUtils.toInputStream(getFilteredExtent(layer, filter)), response.getOutputStream());
+        IOUtils.copy(IOUtils.toInputStream(getFilteredExtent(layer, proj, filter)), response.getOutputStream());
     }
     
     /**
      * Common method for computing layer extent via REST for embedded maps
-     * @param String layer
+     * @param String layer     
+     * @param String proj
      * @param String filter
      * @return String
      * @throws MalformedURLException 
      */
-    private String getFilteredExtent(String layer, String filter) throws MalformedURLException, UnsupportedEncodingException {
+    private String getFilteredExtent(String layer, String proj, String filter) throws MalformedURLException, UnsupportedEncodingException {
         JsonObject jo = new JsonObject();
         GenericUrlConnector guc = null;
         try {                                    
             System.out.println("Get extent for layer " + layer + ", filter : >" + filter + "<");
             String wfs = env.getProperty("geoserver.internal.url") +
                     "/wfs?service=wfs&version=2.0.0&request=GetFeature&" +
+                    "srsName=" + proj + "&" + 
                     "typeNames=" + layer + "&" +
                     "propertyName=ID";
             if (filter != null && !filter.isEmpty())  {
