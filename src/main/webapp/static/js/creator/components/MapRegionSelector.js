@@ -95,6 +95,7 @@ magic.classes.creator.MapRegionSelector.prototype.loadContext = function(action,
         /* Clone or edit implies a fetch of map with id */
         jQuery.getJSON(this.mapDataService + "/" + name, jQuery.proxy(function (data) {          
             if (action == "clone") {
+                data.id = "";
                 data.name += "_copy";
             }
             this.currentMapId = action == "edit" ? data.id : "";
