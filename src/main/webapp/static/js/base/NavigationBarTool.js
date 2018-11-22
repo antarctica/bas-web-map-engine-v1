@@ -90,9 +90,7 @@ magic.classes.NavigationBarTool.prototype.setCallbacks = function(callbacksObj) 
 };
 
 magic.classes.NavigationBarTool.prototype.assignCloseButtonHandler = function () {
-    jQuery("." + this.popoverClass).find("button.dialog-deactivate").click(jQuery.proxy(function () {
-        this.deactivate();        
-    }, this));
+    jQuery("." + this.popoverClass).find("button.dialog-deactivate").click(jQuery.proxy(this.deactivate, this));
     jQuery("." + this.popoverClass).find("button.dialog-minimise").click(jQuery.proxy(function () {
         if (jQuery.isFunction(this.controlCallbacks["onMinimise"])) {
             this.controlCallbacks["onMinimise"]();
@@ -126,10 +124,11 @@ magic.classes.NavigationBarTool.prototype.activate = function () {
 
 /**
  * Deactivate the control
+ * @param jQuery.event evt only set if the deactivate is a close button click (in which case turn off the data layer)
  */
-magic.classes.NavigationBarTool.prototype.deactivate = function () {
+magic.classes.NavigationBarTool.prototype.deactivate = function (evt) {
     this.active = false;
-    if (this.layer != null) {
+    if (evt && this.layer != null) {
         this.layer.getSource().clear();
         this.layer.setVisible(false);
     }

@@ -84,8 +84,7 @@ magic.classes.Feedback.prototype.markup = function() {
                         'placeholder="More details about the problem" ' + 
                         'data-toggle="tooltip" data-placement="right" ' + 
                         'title="Longer description of the problem (required)" ' + 
-                        'required="required">' +                                           
-                    '</textarea>' + 
+                        'required="required"></textarea>' + 
                 '</div>' +
                 '<div class="form-group">' +
                     '<label for="' + this.id + '-reporter">Your email address</label>' + 
@@ -111,7 +110,7 @@ magic.classes.Feedback.prototype.onActivateHandler = function() {
    
     /* Set send button handler */
     jQuery("#" + this.id + "-go").click(jQuery.proxy(function(evt) {
-        jQuery(evt.currentTarget).tooltip("hide");  /* Get rid of annoying persistent tooltip - not sure why... */        
+        jQuery('[data-toggle="tooltip"]').tooltip("hide");  /* Get rid of annoying persistent tooltip - not sure why... */        
         if (this.validate()) {
             /* Insert map data */
             jQuery("#" + this.id + "-mapdata").val(JSON.stringify(this.mapPayload()));
