@@ -127,8 +127,9 @@ magic.classes.NavigationBarTool.prototype.activate = function () {
  * @param jQuery.event evt only set if the deactivate is a close button click (in which case turn off the data layer)
  */
 magic.classes.NavigationBarTool.prototype.deactivate = function (evt) {
-    this.active = false;
-    if (evt && this.layer != null) {
+    var closeBtnClicked = evt ? true : false;
+    this.active = false;    
+    if (closeBtnClicked && this.layer != null) {
         this.layer.getSource().clear();
         this.layer.setVisible(false);
     }
@@ -137,7 +138,7 @@ magic.classes.NavigationBarTool.prototype.deactivate = function (evt) {
         jQuery(document).trigger("mapinteractiondeactivated", [this]);
     }
     if (jQuery.isFunction(this.controlCallbacks["onDeactivate"])) {
-        this.controlCallbacks["onDeactivate"]();
+        this.controlCallbacks["onDeactivate"](closeBtnClicked);
     }
 };
 

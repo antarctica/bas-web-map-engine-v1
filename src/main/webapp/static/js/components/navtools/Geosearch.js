@@ -31,8 +31,10 @@ magic.classes.Geosearch = function (options) {
                 jQuery("#" + this.id + "-position-go").click(jQuery.proxy(this.positionSearchHandler, this));
                 this.populateSearchHistoryDropdown();                
             }, this),
-        onDeactivate: jQuery.proxy(function() {
-                this.searchedFeatureCache = [];
+        onDeactivate: jQuery.proxy(function(closeBtnClicked) {
+                if (closeBtnClicked === true) {
+                    this.searchedFeatureCache = [];
+                }
                 this.suggestionFeatures = {};
                 this.savedState = {};
                 this.target.popover("hide");
