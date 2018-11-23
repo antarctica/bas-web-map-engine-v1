@@ -200,6 +200,7 @@ public class FeedbackController {
         
         String gitlabApi = env.getProperty("gitlab.api", "");
         String gitlabPat = env.getProperty("gitlab.bot_pat", "");
+        String gitLabDefAssign = env.getProperty("gitlab.assignee_id", "21");
         
         if (!(gitlabApi.isEmpty() && gitlabPat.isEmpty())) {       
             /*
@@ -211,9 +212,8 @@ public class FeedbackController {
             System.out.println("Due date : " + requiredBy);
             System.out.println("Created at : " + created);
             System.out.println("Labels : " + labels);
+            System.out.println("Assigning to user ID : " + gitLabDefAssign);
             System.out.println("===== End of trace =====");
-
-
 
             HttpUriRequest request = RequestBuilder.post()
                     .setUri(gitlabApi)
@@ -224,6 +224,7 @@ public class FeedbackController {
                     .addParameter("due_date", requiredBy)
                     .addParameter("create_at", created)
                     .addParameter("labels", labels)
+                    .addParameter("assignee_ids", gitLabDefAssign)
                     .build();
             try {
                 CloseableHttpResponse response = client.execute(request);
