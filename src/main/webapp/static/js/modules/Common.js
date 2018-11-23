@@ -512,8 +512,9 @@ magic.modules.Common = function () {
                 if ("Name" in layer) {
                     /* Leaf node - a named layer */
                     ftypes[layer.Name] = layer;
-                } else if ("Layer" in layer && jQuery.isArray(layer["Layer"])) {
-                    /* More trawling to do */
+                }
+                if ("Layer" in layer && jQuery.isArray(layer["Layer"])) {
+                    /* More trawling to do as there are child layers too */
                     this.getFeatureTypes(ftypes, layer["Layer"]);
                 }
             }, this));
