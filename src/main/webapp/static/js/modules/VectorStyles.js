@@ -95,7 +95,7 @@ magic.modules.VectorStyles = function () {
                 var name = props["callsign"] || "unknown aircraft";
                 var speed = props["speed"] || 0;
                 var heading = props["heading"] || 0;
-                var tstamp = new Date(props["datetime_utc"]).getTime();
+                var tstamp = new Date(props["entered_utc"]).getTime();
                 var now = new Date().getTime();
                 var tstampAge = parseFloat(now - tstamp)/(1000.0*60.0*60.0);
                 var colour = (speed >= 10 && tstampAge <= 1) ? "green" : "red";
@@ -149,7 +149,10 @@ magic.modules.VectorStyles = function () {
                 var props = this.getProperties();
                 var name = props["callsign"] || "unknown ship";
                 var speed = props["speed"] || 0;
-                var colour = speed > 0 ? "green" : "red"; 
+                var tstamp = new Date(props["entered_utc"]).getTime();
+                var now = new Date().getTime();
+                var tstampAge = parseFloat(now - tstamp)/(1000.0*60.0*60.0);
+                var colour = (speed > 0 && tstampAge <= 1) ? "green" : "red"; 
                 var heading = props["heading"] || 0;
                 return([new ol.style.Style({
                     image: new ol.style.Icon({

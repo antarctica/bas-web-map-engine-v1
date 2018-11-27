@@ -23,8 +23,7 @@ magic.classes.AircraftPositionButton.prototype.getData = function() {
         /* Use new CATS endpoint */
         apiUrl = magic.modules.Endpoints.getOgcEndpoint(catsEp.url, "wfs") + 
                 "?service=wfs&request=getfeature&version=2.0.0&typeNames=cats:aircraft_latest_cats&outputFormat=json";
-        style = "bas_aircraft_cats";
-        
+        style = "bas_aircraft_cats";        
     }
     jQuery.ajax({
         /* Might be nice to get this listed as part of the maps.bas.ac.uk stable... */
