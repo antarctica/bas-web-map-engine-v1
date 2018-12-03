@@ -15,7 +15,7 @@ magic.classes.AircraftPositionButton.prototype = Object.create(magic.classes.Ass
 magic.classes.AircraftPositionButton.prototype.constructor = magic.classes.AircraftPositionButton;
 
 magic.classes.AircraftPositionButton.prototype.getData = function() {
-    /* Aircraft positional API - temporary bodge to use the new CATS feed on bslmagt until IT can give it an external endpoint... David 2018-11-16 */
+    /* Use new CATS feed on bslmagt (at https://geoserver1.web.bas.ac.uk) if present... David 2018-11-16 */
     var style = "bas_aircraft";
     var apiUrl = "https://add.data.bas.ac.uk/geoserver/assets/wfs?service=wfs&request=getfeature&version=2.0.0&typeNames=assets:latest_aircraft_positions&outputFormat=json";
     var catsEp = magic.modules.Endpoints.getEndpointBy("name", "COMNAP CATS Asset Feed");

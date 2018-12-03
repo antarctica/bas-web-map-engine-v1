@@ -15,7 +15,7 @@ magic.classes.ShipPositionButton.prototype = Object.create(magic.classes.AssetPo
 magic.classes.ShipPositionButton.prototype.constructor = magic.classes.ShipPositionButton;
 
 magic.classes.ShipPositionButton.prototype.getData = function() {
-    /* Ship positional API  - temporary bodge to use the new CATS feed on bslmagt until IT can give it an external endpoint... David 2018-11-16 */
+    /* Use new CATS feed on bslmagt (at https://geoserver1.web.bas.ac.uk) if present.... David 2018-11-16 */
     var style = "bas_ship";
     var apiUrl = "https://add.data.bas.ac.uk/geoserver/assets/wfs?service=wfs&request=getfeature&version=2.0.0&typeNames=assets:latest_ship_positions&outputFormat=json";
     var catsEp = magic.modules.Endpoints.getEndpointBy("name", "COMNAP CATS Asset Feed");
@@ -26,7 +26,6 @@ magic.classes.ShipPositionButton.prototype.getData = function() {
         style = "bas_ship_cats";
     }
     jQuery.ajax({
-        /* Might be nice to get this listed as part of the maps.bas.ac.uk stable... */
         url: apiUrl,
         method: "GET",
         success: jQuery.proxy(function(data) {
