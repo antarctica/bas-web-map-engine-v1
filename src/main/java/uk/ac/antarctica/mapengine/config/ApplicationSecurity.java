@@ -109,12 +109,12 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
             .fullyAuthenticated()
             .and()
             .formLogin()
-            .loginPage("/login")
+            .loginPage(env.getProperty("default.login_page", "/login"))
             .successHandler(successHandler())
             .permitAll()
             .and()
             .logout()
-            .logoutSuccessUrl("/home")
+            .logoutSuccessUrl(env.getProperty("default.logout_page", "/home"))
             .permitAll();
 
         /* Apply CSRF checks to all POST|PUT|DELETE requests, and GET to selected ones */
