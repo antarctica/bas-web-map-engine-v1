@@ -91,7 +91,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
                    
         /* Form-based authentication of some kind */
         System.out.println("Ordinary authentication via login form");
-        http            
+        http                   
             .authorizeRequests()
             .antMatchers("/*.ico", "/static/**", "/ping", "/home/**", "/homed/**",
                     "/maps/dropdown/**", "/maps/name/**", "/maps/id/**", "/feedback",
@@ -116,7 +116,13 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
             .logout()
             .logoutSuccessUrl(env.getProperty("default.logout_page", "/home"))
             .permitAll();
-
+        
+        /* Check for require_ssl environment property */
+        String requireSsl = env.getProperty("security.require_ssl", "false");
+        if (requireSsl.equals("true")) {
+            http.requiresChannel().anyRequest().requiresSecure();
+        }
+            
         /* Apply CSRF checks to all POST|PUT|DELETE requests, and GET to selected ones */
         http.csrf().requireCsrfProtectionMatcher(new CsrfSecurityRequestMatcher());        
     }
