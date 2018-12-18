@@ -118,7 +118,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
             .permitAll();
         
         /* Check for require_ssl environment property */
-        String requireSsl = env.getProperty("security.require_ssl", "false");
+        String requireSsl = env.getProperty("security.require-ssl", "false");
         if (requireSsl.equals("true")) {
             http.requiresChannel().anyRequest().requiresSecure();
         }
