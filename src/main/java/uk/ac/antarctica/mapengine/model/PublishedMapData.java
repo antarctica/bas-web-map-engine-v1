@@ -21,6 +21,7 @@ public class PublishedMapData extends AbstractMapData {
     private String infolink = "";
     private String newslink = "";
     private String watermark = "";
+    private String bgcolor = "";
         
     public PublishedMapData(String tableName) {
         super(tableName);
@@ -58,11 +59,12 @@ public class PublishedMapData extends AbstractMapData {
         setInfolink((String)getJsonElement(jo, "infolink", true, null));
         setNewslink((String)getJsonElement(jo, "newslink", true, null));
         setWatermark((String)getJsonElement(jo, "watermark", true, null));
+        setBgcolor((String)getJsonElement(jo, "bgcolor", true, null));
     }
 
     @Override
     public String insertSql() {
-        return("INSERT INTO " + getTableName() + " VALUES(?,?,?,?,?,?,?,?,current_timestamp,current_timestamp,?,?,?,?,?,?,?,?,?,?)");
+        return("INSERT INTO " + getTableName() + " VALUES(?,?,?,?,?,?,?,?,current_timestamp,current_timestamp,?,?,?,?,?,?,?,?,?,?,?)");
     }
 
     @Override
@@ -85,7 +87,8 @@ public class PublishedMapData extends AbstractMapData {
             getAllowed_edit(),
             getInfolink(),
             getNewslink(),
-            getWatermark()                    
+            getWatermark(),
+            getBgcolor()
         });
     }
 
@@ -109,6 +112,7 @@ public class PublishedMapData extends AbstractMapData {
             "infolink=?, " + 
             "newslink=?, " + 
             "watermark=? " + 
+            "bgcolor=? " + 
             "WHERE id=?"
         );
     }
@@ -134,6 +138,7 @@ public class PublishedMapData extends AbstractMapData {
             getInfolink(),
             getNewslink(),
             getWatermark(),
+            getBgcolor(),
             id
         });
     }
@@ -227,5 +232,13 @@ public class PublishedMapData extends AbstractMapData {
     public void setData(String data) {
         this.data = data;
     }    
+
+    public String getBgcolor() {
+        return bgcolor;
+    }
+
+    public void setBgcolor(String bgcolor) {
+        this.bgcolor = bgcolor;
+    }
     
 }
