@@ -16,7 +16,8 @@ magic.classes.creator.AppContainer = function() {
                 {"field": "infolink", "default": ""}, 
                 {"field": "logo", "default": ""}, 
                 {"field": "metadata_url", "default": ""}, 
-                {"field": "watermark", "default": ""}, 
+                {"field": "watermark", "default": ""},
+                {"field": "bgcolor", "default": "#ffffff"},
                 {"field": "newslink", "default": ""}, 
                 {"field": "version", "default": "1.0"}, 
                 {"field": "owner_email", "default": ""}
@@ -162,8 +163,8 @@ magic.classes.creator.AppContainer.prototype.saveContext = function() {
         /* Now validate the assembled map context against the JSON schema in /static/js/json/embedded_web_map_schema.json
          * https://github.com/geraintluff/tv4 is the validator used */            
         /* Being driven half insane by Amazon caching */
-        jQuery.getJSON("https://cdn.web.bas.ac.uk/magic/json-schemas/web_map_schema.json", jQuery.proxy(function(schema) {
-        //jQuery.getJSON(magic.config.paths.baseurl + "/static/js/json/web_map_schema.json", jQuery.proxy(function(schema) {
+        //jQuery.getJSON("https://cdn.web.bas.ac.uk/magic/json-schemas/web_map_schema.json", jQuery.proxy(function(schema) {
+        jQuery.getJSON(magic.config.paths.baseurl + "/static/js/json/web_map_schema.json", jQuery.proxy(function(schema) {
             var validated = tv4.validate(context, schema);               
             if (!validated) {
                  /* Failed to validate the data against the schema - complain */

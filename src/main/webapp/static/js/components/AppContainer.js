@@ -62,6 +62,12 @@ magic.classes.AppContainer = function () {
         target: "map",
         view: view
     });
+    
+    /* Set background colour of map */
+    var mapBackground = magic.runtime.map_context.bgcolor;
+    if (mapBackground) {
+        jQuery("#map").css("background-color": mapBackground);
+    }    
 
     /* Initialise map control button ribbon */    
     new magic.classes.ControlButtonRibbon();
