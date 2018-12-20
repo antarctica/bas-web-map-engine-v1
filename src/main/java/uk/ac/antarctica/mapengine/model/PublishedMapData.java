@@ -111,7 +111,7 @@ public class PublishedMapData extends AbstractMapData {
             "allowed_edit=?, " + 
             "infolink=?, " + 
             "newslink=?, " + 
-            "watermark=? " + 
+            "watermark=?, " + 
             "bgcolor=? " + 
             "WHERE id=?"
         );
