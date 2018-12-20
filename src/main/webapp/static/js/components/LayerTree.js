@@ -285,23 +285,22 @@ magic.classes.LayerTree.prototype.assignLayerHandlers = function(belowElt) {
  * @param {jQuery.object} belowElt 
  */
 magic.classes.LayerTree.prototype.assignOneOnlyLayerGroupHandlers = function(belowElt) {
+    var layerRbs;
     if (belowElt) {
-        /* Bugfix for Polar Code 2018-10-11 David */
-        var layerRbs = belowElt.closest("div.panel").find("a[id^='group-rb-off']");  
-        layerRbs.each(jQuery.proxy(function(idx, elt) {
-            var allOff = jQuery(elt);
-            allOff.click(jQuery.proxy(function(evt) {
-                var groupsDone = {};
-                allOff.closest("div.layer-group").find("input[type='radio']").each(jQuery.proxy(function(idx2, rbElt) {
-                    if (!groupsDone[rbElt.name]) {
-                        jQuery("input[name='" + rbElt.name + "']").prop("checked", false);                    
-                        groupsDone[rbElt.name] = true;
-                    }
-                    this.setLayerVisibility(jQuery(rbElt), true);
-                }, this));
-            }, this));                
-        }, this));  
+        layerRbs = belowElt.closest("div.panel").find("a[id^='group-rb-off']");  
+    } else {
+        layerRbs = jQuery("#" + this.target).find("a[id^='group-rb-off']");
     }
+    layerRbs.click(jQuery.proxy(function(evt) {
+        var groupsDone = {};
+        jQuery(evt.currentTarget).closest("div.layer-group").find("input[type='radio']").each(jQuery.proxy(function(idx2, rbElt) {
+            if (!groupsDone[rbElt.name]) {
+                jQuery("input[name='" + rbElt.name + "']").prop("checked", false);                    
+                groupsDone[rbElt.name] = true;
+            }
+            this.setLayerVisibility(jQuery(rbElt), true);
+        }, this));
+    }, this));  
 };
 
 /**
