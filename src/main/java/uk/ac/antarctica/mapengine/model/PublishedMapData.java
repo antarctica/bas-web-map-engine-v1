@@ -115,7 +115,7 @@ public class PublishedMapData extends AbstractMapData {
             "infolink=?, " + 
             "newslink=?, " + 
             "watermark=?, " + 
-            "bgcolor=? " + 
+            "bgcolor=?, " + 
             "bs_theme=? " + 
             "WHERE id=?"
         );
