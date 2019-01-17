@@ -22,6 +22,7 @@ public class PublishedMapData extends AbstractMapData {
     private String newslink = "";
     private String watermark = "";
     private String bgcolor = "";
+    private String bs_theme = "";
         
     public PublishedMapData(String tableName) {
         super(tableName);
@@ -60,11 +61,12 @@ public class PublishedMapData extends AbstractMapData {
         setNewslink((String)getJsonElement(jo, "newslink", true, null));
         setWatermark((String)getJsonElement(jo, "watermark", true, null));
         setBgcolor((String)getJsonElement(jo, "bgcolor", true, null));
+        setBs_theme((String)getJsonElement(jo, "bs_theme", true, null));
     }
 
     @Override
     public String insertSql() {
-        return("INSERT INTO " + getTableName() + " VALUES(?,?,?,?,?,?,?,?,current_timestamp,current_timestamp,?,?,?,?,?,?,?,?,?,?,?)");
+        return("INSERT INTO " + getTableName() + " VALUES(?,?,?,?,?,?,?,?,current_timestamp,current_timestamp,?,?,?,?,?,?,?,?,?,?,?,?)");
     }
 
     @Override
@@ -88,7 +90,8 @@ public class PublishedMapData extends AbstractMapData {
             getInfolink(),
             getNewslink(),
             getWatermark(),
-            getBgcolor()
+            getBgcolor(),
+            getBs_theme()
         });
     }
 
@@ -113,6 +116,7 @@ public class PublishedMapData extends AbstractMapData {
             "newslink=?, " + 
             "watermark=?, " + 
             "bgcolor=? " + 
+            "bs_theme=? " + 
             "WHERE id=?"
         );
     }
@@ -139,6 +143,7 @@ public class PublishedMapData extends AbstractMapData {
             getNewslink(),
             getWatermark(),
             getBgcolor(),
+            getBs_theme(),
             id
         });
     }
@@ -239,6 +244,14 @@ public class PublishedMapData extends AbstractMapData {
 
     public void setBgcolor(String bgcolor) {
         this.bgcolor = bgcolor;
+    }
+
+    public String getBs_theme() {
+        return bs_theme;
+    }
+
+    public void setBs_theme(String bs_theme) {
+        this.bs_theme = bs_theme;
     }
     
 }
