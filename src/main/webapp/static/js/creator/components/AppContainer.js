@@ -18,6 +18,7 @@ magic.classes.creator.AppContainer = function() {
                 {"field": "metadata_url", "default": ""}, 
                 {"field": "watermark", "default": ""},
                 {"field": "bgcolor", "default": "#ffffff"},
+                {"field": "bs_theme", "default": ""},
                 {"field": "newslink", "default": ""}, 
                 {"field": "version", "default": "1.0"}, 
                 {"field": "owner_email", "default": ""}
