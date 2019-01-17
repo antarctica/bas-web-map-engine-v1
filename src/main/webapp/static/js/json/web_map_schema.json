@@ -186,6 +186,11 @@
                 }
             ]
         },
+        "bs_theme": {
+            "description": "Bootstrap theme to use (slate|sandstone|empty)",
+            "type": "string",
+            "enum": ["", "slate", "sandstone"]
+        },
         "bgcolor": {
             "description": "Background colour",
             "type": "string",
@@ -571,7 +576,7 @@
                                         ]
                                     },
                                     "geom_type": {
-                                        "description": "Type of layer geometry (point|layer|polygon|raster|unknown",
+                                        "description": "Type of layer geometry (point|layer|polygon|raster|unknown)",
                                         "type": "string",
                                         "enum": ["point", "line", "polygon", "raster", "unknown"]
                                     },

@@ -67,8 +67,18 @@ magic.classes.AppContainer = function () {
     var mapBackground = magic.runtime.map_context.bgcolor;
     if (mapBackground) {
         jQuery("#map").css("background-color", mapBackground);
-    }    
-
+    }
+    
+    /* Set theme if required */
+    var mapTheme = magic.runtime.map_context.bs_theme;
+    if (mapTheme) {
+        var bsStyleLink = jQuery("link[href*='bootstrap']");
+        if (bsStyleLink) {
+            var slink = bsStyleLink.attr("href");
+            bsStyleLink.attr("href", slink.replace(/bootstrap\.min\.css/, "bootstrap.min." + mapTheme + ".css"));
+        }
+    }
+    
     /* Initialise map control button ribbon */    
     new magic.classes.ControlButtonRibbon();
 
