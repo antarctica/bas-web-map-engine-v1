@@ -187,9 +187,9 @@
             ]
         },
         "bs_theme": {
-            "description": "Bootstrap theme to use (slate|sandstone|empty)",
+            "description": "Bootstrap theme to use",
             "type": "string",
-            "enum": ["", "slate", "sandstone"]
+            "enum": ["inverse", "default", "cyborg-default", "cyborg-inverse", "slate-default", "slate-inverse", "sandstone-default", "sandstone-inverse"]
         },
         "bgcolor": {
             "description": "Background colour",

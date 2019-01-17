@@ -265,15 +265,6 @@ input.layer-vis-selector, input.layer-vis-group-selector {
     margin: 5px;
 }
 
-a.layer-tool {
-    float: right;
-}
-
-a.layer-tool:hover {
-    text-decoration: none;
-    cursor: pointer;
-}
-
 a.layer-group-tool {
     color: inherit;
     text-decoration: none;

@@ -72,10 +72,18 @@ magic.classes.AppContainer = function () {
     /* Set theme if required */
     var mapTheme = magic.runtime.map_context.bs_theme;
     if (mapTheme) {
+        var navbarCss = "navbar-" + (mapTheme.indexOf("inverse") != -1 ? "inverse" : "default");
+        var themeName = mapTheme.substring(0, mapTheme.indexOf("-"));
+        /* Replace the standard Bootstrap stylesheet with a themed one */
         var bsStyleLink = jQuery("link[href*='bootstrap']");
         if (bsStyleLink) {
             var slink = bsStyleLink.attr("href");
-            bsStyleLink.attr("href", slink.replace(/bootstrap\.min\.css/, "bootstrap.min." + mapTheme + ".css"));
+            bsStyleLink.attr("href", slink.replace(/bootstrap\.min\.css/, "bootstrap.min." + themeName + ".css"));
+        }
+        /* Replace the navigation bar style */
+        var navBar = jQuery("nav[role='navigation']");
+        if (navBar) {
+            navBar.removeClass("navbar-inverse").removeClass("navbar-default").addClass(navbarCss);
         }
     }
     
