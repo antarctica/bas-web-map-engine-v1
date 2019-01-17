@@ -384,6 +384,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
     }
     var cb;
     var isWms = "wms_source" in nd.source;
+    var wmsBgColor = magic.runtime.map_context.bgcolor || "#ffffff";
     var isEsriTile = "esritile_source" in nd.source;
     var isSingleTile = isWms ? nd.source.is_singletile === true : false;
     var isBase = (isWms || isEsriTile) ? nd.source.is_base === true : false;
@@ -477,7 +478,8 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                 url: magic.modules.Endpoints.getOgcEndpoint(nd.source.wms_source, "wms"),
                 params: {
                     "LAYERS": nd.source.feature_name,
-                    "STYLES": nd.source.style_name ? (nd.source.style_name == "default" ? "" : nd.source.style_name) : ""
+                    "STYLES": nd.source.style_name ? (nd.source.style_name == "default" ? "" : nd.source.style_name) : "",
+                    "BGCOLOR": wmsBgColor
                 },
                 projection: proj
             }));
@@ -499,6 +501,7 @@ magic.classes.LayerTree.prototype.addDataNode = function(nd, element) {
                     "LAYERS": nd.source.feature_name,
                     "STYLES": nd.source.style_name ? (nd.source.style_name == "default" ? "" : nd.source.style_name) : "",
                     "TRANSPARENT": true,
+                    "BGCOLOR": wmsBgColor,
                     "CRS": proj.getCode(),
                     "SRS": proj.getCode(),
                     "VERSION": wmsVersion,
