@@ -14,6 +14,10 @@ span.non-clickable {
     color: #ffffff;
 }
 
-.dropdown-menu>li>a {
+#user-menu>.dropdown-menu>li>a {
     color: #202020;
+}
+
+.layer-options-dd-menu>li>a {
+    color: #ffffff;
 }
