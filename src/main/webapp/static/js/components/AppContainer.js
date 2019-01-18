@@ -85,6 +85,24 @@ magic.classes.AppContainer = function () {
         if (navBar) {
             navBar.removeClass("navbar-inverse").removeClass("navbar-default").addClass(navbarCss);
         }
+        /* Load any auxiliary stylesheet */
+        if (themeName) {
+            var stylesheetModifier = magic.config.paths.baseurl + "/static/css/theme_modifiers/" + themeName + ".css";
+            jQuery.ajax({
+                url: stylesheetModifier,
+                method: "GET"
+            })
+            .done(function() {
+                /* Stylesheet exists */
+                jQuery("<link/>", {
+                    rel: "stylesheet",
+                    type: "text/css",
+                    href: stylesheetModifier
+                }).appendTo("head");
+            })
+            .fail(function() {
+                console.log("Stylesheet does not exist - skipping");
+            });                   
     }
     
     /* Initialise map control button ribbon */    
