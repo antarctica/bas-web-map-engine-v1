@@ -6,6 +6,14 @@ button.close {
     color: #ffffff;
 }
 
+button.close:hover {
+    color: #a0a0a0;
+}
+
 span.non-clickable {
     color: #ffffff;
+}
+
+.dropdown-menu>li>a {
+    color: #202020;
 }
