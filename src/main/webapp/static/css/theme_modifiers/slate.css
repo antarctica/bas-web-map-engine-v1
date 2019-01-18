@@ -22,3 +22,16 @@ span.non-clickable {
     color: #ffffff;
 }
 
+.layer-list-group>li>table {
+    background-color: #33383e;
+}
+
+[id^='opc-slider-'].slider-selection {
+    background: red;
+}
+
+[id^='opc-slider-'].slider-handle {
+    background: red;
+}
+
+
