@@ -102,7 +102,8 @@ magic.classes.AppContainer = function () {
             })
             .fail(function() {
                 console.log("Stylesheet does not exist - skipping");
-            });                   
+            }); 
+        }
     }
     
     /* Initialise map control button ribbon */    
