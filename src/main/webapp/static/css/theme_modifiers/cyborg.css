@@ -23,15 +23,15 @@ button.close:hover {
 }
 
 .layer-list-group>li>table {
-    background-color: #33383e;
+    background-color: #212320;
 }
 
 button[id^="layer-info-"] {
     background-image: none;
-    background-color: #33383e;
+    background-color: #212320;
 }
 
 button[id^="layer-info-"]:hover {
     background-image: none;
-    background-color: #33383e;
+    background-color: #212320;
 }
