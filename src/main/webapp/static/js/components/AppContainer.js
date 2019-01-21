@@ -76,7 +76,7 @@ magic.classes.AppContainer = function () {
         var themeName = mapTheme.substring(0, mapTheme.indexOf("-"));
         /* Replace the standard Bootstrap stylesheet with a themed one */
         var bsStyleLink = jQuery("link[href*='bootstrap']");
-        if (bsStyleLink) {
+        if (themeName && bsStyleLink) {
             var slink = bsStyleLink.attr("href");
             bsStyleLink.attr("href", slink.replace(/bootstrap\.min\.css/, "bootstrap.min." + themeName + ".css"));
         }
