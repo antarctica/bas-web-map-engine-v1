@@ -122,7 +122,7 @@ magic.classes.LayerTreeOptionsMenu.prototype.addOpacitySliderHandler = function(
                     wrapper.addClass("hidden");
                 }                        
             }, this));
-        }, this);
+        }, this));
     } else {
         /* Disable the link */
         sliderLink.parent().addClass("disabled"); 
