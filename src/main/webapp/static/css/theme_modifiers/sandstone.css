@@ -1,13 +1,13 @@
 a.layer-tool {
-    color: #ffffff;
+    color: #202020;
 }
 
 button.close {
-    color: #ffffff;
+    color: #202020;
 }
 
 button.close:hover {
-    color: #a0a0a0;
+    color: #606060;
 }
 
 span.non-clickable {
@@ -23,15 +23,15 @@ span.non-clickable {
 }
 
 .layer-list-group>li>table {
-    background-color: #33383e;
+    background-color: #ffffff;
 }
 
 button[id^="layer-info-"] {
     background-image: none;
-    background-color: #33383e;
+    background-color: #ffffff;
 }
 
 button[id^="layer-info-"]:hover {
     background-image: none;
-    background-color: #33383e;
+    background-color: #ffffff;
 }
