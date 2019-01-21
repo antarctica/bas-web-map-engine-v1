@@ -37,8 +37,7 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
             '<a href="Javascript:void(0)" id="opc-' + this.nodeid + '">Change layer transparency</a>' + 
             '<div class="panel panel-default hidden" style="margin-bottom:0px" id="wrapper-opc-' + this.nodeid + '">' + 
                 '<div class="panel-body" style="padding:5px">' +
-                    '<input id="opc-slider-' + this.nodeid + '" data-slider-id="opc-slider-' + this.nodeid + '" ' + 
-                        'data-slider-min="0" data-slider-max="1" data-slider-step="0.1" data-slider-value="1">' + 
+                    '<input id="opc-slider-' + this.nodeid + '" type="range" min="0.0" max="1.0" step="0.1">' + 
                     '</input>' + 
                 '</div>' +                
             '</div>' + 
@@ -106,32 +105,23 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
  * Opacity property slider initialiser
  */
 magic.classes.LayerTreeOptionsMenu.prototype.addOpacitySliderHandler = function() {
-    var sliderLink = jQuery("#opc-" + this.nodeid);
+    var sliderInput = jQuery("#opc-slider-" + this.nodeid);
     if (this.layer.getVisible()) {
         /* Add the handlers */        
-        sliderLink.off("click").on("click", jQuery.proxy(function(evt) {
+        sliderInput.off("input change").on("input change", jQuery.proxy(function(evt) {
             evt.stopPropagation();
             var wrapper = jQuery("#wrapper-opc-" + this.nodeid);
             if (wrapper.hasClass("hidden")) {
-                /* Show the slider and add handlers */
+                /* Show the slider range input and add handler */
                 wrapper.removeClass("hidden");
-                jQuery("#opc-slider-" + this.nodeid).slider({
-                    min: 0.0,
-                    max: 1.0,
-                    step: 0.1,
-                    value: this.layer.getOpacity()
-                }).off("slide").on("slide", jQuery.proxy(function(evt) {
-                    this.layer.setOpacity(evt.value);                    
-                }, this));
+                this.layer.setOpacity(evt.currentTarget.value); 
             } else {
-                jQuery("#opc-slider-" + this.nodeid).slider("destroy");
                 wrapper.addClass("hidden");
             }                        
         }, this));
     } else {
         /* Disable the link */
-        sliderLink.parent().addClass("disabled"); 
-        sliderLink.off("click").on("click", function() {return(false);});
+        sliderInput.parent().addClass("disabled"); 
     }
 };
 
