@@ -38,7 +38,7 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
             '<div class="panel panel-default hidden" style="margin-bottom:0px" id="wrapper-opc-' + this.nodeid + '">' + 
                 '<div class="panel-body" style="padding:5px">' +
                     '<input id="opc-slider-' + this.nodeid + '" type="range" min="0.0" max="1.0" step="0.1" ' + 
-                    'data-toggle="tooltip" data-placement="top" title="tooltip">' + 
+                    'data-toggle="tooltip" data-placement="top" title="value">' + 
                     '</input>' + 
                 '</div>' +                
             '</div>' + 
@@ -116,9 +116,11 @@ magic.classes.LayerTreeOptionsMenu.prototype.addOpacitySliderHandler = function(
             if (wrapper.hasClass("hidden")) {
                 /* Show the slider and add handlers */
                 wrapper.removeClass("hidden");
+                sliderInput.attr("data-original-title", this.layer.getOpacity());
                 sliderInput.val(this.layer.getOpacity());
                 sliderInput.off("input change").on("input change", jQuery.proxy(function(evt2) {
                     this.layer.setOpacity(evt2.currentTarget.value);
+                    sliderInput.attr("data-original-title", this.layer.getOpacity());
                 }, this));
             } else {
                 jQuery("#opc-slider-" + this.nodeid).slider("destroy");
