@@ -21,3 +21,15 @@ span.non-clickable {
 .layer-options-dd-menu>li>a {
     color: #ffffff;
 }
+
+.layer-list-group>li>table {
+    background-color: #33383e;
+}
+
+button[id^='layer-info-'] {
+    background-color: #33383e;
+}
+
+button[id^='layer-info-']:hover {
+    background-color: #33383e;
+}
