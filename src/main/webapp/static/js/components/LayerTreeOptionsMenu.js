@@ -37,7 +37,8 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
             '<a href="Javascript:void(0)" id="opc-' + this.nodeid + '">Change layer transparency</a>' + 
             '<div class="panel panel-default hidden" style="margin-bottom:0px" id="wrapper-opc-' + this.nodeid + '">' + 
                 '<div class="panel-body" style="padding:5px">' +
-                    '<input id="opc-slider-' + this.nodeid + '" type="range" min="0.0" max="1.0" step="0.1">' + 
+                    '<input id="opc-slider-' + this.nodeid + '" type="range" min="0.0" max="1.0" step="0.1" ' + 
+                    'data-toggle="tooltip" data-placement="top" title="tooltip">' + 
                     '</input>' + 
                 '</div>' +                
             '</div>' + 
@@ -115,6 +116,7 @@ magic.classes.LayerTreeOptionsMenu.prototype.addOpacitySliderHandler = function(
             if (wrapper.hasClass("hidden")) {
                 /* Show the slider and add handlers */
                 wrapper.removeClass("hidden");
+                sliderInput.val(this.layer.getOpacity());
                 sliderInput.off("input change").on("input change", jQuery.proxy(function(evt2) {
                     this.layer.setOpacity(evt2.currentTarget.value);
                 }, this));
