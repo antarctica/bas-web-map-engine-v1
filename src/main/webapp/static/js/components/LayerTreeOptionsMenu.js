@@ -111,17 +111,17 @@ magic.classes.LayerTreeOptionsMenu.prototype.addOpacitySliderHandler = function(
         /* Add the handlers */
         sliderLink.off("click").on("click", jQuery.proxy(function(evt) {
             evt.stopPropagation();
-            sliderInput.off("click input change").on("click input change", jQuery.proxy(function(evt2) {
-                evt2.stopPropagation();
-                var wrapper = jQuery("#wrapper-opc-" + this.nodeid);
-                if (wrapper.hasClass("hidden")) {
-                    /* Show the slider range input and add handler */
-                    wrapper.removeClass("hidden");
-                    this.layer.setOpacity(evt.currentTarget.value); 
-                } else {
-                    wrapper.addClass("hidden");
-                }                        
-            }, this));
+            var wrapper = jQuery("#wrapper-opc-" + this.nodeid);
+            if (wrapper.hasClass("hidden")) {
+                /* Show the slider and add handlers */
+                wrapper.removeClass("hidden");
+                sliderInput.off("input change").on("input change", jQuery.proxy(function(evt2) {
+                    this.layer.setOpacity(evt2.currentTarget.value);
+                }, this));
+            } else {
+                jQuery("#opc-slider-" + this.nodeid).slider("destroy");
+                wrapper.addClass("hidden");
+            }                    
         }, this));
     } else {
         /* Disable the link */
