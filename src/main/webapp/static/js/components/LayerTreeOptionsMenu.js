@@ -115,12 +115,12 @@ magic.classes.LayerTreeOptionsMenu.prototype.addOpacitySliderHandler = function(
             var wrapper = jQuery("#wrapper-opc-" + this.nodeid);
             if (wrapper.hasClass("hidden")) {
                 /* Show the slider and add handlers */
-                wrapper.removeClass("hidden");
-                sliderInput.attr("data-original-title", this.layer.getOpacity()).tooltip("fixTitle").tooltip("show");
+                wrapper.removeClass("hidden");                
                 sliderInput.val(this.layer.getOpacity());
                 sliderInput.off("input change").on("input change", jQuery.proxy(function(evt2) {
                     this.layer.setOpacity(evt2.currentTarget.value);
                     sliderInput.attr("data-original-title", this.layer.getOpacity());
+                    sliderInput.attr("data-original-title", this.layer.getOpacity()).tooltip("fixTitle").tooltip("show");
                 }, this));
             } else {
                 jQuery("#opc-slider-" + this.nodeid).slider("destroy");
