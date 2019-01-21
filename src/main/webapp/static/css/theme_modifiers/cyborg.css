@@ -27,9 +27,11 @@ button.close:hover {
 }
 
 button[id^="layer-info-"] {
+    background-image: none;
     background-color: #33383e;
 }
 
 button[id^="layer-info-"]:hover {
+    background-image: none;
     background-color: #33383e;
 }
