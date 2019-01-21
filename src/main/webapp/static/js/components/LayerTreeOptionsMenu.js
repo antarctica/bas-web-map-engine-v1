@@ -116,7 +116,7 @@ magic.classes.LayerTreeOptionsMenu.prototype.addOpacitySliderHandler = function(
             if (wrapper.hasClass("hidden")) {
                 /* Show the slider and add handlers */
                 wrapper.removeClass("hidden");
-                sliderInput.attr("data-original-title", this.layer.getOpacity());
+                sliderInput.attr("data-original-title", this.layer.getOpacity()).tooltip("fixTitle").tooltip("show");
                 sliderInput.val(this.layer.getOpacity());
                 sliderInput.off("input change").on("input change", jQuery.proxy(function(evt2) {
                     this.layer.setOpacity(evt2.currentTarget.value);
