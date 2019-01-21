@@ -26,10 +26,10 @@ span.non-clickable {
     background-color: #33383e;
 }
 
-button[id^='layer-info-'] {
+button[id^="layer-info-"] {
     background-color: #33383e;
 }
 
-button[id^='layer-info-']:hover {
+button[id^="layer-info-"]:hover {
     background-color: #33383e;
 }
