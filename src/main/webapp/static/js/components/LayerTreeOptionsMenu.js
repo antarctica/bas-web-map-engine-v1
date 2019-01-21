@@ -105,23 +105,27 @@ magic.classes.LayerTreeOptionsMenu = function(options) {
  * Opacity property slider initialiser
  */
 magic.classes.LayerTreeOptionsMenu.prototype.addOpacitySliderHandler = function() {
+    var sliderLink = jQuery("#opc-" + this.nodeid);
     var sliderInput = jQuery("#opc-slider-" + this.nodeid);
     if (this.layer.getVisible()) {
-        /* Add the handlers */        
-        sliderInput.off("click input change").on("click input change", jQuery.proxy(function(evt) {
+        /* Add the handlers */
+        sliderLink.off("click").on("click", jQuery.proxy(function(evt) {
             evt.stopPropagation();
-            var wrapper = jQuery("#wrapper-opc-" + this.nodeid);
-            if (wrapper.hasClass("hidden")) {
-                /* Show the slider range input and add handler */
-                wrapper.removeClass("hidden");
-                this.layer.setOpacity(evt.currentTarget.value); 
-            } else {
-                wrapper.addClass("hidden");
-            }                        
-        }, this));
+            sliderInput.off("click input change").on("click input change", jQuery.proxy(function(evt2) {
+                evt2.stopPropagation();
+                var wrapper = jQuery("#wrapper-opc-" + this.nodeid);
+                if (wrapper.hasClass("hidden")) {
+                    /* Show the slider range input and add handler */
+                    wrapper.removeClass("hidden");
+                    this.layer.setOpacity(evt.currentTarget.value); 
+                } else {
+                    wrapper.addClass("hidden");
+                }                        
+            }, this));
+        }, this);
     } else {
         /* Disable the link */
-        sliderInput.parent().addClass("disabled"); 
+        sliderLink.parent().addClass("disabled"); 
     }
 };
 
