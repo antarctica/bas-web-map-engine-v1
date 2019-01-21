@@ -108,7 +108,7 @@ magic.classes.LayerTreeOptionsMenu.prototype.addOpacitySliderHandler = function(
     var sliderInput = jQuery("#opc-slider-" + this.nodeid);
     if (this.layer.getVisible()) {
         /* Add the handlers */        
-        sliderInput.off("input change").on("input change", jQuery.proxy(function(evt) {
+        sliderInput.off("click input change").on("click input change", jQuery.proxy(function(evt) {
             evt.stopPropagation();
             var wrapper = jQuery("#wrapper-opc-" + this.nodeid);
             if (wrapper.hasClass("hidden")) {
