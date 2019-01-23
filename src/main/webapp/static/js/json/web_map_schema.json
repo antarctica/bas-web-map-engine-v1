@@ -189,7 +189,7 @@
         "bs_theme": {
             "description": "Bootstrap theme to use",
             "type": "string",
-            "pattern": "[a-z0-9\\-]{0,30}"
+            "pattern": "[a-z0-9\\-]{1,30}"
         },
         "bgcolor": {
             "description": "Background colour",
