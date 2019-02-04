@@ -194,12 +194,12 @@ function getAttribution(nd) {
     if (nd.attribution) {
         var cacheBuster = "&buster=" + new Date().getTime();
         var legendUrl = nd.wms_source + 
-            "?service=WMS&request=GetLegendGraphic&format=image/png&width=15&height=15&styles=&layer=" + nd.feature_name + 
+            "?service=WMS&request=GetLegendGraphic&format=image/png&width=10&height=10&styles=&layer=" + nd.feature_name + 
             "&legend_options=fontName:Bitstream Vera Sans Mono;fontAntiAliasing:true;fontColor:0xffffff;fontSize:6;bgColor:0x272b30;dpi:180" + cacheBuster;
         return(
-            '<strong>Layer ' + nd.name + '</strong><br/>' + 
+            '<p><strong>Layer ' + nd.name + '</strong><br/>' + 
             'Source attribution : ' + nd.attribution + '<br/>' + 
-            '<img src="' + legendUrl + '" alt="Legend"></img>'
+            '<img src="' + legendUrl + '" alt="Legend"></img></p>'
         );
     } 
     return("");
