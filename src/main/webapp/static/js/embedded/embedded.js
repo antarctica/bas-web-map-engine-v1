@@ -198,7 +198,7 @@ function getAttribution(nd) {
             "&legend_options=fontName:Bitstream Vera Sans Mono;fontAntiAliasing:true;fontColor:0xffffff;fontSize:6;bgColor:0x272b30;dpi:180" + cacheBuster;
         return(
             '<p><strong>Layer ' + nd.name + '</strong><br/>' + 
-            'Source attribution : ' + nd.attribution + '<br/>' + 
+            'Source attribution : ' + linkify(nd.attribution, "[External resource]") + '<br/>' + 
             '<img src="' + legendUrl + '" alt="Legend"></img></p>'
         );
     } 
