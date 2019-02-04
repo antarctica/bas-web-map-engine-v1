@@ -318,6 +318,58 @@ function displayFeatureData(coord, data, map) {
     overlay.setPosition(coord);
 }
 
+/**
+ * Replace urls in given value by links
+ * Courtesy of http://stackoverflow.com/questions/37684/how-to-replace-plain-urls-with-links
+ * @param {String} value
+ * @param {String} linkText
+ * @returns {String}
+ */
+function linkify(value, linkText) {
+    if (!value) {
+        return("");
+    }
+    if (typeof value == "string") {
+        if (value.indexOf("<a") != -1) {
+            /* Already deemed to be linkified - don't try again! */
+            return(value);
+        } else if (value.match(/^https?:\/\/.+\.(jpg|jpeg|png|gif)$/)) {
+            /* Image URL */
+            return('<img src="' + value + '"></img>');
+        }
+        /* Check for brain-dead Ramadda URLs with ?entryid=<stuff> at the end, disguising the mime type! */
+        if (value.match(/^https?:\/\//) && value.indexOf("?") > 0) {
+            /* This is a pure URL with a query string */
+            var valueMinusQuery = value.substring(0, value.indexOf("?"));
+            if (valueMinusQuery.match(/\.(jpg|jpeg|png|gif)$/)) {
+                /* Image URL displayed as inline image */
+                return('<img src="' + value + '"></img>');
+            }
+        }
+        /* http://, https://, ftp:// */
+        var urlPattern = /\b(?:https?|ftp):\/\/[a-z0-9-+&@#\/%?=~_|!:,.;]*[a-z0-9-+&@#\/%=~_|]/gim;
+        /* www. sans http:// or https:// */
+        var pseudoUrlPattern = /(^|[^\/])(www\.[\S]+(\b|$))/gim;
+        /* Email addresses */
+        var emailAddressPattern = /\w+@[a-zA-Z_]+?(?:\.[a-zA-Z]{2,6})+/gim;
+        if (linkText) {
+            return(value
+                    .replace(urlPattern, '<a href="$&" title="$&" target="_blank">' + linkText + '</a>')
+                    .replace(pseudoUrlPattern, '$1<a href="http://$2" target="_blank">' + linkText + '</a>')
+                    .replace(emailAddressPattern, '<a href="mailto:$&">' + linkText + '</a>')
+                    );
+        } else {
+            return(value
+                    .replace(urlPattern, '<a href="$&" title="$&" target="_blank">[external resource]</a>')
+                    .replace(pseudoUrlPattern, '$1<a href="http://$2" target="_blank">$2</a>')
+                    .replace(emailAddressPattern, '<a href="mailto:$&">$&</a>')
+                    );
+        }
+    } else {
+        return(value);
+    }
+}
+
 function writePopupContent(div, data) {     
     if (data.layer && data.layer.get("metadata")) {
         var md = data.layer.get("metadata");
@@ -343,8 +395,10 @@ function writePopupContent(div, data) {
                         /* Not an integer => requires toFixed() treatment */
                         output = output.toFixed(4);
                     }
+                } else {
+                    output = linkify(output, "[external resource]");
                 }
-                markup += '<tr><td width="60" style="overflow:hidden">' + elt.alias + '</td><td width="140" style="overflow:hidden">' + output + '</td></tr>';
+                markup += '<tr><td width="60" style="overflow:hidden">' + elt.alias + '</td><td width="140" style="overflow:auto">' + output + '</td></tr>';
             });
             markup += '</table>';
             div.html(markup);
