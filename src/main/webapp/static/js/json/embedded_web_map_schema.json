@@ -228,7 +228,7 @@
                                     "description": "Type of attribute",
                                     "type": "string",
                                     "enum": [
-                                        "string", "decimal", "double", "int", "long", "boolean", "date", "time"
+                                        "string", "decimal", "double", "int", "long", "boolean", "date", "time", "dateTime"
                                     ]
                                 },                               
                                 "displayed": {
