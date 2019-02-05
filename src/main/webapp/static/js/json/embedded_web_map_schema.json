@@ -196,6 +196,10 @@
                             }
                         ]
                     },
+                    "refresh_rate": {
+                        "description": "Elapsed minutes until data is auto-refreshed",
+                        "type": "number"
+                    },
                     "opacity": {
                         "description": "Layer opacity",
                         "type": "number",

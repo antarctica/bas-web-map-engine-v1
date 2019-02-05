@@ -19,6 +19,7 @@ magic.classes.creator.EmbeddedLayerEditorPopup = function(options) {
         {"field": "id", "default": ""},
         {"field": "name","default": ""},
         {"field": "attribution", "default": ""},
+        {"field": "refresh_rate", "default": 0},
         {"field": "opacity", "default": 1.0},
         {"field": "is_base", "default": false},            
         {"field": "is_singletile", "default": false},                
@@ -96,7 +97,17 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.markup = function() {
                        'data-toggle="tooltip" data-placement="left" title="Layer opacity (0.0 = transparent, 1.0 = opaque)" value="1.0">' + 
                     '</input>' + 
                 '</div>' + 
-            '</div>' +             
+            '</div>' +   
+            '<div class="form-group form-group-md col-md-12">' + 
+                '<label for="' + this.id + '-opacity" class="col-md-3 control-label">Refresh rate</label>' + 
+                '<div class="col-md-9">' + 
+                    '<input type="number" class="form-control" id="' + this.id + '-refresh_rate" ' + 
+                       'placeholder="Minutes before data is auto-refreshed" ' + 
+                       'min="0" max="300" step="5" ' + 
+                       'data-toggle="tooltip" data-placement="left" title="Elapsed minutes before layer data is auto-refreshed, useful for dynamic data">' +                                    
+                    '</input>' + 
+                '</div>' + 
+            '</div>' + 
             '<div class="form-group form-group-md col-md-12">' +
                 '<div class="checkbox" style="float:left" data-toggle="tooltip" data-placement="left" ' +
                     'title="Layer is a base (backdrop) layer">' + 

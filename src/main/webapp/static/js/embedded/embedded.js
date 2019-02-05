@@ -185,9 +185,24 @@ function createLayers(data, viewData, serviceUrl) {
                 });
             }
             layers.push(layer);
+            /* Add auto-refresh if required */
+            if (!isNaN(nd.refresh_rate) && nd.refresh_rate > 0) {
+                setInterval(refreshLayer, 1000*60*nd.refresh_rate, layer);
+            }
         }
     }
     return(layers);
+}
+
+/**
+ * setInterval handler to refresh a layer
+ * NOTE: assumes all layers are WMS
+ * @param {ol.Layer} layer
+ */
+function refreshLayer(layer) {
+    var params = layer.getSource().getParams();
+    params.t = new Date().getTime();
+    layer.getSource().updateParams(params);    
 }
 
 function getAttribution(nd) {
