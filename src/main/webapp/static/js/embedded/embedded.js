@@ -243,7 +243,7 @@ function getOgcEndpoint(url, service) {
         proxEp = proxyUrl(url);
     }            
     return(proxEp);
-},       
+}       
 
 /**
  * Decide whether given URL needs to be proxied to get round cross-origin issues, and return a proxied version if so
