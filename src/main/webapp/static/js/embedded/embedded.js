@@ -138,7 +138,7 @@ function createLayers(data, viewData, serviceUrl) {
             } else if (nd.is_single_tile) {
                 /* Render point layers with a single tile for labelling free of tile boundary effects */                
                 var wmsSource = new ol.source.ImageWMS(({
-                    url: nd.wms_source,
+                    url: proxyUrl(nd.wms_source),
                     attributions: getAttribution(nd),
                     crossOrigin: "anonymous",
                     params: jQuery.extend({
@@ -158,7 +158,7 @@ function createLayers(data, viewData, serviceUrl) {
                 /* Non-point layer */
                 var wmsVersion = "1.3.0";                
                 var wmsSource = new ol.source.TileWMS({
-                    url: nd.wms_source,
+                    url: proxyUrl(nd.wms_source),
                     attributions: getAttribution(nd),
                     crossOrigin: "anonymous",
                     params: jQuery.extend({
@@ -225,9 +225,9 @@ function refreshLayer(layer) {
 function getAttribution(nd) {
     if (nd.attribution) {
         var cacheBuster = "&buster=" + new Date().getTime();
-        var legendUrl = nd.wms_source + 
+        var legendUrl = proxyUrl(nd.wms_source + 
             "?service=WMS&request=GetLegendGraphic&format=image/png&width=10&height=10&styles=&layer=" + nd.feature_name + 
-            "&legend_options=fontName:Bitstream Vera Sans Mono;fontAntiAliasing:true;fontColor:0xffffff;fontSize:6;bgColor:0x272b30;dpi:180" + cacheBuster;
+            "&legend_options=fontName:Bitstream Vera Sans Mono;fontAntiAliasing:true;fontColor:0xffffff;fontSize:6;bgColor:0x272b30;dpi:180" + cacheBuster);
         return(
             '<p><strong>Layer ' + nd.name + '</strong><br/>' + 
             'Source attribution : ' + linkify(nd.attribution, "[External resource]") + '<br/>' + 
