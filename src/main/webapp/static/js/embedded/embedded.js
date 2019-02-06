@@ -195,6 +195,22 @@ function createLayers(data, viewData, serviceUrl) {
 }
 
 /**
+ * Decide whether given URL needs to be proxied to get round cross-origin issues, and return a proxied version if so
+ * @param {string} url
+ * @return {string}
+ */
+function proxyUrl(url) {
+    var proxiedUrl = url;
+    var wUrlData = new URL(window.location);
+    var urlData = new URL(url);
+    var proxy = wUrlData.origin + "/proxy";
+    if (!(wUrlData.protocol == urlData.protocol && wUrlData.host == urlData.host && wUrlData.port == urlData.port)) {
+        proxiedUrl = proxy + "?url=" + encodeURIComponent(urlData);
+    }
+    return(proxiedUrl);
+}
+
+/**
  * setInterval handler to refresh a layer
  * NOTE: assumes all layers are WMS
  * @param {ol.Layer} layer
