@@ -229,7 +229,7 @@ function getEndpointsBy(url) {
  * @param {string} service (wms|wfs|wcs)
  * @returns {string}
  */
-getOgcEndpoint: function(url, service) {
+function getOgcEndpoint(url, service) {
     var proxEp = url;           
     var matches = getEndpointsBy(url);            
     if (jQuery.isArray(matches) && matches.length > 0) {
