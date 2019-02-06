@@ -205,7 +205,7 @@ function proxyUrl(url) {
     var urlData = new URL(url);
     var proxy = wUrlData.origin + "/proxy";
     if (!(wUrlData.protocol == urlData.protocol && wUrlData.host == urlData.host && wUrlData.port == urlData.port)) {
-        proxiedUrl = proxy + "?url=" + encodeURIComponent(urlData);
+        proxiedUrl = proxy + "?url=" + encodeURIComponent(url);
     }
     return(proxiedUrl);
 }
