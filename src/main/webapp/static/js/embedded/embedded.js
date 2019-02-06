@@ -202,7 +202,8 @@ function createLayers(data, viewData, serviceUrl) {
 function refreshLayer(layer) {
     var params = layer.getSource().getParams();
     params.t = new Date().getTime();
-    layer.getSource().updateParams(params);    
+    layer.getSource().updateParams(params); 
+    console.log("Refreshing layer " + layer.get("name"));
 }
 
 function getAttribution(nd) {
