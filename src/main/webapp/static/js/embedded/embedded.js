@@ -278,7 +278,7 @@ function getAttribution(nd) {
         var cacheBuster = "&buster=" + new Date().getTime();
         var legendUrl = getOgcEndpoint(nd.wms_source, "wms") + 
             "?service=WMS&request=GetLegendGraphic&format=image/png&width=10&height=10&styles=&layer=" + nd.feature_name + 
-            "&legend_options=fontName:Bitstream+Vera+Sans+Mono;fontAntiAliasing:true;fontColor:0xffffff;fontSize:6;bgColor:0x272b30;dpi:180" + cacheBuster;
+            "&legend_options=" + encodeURIComponent("fontName:Bitstream+Vera Sans Mono;fontAntiAliasing:true;fontColor:0xffffff;fontSize:6;bgColor:0x272b30;dpi:180") + cacheBuster;
         return(
             '<p><strong>Layer ' + nd.name + '</strong><br/>' + 
             'Source attribution : ' + linkify(nd.attribution, "[External resource]") + '<br/>' + 
