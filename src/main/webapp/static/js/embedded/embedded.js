@@ -138,7 +138,7 @@ function createLayers(data, viewData, serviceUrl) {
             } else if (nd.is_single_tile) {
                 /* Render point layers with a single tile for labelling free of tile boundary effects */                
                 var wmsSource = new ol.source.ImageWMS(({
-                    url: proxyUrl(nd.wms_source),
+                    url: getOgcEndpoint(nd.wms_source),
                     attributions: getAttribution(nd),
                     crossOrigin: "anonymous",
                     params: jQuery.extend({
@@ -158,7 +158,7 @@ function createLayers(data, viewData, serviceUrl) {
                 /* Non-point layer */
                 var wmsVersion = "1.3.0";                
                 var wmsSource = new ol.source.TileWMS({
-                    url: proxyUrl(nd.wms_source),
+                    url: getOgcEndpoint(nd.wms_source),
                     attributions: getAttribution(nd),
                     crossOrigin: "anonymous",
                     params: jQuery.extend({
@@ -195,6 +195,57 @@ function createLayers(data, viewData, serviceUrl) {
 }
 
 /**
+ * Retrieve endpoint data corresponding to the input filter (match occurs if 'filter' found at start of endpoint, case-insensitive)
+ * @param {string} url
+ * @returns {Array}
+ */
+function getEndpointsBy(url) {
+    if (!endpointData || !url) {
+        return(null);
+    }            
+    return(jQuery.grep(endpointData, function(ep) {       
+        /* Note that stored endpoints should be WMS ones, so remove wms|wfs|wcs from end of filter */
+        var serviceNeutralFilter = url.replace(/\/w[cfm]s$/, "");
+        /* Check for REST endpoints and strip everything before /rest */
+        var restIdx = serviceNeutralFilter.indexOf("/rest");
+        if (restIdx != -1) {
+            serviceNeutralFilter = serviceNeutralFilter.substring(0, restIdx);
+        }
+        var foundUrl = ep["url"].indexOf(serviceNeutralFilter) == 0;                   
+        if (!foundUrl && ep["url_aliases"]) {
+            /* Check any of the aliases match in protocol, host and port */
+            var aliases = ep["url_aliases"].split(",");
+            for (var i = 0; !foundUrl && i < aliases.length; i++) {
+                foundUrl = aliases[i].indexOf(serviceNeutralFilter) == 0;
+            }                            
+        }
+        return(foundUrl);
+    }));
+}
+
+/**
+ * Get proxied endpoint i.e. a /ogc/<service>/<op> type URL for the given one, if a recognised endpoint
+ * @param {string} url
+ * @param {string} service (wms|wfs|wcs)
+ * @returns {string}
+ */
+getOgcEndpoint: function(url, service) {
+    var proxEp = url;           
+    var matches = getEndpointsBy(url);            
+    if (jQuery.isArray(matches) && matches.length > 0) {
+        var wUrlData = new URL(window.location);
+        if (matches[0]["is_user_service"] === true) {
+            proxEp = wUrlData.origin + "/ogc/user/" + service;
+        } else {
+            proxEp = wUrlData.origin + "/ogc/" + matches[0]["id"] + "/" + service;
+        }
+    } else {
+        proxEp = proxyUrl(url);
+    }            
+    return(proxEp);
+},       
+
+/**
  * Decide whether given URL needs to be proxied to get round cross-origin issues, and return a proxied version if so
  * @param {string} url
  * @return {string}
@@ -205,7 +256,7 @@ function proxyUrl(url) {
     var urlData = new URL(url);
     var proxy = wUrlData.origin + "/proxy";
     if (!(wUrlData.protocol == urlData.protocol && wUrlData.host == urlData.host && wUrlData.port == urlData.port)) {
-        proxiedUrl = proxy + "?url=" + url;
+        proxiedUrl = proxy + "?url=" + encodeURIComponent(url);
     }
     return(proxiedUrl);
 }
@@ -225,7 +276,7 @@ function refreshLayer(layer) {
 function getAttribution(nd) {
     if (nd.attribution) {
         var cacheBuster = "&buster=" + new Date().getTime();
-        var legendUrl = proxyUrl(nd.wms_source + 
+        var legendUrl = getOgcEndpoint(nd.wms_source + 
             "?service=WMS&request=GetLegendGraphic&format=image/png&width=10&height=10&styles=&layer=" + nd.feature_name + 
             "&legend_options=fontName:Bitstream Vera Sans Mono;fontAntiAliasing:true;fontColor:0xffffff;fontSize:6;bgColor:0x272b30;dpi:180" + cacheBuster);
         return(
@@ -470,6 +521,11 @@ ensureJQueryLoaded();
 var embeddedMaps = {};
 
 /**
+ * Stores the endpoint data
+ */
+var endpointData = [];
+
+/**
  * Create the OpenLayers map
  * @param {String} name
  * @param {Object} div
@@ -552,7 +608,8 @@ function init() {
                 url: serviceUrl,
                 method: "GET",
                 dataType: "json"
-            }).done(function(data) {                
+            }).done(function(data) {  
+                endpointData = data.endpoints;
                 if (embeddedMaps[data.name]) {
                     /* Attempting multiple instances of single map */
                     showAlert("Attempting to have the same map multiple times on one page");
