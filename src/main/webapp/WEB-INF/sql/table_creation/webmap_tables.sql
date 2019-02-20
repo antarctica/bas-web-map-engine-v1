@@ -63,6 +63,8 @@ CREATE TABLE webmap.maps
   infolink character varying(255), -- URL of a background information page about this map
   newslink character varying(255), -- URL of a news information page about this map
   watermark character varying(255), -- URL of an image to use a map watermark
+  bgcolor character varying(10), -- Optional map background colour
+  bs_theme character varying(30), -- Optional bootstrap theme name
   CONSTRAINT maps_pkey PRIMARY KEY (id),
   CONSTRAINT maps_name_unique UNIQUE (name)
 )
@@ -93,6 +95,8 @@ COMMENT ON COLUMN webmap.maps.allowed_edit IS 'login|owner';
 COMMENT ON COLUMN webmap.maps.infolink IS 'URL of a background information page about this map';
 COMMENT ON COLUMN webmap.maps.newslink IS 'URL of a news information page about this map';
 COMMENT ON COLUMN webmap.maps.watermark IS 'URL of an image to use a map watermark';
+COMMENT ON COLUMN webmap.maps.bgcolor IS 'Optional map background colour';
+COMMENT ON COLUMN webmap.maps.bs_theme IS 'Optional bootstrap theme name';
 
 CREATE TABLE webmap.thumbnails
 (
