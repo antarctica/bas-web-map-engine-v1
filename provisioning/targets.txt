@@ -1,7 +1,7 @@
 #add
-#opsgis
+opsgis
 #opsgis_rothera
 #polarcode
-#sggis
-#thwaites
-istargis
+sggis
+thwaites
+#istargis
