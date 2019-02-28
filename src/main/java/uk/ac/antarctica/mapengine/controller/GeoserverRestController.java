@@ -460,10 +460,15 @@ public class GeoserverRestController {
             System.out.println("Retrieve WFS URL : >" + wfs + "<");
             guc = new GenericUrlConnector(wfs.startsWith("https"));
             GenericUrlConnectorResponse  gucOut= guc.get(wfs);
+            System.out.println("Got response...");
             if (gucOut.getStatus() < 400) {
+                System.out.println("Http response ok");
                 String wfsXml = IOUtils.toString(gucOut.getContent());
                 if (wfsXml != null) {
                     /* Something plausible at least */
+                    System.out.println("Plausible content: ");
+                    System.out.println(wfsXml);
+                    System.out.println("Content end");
                     try {
                         JsonArray jarr = new JsonArray();
                         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -485,6 +490,8 @@ public class GeoserverRestController {
                                 }
                                 jo.add("extent", jarr);
                             }
+                        } else {
+                            System.out.println("Failed to find the wfs:boundedBy element");
                         }
                     } catch(IOException | ParserConfigurationException | SAXException ex) {
                         System.out.println("Error parsing WFS response : " + ex.getMessage());
