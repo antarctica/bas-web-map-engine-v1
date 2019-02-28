@@ -466,9 +466,7 @@ public class GeoserverRestController {
                 String wfsXml = IOUtils.toString(gucOut.getContent());
                 if (wfsXml != null) {
                     /* Something plausible at least */
-                    System.out.println("Plausible content: ");
-                    System.out.println(wfsXml);
-                    System.out.println("Content end");
+                    System.out.println("Plausible content: ");                    
                     try {
                         JsonArray jarr = new JsonArray();
                         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -492,6 +490,8 @@ public class GeoserverRestController {
                             }
                         } else {
                             System.out.println("Failed to find the wfs:boundedBy element");
+                            System.out.println(wfsXml);
+                            System.out.println("Content end");
                         }
                     } catch(IOException | ParserConfigurationException | SAXException ex) {
                         System.out.println("Error parsing WFS response : " + ex.getMessage());
