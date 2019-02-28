@@ -10,6 +10,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URLEncoder;
@@ -485,9 +486,24 @@ public class GeoserverRestController {
                                 jo.add("extent", jarr);
                             }
                         }
-                    } catch(IOException | ParserConfigurationException | SAXException ex) {}
+                    } catch(IOException | ParserConfigurationException | SAXException ex) {
+                        System.out.println("Error parsing WFS response : " + ex.getMessage());
+                    }
+                } else {
+                    System.out.println("XML return from WFS was null");
                 }
-            }                        
+            } else {
+                if (gucOut != null) {
+                    System.out.println("Error return (" + gucOut.getStatus() + ") from WFS call - content follows:");
+                    InputStream errContent = gucOut.getContent();
+                    if (errContent != null) {
+                        System.out.println(IOUtils.toString(errContent));
+                    }
+                    System.out.println("Error content end");
+                } else {
+                    System.out.println("Null return from WFS");
+                }                
+            }                      
         } catch (IOException | NoSuchAlgorithmException | KeyStoreException | KeyManagementException ex) {
             System.out.println("Exception: " + ex.getMessage() + " retrieving extent for layer " + layer + ", filter " + filter);
         } finally {
