@@ -247,7 +247,7 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.getFeatures = function(fty
         }
         if ("Layer" in layer && jQuery.isArray(layer["Layer"])) {
             /* More trawling to do */
-            this.getFeatures(ftypes, layer["Layer"]);
+            this.getFeatures(ftypes, uniqueDict, layer["Layer"]);
         }        
     }, this));
 };
