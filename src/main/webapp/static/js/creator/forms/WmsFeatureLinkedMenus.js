@@ -229,14 +229,14 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.getFeatures = function(fty
     jQuery.each(layers, jQuery.proxy(function(idx, layer) {
         if ("Name" in layer) {
             /* Leaf node - a named layer */
-            if (!(layer.Name in uniqueDict)) {
+            //if (!(layer.Name in uniqueDict)) {
                 ftypes.push({
                     name: layer.Title,
                     value: layer.Name,
                     styles: layer.Style
                 });
-                uniqueDict[layer.Name] = 1;
-            }
+                //uniqueDict[layer.Name] = 1;
+            //}
         }
         if ("Layer" in layer && jQuery.isArray(layer["Layer"])) {
             /* More trawling to do */

@@ -509,12 +509,12 @@ magic.modules.Common = function () {
          */
         getFeatureTypes: function (ftypes, layers) {
             jQuery.each(layers, jQuery.proxy(function (idx, layer) {
-                if ("Name" in layer) {
+                //if ("Name" in layer) {
                     /* Leaf node - a named layer */
-                    if (!(layer.Name in ftypes)) {
+                    //if (!(layer.Name in ftypes)) {
                         ftypes[layer.Name] = layer;
-                    }
-                }
+                    //}
+                }//
                 if ("Layer" in layer && jQuery.isArray(layer["Layer"])) {
                     /* More trawling to do as there are child layers too */
                     this.getFeatureTypes(ftypes, layer["Layer"]);
