@@ -514,7 +514,7 @@ magic.modules.Common = function () {
                     //if (!(layer.Name in ftypes)) {
                         ftypes[layer.Name] = layer;
                     //}
-                }//
+                //}
                 if ("Layer" in layer && jQuery.isArray(layer["Layer"])) {
                     /* More trawling to do as there are child layers too */
                     this.getFeatureTypes(ftypes, layer["Layer"]);
