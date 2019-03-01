@@ -402,7 +402,7 @@ magic.modules.Common = function () {
                     try {
                         var capsJson = jQuery.parseJSON(JSON.stringify(parser.read(response)));
                         if (capsJson) {
-                            var ftypes = null;
+                            var ftypes = null, uniqueDict = {};
                             if ("Capability" in capsJson && "Layer" in capsJson.Capability && "Layer" in capsJson.Capability.Layer && jQuery.isArray(capsJson.Capability.Layer.Layer)) {
                                 var layers = capsJson.Capability.Layer.Layer;
                                 ftypes = {};
@@ -511,7 +511,9 @@ magic.modules.Common = function () {
             jQuery.each(layers, jQuery.proxy(function (idx, layer) {
                 if ("Name" in layer) {
                     /* Leaf node - a named layer */
-                    ftypes[layer.Name] = layer;
+                    if (!(layer.Name in ftypes)) {
+                        ftypes[layer.Name] = layer;
+                    }
                 }
                 if ("Layer" in layer && jQuery.isArray(layer["Layer"])) {
                     /* More trawling to do as there are child layers too */

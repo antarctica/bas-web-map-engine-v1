@@ -209,10 +209,10 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.loadStylesForFeature = fun
  * @returns {Array}
  */
 magic.classes.creator.WmsFeatureLinkedMenus.prototype.extractFeatureTypes = function(getCaps) {
-    var ftypes = [];
+    var ftypes = [], uniqueDict = {};    
     if ("Capability" in getCaps && "Layer" in getCaps.Capability && "Layer" in getCaps.Capability.Layer && jQuery.isArray(getCaps.Capability.Layer.Layer)) {
         var layers = getCaps.Capability.Layer.Layer;
-        this.getFeatures(ftypes, layers);        
+        this.getFeatures(ftypes, uniqueDict, layers);        
     } else {
         magic.modules.Common.showAlertModal("Malformed GetCapabilities response received from remote WMS", "error");
     }
@@ -222,17 +222,21 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.extractFeatureTypes = func
 /**
  * Recursive trawl through the GetCapabilities document for named layers
  * @param {Array} ftypes
+ * @param {Object} uniqueDict
  * @param {Array} layers
  */
-magic.classes.creator.WmsFeatureLinkedMenus.prototype.getFeatures = function(ftypes, layers) {
+magic.classes.creator.WmsFeatureLinkedMenus.prototype.getFeatures = function(ftypes, uniqueDict, layers) {
     jQuery.each(layers, jQuery.proxy(function(idx, layer) {
         if ("Name" in layer) {
             /* Leaf node - a named layer */
-            ftypes.push({
-                name: layer.Title,
-                value: layer.Name,
-                styles: layer.Style
-            });
+            if (!(layer.Name in uniqueDict)) {
+                ftypes.push({
+                    name: layer.Title,
+                    value: layer.Name,
+                    styles: layer.Style
+                });
+                uniqueDict[layer.Name] = 1;
+            }
         }
         if ("Layer" in layer && jQuery.isArray(layer["Layer"])) {
             /* More trawling to do */
