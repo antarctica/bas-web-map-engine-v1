@@ -493,6 +493,10 @@ function writePopupContent(div, data) {
     }
 }
 
+function plausibleExtent(extent) {
+    return(Math.abs(extent[2] - extent[0]) > 10.0 && Math.abs(extent[3] - extent[1]) > 10.0);
+}
+
 /* Load jQuery if not already present */
 if (!window.jQuery){
     var jq = document.createElement("script");
@@ -658,7 +662,7 @@ function init() {
                         filterUrl = filterUrl + "/" + encodeURIComponent(filter).replace(/'/g, "%27");
                     }
                     jQuery.getJSON(filterUrl, function(wfsData) {  
-                        if (jQuery.isArray(wfsData.extent) && wfsData.extent.length == 4) {
+                        if (jQuery.isArray(wfsData.extent) && wfsData.extent.length == 4 && plausibleExtent(wfsData.extent)) {
                             createMap(data.name, serviceDiv, embedLayers, embedView, wfsData.extent, embedMapSize);
                         } else {
                             createMap(data.name, serviceDiv, embedLayers, embedView, defaultExtent, embedMapSize);                            
