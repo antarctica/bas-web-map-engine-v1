@@ -475,11 +475,13 @@ public class GeoserverRestController {
                         Document doc = db.parse(new ByteArrayInputStream(wfsXml.getBytes(StandardCharsets.UTF_8)));
                         NodeList wfsBounds = doc.getElementsByTagName("wfs:boundedBy");
                         if (wfsBounds != null && wfsBounds.getLength() > 0) {
+                            System.out.println("Found bounds element");
                             Node envelope = wfsBounds.item(0).getFirstChild();
                             NodeList bounds = envelope.getChildNodes();
                             String bl = bounds.item(0).getTextContent();
                             String tr = bounds.item(1).getTextContent();
                             if (bl != null && !bl.isEmpty() && tr != null && !tr.isEmpty()) {
+                                System.out.println("Envelope checks out");
                                 for (String coord : bl.split(" ")) {
                                     jarr.add(new JsonPrimitive(Double.parseDouble(coord)));
                                 }
@@ -487,9 +489,13 @@ public class GeoserverRestController {
                                     jarr.add(new JsonPrimitive(Double.parseDouble(coord)));
                                 }
                                 jo.add("extent", jarr);
+                            } else {
+                                System.out.println("Unexpected content in wfs:boundedBy element:");
+                                System.out.println(wfsXml);
+                                System.out.println("Content end");
                             }
                         } else {
-                            System.out.println("Failed to find the wfs:boundedBy element");
+                            System.out.println("Failed to find the wfs:boundedBy element:");
                             System.out.println(wfsXml);
                             System.out.println("Content end");
                         }
