@@ -10,6 +10,15 @@ function showAlert(msg) {
 }
 
 /**
+ * Is the URL an Apex one? (Modify accordingly should this change)
+ * @param {string} url
+ * @return {boolean}
+ */
+function isApex(url) {
+    return(url.indexOf("bsdbase") != -1);
+}
+
+/**
  * Compensate for lack of universal support of URLSearchParams
  * @param {String} name
  * @param {String} url
@@ -138,8 +147,8 @@ function createLayers(data, viewData, serviceUrl) {
             } else if (nd.is_single_tile) {
                 /* Render point layers with a single tile for labelling free of tile boundary effects */                
                 var wmsSource = new ol.source.ImageWMS(({
-                    url: getOgcEndpoint(nd.wms_source, "wms"),
-                    attributions: getAttribution(nd),
+                    url: getOgcEndpoint(nd.wms_source, "wms", viewData.projection.getCode()),
+                    attributions: getAttribution(nd, viewData.projection.getCode()),
                     crossOrigin: "anonymous",
                     params: jQuery.extend({
                         "LAYERS": nd.feature_name,
@@ -158,8 +167,8 @@ function createLayers(data, viewData, serviceUrl) {
                 /* Non-point layer */
                 var wmsVersion = "1.3.0";                
                 var wmsSource = new ol.source.TileWMS({
-                    url: getOgcEndpoint(nd.wms_source, "wms"),
-                    attributions: getAttribution(nd),
+                    url: getOgcEndpoint(nd.wms_source, "wms", viewData.projection.getCode()),
+                    attributions: getAttribution(nd, viewData.projection.getCode()),
                     crossOrigin: "anonymous",
                     params: jQuery.extend({
                         "LAYERS": nd.feature_name,
@@ -227,17 +236,31 @@ function getEndpointsBy(url) {
  * Get proxied endpoint i.e. a /ogc/<service>/<op> type URL for the given one, if a recognised endpoint
  * @param {string} url
  * @param {string} service (wms|wfs|wcs)
+ * @param {string} proj
  * @returns {string}
  */
-function getOgcEndpoint(url, service) {
+function getOgcEndpoint(url, service, proj) {
     var proxEp = url;           
     var matches = getEndpointsBy(url);            
     if (jQuery.isArray(matches) && matches.length > 0) {
-        var wUrlData = new URL(window.location);
-        if (matches[0]["is_user_service"] === true) {
-            proxEp = wUrlData.origin + "/ogc/user/" + service;
+        var wUrlData = new URL(window.location), serviceUrl = null;
+        if (isApex(wUrlData.origin)) {
+            /* Deduce the appropriate service endpoint from the projection */
+            switch (proj) {                
+                case "EPSG:3762": 
+                    serviceUrl = "https://www.sggis.gov.gs";
+                    break;
+                default:
+                    serviceUrl = "https://add.data.bas.ac.uk";
+                    break;
+            }
         } else {
-            proxEp = wUrlData.origin + "/ogc/" + matches[0]["id"] + "/" + service;
+            serviceUrl = wUrlData.origin;
+        }
+        if (matches[0]["is_user_service"] === true) {
+            proxEp = serviceUrl + "/ogc/user/" + service;
+        } else {
+            proxEp = serviceUrl + "/ogc/" + matches[0]["id"] + "/" + service;
         }
     } else {
         proxEp = proxyUrl(url);
@@ -273,10 +296,10 @@ function refreshLayer(layer) {
     console.log("Refreshing layer " + layer.get("name"));
 }
 
-function getAttribution(nd) {
+function getAttribution(nd, proj) {
     if (nd.attribution) {
         var cacheBuster = "&buster=" + new Date().getTime();
-        var legendUrl = getOgcEndpoint(nd.wms_source, "wms") + 
+        var legendUrl = getOgcEndpoint(nd.wms_source, "wms", proj) + 
             "?service=WMS&request=GetLegendGraphic&format=image/png&width=10&height=10&styles=&layer=" + nd.feature_name + 
             "&legend_options=fontName:Lucida Sans Regular;fontAntiAliasing:true;fontColor:0xffffff;fontSize:6;bgColor:0x272b30;dpi:180" + cacheBuster;
         return(

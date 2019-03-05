@@ -60,7 +60,7 @@
     border: 1px solid #cccccc;
     bottom: 12px;
     left: -50px;
-    width: 200px;
+    /*width: 200px;*/
 }
 .ol-popup:after, .ol-popup:before {
     top: 100%;
@@ -101,7 +101,7 @@ div.ol-popup-feature-chooser {
 div.ol-popup-feature-data {
     font-family: Arial;
     font-size: 12px;
-    width: 150px;
+    /*width: 150px;*/
     margin-top: 5px;
 }
 
