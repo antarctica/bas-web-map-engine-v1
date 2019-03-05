@@ -229,21 +229,21 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.getFeatures = function(fty
     jQuery.each(layers, jQuery.proxy(function(idx, layer) {
         if ("Name" in layer) {
             /* Leaf node - a named layer */
-            console.log("=== Layer data ===");
-            console.log("Name : " + layer.Name);
-            console.log("Title : " + layer.Title);
+            //console.log("=== Layer data ===");
+            //console.log("Name : " + layer.Name);
+            //console.log("Title : " + layer.Title);
             if (!(layer.Title in uniqueDict)) {
-                console.log("Not seen this one yet");
+                //console.log("Not seen this one yet");
                 ftypes.push({
                     name: layer.Title,
                     value: layer.Name,
                     styles: layer.Style
                 });
                 uniqueDict[layer.Title] = 1;
-            } else {
-                console.log("Seen before - skipping");
-            }
-            console.log("=== End ===");
+            } //else {
+                //console.log("Seen before - skipping");
+            //}
+            //console.log("=== End ===");
         }
         if ("Layer" in layer && jQuery.isArray(layer["Layer"])) {
             /* More trawling to do */
