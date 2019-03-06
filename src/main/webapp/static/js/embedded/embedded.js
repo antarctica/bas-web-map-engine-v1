@@ -144,7 +144,7 @@ function createLayers(data, viewData, serviceUrl) {
                 /* OpenStreetMap layer */
                 layer = new ol.layer.Tile({source: new ol.source.OSM()});
                 layer.set("metadata", nd);
-            } else if (nd.is_single_tile) {
+            } else if (nd.is_singletile) {
                 /* Render point layers with a single tile for labelling free of tile boundary effects */                
                 var wmsSource = new ol.source.ImageWMS(({
                     url: getOgcEndpoint(nd.wms_source, "wms", viewData.projection.getCode()),
