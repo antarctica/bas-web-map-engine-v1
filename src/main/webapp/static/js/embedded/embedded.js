@@ -10,15 +10,6 @@ function showAlert(msg) {
 }
 
 /**
- * Is the URL an Apex one? (Modify accordingly should this change)
- * @param {string} url
- * @return {boolean}
- */
-function isApex(url) {
-    return(url.indexOf("bsdbase") != -1);
-}
-
-/**
  * Compensate for lack of universal support of URLSearchParams
  * @param {String} name
  * @param {String} url
@@ -240,22 +231,17 @@ function getEndpointsBy(url) {
  * @returns {string}
  */
 function getOgcEndpoint(url, service, proj) {
-    var proxEp = url;           
+    var proxEp = url, serviceUrl = null;           
     var matches = getEndpointsBy(url);            
     if (jQuery.isArray(matches) && matches.length > 0) {
-        var wUrlData = new URL(window.location), serviceUrl = null;
-        if (isApex(wUrlData.origin)) {
-            /* Deduce the appropriate service endpoint from the projection */
-            switch (proj) {                
-                case "EPSG:3762": 
-                    serviceUrl = "https://www.sggis.gov.gs";
-                    break;
-                default:
-                    serviceUrl = "https://add.data.bas.ac.uk";
-                    break;
-            }
-        } else {
-            serviceUrl = wUrlData.origin;
+        /* Deduce the appropriate service endpoint from the projection */
+        switch (proj) {                
+            case "EPSG:3762": 
+                serviceUrl = "https://www.sggis.gov.gs";
+                break;
+            default:
+                serviceUrl = "https://add.data.bas.ac.uk";
+                break;
         }
         if (matches[0]["is_user_service"] === true) {
             proxEp = serviceUrl + "/ogc/user/" + service;
