@@ -14,7 +14,7 @@ CREATE TABLE webmap.endpoints
   coast_layers character varying(255), -- Comma-separated list of fully-qualified layer names corresponding to a coastline
   graticule_layer character varying(100), -- Fully-qualified layer name corresponding to graticule ('ol' means use OpenLayers)
   proxied_url character varying(255), -- Original URL which the endpoint proxies, if required (i.e. if CORS not implemented by server)
-  srs character varying(20), -- Spatial Reference System as an EPSG code
+  srs character varying(255), -- Spatial Reference System as an EPSG code
   has_wfs boolean, -- Whether a WFS service is available at the same endpoint (improved user experience on interactive layers possible)
   is_user_service boolean, -- Whether this endpoint represents a WMS for user uploaded data
   url_aliases character varying(255), -- To allow maps to continue working with stored URLs that may be out of date due to server moves, SSL etc
