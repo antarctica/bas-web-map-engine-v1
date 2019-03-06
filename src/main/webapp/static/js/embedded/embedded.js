@@ -142,7 +142,7 @@ function createLayers(data, viewData, serviceUrl) {
             } : {};
             if (nd.wms_source == "osm") {
                 /* OpenStreetMap layer */
-                layer = new ol.layer.Tile({source: new ol.source.OSM()});
+                layer = new ol.layer.Tile({source: new ol.source.OSM({wrapX: false})});
                 layer.set("metadata", nd);
             } else if (nd.is_singletile) {
                 /* Render point layers with a single tile for labelling free of tile boundary effects */                
