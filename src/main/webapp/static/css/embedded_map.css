@@ -49,6 +49,10 @@
     padding: 0;
 }
 
+.ol-viewport {
+    line-height: 14px;
+}
+
 /* OL pop-up styles */
 .ol-popup {
     position: absolute;
@@ -107,4 +111,5 @@ div.ol-popup-feature-data {
 
 .ol-attribution img {
     max-height: 10em;
+    width: auto !important;
 }
