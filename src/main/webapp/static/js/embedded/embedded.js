@@ -138,8 +138,8 @@ function createLayers(data, viewData, serviceUrl) {
             } else if (nd.is_singletile) {
                 /* Render point layers with a single tile for labelling free of tile boundary effects */                
                 var wmsSource = new ol.source.ImageWMS(({
-                    url: getOgcEndpoint(nd.wms_source, "wms", viewData.projection.getCode()),
-                    attributions: getAttribution(nd, viewData.projection.getCode()),
+                    url: getOgcEndpoint(nd.wms_source, serviceUrl),
+                    attributions: getAttribution(nd, serviceUrl),
                     crossOrigin: "anonymous",
                     params: jQuery.extend({
                         "LAYERS": nd.feature_name,
@@ -158,8 +158,8 @@ function createLayers(data, viewData, serviceUrl) {
                 /* Non-point layer */
                 var wmsVersion = "1.3.0";                
                 var wmsSource = new ol.source.TileWMS({
-                    url: getOgcEndpoint(nd.wms_source, "wms", viewData.projection.getCode()),
-                    attributions: getAttribution(nd, viewData.projection.getCode()),
+                    url: getOgcEndpoint(nd.wms_source, serviceUrl),
+                    attributions: getAttribution(nd, serviceUrl),
                     crossOrigin: "anonymous",
                     params: jQuery.extend({
                         "LAYERS": nd.feature_name,
@@ -225,31 +225,22 @@ function getEndpointsBy(url) {
 
 /**
  * Get proxied endpoint i.e. a /ogc/<service>/<op> type URL for the given one, if a recognised endpoint
- * @param {string} url
- * @param {string} service (wms|wfs|wcs)
- * @param {string} proj
+ * @param {string} endpointUrl
+ * @param {string} serviceUrl
  * @returns {string}
  */
-function getOgcEndpoint(url, service, proj) {
-    var proxEp = url, serviceUrl = null;           
-    var matches = getEndpointsBy(url);            
+function getOgcEndpoint(endpointUrl, serviceUrl) {
+    var proxEp = endpointUrl;           
+    var matches = getEndpointsBy(endpointUrl);            
     if (jQuery.isArray(matches) && matches.length > 0) {
-        /* Deduce the appropriate service endpoint from the projection */
-        switch (proj) {                
-            case "EPSG:3762": 
-                serviceUrl = "https://www.sggis.gov.gs";
-                break;
-            default:
-                serviceUrl = "https://add.data.bas.ac.uk";
-                break;
-        }
+        var serviceBase = serviceUrl.substring(0, serviceUrl.indexOf("embedded_maps/name"));
         if (matches[0]["is_user_service"] === true) {
-            proxEp = serviceUrl + "/ogc/user/" + service;
+            proxEp = serviceBase + "/ogc/user/wms";
         } else {
-            proxEp = serviceUrl + "/ogc/" + matches[0]["id"] + "/" + service;
+            proxEp = serviceBase + "/ogc/" + matches[0]["id"] + "/wms";
         }
     } else {
-        proxEp = proxyUrl(url);
+        proxEp = proxyUrl(endpointUrl);
     }            
     return(proxEp);
 }       
@@ -287,7 +278,7 @@ function getAttribution(nd, proj) {
     if (nd.attribution) {
         attributionMarkup = 
             '<p style="font-family:Lucida Sans Regular"><strong>Layer ' + nd.name + '</strong><br/>' + 
-            'Source attribution : ' + linkify(nd.attribution, "[External resource]");
+            'Source: ' + linkify(nd.attribution, "[External resource]");
     }
     if (nd.include_legend) {
         var cacheBuster = "&buster=" + new Date().getTime();
