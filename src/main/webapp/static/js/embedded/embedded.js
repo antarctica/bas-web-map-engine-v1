@@ -273,7 +273,7 @@ function refreshLayer(layer) {
     console.log("Refreshing layer " + layer.get("name"));
 }
 
-function getAttribution(nd, proj) {
+function getAttribution(nd, serviceUrl) {
     var attributionMarkup = "";
     if (nd.attribution) {
         attributionMarkup = 
@@ -282,7 +282,7 @@ function getAttribution(nd, proj) {
     }
     if (nd.include_legend) {
         var cacheBuster = "&buster=" + new Date().getTime();
-        var legendUrl = getOgcEndpoint(nd.wms_source, "wms", proj) + 
+        var legendUrl = getOgcEndpoint(nd.wms_source, serviceUrl) + 
             "?service=WMS&request=GetLegendGraphic&format=image/png&width=10&height=10&styles=&layer=" + nd.feature_name + 
             "&legend_options=fontName:Nimbus%20Sans%20L%20Regular;fontAntiAliasing:true;fontColor:0x202020;fontSize:8;bgColor:0xffffff;labelMargin:4;dpi:150" + cacheBuster;
         if (attributionMarkup != "") {
