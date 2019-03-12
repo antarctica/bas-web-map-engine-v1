@@ -275,9 +275,9 @@ function refreshLayer(layer) {
 
 function getAttribution(nd, serviceUrl) {
     var attributionMarkup = "";
-    if (nd.attribution) {
+    if (nd.attribution || nd.include_legend) {
         attributionMarkup = 
-            '<p style="font-family:Lucida Sans Regular"><strong>Layer ' + nd.name + '</strong><br/>' + 
+            '<p><strong>' + nd.name + '</strong><br/>' + 
             'Source: ' + linkify(nd.attribution, "[External resource]");
     }
     if (nd.include_legend) {
