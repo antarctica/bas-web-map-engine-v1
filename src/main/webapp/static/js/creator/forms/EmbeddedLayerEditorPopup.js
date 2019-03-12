@@ -24,6 +24,7 @@ magic.classes.creator.EmbeddedLayerEditorPopup = function(options) {
         {"field": "is_base", "default": false},            
         {"field": "is_singletile", "default": false},                
         {"field": "is_interactive", "default": false},
+        {"field": "include_legend", "default": false},
         {"field": "is_extent", "default": false},
         {"field": "is_filterable", "default": false}
     ];
@@ -132,6 +133,15 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.markup = function() {
                     '<label>' +
                         '<input id="' + this.id + '-is_interactive" type="checkbox" data-toggle="popover" data-placement="bottom" data-trigger="manual">' +
                          '</input> Layer displays interactive map pop-ups' +
+                    '</label>' +
+                '</div>' +                                            
+            '</div>' +        
+            '<div class="form-group form-group-md col-md-12">' +
+                '<div class="checkbox" style="float:left" data-toggle="tooltip" data-placement="left" ' + 
+                    'title="Include a legend for this layer (tip: to minimise space, only include legends for data layers, not backdrops)">' +
+                    '<label>' +
+                        '<input id="' + this.id + '-include_legend" type="checkbox" data-toggle="popover" data-placement="bottom" data-trigger="manual">' +
+                         '</input> Include a legend for this layer' +
                     '</label>' +
                 '</div>' +                                            
             '</div>' +        

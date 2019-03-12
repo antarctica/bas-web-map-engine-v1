@@ -283,18 +283,23 @@ function refreshLayer(layer) {
 }
 
 function getAttribution(nd, proj) {
+    var attributionMarkup = "";
     if (nd.attribution) {
+        attributionMarkup = 
+            '<p style="font-family:Lucida Sans Regular"><strong>Layer ' + nd.name + '</strong><br/>' + 
+            'Source attribution : ' + linkify(nd.attribution, "[External resource]");
+    }
+    if (nd.include_legend) {
         var cacheBuster = "&buster=" + new Date().getTime();
         var legendUrl = getOgcEndpoint(nd.wms_source, "wms", proj) + 
             "?service=WMS&request=GetLegendGraphic&format=image/png&width=10&height=10&styles=&layer=" + nd.feature_name + 
             "&legend_options=fontName:Lucida Sans Regular;fontAntiAliasing:true;fontColor:0xffffff;fontSize:6;bgColor:0x272b30;dpi:180" + cacheBuster;
-        return(
-            '<p style="font-family:Lucida Sans Regular"><strong>Layer ' + nd.name + '</strong><br/>' + 
-            'Source attribution : ' + linkify(nd.attribution, "[External resource]") + '<br/>' + 
-            '<img src="' + legendUrl + '" alt="Legend"></img></p>'
-        );
-    } 
-    return("");
+        if (attributionMarkup != "") {
+            attributionMarkup += '<br/>';
+        }
+        attributionMarkup += '<img src="' + legendUrl + '" alt="Legend"></img>';           
+    }    
+    return(attributionMarkup);
 }
 
 function addGetFeatureInfoHandlers(map) {
