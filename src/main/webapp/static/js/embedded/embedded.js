@@ -568,10 +568,7 @@ function createMap(name, div, layers, view, extent, mapsize) {
             }),
             new ol.control.Attribution({
                 collapsible: true,
-                collapsed: true, /* Note TODO: this needs to be false if the base layer is OSM */
-                render: function(mapEv) {
-                    jQuery("div.ol-attribution").find("ul").children().first().remove();
-                }
+                collapsed: true /* Note TODO: this needs to be false if the base layer is OSM */                
             })
         ],
         interactions: ol.interaction.defaults(),
