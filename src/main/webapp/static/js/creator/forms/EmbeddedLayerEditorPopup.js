@@ -110,7 +110,7 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.markup = function() {
                 '</div>' + 
             '</div>' + 
             '<div class="form-group form-group-md col-md-12">' +
-                '<div class="checkbox" style="float:left" data-toggle="tooltip" data-placement="left" ' +
+                '<div class="checkbox" style="float:left; margin-top:0px; margin-bottom:0px" data-toggle="tooltip" data-placement="left" ' +
                     'title="Layer is a base (backdrop) layer">' + 
                     '<label>' +
                         '<input id="' + this.id + '-is_base" type="checkbox">' +                                                        
@@ -119,7 +119,7 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.markup = function() {
                 '</div>' +                                            
             '</div>' +    
             '<div class="form-group form-group-md col-md-12">' +
-                '<div class="checkbox" style="float:left" data-toggle="tooltip" data-placement="left" ' + 
+                '<div class="checkbox" style="float:left; margin-top:0px; margin-bottom:0px" data-toggle="tooltip" data-placement="left" ' + 
                     'title="Layer renders as a single large tile, useful for place-names or rasters where tile edge effects are noticeable">' +
                     '<label>' +
                         '<input id="' + this.id + '-is_singletile" type="checkbox">' + 
@@ -128,7 +128,7 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.markup = function() {
                 '</div>' +                                            
             '</div>' +   
             '<div class="form-group form-group-md col-md-12">' +
-                '<div class="checkbox" style="float:left" data-toggle="tooltip" data-placement="left" ' + 
+                '<div class="checkbox" style="float:left; margin-top:0px; margin-bottom:0px" data-toggle="tooltip" data-placement="left" ' + 
                     'title="This layer should display interactive pop-ups on the map">' +
                     '<label>' +
                         '<input id="' + this.id + '-is_interactive" type="checkbox" data-toggle="popover" data-placement="bottom" data-trigger="manual">' +
@@ -137,7 +137,7 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.markup = function() {
                 '</div>' +                                            
             '</div>' +        
             '<div class="form-group form-group-md col-md-12">' +
-                '<div class="checkbox" style="float:left" data-toggle="tooltip" data-placement="left" ' + 
+                '<div class="checkbox" style="float:left; margin-top:0px; margin-bottom:0px" data-toggle="tooltip" data-placement="left" ' + 
                     'title="Include a legend for this layer (tip: to minimise space, only include legends for data layers, not backdrops)">' +
                     '<label>' +
                         '<input id="' + this.id + '-include_legend" type="checkbox" data-toggle="popover" data-placement="bottom" data-trigger="manual">' +
@@ -146,7 +146,7 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.markup = function() {
                 '</div>' +                                            
             '</div>' +        
             '<div class="form-group form-group-md col-md-12">' +
-                '<div class="checkbox" style="float:left" data-toggle="tooltip" data-placement="left" ' + 
+                '<div class="checkbox" style="float:left; margin-top:0px; margin-bottom:0px" data-toggle="tooltip" data-placement="left" ' + 
                     'title="Use this layer to determine the starting extent of the map">' +
                     '<label>' +
                         '<input id="' + this.id + '-is_extent" type="checkbox" data-toggle="popover" data-placement="bottom" data-trigger="manual">' +
@@ -155,7 +155,7 @@ magic.classes.creator.EmbeddedLayerEditorPopup.prototype.markup = function() {
                 '</div>' +                                            
             '</div>' +     
             '<div class="form-group form-group-md col-md-12">' +
-                '<div class="checkbox" style="float:left" data-toggle="tooltip" data-placement="left" ' + 
+                '<div class="checkbox" style="float:left; margin-top:0px; margin-bottom:0px" data-toggle="tooltip" data-placement="left" ' + 
                     'title="Filter this layer via the \'filter\' URL parameter">' +
                     '<label>' +
                         '<input id="' + this.id + '-is_filterable" type="checkbox" data-toggle="popover" data-placement="bottom" data-trigger="manual">' +
