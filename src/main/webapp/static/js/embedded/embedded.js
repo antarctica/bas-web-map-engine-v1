@@ -284,7 +284,7 @@ function getAttribution(nd, proj) {
         var cacheBuster = "&buster=" + new Date().getTime();
         var legendUrl = getOgcEndpoint(nd.wms_source, "wms", proj) + 
             "?service=WMS&request=GetLegendGraphic&format=image/png&width=10&height=10&styles=&layer=" + nd.feature_name + 
-            "&legend_options=fontName:Lucida Sans Regular;fontAntiAliasing:true;fontColor:0x202020;fontSize:9;bgColor:0xffffff;dpi:120" + cacheBuster;
+            "&legend_options=fontName:Lucida Sans Regular;fontAntiAliasing:true;fontColor:0x202020;fontSize:9;bgColor:0xffffff;dpi:140" + cacheBuster;
         if (attributionMarkup != "") {
             attributionMarkup += '<br/>';
         }
