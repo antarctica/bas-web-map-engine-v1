@@ -273,6 +273,12 @@ function refreshLayer(layer) {
     console.log("Refreshing layer " + layer.get("name"));
 }
 
+/**
+ * Markup for an attribution
+ * @param {Object} nd
+ * @param {String} serviceUrl
+ * @return {String}
+ */
 function getAttribution(nd, serviceUrl) {
     var attributionMarkup = "";
     if (nd.attribution || nd.include_legend) {
