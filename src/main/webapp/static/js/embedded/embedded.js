@@ -126,7 +126,7 @@ function createLayers(data, viewData, serviceUrl) {
     if (jQuery.isArray(dataLayers)) {
         var proj = viewData.projection;
         for (var i = 0; i < dataLayers.length; i++) {
-            var layer;
+            var layer = null;
             var nd = dataLayers[i];
             var cqlFilter = (nd.is_filterable === true && apexFilter) ? {
                 "CQL_FILTER": apexFilter
@@ -138,8 +138,8 @@ function createLayers(data, viewData, serviceUrl) {
             } else if (nd.is_singletile) {
                 /* Render point layers with a single tile for labelling free of tile boundary effects */                
                 var wmsSource = new ol.source.ImageWMS(({
-                    url: getOgcEndpoint(nd.wms_source, serviceUrl),
-                    attributions: getAttribution(nd, serviceUrl),
+                    url: nd.wms_source,
+                    attributions: getAttribution(nd),
                     crossOrigin: "anonymous",
                     params: jQuery.extend({
                         "LAYERS": nd.feature_name,
@@ -158,8 +158,8 @@ function createLayers(data, viewData, serviceUrl) {
                 /* Non-point layer */
                 var wmsVersion = "1.3.0";                
                 var wmsSource = new ol.source.TileWMS({
-                    url: getOgcEndpoint(nd.wms_source, serviceUrl),
-                    attributions: getAttribution(nd, serviceUrl),
+                    url: nd.wms_source,
+                    attributions: getAttribution(nd),
                     crossOrigin: "anonymous",
                     params: jQuery.extend({
                         "LAYERS": nd.feature_name,
@@ -224,44 +224,6 @@ function getEndpointsBy(url) {
 }
 
 /**
- * Get proxied endpoint i.e. a /ogc/<service>/<op> type URL for the given one, if a recognised endpoint
- * @param {string} endpointUrl
- * @param {string} serviceUrl
- * @returns {string}
- */
-function getOgcEndpoint(endpointUrl, serviceUrl) {
-    var proxEp = endpointUrl;           
-    var matches = getEndpointsBy(endpointUrl);            
-    if (jQuery.isArray(matches) && matches.length > 0) {
-        var serviceBase = serviceUrl.substring(0, serviceUrl.indexOf("embedded_maps/name"));
-        if (matches[0]["is_user_service"] === true) {
-            proxEp = serviceBase + "/ogc/user/wms";
-        } else {
-            proxEp = serviceBase + "/ogc/" + matches[0]["id"] + "/wms";
-        }
-    } else {
-        proxEp = proxyUrl(endpointUrl);
-    }            
-    return(proxEp);
-}       
-
-/**
- * Decide whether given URL needs to be proxied to get round cross-origin issues, and return a proxied version if so
- * @param {string} url
- * @return {string}
- */
-function proxyUrl(url) {
-    var proxiedUrl = url;
-    var wUrlData = new URL(window.location);
-    var urlData = new URL(url);
-    var proxy = wUrlData.origin + "/proxy";
-    if (!(wUrlData.protocol == urlData.protocol && wUrlData.host == urlData.host && wUrlData.port == urlData.port)) {
-        proxiedUrl = proxy + "?url=" + encodeURIComponent(url);
-    }
-    return(proxiedUrl);
-}
-
-/**
  * setInterval handler to refresh a layer
  * NOTE: assumes all layers are WMS
  * @param {ol.Layer} layer
@@ -276,10 +238,9 @@ function refreshLayer(layer) {
 /**
  * Markup for an attribution
  * @param {Object} nd
- * @param {String} serviceUrl
  * @return {String}
  */
-function getAttribution(nd, serviceUrl) {
+function getAttribution(nd) {
     var attributionMarkup = "";
     if (nd.attribution || nd.include_legend) {
         attributionMarkup = 
@@ -288,7 +249,7 @@ function getAttribution(nd, serviceUrl) {
     }
     if (nd.include_legend) {
         var cacheBuster = "&buster=" + new Date().getTime();
-        var legendUrl = getOgcEndpoint(nd.wms_source, serviceUrl) + 
+        var legendUrl = nd.wms_source + 
             "?service=WMS&request=GetLegendGraphic&format=image/png&width=10&height=10&styles=&layer=" + nd.feature_name + 
             "&legend_options=fontName:Nimbus%20Sans%20L%20Regular;fontAntiAliasing:true;fontColor:0x202020;fontSize:7;bgColor:0xffffff;labelMargin:4;dpi:150" + cacheBuster;
         if (attributionMarkup != "") {
@@ -462,6 +423,10 @@ function linkify(value, linkText) {
     } else {
         return(value);
     }
+}
+
+function mapengineEndpoint(projCode) {
+    return(projCode == "EPSG:3762" ? "https://www.sggis.gov.gs" : "https://add.data.bas.ac.uk");
 }
 
 function writePopupContent(div, data) {     
@@ -665,9 +630,8 @@ function init() {
                 if (filterFeats.length > 0) {
                     /* Get the true data extent if possible */
                     var filterFeat = filterFeats[0];    /* Note only use the first one */
-                    var serviceBase = serviceUrl.substring(0, serviceUrl.indexOf("embedded_maps/name"));
                     var filter = getUrlParameter("filter", serviceUrl);
-                    var filterUrl = serviceBase + "gs/filtered_extent/" + encodeURIComponent(filterFeat);
+                    var filterUrl = mapengineEndpoint(embedView.getProjection().getCode()) + "/gs/filtered_extent/" + encodeURIComponent(filterFeat);
                     filterUrl = filterUrl + "/" + encodeURIComponent(embedView.getProjection().getCode());
                     if (filter != null && filter !="") {
                         filterUrl = filterUrl + "/" + encodeURIComponent(filter).replace(/'/g, "%27");
