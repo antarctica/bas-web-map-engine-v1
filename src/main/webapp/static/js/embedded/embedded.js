@@ -522,6 +522,10 @@ function createMap(name, div, layers, view, extent, mapsize) {
         layers: layers,
         controls: [
             new ol.control.Zoom(),
+            new ol.control.ZoomToExtent({
+                tipLabel: "Reset to original map extent",
+                extent: extent
+            }),
             new ol.control.ScaleLine({minWidth: 100, className: "custom-scale-line-top", units: "metric"}),
             new ol.control.ScaleLine({minWidth: 100, className: "custom-scale-line-bottom", units: "imperial"}),
             new ol.control.MousePosition({
