@@ -190,7 +190,7 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.loadStylesForFeature = fun
             if (lvNoWs == fnNoWs) {
                 if (jQuery.isArray(lyr.styles) && lyr.styles.length > 1) {
                     /* There's a choice here */
-                    magic.modules.Common.populateSelect(this.dropdowns.style_name, lyr.styles, "Name", "Title", selectedStyle, false);
+                    magic.modules.Common.populateSelect(this.dropdowns.style_name, this.removeDuplicateStyles(lyr.styles), "Name", "Title", selectedStyle, false);
                 } else {
                     magic.modules.Common.populateSelect(this.dropdowns.style_name, [{Name: "", Title: "Default style"}], "Name", "Title", "", false);                    
                 }
@@ -201,6 +201,18 @@ magic.classes.creator.WmsFeatureLinkedMenus.prototype.loadStylesForFeature = fun
     } else {
         magic.modules.Common.populateSelect(this.dropdowns.style_name, [{Name: "", Title: "Default style"}], "Name", "Title", "", false); 
     }
+};
+
+magic.classes.creator.WmsFeatureLinkedMenus.prototype.removeDuplicateStyles = function(featureStyles) {
+    var noDupStyles = [];
+    var styleSeenDict = {};
+    jQuery.each(featureStyles, function(idx, style) {
+        if (!(style.Name in styleSeenDict)) {
+            noDupStyles.push(style);
+            styleSeenDict[style.Name] = 1;
+        }
+    });
+    return(noDupStyles);
 };
 
 /**
