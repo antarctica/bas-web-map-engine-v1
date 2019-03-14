@@ -523,6 +523,7 @@ function createMap(name, div, layers, view, extent, mapsize) {
         controls: [
             new ol.control.Zoom(),
             new ol.control.ZoomToExtent({
+                label: "R",
                 tipLabel: "Reset to original map extent",
                 extent: extent
             }),
