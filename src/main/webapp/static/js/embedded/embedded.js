@@ -553,7 +553,7 @@ function createMap(name, div, layers, view, extent, mapsize) {
         size: mapsize, 
         nearest: false,
         constrainResolution: true,
-        padding: [100, 100, 100, 100],
+        //padding: [100, 100, 100, 100],
         callback: function() {
             /* Show scale and enable mouseover of scale bar to show scale as map zooms */
             var scale = getCurrentMapScale(embeddedMaps[name]);
