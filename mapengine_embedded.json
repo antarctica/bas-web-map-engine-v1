@@ -27,6 +27,7 @@
     "ol.control.ScaleLine",
     "ol.control.MousePosition",
     "ol.control.Zoom",
+    "ol.control.ZoomToExtent",
     "ol.control.Attribution",
     "ol.Collection#*",    
     "ol.interaction.defaults",
