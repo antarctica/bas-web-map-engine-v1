@@ -469,8 +469,12 @@ function writePopupContent(div, data) {
     }
 }
 
-function plausibleExtent(extent) {
-    return(Math.abs(extent[2] - extent[0]) > 10.0 && Math.abs(extent[3] - extent[1]) > 10.0);
+function plausibleExtent(extent, worldExtent) {
+    var dx = Math.abs(extent[2] - extent[0]), 
+        dy = Math.abs(extent[3] - extent[1]),
+        wdx = Math.abs(worldExtent[2] - worldExtent[0]),
+        wdy = Math.abs(worldExtent[3] - worldExtent[1]);
+    return(dx >= 10.0 && dy >= 10.0 && dx < wdx && dy < wdy);    
 }
 
 /* Load jQuery if not already present */
@@ -642,7 +646,7 @@ function init() {
                         filterUrl = filterUrl + "/" + encodeURIComponent(filter).replace(/'/g, "%27");
                     }
                     jQuery.getJSON(filterUrl, function(wfsData) {  
-                        if (jQuery.isArray(wfsData.extent) && wfsData.extent.length == 4 && plausibleExtent(wfsData.extent)) {
+                        if (jQuery.isArray(wfsData.extent) && wfsData.extent.length == 4 && plausibleExtent(wfsData.extent, embedView.getProjection().getWorldExtent())) {
                             createMap(data.name, serviceDiv, embedLayers, embedView, wfsData.extent, embedMapSize);
                         } else {
                             createMap(data.name, serviceDiv, embedLayers, embedView, defaultExtent, embedMapSize);                            
