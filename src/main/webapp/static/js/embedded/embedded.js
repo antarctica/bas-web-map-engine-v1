@@ -520,11 +520,14 @@ var endpointData = [];
  * @param {ol.size} mapsize
  */
 function createMap(name, div, layers, view, extent, mapsize) { 
-    /* Set all layers on an OSM map to only be defined within the extent - wrapping issues with data 21/03/2019 */
+    /* Set all data layers on an OSM map to only be defined within the extent - wrapping issues with data 21/03/2019 */
     var proj = view.getProjection().getCode();
     if (proj == "EPSG:3857") {
         jQuery.each(layers, function(idx, lyr) {
-            lyr.setExtent(extent);
+            var md = lyr.get("metadata");
+            if (md.wms_source != "osm") {
+                lyr.setExtent(extent);
+            }
         });
     }
     embeddedMaps[name] = new ol.Map({
@@ -620,6 +623,7 @@ function init() {
                     return;
                 }
                 var embedView = new ol.View(embedViewData);
+                var projCode = embedView.getProjection().getCode();
                 var embedMapSize = [jQuery(serviceDiv).width(), jQuery(serviceDiv).height()];
                 /* Get view default extent */
                 var defaultExtent = (typeof data.data_extent == "string" && data.data_extent != "") ? JSON.parse(data.data_extent) : data.data_extent;                        
@@ -637,6 +641,12 @@ function init() {
                         ];
                     } catch(e) {
                         defaultExtent = embedViewData.projection.getExtent();
+                        if (projCode == "EPSG:3857") {
+                            /* Set a maximum extent zoomed in one notch, as the world extent leads to small maps that don't fill the area */
+                            defaultExtent = jQuery.map(defaultExtent, function(elt) {
+                                return(elt/2.0);
+                            });
+                        }
                     }
                 }   
                 /* See if we can be more precise by applying filter to the filterable data layer */
@@ -645,12 +655,11 @@ function init() {
                     return(md.is_filterable ? md.feature_name : null);
                 });
                 if (filterFeats.length > 0) {
-                    /* Get the true data extent if possible */
-                    var projCode = embedView.getProjection().getCode();
+                    /* Get the true data extent if possible */                    
                     var filterFeat = filterFeats[0];    /* Note only use the first one */
                     var filter = getUrlParameter("filter", serviceUrl);
                     var filterUrl = mapengineEndpoint(projCode) + "/gs/filtered_extent/" + encodeURIComponent(filterFeat);
-                    filterUrl = filterUrl + "/" + encodeURIComponent(embedView.getProjection().getCode());
+                    filterUrl = filterUrl + "/" + encodeURIComponent(projCode);
                     if (filter != null && filter !="") {
                         filterUrl = filterUrl + "/" + encodeURIComponent(filter).replace(/'/g, "%27");
                     }
