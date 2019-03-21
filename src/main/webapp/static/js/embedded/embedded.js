@@ -478,6 +478,18 @@ function plausibleExtent(extent, worldExtent) {
     return(dx >= 10.0 && dy >= 10.0 && dx < wdx && dy < wdy);    
 }
 
+function projectionWorldExtent(proj) {
+    var code = proj.getCode();
+    var wExt = proj.getExtent();
+    if (code == "EPSG:3857") {
+        /* Set a maximum extent zoomed in one notch, as the world extent leads to small maps that don't fill the area */
+        wExt = jQuery.map(wExt, function(elt) {
+            return(elt/2.0);
+        });
+    }
+    return(wExt);
+}
+
 /* Load jQuery if not already present */
 if (!window.jQuery){
     var jq = document.createElement("script");
@@ -642,14 +654,8 @@ function init() {
                             data.center[1]+0.5*mapWidthY
                         ];
                     } catch(e) {
-                        defaultExtent = embedViewData.projection.getExtent();
-                        if (projCode == "EPSG:3857") {
-                            /* Set a maximum extent zoomed in one notch, as the world extent leads to small maps that don't fill the area */
-                            defaultExtent = jQuery.map(defaultExtent, function(elt) {
-                                return(elt/2.0);
-                            });
-                            osmExtentIsDefault = true;
-                        }
+                        projectionWorldExtent(embedViewData.projection);
+                        osmExtentIsDefault = true;                        
                     }
                 }   
                 /* See if we can be more precise by applying filter to the filterable data layer */
@@ -667,9 +673,13 @@ function init() {
                         filterUrl = filterUrl + "/" + encodeURIComponent(filter).replace(/'/g, "%27");
                     }
                     jQuery.getJSON(filterUrl, function(wfsData) { 
-                        var projWorldExtent = projCode == "EPSG:3857" ? embedView.getProjection().getExtent() : embedView.getProjection().getWorldExtent();
-                        if (jQuery.isArray(wfsData.extent) && wfsData.extent.length == 4 && plausibleExtent(wfsData.extent, projWorldExtent)) {
-                            createMap(data.name, serviceDiv, embedLayers, embedView, wfsData.extent, embedMapSize, osmExtentIsDefault);
+                        var projWorldExtent = projectionWorldExtent(embedView.getProjection());
+                        if (jQuery.isArray(wfsData.extent) && wfsData.extent.length == 4) {
+                            if (plausibleExtent(wfsData.extent, projWorldExtent)) {
+                                createMap(data.name, serviceDiv, embedLayers, embedView, wfsData.extent, embedMapSize, osmExtentIsDefault);
+                            } else {
+                                createMap(data.name, serviceDiv, embedLayers, embedView, projWorldExtent, embedMapSize, osmExtentIsDefault);
+                            }
                         } else {
                             createMap(data.name, serviceDiv, embedLayers, embedView, defaultExtent, embedMapSize, osmExtentIsDefault);                            
                         }
