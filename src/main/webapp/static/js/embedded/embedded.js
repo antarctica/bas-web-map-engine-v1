@@ -174,7 +174,8 @@ function createLayers(data, viewData, serviceUrl) {
                         resolutions: viewData.resolutions,
                         origin: proj.getExtent().slice(0, 2)
                     }),
-                    projection: proj
+                    projection: proj,
+                    wrapX: false
                 });
                 layer = new ol.layer.Tile({
                     name: nd.name,
@@ -638,15 +639,17 @@ function init() {
                 });
                 if (filterFeats.length > 0) {
                     /* Get the true data extent if possible */
+                    var projCode = embedView.getProjection().getCode();
                     var filterFeat = filterFeats[0];    /* Note only use the first one */
                     var filter = getUrlParameter("filter", serviceUrl);
-                    var filterUrl = mapengineEndpoint(embedView.getProjection().getCode()) + "/gs/filtered_extent/" + encodeURIComponent(filterFeat);
+                    var filterUrl = mapengineEndpoint(projCode) + "/gs/filtered_extent/" + encodeURIComponent(filterFeat);
                     filterUrl = filterUrl + "/" + encodeURIComponent(embedView.getProjection().getCode());
                     if (filter != null && filter !="") {
                         filterUrl = filterUrl + "/" + encodeURIComponent(filter).replace(/'/g, "%27");
                     }
-                    jQuery.getJSON(filterUrl, function(wfsData) {  
-                        if (jQuery.isArray(wfsData.extent) && wfsData.extent.length == 4 && plausibleExtent(wfsData.extent, embedView.getProjection().getWorldExtent())) {
+                    jQuery.getJSON(filterUrl, function(wfsData) { 
+                        var projWorldExtent = projCode == "EPSG:3857" ? embedView.getProjection().getExtent() : embedView.getProjection().getWorldExtent();
+                        if (jQuery.isArray(wfsData.extent) && wfsData.extent.length == 4 && plausibleExtent(wfsData.extent, projWorldExtent)) {
                             createMap(data.name, serviceDiv, embedLayers, embedView, wfsData.extent, embedMapSize);
                         } else {
                             createMap(data.name, serviceDiv, embedLayers, embedView, defaultExtent, embedMapSize);                            
