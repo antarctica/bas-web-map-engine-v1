@@ -518,11 +518,12 @@ var endpointData = [];
  * @param {ol.View} view
  * @param {ol.extent} extent
  * @param {ol.size} mapsize
+ * @param {boolean} osmDefaultExtent
  */
-function createMap(name, div, layers, view, extent, mapsize) { 
+function createMap(name, div, layers, view, extent, mapsize, osmDefaultExtent) { 
     /* Set all data layers on an OSM map to only be defined within the extent - wrapping issues with data 21/03/2019 */
     var proj = view.getProjection().getCode();
-    if (proj == "EPSG:3857") {
+    if (proj == "EPSG:3857" && osmDefaultExtent) {
         jQuery.each(layers, function(idx, lyr) {
             var md = lyr.get("metadata");
             if (md.wms_source != "osm") {
@@ -626,6 +627,7 @@ function init() {
                 var projCode = embedView.getProjection().getCode();
                 var embedMapSize = [jQuery(serviceDiv).width(), jQuery(serviceDiv).height()];
                 /* Get view default extent */
+                var osmExtentIsDefault = false;
                 var defaultExtent = (typeof data.data_extent == "string" && data.data_extent != "") ? JSON.parse(data.data_extent) : data.data_extent;                        
                 if (!jQuery.isArray(defaultExtent) || defaultExtent.length != 4) {
                     /* Get extent from centre and zoom values */
@@ -646,6 +648,7 @@ function init() {
                             defaultExtent = jQuery.map(defaultExtent, function(elt) {
                                 return(elt/2.0);
                             });
+                            osmExtentIsDefault = true;
                         }
                     }
                 }   
@@ -666,14 +669,14 @@ function init() {
                     jQuery.getJSON(filterUrl, function(wfsData) { 
                         var projWorldExtent = projCode == "EPSG:3857" ? embedView.getProjection().getExtent() : embedView.getProjection().getWorldExtent();
                         if (jQuery.isArray(wfsData.extent) && wfsData.extent.length == 4 && plausibleExtent(wfsData.extent, projWorldExtent)) {
-                            createMap(data.name, serviceDiv, embedLayers, embedView, wfsData.extent, embedMapSize);
+                            createMap(data.name, serviceDiv, embedLayers, embedView, wfsData.extent, embedMapSize, osmExtentIsDefault);
                         } else {
-                            createMap(data.name, serviceDiv, embedLayers, embedView, defaultExtent, embedMapSize);                            
+                            createMap(data.name, serviceDiv, embedLayers, embedView, defaultExtent, embedMapSize, osmExtentIsDefault);                            
                         }
                     });
                 } else {
                     /* Use the default extent */
-                    createMap(data.name, serviceDiv, embedLayers, embedView, defaultExtent, embedMapSize); 
+                    createMap(data.name, serviceDiv, embedLayers, embedView, defaultExtent, embedMapSize, osmExtentIsDefault); 
                 }                
             })
             .fail(function(xhr) {
