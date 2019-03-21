@@ -519,7 +519,14 @@ var endpointData = [];
  * @param {ol.extent} extent
  * @param {ol.size} mapsize
  */
-function createMap(name, div, layers, view, extent, mapsize) {                   
+function createMap(name, div, layers, view, extent, mapsize) { 
+    /* Set all layers on an OSM map to only be defined within the extent - wrapping issues with data 21/03/2019 */
+    var proj = view.getProjection().getCode();
+    if (proj == "EPSG:3857") {
+        jQuery.each(layers, function(idx, lyr) {
+            lyr.setExtent(extent);
+        });
+    }
     embeddedMaps[name] = new ol.Map({
         renderer: "canvas",
         loadTilesWhileAnimating: true,
