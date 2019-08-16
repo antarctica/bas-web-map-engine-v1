@@ -5,6 +5,8 @@ services:
   app:
     build: .
     image: docker-registry.data.bas.ac.uk/magic/mapengine:latest
+    env_file:
+      - .env
     depends_on:
       - db
     ports:
