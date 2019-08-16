@@ -18,5 +18,6 @@ services:
       - "5432:5432"
     volumes:
       - "./src/main/webapp/WEB-INF/sql/table_creation/webmap_tables.sql:/docker-entrypoint-initdb.d/01-webmap-tables.sql"
+      - "./src/main/webapp/WEB-INF/sql/table_population/docker/test-data.sql:/docker-entrypoint-initdb.d/02-test-data.sql"
     environment:
       - POSTGRES_PASSWORD=password
