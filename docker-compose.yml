@@ -1,0 +1,23 @@
+---
+version: '2'
+
+services:
+  app:
+    build: .
+    image: docker-registry.data.bas.ac.uk/magic/mapengine:latest
+    env_file:
+      - .env
+    depends_on:
+      - db
+    ports:
+      - "8080:8080"
+
+  db:
+    image: mdillon/postgis:11-alpine
+    ports:
+      - "5432:5432"
+    volumes:
+      - "./src/main/webapp/WEB-INF/sql/table_creation/webmap_tables.sql:/docker-entrypoint-initdb.d/01-webmap-tables.sql"
+      - "./src/main/webapp/WEB-INF/sql/table_population/docker/test-data.sql:/docker-entrypoint-initdb.d/02-test-data.sql"
+    environment:
+      - POSTGRES_PASSWORD=password

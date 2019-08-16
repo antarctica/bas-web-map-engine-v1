@@ -1,8 +1,6 @@
-CREATE SCHEMA webmap
-  AUTHORIZATION add;
-
 COMMENT ON SCHEMA webmap
   IS 'Configuration data for web maps';
+
 
 CREATE TABLE webmap.endpoints
 (
@@ -24,8 +22,6 @@ CREATE TABLE webmap.endpoints
 WITH (
   OIDS=FALSE
 );
-ALTER TABLE webmap.endpoints
-  OWNER TO add;
 COMMENT ON TABLE webmap.endpoints
   IS 'WMS endpoints for this server';
 COMMENT ON COLUMN webmap.endpoints.name IS 'Name of endpoint';
@@ -71,8 +67,6 @@ CREATE TABLE webmap.maps
 WITH (
   OIDS=FALSE
 );
-ALTER TABLE webmap.maps
-  OWNER TO add;
 COMMENT ON TABLE webmap.maps
   IS 'Web map configurations';
 COMMENT ON COLUMN webmap.maps.id IS 'UUID identifier for a map';
@@ -110,8 +104,6 @@ CREATE TABLE webmap.thumbnails
 WITH (
   OIDS=FALSE
 );
-ALTER TABLE webmap.thumbnails
-  OWNER TO add;
 COMMENT ON TABLE webmap.thumbnails
   IS 'Repository for map thumbnails';
 COMMENT ON COLUMN webmap.thumbnails.name IS 'Name of map to associate thumbnail image with';
@@ -144,8 +136,6 @@ CREATE TABLE webmap.embedded_maps
 WITH (
   OIDS=FALSE
 );
-ALTER TABLE webmap.embedded_maps
-  OWNER TO add;
 COMMENT ON TABLE webmap.embedded_maps
   IS 'Embedded maps table';
 COMMENT ON COLUMN webmap.embedded_maps.id IS 'UUID identifier for embedded map';
@@ -181,8 +171,6 @@ CREATE TABLE webmap.preferences
 WITH (
   OIDS=FALSE
 );
-ALTER TABLE webmap.preferences
-  OWNER TO add;
 COMMENT ON TABLE webmap.preferences
   IS 'User unit preferences';
 COMMENT ON COLUMN webmap.preferences.username IS 'Username';
@@ -214,8 +202,6 @@ CREATE TABLE webmap.usermaps
 WITH (
   OIDS=FALSE
 );
-ALTER TABLE webmap.usermaps
-  OWNER TO add;
 COMMENT ON TABLE webmap.usermaps
   IS 'User saved map views, based on available base maps';
 COMMENT ON COLUMN webmap.usermaps.name IS 'Name of user custom map (forms last part of URL)';
@@ -250,8 +236,6 @@ CREATE TABLE webmap.userlayers
 WITH (
   OIDS=FALSE
 );
-ALTER TABLE webmap.userlayers
-  OWNER TO add;
 COMMENT ON TABLE webmap.userlayers
   IS 'Persistent user uploaded data';
 COMMENT ON COLUMN webmap.userlayers.id IS 'UUID identifier for layer,';
@@ -266,4 +250,5 @@ COMMENT ON COLUMN webmap.userlayers.owner IS 'Owning username';
 COMMENT ON COLUMN webmap.userlayers.creation_date IS 'When layer was uploaded';
 COMMENT ON COLUMN webmap.userlayers.modified_date IS 'Last modified date';
 COMMENT ON COLUMN webmap.userlayers.allowed_usage IS 'public|login|owner';
-COMMENT ON COLUMN webmap.userlayers.styledef IS 'Style configuration';
+COMMENT ON COLUMN webmap.userlayers.styledef IS 'Style configuration';CREATE SCHEMA webmap;
+CREATE SCHEMA webmap;
