@@ -1,3 +1,13 @@
+-- Web Map Engine roles
+INSERT INTO webmap.roles (name, parent) VALUES ('bas', null);
+INSERT INTO webmap.roles (name, parent) VALUES ('magic', null);
+
+-- Web Map Engine role properties
+INSERT INTO webmap.role_props (rolename, propname, propvalue) VALUES ('bas', 'internal', 'yes');
+INSERT INTO webmap.role_props (rolename, propname, propvalue) VALUES ('bas', 'type', 'superuser');
+INSERT INTO webmap.role_props (rolename, propname, propvalue) VALUES ('magic', 'internal', 'yes');
+INSERT INTO webmap.role_props (rolename, propname, propvalue) VALUES ('magic', 'type', 'admin');
+
 -- Web Map Engine users
 
 INSERT INTO webmap.user_roles (username, rolename) VALUES ('admin', 'magic');
