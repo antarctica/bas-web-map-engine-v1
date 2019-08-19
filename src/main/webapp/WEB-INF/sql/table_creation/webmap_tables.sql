@@ -1,3 +1,5 @@
+CREATE SCHEMA webmap;
+
 COMMENT ON SCHEMA webmap
   IS 'Configuration data for web maps';
 
@@ -250,5 +252,4 @@ COMMENT ON COLUMN webmap.userlayers.owner IS 'Owning username';
 COMMENT ON COLUMN webmap.userlayers.creation_date IS 'When layer was uploaded';
 COMMENT ON COLUMN webmap.userlayers.modified_date IS 'Last modified date';
 COMMENT ON COLUMN webmap.userlayers.allowed_usage IS 'public|login|owner';
-COMMENT ON COLUMN webmap.userlayers.styledef IS 'Style configuration';CREATE SCHEMA webmap;
-CREATE SCHEMA webmap;
+COMMENT ON COLUMN webmap.userlayers.styledef IS 'Style configuration';
