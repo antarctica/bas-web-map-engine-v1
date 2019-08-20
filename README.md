@@ -17,7 +17,7 @@ A local development instance can be created using Docker Compose.
 **Note:** See the [Setup](#local-development-setup) section for required setup.
 
 ```
-$ cd mapengine
+$ cd web-map-engine-v1
 $ docker-compose up
 ```
 
@@ -48,13 +48,13 @@ private [BAS GitLab instance](https://gitlab.data.bas.ac.uk)) [1].
 
 ```shell
 # if internal
-$ git clone https://gitlab.data.bas.ac.uk/MAGIC/mapengine.git
-$ cd mapengine
+$ git clone https://gitlab.data.bas.ac.uk/MAGIC/web-map-engine/web-map-engine-v1.git
+$ cd web-map-engine-v1
 $ docker pull
 
 # if external
 $ git clone https://github.com/antarctica/bas-web-map-engine-v1.git
-$ mv bas-web-map-engine-v1 mapengine
+$ mv bas-web-map-engine-v1 web-map-engine-v1
 $ git build app
 ```
 
@@ -80,7 +80,7 @@ $ docker login docker-registry.data.bas.ac.uk
 
 ## Issue tracker
 
-This project uses an [issue tracker](https://gitlab.data.bas.ac.uk/MAGIC/mapengine/issues) to manage the development of
+This project uses an [issue tracker](https://gitlab.data.bas.ac.uk/MAGIC/web-map-engine/web-map-engine-v1/issues) to manage the development of
 new features/improvements and reporting bugs.
 
 ## Feedback

@@ -5,6 +5,10 @@ This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html
 
 ## [Unreleased][unreleased]
 
+### Changed [BREAKING!]
+
+* Transferring project to Web Map Engine group as 'Web Map Engine - V1'
+
 ### Added
 
 * Docker support for running local application instances

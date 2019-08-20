@@ -4,7 +4,7 @@ version: '2'
 services:
   app:
     build: .
-    image: docker-registry.data.bas.ac.uk/magic/mapengine:latest
+    image: docker-registry.data.bas.ac.uk/magic/web-map-engine/web-map-engine-v1:latest
     volumes:
       - "./resources/:/usr/local/tomcat/mapengine-properties/"
     env_file:
