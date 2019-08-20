@@ -7,4 +7,15 @@ This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html
 
 ### Added
 
-* Integrating the Base flavour of the BAS Base Project - Pristine, version 0.1.0 into existing application
+* Docker support for running local application instances
+
+### Changed
+
+* Updating project README and change log
+* Updating copyright dates and changing owner to UKRI
+
+## 1.0.0 - 2019-08-16
+
+### Added
+
+* Initial version of Web Map Engine developed by David Herbert

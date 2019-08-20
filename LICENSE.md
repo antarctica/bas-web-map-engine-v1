@@ -1,8 +1,7 @@
 # License
 
-Copyright 2016 NERC BAS.
+© UK Research and Innovation (UKRI), 2015-2019, British Antarctic Survey.
 
-Unless stated otherwise, all documentation is licensed under the Open Government License - version 3. All code is
-licensed under the MIT license.
+You may use and re-use this software and associated documentation files free of charge in any format or medium, under the terms of the Open Government Licence v3.0.
 
-Copies of these licenses are included within this role.
+You may obtain a copy of the Open Government Licence at http://www.nationalarchives.gov.uk/doc/open-government-licence/
