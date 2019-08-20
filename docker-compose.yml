@@ -6,7 +6,7 @@ services:
     build: .
     image: docker-registry.data.bas.ac.uk/magic/mapengine:latest
     volumes:
-      - "./resources/:/usr/local/tomcat/webapps/mapengine-properties/"
+      - "./resources/:/usr/local/tomcat/mapengine-properties/"
     env_file:
       - .env
     depends_on:
