@@ -11,6 +11,7 @@ This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html
 
 ### Changed
 
+* Updating project README and change log
 * Updating copyright dates and changing owner to UKRI
 
 ## 1.0.0 - 2019-08-16
