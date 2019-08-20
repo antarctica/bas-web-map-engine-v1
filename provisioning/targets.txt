@@ -1,7 +1,0 @@
-add
-opsgis
-#opsgis_rothera
-#polarcode
-sggis
-thwaites
-istargis

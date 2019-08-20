@@ -18,6 +18,13 @@ This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html
 * Updating project README and change log
 * Updating copyright dates and changing owner to UKRI
 
+### Removed
+
+* Build directories
+* Unused Ansible provisioning
+* Unused Pristine project template files
+* NetBeans editor specific files
+
 ## 1.0.0 - 2019-08-16
 
 ### Added
