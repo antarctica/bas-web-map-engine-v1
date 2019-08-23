@@ -11,8 +11,14 @@ services:
       - .env
     depends_on:
       - db
+      - geoserver
     ports:
       - "8080:8080"
+
+  geoserver:
+    image: docker-registry.data.bas.ac.uk/magic/infrastructure/docker-images/geoserver:latest
+    ports:
+      - "8081:8080"
 
   db:
     image: mdillon/postgis:11-alpine

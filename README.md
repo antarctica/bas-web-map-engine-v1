@@ -65,10 +65,9 @@ cloned to act as a guide:
 $ cp .env.example .env
 ```
 
-At a minimum you will need to set `GEOSERVER_HOSTNAME`, `GEOSERVER_USERNAME` AND `GEOSERVER_PASSWORD` to a valid
-GeoServer instance.
+You should not need to change any of the default values.
 
-You should not need to change either of the `SPRING_` variables which relate to
+The `SPRING_` variables which relate to
 [Spring's externalised configuration](https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-external-config.html) feature.
 
 [1] The first time you use this registry you will need to authenticate:
