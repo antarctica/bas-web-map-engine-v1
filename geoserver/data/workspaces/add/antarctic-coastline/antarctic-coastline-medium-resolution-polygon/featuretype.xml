@@ -1,0 +1,61 @@
+<featureType>
+  <id>FeatureTypeInfoImpl--59d5bdcf:16cc2cd6983:-7ffa</id>
+  <name>antarctic-coastline-medium-resolution-polygon</name>
+  <nativeName>medium-resolution-polygon</nativeName>
+  <namespace>
+    <id>NamespaceInfoImpl--59d5bdcf:16cc2cd6983:-7ffe</id>
+  </namespace>
+  <title>Antarctic coastline (medium resolution, polygon)</title>
+  <abstract>Seamless dataset for Antarctic coastline applicable to all zoom levels. Data is a compendium of two line/polygon datasets which should display well at all zoom levels.  Highest resolution data has been prepared from various mapping and remote sensing sources. For the line data, each segment is attributed with metadata concerning its source, updater and update time.   Medium resolution data has been generalised from the high-resolution dataset using ArcGIS generalisation tool with a tolerance of 200 m between nodes. Islands below 1km2 have been removed.  Last updated December 2018, by Fretwell P, BAS, from digitization of remote sensing imagery from Staff from British Antarctic Survey. Main areas of update include the ice shelf coastline between Pine Island Bay and the Ford Range, James Ross Island coastline and various corrections to a number of erroneous attribute values in some features, particularly in the Peninsula area and South Orkney areas.   This is the most accurate and up-to-date vector data for land south of -60 (See update December 2018 notes).</abstract>
+  <keywords>
+    <string>features</string>
+    <string>medium-resolution-polygon</string>
+  </keywords>
+  <nativeCRS class="projected">PROJCS[&quot;WGS 84 / Antarctic Polar Stereographic&quot;, 
+  GEOGCS[&quot;WGS 84&quot;, 
+    DATUM[&quot;World Geodetic System 1984&quot;, 
+      SPHEROID[&quot;WGS 84&quot;, 6378137.0, 298.257223563, AUTHORITY[&quot;EPSG&quot;,&quot;7030&quot;]], 
+      AUTHORITY[&quot;EPSG&quot;,&quot;6326&quot;]], 
+    PRIMEM[&quot;Greenwich&quot;, 0.0, AUTHORITY[&quot;EPSG&quot;,&quot;8901&quot;]], 
+    UNIT[&quot;degree&quot;, 0.017453292519943295], 
+    AXIS[&quot;Geodetic longitude&quot;, EAST], 
+    AXIS[&quot;Geodetic latitude&quot;, NORTH], 
+    AUTHORITY[&quot;EPSG&quot;,&quot;4326&quot;]], 
+  PROJECTION[&quot;Polar Stereographic (variant B)&quot;, AUTHORITY[&quot;EPSG&quot;,&quot;9829&quot;]], 
+  PARAMETER[&quot;central_meridian&quot;, 0.0], 
+  PARAMETER[&quot;Standard_Parallel_1&quot;, -71.0], 
+  PARAMETER[&quot;false_easting&quot;, 0.0], 
+  PARAMETER[&quot;false_northing&quot;, 0.0], 
+  UNIT[&quot;m&quot;, 1.0], 
+  AXIS[&quot;Easting&quot;, &quot;North along 90 deg East&quot;], 
+  AXIS[&quot;Northing&quot;, &quot;North along 0 deg&quot;], 
+  AUTHORITY[&quot;EPSG&quot;,&quot;3031&quot;]]</nativeCRS>
+  <srs>EPSG:3031</srs>
+  <nativeBoundingBox>
+    <minx>-2661797.0</minx>
+    <maxx>2748309.2311000004</maxx>
+    <miny>-2491506.0</miny>
+    <maxy>2321896.863400001</maxy>
+    <crs class="projected">EPSG:3031</crs>
+  </nativeBoundingBox>
+  <latLonBoundingBox>
+    <minx>-180.0</minx>
+    <maxx>180.0</maxx>
+    <miny>-90.0</miny>
+    <maxy>-56.78361886139689</maxy>
+    <crs>EPSG:4326</crs>
+  </latLonBoundingBox>
+  <projectionPolicy>FORCE_DECLARED</projectionPolicy>
+  <enabled>true</enabled>
+  <store class="dataStore">
+    <id>DataStoreInfoImpl--59d5bdcf:16cc2cd6983:-7ffb</id>
+  </store>
+  <serviceConfiguration>false</serviceConfiguration>
+  <maxFeatures>0</maxFeatures>
+  <numDecimals>0</numDecimals>
+  <padWithZeros>false</padWithZeros>
+  <forcedDecimal>false</forcedDecimal>
+  <overridingServiceSRS>false</overridingServiceSRS>
+  <skipNumberMatched>false</skipNumberMatched>
+  <circularArcPresent>false</circularArcPresent>
+</featureType>

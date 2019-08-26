@@ -6,15 +6,15 @@ module.exports = function (grunt) {
         concat: {
             mapjs: {
                 files: [
-                    {        
+                    {
                         src: [
-                            'src/main/webapp/static/js/init.js', 
-                            'src/main/webapp/static/js/modules/*.js', 
-                            'src/main/webapp/static/js/base/*.js', 
+                            'src/main/webapp/static/js/init.js',
+                            'src/main/webapp/static/js/modules/*.js',
+                            'src/main/webapp/static/js/base/*.js',
                             'src/main/webapp/static/js/components/controlbuttons/*.js',
-                            'src/main/webapp/static/js/components/forms/*.js',                             
-                            'src/main/webapp/static/js/components/navtools/*.js', 
-                            'src/main/webapp/static/js/components/plugins/*.js', 
+                            'src/main/webapp/static/js/components/forms/*.js',
+                            'src/main/webapp/static/js/components/navtools/*.js',
+                            'src/main/webapp/static/js/components/plugins/*.js',
                             'src/main/webapp/static/js/components/*.js'
                         ],
                         dest: 'src/main/webapp/static/buildjs/map.js'
@@ -31,15 +31,15 @@ module.exports = function (grunt) {
             },
             creatorjs: {
                 files: [
-                    {        
+                    {
                         src: [
-                            'src/main/webapp/static/js/creator/init.js', 
-                            'src/main/webapp/static/js/base/PopupForm.js', 
-                            'src/main/webapp/static/js/modules/*.js', 
-                            'src/main/webapp/static/js/creator/base/DataSourceForm.js', 
+                            'src/main/webapp/static/js/creator/init.js',
+                            'src/main/webapp/static/js/base/PopupForm.js',
+                            'src/main/webapp/static/js/modules/*.js',
+                            'src/main/webapp/static/js/creator/base/DataSourceForm.js',
                             'src/main/webapp/static/js/components/forms/StylerPopup.js',
                             'src/main/webapp/static/js/creator/forms/*.js',
-                            '!src/main/webapp/static/js/creator/forms/Embedded*.js', 
+                            '!src/main/webapp/static/js/creator/forms/Embedded*.js',
                             'src/main/webapp/static/js/creator/components/*.js',
                             '!src/main/webapp/static/js/creator/components/Embedded*.js'
                         ],
@@ -57,12 +57,12 @@ module.exports = function (grunt) {
             },
             consolejs: {
                 files: [
-                    {        
+                    {
                         src: [
-                            'src/main/webapp/static/js/init.js', 
-                            'src/main/webapp/static/js/modules/Endpoints.js', 
-                            'src/main/webapp/static/js/modules/Common.js', 
-                            'src/main/webapp/static/js/modules/GeoUtils.js',                             
+                            'src/main/webapp/static/js/init.js',
+                            'src/main/webapp/static/js/modules/Endpoints.js',
+                            'src/main/webapp/static/js/modules/Common.js',
+                            'src/main/webapp/static/js/modules/GeoUtils.js',
                             'src/main/webapp/static/js/console/components/WebMapPanel.js'
                         ],
                         dest: 'src/main/webapp/static/buildjs/console.js'
@@ -79,15 +79,15 @@ module.exports = function (grunt) {
             },
             embedded_creatorjs: {
                 files: [
-                    {        
+                    {
                         src: [
-                            'src/main/webapp/static/js/creator/init.js', 
-                            'src/main/webapp/static/js/base/PopupForm.js', 
-                            'src/main/webapp/static/js/modules/Endpoints.js', 
-                            'src/main/webapp/static/js/modules/Common.js', 
-                            'src/main/webapp/static/js/modules/GeoUtils.js',                           
-                            'src/main/webapp/static/js/creator/forms/Embedded*.js', 
-                            'src/main/webapp/static/js/creator/forms/WmsFeatureLinkedMenus.js', 
+                            'src/main/webapp/static/js/creator/init.js',
+                            'src/main/webapp/static/js/base/PopupForm.js',
+                            'src/main/webapp/static/js/modules/Endpoints.js',
+                            'src/main/webapp/static/js/modules/Common.js',
+                            'src/main/webapp/static/js/modules/GeoUtils.js',
+                            'src/main/webapp/static/js/creator/forms/Embedded*.js',
+                            'src/main/webapp/static/js/creator/forms/WmsFeatureLinkedMenus.js',
                             'src/main/webapp/static/js/creator/components/MapRegionSelector.js',
                             'src/main/webapp/static/js/creator/components/MapMetadataForm.js',
                             'src/main/webapp/static/js/creator/components/MapLayerSelector.js',
@@ -108,11 +108,11 @@ module.exports = function (grunt) {
             },
             endpoint_managerjs: {
                 files: [
-                    {        
+                    {
                         src: [
-                            'src/main/webapp/static/js/endpoint_manager/init.js',                            
-                            'src/main/webapp/static/js/modules/Common.js', 
-                            'src/main/webapp/static/js/base/CustomFormInput.js',                           
+                            'src/main/webapp/static/js/endpoint_manager/init.js',
+                            'src/main/webapp/static/js/modules/Common.js',
+                            'src/main/webapp/static/js/base/CustomFormInput.js',
                             'src/main/webapp/static/js/components/forms/TagsInput.js',
                             'src/main/webapp/static/js/components/forms/MultiSelectInput.js',
                             'src/main/webapp/static/js/endpoint_manager/components/EndpointManagerPanel.js'
@@ -130,10 +130,60 @@ module.exports = function (grunt) {
                 ]
             },
         },
+        copy: {
+          main: {
+            files: [
+              {
+                src: 'src/main/webapp/static/buildjs/map.js',
+                dest: 'src/main/webapp/static/dist/map.min.js'
+              },
+              {
+                src: 'src/main/webapp/static/buildcss/map.css',
+                dest: 'src/main/webapp/static/dist/map.min.css'
+              },
+              {
+                src: 'src/main/webapp/static/buildjs/creator.js',
+                dest: 'src/main/webapp/static/dist/creator.min.js'
+              },
+              {
+                src: 'src/main/webapp/static/buildcss/creator.css',
+                dest: 'src/main/webapp/static/dist/creator.min.css'
+              },
+              {
+                src: 'src/main/webapp/static/buildjs/console.js',
+                dest: 'src/main/webapp/static/dist/console.min.js'
+              },
+              {
+                src: 'src/main/webapp/static/buildcss/console.css',
+                dest: 'src/main/webapp/static/dist/console.min.css'
+              },
+              {
+                src: 'src/main/webapp/static/buildjs/embedded_creator.js',
+                dest: 'src/main/webapp/static/dist/embedded_creator.min.js'
+              },
+              {
+                src: 'src/main/webapp/static/buildcss/embedded_creator.css',
+                dest: 'src/main/webapp/static/dist/embedded_creator.min.css'
+              },
+              {
+                src: 'src/main/webapp/static/buildjs/endpoint_manager.js',
+                dest: 'src/main/webapp/static/dist/endpoint_manager.min.js'
+              },
+              {
+                'src': 'src/main/webapp/static/buildjs/endpoint_manager.js',
+                'dest': 'src/main/webapp/static/dist/endpoint_manager.min.js'
+              },
+              {
+                src: 'src/main/webapp/static/buildcss/endpoint_manager.css',
+                dest: 'src/main/webapp/static/dist/endpoint_manager.min.css'
+              }
+            ]
+          }
+        },
         uglify: {
             map: {
                 files: [
-                    {        
+                    {
                         src: 'src/main/webapp/static/buildjs/map.js',
                         dest: 'src/main/webapp/static/dist/map.min.js'
                     }
@@ -141,7 +191,7 @@ module.exports = function (grunt) {
             },
             creator: {
                 files: [
-                    {        
+                    {
                         src: 'src/main/webapp/static/buildjs/creator.js',
                         dest: 'src/main/webapp/static/dist/creator.min.js'
                     }
@@ -149,7 +199,7 @@ module.exports = function (grunt) {
             },
             console: {
                 files: [
-                    {        
+                    {
                         src: 'src/main/webapp/static/buildjs/console.js',
                         dest: 'src/main/webapp/static/dist/console.min.js'
                     }
@@ -157,7 +207,7 @@ module.exports = function (grunt) {
             },
             embedded_creator: {
                 files: [
-                    {        
+                    {
                         src: 'src/main/webapp/static/buildjs/embedded_creator.js',
                         dest: 'src/main/webapp/static/dist/embedded_creator.min.js'
                     }
@@ -165,7 +215,7 @@ module.exports = function (grunt) {
             },
             endpoint_manager: {
                 files: [
-                    {        
+                    {
                         src: 'src/main/webapp/static/buildjs/endpoint_manager.js',
                         dest: 'src/main/webapp/static/dist/endpoint_manager.min.js'
                     }
@@ -175,7 +225,7 @@ module.exports = function (grunt) {
         cssmin: {
             map: {
                 files: [
-                    {        
+                    {
                         src: 'src/main/webapp/static/buildcss/map.css',
                         dest: 'src/main/webapp/static/dist/map.min.css'
                     }
@@ -183,7 +233,7 @@ module.exports = function (grunt) {
             },
             creator: {
                 files: [
-                    {        
+                    {
                         src: 'src/main/webapp/static/buildcss/creator.css',
                         dest: 'src/main/webapp/static/dist/creator.min.css'
                     }
@@ -191,7 +241,7 @@ module.exports = function (grunt) {
             },
             console: {
                 files: [
-                    {        
+                    {
                         src: 'src/main/webapp/static/buildcss/console.css',
                         dest: 'src/main/webapp/static/dist/console.min.css'
                     }
@@ -199,7 +249,7 @@ module.exports = function (grunt) {
             },
             embedded_creator: {
                 files: [
-                    {        
+                    {
                         src: 'src/main/webapp/static/buildcss/embedded_creator.css',
                         dest: 'src/main/webapp/static/dist/embedded_creator.min.css'
                     }
@@ -207,7 +257,7 @@ module.exports = function (grunt) {
             },
             endpoint_manager: {
                 files: [
-                    {        
+                    {
                         src: 'src/main/webapp/static/buildcss/endpoint_manager.css',
                         dest: 'src/main/webapp/static/dist/endpoint_manager.min.css'
                     }
@@ -218,7 +268,12 @@ module.exports = function (grunt) {
 
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-contrib-concat');
+    grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-css');
+
     grunt.registerTask('default', ['clean', 'concat', 'uglify', 'cssmin', 'clean']);
+
+    //= Uncomment this task to use un-minified JS/CSS
+    // grunt.registerTask('default', ['clean', 'concat', 'copy', 'cssmin', 'clean']);
 };

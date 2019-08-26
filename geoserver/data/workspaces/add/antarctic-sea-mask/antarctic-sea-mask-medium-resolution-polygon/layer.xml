@@ -1,0 +1,20 @@
+<layer>
+  <name>antarctic-sea-mask-medium-resolution-polygon</name>
+  <id>LayerInfoImpl--59d5bdcf:16cc2cd6983:-7ff6</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl--59d5bdcf:16cc2cd6983:-7ff1</id>
+  </defaultStyle>
+  <styles class="linked-hash-set">
+    <style>
+      <id>StyleInfoImpl--59d5bdcf:16cc2cd6983:-7ff1</id>
+    </style>
+  </styles>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl--59d5bdcf:16cc2cd6983:-7ff7</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>

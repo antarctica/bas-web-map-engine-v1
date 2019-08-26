@@ -25,11 +25,12 @@ LABEL maintainer="Felix Fennell <felnne@bas.ac.uk>"
 
 # Setup project
 WORKDIR /usr/src/app
-COPY src/ /usr/src/app/src/
-COPY pom.xml /usr/src/app/
-COPY --from=0 /usr/src/app/src/main/webapp/static/dist src/main/webapp/static/dist
 
 # Setup project dependencies and build application
+COPY pom.xml .
+RUN mvn dependency:go-offline
+COPY src/ /usr/src/app/src/
+COPY --from=0 /usr/src/app/src/main/webapp/static/dist src/main/webapp/static/dist
 RUN mvn clean install
 
 # ## Stage 2
