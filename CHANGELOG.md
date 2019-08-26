@@ -15,6 +15,7 @@ This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html
 * Local GeoServer container using new GeoServer Docker image
 * Vector sample data for local GeoServer (sea mask, coastline and facilities)
 * Option for using un-minified JS/CSS for debugging scripts
+* Minimal CI/CD pipeline to publish app WAR file as an artefact
 
 ### Changed
 

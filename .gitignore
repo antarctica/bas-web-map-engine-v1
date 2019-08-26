@@ -8,5 +8,5 @@ target/
 .env
 
 # Runtime files
-data/geoserver/gwc/tmp
-data/geoserver/logs/geoserver.log
+geoserver/data/gwc/tmp
+geoserver/data/logs/geoserver.log
