@@ -80,7 +80,7 @@ magic.modules.Endpoints = function () {
         getOgcEndpoint: function(url, service) {
             var proxEp = url;
 
-            // workaround for issue #18
+            // workaround for issue #19
             if (url == 'http://localhost:8081/geoserver/wms') {
               return url;
             }
