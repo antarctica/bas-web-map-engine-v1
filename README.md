@@ -132,6 +132,20 @@ feature.
 $ docker login docker-registry.data.bas.ac.uk
 ```
 
+## Development
+
+### Using un-minified JS/CSS
+
+For debugging non-minified versions of JS and CSS can be used:
+
+1. in `Gruntfile.js` uncomment the second *default* task definition that includes a *copy* rather than *uglify* command
+2. rebuild the application Docker image `docker-compose build app`
+
+To reverse this change, re-comment out the second *default* task definition and rebuild the Docker image.
+
+**Note:** DO NOT commit the second *default* task definition uncommented - the repository should always represent
+production.
+
 ## Issue tracker
 
 This project uses an [issue tracker](https://gitlab.data.bas.ac.uk/MAGIC/web-map-engine/web-map-engine-v1/issues) to
