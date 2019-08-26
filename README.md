@@ -146,6 +146,14 @@ To reverse this change, re-comment out the second *default* task definition and 
 **Note:** DO NOT commit the second *default* task definition uncommented - the repository should always represent
 production.
 
+## Deployment
+
+### Continuous Deployment
+
+A Continuous Deployment process using GitLab's CI/CD platform is configured in `.gitlab-ci.yml`. This will:
+
+* save the application WAR file as a GitLab build artefact
+
 ## Issue tracker
 
 This project uses an [issue tracker](https://gitlab.data.bas.ac.uk/MAGIC/web-map-engine/web-map-engine-v1/issues) to

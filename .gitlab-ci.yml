@@ -1,0 +1,32 @@
+---
+
+# == Notes ==
+
+# - GitLab automatically passes artifacts from previous stages by default
+
+# == Global settings ==
+
+stages:
+  - build
+
+variables:
+  APP_NAME: bas-web-map-engine
+
+image:
+  name: docker-registry.data.bas.ac.uk/magic/web-map-engine/web-map-engine-v1:latest
+  entrypoint: [""]
+
+# == Jobs ==
+
+build-war:
+  stage: build
+  script:
+    - "cp /usr/local/tomcat/webapps/ROOT.war ./web-map-engine.war"
+  artifacts:
+    name: "$CI_BUILD_TOKEN-build"
+    paths:
+      - web-map-engine.war
+    expire_in: 1 week
+  only:
+    - master
+    - tags
