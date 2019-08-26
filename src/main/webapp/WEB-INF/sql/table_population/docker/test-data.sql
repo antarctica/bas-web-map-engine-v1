@@ -14,7 +14,33 @@ INSERT INTO webmap.user_roles (username, rolename) VALUES ('admin', 'magic');
 
 -- Web Map Engine endpoints
 
-INSERT INTO webmap.endpoints (id, name, url, location, low_bandwidth, coast_layers, graticule_layer, proxied_url, srs, has_wfs, is_user_service, url_aliases, rest_endpoint) VALUES (60, 'Antarctic Digital Database', 'https://maps.bas.ac.uk/antarctic/wms', 'cambridge', false, 'add:antarctic_coastline,add:sub_antarctic_coastline', 'add:antarctic_graticule', null, 'EPSG:3031', true, false, 'https://add.data.bas.ac.uk/geoserver/add/wms,http://add.antarctica.ac.uk/geoserver/add/wms', 'https://add.data.bas.ac.uk/geoserver');
+INSERT INTO webmap.endpoints (
+  name,
+  url,
+  location,
+  low_bandwidth,
+  coast_layers,
+  graticule_layer,
+  proxied_url,
+  srs,
+  has_wfs,
+  is_user_service,
+  url_aliases,
+  rest_endpoint
+) VALUES (
+  'Web Map Engine Local GeoServer',
+  'http://localhost:8081/geoserver/wms',
+  'cambridge',
+  false,
+  'add:antarctic-coastline-medium-resolution-polygon',
+  '',
+  '',
+  'EPSG:3031',
+  true,
+  false,
+  '',
+  'http://localhost:8081/geoserver'
+);
 
 -- Web Map Engine maps
 
