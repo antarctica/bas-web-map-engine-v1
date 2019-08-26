@@ -27,6 +27,8 @@ This will create three linked containers:
 * `db_1` - local PostGIS database for the Web Map Engine
 * `geoserver_1` - local GeoServer instance for authentication and map data
 
+The local PostGIS database will be automatically populated with the Web Map Engine application schema and a simple test
+map.
 
 When you see:
 
@@ -38,9 +40,33 @@ The Map Web Engine application can then be accessed at: [localhost:8080/home](ht
 
 You should see a simple [test map](http://localhost:8080/home/test) and an option to login.
 
+**Note:** The test map will currently warn about a missing graticule, this is safe to ignore.
+
 Logins will be checked against the GeoServer configured in the `.env` settings file. Only the `admin` user of the
 configured GeoServer will be granted administrative permissions in the Web Map Engine application. By default, this
 will be the [local GeoServer instance](#local-geoserver-instance).
+
+#### Local Tomcat server
+
+The manager application for the local Tomcat server can be accessed at: [localhost:8080/manager](http://localhost:8080/manager).
+
+The login credentials are:
+
+* username: `tomcat`
+* password: `password`
+
+#### Local PostGIS database
+
+The local PostGIS database can be accessed with these connection settings:
+
+| Setting  | Value       |
+| -------- | ----------- |
+| Hostname | `localhost` |
+| Port     | `5432`      |
+| Username | `postgres`  |
+| Password | `password`  |
+| Database | `postgres`  |
+| Schema   | `public`    |
 
 #### Local GeoServer instance
 
@@ -65,9 +91,8 @@ Layers from this GeoServer instance can be accessed in a desktop GIS, using thes
 
 ### Local development (setup)
 
-A local copy of the Web Map Engine can be ran using [Docker Desktop](https://www.docker.com/products/docker-desktop).
-
-You will also need access to a [GeoServer](http://geoserver.org) instance for authentication.
+A local copy of the Web Map Engine can be ran using [Git](https://git-scm.com) and
+[Docker Desktop](https://www.docker.com/products/docker-desktop).
 
 To use the Docker image for this project you will need to access to the private BAS Docker Registry (part of the
 private [BAS GitLab instance](https://gitlab.data.bas.ac.uk)) [1].
@@ -96,8 +121,9 @@ $ cp .env.example .env
 You do not need to change any of the default values, unless you wish to authenticate against, and use layers from, an
 external GeoServer instance, rather than the local development instance.
 
-The `SPRING_` variables which relate to
-[Spring's externalised configuration](https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-external-config.html) feature.
+**Note:** The `SPRING_` variables relate to
+[Spring's externalised configuration](https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-external-config.html)
+feature.
 
 [1] The first time you use this registry you will need to authenticate:
 
@@ -108,8 +134,8 @@ $ docker login docker-registry.data.bas.ac.uk
 
 ## Issue tracker
 
-This project uses an [issue tracker](https://gitlab.data.bas.ac.uk/MAGIC/web-map-engine/web-map-engine-v1/issues) to manage the development of
-new features/improvements and reporting bugs.
+This project uses an [issue tracker](https://gitlab.data.bas.ac.uk/MAGIC/web-map-engine/web-map-engine-v1/issues) to
+manage the development of new features/improvements and reporting bugs.
 
 ## Feedback
 
