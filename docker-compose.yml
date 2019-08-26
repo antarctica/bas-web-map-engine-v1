@@ -17,6 +17,10 @@ services:
 
   geoserver:
     image: docker-registry.data.bas.ac.uk/magic/infrastructure/docker-images/geoserver:latest
+    volumes:
+      - "./geoserver/data/:/var/geoserver/data/"
+    environment:
+      - "GEOSERVER_DATA_DIR=/var/geoserver/data"
     ports:
       - "8081:8080"
 

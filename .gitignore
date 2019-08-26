@@ -6,3 +6,7 @@ target/
 
 # Secrets
 .env
+
+# Runtime files
+data/geoserver/gwc/tmp
+data/geoserver/logs/geoserver.log
