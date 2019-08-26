@@ -19,6 +19,7 @@ services:
     image: docker-registry.data.bas.ac.uk/magic/infrastructure/docker-images/geoserver:latest
     volumes:
       - "./geoserver/data/:/var/geoserver/data/"
+      - "./geoserver/WEB-INF/web.xml:/usr/share/geoserver/webapps/geoserver/WEB-INF/web.xml"
     environment:
       - "GEOSERVER_DATA_DIR=/var/geoserver/data"
     ports:
