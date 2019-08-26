@@ -79,6 +79,12 @@ magic.modules.Endpoints = function () {
          */
         getOgcEndpoint: function(url, service) {
             var proxEp = url;
+
+            // workaround for issue #18
+            if (url == 'http://localhost:8081/geoserver/wms') {
+              return url;
+            }
+
             var matches = this.getEndpointsBy("url", url);
             if (jQuery.isArray(matches) && matches.length > 0) {
                 if (matches[0]["is_user_service"] === true) {
