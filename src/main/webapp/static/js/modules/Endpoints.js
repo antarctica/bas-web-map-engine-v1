@@ -3,17 +3,17 @@
 magic.modules.Endpoints = function () {
 
     return({
-        /** 
-         * Parse a URI into components 
+        /**
+         * Parse a URI into components
          * Downloaded from http://stevenlevithan.com/demo/parseuri/js/assets/parseuri.js
          * parseUri 1.2.2
          * (c) Steven Levithan <stevenlevithan.com>
          * MIT License
          * @param {String} str
          * @return {Object}
-         */       
+         */
         parseUri: function(str) {
-            var	o = 
+            var	o =
                 {
                     strictMode: false,
                     key: ["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],
@@ -50,7 +50,7 @@ magic.modules.Endpoints = function () {
             var match = re.exec(url);
             if (match != null) {
                 vs = match[1];
-            }            
+            }
             return(vs);
         },
         /**
@@ -70,7 +70,7 @@ magic.modules.Endpoints = function () {
         getWmsServiceUrl: function(service) {
             var matchEp = this.getEndpointBy("name", service);
             return(matchEp ? matchEp.url : null);
-        },   
+        },
         /**
          * Get proxied endpoint i.e. a /ogc/<service>/<op> type URL for the given one, if a recognised endpoint
          * @param {string} url
@@ -78,8 +78,8 @@ magic.modules.Endpoints = function () {
          * @returns {int}
          */
         getOgcEndpoint: function(url, service) {
-            var proxEp = url;           
-            var matches = this.getEndpointsBy("url", url);            
+            var proxEp = url;
+            var matches = this.getEndpointsBy("url", url);
             if (jQuery.isArray(matches) && matches.length > 0) {
                 if (matches[0]["is_user_service"] === true) {
                     proxEp = magic.config.paths.baseurl + "/ogc/user/" + service;
@@ -89,9 +89,9 @@ magic.modules.Endpoints = function () {
             } else {
                 console.log(url + " does not correspond to a known endpoint - need to proxy");
                 proxEp = magic.modules.Common.proxyUrl(url);
-            }            
+            }
             return(proxEp);
-        },       
+        },
         /**
          * Retrieve single endpoint data corresponding to the input filter (match occurs if 'filter' found at start of endpoint, case-insensitive)
          * @param {string} filterName
@@ -99,11 +99,11 @@ magic.modules.Endpoints = function () {
          * @returns {Object}
          */
         getEndpointBy: function(filterName, filterValue) {
-            var matches = this.getEndpointsBy(filterName, filterValue);           
+            var matches = this.getEndpointsBy(filterName, filterValue);
             return(matches.length > 0 ? matches[0] : null);
-        },  
+        },
         /**
-         * Get the endpoint corresponding to the user data service (should only be one or none)  
+         * Get the endpoint corresponding to the user data service (should only be one or none)
          * @return {Object}
          */
         getUserDataEndpoint: function() {
@@ -124,7 +124,7 @@ magic.modules.Endpoints = function () {
         getEndpointsBy: function(filterName, filterValue) {
             if (!magic.runtime.endpoints || !filterName || ! filterValue) {
                 return(null);
-            }            
+            }
             return(jQuery.grep(magic.runtime.endpoints, jQuery.proxy(function(ep) {
                 if (filterName == "id") {
                     return(ep[filterName] == filterValue);
@@ -136,13 +136,13 @@ magic.modules.Endpoints = function () {
                     if (restIdx != -1) {
                         serviceNeutralFilter = serviceNeutralFilter.substring(0, restIdx);
                     }
-                    var foundUrl = ep[filterName].indexOf(serviceNeutralFilter) == 0;                   
+                    var foundUrl = ep[filterName].indexOf(serviceNeutralFilter) == 0;
                     if (!foundUrl && ep["url_aliases"]) {
                         /* Check any of the aliases match in protocol, host and port */
                         var aliases = ep["url_aliases"].split(",");
                         for (var i = 0; !foundUrl && i < aliases.length; i++) {
                             foundUrl = aliases[i].indexOf(serviceNeutralFilter) == 0;
-                        }                            
+                        }
                     }
                     return(foundUrl);
                 } else if (filterName == "srs") {
@@ -153,7 +153,7 @@ magic.modules.Endpoints = function () {
                     return(ep[filterName].toLowerCase().indexOf(filterValue.toLowerCase()) == 0);
                 }
             }, this)));
-        }, 
+        },
         /**
          * Get a suitable mid-latitudes coast layer (OSM, except if in a low bandwidth location, in which case default to Natural Earth)
          * @returns {ol.layer}
@@ -171,12 +171,12 @@ magic.modules.Endpoints = function () {
                     source: new ol.source.TileWMS({
                         url: midlats.url,
                         params: {
-                            "LAYERS": midlats.coast_layers, 
+                            "LAYERS": midlats.coast_layers,
                             "CRS": "EPSG:3857",
                             "SRS": "EPSG:3857",
                             "VERSION": "1.3.0",
                             "WORKSPACE": ws
-                        },            
+                        },
                         projection: "EPSG:3857"
                     })
                 });
@@ -186,25 +186,25 @@ magic.modules.Endpoints = function () {
                     wrapX: false    /* Very important - all OSM maps are total nonsense (gratuitously wrapped all over the place) without it! Looks like something's broken in OL4 - David 2018-04-13*/
                 })});
             }
-            return(layer);            
+            return(layer);
         },
         /**
          * Construct a mid-latitude coastline source object
-         * @param {boolean} embedded 
+         * @param {boolean} embedded
          * @returns {Object}
          */
         getMidLatitudeCoastSource: function(embedded) {
-            var midlats = this.getEndpointBy("name", "midlatitude");  
+            var midlats = this.getEndpointBy("name", "midlatitude");
             var source = {
-                "wms_source": (midlats && midlats.url != "osm") ? midlats.url : "osm", 
-                "feature_name": (midlats && midlats.url != "osm") ? midlats.coast_layers : "osm", 
+                "wms_source": (midlats && midlats.url != "osm") ? midlats.url : "osm",
+                "feature_name": (midlats && midlats.url != "osm") ? midlats.coast_layers : "osm",
                 "is_base": true
             };
             return(jQuery.extend({
                "id": null,
-               "name": "Mid-latitude data",               
+               "name": "Mid-latitude data",
                "is_visible": true
-            }, embedded ? source : {"source": source}));            
+            }, embedded ? source : {"source": source}));
         }
 
     });
