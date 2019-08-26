@@ -1,0 +1,46 @@
+{
+  "builders": [
+    {
+      "image": "{{ user `do_image` }}",
+      "monitoring": true,
+      "private_networking": true,
+      "region": "{{ user `do_region` }}",
+      "size": "{{ user `do_size` }}",
+      "snapshot_name": "{{user `template`}}-{{isotime \"2006-01-02\"}}",
+      "ssh_username": "root",
+      "type": "digitalocean"
+    }
+  ],
+  "provisioners": [
+    {
+      "environment_vars": [
+        "http_proxy={{user `http_proxy`}}",
+        "https_proxy={{user `https_proxy`}}",
+        "no_proxy={{user `no_proxy`}}",
+        "TEMPLATE_NAME={{user `template`}}",
+        "TEMPLATE_VERSION={{isotime \"2019-08-26\"}}"
+      ],
+      "expect_disconnect": true,
+      "scripts": [
+        "setup-os.sh",
+        "setup-app-dependencies.sh"
+      ],
+      "type": "shell"
+    }
+  ],
+  "variables": {
+    "template": "web-map-engine-standalone",
+    "cpus": "1",
+    "disk_size": "65536",
+    "do_image": "centos-7-x64",
+    "do_region": "lon1",
+    "do_size": "s-1vcpu-1gb",
+    "http_proxy": "{{env `http_proxy`}}",
+    "https_proxy": "{{env `https_proxy`}}",
+    "no_proxy": "{{env `no_proxy`}}",
+    "app_tomcat_manager_password": "password"
+  },
+  "sensitive-variables": [
+    "app_tomcat_manager_password"
+  ]
+}

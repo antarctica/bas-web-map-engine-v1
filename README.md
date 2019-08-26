@@ -87,6 +87,10 @@ Layers from this GeoServer instance can be accessed in a desktop GIS, using thes
 | WMS     | `http://localhost:8081/geoserver/wms` |
 | WFS     | `http://localhost:8081/geoserver/wfs` |
 
+### Standalone virtual machine (usage)
+
+...
+
 ## Setup
 
 ### Local development (setup)
@@ -131,6 +135,32 @@ feature.
 # note the password required is set at https://gitlab.data.bas.ac.uk/profile/password/edit
 $ docker login docker-registry.data.bas.ac.uk
 ```
+
+### Standalone virtual machine (setup)
+
+A standalone virtual machine, containing the Web Map Engine application, it's database and a local GeoServer instance,
+can be built using [Git](https://git-scm.com), [Packer](https://www.packer.io) and
+[DigitalOcean](https://digitalocean.com).
+
+**Note:** Standalone instances are intended to fully isolated environments and assume there will be no active access
+once built (i.e. for field work).
+
+This process will build a virtual machine image that can be used to create as many instances as needed. These instances
+will start identical but depending on how they are used/configured may differ from each other.
+
+You will need access to the [BAS DigitalOcean](https://gitlab.data.bas.ac.uk/WSF/bas-do) account to build this virtual
+machine image. Specifically you will need to set the `DIGITALOCEAN_TOKEN` environment variable locally.
+
+```
+$ cd provisioning/packer
+$ packer build web-map-engine-standalone.json
+```
+
+This will create a [snapshot](https://cloud.digitalocean.com/images/snapshots) named `web-map-engine-standalone-[date]`,
+e.g. `web-map-engine-standalone-2019-08-26`.
+
+You can then create instances of this image to create standalone Web Map Engine instances, see the
+[Usage](#standalone-virtual-machine-setup)) section for more information.
 
 ## Development
 

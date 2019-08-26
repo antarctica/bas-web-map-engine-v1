@@ -1,0 +1,92 @@
+#!/bin/sh -eux
+
+# Install Java
+#
+
+yum -y install java-1.8.0-openjdk-devel;
+
+# Install Tomcat
+#
+
+groupadd tomcat;
+useradd -M -s /bin/nologin -g tomcat -d /opt/tomcat tomcat;
+
+cd /tmp;
+yum -y install wget;
+wget http://us.mirrors.quenda.co/apache/tomcat/tomcat-9/v9.0.24/bin/apache-tomcat-9.0.24.tar.gz;
+
+checksum=e01bd107e8fbe5ba629571d552a46339ccfd843b8bf770f617dfc1ec5cbf5fe5d945c2c3bba2f80188775a46f93c66d8594c13f8d12f7967d6d56c62d2bf7835
+echo "$checksum apache-tomcat-9.0.24.tar.gz" | sha512sum -c - || exit 1;
+
+mkdir /opt/tomcat;
+tar xvf apache-tomcat-9.0.24.tar.gz -C /opt/tomcat --strip-components=1;
+
+cd /opt/tomcat;
+chgrp -R tomcat /opt/tomcat;
+chmod -R g+r conf;
+chmod g+x conf;
+chown -R tomcat webapps/ work/ temp/ logs/;
+
+cat >/etc/systemd/system/tomcat.service <<'EOL'
+# Systemd unit file for tomcat
+[Unit]
+Description=Apache Tomcat Web Application Container
+After=syslog.target network.target
+
+[Service]
+Type=forking
+
+Environment=JAVA_HOME=/usr/lib/jvm/jre
+Environment=CATALINA_PID=/opt/tomcat/temp/tomcat.pid
+Environment=CATALINA_HOME=/opt/tomcat
+Environment=CATALINA_BASE=/opt/tomcat
+Environment='CATALINA_OPTS=-Xms512M -Xmx1024M -server -XX:+UseParallelGC'
+Environment='JAVA_OPTS=-Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom'
+
+ExecStart=/opt/tomcat/bin/startup.sh
+ExecStop=/bin/kill -15 $MAINPID
+
+User=tomcat
+Group=tomcat
+UMask=0007
+RestartSec=10
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOL
+
+systemctl daemon-reload;
+systemctl enable tomcat;
+systemctl start tomcat;
+
+# Configure tomcat
+#
+
+sed -i 's;</tomcat-users>;<role rolename="manager-gui"/>\n</tomcat-users>;g' /opt/tomcat/conf/tomcat-users.xml;
+sed -i 's;</tomcat-users>;<role rolename="admin-gui"/>\n</tomcat-users>;g' /opt/tomcat/conf/tomcat-users.xml;
+sed -i 's;</tomcat-users>;<user username="tomcat" password="$APP_TOMCAT_MANAGER_PASSWORD" roles="manager-gui,admin-gui"/>\n</tomcat-users>;g' /opt/tomcat/conf/tomcat-users.xml;
+
+mkdir -p /opt/tomcat/conf/Catalina/localhost;
+echo "<Context privileged=\"true\" antiResourceLocking=\"false\" docBase=\"/opt/tomcat/webapps/manager\">" >> /opt/tomcat/conf/Catalina/localhost/manager.xml;
+echo "<Valve className=\"org.apache.catalina.valves.RemoteAddrValve\" allow=\"^.*$\" /></Context>" >> /opt/tomcat/conf/Catalina/localhost/manager.xml;
+
+rm -rf /opt/tomcat/webapps/docs /opt/tomcat/webapps/examples /opt/tomcat/webapps/host-manager /opt/tomcat/webapps/ROOT;
+
+systemctl restart tomcat;
+
+# Install PostgreSQL
+#
+
+yum -y install epel-release;
+yum -y install https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm;
+yum -y install postgresql11 postgresql11-server;
+
+/usr/pgsql-11/bin/postgresql-11-setup initdb;
+systemctl enable postgresql-11;
+systemctl start postgresql-11;
+
+# Install PostGIS extension
+#
+
+yum -y install postgis25_11;
