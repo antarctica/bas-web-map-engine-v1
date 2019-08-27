@@ -96,7 +96,7 @@ systemctl restart postgresql-11;
 
 yum -y install postgis25_11;
 
-psql <<- 'EOL'
+sudo -u postgres psql <<- 'EOL'
 CREATE DATABASE template_postgis;
 UPDATE pg_database SET datistemplate = TRUE WHERE datname = 'template_postgis';
 EOL
@@ -104,7 +104,7 @@ EOL
 # Load PostGIS into both template_database and postgres
 for DB in template_postgis postgres; do
 	echo "Loading PostGIS extensions into $DB"
-	psql --dbname="$DB" <<-'EOL'
+	sudo -u postgres psql --dbname="$DB" <<-'EOL'
 		CREATE EXTENSION IF NOT EXISTS postgis;
 		CREATE EXTENSION IF NOT EXISTS postgis_topology;
 		CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
