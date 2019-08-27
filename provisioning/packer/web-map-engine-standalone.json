@@ -27,6 +27,13 @@
         "setup-app-stack.sh"
       ],
       "type": "shell"
+    },
+    {
+      "expect_disconnect": true,
+      "scripts": [
+        "cleanup-os.sh"
+      ],
+      "type": "shell"
     }
   ],
   "variables": {
