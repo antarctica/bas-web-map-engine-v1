@@ -18,12 +18,13 @@
         "https_proxy={{user `https_proxy`}}",
         "no_proxy={{user `no_proxy`}}",
         "TEMPLATE_NAME={{user `template`}}",
-        "TEMPLATE_VERSION={{isotime \"2019-08-26\"}}"
+        "TEMPLATE_VERSION={{isotime \"2019-08-26\"}}",
+        "APP_TOMCAT_MANAGER_PASSWORD={{user `app_tomcat_manager_password`}}"
       ],
       "expect_disconnect": true,
       "scripts": [
         "setup-os.sh",
-        "setup-app-dependencies.sh"
+        "setup-app-stack.sh"
       ],
       "type": "shell"
     }
