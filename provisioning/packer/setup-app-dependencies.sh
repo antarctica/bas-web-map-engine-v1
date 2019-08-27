@@ -86,6 +86,11 @@ yum -y install postgresql11 postgresql11-server;
 systemctl enable postgresql-11;
 systemctl start postgresql-11;
 
+sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'password';";
+sed -i '/host    all             all             127.0.0.1\/32            ident/c\host    all             all             127.0.0.1\/32            md5' /var/lib/pgsql/11/data/pg_hba.conf;
+
+systemctl restart postgresql-11;
+
 # Install PostGIS extension
 #
 
