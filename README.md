@@ -48,6 +48,8 @@ will be the [local GeoServer instance](#local-geoserver-instance).
 
 #### Local Tomcat server
 
+The local Tomcat server hosts the Web Map Engine application (at `/`).
+
 The manager application for the local Tomcat server can be accessed at: [localhost:8080/manager](http://localhost:8080/manager).
 
 The login credentials are:
@@ -66,12 +68,15 @@ The local PostGIS database can be accessed with these connection settings:
 | Username | `postgres`  |
 | Password | `password`  |
 | Database | `postgres`  |
-| Schema   | `public`    |
+| Schema   | `webmap`    |
 
 #### Local GeoServer instance
 
-The local GeoServer instance has a pre-configured data directory (`geoserver/data`) containing a minimal set of layers
-used by the simple test map. These layers are based on Geopackages stored in (`/geoserver/data/data`).
+The local GeoServer instance is self-contained, running on a separate port (and container) to the Web Map Engine
+application.
+
+It has a pre-configured data directory (`geoserver/data`, `/var/geoserver/data/` inside the container) containing a
+minimal set of layers used by the simple test map. These layers are based on Geopackages from `/geoserver/data/data`.
 
 The local GeoServer instance can be accessed at: [localhost:8081/geoserver](http://localhost:8081/geoserver).
 
@@ -159,8 +164,12 @@ $ packer build web-map-engine-standalone.json
 This will create a [snapshot](https://cloud.digitalocean.com/images/snapshots) named `web-map-engine-standalone-[date]`,
 e.g. `web-map-engine-standalone-2019-08-26`.
 
-You can then create instances of this image to create standalone Web Map Engine instances, see the
-[Usage](#standalone-virtual-machine-setup)) section for more information.
+**Note:** Each image will have a different image ID. This is encoded in the setup URL listed in the
+[Usage](#standalone-virtual-machine-setup)) section and must be updated.
+
+**Note:** Old images should be removed unless they are known to be needed. This won't affect existing instances.
+
+See the [Usage](#standalone-virtual-machine-setup)) section for information on how to create instances of this image.
 
 ## Development
 

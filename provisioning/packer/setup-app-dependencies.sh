@@ -65,7 +65,7 @@ systemctl start tomcat;
 
 sed -i 's;</tomcat-users>;<role rolename="manager-gui"/>\n</tomcat-users>;g' /opt/tomcat/conf/tomcat-users.xml;
 sed -i 's;</tomcat-users>;<role rolename="admin-gui"/>\n</tomcat-users>;g' /opt/tomcat/conf/tomcat-users.xml;
-sed -i 's;</tomcat-users>;<user username="tomcat" password="$APP_TOMCAT_MANAGER_PASSWORD" roles="manager-gui,admin-gui"/>\n</tomcat-users>;g' /opt/tomcat/conf/tomcat-users.xml;
+sed -i "s;</tomcat-users>;<user username=\"tomcat\" password=\"$APP_TOMCAT_MANAGER_PASSWORD\" roles=\"manager-gui,admin-gui\"/>\n</tomcat-users>;g" /opt/tomcat/conf/tomcat-users.xml;
 
 mkdir -p /opt/tomcat/conf/Catalina/localhost;
 echo "<Context privileged=\"true\" antiResourceLocking=\"false\" docBase=\"/opt/tomcat/webapps/manager\">" >> /opt/tomcat/conf/Catalina/localhost/manager.xml;
