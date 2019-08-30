@@ -40,8 +40,6 @@ Environment=JAVA_HOME=/usr/lib/jvm/jre
 Environment=CATALINA_PID=/opt/tomcat/temp/tomcat.pid
 Environment=CATALINA_HOME=/opt/tomcat
 Environment=CATALINA_BASE=/opt/tomcat
-Environment='CATALINA_OPTS=-Xms512M -Xmx1024M -server -XX:+UseParallelGC'
-Environment='JAVA_OPTS=-Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom'
 
 ExecStart=/opt/tomcat/bin/startup.sh
 ExecStop=/bin/kill -15 $MAINPID
@@ -62,6 +60,14 @@ systemctl start tomcat;
 
 # Configure tomcat
 #
+
+cat >/opt/tomcat/bin/setenv.sh <<'EOL'
+export GEOSERVER_DATA_DIR=/var/geoserver/data
+export CATALINA_OPTS="-Xms512M -Xmx1024M -server -XX:+UseParallelGC"
+export JAVA_OPTS="-Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom"
+EOL
+chgrp tomcat /opt/tomcat/bin/setenv.sh;
+chmod 750 /opt/tomcat/bin/setenv.sh;
 
 sed -i 's;</tomcat-users>;<role rolename="manager-gui"/>\n</tomcat-users>;g' /opt/tomcat/conf/tomcat-users.xml;
 sed -i 's;</tomcat-users>;<role rolename="admin-gui"/>\n</tomcat-users>;g' /opt/tomcat/conf/tomcat-users.xml;
