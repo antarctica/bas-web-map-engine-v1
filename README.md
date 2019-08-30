@@ -1,6 +1,6 @@
 # BAS Web Map Engine
 
-A framework for creating hosted web-maps using a range of data and map layers.
+All-in-one application for delivering online mapping applications for BAS operations or science projects.
 
 ## Usage
 
@@ -151,23 +151,27 @@ The local PostGIS database can be accessed with these connection settings:
 | -------- | ----------- |
 | Hostname | `127.0.0.1` |
 | Port     | `5432`      |
-| Username | `postgres`  |
+| Username | `app`       |
 | Password | `password`  |
-| Database | `postgres`  |
+| Database | `app`       |
 | Schema   | `webmap`    |
+
+To login as the PostgreSQL superuser, use:
+
+* username: `postgres`
+* password: `password`
 
 **Note:** The database only allows local connections. To connect from a remote server (i.e. your local machine) you
 will need to create an SSH tunnel, using `root@[ipv4]:22`.
 
-The local PostGIS database can also be accessed locally through the `psql` command line interface:
+The local PostGIS database can also be accessed through the `psql` command line interface:
 
 ```shell
 $ ssh root@[ipv4]
-$ sudo -i -u postgres
-$ psql
+$ psql -h 127.0.0.1 -U app -d app
 ```
 
-To switch to the `webmap` schema:
+Then switch to the `webmap` schema:
 
 ```
 > SET search_path TO webmap;
@@ -179,7 +183,14 @@ To quit `psql`:
 > \q
 ```
 
-**Note:** The systemd unit name for PostgreSQL is `postgresql-11`.
+To connect as the PostgreSQL superuser:
+
+```shell
+$ ssh root@[ipv4]
+$ psql -h 127.0.0.1 -U postgres -d postgres
+```
+
+**Note:** The systemd unit for PostgreSQL is `postgresql-11`.
 
 #### Local GeoServer instance (standalone)
 
