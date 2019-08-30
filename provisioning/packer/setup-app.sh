@@ -22,10 +22,9 @@ systemctl restart tomcat;
 
 sudo APP_DATABASE_APP_PASSWORD=$APP_DATABASE_APP_PASSWORD -u postgres psql -c "CREATE ROLE app WITH PASSWORD '$APP_DATABASE_APP_PASSWORD' LOGIN;";
 sudo -u postgres psql -c "CREATE DATABASE app OWNER app TEMPLATE template_postgis;";
-cat >/root/.pgpass <<EOL
-127.0.0.1:5432:app:app:$APP_DATABASE_APP_PASSWORD
+cat >>/root/.pgpass <<EOL
+127.0.0.1:5432:*:app:$APP_DATABASE_APP_PASSWORD
 EOL
-chmod 500 /root/.pgpass;
 
 psql -h 127.0.0.1 -U app -d app --single-transaction -f /tmp/app-structure.sql -f /tmp/app-auth-structure.sql -f /tmp/app-data.sql;
 rm /tmp/app-structure.sql /tmp/app-auth-structure.sql /tmp/app-data.sql;

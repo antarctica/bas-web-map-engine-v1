@@ -93,6 +93,11 @@ systemctl enable postgresql-11;
 systemctl start postgresql-11;
 
 sudo APP_DATABASE_POSTGRES_PASSWORD=$APP_DATABASE_POSTGRES_PASSWORD -u postgres psql -c "ALTER USER postgres WITH PASSWORD '$APP_DATABASE_POSTGRES_PASSWORD';";
+cat >/root/.pgpass <<EOL
+127.0.0.1:5432:*:postgres:$APP_DATABASE_POSTGRES_PASSWORD
+EOL
+chmod 600 /root/.pgpass;
+
 sed -i '/host    all             all             127.0.0.1\/32            ident/c\host    all             all             127.0.0.1\/32            md5' /var/lib/pgsql/11/data/pg_hba.conf;
 
 systemctl restart postgresql-11;
