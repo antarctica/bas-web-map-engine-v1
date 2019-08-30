@@ -1,0 +1,58 @@
+#!/bin/sh -eux
+
+# Deploy GeoServer
+#
+
+chown tomcat:tomcat -R /var/geoserver;
+
+cat >>/opt/tomcat/bin/setenv.sh <<'EOL'
+export GEOSERVER_DATA_DIR=/var/geoserver/data
+EOL
+
+cd /tmp;
+# TODO: Replace with BAS repo server
+wget -q https://s3-eu-west-1.amazonaws.com/cdn-testing.web.bas.ac.uk/scratch/web-map-engine/bsl-proxya-workaround/geoserver.war
+chown tomcat:tomcat /tmp/geoserver.war;
+mv /tmp/geoserver.war /opt/tomcat/webapps/;
+
+systemctl restart tomcat;
+
+# Setup application database
+#
+
+cd /;
+sudo -u postgres psql --single-transaction -f /tmp/app-structure.sql -f /tmp/app-auth-structure.sql -f /tmp/app-data.sql;
+rm /tmp/app-structure.sql /tmp/app-auth-structure.sql /tmp/app-data.sql;
+
+# Deploy application
+#
+
+mkdir -p /etc/opt/tomcat/webapps/;
+mv /tmp/application.properties /etc/opt/tomcat/webapps/;
+cat >/etc/opt/tomcat/webapps/application-standalone.properties <<'EOL'
+# Spring Boot properties for Docker based instances
+# PostgreSQL user credentials
+datasource.magic.url=jdbc:postgresql://127.0.0.1:5432/postgres
+datasource.magic.username=postgres
+datasource.magic.password=password
+# Local Geoserver user credentials for REST
+geoserver.internal.url=http://localhost:8080/geoserver
+geoserver.internal.username=admin
+geoserver.internal.password=geoserver
+EOL
+chmod 755 /etc/opt/tomcat/webapps/;
+chmod 640 /etc/opt/tomcat/webapps/application-standalone.properties /etc/opt/tomcat/webapps/application.properties;
+chgrp -R tomcat /etc/opt/tomcat/webapps/;
+
+cat >>/opt/tomcat/bin/setenv.sh <<'EOL'
+export SPRING_PROFILES_ACTIVE=standalone
+export SPRING_CONFIG_LOCATION=file:///etc/opt/tomcat/webapps/
+EOL
+
+cd /tmp;
+# TODO: Replace with BAS repo server
+wget -q https://s3-eu-west-1.amazonaws.com/cdn-testing.web.bas.ac.uk/scratch/web-map-engine/bsl-proxya-workaround/web-map-engine.war
+chown tomcat:tomcat /tmp/web-map-engine.war;
+mv /tmp/web-map-engine.war /opt/tomcat/webapps/ROOT.war;
+
+systemctl restart tomcat;

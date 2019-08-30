@@ -94,7 +94,115 @@ Layers from this GeoServer instance can be accessed in a desktop GIS, using thes
 
 ### Standalone virtual machine (usage)
 
-...
+A standalone instance, intended for field deployments or training, can be created from a virtual machine image.
+
+**Note:** Currently this image is only available for [DigitalOcean](https://digitalocean.com), specifically the
+[BAS DigitalOcean account](https://gitlab.data.bas.ac.uk/WSF/bas-do). Other providers will be supported soon.
+
+To create a standalone instance you will need access to this DigitalOcean account.
+
+This URL will create a new virtual machine (*droplet*) in DigitalOcean, pre-selecting the relevant image, a suitable
+hardware profile (1 CPU, 2GB RAM), in their London data centre, with resource monitoring in the *MAGIC* project:
+
+https://cloud.digitalocean.com/droplets/new?i=168eb0&imageId=51580689&size=s-1vcpu-2gb&region=lon1&fleetUuid=f8d149b7-5ded-4785-a5c1-9049d5d0a1ef&type=snapshots&options=install_agent
+
+Complete the form using these options:
+
+* in the *Select additional options* section:
+  * enable the *Monitoring* option
+* in the *Authentication* section:
+  * choose the *SSH keys* option (should be pre-selected)
+  * choose your key (which should be identified by your email address)
+* in the *hostname* section:
+  * change the value to `web-map-engine-standalone-[username][instance]`
+  * for example `web-map-engine-standalone-conwat1` (assuming the first instance)
+
+Once the virtual machine has been created you should be taken to its dashboard. In the top section you should see an IP
+address (`ipv4`), for example *159.65.58.73*.
+
+After a couple minutes the Map Web Engine application can be accessed at this IP address in the form:
+`http://[ipv4]:8080/home`, for example http://159.65.58.73:8080/home.
+
+You should see a simple test map and an option to login.
+
+**Note:** The test map will currently warn about a missing graticule, this is safe to ignore.
+
+Logins will be checked against the GeoServer configured ....
+
+Only the `admin` user of the configured GeoServer will be granted administrative permissions in the Web Map Engine
+application. By default, this will be the [local GeoServer instance](#local-geoserver-instance).
+
+#### Local Tomcat server (standalone)
+
+The local Tomcat server hosts the Web Map Engine application (at `/`) and the local GeoServer instance (at `geoserver`).
+
+The manager application for the local Tomcat server can be accessed at: `http://[ipv4]:8080/manager`.
+
+The login credentials are:
+
+* username: `tomcat`
+* password: `password`
+
+#### Local PostGIS database (standalone)
+
+The local PostGIS database can be accessed with these connection settings:
+
+| Setting  | Value       |
+| -------- | ----------- |
+| Hostname | `127.0.0.1` |
+| Port     | `5432`      |
+| Username | `postgres`  |
+| Password | `password`  |
+| Database | `postgres`  |
+| Schema   | `webmap`    |
+
+**Note:** The database only allows local connections. To connect from a remote server (i.e. your local machine) you
+will need to create an SSH tunnel, using `root@[ipv4]:22`.
+
+The local PostGIS database can also be accessed locally through the `psql` command line interface:
+
+```shell
+$ ssh root@[ipv4]
+$ sudo -i -u postgres
+$ psql
+```
+
+To switch to the `webmap` schema:
+
+```
+> SET search_path TO webmap;
+```
+
+To quit `psql`:
+
+```
+> \q
+```
+
+**Note:** The systemd unit name for PostgreSQL is `postgresql-11`.
+
+#### Local GeoServer instance (standalone)
+
+The local GeoServer instance runs within the same Tomcat server as the Web Map Engine application.
+
+It has a pre-configured data directory (`geoserver/data`, `/var/geoserver/data/` inside the virtual machine) containing
+a minimal set of layers used by the simple test map. These layers are based on Geopackages from `/geoserver/data/data`.
+
+The local GeoServer instance can be accessed at: `http://[ipv4]:8080/geoserver`.
+
+The default administrator credentials are:
+
+* username: `admin`
+* password: `geoserver`
+
+Layers from this GeoServer instance can be accessed in a desktop GIS, using these connection settings:
+
+| Service | URL                                |
+| ------- | ---------------------------------- |
+| WMS     | `http://[ipv4]:8080/geoserver/wms` |
+| WFS     | `http://[ipv4]:8080/geoserver/wfs` |
+
+GeoServer logs are written to the Tomcat log file `/opt/tomcat/logs/catalina.out`.
 
 ## Setup
 

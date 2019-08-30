@@ -30,7 +30,42 @@
     },
     {
       "expect_disconnect": true,
+      "inline": ["mkdir -p /var/geoserver/data"],
+      "type": "shell"
+    },
+    {
+      "source": "../../geoserver/data/",
+      "destination": "/var/geoserver/data/",
+      "type": "file"
+    },
+    {
+      "source": "../../resources/application.properties",
+      "destination": "/tmp/application.properties",
+      "type": "file"
+    },
+    {
+      "source": "../../src/main/webapp/WEB-INF/sql/table_creation/webmap_tables.sql",
+      "destination": "/tmp/app-structure.sql",
+      "type": "file"
+    },
+    {
+      "source": "../../src/main/webapp/WEB-INF/sql/table_creation/webmap_auth_tables.sql",
+      "destination": "/tmp/app-auth-structure.sql",
+      "type": "file"
+    },
+    {
+      "source": "../../geoserver/WEB-INF/web.xml",
+      "destination": "/tmp/geoserver-web.xml",
+      "type": "file"
+    },
+    {
+      "source": "../../src/main/webapp/WEB-INF/sql/table_population/standalone/test-data.sql",
+      "destination": "/tmp/app-data.sql",
+      "type": "file"
+    },
+    {
       "scripts": [
+        "setup-app.sh",
         "cleanup-os.sh"
       ],
       "type": "shell"
