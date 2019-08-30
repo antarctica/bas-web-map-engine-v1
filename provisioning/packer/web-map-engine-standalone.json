@@ -16,7 +16,8 @@
       "environment_vars": [
         "TEMPLATE_NAME={{user `template`}}",
         "TEMPLATE_VERSION={{isotime \"2019-08-26\"}}",
-        "APP_TOMCAT_MANAGER_PASSWORD={{user `app_tomcat_manager_password`}}"
+        "APP_TOMCAT_MANAGER_PASSWORD={{user `app_tomcat_manager_password`}}",
+        "APP_DATABASE_POSTGRES_PASSWORD={{user `app_database_postgres_password`}}"
       ],
       "expect_disconnect": true,
       "scripts": [
@@ -73,9 +74,11 @@
     "http_proxy": "{{env `http_proxy`}}",
     "https_proxy": "{{env `https_proxy`}}",
     "no_proxy": "{{env `no_proxy`}}",
-    "app_tomcat_manager_password": "password"
+    "app_tomcat_manager_password": "password",
+    "app_database_postgres_password": "password",
   },
   "sensitive-variables": [
-    "app_tomcat_manager_password"
+    "app_tomcat_manager_password",
+    "app_database_postgres_password",
   ]
 }

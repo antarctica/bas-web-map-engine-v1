@@ -92,7 +92,7 @@ yum -y install postgresql11 postgresql11-server;
 systemctl enable postgresql-11;
 systemctl start postgresql-11;
 
-sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'password';";
+sudo APP_DATABASE_POSTGRES_PASSWORD=$APP_DATABASE_POSTGRES_PASSWORD -u postgres psql -c "ALTER USER postgres WITH PASSWORD '$APP_DATABASE_POSTGRES_PASSWORD';";
 sed -i '/host    all             all             127.0.0.1\/32            ident/c\host    all             all             127.0.0.1\/32            md5' /var/lib/pgsql/11/data/pg_hba.conf;
 
 systemctl restart postgresql-11;
