@@ -231,20 +231,17 @@ private [BAS GitLab instance](https://gitlab.data.bas.ac.uk)) [1].
 # if internal
 $ git clone https://gitlab.data.bas.ac.uk/MAGIC/web-map-engine/web-map-engine-v1.git
 $ cd web-map-engine-v1
-$ docker pull
+$ cp .env.example .env
+$ docker-compose pull
 
 # if external
 $ git clone https://github.com/antarctica/bas-web-map-engine-v1.git
 $ mv bas-web-map-engine-v1 web-map-engine-v1
-$ git build app
+$ docker-compose build app
 ```
 
 Application settings/secrets are set using an environment file `.env`. An example of this file (`.env.example`) can be
-cloned to act as a guide:
-
-```shell
-$ cp .env.example .env
-```
+cloned to act as a guide.
 
 You do not need to change any of the default values, unless you wish to authenticate against, and use layers from, an
 external GeoServer instance, rather than the local development instance.
