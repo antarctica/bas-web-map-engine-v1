@@ -20,6 +20,7 @@ echo "$checksum apache-tomcat-9.0.24.tar.gz" | sha512sum -c - || exit 1;
 
 mkdir /opt/tomcat;
 tar xvf apache-tomcat-9.0.24.tar.gz -C /opt/tomcat --strip-components=1;
+rm /tmp/apache-tomcat-9.0.24.tar.gz;
 
 cd /opt/tomcat;
 chgrp -R tomcat /opt/tomcat;
@@ -62,7 +63,6 @@ systemctl start tomcat;
 #
 
 cat >/opt/tomcat/bin/setenv.sh <<'EOL'
-export GEOSERVER_DATA_DIR=/var/geoserver/data
 export CATALINA_OPTS="-Xms512M -Xmx1024M -server -XX:+UseParallelGC"
 export JAVA_OPTS="-Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom"
 EOL
@@ -114,6 +114,5 @@ for DB in template_postgis postgres; do
 		CREATE EXTENSION IF NOT EXISTS postgis;
 		CREATE EXTENSION IF NOT EXISTS postgis_topology;
 		CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
-		CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder;
 EOL
 done

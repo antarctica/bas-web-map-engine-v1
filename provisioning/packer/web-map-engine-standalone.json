@@ -14,9 +14,6 @@
   "provisioners": [
     {
       "environment_vars": [
-        "http_proxy={{user `http_proxy`}}",
-        "https_proxy={{user `https_proxy`}}",
-        "no_proxy={{user `no_proxy`}}",
         "TEMPLATE_NAME={{user `template`}}",
         "TEMPLATE_VERSION={{isotime \"2019-08-26\"}}",
         "APP_TOMCAT_MANAGER_PASSWORD={{user `app_tomcat_manager_password`}}"
@@ -51,11 +48,6 @@
     {
       "source": "../../src/main/webapp/WEB-INF/sql/table_creation/webmap_auth_tables.sql",
       "destination": "/tmp/app-auth-structure.sql",
-      "type": "file"
-    },
-    {
-      "source": "../../geoserver/WEB-INF/web.xml",
-      "destination": "/tmp/geoserver-web.xml",
       "type": "file"
     },
     {

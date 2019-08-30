@@ -102,7 +102,7 @@ A standalone instance, intended for field deployments or training, can be create
 To create a standalone instance you will need access to this DigitalOcean account.
 
 This URL will create a new virtual machine (*droplet*) in DigitalOcean, pre-selecting the relevant image, a suitable
-hardware profile (1 CPU, 2GB RAM), in their London data centre, with resource monitoring in the *MAGIC* project:
+hardware profile (1 CPU, 2GB RAM), in their London data centre in the *MAGIC* project:
 
 https://cloud.digitalocean.com/droplets/new?i=168eb0&imageId=51580689&size=s-1vcpu-2gb&region=lon1&fleetUuid=f8d149b7-5ded-4785-a5c1-9049d5d0a1ef&type=snapshots&options=install_agent
 
