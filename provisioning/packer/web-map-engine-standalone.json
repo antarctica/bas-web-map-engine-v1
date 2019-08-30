@@ -57,6 +57,9 @@
       "type": "file"
     },
     {
+      "environment_vars": [
+        "APP_DATABASE_APP_PASSWORD={{user `app_database_app_password`}}"
+      ],
       "scripts": [
         "setup-app.sh",
         "cleanup-os.sh"
@@ -76,9 +79,11 @@
     "no_proxy": "{{env `no_proxy`}}",
     "app_tomcat_manager_password": "password",
     "app_database_postgres_password": "password",
+    "app_database_app_password": "password"
   },
   "sensitive-variables": [
     "app_tomcat_manager_password",
     "app_database_postgres_password",
+    "app_database_app_password"
   ]
 }

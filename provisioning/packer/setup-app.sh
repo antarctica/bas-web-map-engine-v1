@@ -20,8 +20,14 @@ systemctl restart tomcat;
 # Setup application database
 #
 
-cd /;
-sudo -u postgres psql --single-transaction -f /tmp/app-structure.sql -f /tmp/app-auth-structure.sql -f /tmp/app-data.sql;
+sudo APP_DATABASE_APP_PASSWORD=$APP_DATABASE_APP_PASSWORD -u postgres psql -c "CREATE ROLE app WITH PASSWORD '$APP_DATABASE_APP_PASSWORD' LOGIN;";
+sudo -u postgres psql -c "CREATE DATABASE app OWNER app TEMPLATE template_postgis;";
+cat >/root/.pgpass <<EOL
+127.0.0.1:5432:app:app:$APP_DATABASE_APP_PASSWORD
+EOL
+chmod 500 /root/.pgpass;
+
+psql -h 127.0.0.1 -U app -d app --single-transaction -f /tmp/app-structure.sql -f /tmp/app-auth-structure.sql -f /tmp/app-data.sql;
 rm /tmp/app-structure.sql /tmp/app-auth-structure.sql /tmp/app-data.sql;
 
 # Deploy application
@@ -29,12 +35,12 @@ rm /tmp/app-structure.sql /tmp/app-auth-structure.sql /tmp/app-data.sql;
 
 mkdir -p /etc/opt/tomcat/webapps/;
 mv /tmp/application.properties /etc/opt/tomcat/webapps/;
-cat >/etc/opt/tomcat/webapps/application-standalone.properties <<'EOL'
+cat >/etc/opt/tomcat/webapps/application-standalone.properties <<EOL
 # Spring Boot properties for Docker based instances
 # PostgreSQL user credentials
-datasource.magic.url=jdbc:postgresql://127.0.0.1:5432/postgres
-datasource.magic.username=postgres
-datasource.magic.password=password
+datasource.magic.url=jdbc:postgresql://127.0.0.1:5432/app
+datasource.magic.username=app
+datasource.magic.password=$APP_DATABASE_APP_PASSWORD
 # Local Geoserver user credentials for REST
 geoserver.internal.url=http://localhost:8080/geoserver
 geoserver.internal.username=admin
