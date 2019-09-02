@@ -59,7 +59,9 @@
     },
     {
       "environment_vars": [
-        "APP_DATABASE_APP_PASSWORD={{user `app_database_app_password`}}"
+        "APP_DATABASE_APP_PASSWORD={{user `app_database_app_password`}}",
+        "APP_GEOSERVER_MASTER_PASSWORD={{user `app_geoserver_master_password`}}",
+        "APP_GEOSERVER_ADMIN_PASSWORD={{user `app_geoserver_admin_password`}}"
       ],
       "scripts": [
         "setup-app.sh",
@@ -79,6 +81,8 @@
     "https_proxy": "{{env `https_proxy`}}",
     "no_proxy": "{{env `no_proxy`}}",
     "app_tomcat_manager_password": "password",
+    "app_geoserver_master_password": "password ",
+    "app_geoserver_admin_password": "password ",
     "app_database_postgres_password": "password",
     "app_database_app_password": "password"
   },

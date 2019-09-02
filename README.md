@@ -80,10 +80,19 @@ minimal set of layers used by the simple test map. These layers are based on Geo
 
 The local GeoServer instance can be accessed at: [localhost:8081/geoserver](http://localhost:8081/geoserver).
 
-The default administrator credentials are:
+The GeoServer master/root credentials are:
+
+* username: `root`
+* password: `password`
+
+**Note:** You will not be able to login as the master/root user, see the
+[GeoServer documentation](https://docs.geoserver.org/stable/en/user/security/passwd.html#master-password) for more
+information.
+
+The default administrator user credentials are:
 
 * username: `admin`
-* password: `geoserver`
+* password: `password`
 
 Layers from this GeoServer instance can be accessed in a desktop GIS, using these connection settings:
 
@@ -218,10 +227,19 @@ a minimal set of layers used by the simple test map. These layers are based on G
 
 The local GeoServer instance can be accessed at: `http://[ipv4]:8080/geoserver`.
 
-The default administrator credentials are:
+The GeoServer master/root credentials are:
+
+* username: `root`
+* password: `password`
+
+**Note:** You will not be able to login as the master/root user, see the
+[GeoServer documentation](https://docs.geoserver.org/stable/en/user/security/passwd.html#master-password) for more
+information.
+
+The default administrator user credentials are:
 
 * username: `admin`
-* password: `geoserver`
+* password: `password`
 
 Layers from this GeoServer instance can be accessed in a desktop GIS, using these connection settings:
 
