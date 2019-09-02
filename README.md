@@ -104,7 +104,7 @@ To create a standalone instance you will need access to this DigitalOcean accoun
 This URL will create a new virtual machine (*droplet*) in DigitalOcean, pre-selecting the relevant image, a suitable
 hardware profile (1 CPU, 2GB RAM), in their London data centre in the *MAGIC* project:
 
-https://cloud.digitalocean.com/droplets/new?i=168eb0&imageId=51580689&size=s-1vcpu-2gb&region=lon1&fleetUuid=f8d149b7-5ded-4785-a5c1-9049d5d0a1ef&type=snapshots&options=install_agent
+https://cloud.digitalocean.com/droplets/new?i=168eb0&imageId=51716834&size=s-1vcpu-2gb&region=lon1&fleetUuid=f8d149b7-5ded-4785-a5c1-9049d5d0a1ef&type=snapshots&options=install_agent
 
 Complete the form using these options:
 
@@ -131,6 +131,23 @@ Logins will be checked against the GeoServer configured in `./provisioning/packe
 
 Only the `admin` user of the configured GeoServer will be granted administrative permissions in the Web Map Engine
 application. By default, this will be the [local GeoServer instance](#local-geoserver-instance).
+
+#### SSH access
+
+A conventional OS user is available for logging into an instance using SSH:
+
+* username: `geoweb`
+* password: `password`
+
+```
+$ ssh geoweb@[ipv4]
+```
+
+This user has passwordless sudo and can act or elevate themselves to root.
+
+**Note:** Public keys from the
+[MAGIC Authorised Keys](https://gitlab.data.bas.ac.uk/MAGIC/infrastructure/authorised-keys) project are added to this
+user, allowing passwordless logins.
 
 #### Local Tomcat server (standalone)
 

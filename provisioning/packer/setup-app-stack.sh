@@ -12,7 +12,6 @@ groupadd tomcat;
 useradd -M -s /bin/nologin -g tomcat -d /opt/tomcat tomcat;
 
 cd /tmp;
-yum -y install wget;
 wget -q http://us.mirrors.quenda.co/apache/tomcat/tomcat-9/v9.0.24/bin/apache-tomcat-9.0.24.tar.gz;
 checksum=e01bd107e8fbe5ba629571d552a46339ccfd843b8bf770f617dfc1ec5cbf5fe5d945c2c3bba2f80188775a46f93c66d8594c13f8d12f7967d6d56c62d2bf7835
 echo "$checksum apache-tomcat-9.0.24.tar.gz" | sha512sum -c - || exit 1;
