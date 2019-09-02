@@ -127,7 +127,7 @@ You should see a simple test map and an option to login.
 
 **Note:** The test map will currently warn about a missing graticule, this is safe to ignore.
 
-Logins will be checked against the GeoServer configured ....
+Logins will be checked against the GeoServer configured in `./provisioning/packer/setup-app.sh`.
 
 Only the `admin` user of the configured GeoServer will be granted administrative permissions in the Web Map Engine
 application. By default, this will be the [local GeoServer instance](#local-geoserver-instance).

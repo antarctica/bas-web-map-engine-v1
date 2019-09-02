@@ -9,9 +9,8 @@ cat >>/opt/tomcat/bin/setenv.sh <<'EOL'
 export GEOSERVER_DATA_DIR=/var/geoserver/data
 EOL
 
-cd /tmp;
 # TODO: Replace with BAS repo server
-wget -q https://s3-eu-west-1.amazonaws.com/cdn-testing.web.bas.ac.uk/scratch/web-map-engine/bsl-proxya-workaround/geoserver.war
+wget -P /tmp -q https://s3-eu-west-1.amazonaws.com/cdn-testing.web.bas.ac.uk/scratch/web-map-engine/bsl-proxya-workaround/geoserver.war
 chown tomcat:tomcat /tmp/geoserver.war;
 mv /tmp/geoserver.war /opt/tomcat/webapps/;
 
@@ -20,6 +19,7 @@ systemctl restart tomcat;
 # Setup application database
 #
 
+cd /tmp;
 sudo APP_DATABASE_APP_PASSWORD=$APP_DATABASE_APP_PASSWORD -u postgres psql -c "CREATE ROLE app WITH PASSWORD '$APP_DATABASE_APP_PASSWORD' LOGIN;";
 sudo -u postgres psql -c "CREATE DATABASE app OWNER app TEMPLATE template_postgis;";
 cat >>/root/.pgpass <<EOL
@@ -54,9 +54,8 @@ export SPRING_PROFILES_ACTIVE=standalone
 export SPRING_CONFIG_LOCATION=file:///etc/opt/tomcat/webapps/
 EOL
 
-cd /tmp;
 # TODO: Replace with BAS repo server
-wget -q https://s3-eu-west-1.amazonaws.com/cdn-testing.web.bas.ac.uk/scratch/web-map-engine/bsl-proxya-workaround/web-map-engine.war
+wget -P /tmp -q https://s3-eu-west-1.amazonaws.com/cdn-testing.web.bas.ac.uk/scratch/web-map-engine/bsl-proxya-workaround/web-map-engine.war
 chown tomcat:tomcat /tmp/web-map-engine.war;
 mv /tmp/web-map-engine.war /opt/tomcat/webapps/ROOT.war;
 
