@@ -307,9 +307,18 @@ will start identical but depending on how they are used/configured may differ fr
 You will need access to the [BAS DigitalOcean](https://gitlab.data.bas.ac.uk/WSF/bas-do) account to build this virtual
 machine image. Specifically you will need to set the `DIGITALOCEAN_TOKEN` environment variable locally.
 
+To set secrets such as the GeoServer admin user password a variable file, `provisioning/packer/secrets.json`, is used.
+An example of this file, `provisioning/packer/secrets.example.json` can be copied to act as a guide:
+
+```shell
+$ cp provisioning/packer/secrets.example.json provisioning/packer/secrets.json
 ```
-$ cd provisioning/packer
-$ packer build web-map-engine-standalone.json
+
+This variable file is then passed to Packer to override default, insecure, variables when building images:
+
+```shell
+$ cd provisioning/packer/
+$ packer build -var-file=secrets.json web-map-engine-standalone.json
 ```
 
 This will create a [snapshot](https://cloud.digitalocean.com/images/snapshots) named `web-map-engine-standalone-[date]`,

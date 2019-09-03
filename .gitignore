@@ -6,6 +6,7 @@ target/
 
 # Secrets
 .env
+provisioning/packer/secrets.json
 
 # Runtime files
 geoserver/data/gwc/tmp
