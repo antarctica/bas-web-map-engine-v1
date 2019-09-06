@@ -105,65 +105,25 @@ Layers from this GeoServer instance can be accessed in a desktop GIS, using thes
 
 A standalone instance, intended for field deployments or training, can be created from a virtual machine image.
 
-Images are available for:
-
-* DigitalOcean (intended for testing only)
-* VirtualBox (with or without Vagrant)
-
-#### DigitalOcean
-
-To use this image with DigitalOcean, you will need access to this DigitalOcean account.
-
-This URL will create a new virtual machine (*droplet*) in DigitalOcean, pre-selecting the relevant image, a suitable
-hardware profile (1 CPU, 2GB RAM), in their London data centre in the *MAGIC* project:
-
-https://cloud.digitalocean.com/droplets/new?i=168eb0&imageId=51716834&size=s-1vcpu-2gb&region=lon1&fleetUuid=f8d149b7-5ded-4785-a5c1-9049d5d0a1ef&type=snapshots&options=install_agent
-
-Complete the form using these options:
-
-* in the *Select additional options* section:
-  * enable the *Monitoring* option
-* in the *Authentication* section:
-  * choose the *SSH keys* option (should be pre-selected)
-  * choose your key (which should be identified by your email address)
-* in the *hostname* section:
-  * change the value to `web-map-engine-standalone-[username][instance]`
-  * for example `web-map-engine-standalone-conwat1` (assuming the first instance)
-
-After a couple minutes the Map Web Engine application can be accessed at the droplet's IP address in the form:
-`http://[ipv4]:8080/home`, for example http://159.65.58.73:8080/home.
-
-You can find this IP address from the droplet's dashboard in DigitalOcean. In the top section you should see an IP
-address (*ipv4*), for example *159.65.58.73*.
-
-**Note:** Use this IP address wherever you read `[ipv4]` in the following sections. E.g. `http://[ipv4]:8080/home` would
-become `http://159.65.58.73:8080/home` in this example.
-
-When finished, return to the DigitalOcean dashboard and select the relevant virtual machine / droplet. From the
-left-hand menu, choose *Destroy* then the *Destroy* command from the 'Destroy Droplet' section.
-
-**Note:** Destroyed virtual machines cannot be recovered. All content created in the standalone instance will be lost.
-
-#### VirtualBox and Vagrant
-
-To use this image with VirtualBox, with Vagrant, you will need [VirtualBox](https://www.virtualbox.org) and
-[Vagrant](https://www.vagrantup.com/) installed on your computer, and access to this URL
-`http://bsl-repoa.nerc-bas.ac.uk/`.
+This image requires [VirtualBox](https://www.virtualbox.org) and [Vagrant](https://www.vagrantup.com/) to be installed
+on your computer. You will also need to be able to access this URL: `http://bsl-repoa.nerc-bas.ac.uk/`.
 
 VirtualBox is a platform for running virtual machines, Vagrant is a command line application that automates the
-creation and configuration of virtual machines through, in this case, VirtualBox.
+creation and configuration of virtual machines through a provider, in this case VirtualBox.
 
-If you haven't already, start by adding the Web Map Engine Vagrant base box, by running this command in a terminal, or
-in PowerShell if using Windows:
+Before an instance of this can be created, a Vagrant *base box* needs to be added. This is a template created from
+the image that Vagrant understands. This only needs to be added the first time you create an instance.
+
+Running this command in a terminal, or in PowerShell if using Windows:
 
 ```shell
 $ vagrant box add http://bsl-repoa.nerc-bas.ac.uk/magic/v1/projects/web-map-engine/latest/vagrant/web-map-engine-standalone-vagrant-basebox.json
 ```
 
-Then create a directory somewhere and copy this file, `provisioning/vagrant/Vagrantfile` into it. This file configures
-Vagrant, which will create a virtual machine in this directory. You should therefore ensure it has enough space (~60GB).
+To create an instance of this base box, create a new directory somewhere on your computer (on a drive with at least
+64GB of free space). Then copy `provisioning/vagrant/Vagrantfile` into it. This file configures Vagrant.
 
-Finally run Vagrant to create, configure and start the standalone instance:
+You can now use run Vagrant to create, configure and start the standalone instance:
 
 ```shell
 # navigate to the directory containing the Vagrantfile
@@ -171,23 +131,8 @@ $ cd /somewhere
 $ vagrant up
 ```
 
-A couple of minutes after the virtual machine starts, the Web Map Engine application should be accessible at
+After a couple of minutes, the Web Map Engine application should be accessible at
 [localhost:8080/home](http://localhost:8080/home).
-
-**Note:** Use `localhost` wherever you read `[ipv4]` in the following sections. E.g. `http://[ipv4]:8080/home` would
-become `http://localhost:8080/home`.
-
-When finished, return to the terminal or PowerShell window and use `vagrant halt` to shutdown the virtual machine (if
-you want to come back to it again) or `vagrant destroy` if you want to remove the virtual machine and instance.
-
-**Note:** Destroyed virtual machines cannot be recovered. All content created in the standalone instance will be lost.
-
-See the [Vagrant documentation](https://www.vagrantup.com/docs/cli/) for more information on using Vagrant.
-
-#### Getting started
-
-**Note:** The remainder of the instructions in this section apply to all providers. You may need to adjust the URL/IP
-address used depending on how you created your standalone instance.
 
 You should see a simple test map and an option to login.
 
@@ -198,6 +143,14 @@ Logins will be checked against the GeoServer configured in `./provisioning/packe
 Only the `admin` user of the configured GeoServer will be granted administrative permissions in the Web Map Engine
 application. By default, this will be the [local GeoServer instance](#local-geoserver-instance).
 
+When finished with the instance, return to the terminal or PowerShell window and use `vagrant halt` to shut down the
+virtual machine (if you want to come back to it again) or `vagrant destroy` if you want to remove the virtual machine
+and instance.
+
+**Note:** Destroyed virtual machines cannot be recovered. All content created in the standalone instance will be lost.
+
+See the [Vagrant documentation](https://www.vagrantup.com/docs/cli/) for more information on using Vagrant.
+
 #### SSH access
 
 A conventional OS user is available for logging into an instance using SSH:
@@ -206,7 +159,7 @@ A conventional OS user is available for logging into an instance using SSH:
 * password: `password`
 
 ```
-$ ssh geoweb@[ipv4]
+$ ssh geoweb@localhost:2222
 ```
 
 This user has passwordless sudo and can act or elevate themselves to root.
@@ -219,7 +172,7 @@ user, allowing passwordless logins.
 
 The local Tomcat server hosts the Web Map Engine application (at `/`) and the local GeoServer instance (at `geoserver`).
 
-The manager application for the local Tomcat server can be accessed at: `http://[ipv4]:8080/manager`.
+The manager application for the local Tomcat server can be accessed at: `http://localhost:8080/manager`.
 
 The login credentials are:
 
@@ -250,7 +203,7 @@ will need to create an SSH tunnel, using `root@[ipv4]:22`.
 The local PostGIS database can also be accessed through the `psql` command line interface:
 
 ```shell
-$ ssh root@[ipv4]
+$ ssh root@localhost:2222
 $ psql -h 127.0.0.1 -U app -d app
 ```
 
@@ -269,7 +222,7 @@ To quit `psql`:
 To connect as the PostgreSQL superuser:
 
 ```shell
-$ ssh root@[ipv4]
+$ ssh root@localhost:2222
 $ psql -h 127.0.0.1 -U postgres -d postgres
 ```
 
@@ -282,7 +235,7 @@ The local GeoServer instance runs within the same Tomcat server as the Web Map E
 It has a pre-configured data directory (`geoserver/data`, `/var/geoserver/data/` inside the virtual machine) containing
 a minimal set of layers used by the simple test map. These layers are based on Geopackages from `/geoserver/data/data`.
 
-The local GeoServer instance can be accessed at: `http://[ipv4]:8080/geoserver`.
+The local GeoServer instance can be accessed at: `http://localhost:8080/geoserver`.
 
 The GeoServer master/root credentials are:
 
@@ -300,10 +253,10 @@ The default administrator user credentials are:
 
 Layers from this GeoServer instance can be accessed in a desktop GIS, using these connection settings:
 
-| Service | URL                                |
-| ------- | ---------------------------------- |
-| WMS     | `http://[ipv4]:8080/geoserver/wms` |
-| WFS     | `http://[ipv4]:8080/geoserver/wfs` |
+| Service | URL                                   |
+| ------- | ------------------------------------- |
+| WMS     | `http://localhost:8080/geoserver/wms` |
+| WFS     | `http://localhost:8080/geoserver/wfs` |
 
 GeoServer logs are written to the Tomcat log file `/opt/tomcat/logs/catalina.out`.
 
@@ -352,66 +305,44 @@ $ docker login docker-registry.data.bas.ac.uk
 ### Standalone virtual machine (setup)
 
 A standalone virtual machine, containing the Web Map Engine application, it's database and a local GeoServer instance,
-can be built using [Git](https://git-scm.com), [Packer](https://www.packer.io) [VirtualBox](https://www.virtualbox.org)
-and [DigitalOcean](https://digitalocean.com).
+can be built using [Git](https://git-scm.com), [Packer](https://www.packer.io) and
+ [VirtualBox](https://www.virtualbox.org).
 
-**Note:** Standalone instances are intended to fully isolated environments and assume there will be no active access
-once built (i.e. for use in the field).
+**Note:** Standalone instances are intended to be fully isolated environments with no internet access once built (i.e.
+for use in the field).
 
-This process will build a virtual machine image that can be used to create as many instances as needed. These instances
-will start identical but depending on how they are used/configured may differ from each other.
-
-You will need access to the [BAS DigitalOcean](https://gitlab.data.bas.ac.uk/WSF/bas-do) account to build this image
-for DigitalOcean. Specifically you will need to set the `DIGITALOCEAN_TOKEN` environment variable locally.
+Packer is used to build a virtual machine image that can be used to create instances as needed.
 
 You will need VirtualBox installed and access to the [BAS Repo Server](http://bsl-repoa.nerc-bas.ac.uk) to build this
-image for VirtualBox. Specifically you will need SSH access to
-`bsl-repoa.nerc-bas.ac.uk:/var/repo/magic/v1/projects/web-map-engine/latest/`.
+image. Specifically you will need access to `bsl-repoa.nerc-bas.ac.uk:/var/repo/magic/v1/projects/web-map-engine/latest/`.
 
-To set secrets such as the GeoServer admin user password a variable file, `provisioning/packer/secrets.json`, is used.
-An example of this file, `provisioning/packer/secrets.example.json` can be copied to act as a guide:
+To set secrets such as the GeoServer admin user password a variable file, `provisioning/packer/secrets.json`, can be
+used. An example of this file, `provisioning/packer/secrets.example.json` can be copied to act as a guide:
 
 ```shell
 $ cp provisioning/packer/secrets.example.json provisioning/packer/secrets.json
 ```
 
-This variable file is then passed to Packer to override default, insecure, variables when building images:
+This variable file is then passed to Packer to override default, insecure, variables at build time:
 
 ```shell
 $ cd provisioning/packer/
 $ packer build -var-file=secrets.json web-map-engine-standalone.json
 ```
 
-Packer can build for all or a subset of supported builders (*virtualbox-iso* or *digitalocean*) using the `-only` flag:
+When built two images will be created:
 
-```shell
-$ cd provisioning/packer/
-$ packer build -only=virtualbox-iso -var-file=secrets.json web-map-engine-standalone.json
-```
-
-If the `digitalocean` builder is used, a [snapshot](https://cloud.digitalocean.com/images/snapshots) named
-`web-map-engine-standalone-[date]`, e.g. `web-map-engine-standalone-2019-08-26` will be created.
-
-**Note:** Each image will have a different image ID. This is encoded in the setup URL listed in the
-[Usage](#standalone-virtual-machine-setup)) section and must be updated.
-
-**Note:** Old images should be removed unless they are known to be needed. This won't affect existing instances.
-
-If the `virtualbox` builder is used:
-
-* an OVA file named
+* an [OVA](https://en.wikipedia.org/wiki/Open_Virtualization_Format) file named
   `/provisioning/packer/artefacts/ovas/web-map-engine-standalone-virtualbox/web-map-engine-standalone-[date].ova`, e.g.
   `/provisioning/packer/artefacts/ovas/web-map-engine-standalone-virtualbox/web-map-engine-standalone-2019-08-26.ova`
-  will be created
 * a [Vagrant base box](https://www.vagrantup.com/docs/boxes.html) named
   `/provisioning/packer/artefacts/vagrant-bas-boxes/web-map-engine-standalone-virtualbox-[date].box`, e.g.
-  `/provisioning/packer/artefacts/vagrant-bas-boxes/web-map-engine-standalone-virtualbox-2019-08-26.box` will be created
+  `/provisioning/packer/artefacts/vagrant-bas-boxes/web-map-engine-standalone-virtualbox-2019-08-26.box`
 
-Two post processors will run for this builder, the first creates creates the Vagrant base box (see
-[Vagrant base boxes](#vagrant-base-boxes) for more information), the second uploads the OVA and base box to the BAS
-Repo server for distribution.
+The Vagrant base box is made from the OVA file using a post processor (see [Vagrant base boxes](#vagrant-base-boxes)
+for more information). A second processor will upload the OVA and base box to the BAS repo server for distribution.
 
-**Note:** The upload process to the BAS repo server will overwrite any existing files. This is usually safe as artefacts
+**Note:** The upload process to the repo server will overwrite any existing files. This is usually safe as artefacts
 are versioned with the current date, but this can cause a problem if you are re-building the image multiple times in the
 same day.
 
@@ -419,16 +350,16 @@ See the [Usage](#standalone-virtual-machine-setup) section for information on ho
 
 #### Vagrant base boxes
 
-The VirtualBox standalone image can be used with [Vagrant](https://www.vagrantup.com). A Vagrant
-[base box](https://www.vagrantup.com/docs/boxes.html) is created automatically by Packer if the `virtualbox-iso` builder
-is selected (it is by default). The box file will also be automatically uploaded to the BAS Repo server for
-distribution.
+The standalone image can be used with [Vagrant](https://www.vagrantup.com) as a custom
+[base box](https://www.vagrantup.com/docs/boxes.html).
 
-Vagrant base boxes can be installed directly or through a metadata file. The latter approach allows for box versioning
+Vagrant base boxes can be installed directly or through a metadata file. The latter allowing for box versioning
 and other features.
 
-This metadata file (`provisioning/vagrant/web-map-engine-standalone.json`) is maintained manually and should be updated
-whenever a new version of the base box is created:
+The metadata file for this base box is, `provisioning/vagrant/web-map-engine-standalone.json`. It is maintained
+manually and should be updated whenever a new version of the base box is created.
+
+To update the metadata file:
 
 1. once the base box has uploaded to the BAS repo server, determine the SHA1 checksum of the base box [1]
 2. update the box metadata file to add or change the release for the current version of Web Map Engine [2]

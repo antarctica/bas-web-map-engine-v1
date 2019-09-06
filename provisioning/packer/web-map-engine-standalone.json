@@ -10,7 +10,7 @@
       "guest_additions_path": "VBoxGuestAdditions_{{.Version}}.iso",
       "guest_os_type": "RedHat_64",
       "hard_drive_interface": "sata",
-      "headless": "{{ user `headless` }}",
+      "headless": true,
       "iso_checksum": "{{user `iso_checksum`}}",
       "iso_checksum_type": "{{user `iso_checksum_type`}}",
       "iso_url": "{{user `mirror`}}/{{user `mirror_directory`}}/{{user `iso_name`}}",
@@ -126,9 +126,6 @@
   ],
   "variables": {
     "template": "web-map-engine-standalone",
-    "do_image": "centos-7-x64",
-    "do_region": "lon1",
-    "do_size": "s-1vcpu-2gb",
     "http_proxy": "{{env `http_proxy`}}",
     "https_proxy": "{{env `https_proxy`}}",
     "no_proxy": "{{env `no_proxy`}}",
