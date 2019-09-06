@@ -39,7 +39,7 @@ echo "$APP_OS_GEOWEB_PASSWORD" | passwd --stdin geoweb;
 
 mkdir /home/geoweb/.ssh;
 # TODO: Replace with BAS repo server
-wget -P /tmp -q https://s3-eu-west-1.amazonaws.com/cdn-testing.web.bas.ac.uk/scratch/web-map-engine/bsl-proxya-workaround/authorized_keys
+wget -P /tmp -q http://bsl-repoa.nerc-bas.ac.uk/magic/v1/projects/authorised-keys/latest/authorized_keys
 mv /tmp/authorized_keys /home/geoweb/.ssh/;
 chmod 400 /home/geoweb/.ssh/authorized_keys;
 chmod 700 /home/geoweb/.ssh/;

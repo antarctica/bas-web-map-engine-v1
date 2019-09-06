@@ -10,7 +10,7 @@ export GEOSERVER_DATA_DIR=/var/geoserver/data
 EOL
 
 # TODO: Replace with BAS repo server
-wget -P /tmp -q https://s3-eu-west-1.amazonaws.com/cdn-testing.web.bas.ac.uk/scratch/web-map-engine/bsl-proxya-workaround/geoserver.war
+wget -P /tmp -q http://bsl-repoa.nerc-bas.ac.uk/magic/v1/applications/geoserver/2.15.2/war/geoserver.war
 chown tomcat:tomcat /tmp/geoserver.war;
 mv /tmp/geoserver.war /opt/tomcat/webapps/;
 
@@ -73,7 +73,7 @@ export SPRING_CONFIG_LOCATION=file:///etc/opt/tomcat/webapps/
 EOL
 
 # TODO: Replace with BAS repo server
-wget -P /tmp -q https://s3-eu-west-1.amazonaws.com/cdn-testing.web.bas.ac.uk/scratch/web-map-engine/bsl-proxya-workaround/web-map-engine.war
+wget -P /tmp -q http://bsl-repoa.nerc-bas.ac.uk/magic/v1/projects/web-map-engine/latest/war/web-map-engine.war
 chown tomcat:tomcat /tmp/web-map-engine.war;
 mv /tmp/web-map-engine.war /opt/tomcat/webapps/ROOT.war;
 
