@@ -9,10 +9,6 @@ readonly swappart=$(readlink -f /dev/disk/by-uuid/"$swapuuid");
 dd if=/dev/zero of="$swappart" bs=1M || echo "dd exit code $? is suppressed";
 /sbin/mkswap -U "$swapuuid" "$swappart";
 
-dd if=/dev/zero of=/EMPTY bs=1M || true;
-rm -f /EMPTY || true;
-sync || true;
-
 # Gracefully shutdown VM
 #
 
