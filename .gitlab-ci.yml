@@ -28,5 +28,8 @@ build-war:
       - web-map-engine.war
     expire_in: 1 week
   only:
-    - master
-    - tags
+    refs:
+      - master
+      - tags
+    changes:
+      - src
