@@ -3,7 +3,7 @@
   "description": "This box contains a standalone version of the Web Map Engine platform",
   "versions": [
     {
-      "version": "0.1.0",
+      "version": "1.0.0",
       "providers": [
         {
           "name": "virtualbox",
