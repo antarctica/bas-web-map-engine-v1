@@ -46,9 +46,9 @@ build-war:
 build-vm:
   stage: distribute
   before_script:
-    - ssh-keyscan -H $DEPLOY_HOST > ~/.ssh/known_hosts
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
+    - ssh-keyscan -H $DEPLOY_HOST > ~/.ssh/known_hosts
     - mv $SSH_PRIVATE_KEY ~/.ssh/id_rsa
     - chmod 400 ~/.ssh/id_rsa
   script:
