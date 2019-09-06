@@ -4,13 +4,22 @@
 
 # - GitLab automatically passes artifacts from previous stages by default
 
+# = Secret variables
+# - Variables are grouped by section in KEY: "value" format (e.g. FOO: "bar")
+#   Sensetive values are represented by "[Sensetive]"
+#
+# - Private key for the 'bas-magic-shared-deployment-identity'
+# > SSH_PRIVATE_KEY: "[Sensetive]"
+
 # == Global settings ==
 
 stages:
   - build
+  - distribute
 
 variables:
   APP_NAME: bas-web-map-engine
+  DEPLOY_HOST: bsl-repoa.nerc-bas.ac.uk
 
 image:
   name: docker-registry.data.bas.ac.uk/magic/web-map-engine/web-map-engine-v1:latest
@@ -33,3 +42,27 @@ build-war:
       - tags
     changes:
       - src
+
+build-vm:
+  stage: distribute
+  before_script:
+    - ssh-keyscan -H $DEPLOY_HOST > ~/.ssh/known_hosts
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - mv $SSH_PRIVATE_KEY ~/.ssh/id_rsa
+    - chmod 400 ~/.ssh/id_rsa
+  script:
+    - "cd provisioning/packer"
+    - "/opt/packer validate web-map-engine-standalone.json"
+    - "/opt/packer build web-map-engine-standalone.json"
+    - "tree ."
+  after_script:
+    - pwd
+    - ls ./
+  cache:
+    key: ${APP_NAME}-packer-cache
+    paths:
+      - provisioning/packer/packer_cache
+  tags:
+    - packer
+    - virtualbox
