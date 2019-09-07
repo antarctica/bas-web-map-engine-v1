@@ -128,7 +128,7 @@
     },
     {
       "inline": [
-        "chmod +r ./artefacts/ovas/web-map-engine-standalone-virtualbox/web-map-engine-standalone-*.ova artefacts/vagrant-bas-boxes/web-map-engine-standalone-virtualbox-*.box",
+        "chmod +r ./artefacts/ovas/web-map-engine-standalone-virtualbox/web-map-engine-standalone-*.ova artefacts/vagrant-base-boxes/web-map-engine-standalone-virtualbox-*.box",
         "scp ./artefacts/ovas/web-map-engine-standalone-virtualbox/web-map-engine-standalone-*.ova build@bsl-repoa.nerc-bas.ac.uk:/var/repo/magic/v1/projects/web-map-engine/latest/ova/",
         "scp ./artefacts/vagrant-base-boxes/web-map-engine-standalone-virtualbox-*.box build@bsl-repoa.nerc-bas.ac.uk:/var/repo/magic/v1/projects/web-map-engine/latest/vagrant/"
       ],
