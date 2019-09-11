@@ -59,6 +59,12 @@ build-vm:
   after_script:
     - pwd
     - ls ./
+    - rm ~/.ssh/id_rsa
+    - rm ~/.ssh/known_hosts
+    - rmdir ~/.ssh
+    - rm provisioning/packer/artefacts/ovas/web-map-engine-standalone-virtualbox/web-map-engine-standalone-*.ova
+    - rm provisioning/packer/artefacts/vagrant-base-boxes/web-map-engine-standalone-virtualbox-*.box
+    - rmdir provisioning/packer/artefacts/ovas provisioning/packer/artefacts/vagrant-base-boxes provisioning/packer/artefacts
   cache:
     key: ${APP_NAME}-packer-cache
     paths:
