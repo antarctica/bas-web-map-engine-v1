@@ -20,6 +20,7 @@ stages:
 
 variables:
   APP_NAME: bas-web-map-engine
+  APP_RELEASE: 1.0.0
   DEPLOY_HOST: bsl-repoa.nerc-bas.ac.uk
   APP_IMAGE_STACK_NAME: web-map-engine-standalone-stack-2019-09-11.ova
   APP_IMAGE_STACK_CHECKSUM: 0965ebfd4c19aa4045af63992299e7096ebbaadd0625452be5eadd321a34005d
@@ -58,11 +59,15 @@ build-base-box:
     - chmod 400 ~/.ssh/id_rsa
     - mkdir -p provisioning/packer/artefacts/ovas/web-map-engine-standalone-stack-virtualbox
     - wget -nv -P provisioning/packer/artefacts/ovas/web-map-engine-standalone-stack-virtualbox http://bsl-repoa.nerc-bas.ac.uk/magic/v1/projects/web-map-engine/latest/ova/$APP_IMAGE_STACK_NAME
+    - wget -nv -P provisioning/vagrant http://bsl-repoa.nerc-bas.ac.uk/magic/v1/projects/web-map-engine/latest/vagrant/web-map-engine-standalone-base.json
   script:
     - cd provisioning/packer
     - /opt/packer validate web-map-engine-standalone-base.json
     - /opt/packer build -var "source_file=artefacts/ovas/web-map-engine-standalone-stack-virtualbox/$APP_IMAGE_STACK_NAME" -var "source_checksum=$APP_IMAGE_STACK_CHECKSUM" web-map-engine-standalone-base.json
     - tree .
+    - cd ../vagrant
+    - python36 add-version-to-vagrant-metadata.py ../packer/artefacts/vagrant-base-boxes/web-map-engine-standalone-base-virtualbox-[YYYY-MM-DD].box ./web-map-engine-standalone-base.json $APP_RELEASE virtualbox http://bsl-repoa.nerc-bas.ac.uk/magic/v1/projects/web-map-engine/latest/vagrant/web-map-engine-standalone-base-virtualbox-[YYYY-MM-DD].box
+    - scp ./web-map-engine-standalone-base.json build@bsl-repoa.nerc-bas.ac.uk:/var/repo/magic/v1/projects/web-map-engine/latest/vagrant/
   after_script:
     - pwd
     - ls ./
@@ -90,11 +95,15 @@ build-app-box:
     - chmod 400 ~/.ssh/id_rsa
     - mkdir -p provisioning/packer/artefacts/ovas/web-map-engine-standalone-base-virtualbox
     - wget -nv -P provisioning/packer/artefacts/ovas/web-map-engine-standalone-base-virtualbox http://bsl-repoa.nerc-bas.ac.uk/magic/v1/projects/web-map-engine/latest/ova/$APP_IMAGE_BASE_NAME
+    - wget -nv -P provisioning/vagrant http://bsl-repoa.nerc-bas.ac.uk/magic/v1/projects/web-map-engine/latest/vagrant/web-map-engine-standalone-app.json
   script:
     - cd provisioning/packer
     - /opt/packer validate web-map-engine-standalone-app.json
     - /opt/packer build -var "source_file=artefacts/ovas/web-map-engine-standalone-base-virtualbox/$APP_IMAGE_BASE_NAME" -var "source_checksum=$APP_IMAGE_BASE_CHECKSUM" web-map-engine-standalone-app.json
     - tree .
+    - cd ../vagrant
+    - python36 add-version-to-vagrant-metadata.py ../packer/artefacts/vagrant-base-boxes/web-map-engine-standalone-app-virtualbox-[YYYY-MM-DD].box ./web-map-engine-standalone-app.json $APP_RELEASE virtualbox http://bsl-repoa.nerc-bas.ac.uk/magic/v1/projects/web-map-engine/latest/vagrant/web-map-engine-standalone-app-virtualbox-[YYYY-MM-DD].box
+    - scp ./web-map-engine-standalone-app.json build@bsl-repoa.nerc-bas.ac.uk:/var/repo/magic/v1/projects/web-map-engine/latest/vagrant/
   after_script:
     - pwd
     - ls ./
