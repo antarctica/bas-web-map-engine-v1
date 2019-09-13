@@ -15,11 +15,16 @@
 
 stages:
   - build
-  - distribute
+  - distribute-base
+  - distribute-app
 
 variables:
   APP_NAME: bas-web-map-engine
   DEPLOY_HOST: bsl-repoa.nerc-bas.ac.uk
+  APP_IMAGE_STACK_NAME: web-map-engine-standalone-stack-2019-09-11.ova
+  APP_IMAGE_STACK_CHECKSUM: 0965ebfd4c19aa4045af63992299e7096ebbaadd0625452be5eadd321a34005d
+  APP_IMAGE_BASE_NAME: web-map-engine-standalone-base-2019-09-12.ova
+  APP_IMAGE_BASE_CHECKSUM: 26d5116b1aa9fd32f931ee14a1b60c2cd8d622aa94d1cf0c052d8837954b78c3
 
 image:
   name: docker-registry.data.bas.ac.uk/magic/web-map-engine/web-map-engine-v1:latest
@@ -43,18 +48,20 @@ build-war:
     changes:
       - src
 
-build-vm:
-  stage: distribute
+build-base-box:
+  stage: distribute-base
   before_script:
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
     - ssh-keyscan -H $DEPLOY_HOST > ~/.ssh/known_hosts
     - mv $SSH_PRIVATE_KEY ~/.ssh/id_rsa
     - chmod 400 ~/.ssh/id_rsa
+    - mkdir -p provisioning/packer/artefacts/ovas/web-map-engine-standalone-stack-virtualbox
+    - wget -P provisioning/packer/artefacts/ovas/web-map-engine-standalone-stack-virtualbox http://bsl-repoa.nerc-bas.ac.uk/magic/v1/projects/web-map-engine/latest/ova/$APP_IMAGE_STACK_NAME
   script:
     - "cd provisioning/packer"
-    - "/opt/packer validate web-map-engine-standalone.json"
-    - "/opt/packer build web-map-engine-standalone.json"
+    - "/opt/packer validate web-map-engine-standalone-base.json"
+    - "/opt/packer build -var 'source_file=./provisioning/packer/artefacts/ovas/web-map-engine-standalone-stack-virtualbox/$APP_IMAGE_STACK_NAME' -var 'source_checksum=$APP_IMAGE_STACK_CHECKSUM' web-map-engine-standalone-base.json"
     - "tree ."
   after_script:
     - pwd
@@ -62,13 +69,44 @@ build-vm:
     - rm ~/.ssh/id_rsa
     - rm ~/.ssh/known_hosts
     - rmdir ~/.ssh
-    - rm -f provisioning/packer/artefacts/ovas/web-map-engine-standalone-virtualbox/web-map-engine-standalone-*.ova
-    - rm -f provisioning/packer/artefacts/vagrant-base-boxes/web-map-engine-standalone-virtualbox-*.box
-    - rm -rf provisioning/packer/artefacts/ovas provisioning/packer/artefacts/vagrant-base-boxes provisioning/packer/artefacts
-  cache:
-    key: ${APP_NAME}-packer-cache
-    paths:
-      - provisioning/packer/packer_cache
+    - rm -rf provisioning/packer/artefacts
   tags:
     - packer
     - virtualbox
+  only:
+    changes:
+      - src
+  except:
+    changes:
+      - src/main/webapp/WEB-INF/sql/table_population/standalone
+
+build-app-box:
+  stage: distribute-app
+  before_script:
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan -H $DEPLOY_HOST > ~/.ssh/known_hosts
+    - mv $SSH_PRIVATE_KEY ~/.ssh/id_rsa
+    - chmod 400 ~/.ssh/id_rsa
+    - mkdir -p provisioning/packer/artefacts/ovas/web-map-engine-standalone-base-virtualbox
+    - wget -P provisioning/packer/artefacts/ovas/web-map-engine-standalone-base-virtualbox http://bsl-repoa.nerc-bas.ac.uk/magic/v1/projects/web-map-engine/latest/ova/$APP_IMAGE_BASE_NAME
+  script:
+    - "cd provisioning/packer"
+    - "/opt/packer validate web-map-engine-standalone-app.json"
+    - "/opt/packer build -var 'source_file=./provisioning/packer/artefacts/ovas/web-map-engine-standalone-base-virtualbox/$APP_IMAGE_BASE_NAME' -var 'source_checksum=$APP_IMAGE_BASE_CHECKSUM' web-map-engine-standalone-app.json"
+    - "tree ."
+  after_script:
+    - pwd
+    - ls ./
+    - rm ~/.ssh/id_rsa
+    - rm ~/.ssh/known_hosts
+    - rmdir ~/.ssh
+    - rm -rf provisioning/packer/artefacts
+  tags:
+    - packer
+    - virtualbox
+  only:
+    changes:
+      - provisioning/packer/web-map-engne-standalone-app.json
+      - src/main/webapp/WEB-INF/sql/table_population/standalone
+      - geoserver/data

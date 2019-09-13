@@ -1,0 +1,17 @@
+{
+  "name": "bas/web-map-engine-standalone-app",
+  "description": "Box containing a standalone version of the Web Map Engine platform with demonstration data for testing",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "providers": [
+        {
+          "name": "virtualbox",
+          "url": "http://bsl-repoa.nerc-bas.ac.uk/magic/v1/projects/web-map-engine/latest/vagrant/web-map-engine-standalone-app-virtualbox-2019-09-12.box",
+          "checksum_type": "sha256",
+          "checksum": "24299c44bbfe67f1a5227725066abfb8b620865dee97a1af63cd9066fe37531d"
+        }
+      ]
+    }
+  ]
+}

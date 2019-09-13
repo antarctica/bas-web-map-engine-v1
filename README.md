@@ -311,10 +311,53 @@ can be built using [Git](https://git-scm.com), [Packer](https://www.packer.io) a
 **Note:** Standalone instances are intended to be fully isolated environments with no internet access once built (i.e.
 for use in the field).
 
-Packer is used to build a virtual machine image that can be used to create instances as needed.
-
 You will need VirtualBox installed and access to the [BAS Repo Server](http://bsl-repoa.nerc-bas.ac.uk) to build this
 image. Specifically you will need access to `bsl-repoa.nerc-bas.ac.uk:/var/repo/magic/v1/projects/web-map-engine/latest/`.
+
+Multiple Packer templates (in `provisioning/packer`) are used to create layers building up to a complete standalone
+instance:
+
+* `web-map-engine-standalone-stack.json`
+  * contains underlying software stack (Java, Tomcat, PostGIS)
+  * requires rebuilding if the software stack required by the application changes (rare)
+  * rebuilt manually due to complexity (built from ISO)
+* `web-map-engine-standalone-base.json`
+  * contains GeoServer and unconfigured application, base for tailored instances
+  * depends on the *stack* template and requires rebuilding if this changes
+  * otherwise requires rebuilding if the application source changes (new WAR file or database schema)
+  * rebuilt automatically through [Continuous Deployment](#continuous-deployment)
+* `web-map-engine-standalone-app.json`
+  * contains an example of a tailored instance | When application changes (Low)
+  * depends on the *base* template and requires rebuilding if this changes
+  * otherwise requires rebuilding if the sample configuration data changes
+  * rebuilt automatically through [Continuous Deployment](#continuous-deployment)
+
+This structure allows tailored/custom instances to be made without needing to build from a base operating system. For
+example, a Thwaites GIS specific instance can be built from the *base* template.
+
+To build a template manually:
+
+```
+$ cd provisioning/packer
+$ packer build [template]
+```
+
+See the [Setting secrets](#setting-secrets) section for how to set passwords for Tomcat, PostGIS and GeoServer.
+
+When built, each template will produce an [OVA](https://en.wikipedia.org/wiki/Open_Virtualization_Format) file named
+`/provisioning/packer/artefacts/ovas/[template]-virtualbox/[template]-[date].ova`,
+e.g. `/provisioning/packer/artefacts/ovas/web-map-engine-standalone-base-virtualbox/web-map-engine-standalone-base-2019-08-26.ova`.
+
+This file will be uploaded automatically to the BAS Repo Server for distribution.
+
+**Note:** This upload process will overwrite any existing files. This is usually safe as artefacts are versioned with
+the current date, but this can cause problems if you are re-building the image multiple times the same day.
+
+Some templates may also produce a [Vagrant base box](#vagrant-base-boxes) as an additional artefact.
+
+See the [Usage](#standalone-virtual-machine-setup) section for information on how to create instances of this image.
+
+#### Setting secrets
 
 To set secrets such as the GeoServer admin user password a variable file, `provisioning/packer/secrets.json`, can be
 used. An example of this file, `provisioning/packer/secrets.example.json` can be copied to act as a guide:
@@ -327,42 +370,32 @@ This variable file is then passed to Packer to override default, insecure, varia
 
 ```shell
 $ cd provisioning/packer/
-$ packer build -var-file=secrets.json web-map-engine-standalone.json
+$ packer build -var-file=secrets.json web-map-engine-standalone-[template].json
 ```
-
-When built two images will be created:
-
-* an [OVA](https://en.wikipedia.org/wiki/Open_Virtualization_Format) file named
-  `/provisioning/packer/artefacts/ovas/web-map-engine-standalone-virtualbox/web-map-engine-standalone-[date].ova`, e.g.
-  `/provisioning/packer/artefacts/ovas/web-map-engine-standalone-virtualbox/web-map-engine-standalone-2019-08-26.ova`
-* a [Vagrant base box](https://www.vagrantup.com/docs/boxes.html) named
-  `/provisioning/packer/artefacts/vagrant-bas-boxes/web-map-engine-standalone-virtualbox-[date].box`, e.g.
-  `/provisioning/packer/artefacts/vagrant-bas-boxes/web-map-engine-standalone-virtualbox-2019-08-26.box`
-
-The Vagrant base box is made from the OVA file using a post processor (see [Vagrant base boxes](#vagrant-base-boxes)
-for more information). A second processor will upload the OVA and base box to the BAS repo server for distribution.
-
-**Note:** The upload process to the repo server will overwrite any existing files. This is usually safe as artefacts
-are versioned with the current date, but this can cause a problem if you are re-building the image multiple times in the
-same day.
-
-See the [Usage](#standalone-virtual-machine-setup) section for information on how to create instances of this image.
 
 #### Vagrant base boxes
 
 The standalone image can be used with [Vagrant](https://www.vagrantup.com) as a custom
 [base box](https://www.vagrantup.com/docs/boxes.html).
 
-Vagrant base boxes can be installed directly or through a metadata file. The latter allowing for box versioning
-and other features.
+Base boxes are made from the OVA file using a post processor as part of a Packer template, creating a file:
+`/provisioning/packer/artefacts/vagrant-bas-boxes/[template]-[date].box`,
+e.g. `/provisioning/packer/artefacts/vagrant-bas-boxes/web-map-engine-standalone-base-2019-08-26.box`.
 
-The metadata file for this base box is, `provisioning/vagrant/web-map-engine-standalone.json`. It is maintained
-manually and should be updated whenever a new version of the base box is created.
+This file will be uploaded automatically to the BAS Repo Server for distribution.
 
-To update the metadata file:
+**Note:** This upload process will overwrite any existing files. This is usually safe as artefacts are versioned with
+the current date, but this can cause problems if you are re-building the image multiple times the same day.
 
-1. once the base box has uploaded to the BAS repo server, determine the SHA1 checksum of the base box [1]
-2. update the box metadata file to add or change the release for the current version of Web Map Engine [2]
+Once uploaded, they can be used be installed directly or through a metadata file. The latter option allowing for box
+versioning and other features. Metadata files are maintained in `provisioning/vagrant/[template]`. They are managed
+manually and should be updated whenever a new version of a template is created.
+
+To update a metadata file:
+
+1. once the base box has uploaded to the BAS Repo Server, determine the SHA256 checksum of the box [1]
+2. update the relevant metadata file to add a new version, except for the `web-map-engine-standalone-base.json`
+   template, which should correspond to the version of the Web Map Engine application [2]
 3. re-upload the box metadata file [3]
 
 [1]
@@ -370,7 +403,7 @@ To update the metadata file:
 ```shell
 $ ssh bsl-repoa.nerc-bas.ac.uk
 $ cd /var/repo/magic/v1/projects/web-map-engine/latest/vagrant
-$ sha1sum web-map-engine-standalone-virtualbox-*.box
+$ sha1sum web-map-engine-standalone-[template]-virtualbox-*.box
 ```
 
 [2]
@@ -381,7 +414,7 @@ the newer build (by changing the date and checksum from [1]). For new versions, 
 [3]
 
 ```shell
-$ scp provisioning/vagrant/web-map-engine-standalone.json bsl-repoa.nerc-bas.ac.uk:/var/repo/magic/v1/projects/web-map-engine/latest/vagrant/
+$ scp provisioning/vagrant/[template] bsl-repoa.nerc-bas.ac.uk:/var/repo/magic/v1/projects/web-map-engine/latest/vagrant/
 ```
 
 ## Development
@@ -405,6 +438,8 @@ production.
 A Continuous Deployment process using GitLab's CI/CD platform is configured in `.gitlab-ci.yml`. This will:
 
 * save the application WAR file as a GitLab build artefact
+* rebuild the *base* Packer template if the application source (`src/`) changes (except for SQL content)
+* rebuild the *app* Packer template if the SQL content or GoeServer data directory changes
 
 ## Issue tracker
 
