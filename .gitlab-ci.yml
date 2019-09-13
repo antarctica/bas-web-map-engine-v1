@@ -2,14 +2,14 @@
 
 # == Notes ==
 
-# - GitLab automatically passes artifacts from previous stages by default
+# - GitLab automatically passes artefacts from previous stages by default
 
 # = Secret variables
 # - Variables are grouped by section in KEY: "value" format (e.g. FOO: "bar")
-#   Sensetive values are represented by "[Sensetive]"
+#   Sensitive values are represented by "[Sensitive]"
 #
 # - Private key for the 'bas-magic-shared-deployment-identity'
-# > SSH_PRIVATE_KEY: "[Sensetive]"
+# > SSH_PRIVATE_KEY: "[Sensitive]"
 
 # == Global settings ==
 

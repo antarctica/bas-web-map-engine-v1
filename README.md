@@ -306,7 +306,7 @@ $ docker login docker-registry.data.bas.ac.uk
 
 A standalone virtual machine, containing the Web Map Engine application, it's database and a local GeoServer instance,
 can be built using [Git](https://git-scm.com), [Packer](https://www.packer.io) and
- [VirtualBox](https://www.virtualbox.org).
+[VirtualBox](https://www.virtualbox.org).
 
 **Note:** Standalone instances are intended to be fully isolated environments with no internet access once built (i.e.
 for use in the field).
@@ -375,8 +375,8 @@ $ sha1sum web-map-engine-standalone-virtualbox-*.box
 
 [2]
 
-For example, if this is the second build for version `1.2.0` of the Web Map Engine project generally, change the
-existing release with a new file path and check sum value from [1]. For new versions, create a new release.
+For example, if this is the second build for version `1.2.0` of the Web Map Engine, change the existing release to use
+the newer build (by changing the date and checksum from [1]). For new versions, create a new release.
 
 [3]
 
