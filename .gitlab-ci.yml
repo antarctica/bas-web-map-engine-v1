@@ -93,7 +93,7 @@ build-app-box:
   script:
     - "cd provisioning/packer"
     - "/opt/packer validate web-map-engine-standalone-app.json"
-    - "/opt/packer build -var 'source_file=./provisioning/packer/artefacts/ovas/web-map-engine-standalone-base-virtualbox/$APP_IMAGE_BASE_NAME' -var 'source_checksum=$APP_IMAGE_BASE_CHECKSUM' web-map-engine-standalone-app.json"
+    - "/opt/packer build -var 'source_file=./provisioning/packer/artefacts/ovas/web-map-engine-standalone-base-virtualbox/${APP_IMAGE_BASE_NAME}' -var 'source_checksum=$APP_IMAGE_BASE_CHECKSUM' web-map-engine-standalone-app.json"
     - "tree ."
   after_script:
     - pwd
