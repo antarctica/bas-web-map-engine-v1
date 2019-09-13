@@ -57,7 +57,7 @@ build-base-box:
     - mv $SSH_PRIVATE_KEY ~/.ssh/id_rsa
     - chmod 400 ~/.ssh/id_rsa
     - mkdir -p provisioning/packer/artefacts/ovas/web-map-engine-standalone-stack-virtualbox
-    - wget -q -P provisioning/packer/artefacts/ovas/web-map-engine-standalone-stack-virtualbox http://bsl-repoa.nerc-bas.ac.uk/magic/v1/projects/web-map-engine/latest/ova/$APP_IMAGE_STACK_NAME
+    - wget -nv -P provisioning/packer/artefacts/ovas/web-map-engine-standalone-stack-virtualbox http://bsl-repoa.nerc-bas.ac.uk/magic/v1/projects/web-map-engine/latest/ova/$APP_IMAGE_STACK_NAME
   script:
     - cd provisioning/packer
     - /opt/packer validate web-map-engine-standalone-base.json
@@ -89,8 +89,9 @@ build-app-box:
     - mv $SSH_PRIVATE_KEY ~/.ssh/id_rsa
     - chmod 400 ~/.ssh/id_rsa
     - mkdir -p provisioning/packer/artefacts/ovas/web-map-engine-standalone-base-virtualbox
-    - wget -q -P provisioning/packer/artefacts/ovas/web-map-engine-standalone-base-virtualbox http://bsl-repoa.nerc-bas.ac.uk/magic/v1/projects/web-map-engine/latest/ova/$APP_IMAGE_BASE_NAME
+    - wget -nv -P provisioning/packer/artefacts/ovas/web-map-engine-standalone-base-virtualbox http://bsl-repoa.nerc-bas.ac.uk/magic/v1/projects/web-map-engine/latest/ova/$APP_IMAGE_BASE_NAME
   script:
+    - tree .
     - cd provisioning/packer
     - /opt/packer validate web-map-engine-standalone-app.json
     - /opt/packer build -var "source_file=./provisioning/packer/artefacts/ovas/web-map-engine-standalone-base-virtualbox/$APP_IMAGE_BASE_NAME" -var "source_checksum=$APP_IMAGE_BASE_CHECKSUM" web-map-engine-standalone-app.json
