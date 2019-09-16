@@ -52,8 +52,8 @@ if __name__ == "__main__":
 
     if 'versions' in metadata:
         replaced = False
-        for index, version in enumerate(metadata['versions']):
-            if version['version'] == args.version:
+        for index, _version in enumerate(metadata['versions']):
+            if _version['version'] == args.version:
                 metadata['versions'][index] = version
                 replaced = True
         if not replaced:
