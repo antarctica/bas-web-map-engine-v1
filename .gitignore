@@ -1,11 +1,14 @@
-# node_modules
+# cached dependencies
 node_modules/
+provisioning/packer/packer_cache
 
 # Build output directories
 target/
+provisioning/packer/artefacts
 
 # Secrets
 .env
+provisioning/packer/secrets.json
 
 # Runtime files
 geoserver/data/gwc/tmp
