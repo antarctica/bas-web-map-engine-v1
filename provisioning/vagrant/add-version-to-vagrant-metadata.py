@@ -33,7 +33,6 @@ if __name__ == "__main__":
             if not data:
                 break
             sha256sum.update(data)
-    print(f"SHA256: {sha256sum.hexdigest()}")
 
     version = {
         "version": "1.0.0",
