@@ -11,6 +11,7 @@ This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html
 
 ### Added
 
+* Packer support for creating standalone VMs
 * Docker support for running local application instances
 * Local GeoServer container using new GeoServer Docker image
 * Vector sample data for local GeoServer (sea mask, coastline and facilities)
