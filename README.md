@@ -387,35 +387,19 @@ This file will be uploaded automatically to the BAS Repo Server for distribution
 **Note:** This upload process will overwrite any existing files. This is usually safe as artefacts are versioned with
 the current date, but this can cause problems if you are re-building the image multiple times the same day.
 
-Once uploaded, they can be used be installed directly or through a metadata file. The latter option allowing for box
-versioning and other features. Metadata files are maintained in `provisioning/vagrant/[template]`. They are managed
-manually and should be updated whenever a new version of a template is created.
+Once uploaded, they can be used be installed directly or through a metadata file, which allowings for versioning and
+other features. Metadata files are used in this project, stored in the BAS Repo Server alongside boxes at
+`/var/repo/magic/v1/projects/web-map-engine/latest/vagrant/`.
 
-To update a metadata file:
+Metadata files are updated using a Python script, `vagrant/add-version-to-vagrant-metadata.py`. This script will be ran
+automatically as part of [Continuous Deployment](#continuous-deployment).
+
+If needed update a metadata file manually:
 
 1. once the base box has uploaded to the BAS Repo Server, determine the SHA256 checksum of the box [1]
 2. update the relevant metadata file to add a new version, except for the `web-map-engine-standalone-base.json`
    template, which should correspond to the version of the Web Map Engine application [2]
 3. re-upload the box metadata file [3]
-
-[1]
-
-```shell
-$ ssh bsl-repoa.nerc-bas.ac.uk
-$ cd /var/repo/magic/v1/projects/web-map-engine/latest/vagrant
-$ sha1sum web-map-engine-standalone-[template]-virtualbox-*.box
-```
-
-[2]
-
-For example, if this is the second build for version `1.2.0` of the Web Map Engine, change the existing release to use
-the newer build (by changing the date and checksum from [1]). For new versions, create a new release.
-
-[3]
-
-```shell
-$ scp provisioning/vagrant/[template] bsl-repoa.nerc-bas.ac.uk:/var/repo/magic/v1/projects/web-map-engine/latest/vagrant/
-```
 
 ## Development
 
@@ -440,6 +424,22 @@ A Continuous Deployment process using GitLab's CI/CD platform is configured in `
 * save the application WAR file as a GitLab build artefact
 * rebuild the *base* Packer template if the application source (`src/`) changes (except for SQL content)
 * rebuild the *app* Packer template if the SQL content or GoeServer data directory changes
+* update the Vagrant box metadata file for the *app* Packer template if it is rebuilt
+
+## Release procedure
+
+### At release
+
+For all releases:
+
+* create a release branch
+* if needed, build & push the Docker image
+* close release in `CHANGELOG.md`
+* update the `APP_RELEASE` variable in `.gitlab-ci.yml`
+
+Push changes, merge the release branch into master and tag with version
+
+The application will be automatically deployed into production using [Continuous Deployment](#continuous-deployment).
 
 ## Issue tracker
 
