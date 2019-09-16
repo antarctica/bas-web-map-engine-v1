@@ -10,12 +10,12 @@ if __name__ == "__main__":
     buffer_size = 65536  # 64kb
 
     parser = ArgumentParser()
-    parser.add_argument('box_path', help='Path to the box file being added as a new version, [yyyy-mm-dd] will be '
+    parser.add_argument('box_path', help='Path to the box file being added as a new version, [YYYY-MM-DD] will be '
                                          'replaced with todays date')
     parser.add_argument('metadata_path', help='Path to the box metadata file to be updated')
     parser.add_argument('version', help='Version of the box to be added or amended')
     parser.add_argument('provider', choices=['virtualbox'], help='Provider of the box to be added or amended')
-    parser.add_argument('uri', help='URI the box will be available at, [yyyy-mm-dd] will be replaced with todays date')
+    parser.add_argument('uri', help='URI the box will be available at, [YYYY-MM-DD] will be replaced with todays date')
     args = parser.parse_args()
 
     # check box_path and metadata path_both exist
@@ -35,7 +35,7 @@ if __name__ == "__main__":
             sha256sum.update(data)
 
     version = {
-        "version": "1.0.0",
+        "version": args.version,
         "providers": [
             {
                 "name": args.provider,
@@ -64,5 +64,4 @@ if __name__ == "__main__":
     metadata_file.close()
 
     print(json.dumps(metadata, indent=4))
-
     print('ok')
