@@ -1,5 +1,29 @@
 #!/bin/sh -eux
 
+# Configure tomcat
+#
+
+TOMCAT_DIR=/packages/tomcat/current
+SETENV_LOCAL=$TOMCAT_DIR/bin/setenv_local.sh
+cat >$SETENV_LOCAL <<'EOL'
+export CATALINA_OPTS="-Xms512M -Xmx1024M -server -XX:+UseParallelGC"
+export JAVA_OPTS="-Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom"
+EOL
+chgrp tomcat $SETENV_LOCAL;
+chmod 750 $SETENV_LOCAL;
+
+sed -i 's;</tomcat-users>;<role rolename="manager-gui"/>\n</tomcat-users>;g' $TOMCAT_DIR/conf/tomcat-users.xml;
+sed -i 's;</tomcat-users>;<role rolename="admin-gui"/>\n</tomcat-users>;g' $TOMCAT_DIR/conf/tomcat-users.xml;
+sed -i "s;</tomcat-users>;<user username=\"tomcat\" password=\"$APP_TOMCAT_MANAGER_PASSWORD\" roles=\"manager-gui,admin-gui\"/>\n</tomcat-users>;g" $TOMCAT_DIR/conf/tomcat-users.xml;
+
+mkdir -p $TOMCAT_DIR/conf/Catalina/localhost;
+echo "<Context privileged=\"true\" antiResourceLocking=\"false\" docBase=\"$TOMCAT_DIR/webapps/manager\">" >> $TOMCAT_DIR/conf/Catalina/localhost/manager.xml;
+echo "<Valve className=\"org.apache.catalina.valves.RemoteAddrValve\" allow=\"^.*$\" /></Context>" >> $TOMCAT_DIR/conf/Catalina/localhost/manager.xml;
+
+rm -rf $TOMCAT_DIR/webapps/docs $TOMCAT_DIR/webapps/examples $TOMCAT_DIR/webapps/host-manager $TOMCAT_DIR/webapps/ROOT;
+
+systemctl restart tomcat;
+
 # Deploy GeoServer
 #
 
@@ -11,19 +35,6 @@ systemctl restart tomcat;
 
 while ! grep -F -q "Deployment of web application archive [/opt/tomcat/webapps/geoserver.war] has finished" /opt/tomcat/logs/catalina.out
 do sleep 10; done
-
-# Setup application database
-#
-
-cd /tmp;
-sudo APP_DATABASE_APP_PASSWORD=$APP_DATABASE_APP_PASSWORD -u postgres psql -c "CREATE ROLE app WITH PASSWORD '$APP_DATABASE_APP_PASSWORD' LOGIN;";
-sudo -u postgres psql -c "CREATE DATABASE app OWNER app TEMPLATE template_postgis;";
-cat >>/root/.pgpass <<EOL
-127.0.0.1:5432:*:app:$APP_DATABASE_APP_PASSWORD
-EOL
-
-psql -h 127.0.0.1 -U app -d app --single-transaction -f /tmp/app-structure.sql -f /tmp/app-auth-structure.sql;
-rm /tmp/app-structure.sql /tmp/app-auth-structure.sql;
 
 # Deploy application
 #
@@ -55,3 +66,4 @@ chown tomcat:tomcat /tmp/web-map-engine.war;
 mv /tmp/web-map-engine.war /opt/tomcat/webapps/ROOT.war;
 
 systemctl restart tomcat;
+

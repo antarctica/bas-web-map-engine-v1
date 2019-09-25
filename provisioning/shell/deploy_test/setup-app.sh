@@ -16,8 +16,6 @@ systemctl restart tomcat;
 while ! grep -F -q "Deployment of web application archive [/opt/tomcat/webapps/geoserver.war] has finished" /opt/tomcat/logs/catalina.out
 do sleep 10; done
 
-yum install -y curl;
-
 # GeoServer won't allow a password to be changed to the same value so we change it to something else first
 # when changing the admin user's password, we need to wait a bit before using it to allow GeoServer to catch up
 
