@@ -33,7 +33,7 @@ INSERT INTO webmap.endpoints (
   'cambridge',
   false,
   'add:antarctic-coastline-medium-resolution-polygon',
-  '',
+  'general:antarctic-graticule',
   '',
   'EPSG:3031',
   true,
