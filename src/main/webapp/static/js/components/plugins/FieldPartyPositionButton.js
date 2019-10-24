@@ -1,21 +1,21 @@
 /* Dashboard of Field Party positions (BLIP) as a Bootstrap popover */
 
 magic.classes.FieldPartyPositionButton = function (options) {
-    
+
     /* ICAO Phonetic Aphabet (English spellings) */
     this.PHONETIC_ALPHABET = [
-        "Alpha", "Bravo", "Charlie", "Delta", 
-        "Echo", "Foxtrot", "Golf", "Hotel", 
-        "India", "Juliett", "Kilo", "Lima", 
-        "Mike", "November", "Oscar", "Papa", 
-        "Quebec", "Romeo", "Sierra", "Tango", 
-        "Uniform", "Victor", "Whiskey", "X-ray", 
-        "Yankee", "Zulu"  
+        "Alpha", "Bravo", "Charlie", "Delta",
+        "Echo", "Foxtrot", "Golf", "Hotel",
+        "India", "Juliett", "Kilo", "Lima",
+        "Mike", "November", "Oscar", "Papa",
+        "Quebec", "Romeo", "Sierra", "Tango",
+        "Uniform", "Victor", "Whiskey", "X-ray",
+        "Yankee", "Zulu"
     ];
-    
+
     /* How many buttons we want in each row */
     this.BUTTONS_PER_ROW = 4;
-        
+
     /* Data fetch */
     this.WFS_FETCH = magic.config.paths.baseurl + "/geoserver/opsgis/wfs?service=wfs&request=getfeature&version=2.0.0&" + 
             "typeNames=opsgis:ops_field_deployments&outputFormat=json&sortBy=fix_date+D&cql_filter=season=1819";       
@@ -32,22 +32,22 @@ magic.classes.FieldPartyPositionButton = function (options) {
      * }
      */
     this.featureMap = {};
-    
+
     this.readOnly = false;
-    
+
     this.formEdited = false;
-    
+
     this.savedState = null;
-   
-    magic.classes.NavigationBarTool.call(this, options);    
-    
+
+    magic.classes.NavigationBarTool.call(this, options);
+
     /* Control callbacks */
     this.setCallbacks({
         onActivate: jQuery.proxy(this.onActivate, this),
-        onDeactivate: jQuery.proxy(this.onDeactivate, this), 
+        onDeactivate: jQuery.proxy(this.onDeactivate, this),
         onMinimise: jQuery.proxy(this.saveState, this)
     });
-    
+
     this.layer.set("metadata", {
         is_interactive: true,
         attribute_map: [
@@ -60,9 +60,9 @@ magic.classes.FieldPartyPositionButton = function (options) {
             {name: "lon", alias: "Lon", displayed: true},
             {name: "height", alias: "Altitude", displayed: false},
             {name: "notes", alias: "Notes", displayed: true}
-        ]                    
+        ]
     });
-    
+
     this.target.popover({
         template: this.template,
         title: this.titleMarkup(),
@@ -75,7 +75,7 @@ magic.classes.FieldPartyPositionButton = function (options) {
             url: magic.config.paths.baseurl + "/fpp/layout",
             dataType: "html",
             success: jQuery.proxy(function(markup) {
-                /* Icons for the date picker widget */ 
+                /* Icons for the date picker widget */
                 jQuery.fn.datetimepicker.defaults.icons = {
                     clear: "fa fa-trash",
                     close: "fa fa-times",
@@ -88,8 +88,8 @@ magic.classes.FieldPartyPositionButton = function (options) {
                     up: "fa fa-chevron-up"
                 };
                 var popoverDiv = jQuery(".field-party-popover-content");
-                popoverDiv.html(markup); 
-                this.readOnly = jQuery(".field-party-popover-content").find("form").length == 0;     
+                popoverDiv.html(markup);
+                this.readOnly = jQuery(".field-party-popover-content").find("form").length == 0;
                 if (this.readOnly) {
                     jQuery(".hide-readonly-msg").click(jQuery.proxy(function() {
                         jQuery("." + this.popoverClass).find("button.dialog-minimise").click();
@@ -100,8 +100,8 @@ magic.classes.FieldPartyPositionButton = function (options) {
             error: function() {
                 jQuery(".field-party-popover-content").html("Failed to retrieve content for pop-up");
             }
-        });     
-    }, this));                    
+        });
+    }, this));
 };
 
 magic.classes.FieldPartyPositionButton.prototype = Object.create(magic.classes.NavigationBarTool.prototype);
@@ -124,17 +124,17 @@ magic.classes.FieldPartyPositionButton.prototype.restoreState = function() {
     }
 };
 
-magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {  
-    
+magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {
+
     if (!this.readOnly) {
         /* User has edit rights */
-        magic.runtime.featureinfotool.deactivate();        
+        magic.runtime.featureinfotool.deactivate();
         /* Detect changes to the form */
         this.formEdited = false;
         jQuery(".field-party-popover-content").find("form :input").on("input", jQuery.proxy(function() {
             this.formEdited = true;
             this.setButtonStates("enable", "leave", "leave");
-        }, this));    
+        }, this));
     }
     this.loadFeatures();
 };
@@ -143,12 +143,12 @@ magic.classes.FieldPartyPositionButton.prototype.onActivate = function() {
  * Load up the WFS features
  */
 magic.classes.FieldPartyPositionButton.prototype.loadFeatures = function() {
-    
+
     this.formEdited = false;
     this.resetForm();
-    
+
     if (!this.readOnly && this.savedState != null) {
-        /* Restore a saved state - feature map etc will be intact as popover was minimised not closed */    
+        /* Restore a saved state - feature map etc will be intact as popover was minimised not closed */
         console.log("Saved state present - should it be?");
         console.log(this.savedState);
         this.assignHandlers();
@@ -163,7 +163,7 @@ magic.classes.FieldPartyPositionButton.prototype.loadFeatures = function() {
             success: jQuery.proxy(function(data) {
                 var fmtGeoJson = new ol.format.GeoJSON({
                     geometryName: "geometry"
-                });          
+                });
                 var feats = fmtGeoJson.readFeatures(data);
                 /* Now classify the features by name and fix date */
                 var noDupFeats = [], trackFeats = [];
@@ -185,16 +185,16 @@ magic.classes.FieldPartyPositionButton.prototype.loadFeatures = function() {
                         this.featureMap[fname] = {};
                     }
                     if (!this.featureMap[fname][fdate]) {
-                        /* Sometimes we get infelicities in the data => duplicate records in every way except id */                    
-                        this.featureMap[fname][fdate] = f; 
+                        /* Sometimes we get infelicities in the data => duplicate records in every way except id */
+                        this.featureMap[fname][fdate] = f;
                         noDupFeats.push(f);
                     }
                 }, this));
                 /* Now write styling hints into the feature attributes */
-                jQuery.each(this.featureMap, jQuery.proxy(function(k, v) {  
+                jQuery.each(this.featureMap, jQuery.proxy(function(k, v) {
                     var fixes = Object.keys(v);
                     fixes.sort();
-                    fixes.reverse();                
+                    fixes.reverse();
                     /* Initialise the line track feature */
                     var track = new ol.geom.LineString([], "XY");
                     /* Now have descending order array of fixes */
@@ -203,9 +203,9 @@ magic.classes.FieldPartyPositionButton.prototype.loadFeatures = function() {
                         var rgba = "rgba(" + parseInt(255 - i*colourStep) + ",0," + parseInt(i*colourStep) + ",1.0)";
                         var fixFeat = v[fixes[i]];
                         fixFeat.setProperties({
-                            "rgba": rgba, 
-                            "latest": i == 0, 
-                            "highlighted": false,                        
+                            "rgba": rgba,
+                            "latest": i == 0,
+                            "highlighted": false,
                             "__layer": this.layer
                         }, true);
                         fixFeat.setStyle(magic.modules.VectorStyles["bas_field_party"]());
@@ -229,20 +229,20 @@ magic.classes.FieldPartyPositionButton.prototype.loadFeatures = function() {
             error: function() {
                 console.log("Failed to get field party positional data - potential network outage?");
             }
-        });   
-    }       
+        });
+    }
 };
 
-magic.classes.FieldPartyPositionButton.prototype.onDeactivate = function() {  
+magic.classes.FieldPartyPositionButton.prototype.onDeactivate = function() {
     if (!this.readOnly) {
         /* User has edit rights */
         magic.runtime.featureinfotool.activate();
         this.target.popover("hide");
         magic.runtime.map.un("singleclick", this.clickToEditHandler, this);
-        this.featureMap = {};    
-        this.formEdited = false;    
+        this.featureMap = {};
+        this.formEdited = false;
         this.savedState = null;
-    }    
+    }
 };
 
 /**
@@ -259,59 +259,59 @@ magic.classes.FieldPartyPositionButton.prototype.assignHandlers = function() {
         /* Convert the sledge input field to combobox */
         this.initSledgeCombobox("fix-input-sledge");
         /* Convert the date input field to a datepicker */
-        this.initDatepicker("fix-input-fix_date");            
+        this.initDatepicker("fix-input-fix_date");
         /* Assign the new button handler */
         jQuery("#fix-new").off("click").on("click", jQuery.proxy(this.resetForm, this));
         /* Assign the save button handler */
-        jQuery("#fix-save-go").off("click").on("click", jQuery.proxy(this.saveForm, this));            
+        jQuery("#fix-save-go").off("click").on("click", jQuery.proxy(this.saveForm, this));
         /* Assign the delete button handler */
         jQuery("#fix-delete-go").off("click").on("click", jQuery.proxy(this.deleteFix, this));
         /* Assign the feature click-to-edit handler */
         magic.runtime.map.un("singleclick", this.clickToEditHandler, this);
-        magic.runtime.map.on("singleclick", this.clickToEditHandler, this); 
+        magic.runtime.map.on("singleclick", this.clickToEditHandler, this);
     }
 };
 
 /**
  * Reset the form, taking account of whether or not it has been edited
  */
-magic.classes.FieldPartyPositionButton.prototype.resetForm = function() {  
-    
+magic.classes.FieldPartyPositionButton.prototype.resetForm = function() {
+
     if (!this.readOnly) {
         var form = jQuery(".field-party-popover-content").find("form");
-        this.hideTooltips();       
+        this.hideTooltips();
         magic.modules.Common.resetFormIndicators();
         this.setButtonStates("disable", "enable", "disable");
         this.confirmOperation(jQuery.proxy(function (result) {
-            if (result) {                
-                this.saveForm();                    
-            }      
+            if (result) {
+                this.saveForm();
+            }
             form[0].reset();
             form.find("input:hidden").val("");
             this.formEdited = false;
         }, this), function() {
             form[0].reset();
             form.find("input:hidden").val("");
-        });    
+        });
     }
 };
 
 /**
  * Delete a positional fix
  */
-magic.classes.FieldPartyPositionButton.prototype.deleteFix = function() {  
-    
+magic.classes.FieldPartyPositionButton.prototype.deleteFix = function() {
+
     this.hideTooltips();
-    
+
     var delId = jQuery("#fix-input-id").val();
     if (!isNaN(parseInt(delId))) {
-        /* Identifier is plausible */           
+        /* Identifier is plausible */
         jQuery.ajax({
             url: magic.config.paths.baseurl + "/fpp/delete/" + delId,
             method: "DELETE",
             headers: {
                 "Content-Type": "application/json",
-                "X-CSRF-TOKEN": jQuery("meta[name='_csrf']").attr("content")              
+                "X-CSRF-TOKEN": jQuery("meta[name='_csrf']").attr("content")
             },
             success: jQuery.proxy(function() {
                 this.loadFeatures();
@@ -326,18 +326,18 @@ magic.classes.FieldPartyPositionButton.prototype.deleteFix = function() {
                 } catch (e) {}
                 magic.modules.Common.buttonClickFeedback("fix-delete", false, errmsg);
             }
-        });                            
-        this.formEdited = false;        
-    }    
+        });
+        this.formEdited = false;
+    }
 };
 
 /**
  * Save the form data - NOTE: should eventually use WFS-T rather than same-server database ops - David 2018-10-03
  */
-magic.classes.FieldPartyPositionButton.prototype.saveForm = function() {  
-    
+magic.classes.FieldPartyPositionButton.prototype.saveForm = function() {
+
     this.hideTooltips();
-    
+
     var payload = this.getPayload();
     if (this.validate(payload)) {
         jQuery.ajax({
@@ -349,7 +349,7 @@ magic.classes.FieldPartyPositionButton.prototype.saveForm = function() {
                 "Content-Type": "application/json",
                 "X-CSRF-TOKEN": jQuery("meta[name='_csrf']").attr("content")
             },
-            success: jQuery.proxy(function() {                
+            success: jQuery.proxy(function() {
                 this.loadFeatures();
                 magic.modules.Common.buttonClickFeedback("fix-save", true, "Ok");
                 this.resetForm();
@@ -362,7 +362,7 @@ magic.classes.FieldPartyPositionButton.prototype.saveForm = function() {
                 } catch (e) {}
                 magic.modules.Common.buttonClickFeedback("fix-save", false, errmsg);
             }
-        });        
+        });
     } else {
         magic.modules.Common.buttonClickFeedback("fix-save", false, "Errors found");
     }
@@ -412,7 +412,7 @@ magic.classes.FieldPartyPositionButton.prototype.confirmOperation = function(cal
  * Retrieve the form's value as a JSON object
  * @returns {Object}
  */
-magic.classes.FieldPartyPositionButton.prototype.getPayload = function() { 
+magic.classes.FieldPartyPositionButton.prototype.getPayload = function() {
     var lat = magic.modules.GeoUtils.toDecDegrees(jQuery("#fix-input-lat").val());
     var lon = magic.modules.GeoUtils.toDecDegrees(jQuery("#fix-input-lon").val());
     return({
@@ -433,13 +433,13 @@ magic.classes.FieldPartyPositionButton.prototype.getPayload = function() {
  * Set the form's value to the given JSON object
  * @param {Object} payload
  */
-magic.classes.FieldPartyPositionButton.prototype.setPayload = function(payload) { 
+magic.classes.FieldPartyPositionButton.prototype.setPayload = function(payload) {
     jQuery("#fix-input-id").val(payload.id || "");
     this.setComboboxValue("fix-input-sledge", payload.sledge);
     this.setDatepickerValue("fix-input-fix_date", payload.fix_date);
     jQuery("#fix-input-people_count").val(payload.people_count);
     jQuery("#fix-input-updater").val(payload.updater || "");
-    var lat = magic.modules.GeoUtils.applyPref("coordinates", payload.lat, "lat");   
+    var lat = magic.modules.GeoUtils.applyPref("coordinates", payload.lat, "lat");
     jQuery("#fix-input-lat").val((jQuery.isNumeric(lat) || typeof lat == "string") ? lat : "");
     var lon = magic.modules.GeoUtils.applyPref("coordinates", payload.lon, "lon");
     jQuery("#fix-input-lon").val((jQuery.isNumeric(lon) || typeof lon == "string") ? lon : "");
@@ -453,7 +453,7 @@ magic.classes.FieldPartyPositionButton.prototype.setPayload = function(payload) 
  * @param {Object} payload
  * @returns {boolean}
  */
-magic.classes.FieldPartyPositionButton.prototype.validate = function(payload) { 
+magic.classes.FieldPartyPositionButton.prototype.validate = function(payload) {
     var valid = false;
     magic.modules.Common.resetFormIndicators();
     if (payload) {
@@ -493,17 +493,17 @@ magic.classes.FieldPartyPositionButton.prototype.validate = function(payload) {
 magic.classes.FieldPartyPositionButton.prototype.initSledgeCombobox = function(id) {
     var opts = Object.keys(this.featureMap).sort();
     var sledgeComboDiv = jQuery("div.sledge-combo");
-    sledgeComboDiv.empty();    
+    sledgeComboDiv.empty();
     var cbSelect = jQuery('<select>', {id: id});
     cbSelect.addClass("form-control combobox");
     cbSelect.append(jQuery('<option>', {value: "", text: ""}));
     /* Active sledges */
     var doneOptions = {};
-    for (var j = 0; j < opts.length; j++) { 
+    for (var j = 0; j < opts.length; j++) {
         cbSelect.append(jQuery('<option>', {value: opts[j], text: opts[j]}));
         doneOptions[opts[j]] = true;
     }
-    /* Others from the phonetic alphabet */        
+    /* Others from the phonetic alphabet */
     for (var i = 0; i < this.PHONETIC_ALPHABET.length; i++) {
         var designator = this.PHONETIC_ALPHABET[i];
         if (doneOptions[designator] !== true) {
@@ -514,10 +514,10 @@ magic.classes.FieldPartyPositionButton.prototype.initSledgeCombobox = function(i
     cbSelect.combobox({
         appendId: "-input",
         clearIfNoMatch: false,
-        highlighter: jQuery.proxy(function(item) { 
+        highlighter: jQuery.proxy(function(item) {
             return(
-                '<div style="width:100%;background-color:' + (this.featureMap[item] ? '#99cc00' : '#c9302c') + '">'+ 
-                    '<strong>' + item + '</strong>' + 
+                '<div style="width:100%;background-color:' + (this.featureMap[item] ? '#99cc00' : '#c9302c') + '">'+
+                    '<strong>' + item + '</strong>' +
                 '</div>'
             );
         }, this)
@@ -526,7 +526,7 @@ magic.classes.FieldPartyPositionButton.prototype.initSledgeCombobox = function(i
     cbInput.attr("required", "required");
     cbInput.attr("data-toggle", "tooltip");
     cbInput.attr("data-placement", "right");
-    cbInput.attr("title", "Sledge designator - choose a standard one, or enter a custom name (required)");            
+    cbInput.attr("title", "Sledge designator - choose a standard one, or enter a custom name (required)");
     jQuery("input[type='text'].combobox").off("change").on("change", jQuery.proxy(function () {
         this.formEdited = true;
         this.setButtonStates("enable", "leave", "leave");
@@ -611,7 +611,7 @@ magic.classes.FieldPartyPositionButton.prototype.clickToEditHandler = function(e
         f.setProperties({
             highlighted: false
         });
-        f.setStyle(magic.modules.VectorStyles["bas_field_party"]());                
+        f.setStyle(magic.modules.VectorStyles["bas_field_party"]());
     });
     magic.runtime.map.forEachFeatureAtPixel(evt.pixel, jQuery.proxy(function(feat, layer) {
         if (layer == this.layer && feat.getGeometry().getType() == "Point") {
@@ -624,13 +624,13 @@ magic.classes.FieldPartyPositionButton.prototype.clickToEditHandler = function(e
                 jQuery.proxy(function(result) {
                     if (result) {
                         this.saveForm();
-                    } 
+                    }
                     this.setPayload(feat.getProperties());
-                }, this), 
+                }, this),
                 jQuery.proxy(function() {
                     this.setPayload(feat.getProperties());
                 }, this)
-            );            
+            );
             return(true);
         }
         return(false);
@@ -675,6 +675,6 @@ magic.classes.FieldPartyPositionButton.prototype.computeSeason = function(curren
         } else {
             return(thisYear.toString().substring(2) + (thisYear+1).toString().substring(2));
         }
-    } 
+    }
     return("");
 };
