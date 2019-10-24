@@ -222,9 +222,12 @@ magic.classes.FieldPartyPositionButton.prototype.loadFeatures = function() {
                     trackFeats.push(trackFeat);
                 }, this));
                 this.layer.getSource().clear();
-                this.layer.getSource().addFeatures(trackFeats);            
-                this.layer.getSource().addFeatures(noDupFeats);
-                this.assignHandlers();                        
+
+                // Disabled due to: https://gitlab.data.bas.ac.uk/MAGIC/web-map-engine/web-map-engine-v1/issues/22
+                //this.layer.getSource().addFeatures(trackFeats);
+                //this.layer.getSource().addFeatures(noDupFeats);
+
+                this.assignHandlers();
             }, this),
             error: function() {
                 console.log("Failed to get field party positional data - potential network outage?");
