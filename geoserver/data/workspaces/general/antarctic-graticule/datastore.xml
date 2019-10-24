@@ -1,0 +1,18 @@
+<dataStore>
+  <id>DataStoreInfoImpl--3d505ac7:16dfcb3bc13:-7fff</id>
+  <name>antarctic-graticule</name>
+  <type>GeoPackage</type>
+  <enabled>true</enabled>
+  <workspace>
+    <id>WorkspaceInfoImpl--59d5bdcf:16cc2cd6983:-7ffd</id>
+  </workspace>
+  <connectionParameters>
+    <entry key="Batch insert size">1</entry>
+    <entry key="database">file:data/add/antarctic-graticule.gpkg</entry>
+    <entry key="fetch size">1000</entry>
+    <entry key="Expose primary keys">false</entry>
+    <entry key="dbtype">geopkg</entry>
+    <entry key="namespace">https://ns.data.bas.ac.uk/workspaces/general</entry>
+  </connectionParameters>
+  <__default>false</__default>
+</dataStore>
