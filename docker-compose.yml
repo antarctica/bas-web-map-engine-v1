@@ -16,7 +16,7 @@ services:
       - "8080:8080"
 
   geoserver:
-    image: docker-registry.data.bas.ac.uk/magic/infrastructure/docker-images/geoserver:latest
+    image: docker-registry.data.bas.ac.uk/magic/infrastructure/docker-images/geoserver:2.16.0-alpine
     volumes:
       - "./geoserver/data/:/var/geoserver/data/"
       - "./geoserver/WEB-INF/web.xml:/usr/share/geoserver/webapps/geoserver/WEB-INF/web.xml"
