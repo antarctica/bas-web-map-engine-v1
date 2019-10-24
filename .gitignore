@@ -13,3 +13,4 @@ provisioning/packer/secrets.json
 # Runtime files
 geoserver/data/gwc/tmp
 geoserver/data/logs/geoserver.log
+geoserver/data/legendsamples

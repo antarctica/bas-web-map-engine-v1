@@ -70,6 +70,31 @@ The local PostGIS database can be accessed with these connection settings:
 | Database | `postgres`  |
 | Schema   | `webmap`    |
 
+The local PostGIS database can also be accessed through the `psql` command line interface:
+
+```shell
+$ docker-compose exec db ash
+$ psql -U postgres
+```
+
+Then switch to the `webmap` schema:
+
+```
+> SET search_path TO webmap;
+```
+
+To quit `psql`:
+
+```
+> \q
+```
+
+To run an SQL file:
+
+```
+$ psql -U postgres < foo.sql
+```
+
 #### Local GeoServer instance
 
 The local GeoServer instance is self-contained, running on a separate port (and container) to the Web Map Engine
