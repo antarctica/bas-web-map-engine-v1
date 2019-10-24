@@ -34,5 +34,6 @@ services:
       - "./src/main/webapp/WEB-INF/sql/table_creation/webmap_auth_tables.sql:/docker-entrypoint-initdb.d/x-12-webmap-auth-tables.sql"
       - "./src/main/webapp/WEB-INF/sql/table_creation/webmap_plugin_field_party_positions.sql:/docker-entrypoint-initdb.d/x-20-plugin-field-parties.sql"
       - "./src/main/webapp/WEB-INF/sql/table_population/docker/test-data.sql:/docker-entrypoint-initdb.d/x-70-test-data.sql"
+      - "./src/main/webapp/WEB-INF/sql/table_population/docker/test-data-plugin-field-parties.sql:/docker-entrypoint-initdb.d/x-72-test-data-plugin-field-parties.sql"
     environment:
       - POSTGRES_PASSWORD=password
