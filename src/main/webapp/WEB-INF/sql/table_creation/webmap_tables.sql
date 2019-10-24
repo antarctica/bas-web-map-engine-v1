@@ -1,7 +1,9 @@
-CREATE SCHEMA webmap;
+CREATE SCHEMA IF NOT EXISTS webmap;
 
 COMMENT ON SCHEMA webmap
   IS 'Configuration data for web maps';
+
+SET search_path TO webmap, public;
 
 
 CREATE TABLE webmap.endpoints
@@ -121,7 +123,7 @@ CREATE TABLE webmap.embedded_maps
   creation_date timestamp without time zone, -- When map was created
   modified_date timestamp without time zone, -- When map was last modified
   owner_name character varying(150), -- Name of the map owner
-  owner_email character varying(150), -- Their email address  
+  owner_email character varying(150), -- Their email address
   center character varying(100), -- Initial centre co-ordinates of the map
   zoom integer, -- Initial zoom level of the map
   rotation decimal, -- Initial rotation of the map in degrees
