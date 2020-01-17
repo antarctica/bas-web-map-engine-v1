@@ -418,6 +418,8 @@ magic.classes.FieldPartyPositionButton.prototype.confirmOperation = function(cal
 magic.classes.FieldPartyPositionButton.prototype.getPayload = function() {
     var lat = magic.modules.GeoUtils.toDecDegrees(jQuery("#fix-input-lat").val());
     var lon = magic.modules.GeoUtils.toDecDegrees(jQuery("#fix-input-lon").val());
+    var notes = jQuery("#fix-input-notes").val().replace(/'/g, "''");
+
     return({
         "id": jQuery("#fix-input-id").val(),
         "season": this.computeSeason(),
@@ -428,7 +430,7 @@ magic.classes.FieldPartyPositionButton.prototype.getPayload = function() {
         "lat": (jQuery.isNumeric(lat) || typeof lat == "string") ? lat : "",
         "lon": (jQuery.isNumeric(lon) || typeof lon == "string") ? lon : "",
         "height": jQuery("#fix-input-height").val(),
-        "notes": jQuery("#fix-input-notes").val()
+        "notes": notes
     });
 };
 
