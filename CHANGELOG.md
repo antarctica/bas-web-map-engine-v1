@@ -19,6 +19,10 @@ This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html
 * Minimal CI/CD pipeline to publish app WAR file as an artefact
 * Default support for the field parties plugin
 
+### Fixed
+
+* Escaping notes in field position updates
+
 ### Changed
 
 * Updating project README and change log
