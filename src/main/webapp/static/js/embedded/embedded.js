@@ -494,7 +494,7 @@ function projectionWorldExtent(proj) {
 if (!window.jQuery){
     var jq = document.createElement("script");
     jq.type = "text/javascript";
-    jq.src = "https://cdn.web.bas.ac.uk/js-libs/jquery-3.3.1.min.js";
+    jq.src = "https://cdn.web.bas.ac.uk/libs/jquery/3.3.1/jquery-3.3.1.min.js";
     document.getElementsByTagName("head")[0].appendChild(jq);
 }
 
