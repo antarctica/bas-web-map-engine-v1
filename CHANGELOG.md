@@ -22,6 +22,7 @@ This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html
 ### Fixed
 
 * Escaping notes in field position updates
+* Path to JQuery in embedded maps test page and JS lib [#34]
 
 ### Changed
 
