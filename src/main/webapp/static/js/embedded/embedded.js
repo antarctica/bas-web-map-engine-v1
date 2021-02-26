@@ -60,30 +60,31 @@ function getViewData(data) {
     }
     var rotation = parseFloat(data.rotation);
     rotation = isNaN(rotation) ? 0.0 : rotation*Math.PI/180.0;
-    if (data.projection == "EPSG:3857") {
-        /* OSM */
-        return({
-            center: data.center,        
-            rotation: rotation,
-            zoom: data.zoom,
-            projection: ol.proj.get(data.projection),
-            minZoom: 1, 
-            maxZoom: 20
-        });
-    } else {
-        /* Other projection */
-        var proj = ol.proj.get(data.projection);
-        proj.setExtent(data.proj_extent);
-        proj.setWorldExtent(data.proj_extent);
-        return({
-            center: data.center,        
-            rotation: rotation,
-            zoom: data.zoom,
-            projection: proj,           
-            maxResolution: data.resolutions[0], 
-            resolutions: data.resolutions
-        });
-    }    
+    // # Disabled in https://gitlab.data.bas.ac.uk/MAGIC/web-map-engine/web-map-engine-v1/-/issues/35
+    // if (data.projection == "EPSG:3857") {
+    //     /* OSM */
+    //     return({
+    //         center: data.center,
+    //         rotation: rotation,
+    //         zoom: data.zoom,
+    //         projection: ol.proj.get(data.projection),
+    //         minZoom: 1,
+    //         maxZoom: 20
+    //     });
+    // }
+
+    /* Other projection */
+    var proj = ol.proj.get(data.projection);
+    proj.setExtent(data.proj_extent);
+    proj.setWorldExtent(data.proj_extent);
+    return({
+        center: data.center,
+        rotation: rotation,
+        zoom: data.zoom,
+        projection: proj,
+        maxResolution: data.resolutions[0],
+        resolutions: data.resolutions
+    });
 }
 
 /**
