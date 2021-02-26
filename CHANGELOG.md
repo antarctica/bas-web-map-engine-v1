@@ -24,6 +24,7 @@ This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html
 * Escaping notes in field position updates
 * Path to JQuery in embedded maps test page and JS lib [#34]
 * Handling EPSG:3857 projections in embedded maps [#35]
+* Hard-coding resolutions for EPSG:3857 projections in embedded maps [#36]
 
 ### Changed
 

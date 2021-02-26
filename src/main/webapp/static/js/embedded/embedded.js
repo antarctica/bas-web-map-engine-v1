@@ -73,6 +73,12 @@ function getViewData(data) {
     //     });
     // }
 
+    // # hard code resolutions for 3857, these are ignored for OSM but used for other layers in that projection
+    // # part of https://gitlab.data.bas.ac.uk/MAGIC/web-map-engine/web-map-engine-v1/-/issues/36
+    if (data.projection == "EPSG:3857") {
+        data.resolutions = [156543,78271,39136,19567,9784,4892,2446,1223,611,306,153];
+    }
+
     /* Other projection */
     var proj = ol.proj.get(data.projection);
     proj.setExtent(data.proj_extent);
