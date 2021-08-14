@@ -440,17 +440,6 @@ To reverse this change, re-comment out the second *default* task definition and 
 **Note:** DO NOT commit the second *default* task definition uncommented - the repository should always represent
 production.
 
-## Deployment
-
-### Continuous Deployment
-
-A Continuous Deployment process using GitLab's CI/CD platform is configured in `.gitlab-ci.yml`. This will:
-
-* save the application WAR file as a GitLab build artefact
-* rebuild the *base* Packer template if the application source (`src/`) changes (except for SQL content)
-* rebuild the *app* Packer template if the SQL content or GoeServer data directory changes
-* update the Vagrant box metadata file for the *app* Packer template if it is rebuilt
-
 ## Release procedure
 
 ### At release
