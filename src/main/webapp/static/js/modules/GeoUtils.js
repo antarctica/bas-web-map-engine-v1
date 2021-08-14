@@ -679,9 +679,10 @@ magic.modules.GeoUtils = function() {
          */
         isPolarProjection: function(proj) {
             switch(proj) {
-                case "EPSG:3031":                
+                case "EPSG:3031":
                 case "EPSG:3995":
-                case "EPSG:102020": 
+                case "EPSG:102020":
+                case "EPSG:3762":
                     return(true);
                 default:
                     return(false);
