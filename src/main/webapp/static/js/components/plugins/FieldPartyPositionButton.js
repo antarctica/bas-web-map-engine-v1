@@ -18,7 +18,7 @@ magic.classes.FieldPartyPositionButton = function (options) {
 
     /* Data fetch */
     this.WFS_FETCH = "//rolgis.rothera.nerc-bas.ac.uk/geoserver/wfs?service=wfs&request=getfeature&version=2.0.0&" +
-            "typeNames=opsgis:ops_field_deployments&outputFormat=json&sortBy=fix_date+D&cql_filter=season=1920";
+            "typeNames=opsgis:ops_field_deployments&outputFormat=json&sortBy=fix_date+D&cql_filter=season=2021";
 
     /**
      * Classified feature map, so that heatmap styling can be applied
